@@ -9,6 +9,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\RoleService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,7 +28,7 @@ class RoleController extends AbstractController {
      * @Route("/api", name="settings_role_api", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_ROLES})
      */
-    public function api(EntityManagerInterface $entityManager): Response {
+    public function api(EntityManagerInterface $entityManager, UserService $userService): Response {
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $roles = $roleRepository->findAllExceptNoAccess();

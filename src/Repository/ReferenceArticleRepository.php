@@ -150,7 +150,7 @@ class ReferenceArticleRepository extends EntityRepository {
         $qb = $this->createQueryBuilder('referenceArticle');
 
         $qb->select('referenceArticle.id AS id')
-            ->addSelect('referenceArticle.reference AS label')
+            ->addSelect('referenceArticle.reference AS reference')
             ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"')) = 'null',
                                 null,
                                 JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"'))) AS outFormatEquipment")
