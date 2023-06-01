@@ -89,4 +89,9 @@ GROUP BY id,
          urgence,
          numero_projet,
          business_unit,
-         reference
+         reference,
+         numero_lot,
+         numero_serie,
+         numero_plombage_scelle,
+         adr
+
