@@ -22,6 +22,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Type;
@@ -521,6 +522,7 @@ class ReferenceArticleController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -540,12 +542,13 @@ class ReferenceArticleController extends AbstractController
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || $refArticle->getTrackingPack()
+                || $shippingRequestLineRepository->count(['reference' => $refArticle]) > 0
                 || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception, une expédition ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }

@@ -406,7 +406,7 @@ class ShippingRequestController extends AbstractController {
 
         if (($isDraftOrTreat && !$hasRightDeleteDraftOrTreat)
             || ($isScheduledOrShipped && !$hasRightDeleteScheduledOrShipped)) {
-            throw new FormException("Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . "(" . $shippingRequest->getStatus()->getCode() . ")");
+            throw new FormException("Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " au statut " . $this->getFormatter()->status($shippingRequest->getStatus()));
         }
 
         // remove status_history

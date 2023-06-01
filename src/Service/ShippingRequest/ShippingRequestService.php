@@ -528,14 +528,14 @@ class ShippingRequestService {
                 $articleOrReference = $requestLine->getArticleOrReference();
 
                 if ($articleOrReference instanceof Article) {
-
                     $articleOrReference->setTrackingPack(null);
                     $entityManager->remove($articleOrReference);
-
-                } else if ($articleOrReference instanceof ReferenceArticle) {
-
+                }
+                // only on scheduled status (quantities were added)
+                else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
+                         && $articleOrReference instanceof ReferenceArticle) {
                     $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
-                    $newQteReserve = $articleOrReference->getQuantiteReservee() - $requestLine->getQuantite();
+                    $newQteReserve = $articleOrReference->getQuantiteReservee() - $requestLine->getQuantity();
 
                     $articleOrReference->setQuantiteStock($newStock);
                     $articleOrReference->setQuantiteReservee($newQteReserve);

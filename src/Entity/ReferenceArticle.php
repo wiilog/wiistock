@@ -218,9 +218,6 @@ class ReferenceArticle
     #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
-    private Collection $shippingRequestLines;
-
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -240,7 +237,6 @@ class ReferenceArticle
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
         $this->storageRules = new ArrayCollection();
-        $this->shippingRequestLines = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -1218,42 +1214,6 @@ class ReferenceArticle
         $this->sheet = $image;
         if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
             $this->sheet->setReferenceArticleSheet($this);
-        }
-
-        return $this;
-    }
-
-    public function getShippingRequestLines(): Collection {
-        return $this->shippingRequestLines;
-    }
-
-    public function addShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
-        if (!$this->shippingRequestLines->contains($shippingRequestLine)) {
-            $this->shippingRequestLines[] = $shippingRequestLine;
-            $shippingRequestLine->setReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
-        if ($this->shippingRequestLines->removeElement($shippingRequestLine)) {
-            if ($shippingRequestLine->getArticleOrReference() === $this) {
-                $shippingRequestLine->setReference(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setShippingRequestLines(?iterable $shippingRequestLines): self {
-        foreach($this->getShippingRequestLines()->toArray() as $shippingRequestLines) {
-            $this->removeShippingRequestLines($shippingRequestLines);
-        }
-
-        $this->shippingRequestLines = new ArrayCollection();
-        foreach($shippingRequestLines ?? [] as $shippingRequestLines) {
-            $this->addShippingRequestLines($shippingRequestLines);
         }
 
         return $this;
