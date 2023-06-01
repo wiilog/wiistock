@@ -5,11 +5,17 @@ namespace App\Service;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class StatusHistoryService {
+
+    #[Required]
+    public Security $security;
 
     public function updateStatus(EntityManagerInterface $entityManager,
                                  StatusHistoryContainer $historyContainer,
@@ -19,15 +25,16 @@ class StatusHistoryService {
         $forceCreation = $options['forceCreation'] ?? true;
         $setStatus = $options['setStatus'] ?? true;
         $date = $options['date'] ?? new DateTime();
+        $initiatedBy = $options['initiatedBy'] ?? null;
 
         if ($forceCreation) {
-            $record = $this->createStatusHistory($historyContainer, $status);
+            $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy);
             $entityManager->persist($record);
         }
         else {
             $record = $this->getPreviousRecord($historyContainer, $status);
             if (!isset($record)) {
-                $record = $this->createStatusHistory($historyContainer, $status);
+                $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy);
                 $entityManager->persist($record);
             }
         }
@@ -42,10 +49,12 @@ class StatusHistoryService {
     }
 
     private function createStatusHistory(StatusHistoryContainer $historyContainer,
-                                         Statut                 $status): StatusHistory {
-
+                                         Statut                 $status,
+                                         ?Utilisateur           $initiatedBy = null): StatusHistory {
         $history = (new StatusHistory())
-            ->setStatus($status);
+            ->setStatus($status)
+            ->setChangedBy($this->security->getUser())
+            ->setInitiatedBy($initiatedBy);
 
         $historyContainer->addStatusHistory($history);
 

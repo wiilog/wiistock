@@ -51,6 +51,14 @@ class StatusHistory {
     #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
     private Collection $transportHistory;
 
+    #[ORM\ManyToOne(targetEntity: utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?utilisateur $changedBy = null;
+
+    #[ORM\ManyToOne(targetEntity: utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?utilisateur $initiatedBy = null;
+
     public function __construct() {
         $this->date = new DateTime();
         $this->transportHistory = new ArrayCollection();
@@ -192,6 +200,30 @@ class StatusHistory {
         }
         $this->shippingRequest = $shippingRequest;
         $shippingRequest?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getChangedBy(): ?utilisateur
+    {
+        return $this->changedBy;
+    }
+
+    public function setChangedBy(?utilisateur $changedBy): self
+    {
+        $this->changedBy = $changedBy;
+
+        return $this;
+    }
+
+    public function getInitiatedBy(): ?utilisateur
+    {
+        return $this->initiatedBy;
+    }
+
+    public function setInitiatedBy(?utilisateur $initiatedBy): self
+    {
+        $this->initiatedBy = $initiatedBy;
 
         return $this;
     }

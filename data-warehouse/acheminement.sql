@@ -36,7 +36,8 @@ SELECT dispatch.id                                        AS id,
        dispatch_reference_article.batch_number               AS numero_lot,
        dispatch_reference_article.serial_number              AS numero_serie,
        dispatch_reference_article.sealing_number             AS numero_plombage_scelle,
-       IF(dispatch_reference_article.adr = 1, 'Oui', 'Non')  AS adr
+       IF(dispatch_reference_article.adr = 1, 'Oui', 'Non')  AS adr,
+       dispatch.commentaire                                  AS commentaire
 
 FROM dispatch
 

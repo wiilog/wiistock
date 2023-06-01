@@ -1479,7 +1479,7 @@ class DispatchService {
                 throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
             }
 
-            $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
+            $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, ['initiatedBy' => $signatory]);
 
             $newCommentDispatch = $dispatch->getCommentaire()
                 ? ($dispatch->getCommentaire() . "<br/>")
