@@ -312,6 +312,7 @@ class ArrivageController extends AbstractController {
                 )
                 ->join(',');
             if ($linesNeedingConfirmation) {
+                $entityManager->flush();
                 $lastElement = array_pop($alertConfigs);
                 $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
                 $alertConfigs[] = $lastElement;
