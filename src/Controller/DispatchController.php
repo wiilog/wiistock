@@ -1349,7 +1349,7 @@ class DispatchController extends AbstractController {
                                DispatchService $dispatchService,
                                Dispatch $dispatch): JsonResponse {
 
-        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $entityManager);
+        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $entityManager, $dispatch);
 
         $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', $dispatchData);
 

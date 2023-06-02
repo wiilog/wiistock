@@ -117,9 +117,10 @@ class MobileController extends AbstractApiController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function postApiKey(Request $request,
-                               EntityManagerInterface $entityManager,
-                               UserService $userService)
+    public function postApiKey(Request                  $request,
+                               EntityManagerInterface   $entityManager,
+                               UserService              $userService,
+                               DispatchService          $dispatchService)
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -170,6 +171,9 @@ class MobileController extends AbstractApiController
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
+            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+            $wayBillData['dispatch_id'] = null;
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -179,6 +183,7 @@ class MobileController extends AbstractApiController
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
                 'fieldsParam' => $fieldsParam ?? [],
+                'dispatchDefaultWaybill' => $wayBillData ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -3821,7 +3826,7 @@ class MobileController extends AbstractApiController
     {
         return $this->json([
             'success' => true,
-            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $manager, $dispatch)
         ]);
     }
 
