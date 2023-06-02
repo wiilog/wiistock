@@ -637,7 +637,7 @@ function initDetailsScheduled($container) {
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
             {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
-            {name: 'weight', data: 'weight', title: 'Poid net (kg)', orderable: true},
+            {name: 'weight', data: 'weight', title: 'Poids net (kg)', orderable: true},
             {name: 'totalPrice', data: 'totalPrice', title: 'Montant total', orderable: true},
         ];
 
