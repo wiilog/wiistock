@@ -541,6 +541,8 @@ class DispatchController extends AbstractController {
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
 
+
+
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
             $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
             $dispatch->getStatut()->isNotTreated() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_UNPROCESSED_DISPATCH)) {
@@ -613,6 +615,7 @@ class DispatchController extends AbstractController {
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
+            ->setUpdatedAt(new DateTime())
             ->setBusinessUnit($businessUnit)
             ->setCarrier($carrier)
             ->setCarrierTrackingNumber($transporterTrackingNumber)
@@ -875,7 +878,7 @@ class DispatchController extends AbstractController {
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);
-
+        $dispatch->setUpdatedAt(new DateTime());
         $success = true;
         $packCode = $pack->getCode();
         $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");
@@ -901,6 +904,7 @@ class DispatchController extends AbstractController {
 
             if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
                 $entityManager->remove($pack);
+                $pack->getDispatch()->setUpdatedAt(new DateTime());
                 $entityManager->flush();
             }
 
@@ -1682,7 +1686,7 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
-
+        $dispatchReferenceArticle->getDispatchPack()->getDispatch()->setUpdatedAt(new DateTime());
         $dispatchPack->removeDispatchReferenceArticles($dispatchReferenceArticle);
         $entityManager->remove($dispatchReferenceArticle);
         $entityManager->flush();

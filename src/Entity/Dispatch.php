@@ -180,7 +180,7 @@ class Dispatch extends StatusHistoryContainer {
     private ?bool $withoutHistory = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $syncAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
@@ -611,14 +611,14 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getSyncAt(): ?\DateTimeInterface
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
-        return $this->syncAt;
+        return $this->updatedAt;
     }
 
-    public function setSyncAt(?\DateTimeInterface $syncAt): self
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
     {
-        $this->syncAt = $syncAt;
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }
