@@ -4062,7 +4062,7 @@ class MobileController extends AbstractApiController
         try {
             $entityManager->flush();
         } catch(Exception $e){
-            dump($e);
+            $errors[] = 'Une erreur est survenue';
         }
 
         //TODO vider la table locale sur le nomade
