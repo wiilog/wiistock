@@ -183,6 +183,7 @@ class Dispatch extends StatusHistoryContainer {
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $createdBy = null;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
