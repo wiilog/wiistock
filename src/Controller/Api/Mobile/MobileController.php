@@ -3528,10 +3528,14 @@ class MobileController extends AbstractApiController
         $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
         $serializedDispatches = Stream::from($serializedDispatches)
             ->reduce(fn(array $accumulator, array $serializedDispatch) => $mobileApiService->serializeDispatch($accumulator, $serializedDispatch), []);
-        $serializedDispatches = $serializedDispatches[array_key_first($serializedDispatches)];
+
+        $serializedDispatches = !empty($serializedDispatches)
+            ? $serializedDispatches[array_key_first($serializedDispatches)]
+            : null;
         return $this->json([
             'success' => true,
-            'dispatch' => $serializedDispatches
+            "msg" => "L'acheminement a été créé avec succès.",
+            "dispatch" => $serializedDispatches
         ]);
     }
 
