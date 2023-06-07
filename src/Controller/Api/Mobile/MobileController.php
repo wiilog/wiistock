@@ -4,6 +4,7 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
@@ -23,6 +24,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
@@ -2207,7 +2209,7 @@ class MobileController extends AbstractApiController
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
-        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+        $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
 
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -3523,13 +3525,17 @@ class MobileController extends AbstractApiController
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
-        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
-        $serializedDispatch = Stream::from($serializedDispatch)
-            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
-        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
+        $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatches = Stream::from($serializedDispatches)
+            ->reduce(fn(array $accumulator, array $serializedDispatch) => $mobileApiService->serializeDispatch($accumulator, $serializedDispatch), []);
+
+        $serializedDispatches = !empty($serializedDispatches)
+            ? $serializedDispatches[array_key_first($serializedDispatches)]
+            : null;
         return $this->json([
             'success' => true,
-            'dispatch' => $serializedDispatch
+            "msg" => "L'acheminement a été créé avec succès.",
+            "dispatch" => $serializedDispatches
         ]);
     }
 

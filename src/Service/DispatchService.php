@@ -278,6 +278,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
+        $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
             "label" => $this->translationService->translate('Demande', 'Général', 'Destinataire(s)', false),
@@ -381,6 +382,14 @@ class DispatchService {
                 ],
             );
         }
+
+        if($updatedAt) {
+            $config[] = [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernière mise à jour', false),
+                'value' => $this->formatService->datetime($updatedAt, "-"),
+            ];
+        }
+
         return $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
     }
 
@@ -1360,6 +1369,7 @@ class DispatchService {
             $entityManager->persist($attachment);
             $dispatchReferenceArticle->addAttachment($attachment);
         }
+        $dispatchPack->getDispatch()->setUpdatedAt(new DateTime());
         $entityManager->persist($dispatchReferenceArticle);
 
         $description = [
@@ -1551,7 +1561,8 @@ class DispatchService {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $userSavedData = $user->getSavedDispatchWaybillData();
+        $dispatchSavedLDV = $settingRepository->getOneParamByLabel(Setting::DISPATCH_SAVE_LDV);
+        $userSavedData = $dispatchSavedLDV ? [] : $user->getSavedDispatchWaybillData();
         $dispatchSavedData = $dispatch->getWaybillData();
 
         $now = new DateTime('now');
