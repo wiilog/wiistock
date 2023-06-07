@@ -241,7 +241,7 @@ class StatutRepository extends EntityRepository {
 
             if ($dispatchStatus) {
                 $queryBuilder
-                    ->where('status_category.nom = :dispatchCategoryLabel')
+                    ->orWhere('status_category.nom = :dispatchCategoryLabel')
                     ->setParameter('dispatchCategoryLabel', CategorieStatut::DISPATCH);
             }
 
