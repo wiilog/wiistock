@@ -24,6 +24,9 @@ class MobileApiService {
     #[Required]
     public NatureService $natureService;
 
+    #[Required]
+    public UserService $userService;
+
     const MOBILE_TRANSLATIONS = [
         "Acheminements",
         "Objet",
@@ -45,7 +48,8 @@ class MobileApiService {
             'before' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
         ];
 
-        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser);
+        $dispatchOfflineMode = $this->userService->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $loggedUser);
+        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser, null, $dispatchOfflineMode);
         $dispatches = Stream::from(
             Stream::from($dispatches)
                 ->reduce(function (array $accumulator, array $dispatch) {

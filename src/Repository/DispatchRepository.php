@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
+use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)
@@ -248,7 +249,7 @@ class DispatchRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null)
+    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null, ?bool $offlineMode = false)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
@@ -272,7 +273,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
             ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
-            ->addSelect('IF(status.state = 0, 1, 0) AS draft')
+            ->addSelect('IF(status.state = :draftStatusState, 1, 0) AS draft')
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
@@ -293,10 +294,24 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("dispatch", $dispatch);
         } else {
             $queryBuilder
-                ->andWhere('type.id IN (:dispatchTypeIds)')
-                ->andWhere('status.needsMobileSync = true')
-                ->andWhere('status.state IN (:untreatedStates)')
+                ->andWhere('type.id IN (:dispatchTypeIds)');
+            if ($offlineMode){
+                $queryBuilder
+                    ->andWhere($queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            'status.needsMobileSync = true',
+                            'status.state IN (:untreatedStates)',
+                        ),
+                        'status.state = :draftStatusState',
+                    ));
+            } else {
+                $queryBuilder
+                    ->andWhere('status.needsMobileSync = true')
+                    ->andWhere('status.state IN (:untreatedStates)');
+            }
+            $queryBuilder
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
+                ->setParameter('draftStatusState', Statut::DRAFT)
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
 

@@ -9,7 +9,6 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;

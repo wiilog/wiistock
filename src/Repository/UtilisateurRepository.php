@@ -246,6 +246,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $this->createQueryBuilder("user")
             ->select("user.id AS id")
             ->addSelect("user.username AS username")
+            ->addSelect("user.signatoryPassword AS signatoryPassword")
             ->andWhere("user.status = 1")
             ->getQuery()
             ->getResult();
