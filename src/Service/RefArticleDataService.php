@@ -427,7 +427,16 @@ class RefArticleDataService
         }
 
         if (isset($data['mobileSync'])) {
-            $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $syncCount = $referenceArticleRepository->count(['needsMobileSync' => true]);
+            if (!$refArticle->getNeedsMobileSync() && ($syncCount > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
+                return [
+                    'success' => false,
+                    'msg' => "Le nombre maximum de synchronisations a été atteint."
+                ];
+            } else {
+                $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
+            }
         }
 
         if (isset($data['buyer'])) {
