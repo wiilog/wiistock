@@ -179,11 +179,14 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private ?bool $withoutHistory = false;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $updatedAt = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $createdBy = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private ?bool $fromNomade = false;
 
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
@@ -374,6 +377,16 @@ class Dispatch extends StatusHistoryContainer {
         }
 
         return $this;
+    }
+
+    public function getDispatchPack(Pack $pack): ?self {
+        foreach ($this->dispatchPacks as $dispatchPack){
+            if($dispatchPack->getPack()->getCode() === $pack->getCode()){
+                return $dispatchPack;
+            }
+        }
+
+        return null;
     }
 
     public function getType(): ?Type {
@@ -635,6 +648,15 @@ class Dispatch extends StatusHistoryContainer {
     {
         $this->updatedAt = $updatedAt;
 
+        return $this;
+    }
+
+    public function isFromNomade(): ?bool {
+        return $this->fromNomade;
+    }
+
+    public function setFromNomade(?bool $fromNomade): self {
+        $this->fromNomade = $fromNomade;
         return $this;
     }
 
