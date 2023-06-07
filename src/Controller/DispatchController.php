@@ -296,6 +296,7 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
+        $currentUser = $this->getUser();
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $dispatch
             ->setCreationDate($date)
@@ -305,7 +306,8 @@ class DispatchController extends AbstractController {
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
             ->setNumber($dispatchNumber)
-            ->setDestination($destination);
+            ->setDestination($destination)
+            ->setCreatedBy($currentUser);
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
