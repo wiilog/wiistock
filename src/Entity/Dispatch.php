@@ -186,9 +186,6 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $createdBy = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private ?bool $fromNomade = false;
-
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -649,15 +646,6 @@ class Dispatch extends StatusHistoryContainer {
     {
         $this->updatedAt = $updatedAt;
 
-        return $this;
-    }
-
-    public function isFromNomade(): ?bool {
-        return $this->fromNomade;
-    }
-
-    public function setFromNomade(?bool $fromNomade): self {
-        $this->fromNomade = $fromNomade;
         return $this;
     }
 

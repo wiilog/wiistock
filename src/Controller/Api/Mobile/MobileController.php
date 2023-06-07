@@ -3890,6 +3890,7 @@ class MobileController extends AbstractApiController
         $errors = [];
         foreach($dispatchs as $dispatchArray){
             $currentError = false;
+            $wasDraft = false;
             // CREATION DES ACHEMINEMENTS
             if(!$dispatchArray['id']){
                 $type = $typeRepository->find($dispatchArray['typeId']);
@@ -3900,10 +3901,10 @@ class MobileController extends AbstractApiController
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
                 $createdBy = $userRepository->findOneBy(['username' => $dispatchArray['createdBy']]);
                 $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
-
+                $wasDraft = true;
                 $dispatch = (new Dispatch())
                     ->setNumber($uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT))
-                    ->setCreationDate($syncedAt)
+                    ->setCreationDate(new DateTime($dispatchArray['createdAt']))
                     ->setRequester($requester ?? $this->getUser())
                     ->setType($type)
                     ->setLocationFrom($locationFrom)
@@ -3912,14 +3913,17 @@ class MobileController extends AbstractApiController
                     ->setCommentaire($dispatchArray['comment'])
                     ->setEmergency($dispatchArray['emergency'] ?? null)
                     ->setCreatedBy($createdBy)
-                    ->setUpdatedAt($syncedAt)
-                    ->setFromNomade(true);
+                    ->setUpdatedAt($syncedAt);
                 $entityManager->persist($dispatch);
 
-                $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus);
+                $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
+                    'date' => new DateTime($dispatchArray['createdAt']),
+                ]);
                 if($draftStatus->getId() !== $dispatchStatus->getId()){
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
+                        'date' => new DateTime($dispatchArray['validatedAt'])
+                    ]);
                 }
             } else {
                 $dispatch = $dispatchRepository->find($dispatchArray['id']);
@@ -3933,25 +3937,24 @@ class MobileController extends AbstractApiController
                     $dispatchStatus = $dispatch->getStatut();
                     $localDispatchStatus = $statusRepository->find($dispatchArray['statusId']);
 
-                    if($dispatchStatus->isDraft()
-                        && $localDispatchStatus->getId() !== $dispatchStatus->getId()){
-                        $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
-                        $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
+                    if ($dispatchStatus->isDraft()) {
+                        $wasDraft = true;
+                        if ($localDispatchStatus->getId() !== $dispatchStatus->getId()) {
+                            $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+                            $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
+                                'date' => new DateTime($dispatchArray['validatedAt'])
+                            ]);
+                        }
                     }
                     $dispatch->setUpdatedAt($syncedAt);
                 }
             }
             if (!$currentError) {
                 $filteredDispatchReferences = Stream::from($dispatchReferences)
-                    ->filter(fn(array $dispatchReferences) => (
-                        $dispatch->getStatut()->isDraft()
-                        && (
-                            $dispatchReferences['dispatchId'] === $dispatchArray['id']
-                            || $dispatchReferences['localDispatchId'] === $dispatchArray['localId']
-                        )));
+                    ->filter(fn(array $dispatchReferences) => $wasDraft && $dispatchReferences['localDispatchId'] === $dispatchArray['localId']);
 
-                foreach ($filteredDispatchReferences as $data) {
-                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                foreach ($filteredDispatchReferences as $dispatchReference) {
+                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
                         'loggedUser' => $this->getUser(),
                         'now' => $syncedAt
                     ]);
@@ -3975,6 +3978,7 @@ class MobileController extends AbstractApiController
 
             $dispatchId = $groupedSignature['dispatchId'] ?? $localIdsToInsertIds[$groupedSignature['localId']] ?? null;
             if ($dispatchId) {
+                $dispatch = $dispatchRepository->find($dispatchId);
                 $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
                 $date = new DateTime($groupedSignature['signatureDate']);
                 $signatory = $userRepository->find($groupedSignature['signatory']);
@@ -3987,7 +3991,9 @@ class MobileController extends AbstractApiController
                 }
 
                 if($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()){
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
+                        'date' => $date
+                    ]);
                 } else {
                     $errors[] = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
                 }

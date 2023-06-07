@@ -9,8 +9,6 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
-use App\Entity\ShippingRequest\ShippingRequestLine;
-use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
