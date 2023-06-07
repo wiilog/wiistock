@@ -48,8 +48,8 @@ class MobileApiService {
             'before' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
         ];
 
-        $offlineMode = $this->userService->hasRightFunction(Menu::DEM, Action::OFFLINE_MODE, $loggedUser);
-        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser, null, $offlineMode);
+        $dispatchOfflineMode = $this->userService->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $loggedUser);
+        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser, null, $dispatchOfflineMode);
         $dispatches = Stream::from(
             Stream::from($dispatches)
                 ->reduce(function (array $accumulator, array $dispatch) {
@@ -63,8 +63,6 @@ class MobileApiService {
                 return $dispatch;
             })
             ->values();
-
-        dump($dispatches);
 
         $dispatchPacks = array_map(function($dispatchPack) {
             if(!empty($dispatchPack['comment'])) {

@@ -3874,23 +3874,24 @@ class MobileController extends AbstractApiController
         $data = $request->request;
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $statutRepository = $entityManager->getRepository(Statut::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $dispatchs = json_decode($data->get('dispatchs'), true);
         $dispatchPacks = json_decode($data->get('dispatchPacks'), true);
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
-        dump($dispatchs);
-        dump($dispatchPacks);
-        dump($dispatchReferences);
-
+        $localIdsToInsertIds = [];
         $syncedAt = new DateTime();
+        $errors = [];
         foreach($dispatchs as $dispatchArray){
+            $currentError = false;
             // CREATION DES ACHEMINEMENTS
             if(!$dispatchArray['id']){
                 $type = $typeRepository->find($dispatchArray['typeId']);
-                $dispatchStatut = $statutRepository->find($dispatchArray['statusId']);
+                $dispatchStatus = $statusRepository->find($dispatchArray['statusId']);
+                $draftStatuses = !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
+                $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
                 $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
                 $createdBy = $userRepository->findOneBy(['username' => $dispatchArray['createdBy']]);
@@ -3901,7 +3902,6 @@ class MobileController extends AbstractApiController
                     ->setCreationDate($syncedAt)
                     ->setRequester($requester ?? $this->getUser())
                     ->setType($type)
-                    ->setStatus($dispatchStatut)
                     ->setLocationFrom($locationFrom)
                     ->setLocationTo($locationTo)
                     ->setCarrierTrackingNumber($dispatchArray['carrierTrackingNumber'])
@@ -3912,48 +3912,139 @@ class MobileController extends AbstractApiController
                     ->setFromNomade(true);
                 $entityManager->persist($dispatch);
 
-                $dispatchService->treatDispatchRequest($entityManager, $dispatch, $dispatchStatut, $this->getUser(), true);
+                $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus);
+                if($draftStatus->getId() !== $dispatchStatus->getId()){
+                    $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
+                }
             } else {
                 $dispatch = $dispatchRepository->find($dispatchArray['id']);
-                if($dispatch->getUpdatedAt() > DateTime::createFromFormat('Y-m-d', $dispatchArray['updatedAt'])){
-                    throw new FormException('Erreur de synchronisation !');
+                if (!$dispatch) {
+                    $errors[] = "L'acheminement a été supprimé.";
+                    $currentError = true;
+                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat('Y-m-d', $dispatchArray['updatedAt'])){ //TODO VERIFIER LE FORMAT DE DATE
+                    $errors[] = "L'acheminement {$dispatch->getNumber()} a été modifié à {$this->getFormatter()->datetime($dispatch->getUpdatedAt())}, modifications locales annulées.";
+                    $currentError = true;
                 } else {
-                    $dispatchStatut = $dispatch->getStatut();
-                    $localDispatchStatus = $statutRepository->find($dispatchArray['statusId']);
+                    $dispatchStatus = $dispatch->getStatut();
+                    $localDispatchStatus = $statusRepository->find($dispatchArray['statusId']);
 
-                    if(!$dispatchStatut->isDraft()
-                        && $dispatch->getType()->getId() === $localDispatchStatus->getType()->getId()
-                        && $dispatchArray['statusId'] !== $dispatchStatut->getId()){
-                        $dispatch->setStatus($localDispatchStatus);
-                        $statusHistoryService->updateStatus($entityManager, $dispatch, $localDispatchStatus);
+                    if($dispatchStatus->isDraft()
+                        && $localDispatchStatus->getId() !== $dispatchStatus->getId()){
+                        $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+                        $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
                     }
                     $dispatch->setUpdatedAt($syncedAt);
                 }
             }
+            if (!$currentError) {
+                $filteredDispatchReferences = Stream::from($dispatchReferences)
+                    ->filter(fn(array $dispatchReferences) => (
+                        $dispatch->getStatut()->isDraft()
+                        && (
+                            $dispatchReferences['dispatchId'] === $dispatchArray['id']
+                            || $dispatchReferences['localDispatchId'] === $dispatchArray['localId']
+                        )));
 
-            $filteredDispatchReferences = Stream::from($dispatchReferences)
-                ->filter(fn(array $dispatchReferences) => (
-                    $dispatch->getStatut()->isDraft()
-                    && (
-                        $dispatchReferences['dispatchId'] === $dispatchArray['id']
-                        || $dispatchReferences['localDispatchId'] === $dispatchArray['localId']
-                    )));
-
-            foreach ($filteredDispatchReferences as $data){
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
-                    'loggedUser' => $this->getUser(),
-                    'now' => $syncedAt
-                ]);
+                foreach ($filteredDispatchReferences as $data) {
+                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                        'loggedUser' => $this->getUser(),
+                        'now' => $syncedAt
+                    ]);
+                }
+                try {
+                    $entityManager->flush();
+                    if (!$dispatchArray['id']) {
+                        $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
+                    }
+                } catch (Exception $ignored) {
+                    $errors[] = 'Une erreur est survenue';
+                }
             }
         }
 
 
         //SIGNATURE GROUPEE
         $groupedSignatureHistory = json_decode($data->get('groupedSignatureHistory'), true);
-//        foreach ($groupedSignatureHistory as $groupedSignature){
-//
-//        }
-        dump($groupedSignatureHistory);
+        foreach ($groupedSignatureHistory as $groupedSignature) {
+            $user = $this->getUser();
+
+            $dispatchId = $groupedSignature['dispatchId'] ?? $localIdsToInsertIds[$groupedSignature['localId']] ?? null;
+            if ($dispatchId) {
+                $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
+                $date = new DateTime($groupedSignature['signatureDate']);
+                $signatory = $userRepository->find($groupedSignature['signatory']);
+                $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
+                    ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
+                    ->isEmpty());
+
+                if (!$containsReferences) {
+                    $errors[] = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
+                }
+
+                if($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()){
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
+                } else {
+                    $errors[] = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
+                }
+
+                $newCommentDispatch = $dispatch->getCommentaire()
+                    ? ($dispatch->getCommentaire() . "<br/>")
+                    : "";
+
+                $dispatch
+                    ->setTreatmentDate($date)
+                    ->setTreatedBy($user)
+                    ->setCommentaire($newCommentDispatch . $groupedSignature['comment'] ?? '');
+
+                $takingLocation = $dispatch->getLocationFrom();
+                $dropLocation = $dispatch->getLocationTo();
+
+                foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                    $pack = $dispatchPack->getPack();
+                    $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                        $pack,
+                        $takingLocation,
+                        $user,
+                        $date,
+                        true,
+                        true,
+                        TrackingMovement::TYPE_PRISE,
+                        [
+                            'quantity' => $dispatchPack->getQuantity(),
+                            'from' => $dispatch,
+                            'removeFromGroup' => true,
+                            'attachments' => $dispatch->getAttachments(),
+                        ]
+                    );
+                    $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                        $pack,
+                        $dropLocation,
+                        $user,
+                        $date,
+                        true,
+                        true,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'quantity' => $dispatchPack->getQuantity(),
+                            'from' => $dispatch,
+                            'attachments' => $dispatch->getAttachments(),
+                        ]
+                    );
+
+                    $entityManager->persist($trackingTaking);
+                    $entityManager->persist($trackingDrop);
+
+                    $dispatchPack->setTreated(true);
+                }
+
+                $entityManager->flush();
+
+                if($groupedSignatureStatus->getSendReport()){
+                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+                }
+            }
+        }
 
         //GENERATION DES LETTRES DE VOITURE
 //            $dispatchService->generateWayBill();
