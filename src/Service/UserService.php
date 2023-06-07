@@ -217,7 +217,7 @@ class UserService
             'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),
             'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user),
             'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user),
-            'offlineMode' => $this->hasRightFunction(Menu::DEM, Action::OFFLINE_MODE, $user),
+            'dispatchOfflineMode' => $this->hasRightFunction(Menu::DEM, Action::OFFLINE_MODE, $user),
         ];
     }
 
