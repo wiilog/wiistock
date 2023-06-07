@@ -2207,7 +2207,7 @@ class MobileController extends AbstractApiController
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
-        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+        $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
 
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -3523,13 +3523,13 @@ class MobileController extends AbstractApiController
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
-        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
-        $serializedDispatch = Stream::from($serializedDispatch)
-            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
-        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
+        $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatches = Stream::from($serializedDispatches)
+            ->reduce(fn(array $accumulator, array $serializedDispatch) => $mobileApiService->serializeDispatch($accumulator, $serializedDispatch), []);
+        $serializedDispatches = $serializedDispatches[array_key_first($serializedDispatches)];
         return $this->json([
             'success' => true,
-            'dispatch' => $serializedDispatch
+            'dispatch' => $serializedDispatches
         ]);
     }
 
