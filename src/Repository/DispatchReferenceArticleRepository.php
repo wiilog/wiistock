@@ -55,7 +55,7 @@ class DispatchReferenceArticleRepository extends EntityRepository
             ->addSelect('dispatch_reference_article.comment AS comment')
             ->join('dispatch_reference_article.referenceArticle', 'reference_article')
             ->join('dispatch_reference_article.dispatchPack', 'dispatch_pack')
-            ->andWhere('dispatch_reference_article.dispatch IN (:dispatchIds)')
+            ->andWhere('dispatch_pack.dispatch IN (:dispatchIds)')
             ->setParameter('dispatchIds', $dispatchIds)
             ->getQuery()
             ->getResult();
