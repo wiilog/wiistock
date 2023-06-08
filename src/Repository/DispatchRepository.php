@@ -286,7 +286,8 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
             ->join('dispatch.type', 'type')
-            ->join('dispatch.statut', 'status');
+            ->join('dispatch.statut', 'status')
+            ->setParameter('draftStatusState', Statut::DRAFT);
 
         if ($dispatch) {
             $queryBuilder
@@ -311,7 +312,6 @@ class DispatchRepository extends EntityRepository
             }
             $queryBuilder
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
-                ->setParameter('draftStatusState', Statut::DRAFT)
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
 
