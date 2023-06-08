@@ -3512,10 +3512,11 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $now = new DateTime();
         $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
-            ->setCreationDate(new DateTime())
+            ->setCreationDate($now)
             ->setRequester($this->getUser())
             ->setType($type)
             ->setStatus($draftStatuses[0])
@@ -3524,6 +3525,8 @@ class MobileController extends AbstractApiController
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
             ->setEmergency(!empty($emergency) ? $emergency : null)
+            ->setCreatedBy($this->getUser())
+            ->setUpdatedAt($now)
             ->setEmails($emails);
 
         if($receiver) {
@@ -3909,8 +3912,8 @@ class MobileController extends AbstractApiController
             // CREATION DES ACHEMINEMENTS
             if(!$dispatchArray['id']){
                 $type = $typeRepository->find($dispatchArray['typeId']);
-                $dispatchStatus = $statusRepository->find($dispatchArray['statusId']);
-                $draftStatuses = !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
+                $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
+                $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
                 $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
                 $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
@@ -3934,7 +3937,7 @@ class MobileController extends AbstractApiController
                 $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                     'date' => new DateTime($dispatchArray['createdAt']),
                 ]);
-                if($draftStatus->getId() !== $dispatchStatus->getId()){
+                if($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()){
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => new DateTime($dispatchArray['validatedAt'])
@@ -3945,7 +3948,7 @@ class MobileController extends AbstractApiController
                 if (!$dispatch) {
                     $errors[] = "L'acheminement a été supprimé.";
                     $currentError = true;
-                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat('Y-m-d', $dispatchArray['updatedAt'])){ //TODO VERIFIER LE FORMAT DE DATE
+                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat(DATE_ATOM, $dispatchArray['updatedAt'])){
                     $errors[] = "L'acheminement {$dispatch->getNumber()} a été modifié à {$this->getFormatter()->datetime($dispatch->getUpdatedAt())}, modifications locales annulées.";
                     $currentError = true;
                 } else {

@@ -241,7 +241,6 @@ class DispatchRepository extends EntityRepository
         $result = $this->createQueryBuilder('dispatch')
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
-            ->orderBy('dispatch.creationDate', 'DESC')
             ->addOrderBy('dispatch.number', 'DESC')
             ->setParameter('value', Dispatch::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
@@ -298,13 +297,15 @@ class DispatchRepository extends EntityRepository
                 ->andWhere('type.id IN (:dispatchTypeIds)');
             if ($offlineMode){
                 $queryBuilder
+                    ->andWhere('dispatch_created_by = :user')
                     ->andWhere($queryBuilder->expr()->orX(
                         $queryBuilder->expr()->andX(
                             'status.needsMobileSync = true',
                             'status.state IN (:untreatedStates)',
                         ),
                         'status.state = :draftStatusState',
-                    ));
+                    ))
+                ->setParameter('user', $user);
             } else {
                 $queryBuilder
                     ->andWhere('status.needsMobileSync = true')

@@ -463,9 +463,9 @@ class DispatchService {
                     : "ENL"
                 )
                 . '_'
-                . $this->formatService->location($dispatch->getLocationTo())
-                . '_'
                 . $this->formatService->location($dispatch->getLocationFrom())
+                . '_'
+                . $this->formatService->location($dispatch->getLocationTo())
                 . '_'
                 . (new DateTime())->format('Ymd')
             ;
@@ -1205,9 +1205,9 @@ class DispatchService {
                     : "ENL"
             )
             . '_'
-            . $this->formatService->location($dispatch->getLocationTo())
-            . '_'
             . $this->formatService->location($dispatch->getLocationFrom())
+            . '_'
+            . $this->formatService->location($dispatch->getLocationTo())
             . '_'
             . (new DateTime())->format('Ymd')
         ;
