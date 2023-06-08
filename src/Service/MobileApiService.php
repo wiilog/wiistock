@@ -30,6 +30,8 @@ class MobileApiService {
 
     const MOBILE_TRANSLATIONS = [
         "Acheminements",
+        "Champs fixes",
+        "Général",
         "Objet",
         "Nombre d'opération(s) réalisée(s)",
         "Nature",
