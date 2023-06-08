@@ -64,16 +64,23 @@ class MobileApiService {
             })
             ->values();
 
-        $dispatchPacks = array_map(function($dispatchPack) {
-            if(!empty($dispatchPack['comment'])) {
-                $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
-            }
-            return $dispatchPack;
-        }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
+        $dispatchIds = Stream::from($dispatches)
+            ->map(fn(array $dispatch) => $dispatch['id'])
+            ->toArray();
+
+        $dispatchPacks = Stream::from($dispatchPackRepository->getMobilePacksFromDispatches($dispatchIds))
+            ->map(function($dispatchPack) {
+                if(!empty($dispatchPack['comment'])) {
+                    $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
+                }
+                return $dispatchPack;
+            })
+            ->toArray();
 
         return [
             'dispatches' => $dispatches,
-            'dispatchPacks' => $dispatchPacks
+            'dispatchPacks' => $dispatchPacks,
+            'dispatchReferences' => $dispatchPackRepository->getForMobile($dispatchIds),
         ];
     }
 

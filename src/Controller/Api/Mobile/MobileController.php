@@ -2422,6 +2422,7 @@ class MobileController extends AbstractApiController
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
+                'dispatchReference' => $dispatchReferences,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
             $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
             $dispatchEmergencies = Stream::from($elements)
@@ -2480,6 +2481,7 @@ class MobileController extends AbstractApiController
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
+            'dispatchReferences' => $dispatchReferences ?? [],
             'status' => $status,
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
@@ -3898,8 +3900,7 @@ class MobileController extends AbstractApiController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $dispatchs = json_decode($data->get('dispatchs'), true);
-        $dispatchPacks = json_decode($data->get('dispatchPacks'), true);
+        $dispatchs = json_decode($data->get('dispatches'), true);
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
         $localIdsToInsertIds = [];
@@ -3911,8 +3912,8 @@ class MobileController extends AbstractApiController
             // CREATION DES ACHEMINEMENTS
             if(!$dispatchArray['id']){
                 $type = $typeRepository->find($dispatchArray['typeId']);
-                $dispatchStatus = $statusRepository->find($dispatchArray['statusId']);
-                $draftStatuses = !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
+                $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
+                $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
                 $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
                 $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
@@ -3936,7 +3937,7 @@ class MobileController extends AbstractApiController
                 $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                     'date' => new DateTime($dispatchArray['createdAt']),
                 ]);
-                if($draftStatus->getId() !== $dispatchStatus->getId()){
+                if($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()){
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => new DateTime($dispatchArray['validatedAt'])
