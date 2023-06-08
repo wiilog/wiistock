@@ -3959,6 +3959,7 @@ class MobileController extends AbstractApiController
                         $wasDraft = true;
                         if ($localDispatchStatus->getId() !== $dispatchStatus->getId()) {
                             $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+                            $dispatch->setValidationDate(new DateTime());
                             $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                                 'date' => new DateTime($dispatchArray['validatedAt'])
                             ]);
