@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -41,6 +42,7 @@ class MobileApiService {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
 
         $dispatchExpectedDateColors = [
             'after' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
@@ -80,7 +82,7 @@ class MobileApiService {
         return [
             'dispatches' => $dispatches,
             'dispatchPacks' => $dispatchPacks,
-            'dispatchReferences' => $dispatchPackRepository->getForMobile($dispatchIds),
+            'dispatchReferences' => $dispatchReferenceArticleRepository->getForMobile($dispatchIds),
         ];
     }
 
