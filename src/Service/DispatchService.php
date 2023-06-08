@@ -1664,7 +1664,8 @@ class DispatchService {
             'associatedDocumentTypes' => $data['associatedDocumentTypes'],
         ]);
 
-        $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $this->packService->createPackWithCode($data['logisticUnit']);
+        $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
+            ?? $this->packService->createPackWithCode($data['logisticUnit']);
 
         $logisticUnit->setNature($defaultNature);
 

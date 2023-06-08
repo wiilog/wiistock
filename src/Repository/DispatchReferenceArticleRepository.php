@@ -32,28 +32,32 @@ class DispatchReferenceArticleRepository extends EntityRepository
         }
     }
 
-//    /**
-//     * @return DispatchReferenceArticle[] Returns an array of DispatchReferenceArticle objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?DispatchReferenceArticle
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function getForMobile(array $dispatchIds): array {
+        if (empty($dispatchIds)) {
+            return [];
+        }
+        return $this->createQueryBuilder('dispatch_reference_article')
+            ->select('reference_article.reference AS reference')
+            ->addSelect('dispatch_reference_article.quantity AS quantity')
+            ->addSelect('dispatch_pack.id AS dispatchPackId')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."outFormatEquipment"\'))) AS outFormatEquipment')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."manufacturerCode"\'))) AS manufacturerCode')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."width"\'))) AS width')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."height"\'))) AS height')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."length"\'))) AS length')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."weight"\'))) AS weight')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."volume"\'))) AS volume')
+            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."associatedDocumentTypes"\'))) AS associatedDocumentTypes')
+            ->addSelect('dispatch_reference_article.sealingNumber AS sealingNumber')
+            ->addSelect('dispatch_reference_article.serialNumber AS serialNumber')
+            ->addSelect('dispatch_reference_article.batchNumber AS batchNumber')
+            ->addSelect('dispatch_reference_article.ADR AS adr')
+            ->addSelect('dispatch_reference_article.comment AS comment')
+            ->join('dispatch_reference_article.referenceArticle', 'reference_article')
+            ->join('dispatch_reference_article.dispatchPack', 'dispatch_pack')
+            ->andWhere('dispatch_reference_article.dispatch IN (:dispatchIds)')
+            ->setParameter('dispatchIds', $dispatchIds)
+            ->getQuery()
+            ->getResult();
+    }
 }
