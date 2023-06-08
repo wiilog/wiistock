@@ -2422,7 +2422,7 @@ class MobileController extends AbstractApiController
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
-                'dispatchReference' => $dispatchReferences,
+                'dispatchReferences' => $dispatchReferences,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
             $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
             $dispatchEmergencies = Stream::from($elements)
