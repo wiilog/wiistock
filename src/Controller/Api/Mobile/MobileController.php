@@ -3947,7 +3947,7 @@ class MobileController extends AbstractApiController
                 if (!$dispatch) {
                     $errors[] = "L'acheminement a été supprimé.";
                     $currentError = true;
-                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat('Y-m-d', $dispatchArray['updatedAt'])){ //TODO VERIFIER LE FORMAT DE DATE
+                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat(DATE_ATOM, $dispatchArray['updatedAt'])){
                     $errors[] = "L'acheminement {$dispatch->getNumber()} a été modifié à {$this->getFormatter()->datetime($dispatch->getUpdatedAt())}, modifications locales annulées.";
                     $currentError = true;
                 } else {
