@@ -2406,10 +2406,6 @@ class MobileController extends AbstractApiController
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
-            [
-                'dispatches' => $dispatches,
-                'dispatchPacks' => $dispatchPacks,
-            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
         }
 
         if($rights['demande'] || $rights['stock']) {
@@ -2418,6 +2414,22 @@ class MobileController extends AbstractApiController
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ])
+                ->toArray();
+
+        }
+
+        if($rights['demande'] || $rights['tracking']){
+            [
+                'dispatches' => $dispatches,
+                'dispatchPacks' => $dispatchPacks,
+            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
+            $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $dispatchEmergencies = Stream::from($elements)
+                ->toArray();
+
+            $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+            $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypeElements ?? '')
+                ->filter()
                 ->toArray();
         }
 
@@ -2478,6 +2490,8 @@ class MobileController extends AbstractApiController
             'reference_articles' => $refs ?? [],
             'drivers' => $driverRepository->getDriversArray(),
             'carriers' => $carriers ?? [],
+            'dispatchEmergencies' => $dispatchEmergencies ?? [],
+            'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
         ];
     }
 
