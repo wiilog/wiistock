@@ -3510,10 +3510,11 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $now = new DateTime();
         $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
-            ->setCreationDate(new DateTime())
+            ->setCreationDate($now)
             ->setRequester($this->getUser())
             ->setType($type)
             ->setStatus($draftStatuses[0])
@@ -3522,6 +3523,8 @@ class MobileController extends AbstractApiController
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
             ->setEmergency(!empty($emergency) ? $emergency : null)
+            ->setCreatedBy($this->getUser())
+            ->setUpdatedAt($now)
             ->setEmails($emails);
 
         if($receiver) {
