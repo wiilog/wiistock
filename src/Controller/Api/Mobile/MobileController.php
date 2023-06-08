@@ -3911,8 +3911,8 @@ class MobileController extends AbstractApiController
             // CREATION DES ACHEMINEMENTS
             if(!$dispatchArray['id']){
                 $type = $typeRepository->find($dispatchArray['typeId']);
-                $dispatchStatus = $statusRepository->find($dispatchArray['statusId']);
-                $draftStatuses = !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
+                $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
+                $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
                 $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
                 $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
@@ -3936,7 +3936,7 @@ class MobileController extends AbstractApiController
                 $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                     'date' => new DateTime($dispatchArray['createdAt']),
                 ]);
-                if($draftStatus->getId() !== $dispatchStatus->getId()){
+                if($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()){
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => new DateTime($dispatchArray['validatedAt'])
