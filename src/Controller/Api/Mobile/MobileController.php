@@ -3996,79 +3996,83 @@ class MobileController extends AbstractApiController
             $dispatchId = $groupedSignature['dispatchId'] ?? $localIdsToInsertIds[$groupedSignature['localId']] ?? null;
             if ($dispatchId) {
                 $dispatch = $dispatchRepository->find($dispatchId);
-                $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
-                $date = new DateTime($groupedSignature['signatureDate']);
-                $signatory = $userRepository->find($groupedSignature['signatory']);
-                $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
-                    ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
-                    ->isEmpty());
-
-                if (!$containsReferences) {
-                    $errors[] = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
-                }
-
-                if($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()){
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
-                        'date' => $date
-                    ]);
+                if ($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > DateTime::createFromFormat(DATE_ATOM, $groupedSignature['updatedAt'])) {
+                    $errors[] = "L'acheminement {$dispatch->getNumber()} a été modifié à {$this->getFormatter()->datetime($dispatch->getUpdatedAt())}, modifications locales annulées.";
                 } else {
-                    $errors[] = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
-                }
+                    $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
+                    $date = new DateTime($groupedSignature['signatureDate']);
+                    $signatory = $userRepository->find($groupedSignature['signatory']);
+                    $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
+                        ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
+                        ->isEmpty());
 
-                $newCommentDispatch = $dispatch->getCommentaire()
-                    ? ($dispatch->getCommentaire() . "<br/>")
-                    : "";
+                    if (!$containsReferences) {
+                        $errors[] = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
+                    }
 
-                $dispatch
-                    ->setTreatmentDate($date)
-                    ->setTreatedBy($user)
-                    ->setCommentaire($newCommentDispatch . $groupedSignature['comment'] ?? '');
+                    if ($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()) {
+                        $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
+                            'date' => $date
+                        ]);
+                    } else {
+                        $errors[] = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
+                    }
 
-                $takingLocation = $dispatch->getLocationFrom();
-                $dropLocation = $dispatch->getLocationTo();
+                    $newCommentDispatch = $dispatch->getCommentaire()
+                        ? ($dispatch->getCommentaire() . "<br/>")
+                        : "";
 
-                foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
-                    $pack = $dispatchPack->getPack();
-                    $trackingTaking = $this->trackingMovementService->createTrackingMovement(
-                        $pack,
-                        $takingLocation,
-                        $user,
-                        $date,
-                        true,
-                        true,
-                        TrackingMovement::TYPE_PRISE,
-                        [
-                            'quantity' => $dispatchPack->getQuantity(),
-                            'from' => $dispatch,
-                            'removeFromGroup' => true,
-                            'attachments' => $dispatch->getAttachments(),
-                        ]
-                    );
-                    $trackingDrop = $this->trackingMovementService->createTrackingMovement(
-                        $pack,
-                        $dropLocation,
-                        $user,
-                        $date,
-                        true,
-                        true,
-                        TrackingMovement::TYPE_DEPOSE,
-                        [
-                            'quantity' => $dispatchPack->getQuantity(),
-                            'from' => $dispatch,
-                            'attachments' => $dispatch->getAttachments(),
-                        ]
-                    );
+                    $dispatch
+                        ->setTreatmentDate($date)
+                        ->setTreatedBy($user)
+                        ->setCommentaire($newCommentDispatch . $groupedSignature['comment'] ?? '');
 
-                    $entityManager->persist($trackingTaking);
-                    $entityManager->persist($trackingDrop);
+                    $takingLocation = $dispatch->getLocationFrom();
+                    $dropLocation = $dispatch->getLocationTo();
 
-                    $dispatchPack->setTreated(true);
-                }
+                    foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                        $pack = $dispatchPack->getPack();
+                        $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                            $pack,
+                            $takingLocation,
+                            $user,
+                            $date,
+                            true,
+                            true,
+                            TrackingMovement::TYPE_PRISE,
+                            [
+                                'quantity' => $dispatchPack->getQuantity(),
+                                'from' => $dispatch,
+                                'removeFromGroup' => true,
+                                'attachments' => $dispatch->getAttachments(),
+                            ]
+                        );
+                        $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                            $pack,
+                            $dropLocation,
+                            $user,
+                            $date,
+                            true,
+                            true,
+                            TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'quantity' => $dispatchPack->getQuantity(),
+                                'from' => $dispatch,
+                                'attachments' => $dispatch->getAttachments(),
+                            ]
+                        );
 
-                $entityManager->flush();
+                        $entityManager->persist($trackingTaking);
+                        $entityManager->persist($trackingDrop);
 
-                if($groupedSignatureStatus->getSendReport()){
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+                        $dispatchPack->setTreated(true);
+                    }
+
+                    $entityManager->flush();
+
+                    if ($groupedSignatureStatus->getSendReport()) {
+                        $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+                    }
                 }
             }
         }
