@@ -59,8 +59,8 @@ class StatusHistoryService {
                                          ?Utilisateur           $validatedBy = null): StatusHistory {
         $history = (new StatusHistory())
             ->setStatus($status)
-            ->setValidatedBy($initiatedBy)
-            ->setInitiatedBy($validatedBy);
+            ->setValidatedBy($validatedBy)
+            ->setInitiatedBy($initiatedBy);
 
         $historyContainer->addStatusHistory($history);
 
