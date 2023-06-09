@@ -1485,6 +1485,7 @@ class DispatchService {
                 false,
                 $entityManager
             );
+            $entityManager->flush();
         }
 
         return [
@@ -1580,7 +1581,6 @@ class DispatchService {
             $dispatchPack->setTreated(true);
         }
 
-        $entityManager->flush();
 
         if($groupedSignatureStatus->getSendReport()){
             $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);

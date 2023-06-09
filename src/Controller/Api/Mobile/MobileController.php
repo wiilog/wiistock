@@ -4014,6 +4014,7 @@ class MobileController extends AbstractApiController
                         true,
                         $entityManager
                     );
+                    $entityManager->flush();
                     $errors = array_merge($errors, $signatureErrors);
                 }
             }
