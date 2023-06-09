@@ -22,6 +22,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Type;
@@ -170,7 +171,7 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-            switch($data['type_quantite']) {
+            switch ($data['type_quantite']) {
                 case 'reference':
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
                     break;
@@ -179,9 +180,16 @@ class ReferenceArticleController extends AbstractController
                     break;
             }
 
+            $needsMobileSync = filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if ($needsMobileSync && ($referenceArticleRepository->count(['needsMobileSync' => true]) > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le nombre maximum de synchronisations nomade a été atteint.'
+                ]);
+            }
             $refArticle = new ReferenceArticle();
             $refArticle
-                ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
@@ -521,6 +529,7 @@ class ReferenceArticleController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -540,12 +549,13 @@ class ReferenceArticleController extends AbstractController
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || $refArticle->getTrackingPack()
+                || $shippingRequestLineRepository->count(['reference' => $refArticle]) > 0
                 || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception, une expédition ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }

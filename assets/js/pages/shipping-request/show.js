@@ -9,6 +9,7 @@ global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 global.generateDeliverySlip = generateDeliverySlip;
 global.treatShippingRequest = treatShippingRequest;
 global.deleteExpectedLine = deleteExpectedLine;
+global.deleteShippingRequest = deleteShippingRequest;
 
 let expectedLines = null;
 let packingData = [];
@@ -66,6 +67,20 @@ function validateShippingRequest($button) {
         ));
     }
 }
+
+function deleteShippingRequest($event){
+    const shipping_request_id = $event.data('id');
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), function () {
+        AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    window.location.href = Routing.generate('shipping_request_index');
+                }
+            });
+    });
+}
+
 
 function initScheduledShippingRequestForm() {
     let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
@@ -637,7 +652,7 @@ function initDetailsScheduled($container) {
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
             {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
-            {name: 'weight', data: 'weight', title: 'Poid net (kg)', orderable: true},
+            {name: 'weight', data: 'weight', title: 'Poids net (kg)', orderable: true},
             {name: 'totalPrice', data: 'totalPrice', title: 'Montant total', orderable: true},
         ];
 

@@ -9,7 +9,6 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
-use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -44,6 +43,7 @@ class ReferenceArticle
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
+    const MAX_NOMADE_SYNC = 4000;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -218,9 +218,6 @@ class ReferenceArticle
     #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
-    private Collection $shippingRequestLines;
-
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -240,7 +237,6 @@ class ReferenceArticle
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
         $this->storageRules = new ArrayCollection();
-        $this->shippingRequestLines = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
@@ -1218,42 +1214,6 @@ class ReferenceArticle
         $this->sheet = $image;
         if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
             $this->sheet->setReferenceArticleSheet($this);
-        }
-
-        return $this;
-    }
-
-    public function getShippingRequestLines(): Collection {
-        return $this->shippingRequestLines;
-    }
-
-    public function addShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
-        if (!$this->shippingRequestLines->contains($shippingRequestLine)) {
-            $this->shippingRequestLines[] = $shippingRequestLine;
-            $shippingRequestLine->setReference($this);
-        }
-
-        return $this;
-    }
-
-    public function removeShippingRequestLines(ShippingRequestLine $shippingRequestLine): self {
-        if ($this->shippingRequestLines->removeElement($shippingRequestLine)) {
-            if ($shippingRequestLine->getArticleOrReference() === $this) {
-                $shippingRequestLine->setReference(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function setShippingRequestLines(?iterable $shippingRequestLines): self {
-        foreach($this->getShippingRequestLines()->toArray() as $shippingRequestLines) {
-            $this->removeShippingRequestLines($shippingRequestLines);
-        }
-
-        $this->shippingRequestLines = new ArrayCollection();
-        foreach($shippingRequestLines ?? [] as $shippingRequestLines) {
-            $this->addShippingRequestLines($shippingRequestLines);
         }
 
         return $this;

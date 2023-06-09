@@ -365,6 +365,8 @@ class ImportService
         $this->currentImport = $import;
         $this->resetCache();
         $csvFile = $this->currentImport->getCsvFile();
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
 
         // we check mode validity
         if (!in_array($mode, [self::IMPORT_MODE_RUN, self::IMPORT_MODE_FORCE_PLAN, self::IMPORT_MODE_PLAN])) {
@@ -952,7 +954,13 @@ class ImportService
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour le champ synchronisation nomade est invalide (autorisé : "oui" ou "non")');
             } else {
-                $refArt->setNeedsMobileSync($value === 'oui');
+                $neddsMobileSync = $value === 'oui';
+                if ($neddsMobileSync && $this->scalarCache['countReferenceArticleSyncNomade'] > ReferenceArticle::MAX_NOMADE_SYNC) {
+                    $this->throwError('Le nombre maximum de synchronisations nomade a été atteint.');
+                } else {
+                    $this->scalarCache['countReferenceArticleSyncNomade']++;
+                    $refArt->setNeedsMobileSync($neddsMobileSync);
+                }
             }
         }
 
@@ -1909,11 +1917,7 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
-            } else {
-                $project->setCode($data['code']);
-            }
+            $project->setCode($data['code']);
         }
 
         if (isset($data['description'])) {

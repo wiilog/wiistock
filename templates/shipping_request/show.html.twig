@@ -50,8 +50,12 @@
                                         </a>
                                     {% endif %}
                                     {% if hasRightDelete %}
-                                        <a href="" data-id='{{ shipping.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                                           class="dropdown-item d-flex align-items-center">
+                                        <a
+                                            onclick="deleteShippingRequest($(this))"
+                                            data-id='{{ shipping.id }}'
+                                            data-target='#modalDeleteDispatch'
+                                            data-toggle='modal'
+                                            class="dropdown-item d-flex align-items-center">
                                             <span class="wii-icon wii-icon-trash-black mr-2"></span>
                                             {{ trans('Général', null, 'Modale', 'Supprimer') }}
                                         </a>

@@ -301,7 +301,11 @@ class ArticleDataService
         if ($existing) {
             $existing
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setConform($data['conform'] ?? true)
+                ->setBatch($data['batch'] ?? null);
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())

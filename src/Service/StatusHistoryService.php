@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Dispatch;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -40,9 +41,12 @@ class StatusHistoryService {
         }
 
         $record->setDate($date);
-
         if ($setStatus) {
             $historyContainer->setStatus($status);
+        }
+
+        if ($historyContainer instanceof Dispatch) {
+            $historyContainer->setUpdatedAt($date);
         }
 
         return $record;

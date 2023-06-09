@@ -62,11 +62,12 @@ $(document).ready(() => {
             const $form = $(`.wii-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
+                keepForm: true,
                 success: data => {
                     window.location.href = redirectRoute
                         ? Routing.generate(redirectRoute, redirectRouteParams)
-                        : data.data.id
-                            ? Routing.generate('reference_article_show_page', {id: data.data.id})
+                        : data.id
+                            ? Routing.generate('reference_article_show_page', {id: data.id})
                             : Routing.generate('reference_article_index');
                 },
             }).then((data) => {

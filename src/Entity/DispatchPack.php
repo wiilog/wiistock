@@ -56,7 +56,11 @@ class DispatchPack {
     }
 
     public function setDispatch(?Dispatch $dispatch): self {
+        if($this->dispatch && $this->dispatch !== $dispatch) {
+            $this->dispatch->removeDispatchPack($this);
+        }
         $this->dispatch = $dispatch;
+        $dispatch?->addDispatchPack($this);
 
         return $this;
     }

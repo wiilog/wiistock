@@ -108,6 +108,9 @@ class DispatchService {
     #[Required]
     public RefArticleDataService $refArticleDataService;
 
+    #[Required]
+    public PackService $packService;
+
     private ?array $freeFieldsConfig = null;
 
     // cache for default nature
@@ -278,7 +281,7 @@ class DispatchService {
         $startDateStr = $this->formatService->date($startDate, "", $user);
         $endDateStr = $this->formatService->date($endDate, "", $user);
         $projectNumber = $dispatch->getProjectNumber();
-        $syncDate = $dispatch->getSyncAt() ?: null;
+        $updatedAt = $dispatch->getUpdatedAt() ?: null;
 
         $receiverDetails = [
             "label" => $this->translationService->translate('Demande', 'Général', 'Destinataire(s)', false),
@@ -383,10 +386,10 @@ class DispatchService {
             );
         }
 
-        if($dispatch->getSyncAt()) {
+        if($updatedAt) {
             $config[] = [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernière synchronisation', false),
-                'value' => $this->formatService->datetime($syncDate, "-"),
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernière mise à jour', false),
+                'value' => $this->formatService->datetime($updatedAt, "-"),
             ];
         }
 
@@ -460,9 +463,9 @@ class DispatchService {
                     : "ENL"
                 )
                 . '_'
-                . $this->formatService->location($dispatch->getLocationTo())
-                . '_'
                 . $this->formatService->location($dispatch->getLocationFrom())
+                . '_'
+                . $this->formatService->location($dispatch->getLocationTo())
                 . '_'
                 . (new DateTime())->format('Ymd')
             ;
@@ -1202,9 +1205,9 @@ class DispatchService {
                     : "ENL"
             )
             . '_'
-            . $this->formatService->location($dispatch->getLocationTo())
-            . '_'
             . $this->formatService->location($dispatch->getLocationFrom())
+            . '_'
+            . $this->formatService->location($dispatch->getLocationTo())
             . '_'
             . (new DateTime())->format('Ymd')
         ;
@@ -1369,6 +1372,7 @@ class DispatchService {
             $entityManager->persist($attachment);
             $dispatchReferenceArticle->addAttachment($attachment);
         }
+        $dispatchPack->getDispatch()->setUpdatedAt(new DateTime());
         $entityManager->persist($dispatchReferenceArticle);
 
         $description = [
@@ -1594,5 +1598,117 @@ class DispatchService {
         return Stream::from(Dispatch::WAYBILL_DATA)
             ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
             ->toArray();
+    }
+
+
+    public function treatMobileDispatchReference(EntityManagerInterface $entityManager,
+                                                 Dispatch $dispatch,
+                                                 array $data,
+                                                 array $options){
+        if(!isset($data['logisticUnit']) || !isset($data['reference'])){
+            throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
+        }
+
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
+
+        $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
+        if(!$reference) {
+            $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
+            $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
+            $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
+
+            if($dispatchNewReferenceType === null) {
+                throw new FormException("Vous n'avez pas paramétré de type par défaut pour la création de références.");
+            } elseif ($dispatchNewReferenceStatus === null) {
+                throw new FormException("Vous n'avez pas paramétré de statut par défaut pour la création de références.");
+            } elseif ($dispatchNewReferenceQuantityManagement === null) {
+                throw new FormException("Vous n'avez pas paramétré de gestion de quantité par défaut pour la création de références.");
+            }
+
+            $type = $typeRepository->find($dispatchNewReferenceType);
+            $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
+
+            $reference = (new ReferenceArticle())
+                ->setReference($data['reference'])
+                ->setLibelle($data['reference'])
+                ->setType($type)
+                ->setStatut($status)
+                ->setTypeQuantite($dispatchNewReferenceQuantityManagement == 0
+                    ? ReferenceArticle::QUANTITY_TYPE_REFERENCE
+                    : ReferenceArticle::QUANTITY_TYPE_ARTICLE
+                )
+                ->setCreatedBy($options['loggedUser'])
+                ->setCreatedAt($options['now'])
+                ->setBarCode($this->refArticleDataService->generateBarCode())
+                ->setQuantiteStock(0)
+                ->setQuantiteDisponible(0);
+
+            $entityManager->persist($reference);
+        }
+
+        $oldDescription = $reference->getDescription();
+        $this->refArticleDataService->updateDescriptionField($entityManager, $reference, [
+            'outFormatEquipment' => $data['outFormatEquipment'],
+            'manufacturerCode' => $data['manufacturerCode'],
+            'volume' =>  $data['volume'],
+            'length' =>  $data['length'] ?: ($oldDescription['length'] ?? null),
+            'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
+            'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
+            'weight' => $data['weight'],
+            'associatedDocumentTypes' => $data['associatedDocumentTypes'],
+        ]);
+
+        $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
+            ?? $this->packService->createPackWithCode($data['logisticUnit']);
+
+        $logisticUnit->setNature($defaultNature);
+
+        $entityManager->persist($logisticUnit);
+
+        $dispatchPack = (new DispatchPack())
+            ->setDispatch($dispatch)
+            ->setPack($logisticUnit)
+            ->setTreated(false);
+
+        $entityManager->persist($dispatchPack);
+
+        $dispatchReferenceArticle = (new DispatchReferenceArticle())
+            ->setReferenceArticle($reference)
+            ->setDispatchPack($dispatchPack)
+            ->setQuantity($data['quantity'])
+            ->setBatchNumber($data['batchNumber'])
+            ->setSerialNumber($data['serialNumber'])
+            ->setSealingNumber($data['sealingNumber'])
+            ->setComment($data['comment'])
+            ->setADR(isset($data['adr']) && boolval($data['adr']));
+
+        $maxNbFilesSubmitted = 10;
+        $fileCounter = 1;
+        // upload of photo_1 to photo_10
+        do {
+            $photoFile = $data["photo_$fileCounter"] ?? [];
+            if (!empty($photoFile)) {
+                $name = uniqid();
+                $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                file_put_contents($path, file_get_contents($photoFile));
+                $attachment = new Attachment();
+                $attachment
+                    ->setOriginalName("photo_$fileCounter.jpeg")
+                    ->setFileName("$name.jpeg")
+                    ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                $dispatchReferenceArticle->addAttachment($attachment);
+                $entityManager->persist($attachment);
+            }
+            $fileCounter++;
+        } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+
+        $entityManager->persist($dispatchReferenceArticle);
     }
 }
