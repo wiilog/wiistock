@@ -4004,77 +4004,17 @@ class MobileController extends AbstractApiController
                     $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
                     $date = new DateTime($groupedSignature['signatureDate']);
                     $signatory = $userRepository->find($groupedSignature['signatory']);
-                    $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
-                        ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
-                        ->isEmpty());
-
-                    if (!$containsReferences) {
-                        $errors[] = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
-                    }
-
-                    if ($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()) {
-                        $statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
-                            'date' => $date
-                        ]);
-                    } else {
-                        $errors[] = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
-                    }
-
-                    $newCommentDispatch = $dispatch->getCommentaire()
-                        ? ($dispatch->getCommentaire() . "<br/>")
-                        : "";
-
-                    $dispatch
-                        ->setTreatmentDate($date)
-                        ->setTreatedBy($user)
-                        ->setCommentaire($newCommentDispatch . $groupedSignature['comment'] ?? '');
-
-                    $takingLocation = $dispatch->getLocationFrom();
-                    $dropLocation = $dispatch->getLocationTo();
-
-                    foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
-                        $pack = $dispatchPack->getPack();
-                        $trackingTaking = $this->trackingMovementService->createTrackingMovement(
-                            $pack,
-                            $takingLocation,
-                            $user,
-                            $date,
-                            true,
-                            true,
-                            TrackingMovement::TYPE_PRISE,
-                            [
-                                'quantity' => $dispatchPack->getQuantity(),
-                                'from' => $dispatch,
-                                'removeFromGroup' => true,
-                                'attachments' => $dispatch->getAttachments(),
-                            ]
-                        );
-                        $trackingDrop = $this->trackingMovementService->createTrackingMovement(
-                            $pack,
-                            $dropLocation,
-                            $user,
-                            $date,
-                            true,
-                            true,
-                            TrackingMovement::TYPE_DEPOSE,
-                            [
-                                'quantity' => $dispatchPack->getQuantity(),
-                                'from' => $dispatch,
-                                'attachments' => $dispatch->getAttachments(),
-                            ]
-                        );
-
-                        $entityManager->persist($trackingTaking);
-                        $entityManager->persist($trackingDrop);
-
-                        $dispatchPack->setTreated(true);
-                    }
-
-                    $entityManager->flush();
-
-                    if ($groupedSignatureStatus->getSendReport()) {
-                        $dispatchService->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
-                    }
+                    $signatureErrors = $dispatchService->signDispatch(
+                        $dispatch,
+                        $groupedSignatureStatus,
+                        $signatory,
+                        $user,
+                        $date,
+                        $groupedSignature['comment'] ?? '',
+                        true,
+                        $entityManager
+                    );
+                    $errors = array_merge($errors, $signatureErrors);
                 }
             }
         }

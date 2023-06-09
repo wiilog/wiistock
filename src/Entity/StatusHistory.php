@@ -51,13 +51,13 @@ class StatusHistory {
     #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
     private Collection $transportHistory;
 
-    #[ORM\ManyToOne(targetEntity: utilisateur::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?utilisateur $changedBy = null;
+    private ?Utilisateur $initiatedBy = null;
 
-    #[ORM\ManyToOne(targetEntity: utilisateur::class)]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?utilisateur $initiatedBy = null;
+    private ?Utilisateur $validatedBy = null;
 
     public function __construct() {
         $this->date = new DateTime();
@@ -204,14 +204,14 @@ class StatusHistory {
         return $this;
     }
 
-    public function getChangedBy(): ?utilisateur
+    public function getValidatedBy(): ?utilisateur
     {
-        return $this->changedBy;
+        return $this->validatedBy;
     }
 
-    public function setChangedBy(?utilisateur $changedBy): self
+    public function setValidatedBy(?utilisateur $validatedBy): self
     {
-        $this->changedBy = $changedBy;
+        $this->validatedBy = $validatedBy;
 
         return $this;
     }

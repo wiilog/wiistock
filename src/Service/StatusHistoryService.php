@@ -27,15 +27,16 @@ class StatusHistoryService {
         $setStatus = $options['setStatus'] ?? true;
         $date = $options['date'] ?? new DateTime();
         $initiatedBy = $options['initiatedBy'] ?? null;
+        $validatedBy = $options['validatedBy'] ?? null;
 
         if ($forceCreation) {
-            $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy);
+            $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy, $validatedBy);
             $entityManager->persist($record);
         }
         else {
             $record = $this->getPreviousRecord($historyContainer, $status);
             if (!isset($record)) {
-                $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy);
+                $record = $this->createStatusHistory($historyContainer, $status, $initiatedBy, $validatedBy);
                 $entityManager->persist($record);
             }
         }
@@ -54,11 +55,12 @@ class StatusHistoryService {
 
     private function createStatusHistory(StatusHistoryContainer $historyContainer,
                                          Statut                 $status,
-                                         ?Utilisateur           $initiatedBy = null): StatusHistory {
+                                         ?Utilisateur           $initiatedBy = null,
+                                         ?Utilisateur           $validatedBy = null): StatusHistory {
         $history = (new StatusHistory())
             ->setStatus($status)
-            ->setChangedBy($this->security->getUser())
-            ->setInitiatedBy($initiatedBy);
+            ->setValidatedBy($initiatedBy)
+            ->setInitiatedBy($validatedBy);
 
         $historyContainer->addStatusHistory($history);
 
