@@ -1689,6 +1689,23 @@ class DispatchService {
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
 
+            if($data['photos']){
+                $photos = json_decode($data['photos'], true);
+                foreach ($photos as $index => $photo) {
+                    $name = uniqid();
+                    $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                    file_put_contents($path, file_get_contents($photo));
+                    $attachment = new Attachment();
+                    $attachment
+                        ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
+                        ->setFileName("$name.jpeg")
+                        ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                    $entityManager->persist($attachment);
+                    $reference->addAttachment($attachment);
+                }
+            }
+
             $entityManager->persist($reference);
         }
 
