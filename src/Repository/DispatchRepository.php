@@ -303,7 +303,7 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
         $qb = $this->createQueryBuilder("dispatch");
 
         if($requester) {
@@ -316,9 +316,11 @@ class DispatchRepository extends EntityRepository
             ->innerJoin("dispatch.statut", "status")
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = dispatch.type')
             ->andWhere("status.state != " . Statut::TREATED)
+            ->andWhere("dispatch.type IN (:types)")
             ->addOrderBy('status.state', 'ASC')
             ->addOrderBy("DATE_ADD(dispatch.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
+            ->setParameter("types", $types)
             ->getQuery()
             ->getResult();
     }

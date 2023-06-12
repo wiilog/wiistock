@@ -2,18 +2,52 @@
 
 {% set kind = values.kind is defined ? values.kind : null %}
 {% set shown = values.shown is defined ? values.shown : null %}
+{% set kinds = [
+    { value: 'delivery', label: trans('Demande', 'Livraison', 'Livraison', false)},
+    { value: 'collect', label: 'Collecte' },
+    { value: 'handling', label: 'Service' },
+    { value: 'dispatch', label: 'Acheminement', categoryType: constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH')},
+    { value: 'transfer', label: 'Transfert' },
+] %}
 
 {% block content %}
     <div class="row">
         <div class="form-group col-12">
             <label class="wii-field-name">Demande*</label>
-            <select class="data form-control w-100 needed" name="kind">
-                <option value="delivery" {{ kind == 'delivery' ? 'selected' }}>{{ trans('Demande', 'Livraison', 'Livraison', false) }}</option>
-                <option value="collect" {{ kind == 'collect' ? 'selected' }}>Collecte</option>
-                <option value="handling" {{ kind == 'handling' ? 'selected' }}>Service</option>
-                <option value="dispatch" {{ kind == 'dispatch' ? 'selected' }}>Acheminement</option>
-                <option value="transfer" {{ kind == 'transfer' ? 'selected' }}>Transfert</option>
+            <select class="data form-control w-100 needed init-entity-change" name="kind" onchange="onEntityChange($(this))">
+                {% for kindOption in kinds %}
+                    <option
+                        value="{{ kindOption.value }}"
+                        {{ kind == kindOption.value ? 'selected' }}
+                        data-category-type="{{ kindOption.categoryType ?? '' }}">
+                        {{ kindOption.label }}
+                    </option>
+                {% endfor %}
             </select>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-12">
+            <label class="wii-field-name">Type(s) de la demande*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="entityTypes"
+                            multiple
+                            title="Type(s) de la demande"
+                            disabled>
+                        {% for type in entityTypes %}
+                            <option value="{{ type.id }}"
+                                    data-category-label="{{ type.category.label }}"
+                                {{ type.id in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
+                            {% dump(type.category.label) %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button" disabled>Tous les types</button>
+                </div>
+            </div>
         </div>
     </div>
     <div class="row">
