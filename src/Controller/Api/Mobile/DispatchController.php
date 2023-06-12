@@ -57,7 +57,7 @@ class DispatchController extends AbstractApiController
             $isCreation = !$dispatchArray['id'];
             $validationDate = $this->getFormatter()->parseDatetime($dispatchArray['validatedAt']);
             // CREATION DES ACHEMINEMENTS
-            if(!$dispatchArray['id']){
+            if($isCreation){
                 $type = $typeRepository->find($dispatchArray['typeId']);
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];

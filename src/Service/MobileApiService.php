@@ -106,8 +106,12 @@ class MobileApiService {
         // Set reference quantity fields, format : REF1 (1),REF2 (4),...
         if (!isset($accumulator[$dispatch['id']]['quantities']) && $dispatch['lineQuantity'] && $dispatch['packReferences']) {
             $accumulator[$dispatch['id']]['quantities'] = $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')';
-        } else if ($dispatch['lineQuantity'] && $dispatch['packReferences']) {
+        }
+        else if ($dispatch['lineQuantity'] && $dispatch['packReferences']) {
             $accumulator[$dispatch['id']]['quantities'] .= (',' . $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')');
+        }
+        else {
+            $accumulator[$dispatch['id']]['quantities'] = null;
         }
 
         if (array_key_exists('lineQuantity', $accumulator[$dispatch['id']])) {
@@ -117,7 +121,8 @@ class MobileApiService {
         // Set packs fields, format : PACK1,PACK2,...
         if (!$first && $accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
             $accumulator[$dispatch['id']]['packs'] .= (',' . $dispatch['packs']);
-        } else if ($dispatch['packs']) {
+        }
+        else if ($dispatch['packs']) {
             $accumulator[$dispatch['id']]['packs'] = $dispatch['packs'];
         }
         return $accumulator;
