@@ -179,11 +179,11 @@ class DispatchController extends AbstractApiController
                         true,
                         $entityManager
                     );
-                    if(!empty($signatureErrors)){
+                    if(empty($signatureErrors)){
                         try {
                             $entityManager->flush();
                         } catch (Exception $ignored) {
-                            $errors[] = "Une erreur est survenue lors de la signature de l'acheminemennt {$dispatch->getNumber()}";
+                            $errors[] = "Une erreur est survenue lors de la signature de l'acheminement {$dispatch->getNumber()}";
                             [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                         }
                     } else {
