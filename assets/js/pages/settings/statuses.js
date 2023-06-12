@@ -140,7 +140,7 @@ function getStatusesColumn(mode) {
         {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
         {data: `label`, title: `Libellé`, required: true},
         {data: `state`, title: `État`, required: true},
-        {data: `type`, title: `Type`, required: true, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING]},
+        {data: `type`, title: `Type`, required: true, modes: [MODE_ARRIVAL, MODE_DISPATCH, MODE_HANDLING], className: 'minw-150px'},
         {data: `comment`, title: `Commentaire litige`, modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE]},
         {
             data: `defaultStatut`,
