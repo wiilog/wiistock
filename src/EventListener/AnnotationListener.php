@@ -25,6 +25,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 class AnnotationListener {
 
@@ -86,7 +87,7 @@ class AnnotationListener {
 
         $annotation = $this->getAnnotation($reader, $method, HasPermission::class);
 
-        if ($annotation instanceof HasPermission) {
+        if (isset($annotation[0]) && $annotation[0] instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
         }
 
@@ -99,12 +100,16 @@ class AnnotationListener {
     private function getAnnotation(AnnotationReader $reader, mixed $method, string $class): mixed {
         $annotation = $reader->getMethodAnnotation($method, $class);
         if($annotation) {
-            return $annotation;
+            return [$annotation];
         }
 
         $nativeAnnotations = $method->getAttributes($class);
         if(!empty($nativeAnnotations)) {
-            return $nativeAnnotations[0]->newInstance();
+            $annotations = [$nativeAnnotations[0]->newInstance()];
+            if (isset($nativeAnnotations[1])) {
+                $annotations[] = $nativeAnnotations[1]->newInstance();
+            }
+            return $annotations;
         }
 
         return null;
@@ -139,20 +144,23 @@ class AnnotationListener {
         }
     }
 
-    private function handleHasPermission(ControllerArgumentsEvent $event, HasPermission $annotation) {
-        if (!$this->userService->hasRightFunction(...$annotation->value)) {
+    private function handleHasPermission(ControllerArgumentsEvent $event, array $annotation) {
+        $permissionsWithRight = Stream::from($annotation)
+            ->filter(fn(HasPermission $permission) => $this->userService->hasRightFunction(...$permission->value));
+
+        if ($permissionsWithRight->count() == 0) {
             $event->setController(function() use ($annotation) {
-                if ($annotation->mode == HasPermission::IN_JSON) {
+                if ($annotation[0]->mode == HasPermission::IN_JSON) {
                     return new JsonResponse([
                                                 "success" => false,
                                                 "msg" => "Accès refusé",
                                             ]);
                 }
-                else if ($annotation->mode == HasPermission::IN_RENDER) {
+                else if ($annotation[0]->mode == HasPermission::IN_RENDER) {
                     return new Response($this->templating->render("securite/access_denied.html.twig"));
                 }
                 else {
-                    throw new RuntimeException("Unknown mode $annotation->mode");
+                    throw new RuntimeException("Unknown mode $annotation[0]->mode");
                 }
             });
         }

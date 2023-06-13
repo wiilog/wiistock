@@ -27,7 +27,10 @@
     } %}
     {% set hasRightEdit =
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
-        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
+        hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY'))
+        or (not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) and
+        not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY'))
+        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')))%}
     <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
     <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">

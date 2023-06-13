@@ -240,8 +240,7 @@ class SelectController extends AbstractController {
      * @Route("/select/references", name="ajax_select_references", options={"expose": true})
      */
     public function references(Request                  $request,
-                               EntityManagerInterface   $manager,
-                               UserService              $userService): Response {
+                               EntityManagerInterface   $manager): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
         /** @var Utilisateur $user */
@@ -259,7 +258,7 @@ class SelectController extends AbstractController {
 
         $redirectRoute = $request->query->get('redirect-route');
         $redirectParams = $request->query->get('redirect-route-params');
-        if ($redirectRoute && $userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+        if ($redirectRoute) {
             $results
                 ->unshift([
                     "id" => "redirect-url",

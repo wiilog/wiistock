@@ -64,12 +64,14 @@ class ShippingRequestExpectedLineService {
         $editUrl = $line
             ? $this->router->generate('reference_article_edit_page', [
                 "reference" => $line->getReferenceArticle()?->getId(),
-                "shipping" => 1,
+                "fromShipping" => 1,
                 "redirect-route" => 'shipping_request_show',
                 "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
             ])
             : '';
-        $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
+        $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            || (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+                && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING));
 
         return [
             "actions" => "
@@ -164,6 +166,7 @@ class ShippingRequestExpectedLineService {
                             'attributes' => [
                                 'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', [
                                     'reference' => $reference->getId(),
+                                    "fromShipping" => 1,
                                     'redirect-route' => 'shipping_request_show',
                                     "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
                                 ])}'",

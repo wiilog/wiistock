@@ -12,7 +12,7 @@ use Doctrine\Common\Annotations\Annotation\Target;
  * @NamedArgumentConstructor
  * @Target("METHOD")
  */
-#[Attribute(Attribute::TARGET_METHOD)]
+#[Attribute(Attribute::IS_REPEATABLE | Attribute::TARGET_METHOD)]
 class HasPermission {
 
     public const IN_RENDER = 0;

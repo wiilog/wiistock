@@ -16,7 +16,9 @@
                    href="{{ path('reference_article_show_page', {id: reference_id}) }}">
                 </a>
 
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT'))
+                    or (not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')))%}
                     <a class="dropdown-item"
                          href="{{ path('reference_article_edit_page', {reference: reference_id}) }}" target="_blank">
                         <i class='fas fa-pencil-alt mr-2'></i>Modifier

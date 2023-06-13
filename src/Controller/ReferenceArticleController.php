@@ -117,7 +117,8 @@ class ReferenceArticleController extends AbstractController
                         AttachmentService $attachmentService): Response
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
-            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
+            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)
+            && !$userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)) {
             return $this->json([
                 "success" => false,
                 "msg" => "Accès refusé",
@@ -454,13 +455,13 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/modifier", name: "reference_article_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::STOCK, Action::EDIT])]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
                          TranslationService     $translation): Response {
-        if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
-            && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
+        if ((!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)
+            && !$userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING))) {
             return $this->json([
                 "success" => false,
                 "msg" => "Accès refusé",
@@ -868,11 +869,16 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/nouveau-page", name: "reference_article_new_page", options: ["expose" => true])]
-    #[HasPermission([Menu::STOCK, Action::CREATE])]
+    #[HasPermission([Menu::STOCK, Action::CREATE]), HasPermission([Menu::DEM, Action::CREATE_SHIPPING])]
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)
+            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)
+            && !$request->query->has('shipping')) {
+            return new Response($this->templating->render("securite/access_denied.html.twig"));
+        }
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -929,10 +935,16 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/modifier-page/{reference}", name: "reference_article_edit_page", options: ["expose" => true])]
-    #[HasPermission([Menu::STOCK, Action::EDIT])]
+    #[HasPermission([Menu::STOCK, Action::EDIT]), HasPermission([Menu::DEM, Action::CREATE_SHIPPING])]
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
-                                 ReferenceArticle       $reference) {
+                                 ReferenceArticle       $reference,
+                                 Request                $request) {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)
+            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)
+            && !$request->query->has('fromShipping')) {
+            return new Response($this->templating->render("securite/access_denied.html.twig"));
+        }
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
