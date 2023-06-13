@@ -91,6 +91,7 @@ class DispatchController extends AbstractApiController
 
                 if($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()){
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
+                    $dispatch->setValidationDate($validationDate);
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => $validationDate,
                     ]);
