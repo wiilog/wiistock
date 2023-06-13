@@ -40,7 +40,6 @@
                             <option value="{{ type.id }}"
                                     data-category-label="{{ type.category.label }}"
                                 {{ type.id in values.entityTypes ? 'selected' }}>{{ type.label }}</option>
-                            {% dump(type.category.label) %}
                         {% endfor %}
                     </select>
                 </div>

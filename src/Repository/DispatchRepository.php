@@ -312,15 +312,19 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("requester", $requester);
         }
 
+        if(!empty($types)) {
+            $qb
+                ->andWhere("dispatch.type IN (:types)")
+                ->setParameter("types", $types);
+        }
+
         return $qb
             ->innerJoin("dispatch.statut", "status")
             ->leftJoin(AverageRequestTime::class, 'art', Join::WITH, 'art.type = dispatch.type')
             ->andWhere("status.state != " . Statut::TREATED)
-            ->andWhere("dispatch.type IN (:types)")
             ->addOrderBy('status.state', 'ASC')
             ->addOrderBy("DATE_ADD(dispatch.creationDate, art.average, 'second')", 'ASC')
             ->setMaxResults($limit)
-            ->setParameter("types", $types)
             ->getQuery()
             ->getResult();
     }
