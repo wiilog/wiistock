@@ -463,9 +463,9 @@ class DispatchService {
                     : "ENL"
                 )
                 . '_'
-                . $this->formatService->location($dispatch->getLocationTo())
-                . '_'
                 . $this->formatService->location($dispatch->getLocationFrom())
+                . '_'
+                . $this->formatService->location($dispatch->getLocationTo())
                 . '_'
                 . (new DateTime())->format('Ymd')
             ;
@@ -1205,9 +1205,9 @@ class DispatchService {
                     : "ENL"
             )
             . '_'
-            . $this->formatService->location($dispatch->getLocationTo())
-            . '_'
             . $this->formatService->location($dispatch->getLocationFrom())
+            . '_'
+            . $this->formatService->location($dispatch->getLocationTo())
             . '_'
             . (new DateTime())->format('Ymd')
         ;
@@ -1474,78 +1474,118 @@ class DispatchService {
 
         $now = new DateTime();
 
-        foreach ($dispatchesToSign as $dispatch){
-            $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
-                ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
-                ->isEmpty());
-
-            if (!$containsReferences) {
-                throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
-            }
-
-            $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus);
-
-            $newCommentDispatch = $dispatch->getCommentaire()
-                ? ($dispatch->getCommentaire() . "<br/>")
-                : "";
-
-            $dispatch
-                ->setTreatmentDate($now)
-                ->setTreatedBy($user)
-                ->setCommentaire($newCommentDispatch . $commentData);
-
-            $takingLocation = $dispatch->getLocationFrom();
-            $dropLocation = $dispatch->getLocationTo();
-
-            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
-                $pack = $dispatchPack->getPack();
-                $trackingTaking = $this->trackingMovementService->createTrackingMovement(
-                    $pack,
-                    $takingLocation,
-                    $user,
-                    $now,
-                    $fromNomade,
-                    true,
-                    TrackingMovement::TYPE_PRISE,
-                    [
-                        'quantity' => $dispatchPack->getQuantity(),
-                        'from' => $dispatch,
-                        'removeFromGroup' => true,
-                        'attachments' => $dispatch->getAttachments(),
-                    ]
-                );
-                $trackingDrop = $this->trackingMovementService->createTrackingMovement(
-                    $pack,
-                    $dropLocation,
-                    $user,
-                    $now,
-                    $fromNomade,
-                    true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'quantity' => $dispatchPack->getQuantity(),
-                        'from' => $dispatch,
-                        'attachments' => $dispatch->getAttachments(),
-                    ]
-                );
-
-                $entityManager->persist($trackingTaking);
-                $entityManager->persist($trackingDrop);
-
-                $dispatchPack->setTreated(true);
-            }
-
+        foreach ($dispatchesToSign as $dispatch) {
+            $this->signDispatch(
+                $dispatch,
+                $groupedSignatureStatus,
+                $signatory,
+                $user,
+                $now,
+                $commentData,
+                false,
+                $entityManager
+            );
             $entityManager->flush();
-
-            if($groupedSignatureStatus->getSendReport()){
-                $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
-            }
         }
 
         return [
             'success' => true,
             'msg' => 'Signature groupée effectuée avec succès',
         ];
+    }
+
+    public function signDispatch(Dispatch $dispatch,
+                                 Statut $groupedSignatureStatus,
+                                 Utilisateur $signatory,
+                                 Utilisateur $operator,
+                                 DateTime $signatureDate,
+                                 string $comment,
+                                 bool $fromNomade,
+                                 EntityManagerInterface $entityManager): array {
+        $errors = [];
+        $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
+            ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
+            ->isEmpty());
+
+        if (!$containsReferences) {
+            $error = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
+            if ($fromNomade) {
+                $errors[] = $error;
+            } else {
+                throw new FormException($error);
+            }
+        }
+
+        if ($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()) {
+            $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
+                'initiatedBy' => $operator,
+                'validatedBy' => $signatory,
+                'date' => $signatureDate
+            ]);
+        } else {
+            $error = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
+            if ($fromNomade) {
+                $errors[] = $errors;
+            } else {
+                throw new FormException($error);
+            }
+        }
+
+        $newCommentDispatch = $dispatch->getCommentaire()
+            ? ($dispatch->getCommentaire() . "<br/>")
+            : "";
+
+        $dispatch
+            ->setTreatmentDate($signatureDate)
+            ->setTreatedBy($operator)
+            ->setCommentaire($newCommentDispatch . $comment);
+
+        $takingLocation = $dispatch->getLocationFrom();
+        $dropLocation = $dispatch->getLocationTo();
+
+        foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+            $pack = $dispatchPack->getPack();
+            $trackingTaking = $this->trackingMovementService->createTrackingMovement(
+                $pack,
+                $takingLocation,
+                $operator,
+                $signatureDate,
+                $fromNomade,
+                true,
+                TrackingMovement::TYPE_PRISE,
+                [
+                    'quantity' => $dispatchPack->getQuantity(),
+                    'from' => $dispatch,
+                    'removeFromGroup' => true,
+                    'attachments' => $dispatch->getAttachments(),
+                ]
+            );
+            $trackingDrop = $this->trackingMovementService->createTrackingMovement(
+                $pack,
+                $dropLocation,
+                $operator,
+                $signatureDate,
+                $fromNomade,
+                true,
+                TrackingMovement::TYPE_DEPOSE,
+                [
+                    'quantity' => $dispatchPack->getQuantity(),
+                    'from' => $dispatch,
+                    'attachments' => $dispatch->getAttachments(),
+                ]
+            );
+
+            $entityManager->persist($trackingTaking);
+            $entityManager->persist($trackingDrop);
+
+            $dispatchPack->setTreated(true);
+        }
+
+
+        if($groupedSignatureStatus->getSendReport()){
+            $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+        }
+        return $errors;
     }
 
     public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
@@ -1649,6 +1689,23 @@ class DispatchService {
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
 
+            if($data['photos']){
+                $photos = json_decode($data['photos'], true);
+                foreach ($photos as $index => $photo) {
+                    $name = uniqid();
+                    $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                    file_put_contents($path, file_get_contents($photo));
+                    $attachment = new Attachment();
+                    $attachment
+                        ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
+                        ->setFileName("$name.jpeg")
+                        ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                    $entityManager->persist($attachment);
+                    $reference->addAttachment($attachment);
+                }
+            }
+
             $entityManager->persist($reference);
         }
 
@@ -1664,7 +1721,8 @@ class DispatchService {
             'associatedDocumentTypes' => $data['associatedDocumentTypes'],
         ]);
 
-        $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $this->packService->createPackWithCode($data['logisticUnit']);
+        $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
+            ?? $this->packService->createPackWithCode($data['logisticUnit']);
 
         $logisticUnit->setNature($defaultNature);
 

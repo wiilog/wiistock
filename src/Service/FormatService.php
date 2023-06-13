@@ -233,6 +233,7 @@ class FormatService
         "d/m/Y H:i:s",
         "Y-m-d H:i",
         "Y-m-d\TH:i",
+        DATE_ATOM,
         "d/m/Y H:i",
         "Y-m-d",
         "d/m/Y"
