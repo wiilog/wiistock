@@ -1103,7 +1103,7 @@ function initSecondStep(html, component) {
 
     $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
 
-    const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
+    const $entitySelect = $modalComponentTypeSecondStepContent.find('.init-entity-change');
     if ($entitySelect.length > 0) {
         onEntityChange($entitySelect, true);
     }
