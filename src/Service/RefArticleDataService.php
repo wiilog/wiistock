@@ -412,6 +412,18 @@ class RefArticleDataService
 
         $isUrgent = $data->getBoolean('urgence');
 
+        $mobileSync= $data->getBoolean('mobileSync');
+        if ($mobileSync) {
+            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $syncCount = $referenceArticleRepository->count(['needsMobileSync' => true]);
+            if (!$refArticle->getNeedsMobileSync() && ($syncCount > ReferenceArticle::MAX_NOMADE_SYNC)) {
+                return [
+                    'success' => false,
+                    'msg' => "Le nombre maximum de synchronisations a été atteint."
+                ];
+            }
+        }
+
         $refArticle
             ->setCategory($category)
             ->setReference($data->get('reference'))
@@ -420,7 +432,7 @@ class RefArticleDataService
             ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
             ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire(StringHelper::cleanedComment($data->get('commentaire')))
-            ->setNeedsMobileSync($data->getBoolean('mobileSync'))
+            ->setNeedsMobileSync($mobileSync)
             ->setBuyer($buyer)
             ->setLimitWarning(($data->getInt('limitWarning') <= 0) ? $data->getInt('limitWarning') : null)
             ->setLimitSecurity(($data->getInt('limitSecurity') <= 0) ? $data->getInt('limitSecurity') : null)
