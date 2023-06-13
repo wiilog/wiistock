@@ -1499,7 +1499,7 @@ class DispatchService {
                                  Utilisateur $signatory,
                                  Utilisateur $operator,
                                  DateTime $signatureDate,
-                                 string $comment,
+                                 ?string $comment,
                                  bool $fromNomade,
                                  EntityManagerInterface $entityManager): array {
         $errors = [];
