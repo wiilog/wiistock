@@ -407,7 +407,8 @@ class DispatchService {
         return $date ?: null;
     }
 
-    public function sendEmailsAccordingToStatus(Dispatch $dispatch,
+    public function sendEmailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                                Dispatch $dispatch,
                                                 bool $isUpdate,
                                                 bool $fromGroupedSignature = false,
                                                 ?Utilisateur $signatory = null,
@@ -503,13 +504,13 @@ class DispatchService {
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
 
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-                $this->entityManager,
+                $entityManager,
                 $dispatch,
                 ['type' => $dispatch->getType()]
             );
 
             if($isUpdate && $status->getSendReport()){
-                $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
+                $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($entityManager, $dispatch, $signatory);
             } else {
                 $updateStatusAttachment = null;
             }
@@ -602,7 +603,7 @@ class DispatchService {
         }
         $entityManager->flush();
 
-        $this->sendEmailsAccordingToStatus($dispatch, true);
+        $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
 
         foreach ($parsedPacks as $pack) {
             $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
@@ -1583,7 +1584,7 @@ class DispatchService {
 
 
         if($groupedSignatureStatus->getSendReport()){
-            $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+            $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true, true, $signatory);
         }
         return $errors;
     }
@@ -1691,24 +1692,24 @@ class DispatchService {
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
 
-            if($data['photos']){
-                $photos = json_decode($data['photos'], true);
-                foreach ($photos as $index => $photo) {
-                    $name = uniqid();
-                    $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                    file_put_contents($path, file_get_contents($photo));
-                    $attachment = new Attachment();
-                    $attachment
-                        ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
-                        ->setFileName("$name.jpeg")
-                        ->setFullPath("/uploads/attachements/$name.jpeg");
-
-                    $entityManager->persist($attachment);
-                    $reference->addAttachment($attachment);
-                }
-            }
-
             $entityManager->persist($reference);
+        }
+
+        if($data['photos']){
+            $photos = json_decode($data['photos'], true);
+            foreach ($photos as $index => $photo) {
+                $name = uniqid();
+                $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                file_put_contents($path, file_get_contents($photo));
+                $attachment = new Attachment();
+                $attachment
+                    ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
+                    ->setFileName("$name.jpeg")
+                    ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                $entityManager->persist($attachment);
+                $reference->addAttachment($attachment);
+            }
         }
 
         $oldDescription = $reference->getDescription();

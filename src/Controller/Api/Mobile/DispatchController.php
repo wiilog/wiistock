@@ -11,6 +11,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DispatchService;
+use App\Service\ExceptionLoggerService;
 use App\Service\PackService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
@@ -36,6 +37,7 @@ class DispatchController extends AbstractApiController
                                               DispatchService        $dispatchService,
                                               PackService            $packService,
                                               RefArticleDataService  $refArticleDataService,
+                                              ExceptionLoggerService $exceptionLoggerService,
                                               StatusHistoryService   $statusHistoryService,
                                               UniqueNumberService    $uniqueNumberService): Response
     {
@@ -147,7 +149,8 @@ class DispatchController extends AbstractApiController
                         $entityManager->flush();
                     }
                     $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
-                } catch (Exception $ignored) {
+                } catch (Exception $error) {
+                    $exceptionLoggerService->sendLog($error, $request);
                     $errors[] = "Une erreur est survenue sur le traitement d'un des acheminements";
                     [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                 }
@@ -183,12 +186,14 @@ class DispatchController extends AbstractApiController
                     if(empty($signatureErrors)){
                         try {
                             $entityManager->flush();
-                        } catch (Exception $ignored) {
+                        } catch (Exception $error) {
+                            $exceptionLoggerService->sendLog($error, $request);
                             $errors[] = "Une erreur est survenue lors de la signature de l'acheminement {$dispatch->getNumber()}";
                             [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                         }
                     } else {
                         $errors = array_merge($errors, $signatureErrors);
+                        $exceptionLoggerService->sendLog(new Exception(json_encode($errors)), $request);
                         [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                         break;
                     }

@@ -3540,7 +3540,7 @@ class MobileController extends AbstractApiController
         $manager->flush();
 
         if($request->request->get('emergency') && $receiver) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
+            $dispatchService->sendEmailsAccordingToStatus($manager, $dispatch, false, false, $receiver, true);
         }
 
         $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
