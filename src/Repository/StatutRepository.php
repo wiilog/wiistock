@@ -219,6 +219,7 @@ class StatutRepository extends EntityRepository {
                 ->addSelect('status.nom AS label')
                 ->addSelect('status_category.nom AS category')
                 ->addSelect('status.commentNeeded AS commentNeeded')
+                ->addSelect('status.groupedSignatureColor AS groupedSignatureColor')
                 ->addSelect('status.groupedSignatureType AS groupedSignatureType')
                 ->addSelect('type.id AS typeId')
                 ->addSelect("(
