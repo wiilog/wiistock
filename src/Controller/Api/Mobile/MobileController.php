@@ -2383,9 +2383,10 @@ class MobileController extends AbstractApiController
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
                         $type = pathinfo($path, PATHINFO_EXTENSION);
                         $type = ($type === 'svg' ? 'svg+xml' : $type);
-                        $data = file_get_contents($path);
-
-                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        if (file_exists($path)) {
+                            $data = file_get_contents($path);
+                            $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
                     }
 
                     return [
