@@ -192,8 +192,8 @@ class DispatchController extends AbstractApiController
                             [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                         }
                     } else {
+                        $exceptionLoggerService->sendLog(new Exception(json_encode($signatureErrors)), $request);
                         $errors = array_merge($errors, $signatureErrors);
-                        $exceptionLoggerService->sendLog(new Exception(json_encode($errors)), $request);
                         [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                         break;
                     }
