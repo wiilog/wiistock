@@ -129,8 +129,10 @@
     </div>
 </div>
 <div class="wii-section-title">Champs par défaut</div>
-
 <div class="wii-section">
+    <div class="my-3">
+        {{ form.checkbox(setting('DISPATCH_SAVE_LDV'),'Ne pas sauvegarder les saisies de l\'utilisateur pour la lettre de voiture',false, setting_value('DISPATCH_SAVE_LDV')) }}
+    </div>
     <div>Expéditeur & Destinataire</div>
     <div class="row">
         <div class="col-md-4 col-12">

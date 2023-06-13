@@ -543,7 +543,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_TEMPLATES => [
             "label" => "Modèles de document",
-            "icon" => "menu-donnees",
+            "icon" => "settings-document-template",
             "menus" => [
                 self::MENU_TEMPLATE_DISPATCH => [
                     "label" => "Acheminements",

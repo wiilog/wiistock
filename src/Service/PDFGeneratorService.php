@@ -6,6 +6,7 @@ use App\Entity\Dispatch;
 use App\Entity\Livraison;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
+use phpDocumentor\Reflection\Types\Self_;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -23,6 +24,8 @@ use Twig\Error\SyntaxError;
 class PDFGeneratorService {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
+
+    public const MAX_LINE_LENGHT_WRAP = 30;
 
     /** @var Twig_Environment */
     private $templating;
@@ -60,7 +63,6 @@ class PDFGeneratorService {
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
-
         $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
         $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
         $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
@@ -77,6 +79,18 @@ class PDFGeneratorService {
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
 
+            // use to wrap long label
+            foreach ($labels as $key=>$label){
+                $largeLabel = strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
+                if($largeLabel){
+                    // first part
+                    $labels[$key] = substr($label, 0, self::MAX_LINE_LENGHT_WRAP);
+                    // second part
+                    $newLabel[] = substr($label, self::MAX_LINE_LENGHT_WRAP,strlen($label)-1);
+                    // add second part to the array
+                    array_splice($labels, $key-1,0, $newLabel);
+                }
+            }
             return [
                 'barcode' => [
                     'code' => $code,

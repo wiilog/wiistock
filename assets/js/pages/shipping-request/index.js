@@ -3,6 +3,7 @@ import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
 
+global.validateShippingRequest = validateShippingRequest;
 
 $(function() {
     Select2Old.init($('.filters select[name="carriers"]'), 'Transporteurs');
@@ -37,7 +38,6 @@ $(function() {
         window.location.href = Routing.generate('shipping_request_show', {shippingRequest: data.shippingRequestId});
     });
 })
-
 
 function initTableShippings() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
@@ -78,4 +78,14 @@ function initTableShippings() {
 
         return initDataTable('tableShippings', tableShippingsConfig);
     }
+}
+
+function validateShippingRequest(shipping_request_id){
+    AJAX.route(`GET`, `shipping_request_validation`, {id:shipping_request_id})
+        .json()
+        .then((res) => {
+            if (res.success) {
+                location.reload()
+            }
+        });
 }
