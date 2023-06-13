@@ -222,6 +222,7 @@ class StatutRepository extends EntityRepository {
                 ->addSelect('status.groupedSignatureColor AS groupedSignatureColor')
                 ->addSelect('status.groupedSignatureType AS groupedSignatureType')
                 ->addSelect('type.id AS typeId')
+                ->addSelect('status.state AS stateNumber')
                 ->addSelect("(
                     CASE
                         WHEN status.state = :treatedState THEN 'treated'
