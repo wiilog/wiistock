@@ -1502,19 +1502,13 @@ class DispatchService {
                                  DateTime $signatureDate,
                                  ?string $comment,
                                  bool $fromNomade,
-                                 EntityManagerInterface $entityManager): array {
-        $errors = [];
+                                 EntityManagerInterface $entityManager): void {
         $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
             ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
             ->isEmpty());
 
         if (!$containsReferences) {
-            $error = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
-            if ($fromNomade) {
-                $errors[] = $error;
-            } else {
-                throw new FormException($error);
-            }
+            throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
         }
 
         if ($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()) {
@@ -1524,12 +1518,7 @@ class DispatchService {
                 'date' => $signatureDate
             ]);
         } else {
-            $error = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
-            if ($fromNomade) {
-                $errors[] = $errors;
-            } else {
-                throw new FormException($error);
-            }
+            throw new FormException("L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.");
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
@@ -1582,11 +1571,9 @@ class DispatchService {
             $dispatchPack->setTreated(true);
         }
 
-
         if($groupedSignatureStatus->getSendReport()){
             $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true, true, $signatory);
         }
-        return $errors;
     }
 
     public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
