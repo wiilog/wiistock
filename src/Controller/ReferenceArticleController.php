@@ -19,7 +19,6 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
-use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -56,36 +55,33 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 
-/**
- * @Route("/reference-article")
- */
+#[Route("/reference-article")]
 class ReferenceArticleController extends AbstractController
 {
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
-    /** @Required */
+    #[Required]
     public ArticleDataService $articleDataService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
-    /**
-     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "ref_article_api_columns", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function apiColumns(RefArticleDataService $refArticleDataService,
                                EntityManagerInterface $entityManager): Response {
 
@@ -104,17 +100,13 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "ref_article_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function api(Request $request): Response {
         return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
-    /**
-     * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function new(Request $request,
                         UserService $userService,
                         FreeFieldService $champLibreService,
@@ -396,10 +388,8 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
+    #[Route("/", name: "reference_article_index", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
     public function index(RefArticleDataService $refArticleDataService,
                           SettingsService $settingsService,
                           EntityManagerInterface $entityManager): Response {
@@ -463,9 +453,8 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/modifier", name: "reference_article_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::EDIT])]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          UserService            $userService,
@@ -519,10 +508,8 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "reference_article_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
                            TranslationService       $translation): Response
@@ -567,10 +554,8 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/addFournisseur", name="ajax_render_add_fournisseur", options={"expose"=true}, methods="GET", requirements={"currentIndex": "\d+"})
-     * @HasPermission({Menu::STOCK, Action::EDIT})
-     */
+    #[Route("/addFournisseur", name: "ajax_render_add_fournisseur", requirements: ["currentIndex" => "\d+"], options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::STOCK, Action::EDIT])]
     public function addFournisseur(Request $request): Response
     {
         $currentIndex = $request->query->get('currentIndex');
@@ -582,10 +567,8 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($json);
     }
 
-    /**
-     * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON))
-     */
+    #[Route("/quantite", name: "get_quantity_ref_article", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -605,9 +588,7 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($quantity);
     }
 
-    /**
-     * @Route("/autocomplete-ref", name="get_ref_articles", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete-ref", name: "get_ref_articles", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function getRefArticles(Request $request,
                                    EntityManagerInterface $entityManager)
     {
@@ -638,9 +619,7 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse(['results' => $refArticles]);
     }
 
-    /**
-     * @Route("/{reference}/data", name="get_reference_data", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/{reference}/data", name: "get_reference_data", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager)
     {
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -670,10 +649,8 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/colonne-visible", name: "save_column_visible", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $manager,
                                       VisibleColumnService $visibleColumnService): Response
@@ -693,10 +670,8 @@ class ReferenceArticleController extends AbstractController
             ]);
     }
 
-    /**
-     * @Route("/voir", name="reference_article_show", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON))
-     */
+    #[Route("/voir", name: "reference_article_show", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function show(Request $request,
                          RefArticleDataService $refArticleDataService,
                          EntityManagerInterface $entityManager): Response {
@@ -712,9 +687,7 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/quantites/{id}/{period}", name="reference_article_quantity_variations", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/quantites/{id}/{period}", name: "reference_article_quantity_variations", options: ["expose" => true], methods: ["GET"])]
     public function quantities(ReferenceArticle $referenceArticle,
                                int $period,
                                RefArticleDataService $refArticleDataService,
@@ -725,10 +698,8 @@ class ReferenceArticleController extends AbstractController
 
     }
 
-    /**
-     * @Route("/voir/{id}", name="reference_article_show_page", options={"expose"=true})
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE})
-     */
+    #[Route("/voir/{id}", name: "reference_article_show_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE])]
     public function showPage(Request                $request,
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
@@ -758,9 +729,7 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/type-quantite", name: "get_quantity_type", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
 	{
 		if ($data = json_decode($request->getContent(), true)) {
@@ -775,9 +744,7 @@ class ReferenceArticleController extends AbstractController
 		throw new BadRequestHttpException();
 	}
 
-    /**
-     * @Route("/etiquettes", name="reference_article_bar_codes_print", options={"expose"=true})
-     */
+    #[Route("/etiquettes", name: "reference_article_bar_codes_print", options: ["expose" => true])]
     public function getBarCodes(Request $request,
                                 RefArticleDataService $refArticleDataService,
                                 EntityManagerInterface $entityManager,
@@ -821,9 +788,7 @@ class ReferenceArticleController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/{reference}/etiquette", name="reference_article_single_bar_code_print", options={"expose"=true})
-     */
+    #[Route("/{reference}/etiquette", name: "reference_article_single_bar_code_print", options: ["expose" => true])]
     public function getSingleBarCodes(ReferenceArticle $reference,
                                       RefArticleDataService $refArticleDataService,
                                       PDFGeneratorService $PDFGeneratorService): Response {
@@ -836,9 +801,7 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-    /**
-     * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/mouvements/lister", name: "ref_mouvements_list", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -855,9 +818,7 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/mouvements/api/{referenceArticle}", name: "ref_mouvements_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   MouvementStockService $mouvementStockService,
                                   ReferenceArticle $referenceArticle): Response
@@ -893,9 +854,7 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/{referenceArticle}/quantity", name="update_qte_refarticle", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/{referenceArticle}/quantity", name: "update_qte_refarticle", options: ["expose" => true], methods: ["PATCH"], condition: "request.isXmlHttpRequest()")]
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
                                    RefArticleDataService $refArticleDataService) {
@@ -908,9 +867,8 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse(['success' => true]);
     }
 
-    /**
-     * @Route("/nouveau-page", name="reference_article_new_page", options={"expose"=true})
-     */
+    #[Route("/nouveau-page", name: "reference_article_new_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::CREATE])]
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
@@ -970,9 +928,8 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-page/{reference}", name="reference_article_edit_page", options={"expose"=true})
-     */
+    #[Route("/modifier-page/{reference}", name: "reference_article_edit_page", options: ["expose" => true])]
+    #[HasPermission([Menu::STOCK, Action::EDIT])]
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
                                  ReferenceArticle       $reference) {

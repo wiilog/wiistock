@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
@@ -16,6 +17,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -35,6 +37,7 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\FormatHelper;
+use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -236,7 +239,9 @@ class SelectController extends AbstractController {
     /**
      * @Route("/select/references", name="ajax_select_references", options={"expose": true})
      */
-    public function references(Request $request, EntityManagerInterface $manager): Response {
+    public function references(Request                  $request,
+                               EntityManagerInterface   $manager,
+                               UserService              $userService): Response {
         $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
 
         /** @var Utilisateur $user */
@@ -254,7 +259,7 @@ class SelectController extends AbstractController {
 
         $redirectRoute = $request->query->get('redirect-route');
         $redirectParams = $request->query->get('redirect-route-params');
-        if ($redirectRoute) {
+        if ($redirectRoute && $userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
             $results
                 ->unshift([
                     "id" => "redirect-url",
