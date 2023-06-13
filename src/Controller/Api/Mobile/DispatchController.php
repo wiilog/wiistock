@@ -125,7 +125,7 @@ class DispatchController extends AbstractApiController
             }
             if (!$currentError) {
                 $filteredDispatchReferences = Stream::from($dispatchReferences)
-                    ->filter(fn(array $dispatchReferences) => $wasDraft && $dispatchReferences['localDispatchId'] === $dispatchArray['localId']);
+                    ->filter(fn(array $dispatchReference) => $wasDraft && $dispatchReference['localDispatchId'] === $dispatchArray['localId']);
 
                 foreach ($filteredDispatchReferences as $dispatchReference) {
                     $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
