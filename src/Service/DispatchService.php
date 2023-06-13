@@ -1674,6 +1674,8 @@ class DispatchService {
             $type = $typeRepository->find($dispatchNewReferenceType);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
 
+
+
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['reference'])
@@ -1728,16 +1730,28 @@ class DispatchService {
 
         $entityManager->persist($logisticUnit);
 
-        $dispatchPack = (new DispatchPack())
-            ->setDispatch($dispatch)
-            ->setPack($logisticUnit)
-            ->setTreated(false);
+        $dispatchPack = $dispatch->getDispatchPack($logisticUnit);
 
-        $entityManager->persist($dispatchPack);
+        if (!$dispatchPack) {
+            $dispatchPack = (new DispatchPack())
+                ->setDispatch($dispatch)
+                ->setPack($logisticUnit)
+                ->setTreated(false);
 
-        $dispatchReferenceArticle = (new DispatchReferenceArticle())
-            ->setReferenceArticle($reference)
-            ->setDispatchPack($dispatchPack)
+            $entityManager->persist($dispatchPack);
+        }
+
+        $dispatchReferenceArticle = $dispatchPack->getDispatchReferenceArticle($reference);
+
+        if (!$dispatchReferenceArticle) {
+            $dispatchReferenceArticle = (new DispatchReferenceArticle())
+                ->setReferenceArticle($reference)
+                ->setDispatchPack($dispatchPack);
+
+            $entityManager->persist($dispatchReferenceArticle);
+        }
+
+        $dispatchReferenceArticle = $dispatchReferenceArticle
             ->setQuantity($data['quantity'])
             ->setBatchNumber($data['batchNumber'])
             ->setSerialNumber($data['serialNumber'])
@@ -1765,7 +1779,5 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
-
-        $entityManager->persist($dispatchReferenceArticle);
     }
 }

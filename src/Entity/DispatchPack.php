@@ -92,6 +92,16 @@ class DispatchPack {
         return $this->dispatchReferenceArticles;
     }
 
+    public function getDispatchReferenceArticle(ReferenceArticle $referenceArticle): ?DispatchReferenceArticle {
+        /** @var DispatchReferenceArticle $dispatchReferenceArticle */
+        foreach ($this->dispatchReferenceArticles as $dispatchReferenceArticle){
+            if($dispatchReferenceArticle->getReferenceArticle() === $referenceArticle){
+                return $dispatchReferenceArticle;
+            }
+        }
+        return null;
+    }
+
     public function addDispatchReferenceArticles(DispatchReferenceArticle $referenceArticle): self
     {
         if (!$this->dispatchReferenceArticles->contains($referenceArticle)) {
