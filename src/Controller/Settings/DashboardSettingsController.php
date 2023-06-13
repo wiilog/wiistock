@@ -183,9 +183,15 @@ class DashboardSettingsController extends AbstractController {
         $entityTypes = [];
         $entityStatuses = [];
 
-        if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT
-            || $componentType->getMeterKey() === Dashboard\ComponentType::ORDERS_TO_TREAT) {
-            if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT) {
+        if (in_array($componentType->getMeterKey(), [
+            Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            Dashboard\ComponentType::ORDERS_TO_TREAT,
+            Dashboard\ComponentType::PENDING_REQUESTS,
+        ])) {
+            if (in_array($componentType->getMeterKey(), [
+                Dashboard\ComponentType::PENDING_REQUESTS,
+                Dashboard\ComponentType::ORDERS_TO_TREAT,
+            ])) {
                 $entities = [
                     'Service' => [
                         'categoryType' => CategoryType::DEMANDE_HANDLING,
