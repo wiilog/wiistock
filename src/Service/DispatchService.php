@@ -1252,6 +1252,9 @@ class DispatchService {
 
         $variables['UL'] = $referenceArticlesStream
             ->map(function(DispatchReferenceArticle $dispatchReferenceArticle) {
+                $comment = $dispatchReferenceArticle->getComment()
+                    ? $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment()), '-')
+                    : null;
                 $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
                 $referenceArticle = $dispatchReferenceArticle->getReferenceArticle();
                 $description = $referenceArticle->getDescription() ?: [];
@@ -1272,9 +1275,7 @@ class DispatchService {
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null, "Non"),
                     // keep line breaking in docx
-                    "commentaireref" => $dispatchReferenceArticle->getCleanedComment() ?
-                        $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment()), '-')
-                        : '-',
+                    "commentaireref" => $comment ?: '-',
                 ];
             })
             ->toArray();
