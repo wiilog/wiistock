@@ -1682,7 +1682,7 @@ class DispatchService {
             $entityManager->persist($reference);
         }
 
-        if($data['photos']){
+        if(isset($data['photos'])){
             $photos = json_decode($data['photos'], true);
             foreach ($photos as $index => $photo) {
                 $name = uniqid();
