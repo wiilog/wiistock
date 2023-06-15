@@ -49,12 +49,10 @@ class EmplacementDataService {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-
         if(!empty($data['zone'])) {
-            $zone = $zoneRepository->find($data['zone']) ?? $defaultZone;
+            $zone = $zoneRepository->find($data['zone']) ?? $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         } else {
-            $zone = $defaultZone;
+            $zone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         }
 
         if(!empty($data['signatories'])) {
