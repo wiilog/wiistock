@@ -162,7 +162,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "shippingRequest" => $shipping->getId()
+            "id" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
