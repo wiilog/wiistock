@@ -348,6 +348,8 @@ class ArrivageController extends AbstractController {
             }
         }
 
+        $entityManager->flush();
+
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
         return new JsonResponse([
             'success' => true,
