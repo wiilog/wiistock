@@ -366,8 +366,8 @@ function openScheduledShippingRequestModal($button){
     AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
-            if (res.errors && res.success) {
-                showBSAlert(res.errors || 'Une erreur est survenue', "info");
+            if (res.errors || res.success) {
+                showBSAlert(res.errors , "info");
                 AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
                     .json()
                     .then((res) => {
