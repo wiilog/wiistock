@@ -131,10 +131,7 @@ class MobileController extends AbstractApiController
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
         $data = [];
 
-        if (!empty($loggedUser)) {
-            if (!$userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
-                return new JsonResponse(['success' => false]);
-            }
+        if (!empty($loggedUser) && $userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
             $apiKey = $this->apiKeyGenerator();
             $loggedUser->setApiKey($apiKey);
             $entityManager->flush();
@@ -166,6 +163,23 @@ class MobileController extends AbstractApiController
                         $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
                     });
             }
+
+            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
+                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                ->toArray();
+
+            $data['success'] = true;
+            $data['data'] = [
+                'apiKey' => $apiKey,
+                'notificationChannels' => $channels,
+                'rights' => $rights,
+                'parameters' => $parameters,
+                'username' => $loggedUser->getUsername(),
+                'userId' => $loggedUser->getId(),
+                'fieldsParam' => $fieldsParam ?? [],
+            ];
         } else {
             $data['success'] = false;
         }
