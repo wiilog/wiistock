@@ -1549,6 +1549,7 @@ class DispatchService {
                     'from' => $dispatch,
                     'removeFromGroup' => true,
                     'attachments' => $dispatch->getAttachments(),
+                    'entityManager' => $entityManager
                 ]
             );
             $trackingDrop = $this->trackingMovementService->createTrackingMovement(
@@ -1563,6 +1564,7 @@ class DispatchService {
                     'quantity' => $dispatchPack->getQuantity(),
                     'from' => $dispatch,
                     'attachments' => $dispatch->getAttachments(),
+                    'entityManager' => $entityManager
                 ]
             );
 

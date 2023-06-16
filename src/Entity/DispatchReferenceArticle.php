@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 class DispatchReferenceArticle
 {
     use AttachmentTrait;
+    use CleanedCommentTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
