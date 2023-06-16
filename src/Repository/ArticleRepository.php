@@ -4,14 +4,17 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryFrequency;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
@@ -20,7 +23,9 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -33,16 +38,26 @@ use WiiCommon\Helper\StringHelper;
  */
 class ArticleRepository extends EntityRepository {
 
+    public const INVENTORY_MODE_FINISH = "allAvailableAndMatchingTags"; // available articles on locations + unavailable articles matching tags
+    public const INVENTORY_MODE_SUMMARY = "onlyAvailable"; // available articles on locations + unavailable articles matching tags
+
     private const FIELD_ENTITY_NAME = [
         "location" => "emplacement",
         "unitPrice" => "prixUnitaire",
-        "quantity" => "quantite"
+        "quantity" => "quantite",
+        "RFIDtag" => "RFIDtag",
+        "deliveryNote" => "deliveryNote",
+        "purchaseOrder" => "purchaseOrder"
     ];
 
     private const FIELDS_TYPE_DATE = [
         "dateLastInventory",
+        "firstUnavailableDate",
+        "lastAvailableDate",
         "expiryDate",
-        "stockEntryDate"
+        "stockEntryDate",
+        "manifacturingDate",
+        "productionDate"
     ];
 
     public function findExpiredToGenerate($delay = 0) {
@@ -110,7 +125,13 @@ class ArticleRepository extends EntityRepository {
         return $query->getResult();
     }
 
-    public function iterateAll(Utilisateur $user): iterable {
+    public function iterateAll(Utilisateur $user, $options = []): iterable {
+        $dateMin = $options["dateMin"] ?? null;
+        $dateMax = $options["dateMax"] ?? null;
+        $referenceTypes = $options["referenceTypes"] ?? [];
+        $statuses = $options["statuses"] ?? [];
+        $suppliers = $options["suppliers"] ?? [];
+
         $queryBuilder = $this->createQueryBuilder('article');
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
@@ -124,28 +145,70 @@ class ArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        return $queryBuilder->distinct()
+        $qb = $queryBuilder->distinct()
             ->select('referenceArticle.reference')
             ->addSelect('article.label')
             ->addSelect('article.quantite')
             ->addSelect('type.label as typeLabel')
-            ->addSelect('statut.nom as statutName')
+            ->addSelect('statut.nom as statusName')
             ->addSelect('article.commentaire')
             ->addSelect('emplacement.label as empLabel')
             ->addSelect('article.barCode')
             ->addSelect('article.dateLastInventory')
+            ->addSelect('article.lastAvailableDate')
+            ->addSelect('article.firstUnavailableDate')
             ->addSelect('article.freeFields')
             ->addSelect('article.batch')
             ->addSelect('article.stockEntryDate')
             ->addSelect('article.expiryDate')
             ->addSelect("join_visibilityGroup.label AS visibilityGroup")
+            ->addSelect('project.code AS projectCode')
+            ->addSelect('article.prixUnitaire')
+            ->addSelect('article.purchaseOrder')
+            ->addSelect('article.deliveryNote')
+            ->addSelect('article.manifacturingDate')
+            ->addSelect('nativeCountry.label AS nativeCountryLabel')
+            ->addSelect('article.productionDate')
+            ->addSelect('article.RFIDtag')
+            ->addSelect('fournisseur.nom AS nomFournisseur')
+            ->addSelect('articleFournisseur.reference AS RefArtFournisseur')
             ->leftJoin('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('articleFournisseur.fournisseur', 'fournisseur')
             ->leftJoin('article.emplacement', 'emplacement')
             ->leftJoin('article.type', 'type')
             ->leftJoin('article.statut', 'statut')
             ->leftJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->leftJoin('referenceArticle.type', 'refType')
             ->leftJoin('referenceArticle.visibilityGroup', 'join_visibilityGroup')
-            ->groupBy('article.id')
+            ->leftJoin('article.currentLogisticUnit', 'currentLogisticUnit')
+            ->leftJoin('currentLogisticUnit.project', 'project')
+            ->leftJoin('article.nativeCountry', 'nativeCountry');
+
+        if (isset($dateMin) && isset($dateMax)) {
+            $qb
+                ->andWhere('article.stockEntryDate BETWEEN :dateMin AND :dateMax')
+                ->setParameters([
+                    'dateMin' => $dateMin,
+                    'dateMax' => $dateMax
+                ]);
+        }
+        if (!empty($referenceTypes)) {
+            $qb
+                ->andWhere('refType.id IN (:referenceTypes)')
+                ->setParameter('referenceTypes', $referenceTypes);
+        }
+        if (!empty($statuses)) {
+            $qb
+                ->andWhere('statut.id IN (:statuses)')
+                ->setParameter('statuses', $statuses);
+        }
+        if (!empty($suppliers)) {
+            $qb
+                ->andWhere('fournisseur.id IN (:suppliers)')
+                ->setParameter('suppliers', $suppliers);
+        }
+
+        return $qb->groupBy('article.id')
             ->getQuery()
             ->toIterable();
     }
@@ -229,13 +292,15 @@ class ArticleRepository extends EntityRepository {
 	public function findActiveArticles(ReferenceArticle $referenceArticle,
                                        ?Emplacement     $targetLocationPicking = null,
                                        ?string          $fieldToOrder = null,
-                                       ?string          $order = null): array
+                                       ?string          $order = null,
+                                       ?Demande         $ignoredDeliveryRequest = null): array
 	{
 	    $queryBuilder = $this->createQueryBuilder('article')
+            ->distinct()
             ->join('article.articleFournisseur', 'articleFournisseur')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->join('article.statut', 'articleStatus')
-            ->where('articleStatus.nom = :activeStatus')
+            ->where('articleStatus.code = :activeStatus')
             ->andWhere('article.quantite IS NOT NULL')
             ->andWhere('article.quantite > 0')
             ->andWhere('referenceArticle = :refArticle')
@@ -248,6 +313,22 @@ class ArticleRepository extends EntityRepository {
                 ->setParameter('targetLocationPicking', $targetLocationPicking);
         }
 
+        if($ignoredDeliveryRequest){
+            $queryHasResult = $this->createQueryBuilder("article_has_request")
+                ->select('COUNT(article_has_request)')
+                ->join("article_has_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest = :ignoredDeliveryRequest")
+                ->andWhere("article_has_request.id = article.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('ignoredDeliveryRequest', $ignoredDeliveryRequest);
+        }
+
 	    if ($order && $fieldToOrder) {
 	        $queryBuilder
                 ->addOrderBy("article.$fieldToOrder", $order);
@@ -258,7 +339,7 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
 	}
 
-    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user)
+    public function findByParamsAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
     {
         $entityManager = $this->getEntityManager();
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -308,7 +389,7 @@ class ArticleRepository extends EntityRepository {
 						$searchForArticle = Utilisateur::SEARCH_DEFAULT;
 					}
 
-                    foreach ($searchForArticle as $key => $searchField) {
+                    foreach ($searchForArticle as $searchField) {
 
                         $date = DateTime::createFromFormat('d/m/Y', $searchValue);
                         $date = $date ? $date->format('Y-m-d') : null;
@@ -371,41 +452,86 @@ class ArticleRepository extends EntityRepository {
                                     $ids[] = $idArray['id'];
                                 }
                                 break;
+                            case "project":
+                                $subqb = $this->createQueryBuilder("article")
+                                    ->select('article.id')
+                                    ->leftJoin('article.currentLogisticUnit', 'project_current_logistic_unit_search')
+                                    ->leftJoin('project_current_logistic_unit_search.project', 'project_search')
+                                    ->andWhere('project_search.code LIKE :search')
+                                    ->setParameter('search', $search);
+
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                break;
+                            case "nativeCountry":
+                                if(in_array('nativeCountry', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->leftJoin('article.nativeCountry', 'country_search')
+                                        ->andWhere('country_search.label LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
+                            case "deliveryNoteLine":
+                                if(in_array('deliveryNoteLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.deliveryNote LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
+                            case "purchaseOrderLine":
+                                if(in_array('purchaseOrderLine', $user->getVisibleColumns()['article'])){
+                                    $subqb = $this->createQueryBuilder("article")
+                                        ->select('article.id')
+                                        ->andWhere('article.purchaseOrder LIKE :search')
+                                        ->setParameter('search', $search);
+
+                                    foreach ($subqb->getQuery()->execute() as $idArray) {
+                                        $ids[] = $idArray['id'];
+                                    }
+                                }
+                                break;
                             default:
                                 $field = self::FIELD_ENTITY_NAME[$searchField] ?? $searchField;
                                 $freeFieldId = VisibleColumnService::extractFreeFieldId($field);
-                                if(is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
-                                    if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
+                                if(in_array($field, $user->getVisibleColumns()['article'])){
+                                    if (is_numeric($freeFieldId) && $freeField = $freeFieldRepository->find($freeFieldId)) {
+                                        if ($freeField->getTypage() === FreeField::TYPE_BOOL) {
 
-                                        $lowerSearchValue = strtolower($searchValue);
-                                        if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
-                                            $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                            $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
-                                            $queryBuilder->setParameter("search", $booleanValue);
+                                            $lowerSearchValue = strtolower($searchValue);
+                                            if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
+                                                $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
+                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                                $queryBuilder->setParameter("search", $booleanValue);
+                                            }
+                                        } else {
+                                            $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
+                                            $queryBuilder->setParameter("search", $date ?: strtolower($search));
                                         }
-                                    }
-                                    else {
-                                        $query[] = "JSON_SEARCH(LOWER(article.freeFields), 'one', :search, NULL, '$.\"$freeFieldId\"') IS NOT NULL";
-                                        $queryBuilder->setParameter("search", $date ?: strtolower($search));
-                                    }
-                                } else if (property_exists(Article::class, $field)) {
-                                    if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
-                                        $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
-                                        $queryBuilder
-                                            ->setParameter('dateMin' , $date . ' 00:00:00')
-                                            ->setParameter('dateMax' , $date . ' 23:59:59');
-                                    } else {
-                                        $query[] = "article.$field LIKE :search";
-                                        $queryBuilder->setParameter('search', $search);
+                                    } else if (property_exists(Article::class, $field)) {
+                                        if ($date && in_array($field, self::FIELDS_TYPE_DATE)) {
+                                            $query[] = "article.$field BETWEEN :dateMin AND :dateMax";
+                                            $queryBuilder
+                                                ->setParameter('dateMin', $date . ' 00:00:00')
+                                                ->setParameter('dateMax', $date . ' 23:59:59');
+                                        } else {
+                                            $query[] = "article.$field LIKE :search";
+                                            $queryBuilder->setParameter('search', $search);
+                                        }
                                     }
                                 }
                                 break;
                         }
-                    }
-
-                    // si le résultat de la recherche est vide on renvoie []
-                    if (empty($ids)) {
-                        $ids = [0];
                     }
 
                     foreach ($ids as $id) {
@@ -424,7 +550,6 @@ class ArticleRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-
                     switch ($column) {
                         case "type":
                             $queryBuilder->leftJoin('article.type', 't')
@@ -450,6 +575,9 @@ class ArticleRepository extends EntityRepository {
                         case "pairing":
                             $queryBuilder->leftJoin('article.pairings', 'order_pairings')
                                 ->orderBy('order_pairings.active', $order);
+                            break;
+                        case "lu":
+                            $queryBuilder->orderBy('IF(article.currentLogisticUnit IS NULL, 0, 1)', $order);
                             break;
                         default:
                             $field = self::FIELD_ENTITY_NAME[$column] ?? $column;
@@ -508,8 +636,7 @@ class ArticleRepository extends EntityRepository {
         return $query->getSingleScalarResult();
     }
 
-    public function getByPreparationsIds($preparationsIds): array
-    {
+    public function getByPreparationsIds($preparationsIds): array {
         return $this->createQueryBuilder('article')
             ->select('article.reference AS reference')
             ->addSelect('join_location.label AS location')
@@ -520,8 +647,16 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.barCode AS barCode')
             ->addSelect('join_referenceArticle.reference AS reference_article_reference')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
+            ->addSelect('join_lineLogisticUnit.id AS lineLogisticUnitId')
+            ->addSelect('join_lineLogisticUnit.code AS lineLogisticUnitCode')
+            ->addSelect('join_lineLogisticUnitNature.id AS lineLogisticUnitNatureId')
+            ->addSelect('join_lineLogisticUnitLastDropLocation.label AS lineLogisticUnitLocation')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationLine')
+            ->leftJoin('join_preparationLine.pack', 'join_lineLogisticUnit')
+            ->leftJoin('join_lineLogisticUnit.lastDrop', 'join_lineLogisticUnitLastDrop')
+            ->leftJoin('join_lineLogisticUnitLastDrop.emplacement', 'join_lineLogisticUnitLastDropLocation')
+            ->leftJoin('join_lineLogisticUnit.nature', 'join_lineLogisticUnitNature')
             ->join('join_preparationLine.preparation', 'join_preparation')
             ->join('article.articleFournisseur', 'join_supplierArticle')
             ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
@@ -593,19 +728,29 @@ class ArticleRepository extends EntityRepository {
     public function getByLivraisonsIds($livraisonsIds)
     {
         return $this->createQueryBuilder('article')
-            ->select('article.reference AS reference')
-            ->addSelect('join_location.label AS location')
+            ->select('join_location.label AS location')
+            ->addSelect('join_ref_article.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('join_preparationOrderLines.quantityToPick AS quantity')
             ->addSelect('0 as is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('article.barCode AS barCode')
+            ->addSelect('article.barCode AS barcode')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
+            ->addSelect('join_currentLogisticUnit.id AS currentLogisticUnitId')
+            ->addSelect('join_currentLogisticUnit.code AS currentLogisticUnitCode')
+            ->addSelect('join_nature.id AS currentLogisticUnitNatureId')
+            ->addSelect('join_currentLogisticUnitLocation.label AS currentLogisticUnitLocation')
             ->leftJoin('article.emplacement', 'join_location')
             ->join('article.preparationOrderLines', 'join_preparationOrderLines')
             ->join('join_preparationOrderLines.preparation', 'join_preparation')
             ->join('join_preparation.livraison', 'join_delivery')
+            ->join('article.articleFournisseur', 'join_article_supplier')
+            ->join('join_article_supplier.referenceArticle', 'join_ref_article')
             ->leftJoin('join_preparationOrderLines.targetLocationPicking', 'join_targetLocationPicking')
+            ->leftJoin('article.currentLogisticUnit', 'join_currentLogisticUnit')
+            ->leftJoin('join_currentLogisticUnit.lastDrop', 'join_lastDrop')
+            ->leftJoin('join_lastDrop.emplacement', 'join_currentLogisticUnitLocation')
+            ->leftJoin('join_currentLogisticUnit.nature', 'join_nature')
             ->andWhere('join_delivery.id IN (:deliveryIds)')
             ->andWhere('article.quantite > 0')
             ->setParameter('deliveryIds', $livraisonsIds, Connection::PARAM_STR_ARRAY)
@@ -781,7 +926,7 @@ class ArticleRepository extends EntityRepository {
 
 	public function getOneArticleByBarCodeAndLocation(string $barCode, ?string $location) {
         $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location)
+            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, true)
             ->addSelect('article.id as id')
             ->addSelect('article.barCode as barCode')
             ->addSelect('articleFournisseur_reference.libelle as label')
@@ -791,28 +936,34 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.quantite as quantity')
             ->addSelect('referenceArticle_status.nom as reference_status')
             ->addSelect('0 as is_ref')
+            ->addSelect('current_logistic_unit.id as currentLogisticUnitId')
+            ->addSelect('current_logistic_unit.code as currentLogisticUnitCode')
+            ->addSelect('article_status.code as articleStatusCode')
             ->join('article.articleFournisseur', 'article_articleFournisseur')
             ->join('article_articleFournisseur.referenceArticle', 'articleFournisseur_reference')
             ->join('articleFournisseur_reference.statut', 'referenceArticle_status')
-            ->join('article.emplacement', 'article_location');
+            ->join('article.emplacement', 'article_location')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit');
 
         $result = $queryBuilder->getQuery()->execute();
         return !empty($result) ? $result[0] : null;
     }
 
-    private function createQueryBuilderByBarCodeAndLocation(string $barCode, ?string $location): QueryBuilder {
+    private function createQueryBuilderByBarCodeAndLocation(string  $barCode,
+                                                            ?string $location,
+                                                            bool    $includeUnavailable = false): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder('article');
-        $exprBuilder = $queryBuilder->expr();
         $queryBuilder
-            ->join('article.statut', 'status')
+            ->join('article.statut', 'article_status')
             ->andWhere('article.barCode = :barCode')
-            ->andWhere($exprBuilder->orX(
-                'status.nom = :activeStatusName',
-                'status.nom = :statusDisputeName'
-            ))
-            ->setParameter('barCode', $barCode)
-            ->setParameter('activeStatusName', Article::STATUT_ACTIF)
-            ->setParameter('statusDisputeName', Article::STATUT_EN_LITIGE);
+            ->setParameter('barCode', $barCode);
+
+        if (!$includeUnavailable) {
+            $queryBuilder
+                ->andWhere('article_status.code IN (:articleStatuses)')
+                ->setParameter('articleStatuses', [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+        }
+
 
         if($location) {
             $queryBuilder
@@ -836,6 +987,68 @@ class ArticleRepository extends EntityRepository {
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE])
             ->getQuery()
             ->getResult();
+    }
+
+    public function findAvailableArticlesToInventory(array $rfidTags,
+                                                     array $locations,
+                                                     array $options = []): array {
+        $mode = $options["mode"] ?? null;
+        $groupByStorageRule = $options["groupByStorageRule"] ?? false;
+
+        $queryBuilder = $this->createQueryBuilder("article");
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->join("article.emplacement", "articleLocation")
+            ->join("article.statut", "articleStatus")
+
+            // All article to inventory match a storage rule of the referenceArticle
+            ->join("article.articleFournisseur", "supplierArticle")
+            ->join("supplierArticle.referenceArticle", "referenceArticle")
+            ->join("referenceArticle.storageRules", "storageRule")
+            ->andWhere("storageRule.location = articleLocation") // storageRule.location = location article
+
+            ->andWhere("articleLocation IN (:locations)") // location article is in locations to treat
+            ->andWhere("articleStatus.code IN (:statuses)")
+            ->andWhere("article.RFIDtag IS NOT NULL")
+            ->setParameter("rfidTags", $rfidTags)
+            ->setParameter("availableStatus", Article::STATUT_ACTIF)
+            ->setParameter("locations", $locations)
+            ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
+
+        switch ($mode) {
+            case self::INVENTORY_MODE_FINISH:
+                $queryBuilder
+                    ->andWhere($exprBuilder->orX(
+                        "article.RFIDtag IN (:rfidTags)",
+                        "articleStatus.code = :availableStatus"
+                    ))
+                    ->setParameter("rfidTags", $rfidTags);
+                break;
+            case self::INVENTORY_MODE_SUMMARY:
+                $queryBuilder
+                    ->andWhere("article.RFIDtag IN (:rfidTags)")
+                    ->andWhere("articleStatus.code = :availableStatus");
+                break;
+            default:
+                throw new RuntimeException('Invalid mode');
+        }
+
+        if ($groupByStorageRule) {
+            $result = $queryBuilder
+                ->addSelect("storageRule.id AS storageRuleId")
+                ->getQuery()
+                ->getResult();
+
+            return Stream::from($result)
+                ->keymap(fn(array $row) => [$row["storageRuleId"], $row[0]], true)
+                ->toArray();
+        }
+        else {
+            return $queryBuilder
+                ->getQuery()
+                ->getResult();
+        }
     }
 
     public function getArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {
@@ -879,6 +1092,34 @@ class ArticleRepository extends EntityRepository {
             return [];
         }
     }
+
+    public function getForSelect(?string $term, string $status = null) {
+        $qb = $this->createQueryBuilder("article")
+            ->select("article.id AS id, article.barCode AS text");
+
+        if($status !== null) {
+            $qb->join("article.statut", "status")
+                ->andWhere("status.code = :status")
+                ->setParameter("status", $status);
+        }
+
+        return $qb
+            ->andWhere("article.barCode LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->setMaxResults(100)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function isInLogisticUnit(string $barcode): ?Article {
+        return $this->createQueryBuilder("article")
+            ->join("article.currentLogisticUnit", "current_logistic_unit")
+            ->andWhere("article.barCode = :barcode")
+            ->setParameter("barcode", $barcode)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findWithNoPairing(?string $term) {
         return $this->createQueryBuilder("article")
             ->select("article.id AS id, article.barCode AS text")
@@ -1099,6 +1340,25 @@ class ArticleRepository extends EntityRepository {
             ->toIterable();
     }
 
+    public function quantityForRefOnLocation(ReferenceArticle $referenceArticle, Emplacement $location) {
+        return $this->createQueryBuilder('article')
+            ->select('SUM(article.quantite) as total')
+            ->andWhere('reference_article = :reference_article')
+            ->andWhere('emplacement = :location')
+            ->andWhere('statut.code = :active')
+            ->join('article.articleFournisseur', 'article_fournisseur')
+            ->join('article_fournisseur.referenceArticle', 'reference_article')
+            ->join('article.emplacement', 'emplacement')
+            ->join('article.statut', 'statut')
+            ->setParameters([
+                'reference_article' => $referenceArticle,
+                'location' => $location,
+                'active' => Article::STATUT_ACTIF
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function getArticlesByDisputeId(int $disputeId): array {
         return $this->createQueryBuilder('article')
             ->select('article.barCode AS barcode')
@@ -1108,7 +1368,8 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_supplier.nom AS supplier')
             ->leftJoin('article.disputes', 'join_disputes')
             ->leftJoin('article.receptionReferenceArticle', 'join_receptionReferenceArticle')
-            ->leftJoin('join_receptionReferenceArticle.reception', 'join_reception')
+            ->leftJoin('join_receptionReferenceArticle.receptionLine', 'join_receptionLine')
+            ->leftJoin('join_receptionLine.reception', 'join_reception')
             ->leftJoin('join_reception.fournisseur', 'join_supplier')
             ->where('join_disputes.id = :disputeId')
             ->setParameter('disputeId', $disputeId)
@@ -1123,5 +1384,15 @@ class ArticleRepository extends EntityRepository {
             ->setMaxResults(3)
             ->getQuery()
             ->getResult();
+    }
+
+    public function countInventoryLocationMission(Article $article): int {
+        return $this->createQueryBuilder('article')
+            ->select("COUNT(article.id)")
+            ->join(InventoryLocationMission::class, 'inventoryLocationMission', Join::WITH, "article MEMBER OF inventoryLocationMission.articles")
+            ->andWhere("article = :article")
+            ->setParameter("article", $article)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

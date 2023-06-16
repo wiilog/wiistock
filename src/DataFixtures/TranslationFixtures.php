@@ -76,7 +76,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unité logistique",
-                            "en" => "Logistics unit",
+                            "en" => "Logistic unit",
                         ],
                     ],
                 ],
@@ -102,7 +102,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Date de création",
                             "en" => "Creation date",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage - Liste des litiges\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage acheminements :\nZone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmail de traitement\nEmail de changement de statut",
+                            "tooltip" => "Page Arrivages UL :\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage UL - Liste des litiges\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage acheminements :\nZone liste - Nom de colonnes\nDétails acheminements - Entête\nPDF bon acheminement\nEmail de traitement\nEmail de changement de statut",
                         ],
                         [
                             "fr" => "Traité par",
@@ -319,8 +319,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
             "content" => [
                 [
                     "fr" => "Unité logistique",
-                    "en" => "Logistics unit",
-                    "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
+                    "en" => "Logistic unit",
+                    "tooltip" => "Composant \"UL en retard\"\nComposant \"Nombre d'arrivages UL et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
                 ],
                 [
                     "fr" => "Dépose",
@@ -338,9 +338,9 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     "tooltip" => "Composant \"UL en retard\"",
                 ],
                 [
-                    "fr" => "Arrivages",
-                    "en" => "Arrivals",
-                    "tooltip" => "Composant \"Nombre d'arrivages et d'UL quotidiens\"\nComposant \"Nombres d'arrivages et d'UL hebdomadaires\"",
+                    "fr" => "Arrivages UL",
+                    "en" => "LU Arrivals",
+                    "tooltip" => "Composant \"Nombre d'arrivages UL et d'UL quotidiens\"\nComposant \"Nombres d'arrivages UL et d'UL hebdomadaires\"",
                 ],
                 [
                     "fr" => "Nombre de lignes à traiter",
@@ -474,12 +474,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Unités logistiques",
-                        "en" => "Logistics units",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n_____\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
+                        "en" => "Logistic units",
+                        "tooltip" => "Page Arrivages UL :\nDétails arrivage - Liste des UL - Nom de colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\nDétails arrivage - Liste des litiges - Modifier litige\nEmail litige\n_____\nPage Mouvements : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage UL :\nMenu\nFil d'ariane\nFiltre\nOnglet\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte UL dans Carte Groupe\n_____\nPage Association BR :\nFiltre \nZone liste - Nom de colonnes \n_____\nPage Encours :\nCarte emplacement - Zone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Unité logistique",
-                        "en" => "Logistics unit",
+                        "en" => "Logistic unit",
                         "tooltip" => "Page Mouvements :\nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouveau mouvement\nModale Modifier un mouvement\n_____\nPage Association BR :\nFiltre\nZone liste - Nom de colonnes",
                     ],
                     [
@@ -495,12 +495,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Utilisateur",
                         "en" => "User",
-                        "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nModifier litige - Tableau Historique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
+                        "tooltip" => "Page Arrivages UL :\nZone liste - Nom de colonnes\nModifier litige - Tableau Historique\n_____\nPage Association BR :\nZone liste - Nom de colonnes",
                     ],
                     [
                         "fr" => "Opérateur",
                         "en" => "Worker",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste UL - Colonne\n_____\nPage Mouvements :\nModale Nouveau mouvement\nModale Modifier un mouvement\nModale Détail de mouvement",
+                        "tooltip" => "Page Arrivages UL :\nDétails arrivage - Liste UL - Colonne\n_____\nPage Mouvements :\nModale Nouveau mouvement\nModale Modifier un mouvement\nModale Détail de mouvement",
                     ],
                     [
                         "fr" => "Quantité",
@@ -510,7 +510,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Nature",
                         "en" => "Nature",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe\nOnglet Groupes - Exports",
+                        "tooltip" => "Page Arrivages UL :\nDétails arrivage - Liste des UL - Colonne\n_____\nPage UL :\nOnglet UL - Colonne\nOnglet UL - Modale Modifier une unité logistique\nOnglet Groupes - Carte groupe\nOnglet Groupes - Carte UL dans Carte groupe\nOnglet Groupes - Exports",
                     ],
                     [
                         "fr" => "Natures",
@@ -530,12 +530,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "Date dernier mouvement",
                         "en" => "Last movement date",
-                        "tooltip" => "Page UL :\nZone liste - Nom de colonnes\n_____\nPage Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
+                        "tooltip" => "Page UL :\nZone liste - Nom de colonnes\n_____\nPage Arrivages UL :\nDétails arrivage UL - Liste des UL - Nom de colonnes",
                     ],
                     [
                         "fr" => "Dernier emplacement",
                         "en" => "Last location",
-                        "tooltip" => "Page Flux - Arrivages :\nDétails arrivage - Liste des UL - Nom de colonnes",
+                        "tooltip" => "Page Arrivages UL :\nDétails arrivage UL - Liste des UL - Nom de colonnes",
                     ],
                     [
                         "fr" => "Sélectionner une nature",
@@ -554,141 +554,146 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Votre unité logistique a été livrée",
-                        "en" => "Your logistics unit has been delivered",
+                        "en" => "Your logistic unit has been delivered",
                         "tooltip" => "Email de confirmation de livraison d'unité logistique",
+                    ],
+                    [
+                        "fr" => "Article",
+                        "en" => "Item",
+                        "tooltip" => "Page Mouvements : \nZone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                 ],
             ],
-            "Flux - Arrivages" => [
+            "Arrivages UL" => [
                 "Divers" => [
                     "content" => [
                         [
-                            "fr" => "Flux - arrivages",
-                            "en" => "Arrivals",
-                            "tooltip" => "Page Flux - Arrivages :\nMenu\nFil d'ariane",
+                            "fr" => "Arrivages unités logistiques",
+                            "en" => "Logistic units arrivals",
+                            "tooltip" => "Page Arrivages UL :\nMenu\nFil d'ariane",
                         ],
                         [
-                            "fr" => "N° d'arrivage",
-                            "en" => "Arrival number",
-                            "tooltip" => "Page Flux - Arrivages : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage - Liste des litiges - Modale Nouveau litige\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage Qualité - Litiges :\nZone liste - Nom de colonnes",
+                            "fr" => "N° d'arrivage UL",
+                            "en" => "LU Arrival number",
+                            "tooltip" => "Page Arrivages UL : \nFiltre\nZone liste - Nom de colonnes\nGestion des colonnes\nDétails arrivage UL - Liste des litiges - Modale Nouveau litige\n_____\nPage Urgences :\nZone liste - Nom de colonnes\n_____\nPage Qualité - Litiges :\nZone liste - Nom de colonnes",
                         ],
                         [
                             "fr" => "Fournisseurs",
                             "en" => "Suppliers",
-                            "tooltip" => "Page Flux - Arrivages :\nFiltre",
+                            "tooltip" => "Page Arrivages UL :\nFiltre",
                         ],
                         [
                             "fr" => "Transporteurs",
                             "en" => "Carriers",
-                            "tooltip" => "Page Flux - Arrivages :\nFiltre",
+                            "tooltip" => "Page Arrivages UL :\nFiltre",
                         ],
                         [
                             "fr" => "Destinataires",
                             "en" => "Recipients",
-                            "tooltip" => "Page Flux - Arrivages :\nFiltre",
+                            "tooltip" => "Page Arrivages UL :\nFiltre",
                         ],
                         [
                             "fr" => "Statuts",
                             "en" => "Statuses",
-                            "tooltip" => "Page Flux - Arrivages :\nFiltres",
+                            "tooltip" => "Page Arrivages UL :\nFiltres",
                         ],
                         [
                             "fr" => "Urgence",
                             "en" => "Emergency",
-                            "tooltip" => "Page Flux - Arrivages :\nFiltre\nModale Nouveau litige\nModale Modifier le litige",
+                            "tooltip" => "Page Arrivages UL :\nFiltre\nModale Nouveau litige\nModale Modifier le litige",
                         ],
                         [
                             "fr" => "Urgent",
                             "en" => "Urgent",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
+                            "tooltip" => "Page Arrivages UL :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
                             "fr" => "Nombre d'UL",
                             "en" => "Quantity L.U.",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
+                            "tooltip" => "Page Arrivages UL :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
                             "fr" => "Poids total (kg)",
                             "en" => "Total weight (kg)",
-                            "tooltip" => "Page Flux - Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes",
+                            "tooltip" => "Page Arrivages UL :\nZone liste - Nom de colonnes\nGestion des colonnes",
                         ],
                         [
-                            "fr" => "Nouvel arrivage",
-                            "en" => "New arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nBouton\nModale Nouvel arrivage",
+                            "fr" => "Nouvel arrivage UL",
+                            "en" => "New LU arrival",
+                            "tooltip" => "Page Arrivages UL :\nBouton\nModale Nouvel arrivage UL",
                         ],
                         [
                             "fr" => "Ajouter des unités logistiques",
                             "en" => "Add logistic units",
-                            "tooltip" => "Page Flux - Arrivages :\nDétails arrivages - Liste des colis - Bouton\nDétails arrivages - Liste des colis - Modale Ajouter colis ",
+                            "tooltip" => "Page Arrivages UL :\nDétails arrivages - Liste des unités logistiques - Bouton\nDétails arrivages - Liste des unités logistiques - Modale Ajouter unité logistique",
                         ],
                         [
                             "fr" => "Liste des unités logistiques",
-                            "en" => "Logistics unit list",
-                            "tooltip" => "Détails arrivages - Liste des unités logistiques",
+                            "en" => "Logistic unit list",
+                            "tooltip" => "Détails arrivages UL - Liste des unités logistiques",
                         ],
                         [
-                            "fr" => "Nombre d'UL à ajouter :",
+                            "fr" => "Nombre d'unités logistiques à ajouter :",
                             "en" => "Quantity of L.U. to add :",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Nouvel arrivage\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
+                            "tooltip" => "Page Arrivages UL :\nModale Nouvel arrivage UL\nDétails arrivages - Liste des UL - Modale Ajouter une UL",
                         ],
                         [
-                            "fr" => "Arrivage",
-                            "en" => "Arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nEmail arrivage",
+                            "fr" => "Arrivage UL",
+                            "en" => "LU Arrival",
+                            "tooltip" => "Page Arrivages UL :\nFil d'ariane\nDétails arrivage UL - Entête\nEmail arrivage UL",
                         ],
                         [
-                            "fr" => "arrivage",
-                            "en" => "arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nFil d'ariane\nDétails arrivage - Entête\nEmail arrivage",
+                            "fr" => "arrivage UL",
+                            "en" => "LU arrival",
+                            "tooltip" => "Page Arrivages UL :\nFil d'ariane\nDétails arrivage UL - Entête\nEmail arrivage UL",
                         ],
                         [
-                            "fr" => "Modifier arrivage",
-                            "en" => "Edit arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Modifier arrivage",
+                            "fr" => "Modifier arrivage UL",
+                            "en" => "Edit LU arrival",
+                            "tooltip" => "Page Arrivages UL :\nModale Modifier arrivage UL",
                         ],
                         [
-                            "fr" => "Supprimer l'arrivage",
-                            "en" => "Delete the arrival",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
+                            "fr" => "Supprimer l'arrivage UL",
+                            "en" => "Delete the LU arrival",
+                            "tooltip" => "Page Arrivages UL :\nModale Supprimer l'arrivage UL",
                         ],
                         [
-                            "fr" => "Voulez-vous réellement supprimer cet arrivage ?",
-                            "en" => "Do you really want to delete this arrival ?",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
+                            "fr" => "Voulez-vous réellement supprimer cet arrivage UL ?",
+                            "en" => "Do you really want to delete this LU arrival ?",
+                            "tooltip" => "Page Arrivages UL :\nModale Supprimer l'arrivage UL",
                         ],
                         [
-                            "fr" => "(attention, un litige a été créé sur cet arrivage : il sera également supprimé)",
-                            "en" => "(attention, a dispute has been created on this arrival: it will also be deleted)",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Supprimer l'arrivage",
+                            "fr" => "(attention, un litige a été créé sur cet arrivage UL : il sera également supprimé)",
+                            "en" => "(attention, a dispute has been created on this LU arrival: it will also be deleted)",
+                            "tooltip" => "Page Arrivages UL :\nModale Supprimer l'arrivage UL",
                         ],
                         [
                             "fr" => "Liste des UL générées",
                             "en" => "List of L.U",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générés",
+                            "tooltip" => "Page Arrivages UL :\nModale Liste des UL générés",
                         ],
                         [
                             "fr" => "Impression",
                             "en" => "Print label",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
+                            "tooltip" => "Page Arrivages UL :\nModale Liste des UL générées",
                         ],
                         [
                             "fr" => "N° UL",
                             "en" => "N°L.U.",
-                            "tooltip" => "Page Flux - Arrivages :\nModale Liste des UL générées",
+                            "tooltip" => "Page Arrivages UL :\nModale Liste des UL générées",
                         ],
                         [
                             "fr" => "Réceptionner",
                             "en" => "Receipt",
-                            "tooltip" => "Zone liste - 3 points\nDétail arrivage entête",
+                            "tooltip" => "Zone liste - 3 points\nDétail arrivage UL entête",
                         ],
                         [
-                            "fr" => "Un autre arrivage est en cours de création, veuillez réessayer",
-                            "en" => "Another arrival is being created, please try again",
+                            "fr" => "Un autre arrivage UL est en cours de création, veuillez réessayer",
+                            "en" => "Another LU arrival is being created, please try again",
                         ],
                         [
-                            "fr" => "Un autre litige d'arrivage est en cours de création, veuillez réessayer",
-                            "en" => "Another arrival dispute is being created, please try again",
+                            "fr" => "Un autre litige d'arrivage UL est en cours de création, veuillez réessayer",
+                            "en" => "Another LU arrival dispute is being created, please try again",
                         ],
                     ],
                 ],
@@ -697,105 +702,105 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Fournisseur",
                             "en" => "Supplier",
-                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivage détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                            "tooltip" => "Arrivages UL :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nArrivage détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                         ],
                         [
                             "fr" => "Transporteur",
                             "en" => "Carrier",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête\nModale Nouveau litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nDétails arrivage UL - Entête\nModale Nouveau litige",
                         ],
                         [
                             "fr" => "Chauffeur",
                             "en" => "Driver",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivages détails - Entête\nModale Nouveau litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nArrivages détails - Entête\nModale Nouveau litige",
                         ],
                         [
                             "fr" => "N° tracking transporteur",
                             "en" => "Carrier tracking number",
-                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivages détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
+                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nArrivages UL détails - Entête\nModale Nouveau litige\n_____\nUrgences :\nZone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                         ],
                         [
                             "fr" => "N° commande / BL",
                             "en" => "Order number",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête\nModale Nouveau litige\nEmail litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nDétails arrivage UL - Entête\nModale Nouveau litige\nEmail litige",
                         ],
                         [
                             "fr" => "Type",
                             "en" => "Type",
-                            "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
+                            "tooltip" => "Détails arrivage UL - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL",
                         ],
                         [
                             "fr" => "Statut",
                             "en" => "Status",
-                            "tooltip" => "Flux - arrivages :\nZone liste - Nom de colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétail arrivages - Entête\nDétail arrivages - Liste des litiges - Colonne\nModale Nouveau litige\nModale Modifier le litige",
+                            "tooltip" => "Arrivages unités logistiques :\nZone liste - Nom de colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nDétail arrivages UL - Entête\nDétail arrivages - Liste des litiges - Colonne\nModale Nouveau litige\nModale Modifier le litige",
                         ],
                         [
                             "fr" => "Emplacement de dépose",
                             "en" => "Drop location",
-                            "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
+                            "tooltip" => "Détails arrivage UL - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL",
                         ],
                         [
                             "fr" => "Destinataire",
                             "en" => "Addressee",
-                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nArrivage détails - Entête",
+                            "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nArrivage UL détails - Entête",
                         ],
                         [
                             "fr" => "Acheteur(s)",
                             "en" => "Buyer(s)",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nArrivages détails - Entête\nModale Nouveau litige",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nArrivages UL détails - Entête\nModale Nouveau litige",
                         ],
                         [
-                            "fr" => "Imprimer arrivage",
-                            "en" => "Print arrival",
-                            "tooltip" => "Modale Nouvel arrivage\nDétails arrivages - Entête - Bouton",
+                            "fr" => "Imprimer arrivage UL",
+                            "en" => "Print LU arrival",
+                            "tooltip" => "Modale Nouvel arrivage UL\nDétails arrivages UL - Entête - Bouton",
                         ],
                         [
-                            "fr" => "Imprimer UL",
+                            "fr" => "Imprimer unités logistiques",
                             "en" => "Print L.U.",
-                            "tooltip" => "Modale Nouvel arrivage\nDétails arrivages - Liste des UL - Bouton",
+                            "tooltip" => "Modale Nouvel arrivage UL\nDétails arrivages UL - Liste des UL - Bouton",
                         ],
                         [
                             "fr" => "Numéro de projet",
                             "en" => "Project number",
-                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage\nDétails arrivage - Entête",
+                            "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nDétails arrivage UL - Entête",
                         ],
                         [
                             "fr" => "Business unit",
                             "en" => "Business unit",
-                            "tooltip" => "Détails arrivage - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifier arrivage",
+                            "tooltip" => "Détails arrivage UL - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL",
                         ],
                         [
                             "fr" => "Douane",
                             "en" => "Customs",
-                            "tooltip" => "Filtre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
+                            "tooltip" => "Filtre\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifer arrivage UL\nArrivages UL détails - Entête",
                         ],
                         [
                             "fr" => "Congelé",
                             "en" => "Frozen",
-                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Entête",
+                            "tooltip" => "Filtre \nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifer arrivage UL\nArrivages UL détails - Entête",
                         ],
                         [
                             "fr" => "Projet",
                             "en" => "Project",
-                            "tooltip" => "Modale Nouvel arrivage\nModale Modifer arrivage\nArrivages détails - Liste des unités logistiques - Modale modifier une UL",
+                            "tooltip" => "Modale Nouvel arrivage UL\nModale Modifer arrivage UL\nArrivages UL détails - Liste des unités logistiques - Modale modifier une UL",
                         ],
                     ],
                 ],
-                "Détails arrivage - Entête" => [
+                "Détails arrivage UL - Entête" => [
                     "content" => [
                         [
-                            "fr" => "Cet arrivage est à traiter en URGENCE",
-                            "en" => "This arrival needs to be dealt with urgently",
-                            "tooltip" => "Détails arrivage - Entête (arrivage urgent)",
+                            "fr" => "Cet arrivage UL est à traiter en URGENCE",
+                            "en" => "This LU arrival needs to be dealt with urgently",
+                            "tooltip" => "Détails arrivage UL - Entête (arrivage UL urgent)",
                         ],
                         [
                             "fr" => "Acheminer",
                             "en" => "Transfer",
-                            "tooltip" => "Zone liste - Bouton\nDétails arrivages - Entête - Bouton",
+                            "tooltip" => "Zone liste - Bouton\nDétails arrivages UL - Entête - Bouton",
                         ],
                     ],
                 ],
-                "Modale création nouvel arrivage" => [
+                "Modale création nouvel arrivage UL" => [
                     "content" =>[
                         [
                             "fr" => "Nom",
@@ -820,21 +825,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Type à choisir...",
                             "en" => "Choose a type...",
-                            "tooltip" => "Modale Nouvel arrivage",
+                            "tooltip" => "Modale Nouvel arrivage UL",
                         ],
                         [
                             "fr" => "Choisir un statut...",
                             "en" => "Choose a status...",
-                            "tooltip" => "Modale Nouvel arrivage",
+                            "tooltip" => "Modale Nouvel arrivage UL",
+                        ],
+                        [
+                            "fr" => "Créer",
+                            "en" => "Create",
+                            "tooltip" => "Modale Nouvel arrivage UL",
                         ],
                         [
                             "fr" => "Veuillez renseigner au moins une unité logistique",
-                            "en" => "Fill in at least one logistics unit",
-                            "tooltip" => "Modale Nouvel arrivage",
+                            "en" => "Fill in at least one logistic unit",
+                            "tooltip" => "Modale Nouvel arrivage UL",
                         ],
                     ],
                 ],
-                "Détails arrivage - Liste des litiges" => [
+                "Détails arrivage UL - Liste des litiges" => [
                     "content" => [
                         [
                             "fr" => "Liste des litiges",
@@ -854,7 +864,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Type",
                             "en" => "Type",
-                            "tooltip" => "Détails arrivage - Liste des litiges - Colonne\nModale Nouveau litige\nModale Modifier le litige",
+                            "tooltip" => "Détails arrivage UL - Liste des litiges - Colonne\nModale Nouveau litige\nModale Modifier le litige",
                         ],
                         [
                             "fr" => "Déclarant",
@@ -878,47 +888,47 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                     ],
                 ],
-                "Email arrivage" => [
+                "Email arrivage UL" => [
                     "content" => [
                         [
-                            "fr" => "FOLLOW GT // Arrivage",
-                            "en" => "FOLLOW GT // Arrivals",
-                            "tooltip" => "Email arrivage : objet ",
+                            "fr" => "FOLLOW GT // Arrivage UL",
+                            "en" => "FOLLOW GT // LU Arrivals",
+                            "tooltip" => "Email arrivage UL : objet ",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Arrivage urgent",
-                            "en" => "FOLLOW GT // Urgent arrival",
-                            "tooltip" => "Email arrivage : objet ",
+                            "fr" => "FOLLOW GT // Arrivage UL urgent",
+                            "en" => "FOLLOW GT // Urgent LU arrival",
+                            "tooltip" => "Email arrivage UL : objet ",
                         ],
                         [
-                            "fr" => "Arrivage reçu : le {1} à {2}",
-                            "en" => "Arrival received : on {1} at {2}",
-                            "tooltip" => "Email arrivage",
+                            "fr" => "Arrivage UL reçu : le {1} à {2}",
+                            "en" => "LU Arrival received : on {1} at {2}",
+                            "tooltip" => "Email arrivage UL",
                         ],
                         [
                             "fr" => "Votre commande est arrivée :",
                             "en" => "Your order has arrived",
-                            "tooltip" => "Email arrivage",
+                            "tooltip" => "Email arrivage UL",
                         ],
                         [
                             "fr" => "Votre commande urgente est arrivée :",
                             "en" => "Your urgent order has arrived:",
-                            "tooltip" => "Email arrivage",
+                            "tooltip" => "Email arrivage UL",
                         ],
                         [
                             "fr" => "Unités logistiques réceptionnées :",
-                            "en" => "Receipted logistics units",
-                            "tooltip" => "Email arrivage",
+                            "en" => "Receipted logistic units",
+                            "tooltip" => "Email arrivage UL",
                         ],
                         [
                             "fr" => "Nature",
                             "en" => "Nature",
-                            "tooltip" => "Email arrivage",
+                            "tooltip" => "Email arrivage UL",
                         ],
                         [
                             "fr" => "Quantité",
                             "en" => "Quantity",
-                            "tooltip" => "Email arrivage",
+                            "tooltip" => "Email arrivage UL",
                         ],
                     ],
                 ],
@@ -951,8 +961,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email litige",
                         ],
                         [
-                            "fr" => "un arrivage",
-                            "en" => "a delivery",
+                            "fr" => "un arrivage UL",
+                            "en" => "a LU arrival",
                             "tooltip" => "Email litige",
                         ],
                         [
@@ -991,8 +1001,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste - Mode acheminer",
                         ],
                         [
-                            "fr" => "Valider arrivages à acheminer",
-                            "en" => "Validate arrivals to transfer",
+                            "fr" => "Valider arrivages UL à acheminer",
+                            "en" => "Validate LU arrivals to transfer",
                             "tooltip" => "Zone liste - Mode acheminer",
                         ],
                         [
@@ -1028,7 +1038,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unités logistiques à acheminer",
-                            "en" => "Logistics unit to ship",
+                            "en" => "Logistic unit to ship",
                             "tooltip" => "Modale acheminer",
                         ],
                     ],
@@ -1062,8 +1072,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle urgence\nModale Modifier une urgence",
                     ],
                     [
-                        "fr" => "Date arrivage",
-                        "en" => "Arrival date",
+                        "fr" => "Date arrivage UL",
+                        "en" => "LU arrival date",
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                     [
@@ -1082,8 +1092,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
-                        "fr" => "Cette urgence est liée à un arrivage.\nVous ne pouvez pas la supprimer",
-                        "en" => "This emergency is linked to an arrival. You cannot delete it",
+                        "fr" => "Cette urgence est liée à un arrivage UL.\nVous ne pouvez pas la supprimer",
+                        "en" => "This emergency is linked to an LU arrival. You cannot delete it",
                         "tooltip" => "Modale Supprimer l'urgence",
                     ],
                     [
@@ -1112,8 +1122,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
                     ],
                     [
-                        "fr" => "Numéro d'arrivage",
-                        "en" => "Arrival number",
+                        "fr" => "Numéro d'arrivage UL",
+                        "en" => "LU arrival number",
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
                 ],
@@ -1122,8 +1132,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Divers" => [
                     "content" => [
                         [
-                            "fr" => "N° d'arrivage",
-                            "en" => "Arrival number",
+                            "fr" => "N° d'arrivage UL",
+                            "en" => "LU Arrival number",
                             "tooltip" => "Filtre",
                         ],
                         [
@@ -1186,33 +1196,38 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Modale Supprimer l'UL",
                         ],
                         [
-                            "fr" => "X articles dans l'unité logistique. Cliquez sur le logo pour voir le contenu de l'unité logistique.",
-                            "en" => "X units in the logistics unit. Click on the logo to see the contents of the logistics unit.",
+                            "fr" => "{1} articles dans l'unité logistique. Cliquez pour voir le contenu.",
+                            "en" => "{1} items in the logistic unit. Click to see the contents.",
                             "tooltip" => "Zone liste",
                         ],
                         [
                             "fr" => "Contenu unité logistique",
-                            "en" => "Logistics unit content",
+                            "en" => "Logistic unit content",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Articles",
-                            "en" => "Units",
+                            "en" => "Items",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Historique des articles",
-                            "en" => "Units history",
+                            "en" => "Items history",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "L'unité logistique ne contient aucun article actuellement",
-                            "en" => "The logistics unit does not currently contain any items",
+                            "en" => "The logistic unit does not currently contain any items",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
                             "fr" => "Ref",
                             "en" => "Ref",
+                            "tooltip" => "Zone liste - contenu UL",
+                        ],
+                        [
+                            "fr" => "Quantité",
+                            "en" => "Quantity",
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
@@ -1246,7 +1261,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Zone liste - contenu UL",
                         ],
                         [
-                            "fr" => "Liste des colis",
+                            "fr" => "Liste des unités logistiques",
                             "en" => "L.U. list",
                         ],
                         [
@@ -1258,24 +1273,28 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "The L.U. {1} has been edited",
                         ],
                         [
-                            "fr" => "Cette unité logistique est utilisé dans l'arrivage {1}",
-                            "en" => "This logistic unit is in use in the arrival {1}",
+                            "fr" => "Cette unité logistique est utilisé dans l'arrivage UL {1}",
+                            "en" => "This logistic unit is in use in the LU arrival {1}",
                         ],
                         [
-                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs mouvements de traçabilité",
+                            "fr" => "Cette unité logistique est référencée dans un ou plusieurs mouvements de traçabilité",
                             "en" => "This logistic unit appears use in one or more movements",
                         ],
                         [
-                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs acheminements",
+                            "fr" => "Cette unité logistique est référencée dans un ou plusieurs acheminements",
                             "en" => "This logistic unit appears in one or more transfers",
                         ],
                         [
-                            "fr" => "Cette unité logistique est référencé dans un ou plusieurs litiges",
+                            "fr" => "Cette unité logistique est référencée dans un ou plusieurs litiges",
                             "en" => "This logistic unit appears in one or more disputes",
                         ],
                         [
                             "fr" => "Cette unité logistique est utilisé dans un ordre de livraison",
-                            "en" => "This logistics unit is used in a delivery order",
+                            "en" => "This logistic unit is used in a delivery order",
+                        ],
+                        [
+                            "fr" => "Cette unité logistique contient des articles",
+                            "en" => "This logistic unit contains articles",
                         ],
                     ],
                 ],
@@ -1297,8 +1316,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Onglet \"Groupes\"",
                         ],
                         [
-                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les colis suivant seront déposés sur l'emplacement sélectionné : {2}.",
-                            "en" => "You are about to ungroup the group {1}. The following packages will be dropped off at the selected location : {2}.",
+                            "fr" => "Vous êtes sur le point de dégrouper le groupe {1}. Les unités logistiques suivant seront déposés sur l'emplacement sélectionné : {2}.",
+                            "en" => "You are about to ungroup the group {1}. The following logistic units will be dropped off at the selected location : {2}.",
                             "tooltip" => "Modale Dégrouper",
                         ],
                         [
@@ -1358,12 +1377,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Article",
-                        "en" => "Article",
+                        "en" => "Item",
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes",
                     ],
                     [
                         "fr" => "Article(s)",
-                        "en" => "Article(s)",
+                        "en" => "Item(s)",
                         "tooltip" => "Modale nouveau mouvement (dépose dans UL)",
                     ],
                     [
@@ -1375,11 +1394,6 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "fr" => "Type",
                         "en" => "Type",
                         "tooltip" => "Zone liste - Nom de colonnes\nGestion des colonnes\n_____\nUL : \nModale Modifier une unité logistique",
-                    ],
-                    [
-                        "fr" => "Prise dans UL",
-                        "en" => "Pick up in L.U.",
-                        "tooltip" => "Zone liste - type de mouvement",
                     ],
                     [
                         "fr" => "Nouveau mouvement",
@@ -1422,8 +1436,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
-                        "fr" => "Dépose dans UL",
-                        "en" => "Drop off in L.U.",
+                        "fr" => "prise dans UL",
+                        "en" => "pick up in L.U.",
+                        "tooltip" => "Zone liste - type de mouvement",
+                    ],
+                    [
+                        "fr" => "dépose dans UL",
+                        "en" => "drop off in L.U.",
                         "tooltip" => "Modale Nouveau mouvement - Choix liste \"Action\"",
                     ],
                     [
@@ -1464,23 +1483,27 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     [
                         "fr" => "natures requises",
                         "en" => "required natures",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Mouvements créés avec succès.",
                         "en" => "Movements created successfully",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Mouvement créé avec succès.",
                         "en" => "Movement created successfully",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
                     [
                         "fr" => "Aucun mouvement créé.",
                         "en" => "No movement created",
-                        "tooltip" => "Modale emplaçement ne peut pas contenir colis",
                     ],
+                    [
+                        "fr" => "L'unité logistique ne doit pas correspondre à un article",
+                        "en" => "The logistic unit must not match an item",
+                    ],
+                    [
+                        "fr" => "L'unité logistique est dans une réception en attente et ne peut pas être mouvementé",
+                        "en" => "The logistic unit is in a pending reception and can not be moved",
+                    ]
                 ],
             ],
             "Association BR" => [
@@ -1687,7 +1710,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "articles",
-                        "en" => "units",
+                        "en" => "items",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1697,7 +1720,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Code article",
-                        "en" => "Unit code",
+                        "en" => "Item code",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1707,7 +1730,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                     [
                         "fr" => "Référence article",
-                        "en" => "Unit reference",
+                        "en" => "Item reference",
                         "tooltip" => "Modale modifier un litige",
                     ],
                     [
@@ -1929,12 +1952,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Traité",
                             "en" => "Processed",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",
                         ],
                         [
                             "fr" => "À traiter",
                             "en" => "To process",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nEmails",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",
                         ],
                         [
                             "fr" => "L'acheminement a bien été créé",
@@ -1956,7 +1979,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Une unité logistique minimum est nécessaire pour procéder à l'acheminement",
-                            "en" => "A logistics unit is required to proceed with the transfer",
+                            "en" => "A logistic unit is required to proceed with the transfer",
                         ],
                         [
                             "fr" => "Les unités logistiques de l'arrivage ont bien été ajoutés dans l'acheminement {1}",
@@ -2092,8 +2115,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Unité logistique",
-                            "en" => "Logistics unit",
-                            "tooltip" => "Détails acheminements - Liste des colis - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
+                            "en" => "Logistic unit",
+                            "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture",
                         ],
                         [
                             "fr" => "Nouvelle UL",
@@ -2116,11 +2139,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Message succès Supprimer la ligne",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été modifié",
+                            "fr" => "L'unité logistique {1} a bien été modifiée",
                             "en" => "Logistic unit {1} has been modified successfully",
                         ],
                         [
-                            "fr" => "L'unité logistique {1} a bien été ajouté",
+                            "fr" => "L'unité logistique {1} a bien été ajoutée",
                             "en" => "Logistic unit {1} has been added",
                         ],
                     ],
@@ -2218,10 +2241,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Des unités logistiques sont nécessaires pour générer une lettre de voiture",
-                            "en" => "Logistics units are necessary to create a consignment note",
+                            "en" => "Logistic units are necessary to create a consignment note",
                         ],
                         [
-                            "fr" => "L'acheminement contient plus de {1} colis",
+                            "fr" => "L'acheminement contient plus de {1} UL",
                             "en" => "The transfer contains more than {1} LU",
                         ],
                         [
@@ -2422,7 +2445,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         ],
                         [
                             "fr" => "Des unités logistiques sont nécessaires pour générer un bon de livraison",
-                            "en" => "Logistics units are necessary to generate a delivery note",
+                            "en" => "Logistic units are necessary to generate a delivery note",
                         ],
                         [
                             "fr" => "Le bon de livraison n'existe pas pour cet acheminement",
@@ -2462,6 +2485,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Page",
                             "en" => "Page",
                             "tooltip" => "PDF bon de livraison"
+                        ],
+                        [
+                            "fr" => "Article contenu",
+                            "en" => "Contained article",
+                            "tooltip" => "PDF bon de livraison",
+                        ],
+                        [
+                            "fr" => "Référence",
+                            "en" => "Reference",
+                            "tooltip" => "PDF bon de livraison",
+                        ],
+                        [
+                            "fr" => "Désignation",
+                            "en" => "Designation",
+                            "tooltip" => "PDF bon de livraison",
                         ],
                     ],
                 ],
@@ -2838,6 +2876,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ],
                 ],
             ],
+            "Livraison" => [
+                "content" => [
+                    ["fr" => "Livraison"],
+                    ["fr" => "Demande de livraison"]
+                ]
+            ],
+            "Expédition" => [
+                "content" => [
+                    ["fr" => "Expédition"],
+                    ["fr" => "Demande d'expédition"]
+                ]
+            ],
         ],
         "Ordre" => [
             "Réceptions" => [
@@ -2872,6 +2922,19 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     ["fr" => "Annuler la réception"],
                 ],
             ],
+            "Livraison" => [
+                "content" => [
+                    ["fr" => "Livraison"],
+                    ["fr" => "Ordre de livraison"]
+                ]
+            ]
+        ],
+        "Référentiel" => [
+            "Projet" => [
+                "content" => [
+                    ["fr" => "Projet"]
+                ]
+            ]
         ],
         "Stock" => [
             "Références" => [
@@ -3032,6 +3095,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                     $this->manager->persist($french);
 
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
+                } else if($french->getTranslation() != $translation["fr"]) {
+                    $english->setTranslation($translation["fr"]);
+
+                    $this->console->writeln("Updated default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
 
                 if(isset($translation["en"])) {

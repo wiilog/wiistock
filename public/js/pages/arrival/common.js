@@ -129,7 +129,7 @@ function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseC
     });
 }
 
-function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
+function treatArrivalCreation({redirectAfterAlert, printPacks, printArrivage, arrivageId}, arrivalsDatatable, success = null) {
     if (!redirectAfterAlert) {
         if (arrivalsDatatable) {
             arrivalsDatatable.ajax.reload();
@@ -140,24 +140,42 @@ function treatArrivalCreation({redirectAfterAlert, printColis, printArrivage, ar
         }
     }
     else {
-        window.location.href = createArrivageShowUrl(redirectAfterAlert, printColis, printArrivage);
+        window.location.href = createArrivageShowUrl(redirectAfterAlert, printPacks, printArrivage);
     }
 }
 
-function createArrivageShowUrl(arrivageShowUrl, printColis, printArrivage) {
-    const printColisNumber = (printColis === true) ? '1' : '0';
+function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
+    const printPacksNumber = (printPacks === true) ? '1' : '0';
     const printArrivageNumber = (printArrivage === true) ? '1' : '0';
-    return `${arrivageShowUrl}?printColis=${printColisNumber}&printArrivage=${printArrivageNumber}`;
+    return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printColis, printArrivage}) {
-    if (printArrivage || printColis) {
-        let params = {
-            arrivage: arrivageId,
-            printColis: printColis ? 1 : 0,
-            printArrivage: printArrivage ? 1 : 0
-        };
-        window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+function printArrival({arrivageId, printPacks, printArrivage}) {
+    let templates;
+    try {
+        templates = JSON.parse($('#tagTemplates').val());
+    } catch (error) {
+        templates = [];
+    }
+    let params = {
+        arrivage: arrivageId,
+        printPacks: printPacks ? 1 : 0,
+        printArrivage: printArrivage ? 1 : 0
+    };
+    if (templates.length > 0) {
+        Promise.all(
+            [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
+                .concat(templates.map(function(template) {
+                    params.template = template;
+                    return AJAX
+                        .route('GET', `print_arrivage_bar_codes`, params)
+                        .file({})
+                }))
+        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
+    } else {
+        if (printArrivage || printPacks) {
+            window.location.href = Routing.generate('print_arrivage_bar_codes', params, true);
+        }
     }
 }
 
@@ -253,8 +271,8 @@ function checkPossibleCustoms($modal) {
                 undefined,
                 $('<div/>', {
                     class: 'text-center',
-                    html: `Attention, ce fournisseur livre habituellement des colis sous douanes.`
-                        + ` Voulez-vous modifier votre saisie pour déclarer le colis sous douanes ?`
+                    html: `Attention, ce fournisseur livre habituellement des unités logistiques sous douanes.`
+                        + ` Voulez-vous modifier votre saisie pour déclarer l'unité logistique' sous douanes ?`
                 }),
                 [
                     {
@@ -327,3 +345,48 @@ function onExistingDispatchSelected($select) {
             .append(content);
     });
 }
+
+function initializeHistoryTables(packId){
+    initializeGroupHistoryTable(packId);
+    initializeProjectHistoryTable(packId);
+}
+
+function initializeGroupHistoryTable(packId) {
+    initDataTable('groupHistoryTable', {
+        serverSide: true,
+        processing: true,
+        order: [['date', "desc"]],
+        ajax: {
+            "url": Routing.generate('group_history_api', {pack: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: 'group', name: 'group', title: Translation.of('Traçabilité', 'Mouvements', 'Groupe')},
+            {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
+            {data: 'type', name: 'type', title: Translation.of('Traçabilité', 'Mouvements', 'Type')},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    });
+}
+
+function initializeProjectHistoryTable(packId) {
+    initDataTable('projectHistoryTable', {
+        serverSide: true,
+        processing: true,
+        order: [['createdAt', "desc"]],
+        ajax: {
+            "url": Routing.generate('project_history_api', {pack: packId}, true),
+            "type": "POST"
+        },
+        columns: [
+            {data: 'project', name: 'group', title: Translation.of('Référentiel', 'Projet', 'Projet', false)},
+            {data: 'createdAt', name: 'type', title: 'Assigné le'},
+        ],
+        domConfig: {
+            needsPartialDomOverride: true,
+        }
+    });
+}
+

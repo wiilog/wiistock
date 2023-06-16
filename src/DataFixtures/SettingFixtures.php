@@ -12,11 +12,20 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SettingFixtures extends Fixture implements FixtureGroupInterface {
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
+
+    private const FORCE_RESET_CONSTANTS = [
+        Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE,
+        Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
+        Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
+        Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
+        Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
+    ];
 
     public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
@@ -46,7 +55,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
                 SpecificService::CLIENT_SAFRAN_ED => true,
             ],
+            Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION => [
+                'default' => false,
+            ],
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
+                'default' => false,
+            ],
+            Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY => [
                 'default' => false,
             ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
@@ -75,6 +90,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             setting::INCLUDE_BUSINESS_UNIT_IN_LABEL => [
                 'default' => false,
                 SpecificService::CLIENT_INEO_LAV => true,
+            ],
+            setting::INCLUDE_PROJECT_IN_LABEL => [
+                'default' => false,
             ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
@@ -118,6 +136,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
+            Setting::AUTO_PRINT_LU => [
+                'default' => true,
+            ],
             Setting::DISPATCH_NEW_REFERENCE_TYPE => [
                 'default' => null,
             ],
@@ -126,9 +147,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT => [
                 'default' => null,
-            ],
-            Setting::AUTO_PRINT_COLIS => [
-                'default' => true,
             ],
             Setting::USE_TRUCK_ARRIVALS => [
                 'default' => false,
@@ -187,10 +205,14 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [
                 'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE
             ],
+            Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE => [
+                'default' => Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
+            Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [
@@ -208,7 +230,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CUSTOM_TEXT_LABEL => [],
             Setting::EMERGENCY_TEXT_LABEL => [],
             Setting::DELIVERY_NOTE_LOGO => [],
-            Setting::FILE_WAYBILL_LOGO => [],
+            Setting::FILE_WAYBILL_LOGO => [], // TODO WIIS-8882
             Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER => [
                 'default' => null,
                 SpecificService::CLIENT_ARKEMA_SERQUIGNY => '#2b78e4'
@@ -286,28 +308,61 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::QUANTITY_ERROR_MESSAGE => [
                 'default' => 'La référence @reference est déjà en stock en quantité 1, vous ne pouvez donc pas faire une nouvelle entrée en stock pour cet article. Contactez GT au 8 45 65 pour plus d’informations.'
             ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER => [
+                'default' => '#2b78e4'
+            ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY => [
+                'default' => '#009e0f'
+            ],
+            Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE => [
+                'default' => '#cf2a27'
+            ],
             Setting::DISPATCH_WAYBILL_TYPE_TO_USE => [
                 'default' => Setting::DISPATCH_WAYBILL_TYPE_TO_USE_STANDARD
             ],
+            Setting::RFID_PREFIX => [],
+            Setting::RFID_KPI_MIN => [],
+            Setting::RFID_KPI_MAX => [],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL => [
+                'default' => null,
+            ],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM => [
+                'default' => null,
+            ],
+            Setting::RECEIVER_EQUALS_REQUESTER => [
+                'default' => false,
+            ],
+            Setting::ALLOWED_DROP_ON_FREE_LOCATION => [
+                'default' => false,
+            ],
+            Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
+                'default' => false,
+            ],
+            Setting::DELIVERY_REQUEST_ADD_UL => [
+                'default' => false,
+            ],
         ];
 
+        $appClient = $this->specificService->getAppClient();
         foreach ($globalParameterLabels as $globalParameterLabel => $values) {
             $globalParam = $parametreGlobalRepository->findBy(['label' => $globalParameterLabel]);
 
+            $value = $values[$appClient] ?? ($values['default'] ?? null);
+
+            $value = is_array($value)
+                ? json_encode($value)
+                : $value;
             if (empty($globalParam)) {
-                $appClient = $this->specificService->getAppClient();
-                $value = $values[$appClient] ?? ($values['default'] ?? null);
-
-                $value = is_array($value)
-                    ? json_encode($value)
-                    : $value;
-
                 $globalParam = new Setting();
                 $globalParam
                     ->setLabel($globalParameterLabel)
                     ->setValue($value);
                 $manager->persist($globalParam);
                 $output->writeln("Création du paramètre " . $globalParameterLabel);
+            }
+            else if (in_array($globalParameterLabel, self::FORCE_RESET_CONSTANTS)) {
+                $globalParam[0]->setValue($value);
+                $output->writeln("Mise à jour du paramètre " . $globalParameterLabel);
             }
         }
 

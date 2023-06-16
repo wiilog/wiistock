@@ -13,6 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -63,7 +64,7 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    public function getForSelect(?string $term, Utilisateur $user) {
+    public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
@@ -76,16 +77,107 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
+        if($options['needsOnlyMobileSyncReference'] ?? false) {
+            $queryBuilder->andWhere('reference.needsMobileSync = 1');
+        }
+
+        if($options['type-quantity'] ?? false) {
+            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+                ->setParameter('typeQuantity', $options['type-quantity']);
+        }
+
+        if($options['status'] ?? false) {
+            $queryBuilder
+                ->andWhere('status.code = :status')
+                ->setParameter('status', $options['status']);
+        }
+
+        if($options['ignoredDeliveryRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_delivery_request")
+                ->select('COUNT(reference_has_delivery_request)')
+                ->join("reference_has_delivery_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest.id = :deliveryRequestId")
+                ->andWhere("reference_has_delivery_request.id = reference.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('deliveryRequestId', $options['ignoredDeliveryRequest']);
+        }
+
+        if($options['ignoredShippingRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_shipping_request")
+                ->select('COUNT(reference_has_shipping_request)')
+                ->join(ShippingRequestExpectedLine::class, "shippingRequestExpectedLine", Join::WITH, 'shippingRequestExpectedLine.referenceArticle = reference')
+                ->join("shippingRequestExpectedLine.request", "shippingRequest")
+                ->andWhere("shippingRequest.id = :shippingRequestId")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('shippingRequestId', $options['ignoredShippingRequest']);
+        }
+
         return $queryBuilder
-            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location, reference.description AS description")
+            ->distinct()
+            ->select("reference.id AS id")
+            ->addSelect('reference.reference AS text')
+            ->addSelect('reference.libelle AS label')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('reference.description AS description')
+            ->addSelect('reference.typeQuantite as typeQuantite')
+            ->addSelect('reference.barCode as barCode')
+            ->addSelect('type.id as typeId')
+            ->addSelect('reference.dangerousGoods as dangerous')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
+            ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
+            ->setMaxResults(100)
             ->getQuery()
             ->getArrayResult();
+    }
+
+    public function getForNomade() {
+        $qb = $this->createQueryBuilder('referenceArticle');
+
+        $qb->select('referenceArticle.id AS id')
+            ->addSelect('referenceArticle.reference AS reference')
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"'))) AS outFormatEquipment")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"'))) AS manufacturerCode")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"'))) AS length")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"'))) AS width")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"'))) AS height")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"'))) AS volume")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"'))) AS weight")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"'))) AS associatedDocumentTypes")
+            ->andWhere('referenceArticle.needsMobileSync = true');
+
+        return $qb->getQuery()->getResult();
     }
 
     public function iterateAll(Utilisateur $user): iterable {
@@ -801,7 +893,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_preparationLine.pickedQuantity AS quantity')
             ->addSelect('1 AS is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('referenceArticle.barCode AS barCode')
+            ->addSelect('referenceArticle.barCode AS barcode')
             ->leftJoin('referenceArticle.emplacement', 'join_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
             ->join('join_preparationLine.preparation', 'join_preparation')
@@ -1115,39 +1207,6 @@ class ReferenceArticleRepository extends EntityRepository {
         }
 
         return $queryBuilder;
-    }
-
-    public function getRefTypeQtyArticleByReception($id, $reference = null, $commande = null)
-    {
-
-        $queryBuilder = $this->createQueryBuilder('ra')
-            ->select('ra.reference as reference')
-            ->addSelect('rra.commande as commande')
-            ->join('ra.receptionReferenceArticles', 'rra')
-            ->join('rra.reception', 'r')
-            ->andWhere('r.id = :id')
-            ->andWhere('(rra.quantiteAR > rra.quantite OR rra.quantite IS NULL)')
-            ->andWhere('ra.typeQuantite = :typeQty')
-            ->setParameters([
-                'id' => $id,
-                'typeQty' => ReferenceArticle::QUANTITY_TYPE_ARTICLE
-            ]);
-
-        if (!empty($reference)) {
-            $queryBuilder
-                ->andWhere('ra.reference = :reference')
-                ->setParameter('reference', $reference);
-        }
-
-        if (!empty($commande)) {
-            $queryBuilder
-                ->andWhere('rra.commande = :commande')
-                ->setParameter('commande', $commande);
-        }
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
     }
 
     public function getReferenceArticlesGroupedByTransfer(array $requests, bool $isRequests = true) {

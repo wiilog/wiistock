@@ -1,6 +1,11 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Ordre | Livraison | Détails{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('pack-common') }}
+{% endblock %}
+
+{% block title %}Ordre | {{ trans('Ordre', 'Livraison', 'Livraison', false) }} | Détails{% endblock %}
 {% block titleLink path('livraison_index') %}
 
 {% block page_content %}
@@ -13,10 +18,6 @@
                         livraison: livraison,
                         showDetails: headerConfig,
                         finished: finished,
-                        demande: demande,
-                        preparation: preparation,
-                        titleLogo: preparation.pairings|length>=1 ? 'pairing' : null,
-                        titleLogoTooltip: "Cette livraison est liée à un capteur"
                     } %}
                 </div>
             </div>
@@ -26,16 +27,21 @@
                 <div class="wii-box mt-0">
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
-                        <table id="tableArticle_id" class="table w-100"></table>
+                        <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                             data-loader-color="primary"
+                             data-loader-size="normal"
+                             data-initial-visible="{{ initialVisibleColumns }}">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    {% include 'reference_article/modalShowRefArticle.html.twig' %}
-    {% include 'article/modalShowArticle.html.twig' %}
     {% include 'emplacement/modal-select-location.html.twig' with {type: 'delete-delivery'} %}
+    {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
+    {% include "dispatch/modalPrintWayBill.html.twig" %}
+    {% include "livraison/modalArticlesNotRequested.html.twig" %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

@@ -19,6 +19,7 @@ class Setting {
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -26,7 +27,7 @@ class Setting {
     // arrivages UL
     const REDIRECT_AFTER_NEW_ARRIVAL = "REDIRECT_AFTER_NEW_ARRIVAL";
     const SEND_MAIL_AFTER_NEW_ARRIVAL = "SEND_MAIL_AFTER_NEW_ARRIVAL";
-    const AUTO_PRINT_COLIS = "AUTO_PRINT_COLIS";
+    const AUTO_PRINT_LU = "AUTO_PRINT_LU";
     const PRINT_TWICE_CUSTOMS = "PRINT_TWICE_CUSTOMS";
     const DROP_OFF_LOCATION_IF_CUSTOMS = 'DROP_OFF_LOCATION_IF_CUSTOMS';
     const DROP_OFF_LOCATION_IF_EMERGENCY = 'DROP_OFF_LOCATION_IF_EMERGENCY';
@@ -39,6 +40,10 @@ class Setting {
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_BEFORE_END";
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START";
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END";
+
+    // association BR
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
 
     // mvt traca
     const CLOSE_AND_CLEAR_AFTER_NEW_MVT = 'CLOSE_AND_CLEAR_AFTER_NEW_MVT';
@@ -55,11 +60,34 @@ class Setting {
     const CREATE_DELIVERY_ONLY = 'CREATE_DELIVERY_ONLY';
     const REQUESTER_IN_DELIVERY = 'REQUESTER_IN_DELIVERY';
     const DISPLAY_PICKING_LOCATION = 'DISPLAY_PICKING_LOCATION';
+    const DELIVERY_REQUEST_ADD_UL = 'DELIVERY_REQUEST_ADD_UL';
+    const DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT = 'DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT';
+    const DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT = 'DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT';
     const MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST = "MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST";
+    const SET_PREPARED_UPON_DELIVERY_VALIDATION = "SET_PREPARED_UPON_DELIVERY_VALIDATION";
     const MANAGE_PREPARATIONS_WITH_PLANNING = "MANAGE_PREPARATIONS_WITH_PLANNING";
+    const RECEIVER_EQUALS_REQUESTER = "RECEIVER_EQUALS_REQUESTER";
+    const MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY = "MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY";
 
     // collectes
     const MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST = 'MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST';
+
+    // expeditions
+    const SHIPPING_REFERENCE_DEFAULT_TYPE = 'SHIPPING_REFERENCE_DEFAULT_TYPE';
+    const SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE';
+    const SHIPPING_SUPPLIER_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_REFERENCE_CREATE';
+    const SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE = 'SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE';
+    const SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL = 'SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL';
+
+    const SHIPPING_LOCATION_FROM = 'SHIPPING_LOCATION_FROM';
+    const SHIPPING_LOCATION_TO = 'SHIPPING_LOCATION_TO';
+
+    const SHIPPING_TO_TREAT_SEND_TO_REQUESTER = 'SHIPPING_TO_TREAT_SEND_TO_REQUESTER';
+    const SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_TO_TREAT_SEND_TO_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_REQUESTER = 'SHIPPING_SHIPPED_SEND_TO_REQUESTER';
+    const SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES = 'SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_ROLES = 'SHIPPING_SHIPPED_SEND_TO_ROLES';
 
     // services
     const REMOVE_HOURS_DATETIME = 'REMOVE_HOURS_DATETIME';
@@ -75,6 +103,15 @@ class Setting {
     const STOCK_EXPIRATION_DELAY = 'STOCK_EXPIRATION_DELAY';
     const DEFAULT_LOCATION_REFERENCE = 'DEFAULT_LOCATION_REFERENCE';
     const REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES = 'REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES';
+
+    // stock - articles
+    const ARTICLE_TYPE = 'ARTICLE_TYPE';
+    const ARTICLE_REFERENCE = 'ARTICLE_REFERENCE';
+    const ARTICLE_SUPPLIER = 'ARTICLE_SUPPLIER';
+    const ARTICLE_SUPPLIER_REFERENCE = 'ARTICLE_SUPPLIER_REFERENCE';
+    const ARTICLE_LABEL = 'ARTICLE_LABEL';
+    const ARTICLE_QUANTITY = 'ARTICLE_QUANTITY';
+    const ARTICLE_LOCATION = 'ARTICLE_LOCATION';
 
     // borne tactile - général
     const FILE_TOP_LEFT_LOGO = 'FILE_TOP_LEFT_LOGO';
@@ -166,6 +203,7 @@ class Setting {
     const DISPATCH_NEW_REFERENCE_TYPE = 'DISPATCH_NEW_REFERENCE_TYPE';
     const DISPATCH_NEW_REFERENCE_STATUS = 'DISPATCH_NEW_REFERENCE_STATUS';
     const DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT = 'DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT';
+    const DISPATCH_SAVE_LDV = 'DISPATCH_SAVE_LDV';
 
     // mobile configuration
     const TRANSFER_TO_TREAT_SKIP_VALIDATIONS = 'TRANSFER_TO_TREAT_SKIP_VALIDATIONS';
@@ -178,18 +216,23 @@ class Setting {
     const TRANSFER_FREE_DROP = 'TRANSFER_FREE_DROP';
     const PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL = 'PREPARATION_DISPLAY_ARTICLES_WITHOUT_MANUAL';
     const MANUAL_DELIVERY_DISABLE_VALIDATIONS = 'MANUAL_DELIVERY_DISABLE_VALIDATIONS';
+    const DELIVERY_EXPECTED_DATE_COLOR_AFTER = 'DELIVERY_EXPECTED_DATE_COLOR_AFTER';
+    const DELIVERY_EXPECTED_DATE_COLOR_D_DAY = 'DELIVERY_EXPECTED_DATE_COLOR_D_DAY';
+    const DELIVERY_EXPECTED_DATE_COLOR_BEFORE = 'DELIVERY_EXPECTED_DATE_COLOR_BEFORE';
+    const ALLOWED_DROP_ON_FREE_LOCATION = "ALLOWED_DROP_ON_FREE_LOCATION";
+    const DISPLAY_REFERENCE_CODE_AND_SCANNABLE = "DISPLAY_REFERENCE_CODE_AND_SCANNABLE";
 
     // document
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
 
 
-//    TODO WIIS-8753 remove usage ?
+    // TODO WIIS-8882
     const FILE_WAYBILL_LOGO = 'WAYBILL_LOGO';
 
     // étiquettes
     const INCLUDE_BL_IN_LABEL = "INCLURE_BL_SUR_ETIQUETTE";
     const INCLUDE_QTT_IN_LABEL = "INCLURE_QTT_SUR_ETIQUETTE";
-    const BARCODE_TYPE_IS_128 = 'BARCORE_TYPE';
+    const BARCODE_TYPE_IS_128 = 'BARCODE_TYPE';
     const LABEL_WIDTH = 'LABEL_WIDTH';
     const LABEL_HEIGHT = 'LABEL_HEIGHT';
     const LABEL_LOGO = 'LABEL_LOGO';
@@ -209,11 +252,12 @@ class Setting {
 
     const INCLUDE_DZ_LOCATION_IN_LABEL = "INCLURE_EMPLACEMENT_DROPZONE_SUR_ETIQUETTE";
     const INCLUDE_ARRIVAL_TYPE_IN_LABEL = "INCLURE_TYPE_ARRIVAGE_SUR_ETIQUETTE";
-    const INCLUDE_PACK_COUNT_IN_LABEL = "INCLURE_NOMBRE_DE_COLIS_SUR_ETIQUETTE";
+    const INCLUDE_PACK_COUNT_IN_LABEL = "INCLURE_NOMBRE_DE_UL_SUR_ETIQUETTE";
     const INCLUDE_EMERGENCY_IN_LABEL = "INCLURE_URGENCE_SUR_ETIQUETTE";
     const INCLUDE_CUSTOMS_IN_LABEL = "INCLURE_DOUANE_SUR_ETIQUETTE";
     const CL_USED_IN_LABELS = "CL_USED_IN_LABELS";
     const INCLUDE_BUSINESS_UNIT_IN_LABEL = "INCLURE_BUSINESS_UNIT_SUR_ETIQUETTE";
+    const INCLUDE_PROJECT_IN_LABEL = "INCLUDE_PROJECT_IN_LABEL";
 
     // modèles de document
     const DEFAULT_DELIVERY_WAYBILL_TEMPLATE = "DEFAULT_DELIVERY_WAYBILL_TEMPLATE";
@@ -232,6 +276,10 @@ class Setting {
     const CUSTOM_DISPATCH_RECAP_TEMPLATE = "CUSTOM_DISPATCH_RECAP_TEMPLATE";
     const CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME";
 
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE = "DEFAULT_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE = "CUSTOM_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME";
+
     const QR_CODE = [
         "value" => false,
         "label" => 'QR Code',
@@ -240,6 +288,10 @@ class Setting {
         "value" => true,
         "label" => 'Code 128',
     ];
+    // Stock inventaire
+    const RFID_PREFIX = "RFID_PREFIX";
+    const RFID_KPI_MIN = "RFID_KPI_MIN";
+    const RFID_KPI_MAX = "RFID_KPI_MAX";
 
     // export csv
     const USES_UTF8 = 'USES_UTF8';
@@ -290,7 +342,7 @@ class Setting {
                 "demandeurliv" => "demandeur de la livraison",
                 "projetliv" => "numéro de projet de la livraison",
             ],
-            "Champs Liste des unités logistiques acheminements" => [
+            "Champs Liste des unités logistiques livraison" => [
                 "UL" => "code d'une unité logistiques contenue dans la livraison",
                 "nature" => "nature d'une unité logistique contenue dans la livraison",
                 "quantite" => "quantité total des articles contenus dans l'unité logistique contenue dans la livraison",
@@ -402,9 +454,50 @@ class Setting {
                     "documentsref" => "documents associés d'une référence contenue dans l'UL",
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
-                ]
-            ]
-        ]
+                ],
+            ],
+        ],
+    ];
+
+    const SLIP_VARIABLES = [
+        "shipping" => [
+            "Champs bordereau de livraison" => [
+                "QRCodeexpe" => "QR Code du numéro de la demande d'expédition",
+                "numexpedition" => "numéro de la demande d'expédition",
+                "demandeurs" => "demandeur(s) de la demande d'expédition",
+                "teldemandeur" => "téléphone(s) du/des demandeurs de la demande d'expédition",
+                "numcommandeclient" => "numéro de commande client sur la demande d'expédition",
+                "livraisongracieux" => 'valeur du champ "Livraison à titre gracieux" - Oui/Non',
+                "articlesconformes" => 'valeur du champ "Article(s) conforme(s)" - Oui/Non',
+                "client" => "client de la demande d'expédition",
+                "destinataire" => "destinataire chez le client de la demande d'expédition",
+                "teldestinataire" => "téléphone du destinataire chez le client de la demande d'expédition",
+                "adressedestinataire" => "adresse de livraison de la demande d'expédition",
+                "datecreation" => "date de création de la demande d'expédition",
+                "datepriseenchargesouhaitee" => "date de prise en charge souhaitée pour la demande d'expédition",
+                "port" => "valeur du champ Port - Payé/Dû",
+                "dateenlevement" => "date d'enlèvement planifiée des produits de la demande d'expédition",
+                "dateexpedition" => "date de confirmation de l'expédition des produits",
+                "reference" => "référence à expédier",
+                "quantite" => "quantité de la référence à expédier",
+                "prixunitaire" => "prix unitaire de la référence à expédier",
+                "poidsnet" => "poids net de la référence à expédier",
+                "montantotal" => "montant total de la référence à expédier",
+                "matieredangereuse" => "valeur du champ matière dangereuse de la référence à expédier - oui/non",
+                "FDS" => "nom de la ou des fiches de données de sécurité de la référence à expédier",
+                "CodeONU" => "code ONU de la référence à expédier",
+                "CodeNDP" => "code NDP de la référence à expédier",
+                "classeproduit" => "classe produit de la référence à expédier",
+                "poidsnettotal" => "poids net total des références à expédier sur la demande",
+                "valeurtotal" => "valeur totale des références à expédier sur la demande",
+                "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
+                "envoi" => "spécification du transport",
+                "nbcolis" => "nombre de colis à expédier sur la demande",
+                "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
+                "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",
+                "numtracking" => "numéro de tracking communiqué par le transporteur pour la demande d'expédition",
+            ],
+        ],
     ];
 
     #[ORM\Id]

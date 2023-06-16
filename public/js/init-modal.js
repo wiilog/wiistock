@@ -35,7 +35,7 @@ let droppedFiles = [];
  *   - formData If true we send a FormData to the api
  */
 function InitModal($modal, submit, path, options = {}) {
-    if(options.clearOnClose) {
+    if (options.clearOnClose) {
         $modal.on('hidden.bs.modal', function () {
             clearModal($modal);
             clearFormErrors($modal);
@@ -60,7 +60,7 @@ function InitModal($modal, submit, path, options = {}) {
     };
 
     //if it's a string, find the button in the modal
-    if(typeof submit === 'string') {
+    if (typeof submit === 'string') {
         $modal.on(`click`, submit, onclick);
     } else {
         submit.on(`click`, onclick);
@@ -90,6 +90,8 @@ function InitModal($modal, submit, path, options = {}) {
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
  */
 function SubmitAction($modal,
                       $submit,
@@ -103,7 +105,7 @@ function SubmitAction($modal,
             : (new Promise((resolve) => resolve(true)))
     )
         .then((success) => {
-            if(success) {
+            if (success) {
                 return processSubmitAction($modal, $submit, path, options);
             }
         });
@@ -123,6 +125,9 @@ function SubmitAction($modal,
  * @param {jQuery} $modal jQuery element of the modal
  * @param {jQuery} $submit jQuery element of the submit button
  * @param {string} path
+ *
+ * @deprecated
+ *
  */
 function processSubmitAction($modal,
                              $submit,
@@ -135,7 +140,7 @@ function processSubmitAction($modal,
         const smartData = isAttachmentForm || formData
             ? createFormData(data)
             : JSON.stringify(data);
-console.log(formData, smartData);
+        console.log(formData, smartData);
         $submit.pushLoader('white');
         if (waitForUserAction) {
             return waitForUserAction()
@@ -146,12 +151,12 @@ console.log(formData, smartData);
                         $submit.popLoader();
                     }
                 })
-                .catch(() => {});
+                .catch(() => {
+                });
         } else {
             return postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading);
         }
-    }
-    else {
+    } else {
         displayFormErrors($modal, {
             $isInvalidElements,
             errorMessages,
@@ -164,6 +169,9 @@ console.log(formData, smartData);
     }
 }
 
+/**
+ * @deprecated
+ */
 function postForm(path, smartData, $submit, $modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable, success, error, keepLoading) {
     return $
         .ajax({
@@ -176,11 +184,8 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
             dataType: 'json',
         })
         .then((data) => {
-            if (!keepLoading) {
-                $submit.popLoader();
-            }
-
             if (data.success === false) {
+                $submit.popLoader();
                 const errorMessage = data.msg || data.message;
                 displayFormErrors($modal, {
                     $isInvalidElements: data.invalidFieldsSelector ? [$(data.invalidFieldsSelector)] : undefined,
@@ -190,16 +195,18 @@ function postForm(path, smartData, $submit, $modal, data, tables, keepModal, kee
                 if (error) {
                     error(data);
                 }
-            }
-            else {
-                const res = treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable);
+            } else {
+                if (!keepLoading) {
+                    $submit.popLoader();
+                }
+
+                const res = treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable);
                 if (!res) {
                     return;
-                }
-                else {
+                } else {
                     return res
                         .then(() => {
-                            if(data && data.success && success) {
+                            if (data && data.success && success) {
                                 success(data);
                             }
                         })
@@ -229,11 +236,17 @@ function clearFormErrors($modal) {
         .empty();
 }
 
-function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, headerCallback, waitDatatable) {
+/**
+ * @deprecated
+ */
+function treatSubmitActionSuccess($modal, $submit, data, tables, keepModal, keepForm, keepLoading, headerCallback, waitDatatable) {
     resetDroppedFiles();
+
     if (data.redirect && !keepModal) {
         window.location.href = data.redirect;
         return;
+    } else if (!keepLoading) {
+        $submit.popLoader();
     }
 
     if (data.nextModal) {
@@ -245,13 +258,14 @@ function treatSubmitActionSuccess($modal, data, tables, keepModal, keepForm, hea
         tablesReloadingPromises = tables.map((table) => {
             return new Promise((resolve) => {
                 table.ajax.reload(
-                    () => { resolve(); },
+                    () => {
+                        resolve();
+                    },
                     false
                 );
             });
         });
-    }
-    else {
+    } else {
         tablesReloadingPromises = [new Promise((resolve) => resolve())];
     }
 
@@ -299,6 +313,9 @@ function refreshHeader(entete, headerCallback) {
  * @param {boolean} [isAttachmentForm]
  * @param {function} [validator]
  * @return {{errorMessages: Array<string>, success: boolean, data: FormData|Object.<*,*>, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
+ *
  */
 function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined) {
     const data = {};
@@ -350,8 +367,8 @@ function ProcessForm($modal, isAttachmentForm = undefined, validator = undefined
 
 
 function matchesAll(value, ...regexes) {
-    for(const regex of regexes) {
-        if(!new RegExp(regex).test(value))
+    for (const regex of regexes) {
+        if (!new RegExp(regex).test(value))
             return false;
     }
 
@@ -365,6 +382,8 @@ function matchesAll(value, ...regexes) {
  * @param $modal jQuery modal
  * @param {Object.<*,*>} data
  * @return {{errorMessages: Array<string>, success: boolean, $isInvalidElements: Array<*>}}
+ *
+ * @deprecated
  */
 function processInputsForm($modal, data, isAttachmentForm) {
     const $inputs = $modal.find('.data:not([name^="savedFiles"]):not([type=radio])');
@@ -435,9 +454,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 || (Array.isArray(val) && val.length === 0)
                 || ($qlEditor && $qlEditor.length > 0 && !$qlEditor.text()))) {
 
-            if($input.data(`label`)) {
+            if ($input.data(`label`)) {
                 missingInputNames.push($input.data(`label`));
-            } else if ($input.prev('label').text()){
+            } else if ($input.prev('label').text()) {
                 missingInputNames.push($input.prev('label').text().replace('*', ''));
             } else if (label && missingInputNames.indexOf(label) === -1) {
                 missingInputNames.push(label);
@@ -447,8 +466,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
             if ($editorContainer.length > 0) {
                 $isInvalidElements.push($editorContainer);
             }
-        }
-        else if ($input.hasClass('is-barcode')
+        } else if ($input.hasClass('is-barcode')
             && !isBarcodeValid($input)) {
             errorMessages.push(`Le champ ${label} doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent.`);
             $isInvalidElements.push($input);
@@ -470,8 +488,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 } else {
                     saveData($input, data, name, val, isAttachmentForm);
                 }
-            }
-            else {
+            } else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         }
@@ -493,9 +510,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                             ? ` doit être inférieure à ${max}.`
                             : ` doit être comprise entre ${min} et ${max}.`;
                     } else if (!isNaN(max)) {
-                        errorMessage += ` doit être inférieure à ${max}.`;
+                        errorMessage += ` doit être inférieure ou égale à ${max}.`;
                     } else if (!isNaN(min)) {
-                        errorMessage += ` doit être supérieure à ${min}.`;
+                        errorMessage += ` doit être supérieure ou égale à ${min}.`;
                     } else {
                         errorMessage += ` ne peut pas être rempli`;
                     }
@@ -504,15 +521,12 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 } else {
                     saveData($input, data, name, val, isAttachmentForm);
                 }
-            }
-            else {
+            } else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
-        }
-        else if ($input.attr('type') === 'checkbox') {
+        } else if ($input.attr('type') === 'checkbox') {
             saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
-        }
-        else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
+        } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
@@ -522,17 +536,14 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 if (maxLength) {
                     const $commentStrWithoutTag = $qlEditor.text();
                     if ($commentStrWithoutTag.length > maxLength) {
-                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.',{1: maxLength}, false));
-                    }
-                    else {
+                        errorMessages.push(Translation.of('Général', '', 'Modale', 'Le commentaire excède les {1} caractères maximum.', {1: maxLength}, false));
+                    } else {
                         saveData($input, data, name, val, isAttachmentForm);
                     }
-                }
-                else {
+                } else {
                     saveData($input, data, name, val, isAttachmentForm);
                 }
-            }
-            else {
+            } else {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         }
@@ -555,8 +566,8 @@ function processInputsForm($modal, data, isAttachmentForm) {
 
     if (missingInputNames.length > 0) {
         errorMessages.push(missingInputNames.length === 1
-            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1 : missingInputNames[0]}, false)
-            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1 : missingInputNames.join(', ')}, false)
+            ? Translation.of('Général', '', 'Modale', 'Veuillez renseigner le champ : {1}', {1: missingInputNames[0]}, false)
+            : Translation.of('Général', '', 'Modale', 'Veuillez renseigner les champs : {1}', {1: missingInputNames.join(', ')}, false)
         );
     }
 
@@ -635,7 +646,7 @@ function processSwitchesForm($modal, data, isAttachmentForm) {
         const $div = $(this);
         const $input = $div.find('input:checked');
 
-        if($div.hasClass("needed") && $input.length === 0) {
+        if ($div.hasClass("needed") && $input.length === 0) {
             $invalidElements.push($div);
             messages.push("Veuillez renseigner une valeur pour le champ " + $div.data("title"));
         } else {
@@ -660,11 +671,16 @@ function processFilesForm($modal, data) {
     const $requiredFileField = $modal.find('input[name="isFileNeeded"][type="hidden"]');
     const required = $requiredFileField.val() === '1';
 
-    $.each(droppedFiles, function(index, file) {
+    const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
+    const sheetFile = $('input[name=fileSheet]').get(0)?.files;
+    const $requiredSheetFileField = $modal.find('input[name="isSheetFileNeeded"][type="hidden"]');
+    const requiredSheetFile = $requiredSheetFileField.val() === '1';
+    const alreadyExistSheetFile = $('input[name=savedSheetFile]').length ? true : false;
+
+    $.each(droppedFiles, function (index, file) {
         data[`file${index}`] = file;
     });
 
-    const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
     if ($savedFiles.length > 0) {
         $savedFiles.each(function (index, field) {
             data[`files[${index}]`] = $(field).val();
@@ -677,22 +693,30 @@ function processFilesForm($modal, data) {
             const $field = $(field);
             const files = $field[0].files;
             const fieldName = $field.attr('name');
-            if(!$field.is('[multiple]')) {
+            if (!$field.is('[multiple]')) {
                 data[fieldName] = files[0];
             } else {
-                for(let fileIndex = 0; fileIndex < files.length; fileIndex++) {
+                for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
                     data[`${fieldName}[${fileIndex}]`] = files[fileIndex];
                 }
             }
         });
     }
 
-    const isInvalidRequired = required && droppedFiles.length === 0 && $savedFiles.length === 0;
+    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
+    const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
+    let dropFrame = [];
+
+    if(isInvalidRequired){
+        dropFrame = [$modal.find('.dropFrame')]
+    }else if(isInvalidRequiredSheet){
+        dropFrame = [$modal.find('.dropFrameSheet')]
+    }
 
     return {
-        success: !isInvalidRequired,
-        errorMessages: isInvalidRequired ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
-        $isInvalidElements: isInvalidRequired ? [$modal.find('.dropFrame')] : []
+        success: !isInvalidRequired && !isInvalidRequiredSheet,
+        errorMessages: (isInvalidRequired || isInvalidRequiredSheet) ? [Translation.of('Général', '', 'Modale', 'Vous devez ajouter au moins une pièce jointe.')] : [],
+        $isInvalidElements: dropFrame,
     };
 }
 
@@ -721,8 +745,8 @@ function processDataArrayForm($modal, data) {
         let val = type === 'number'
             ? Number($input.val())
             : ($input.hasClass('phone-number')
-                ? $input.data('iti').getNumber()
-                : $input.val()
+                    ? $input.data('iti').getNumber()
+                    : $input.val()
             );
         if ($input.data('id')) {
             if (val) {
@@ -732,7 +756,7 @@ function processDataArrayForm($modal, data) {
                 dataArray[name][$input.data('id')] = val;
             }
         } else {
-            if(val) {
+            if (val) {
                 const name = $input.attr("name");
                 if (!dataArray[name]) {
                     dataArray[name] = [];
@@ -787,7 +811,7 @@ function processDataArrayForm($modal, data) {
         $isInvalidElements.push(...dataArrayPhonesInvalid.map((name) => $(`.data-array.phone-number[name="${name}"]`)));
     }
 
-    for(const currentName in dataArray) {
+    for (const currentName in dataArray) {
         data[currentName] = !noStringify ? JSON.stringify(dataArray[currentName]) : dataArray[currentName];
     }
     return {
@@ -858,21 +882,21 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
         $fileBag.empty();
     }
 
-    $.each(files, function(index, file) {
+    $.each(files, function (index, file) {
         let formatValid = checkFileFormat(file, $dropFrame);
         let sizeValid = checkSizeFormat(file, $dropFrame);
 
         if (!formatValid) {
-            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.',{1: file.name}));
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : Le format de votre pièce jointe n\'est pas supporté. Le fichier doit avoir une extension.', {1: file.name}));
         } else if (!sizeValid) {
-            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : La taille du fichier ne doit pas dépasser 10 Mo.',{1: file.name}));
+            errorMessages.push(Translation.of('Général', '', 'Modale', '"{1}" : La taille du fichier ne doit pas dépasser 10 Mo.', {1: file.name}));
         } else {
             let fileName = file.name;
 
             let reader = new FileReader();
             reader.addEventListener('load', function () {
                 let icon = `fa-file`;
-                if($fileBag.is(`[data-icon]`)) {
+                if ($fileBag.is(`[data-icon]`)) {
                     icon = $fileBag.data(`icon`);
                 }
 
@@ -915,7 +939,19 @@ function removeAttachment($elem, callback = null) {
             droppedFiles.splice(droppedFiles.indexOf(file), 1);
         }
     });
+    if ($elem.hasClass('delete-sheet-file')) {
+        deleteSheetFile();
+    }
 }
+
+function deleteSheetFile() {
+    const $deleteSheetFile = $('.delete-sheet-file');
+    $deleteSheetFile.addClass('d-none');
+
+    $('input[name=deletedSheetFile]').val(1);
+    $('#upload-article-reference-image').val(null);
+}
+
 
 function checkFileFormat(file) {
     return file.name.includes('.') !== false;
@@ -957,30 +993,30 @@ function saveDroppedFiles(event, $div) {
             const $inputFile = $div.find('.fileInput');
             saveInputFiles($inputFile, files);
         }
-    }
-    else {
+    } else {
         displayWrong($div);
     }
     return false;
 }
 
-function saveInputFiles($inputFile, files) {
-    let filesToSave = files || $inputFile[0].files;
+function saveInputFiles($inputFile, singleton) {
+    singleton = singleton ?? false;
+    let filesToSave = $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
     Array.from(filesToSave).forEach(file => {
         if (checkSizeFormat(file) && checkFileFormat(file)) {
-            if (!isMultiple) {
+            if (!isMultiple && !singleton) {
                 droppedFiles = [];
             }
-            droppedFiles.push(file);
+            if (!singleton) droppedFiles.push(file);
         }
     });
 
     let dropFrame = $inputFile.closest('.dropFrame');
 
     displayAttachements(filesToSave, dropFrame, isMultiple);
-    $inputFile[0].value = '';
+    if (!singleton) $inputFile[0].value = '';
 }
 
 function resetDroppedFiles() {

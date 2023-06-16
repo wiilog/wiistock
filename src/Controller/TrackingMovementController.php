@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -37,6 +38,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 /**
@@ -44,6 +47,10 @@ use WiiCommon\Helper\StringHelper;
  */
 class TrackingMovementController extends AbstractController
 {
+
+    #[Required]
+    public TranslationService $translationService;
+
     /**
      * @Route("/", name="mvt_traca_index", options={"expose"=true})
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV})
@@ -57,13 +64,20 @@ class TrackingMovementController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
-        $packFilter = $request->query->get('colis');
+        $packFilter = $request->query->get('pack');
+        $article = null;
+        $filterArticle = $request->query->get('article');
+        if($filterArticle) {
+            $article = $entityManager->getRepository(Article::class)->find($filterArticle);
+            $request->request->add(['article' => $filterArticle]);
+        }
+
         if (!empty($packFilter)) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $filtreSupRepository->clearFiltersByUserAndPage($loggedUser, FiltreSup::PAGE_MVT_TRACA);
             $entityManager->flush();
-            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_COLIS, $packFilter, $loggedUser);
+            $filter = $filterSupService->createFiltreSup(FiltreSup::PAGE_MVT_TRACA, FiltreSup::FIELD_PACK, $packFilter, $loggedUser);
             $entityManager->persist($filter);
             $entityManager->flush();
         }
@@ -72,14 +86,19 @@ class TrackingMovementController extends AbstractController
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+        $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
         $request->request->add(['length' => 10]);
 
         return $this->render('mouvement_traca/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+            'statuts' => $statuses,
+            'form_statuses' => Stream::from($statuses)
+                ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
+                ->toArray(),
             'redirectAfterTrackingMovementCreation' => $redirectAfterTrackingMovementCreation,
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'fields' => $fields,
+            'filterArticle' => $article,
             "initial_tracking_movements" => $this->api($request, $trackingMovementService)->getContent(),
             "initial_visible_columns" => $this->apiColumns($entityManager, $trackingMovementService)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_MVT_TRACA)),
@@ -90,8 +109,7 @@ class TrackingMovementController extends AbstractController
      * @Route("/api-columns", name="tracking_movement_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
-    public function apiColumns(EntityManagerInterface $entityManager,
-                               TrackingMovementService $trackingMovementService): Response {
+    public function apiColumns(EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -139,6 +157,7 @@ class TrackingMovementController extends AbstractController
         $forced = $post->get('forced', false);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $operatorId = $post->get('operator');
         if (!empty($operatorId)) {
@@ -149,9 +168,15 @@ class TrackingMovementController extends AbstractController
             $operator = $this->getUser();
         }
 
-        $packCode = $post->get('colis');
+        $packCode = $post->get('pack');
         $commentaire = $post->get('commentaire');
         $quantity = $post->getInt('quantity') ?: 1;
+        $articles = $post->get('articles') ?: null;
+        if($articles) {
+            $articles = $articleRepository->findBy([
+                "id" => explode(",", $articles),
+            ]);
+        }
 
         if ($quantity < 1) {
             return new JsonResponse([
@@ -192,6 +217,7 @@ class TrackingMovementController extends AbstractController
                     [
                         'commentaire' => $commentaire,
                         'quantity' => $quantity,
+                        'articles' => $articles,
                     ]
                 );
 
@@ -208,13 +234,13 @@ class TrackingMovementController extends AbstractController
                 }
             }
             else {
-                $colisArray = explode(',', $packCode);
+                $packArray = explode(',', $packCode);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
                 $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
-                foreach ($colisArray as $colis) {
+                foreach ($packArray as $pack) {
                     $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
-                        $codeToPack[$colis] ?? $colis,
+                        $codeToPack[$pack] ?? $pack,
                         $pickingLocation,
                         $operator,
                         $date,
@@ -234,7 +260,7 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$pickingRes['movements']);
-                            $mainPack = $pickingRes['parent'];
+                            $mainPack = $pickingRes['parent'] ?? null;
                         }
                     }
                     else {
@@ -243,7 +269,7 @@ class TrackingMovementController extends AbstractController
 
                     $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
-                        $mainPack ?? $colis,
+                        $mainPack ?? $pack,
                         $dropLocation,
                         $operator,
                         $date,
@@ -263,21 +289,21 @@ class TrackingMovementController extends AbstractController
                         }
                         else {
                             array_push($createdMouvements, ...$dropRes['movements']);
-                            $createdPack = $dropRes['parent'];
+                            $createdPack = $dropRes['parent'] ?? null;
                         }
                     }
                     else {
                         return $this->json($this->treatPersistTrackingError($dropRes));
                     }
 
-                    $codeToPack[$colis] = $createdPack;
+                    $codeToPack[$pack] = $createdPack;
                 }
             }
         } catch (Exception $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "Le colis scanné est un groupe",
+                    "msg" => "L'unité logistique scannée est un groupe",
                 ]);
             } else {
                 // uncomment following line to debug
@@ -327,6 +353,20 @@ class TrackingMovementController extends AbstractController
 
         return new JsonResponse($data);
     }
+    /**
+     * @Route("/est-dans-ul/{barcode}", name="tracking_movement_is_in_lu", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
+     */
+    public function isInLU(EntityManagerInterface $manager, string $barcode): Response
+    {
+        $article = $manager->getRepository(Article::class)->isInLogisticUnit($barcode);
+
+        return $this->json([
+            "success" => true,
+            "in_logistic_unit" => !empty($article),
+            "logistic_unit" => $article?->getCurrentLogisticUnit()?->getCode(),
+        ]);
+    }
 
     /**
      * @Route("/api-modifier", name="tracking_movement_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -342,10 +382,13 @@ class TrackingMovementController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
             $trackingMovement = $trackingMovementRepository->find($data['id']);
+            $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
             $json = $this->renderView('mouvement_traca/modalEditMvtTracaContent.html.twig', [
                 'mvt' => $trackingMovement,
-                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
+                'statuts' => Stream::from($statuses)
+                    ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
+                    ->toArray(),
                 'attachments' => $trackingMovement->getAttachments(),
                 'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
                 'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
@@ -372,6 +415,7 @@ class TrackingMovementController extends AbstractController
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $operator = $utilisateurRepository->find($post->get('operator'));
         $newLocation = $locationRepository->find($post->get('location'));
@@ -393,14 +437,15 @@ class TrackingMovementController extends AbstractController
         $currentDate = $currentDate->setTime($currentDate->format('H'), $currentDate->format('i'), 0);
 
         $hasChanged = (
-            $mvt->getEmplacement()->getLabel() !== $newLocation->getLabel()
+            $mvt->getEmplacement()?->getLabel() !== $newLocation?->getLabel()
             || $currentDate != $newDate // required != comparison
             || $pack->getCode() !== $newCode
         );
 
-        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
-            /** @var TrackingMovement $new */
+        $mainMvt = $mvt->getMainMovement();
+        $linkedMouvements = $trackingMovementRepository->findBy(['mainMovement' => $mvt]);
 
+        if ($userService->hasRightFunction(Menu::TRACA, Action::FULLY_EDIT_TRACKING_MOVEMENTS) && $hasChanged) {
             $response = $trackingMovementService->persistTrackingMovement(
                 $entityManager,
                 $post->get('pack'),
@@ -410,16 +455,25 @@ class TrackingMovementController extends AbstractController
                 true,
                 $mvt->getType(),
                 false,
-                ['disableUngrouping'=> true],
-                true
+                ['disableUngrouping'=> true, 'ignoreProjectChange' => true, 'mainMovement'=>$mainMvt],
+                true,
             );
             if ($response['success']) {
+                /** @var TrackingMovement $new */
                 $new = $response['movement'];
                 $trackingMovementService->manageLinksForClonedMovement($mvt, $new);
+
+                foreach ($linkedMouvements as $linkedMvt) {
+                    $linkedMvt->setMainMovement($new);
+                }
 
                 $entityManager->persist($new);
                 $entityManager->remove($mvt);
                 $entityManager->flush();
+
+                $pack->setLastTracking($trackingMovementRepository->findLastTrackingMovement($pack, null));
+                $dropType =  $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+                $pack->setLastDrop($trackingMovementRepository->findLastTrackingMovement($pack, $dropType));
 
                 $mvt = $new;
             } else {
@@ -506,13 +560,13 @@ class TrackingMovementController extends AbstractController
                     $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
                     $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
                     $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),
                     $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
                     $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
                     $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
                     $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence', false),
                     $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
@@ -550,23 +604,15 @@ class TrackingMovementController extends AbstractController
      * @Route("/voir", name="mvt_traca_show", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
-    public function show(EntityManagerInterface $entityManager,
-                         UserService $userService,
-                         Request $request): Response
-    {
+    public function show(EntityManagerInterface $entityManager, Request $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+            $trackingMovement = $entityManager->find(TrackingMovement::class, $data);
 
-            $trackingMovement = $trackingMovementRepository->find($data);
-            $json = $this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
-                'mvt' => $trackingMovement,
-                'statuts' => $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
-                'attachments' => $trackingMovement->getAttachments(),
-                 'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
-            ]);
-            return new JsonResponse($json);
+            return $this->json($this->renderView('mouvement_traca/modalShowMvtTracaContent.html.twig', [
+                "mvt" => $trackingMovement,
+            ]));
         }
+
         throw new BadRequestHttpException();
     }
 
@@ -574,36 +620,80 @@ class TrackingMovementController extends AbstractController
      * @Route("/obtenir-corps-modal-nouveau", name="mouvement_traca_get_appropriate_html", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_MOUV}, mode=HasPermission::IN_JSON)
      */
-    public function getAppropriateHtml(Request $request,
-                                       EntityManagerInterface $entityManager,
-                                       SpecificService $specificService): Response
+    public function getAppropriateHtml(Request $request, EntityManagerInterface $entityManager, SpecificService $specificService): Response
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $templateDirectory = 'mouvement_traca';
+            $templateDirectory = "mouvement_traca";
 
-            if ($typeId === 'fromStart') {
-                $currentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED) ||
-                    $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
-                $fileToRender = "$templateDirectory/" . (
-                    $currentClient
-                        ? 'newMassMvtTraca.html.twig'
-                        : 'newSingleMvtTraca.html.twig'
-                    );
-            } else {
-                $appropriateType = $statutRepository->find($typeId);
-                $fileToRender = match($appropriateType?->getCode()) {
-                    TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
-                    TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
-                    default => "$templateDirectory/newSingleMvtTraca.html.twig"
-                };
-            }
-            return new JsonResponse([
-                'modalBody' => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, []),
+            $appropriateType = $statutRepository->find($typeId);
+            $fileToRender = match($appropriateType?->getCode()) {
+                TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
+                TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
+                TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLUMvtTraca.html.twig",
+                default => "$templateDirectory/newSingleMvtTraca.html.twig"
+            };
+
+            return $this->json([
+                "modalBody" => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender),
             ]);
         }
+
         throw new BadRequestHttpException();
+    }
+
+    #[Route("/tracking-movement-logistic-unit-location", name: "tracking_movement_logistic_unit_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function getLULocation(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
+    {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $code = $request->query->get('code');
+
+        /** @var Pack $pack */
+        $pack = $packRepository->findOneBy(["code" => $code]);
+        $article = $pack?->getArticle() ?? $articleRepository->findOneBy(["barCode" => $code]);
+
+        if($article) {
+            return $this->json([
+                "success" => true,
+                "error" => $translationService->translate("Traçabilité", "Mouvements", "L'unité logistique ne doit pas correspondre à un article"),
+            ]);
+        }
+
+        $location = $pack?->getLastTracking()?->getEmplacement();
+
+        return $this->json([
+            "success" => true,
+            "error" => false,
+            "location" => $location ? [
+                "id" => $location->getId(),
+                "label" => $location->getLabel(),
+            ] : null,
+        ]);
+    }
+
+    #[Route("/tracking-movement-logistic-unit-quantity", name: "tracking_movement_logistic_unit_quantity", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function getLUQuantity(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
+    {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $code = $request->query->get('code');
+
+        /** @var Pack $pack */
+        $pack = $packRepository->findOneBy(["code" => $code]);
+        $articles = $pack?->getChildArticles() ?? $articleRepository->findBy(["barCode" => $code]);
+        $quantity = Stream::from($articles)
+            ->map(fn (Article $article) => ($article->getQuantite()))
+            ->sum();
+
+        return $this->json([
+            "success" => true,
+            "error" => false,
+            "quantity" => $quantity > 0 ? $quantity : null, //regle de gestion : l'UL doit contenir au moins un article pour qu'on grise le champ
+        ]);
     }
 
     private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
@@ -620,13 +710,19 @@ class TrackingMovementController extends AbstractController
     }
 
     private function treatPersistTrackingError(array $res): array {
-        if (isset($res['error'])) {
-            if ($res['error'] === Pack::CONFIRM_CREATE_GROUP) {
+        if (isset($res["error"])) {
+            if ($res["error"] === Pack::CONFIRM_CREATE_GROUP) {
                 return [
-                    'success' => true,
-                    'group' => $res['group']
+                    "success" => true,
+                    "group" => $res["group"],
+                ];
+            } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
+                return [
+                    "success" => false,
+                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementé"),
                 ];
             }
+
             throw new Exception('untreated error');
         }
         else {

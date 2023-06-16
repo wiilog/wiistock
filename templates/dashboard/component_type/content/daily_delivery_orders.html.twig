@@ -1,0 +1,102 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% block header %}
+    <p class="font-italic">Des dates attendues doivent être placées sur les {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}s.</p>
+    <p class="font-italic">Des heures travaillées doivent être renseignées.</p>
+    <br>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12">
+            <label class="wii-field-name">Type(s) de {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="deliveryOrderTypes"
+                            multiple
+                            title="Type(s) d'{{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}">
+                        {% for deliveryOrderType in deliveryOrderTypes %}
+                            <option value="{{ deliveryOrderType.id }}" {{ deliveryOrderType in values.deliveryOrderTypes ? 'selected' }}>{{ deliveryOrderType.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-types w-100" type="button">Tous les types</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="wii-checkbox pl-0 pointer">
+                <label class="pointer d-flex align-items-center">
+                    <input name="displayDeliveryOrderContentCheckbox"
+                           class="data"
+                           type="checkbox" {{ displayDeliveryOrderContentCheckbox ? 'checked' : '' }}>
+                    Afficher le contenu des {{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}
+                </label>
+            </div>
+            <div class="col-12 mt-2 {{ not displayDeliveryOrderContentCheckbox ? 'd-none' }}">
+                <div>
+                    <label class="pointer">
+                        <input type="radio" class="data" name="displayDeliveryOrderContent"
+                               value="displayLogisticUnitsCount" {{ not displayDeliveryOrderContent or displayDeliveryOrderContent == "displayLogisticUnitsCount" ? 'checked' }}>
+                        Afficher le nombre d'UL à livrer</label>
+                </div>
+                <div>
+                    <label class="pointer">
+                        <input type="radio" class="data" name="displayDeliveryOrderContent" value="displayArticlesCount" {{ displayDeliveryOrderContent == "displayArticlesCount" ? 'checked' }}>
+                        Afficher le nombre d'articles à livrer (valable pour les {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}s de références gérées en article)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-12">
+            <label class="wii-field-name">Statut(s)*</label>
+            <div class="input-group flex-nowrap no-gutters">
+                <div class="flex-fill">
+                    <select class="data form-control h-100 w-100 needed select2"
+                            name="deliveryOrderStatuses"
+                            multiple
+                            title="Statut(s) d'{{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}">
+                        {% for deliveryOrderStatus in deliveryOrderStatuses %}
+                            <option value="{{ deliveryOrderStatus.id }}" {{ deliveryOrderStatus in values.deliveryOrderStatuses ? 'selected' }}>{{ deliveryOrderStatus.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group-append col-4">
+                    <button class="btn btn-primary select-all-statuses w-100" type="button">Tous les statuts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group d-flex align-items-center mt-2">
+        <label>Voir sur les</label>
+        <input class="form-control data mx-3 needed"
+               name="daysNumber"
+               value="{{ values.daysNumber ?? 7 }}"
+               type="number"
+               min=1
+               max=7
+               step="1"
+               style="width: 70px">
+        <select class="form-control data w-50" name="period">
+            <option
+                value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') }}" {{ values.period is not defined or constant('App\\Service\\DashboardService::DAILY_PERIOD_PREVIOUS_DAYS') == values.period ? 'selected' }}>
+                dernier jours
+            </option>
+            <option
+                value="{{ constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') }}" {{ values.period is defined and constant('App\\Service\\DashboardService::DAILY_PERIOD_NEXT_DAYS') == values.period ? 'selected' }}>
+                prochains jours
+            </option>
+        </select>
+    </div>
+    <label class="d-block mb-3" style="margin-top: -15px;font-size:0.9rem">
+        (7 jours maximum. Le jour en cours est compté dans le nombre de jours)
+    </label>
+{% endblock %}

@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Inventory\InventoryLocationMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\PairedEntity;
@@ -19,6 +21,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OneToMany;
 
 
 #[ORM\Entity(repositoryClass: EmplacementRepository::class)]
@@ -139,6 +142,16 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $signatories;
 
+    #[OneToMany(mappedBy: "location", targetEntity: InventoryLocationMission::class)]
+    private Collection $inventoryLocationMissions;
+
+    #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Zone $zone = null;
+
+    #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
+    private Collection $inventoryMissionRules;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -165,6 +178,7 @@ class Emplacement implements PairedEntity {
         $this->transferOrders = new ArrayCollection();
         $this->signatories = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
+        $this->inventoryMissionRules = new ArrayCollection();
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
@@ -959,6 +973,17 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
+    public function setTemperatureRanges(?array $temperatureRanges): self {
+        foreach ($this->getTemperatureRanges()->toArray() as $temperature) {
+            $this->removeTemperatureRange($temperature);
+        }
+        $this->temperatureRanges = new ArrayCollection();
+        foreach ($temperatureRanges as $temperatureRange) {
+            $this->addTemperatureRange($temperatureRange);
+        }
+        return $this;
+    }
+
     public function getVehicle(): ?Vehicle
     {
         return $this->vehicle;
@@ -1014,6 +1039,90 @@ class Emplacement implements PairedEntity {
         foreach($signatories as $signatory) {
             $this->addSignatory($signatory);
         }
+        return $this;
+    }
+
+    public function getInventoryLocationMissions(): Collection {
+        return $this->inventoryLocationMissions;
+    }
+
+    public function addInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if (!$this->inventoryLocationMissions->contains($inventoryLocationMission)) {
+            $this->inventoryLocationMissions[] = $inventoryLocationMission;
+            $inventoryLocationMission->setLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if ($this->inventoryLocationMissions->removeElement($inventoryLocationMission)) {
+            if ($inventoryLocationMission->getLocation() === $this) {
+                $inventoryLocationMission->setLocation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setInventoryLocationMissions(?iterable $inventoryLocationMissions): self {
+        foreach($this->getInventoryLocationMissions()->toArray() as $inventoryLocationMission) {
+            $this->removeInventoryLocationMission($inventoryLocationMission);
+        }
+
+        $this->inventoryLocationMissions = new ArrayCollection();
+        foreach($inventoryLocationMissions ?? [] as $inventoryLocationMission) {
+            $this->addInventoryLocationMission($inventoryLocationMission);
+        }
+
+        return $this;
+    }
+
+    public function getZone(): ?Zone {
+        return $this->zone;
+    }
+
+    public function setZone(?Zone $zone): self {
+        if($this->zone && $this->zone !== $zone) {
+            $this->zone->removeLocation($this);
+        }
+        $this->zone = $zone;
+        $zone?->addLocation($this);
+
+        return $this;
+    }
+
+    public function getInventoryMissionRules(): Collection {
+        return $this->inventoryMissionRules;
+    }
+
+    public function addInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
+        if (!$this->inventoryMissionRules->contains($inventoryMissionRule)) {
+            $this->inventoryMissionRules[] = $inventoryMissionRule;
+            $inventoryMissionRule->addLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryMissionRule(InventoryMissionRule $inventoryMissionRule): self {
+        if ($this->inventoryMissionRules->removeElement($inventoryMissionRule)) {
+            $inventoryMissionRule->removeLocation($this);
+        }
+
+        return $this;
+    }
+
+    public function setLocations(?iterable $inventoryMissionRules): self {
+        foreach($this->getInventoryMissionRules()->toArray() as $inventoryMissionRule) {
+            $this->removeInventoryMissionRule($inventoryMissionRule);
+        }
+
+        $this->inventoryMissionRules = new ArrayCollection();
+        foreach($inventoryMissionRules ?? [] as $inventoryMissionRule) {
+            $this->addInventoryMissionRule($inventoryMissionRule);
+        }
+
         return $this;
     }
 

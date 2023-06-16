@@ -6,8 +6,8 @@
     {% set nt = disputes|length > 1 ? 'nt' : '' %}
     <h3 class="margin-bottom:30px;">
         {{ disputes|length == 1
-            ? translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', '1 litige vous concerne :', false)
-            : translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', '{1} litiges vous concernent :', false, {1 : disputes|length,})
+            ? translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email litige', '1 litige vous concerne :', false)
+            : translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email litige', '{1} litiges vous concernent :', false, {1 : disputes|length,})
         }}
     </h3>
 
@@ -18,15 +18,15 @@
         <tr>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', 'Type de litige', false) }}
+                {{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email litige', 'Type de litige', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email litige', 'Statut du litige', false) }}
+                {{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email litige', 'Statut du litige', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                {{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }}
+                {{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false) }}
             </th>
             <th class="th"
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
@@ -48,17 +48,17 @@
                     {{ dispute.status.labelIn(defaultLanguageSlug,defaultLanguageSlug) }}
                 </td>
 
-                {% set firstColis = dispute.packs|first %}
+                {% set firstPack = dispute.packs|first %}
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {% for numeroBL in firstColis.arrivage.numeroCommandeList %}
+                    {% for numeroBL in firstPack.arrivage.numeroCommandeList %}
                         {{ numeroBL }}
                         {% if loop.last %}<br/>{% endif %}
                     {% endfor %}
                 </td>
                 <td class="td"
                     style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ firstColis.code }}
+                    {{ firstPack.code }}
                 </td>
             </tr>
             {% for pack in dispute.packs %}

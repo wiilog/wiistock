@@ -1,5 +1,6 @@
 {% set databasePersisted = databasePersisted ?? true %}
-{% set disabled = disabled is defined ?: '' %}
+{% set disabled = disabled is defined ? disabled : '' %}
+
 <div class="col-auto m-1 pr-0">
     <div class="h-100 w-450px">
         <div class="input-group">

@@ -80,28 +80,20 @@
             }
         }
 
-        .reference-articles-container {
-            width: max-content;
+        tr.articles-container {
+            font-size: 1.2rem;
 
-            .reference-articles-wrapper {
-                height: 100%;
-                z-index: 1;
-
-                .reference-articles-td {
-                    table {
-                        overflow: hidden;
-                    }
-
-
+            &:not(.no-header) {
+                td:nth-child(2) {
+                    max-width: 0
                 }
 
-                &.sub-reference-articles-wrapper {
+                .articles-wrapper {
                     border-left: 1px solid $medium-grey;
                     border-right: 1px solid $medium-grey;
                     border-bottom: 1px solid $medium-grey;
                     border-bottom-left-radius: 0.35rem;
                     border-bottom-right-radius: 0.35rem;
-
 
                     td {
                         border-color: $medium-grey;
@@ -119,3 +111,4 @@
         }
     }
 }
+

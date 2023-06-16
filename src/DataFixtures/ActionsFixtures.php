@@ -21,6 +21,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_GENERAL = 'général';
     const SUB_MENU_GLOBAL = 'global';
     const SUB_MENU_STOCK = 'stock';
+    const SUB_MENU_REQUESTS = 'demandes';
     const SUB_MENU_TERMINAL_MOBILE = 'terminal mobile';
     const SUB_MENU_DASHBOARD = 'dashboard';
     const SUB_MENU_IOT = 'iot';
@@ -52,10 +53,11 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_ARRIVALS = 'arrivages UL';
     const SUB_MENU_TRUCK_ARRIVALS = 'arrivages camion';
     const SUB_MENU_MOVEMENTS = 'mouvements';
-    const SUB_MENU_PACKS = 'colis';
+    const SUB_MENU_PACKS = 'unités logistiques';
     const SUB_MENU_ASSOCIATION_BR = 'association BR';
     const SUB_MENU_ENCO = 'encours';
     const SUB_MENU_EMERGENCYS = 'urgences';
+    const SUB_MENU_SHIPPING = 'expéditions';
 
     public const MENUS = [
         Menu::TRACA => [
@@ -167,6 +169,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::EDIT_TRANSPORT,
                 Action::DELETE_TRANSPORT,
             ],
+            self::SUB_MENU_SHIPPING => [
+                Action::DISPLAY_SHIPPING,
+                Action::CREATE_SHIPPING,
+                Action::DISPLAY_SCHEDULE_BUTTON,
+                Action::DISPLAY_SHIP_BUTTON,
+                Action::EDIT_TO_TREAT_SHIPPING,
+                Action::EDIT_PLANIFIED_SHIPPING,
+                Action::EDIT_SHIPPED_SHIPPING,
+                Action::DELETE_TO_TREAT_SHIPPING,
+                Action::DELETE_PLANIFIED_SHIPPING,
+                Action::DELETE_SHIPPED_SHIPPING,
+                Action::EDIT_TRANSPORT_SHIPPING_PART,
+                Action::GENERATE_PACKING_SLIP,
+            ],
         ],
         Menu::ORDRE => [
             self::SUB_MENU_GENERAL => [
@@ -257,6 +273,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DISPLAY_TRAN,
                 Action::DISPLAY_VEHICLE,
                 Action::DISPLAY_PACK_NATURE,
+                Action::DISPLAY_PROJECTS,
+                Action::DISPLAY_CUSTOMER,
             ],
         ],
         Menu::IOT => [
@@ -288,14 +306,17 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_REQUESTS,
                 Action::SETTINGS_DISPLAY_VISIBILITY_GROUPS,
                 Action::SETTINGS_DISPLAY_INVENTORIES,
-                Action::SETTINGS_DISPLAY_RECEP
+                Action::SETTINGS_DISPLAY_RECEP,
+                Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
             ],
             self::SUB_MENU_TRACING => [
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,
                 Action::SETTINGS_DISPLAY_ARRI,
                 Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS,
+                Action::SETTINGS_DISPLAY_BR_ASSOCIATION,
                 Action::SETTINGS_DISPLAY_MOVEMENT,
-                Action::SETTINGS_DISPLAY_TRACING_HAND
+                Action::SETTINGS_DISPLAY_TRACING_HAND,
+                Action::SETTINGS_DISPLAY_EMERGENCIES,
             ],
             self::SUB_MENU_TRACKING => [
                 Action::SETTINGS_DISPLAY_TRACK_REQUESTS,
@@ -307,7 +328,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_MOBILE_HAND,
                 Action::SETTINGS_DISPLAY_TRANSFER_TO_TREAT,
                 Action::SETTINGS_DISPLAY_PREPA,
-                Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS
+                Action::SETTINGS_DISPLAY_PREPA_DELIV,
+                Action::SETTINGS_DISPLAY_MANAGE_VALIDATIONS,
+                Action::SETTINGS_DISPLAY_DELIVERIES
             ],
             self::SUB_MENU_DASHBOARD => [
                 Action::SETTINGS_DISPLAY_DASHBOARD
@@ -333,6 +356,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TEMPLATES => [
                 Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
                 Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
+                Action::SETTINGS_DISPLAY_SHIPPING_TEMPLATE,
             ],
         ],
         Menu::NOMADE => [
@@ -349,6 +373,12 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_TRUCK_ARRIVALS,
                 Action::MODULE_ACCESS_GROUP,
                 Action::MODULE_ACCESS_UNGROUP,
+            ],
+            self::SUB_MENU_STOCK => [
+                Action::CREATE_ARTICLE_FROM_NOMADE
+            ],
+            self::SUB_MENU_REQUESTS => [
+                Action::DISPATCH_REQUEST_OFFLINE_MODE,
             ],
         ],
     ];

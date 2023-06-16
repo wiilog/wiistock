@@ -90,7 +90,7 @@ export function openPackingModal(transportRequest) {
 }
 
 export function printBarcodes(transportRequest) {
-    Flash.add(`info`, `Génération des étiquettes de colis en cours`);
+    Flash.add(`info`, `Génération des étiquettes d'UL en cours`);
     return AJAX.route(GET, `print_transport_packs`, {transportRequest})
         .file({
             success: "Vos étiquettes ont bien été téléchargées",

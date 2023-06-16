@@ -6,12 +6,22 @@
         {{ form.checkbox(setting('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST'), 'Gérer le champ "Destination" en liste déroulante', false, setting_value('MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST')) }}
     </div>
     <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('SET_PREPARED_UPON_DELIVERY_VALIDATION'), 'La livraison est directement préparée à sa validation', false, setting_value('SET_PREPARED_UPON_DELIVERY_VALIDATION'), {
+            tooltip: 'L\'ordre de préparation est directement mis en préparé et l\'ordre de livraison<br> généré à la validation de la demande de livraison, sauf si les références/articles<br>sur la demande sont sur des emplacements différents au moment de la<br>validation de la demande de livraison',
+        }) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(
             setting('MANAGE_PREPARATIONS_WITH_PLANNING'),
-            'Réaliser une demande de livraison sans quantité en stock (lancement de préparation)',
+            'Faire le contrôle de la quantité au lancement de préparation',
             false,
             setting_value('MANAGE_PREPARATIONS_WITH_PLANNING')
         ) }}
+    </div>
+    <div class="col-md-6 col-12 my-1">
+        {{ form.checkbox(setting('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), 'Ne pas gérer les quantités en stock', false, setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), {
+            tooltip: 'Aucun contrôle de quantité ne sera effectué sur aucune des étapes de la<br>livraison. Des articles seront générés automatiquement à la validation<br>de la demande de livraison',
+        }) }}
     </div>
 </div>
 
@@ -43,68 +53,33 @@
 <div class="wii-section-title">Ajout référence</div>
 
 <div class="row wii-section">
-    <div class="col-12">
+    <div class="col-12 my-1">
         {{ form.checkbox(setting('DISPLAY_PICKING_LOCATION'), "Faire apparaitre l'emplacement cible de picking à l'ajout d'une référence et dans son traitement", false, setting_value('DISPLAY_PICKING_LOCATION')) }}
     </div>
-</div>
-
-<div class="wii-section-title">Emplacements de livraison par défaut</div>
-
-<div class="wii-section mt-2">
-    <div class="row">
-        <div class="col">
-            <div class="row setting-type-association"></div>
+    <div class="col-12 my-1">
+        {{ form.checkbox(setting('DELIVERY_REQUEST_ADD_UL'), "Ajout d'unité logistique", false, setting_value('DELIVERY_REQUEST_ADD_UL')) }}
+    </div>
+    <div class="col-12 row mt-2">
+        <div class="col-6 my-1">
+            {{ form.input(
+                setting('DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'),
+                "Préremplire le champ commentaire de la ligne si le code projet de la référence est défini avec :",
+                false,
+                setting_value('DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'), {
+                    tooltip: "Ajoutez @Destinataire pour afficher le destinataire de la demande de livraison et @Projet pour afficher le projet de la référence",
+                }) }}
         </div>
-        <div class="col-auto">
-            <div class="row justify-content-end">
-                <div class="col-auto">
-                    <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (deliveryTypesCount - deliveryTypeSettings | json_decode | length) ? 'data-keep-disabled' }} disabled>
-                        <span class="wii-icon wii-icon-plus mr-1"></span>
-                        Ajouter un emplacement
-                    </button>
-                </div>
-            </div>
+        <div class="col-6 my-1">
+            {{ form.input(
+                setting('DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'),
+                "Préremplire le champ commentaire de la ligne si le code projet de la référence n’est pas défini avec :",
+                false,
+                setting_value('DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'), {
+                    tooltip: "Ajoutez @Destinataire pour afficher le destinataire de la demande de livraison",
+                }) }}
         </div>
     </div>
 </div>
 
-<template id="type-template">
-    <div class="d-flex col-8 mb-3 type-association-container">
-        <div class="d-flex align-items-center w-100 delivery-type-container">
-            <label class="w-100">
-                <span class="wii-field-name">Type</span>
-                <select name="deliveryType"
-                        required
-                        class="form-control data-array"
-                        data-s2="deliveryType"
-                        data-other-params
-                        data-other-params-all-types-option="1"
-                        data-include-params-parent=".setting-type-association"
-                        data-include-params="[name=alreadyDefinedTypes]">
-                </select>
-            </label>
-        </div>
-        <div class="d-flex align-items-center w-100">
-            <label class="w-100 ml-2">
-                <span class="wii-field-name">Emplacement</span>
-                <select name="deliveryRequestLocation"
-                        required
-                        class="form-control data-array"
-                        data-s2="location"
-                        data-include-params-parent=".type-association-container"
-                        data-include-params="select[name=deliveryType]">
-                </select>
-            </label>
-        </div>
-        <div class="d-flex align-items-end">
-            <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
-                 title="Supprimer la ligne" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
-                <i class="wii-icon wii-icon-trash"></i>
-            </div>
-        </div>
-    </div>
-</template>
-<input type="hidden" value="{{ deliveryTypeSettings }}" name="deliveryTypeSettings">
-<input type="hidden" value="" name="alreadyDefinedTypes">
 <input type="hidden" value="{{ setting_value('DEFAULT_LOCATION_LIVRAISON') }}" name="{{ setting('DEFAULT_LOCATION_LIVRAISON') }}">
 

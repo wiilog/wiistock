@@ -2,6 +2,9 @@
 
 namespace App\Entity\Inventory;
 
+use App\Entity\Emplacement;
+use App\Entity\ScheduleRule;
+use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRuleRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,10 +12,23 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRuleRepository::class)]
-class InventoryMissionRule {
+class InventoryMissionRule extends ScheduleRule
+{
+    public const DURATION_UNIT_DAYS = "days";
+    public const DURATION_UNIT_WEEKS = "weeks";
+    public const DURATION_UNIT_MONTHS = "months";
 
-    public const WEEKS = "weeks";
-    public const MONTHS = "months";
+    public const DURATION_UNITS = [
+        self::DURATION_UNIT_DAYS,
+        self::DURATION_UNIT_WEEKS,
+        self::DURATION_UNIT_MONTHS,
+    ];
+
+    public const DURATION_UNITS_LABELS = [
+        self::DURATION_UNIT_DAYS => "jour(s)",
+        self::DURATION_UNIT_WEEKS => "semaine(s)",
+        self::DURATION_UNIT_MONTHS => "mois",
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,13 +39,8 @@ class InventoryMissionRule {
     private ?string $label = null;
 
     #[ORM\ManyToMany(targetEntity: InventoryCategory::class)]
+    #[ORM\JoinTable(name: 'inventory_mission_rule_inventory_category')]
     private Collection $categories;
-
-    #[ORM\Column(type: 'integer')]
-    private ?int $periodicity = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $periodicityUnit = null;
 
     #[ORM\Column(type: 'integer')]
     private ?int $duration = null;
@@ -37,15 +48,31 @@ class InventoryMissionRule {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $durationUnit = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $lastRun = null;
-
     #[ORM\OneToMany(mappedBy: 'creator', targetEntity: InventoryMission::class)]
     private Collection $createdMissions;
+
+    #[ORM\Column(type: "string")]
+    private ?string $missionType = null;
+
+    #[ORM\Column(type: "text")]
+    private ?string $description = null;
+
+    #[ORM\ManyToMany(targetEntity: Emplacement::class, inversedBy: 'inventoryMissionRules')]
+    private Collection $locations;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $creator = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $requester = null;
+
+    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => true])]
+    private ?bool $active = true;
 
     public function __construct() {
         $this->categories = new ArrayCollection();
         $this->createdMissions = new ArrayCollection();
+        $this->locations =  new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -139,15 +166,6 @@ class InventoryMissionRule {
         return $this;
     }
 
-    public function getLastRun(): ?DateTime {
-        return $this->lastRun;
-    }
-
-    public function setLastRun(?DateTime $lastRun): self {
-        $this->lastRun = $lastRun;
-        return $this;
-    }
-
     /**
      * @return Collection<int, InventoryMission>
      */
@@ -174,6 +192,124 @@ class InventoryMissionRule {
                 $createdMission->setCreator(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getMissionType(): ?string
+    {
+        return $this->missionType;
+    }
+
+    /**
+     * @param string|null $missionType
+     */
+    public function setMissionType(?string $missionType): self
+    {
+        $this->missionType = $missionType;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string|null $description
+     */
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getLocations(): Collection {
+        return $this->locations;
+    }
+
+    public function addLocation(Emplacement $location): self {
+        if (!$this->locations->contains($location)) {
+            $this->locations[] = $location;
+            $location->addInventoryMissionRule($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLocation(Emplacement $location): self {
+        if ($this->locations->removeElement($location)) {
+            $location->removeInventoryMissionRule($this);
+        }
+
+        return $this;
+    }
+
+    public function setLocations(?iterable $locations): self {
+        foreach($this->getLocations()->toArray() as $location) {
+            $this->removeLocation($location);
+        }
+
+        $this->locations = new ArrayCollection();
+        foreach($locations ?? [] as $location) {
+            $this->addLocation($location);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Utilisateur|null
+     */
+    public function getCreator(): ?Utilisateur
+    {
+        return $this->creator;
+    }
+
+    /**
+     * @param Utilisateur|null $creator
+     */
+    public function setCreator(?Utilisateur $creator): self
+    {
+        $this->creator = $creator;
+
+        return $this;
+
+    }
+
+    /**
+     * @return Utilisateur|null
+     */
+    public function getRequester(): ?Utilisateur
+    {
+        return $this->requester;
+    }
+
+    /**
+     * @param Utilisateur|null $requester
+     */
+    public function setRequester(?Utilisateur $requester): self
+    {
+        $this->requester = $requester;
+
+        return $this;
+
+    }
+
+    public function isActive(): ?bool {
+        return $this->active;
+    }
+
+    public function setActive(?bool $active): self {
+        $this->active = $active;
 
         return $this;
     }

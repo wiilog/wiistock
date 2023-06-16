@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -45,12 +46,23 @@ class Attachment {
     #[ORM\JoinColumn(nullable: true)]
     private ?Dispatch $dispatch = null;
 
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'attachements')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Livraison $deliveryOrder = null;
+
     #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Handling $handling = null;
 
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'attachments')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ShippingRequest $shippingRequest = null;
+
     #[ORM\OneToOne(mappedBy: 'image', targetEntity: ReferenceArticle::class)]
-    private ?ReferenceArticle $referenceArticle = null;
+    private ?ReferenceArticle $referenceArticleImage = null;
+
+    #[ORM\OneToOne(mappedBy: 'sheet', targetEntity: ReferenceArticle::class)]
+    private ?ReferenceArticle $referenceArticleSheet = null;
 
     #[ORM\OneToOne(mappedBy: 'signature', targetEntity: TransportOrder::class)]
     private ?TransportOrder $transportOrder = null;
@@ -157,12 +169,22 @@ class Attachment {
         return $this;
     }
 
-    public function getReferenceArticle(): ?ReferenceArticle {
-        return $this->referenceArticle;
+    public function getReferenceArticleImage(): ?ReferenceArticle {
+        return $this->referenceArticleImage;
     }
 
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self {
-        $this->referenceArticle = $referenceArticle;
+    public function setReferenceArticleImage(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticleImage = $referenceArticle;
+
+        return $this;
+    }
+
+    public function getReferenceArticleSheet(): ?ReferenceArticle {
+        return $this->referenceArticleSheet;
+    }
+
+    public function setReferenceArticleSheet(?ReferenceArticle $referenceArticle): self {
+        $this->referenceArticleSheet = $referenceArticle;
 
         return $this;
     }
@@ -201,4 +223,23 @@ class Attachment {
         return $this;
     }
 
+    public function getDeliveryOrder(): ?Livraison {
+        return $this->deliveryOrder;
+    }
+
+    public function setDeliveryOrder(?Livraison $deliveryOrder): self {
+        $this->deliveryOrder = $deliveryOrder;
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
+
+        return $this;
+    }
 }

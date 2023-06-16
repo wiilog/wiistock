@@ -33,8 +33,10 @@ use App\Service\NotificationService;
 use App\Service\PackService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportRoundService;
+use App\Service\EmplacementDataService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -603,7 +605,8 @@ class TransportController extends AbstractApiController
                                EntityManagerInterface  $manager,
                                StatusHistoryService    $statusHistoryService,
                                TransportRoundService   $transportRoundService,
-                               TransportHistoryService $historyService): Response
+                               TransportHistoryService $historyService,
+                               TranslationService      $translation): Response
     {
         $data = $request->request;
         $round = $manager->find(TransportRound::class, $data->get('round'));
@@ -690,7 +693,7 @@ class TransportController extends AbstractApiController
             if ($hasRejected) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "La tournée ne peut pas être débutée car aucune livraison de la tournée n'est valide",
+                    "msg" => "La tournée ne peut pas être débutée car aucune " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . " de la tournée n'est valide",
                 ]);
             } else {
                 return $this->json([
@@ -746,7 +749,8 @@ class TransportController extends AbstractApiController
                                     TransportHistoryService $historyService,
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
-                                    AttachmentService       $attachmentService): Response
+                                    AttachmentService       $attachmentService,
+                                    EmplacementDataService  $emplacementDataService): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -770,12 +774,10 @@ class TransportController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = (new Emplacement())
-                ->setLabel("Patient")
-                ->setDescription("Colis livrés chez un patient")
-                ->setIsActive(true);
-
-            $manager->persist($patient);
+            $patient = $emplacementDataService->persistLocation([
+                "label" => "Patient",
+                "description" => "Unités logistiques livrées chez un patient",
+            ], $manager);
         }
 
         $comment = $data->get('comment');
@@ -916,7 +918,8 @@ class TransportController extends AbstractApiController
                                      StatusHistoryService    $statusHistoryService,
                                      TransportHistoryService $historyService,
                                      AttachmentService       $attachmentService,
-                                     NotificationService     $notificationService): Response
+                                     NotificationService     $notificationService,
+                                     TranslationService      $translation): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -1031,14 +1034,14 @@ class TransportController extends AbstractApiController
             // notification WEB si c'est une livraison ratée
             if ($request instanceof TransportDeliveryRequest) {
                 $notificationTitle = 'Notification';
-                $notificationContent = 'Une demande de livraison n\'a pas pu être livrée';
+                $notificationContent = 'Une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' n\'a pas pu être livrée';
                 $notificationImage = '/svg/cross-red.svg';
 
                 $notificationService->send('notifications-web', $notificationTitle, $notificationContent, [
                     'title' => $notificationTitle,
                     'content' => $notificationContent,
                     'image' => $_SERVER['APP_URL'] . $notificationImage,
-                ], $_SERVER['APP_URL'] . $notificationImage, true);
+                ], true);
 
                 $emitted = new Notification();
                 $emitted

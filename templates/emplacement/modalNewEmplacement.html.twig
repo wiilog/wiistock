@@ -6,88 +6,8 @@
                 title: "Nouvel emplacement"
             } %}
 
-            <div class="modal-body modal-input container-fluid">
-                <div class="form-group">
-                    <label class="wii-field-name" for="label">Nom*</label>
-                    <input type="text" id="Label" class="form-control data needed is-barcode" name="Label"/>
-                </div>
+            <div class="modal-body modal-input container-fluid"></div>
 
-                <div class="form-group">
-                    <label class="wii-field-name" for="Description">Description*</label>
-                    <input type="text" id="Description" class="form-control data needed" name="Description">
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name" for="Description">Délais traça HH:MM</label>
-                    <input type="text" id="dateMaxTime" class="form-control data" name="dateMaxTime">
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Natures autorisées</label>
-                    <select name="allowed-natures" class="form-control data select2 w-100" multiple>
-                        {% for nature in natures %}
-                            <option value="{{ nature.id }}">{{ nature.label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Températures autorisées</label>
-                    <select name="allowedTemperatures" class="form-control data select2 w-100" multiple>
-                        {% for temperature in temperatures %}
-                            <option value="{{ temperature.id }}">{{ temperature.value }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Types de livraisons autorisés</label>
-                    <select name="allowedDeliveryTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
-                        {% for type in deliveryTypes %}
-                            <option value="{{ type.id }}" selected>{{ type.label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Types de collectes autorisés</label>
-                    <select name="allowedCollectTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
-                        {% for type in collectTypes %}
-                            <option value="{{ type.id }}" selected>{{ type.label }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-
-                <div class="form-group d-flex align-content-center">
-                    <label class="wii-field-text">Point de livraison ? </label>
-                    <label class="switch ml-2">
-                        <input class="checkbox form-control data" type="checkbox" name="isDeliveryPoint">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-
-                <div class="form-group d-flex align-content-center">
-                    <label class="wii-field-text">Encours visible nomade ? </label>
-                    <label class="switch ml-2">
-                        <input class="checkbox form-control data" type="checkbox" name="isOngoingVisibleOnMobile">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Signataires</label>
-                    <select class="form-control data select2 w-100"
-                            name="signatories"
-                            data-s2="user"
-                            multiple></select>
-                </div>
-
-                <div class="form-group">
-                    <label class="wii-field-name">Email</label>
-                    <input class="form-control data" type="text" name="email">
-                </div>
-            </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},

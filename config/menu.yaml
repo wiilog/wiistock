@@ -7,7 +7,7 @@ parameters:
         -   label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
             icon: 'traca'
             sub:
-                -   label: [ 'Traçabilité', 'Flux - Arrivages', 'Divers', 'Flux - arrivages' ]
+                -   label: [ 'Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques' ]
                     path: 'arrivage_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
@@ -38,7 +38,7 @@ parameters:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_ENCO
                 -   label: [ 'Traçabilité', 'Urgences', 'Urgences' ]
-                    path: 'urgence_index'
+                    path: 'emergency_index'
                     rights:
                         menu: App\Entity\Menu::TRACA
                         action: App\Entity\Action::DISPLAY_URGE
@@ -60,7 +60,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_DEM_COLL
-                -   label: 'Livraison'
+                -   label: [ 'Demande', 'Livraison', 'Livraison' ]
                     path: 'demande_index'
                     rights:
                         menu: App\Entity\Menu::DEM
@@ -90,6 +90,11 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::DEM
                         action: App\Entity\Action::DISPLAY_TRANSPORT
+                -   label: [ 'Demande', 'Expédition', 'Expédition' ]
+                    path: 'shipping_request_index'
+                    rights:
+                        menu: App\Entity\Menu::DEM
+                        action: App\Entity\Action::DISPLAY_SHIPPING
 
         -   label: 'Ordre'
             icon: 'ordre'
@@ -99,7 +104,7 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::ORDRE
                         action: App\Entity\Action::DISPLAY_ORDRE_COLL
-                -   label: 'Livraison'
+                -   label: [ 'Ordre', 'Livraison', 'Livraison' ]
                     path: 'livraison_index'
                     rights:
                         menu: App\Entity\Menu::ORDRE
@@ -212,6 +217,16 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_VEHICLE
+                -   label: ['Référentiel', 'Projet', "Projet"] 's'
+                    path: 'project_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_PROJECTS
+                -   label: 'Clients'
+                    path: 'customer_index'
+                    rights:
+                        menu: App\Entity\Menu::REFERENTIEL
+                        action: App\Entity\Action::DISPLAY_CUSTOMER
 
         -   label: [ 'IoT', null, 'IoT' ]
             icon: 'iot'

@@ -52,7 +52,7 @@ function initDatatableLitiges() {
             {data: 'actions', title: '', orderable: false, className: 'noVis'},
             {data: 'type', title: Translation.of(`Qualité`, `Litiges`, 'Type')},
             {data: 'disputeNumber', title: Translation.of(`Qualité`, `Litiges`, `Numéro de litige`)},
-            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Flux - Arrivages`, `Divers`, `N° d'arrivage`)},
+            {data: "arrivalNumber", title: Translation.of(`Traçabilité`, `Arrivages unités logistiques`, `Divers`, `N° d'arrivage UL`)},
             {data: 'receptionNumber', title: Translation.of(`Traçabilité`, `Association BR`, `N° de réception`)},
             {data: 'buyers', title: Translation.of(`Qualité`, `Litiges`, `Acheteur`), orderable: false},
             {data: 'reporter', title: Translation.of(`Qualité`, `Litiges`, `Déclarant`)},
@@ -106,19 +106,19 @@ function editRowLitige(button, afterLoadingEditModal = () => {}, isArrivage, arr
         $modal.find('.error-msg').html('');
         $modal.find('.modal-body').html(data.html);
         if (isArrivage) {
-            $modal.find('#colisEditLitige').val(data.colis).select2();
+            $modal.find('#packEditLitige').val(data.packs).select2();
         } else {
             Select2Old.articleReception($modal.find('.select2-autocomplete-articles'), arrivageOrReceptionId);
 
             let values = [];
-            data.colis.forEach(val => {
+            data.packs.forEach(val => {
                 values.push({
                     id: val.id,
                     text: val.text
                 })
             });
             values.forEach(value => {
-                $('#colisEditLitige').select2("trigger", "select", {
+                $('#packEditLitige').select2("trigger", "select", {
                     data: value
                 });
             });

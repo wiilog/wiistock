@@ -4,27 +4,35 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
+use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
 use App\Entity\Setting;
@@ -36,15 +44,18 @@ use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TrackingMovementRepository;
 use App\Service\ArrivageService;
+use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
@@ -61,11 +72,13 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\ProjectHistoryRecordService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
 use App\Service\TransferOrderService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use DateTime;
@@ -75,17 +88,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
+use Twig\Environment as Twig_Environment;
 
 
 class MobileController extends AbstractApiController
@@ -96,6 +108,9 @@ class MobileController extends AbstractApiController
 
     /** @Required */
     public MobileApiService $mobileApiService;
+
+    /** @Required */
+    public TrackingMovementService $trackingMovementService;
 
     /**
      * @Rest\Post("/api/api-key", condition="request.isXmlHttpRequest()")
@@ -151,7 +166,7 @@ class MobileController extends AbstractApiController
 
             $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
-            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH])
+            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
@@ -199,6 +214,7 @@ class MobileController extends AbstractApiController
 
         $numberOfRowsInserted = 0;
         $mouvementsNomade = json_decode($request->request->get('mouvements'), true);
+        $createTakeAndDrop = $request->request->getBoolean('createTakeAndDrop');
         $finishMouvementTraca = [];
         $successData['data'] = [
             'errors' => [],
@@ -210,6 +226,7 @@ class MobileController extends AbstractApiController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
 
         $mustReloadLocation = false;
 
@@ -233,6 +250,8 @@ class MobileController extends AbstractApiController
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $articleRepository,
+                    $createTakeAndDrop,
                     $mailerService,
                     $freeFieldService,
                     $mouvementStockService,
@@ -288,6 +307,22 @@ class MobileController extends AbstractApiController
 
                         $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
 
+                        if($createTakeAndDrop){
+                            $article = $articleRepository->findOneBy(['barCode' => $mvt['ref_article']]);
+                            $createdPriseMvt = $trackingMovementService->createTrackingMovement(
+                                $mvt['ref_article'],
+                                $article->getCurrentLogisticUnit()->getLastDrop()->getEmplacement(),
+                                $nomadUser,
+                                $date,
+                                true,
+                                true,
+                                TrackingMovement::TYPE_PRISE,
+                                $options,
+                            );
+                            $article->setCurrentLogisticUnit(null);
+                            $entityManager->persist($createdPriseMvt);
+                        }
+
                         $createdMvt = $trackingMovementService->createTrackingMovement(
                             $mvt['ref_article'],
                             $location,
@@ -298,7 +333,30 @@ class MobileController extends AbstractApiController
                             $type,
                             $options,
                         );
+                        $entityManager->persist($createdMvt);
+
                         $associatedPack = $createdMvt->getPack();
+                        $createdMvt->setLogisticUnitParent($associatedPack?->getArticle()?->getCurrentLogisticUnit());
+
+                        if($type->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack?->getArticle()?->getCurrentLogisticUnit()) {
+                            $movement = $trackingMovementService->persistTrackingMovement(
+                                $entityManager,
+                                $associatedPack ?? $mvt['ref_article'],
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                TrackingMovement::TYPE_PICK_LU,
+                                false,
+                                $options
+                            )['movement'];
+                            $movement->setLogisticUnitParent($associatedPack->getArticle()->getCurrentLogisticUnit());
+                            $createdMvt->setMainMovement($movement);
+                            $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                            $trackingMovementService->persistSubEntities($entityManager, $movement);
+                            $entityManager->persist($movement);
+                            $numberOfRowsInserted++;
+                        }
 
                         if ($associatedPack) {
                             $associatedGroup = $associatedPack->getParent();
@@ -331,7 +389,7 @@ class MobileController extends AbstractApiController
                             }
                         }
 
-                        // envoi de mail si c'est une dépose + le colis existe + l'emplacement est un point de livraison
+                        // envoi de mail si c'est une dépose + l'UL existe + l'emplacement est un point de livraison
                         $arrivageDataService->sendMailForDeliveredPack($location, $associatedPack, $nomadUser, $type->getNom(), $date);
 
                         $entityManager->flush();
@@ -356,7 +414,7 @@ class MobileController extends AbstractApiController
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
-                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
+                    $successData['data']['errors'][$mvt['ref_article']] = 'L\'unité logistique scannée est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
@@ -394,6 +452,7 @@ class MobileController extends AbstractApiController
                                        ExceptionLoggerService  $exceptionLoggerService,
                                        TrackingMovementService $trackingMovementService,
                                        FreeFieldService        $freeFieldService,
+                                       ProjectHistoryRecordService    $projectHistoryRecordService,
                                        AttachmentService       $attachmentService,
                                        EntityManagerInterface  $entityManager)
     {
@@ -416,7 +475,9 @@ class MobileController extends AbstractApiController
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
 
 
         $mustReloadLocation = false;
@@ -424,23 +485,20 @@ class MobileController extends AbstractApiController
         $uniqueIds = Stream::from($mouvementsNomade)
             ->filterMap(fn(array $movement) => $movement['date'])
             ->toArray();
+
         $alreadySavedMovements = !empty($uniqueIds)
             ? Stream::from($trackingMovementRepository->findBy(['uniqueIdForMobile' => $uniqueIds]))
                 ->keymap(fn(TrackingMovement $trackingMovement) => [$trackingMovement->getUniqueIdForMobile(), $trackingMovement])
                 ->toArray()
             : [];
 
-
-        $trackingTypes = [
-            TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-            TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
-        ];
-
         foreach ($mouvementsNomade as $index => $mvt) {
             $invalidLocationTo = '';
             try {
                 $entityManager->transactional(function ()
                 use (
+                    $projectHistoryRecordService,
+                    $projectRepository,
                     $freeFieldService,
                     $mouvementStockService,
                     &$numberOfRowsInserted,
@@ -453,81 +511,162 @@ class MobileController extends AbstractApiController
                     &$finishMouvementTraca,
                     $entityManager,
                     $trackingMovementService,
-                    $emptyGroups,
+                    &$emptyGroups,
                     $emplacementRepository,
+                    $packRepository,
                     $articleRepository,
                     $statutRepository,
                     $trackingMovementRepository,
                     $locationDataService,
                     &$mustReloadLocation,
                     $alreadySavedMovements,
-                    $trackingTypes
                 ) {
-
                     $trackingTypes = [
                         TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
                         TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
                     ];
 
-                    $mouvementTraca1 = $alreadySavedMovements[$mvt['date']] ?? null;
-                    if (!isset($mouvementTraca1)) {
+                    if (!isset($alreadySavedMovements[$mvt['date']])) {
                         $options = [
                             'uniqueIdForMobile' => $mvt['date'],
                             'entityManager' => $entityManager,
+                            'quantity' => $mvt['quantity'],
+                            'commentaire' => isset($mvt['comment']) ? $mvt['comment'] : '',
                         ];
-
-                        if (empty($trackingTypes)) {
-                            $trackingTypes = [
-                                TrackingMovement::TYPE_PRISE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE),
-                                TrackingMovement::TYPE_DEPOSE => $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE),
-                            ];
-                        }
 
                         /** @var Statut $type */
                         $type = $trackingTypes[$mvt['type']];
                         $location = $locationDataService->findOrPersistWithCache($entityManager, $mvt['ref_emplacement'], $mustReloadLocation);
 
                         $dateArray = explode('_', $mvt['date']);
-
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
 
-                        $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
-                        if ($options['invalidLocationTo'] ?? null) {
-                            $invalidLocationTo = $options['invalidLocationTo'];
-                            throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
-                        }
+                        //trouve les ULs sans association à un article car les ULs
+                        //associés a des articles SONT des articles donc on les traite normalement
+                        $pack = $packRepository->findWithoutArticle($mvt['ref_article']);
 
-                        $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
+                        //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
+                        //mouvement de stock sur l'UL donc on ignore la partie stock et
+                        //on créé juste un mouvement de prise sur l'UL et ses articles
+                        if($pack) {
+                            $packMvt = $trackingMovementService->treatLUPicking(
+                                $pack,
+                                $location,
+                                $nomadUser,
+                                $date,
+                                $mvt,
+                                $type,
+                                $options,
+                                $entityManager,
+                                $emptyGroups,
+                                $numberOfRowsInserted
+                            );
+                            $trackingMovementService->manageTrackingMovementsForLU(
+                                $pack,
+                                $entityManager,
+                                $mouvementStockService,
+                                $mvt,
+                                $type,
+                                $nomadUser,
+                                $location,
+                                $date,
+                                $emptyGroups,
+                                $numberOfRowsInserted
+                            );
 
-                        $createdMvt = $trackingMovementService->createTrackingMovement(
-                            $mvt['ref_article'],
-                            $location,
-                            $nomadUser,
-                            $date,
-                            true,
-                            $mvt['finished'],
-                            $type,
-                            $options,
-                        );
-                        $associatedPack = $createdMvt->getPack();
+                            if($type->getCode() === TrackingMovement::TYPE_PRISE){
+                                if (isset($mvt['projectId'])) {
+                                    $project = $projectRepository->find($mvt['projectId']);
+                                    $projectHistoryRecordService->changeProject($entityManager, $pack, $project, $date);
 
-                        if ($associatedPack) {
-                            $associatedGroup = $associatedPack->getParent();
-
-                            if ($associatedGroup) {
-                                $associatedGroup->removeChild($associatedPack);
-                                if ($associatedGroup->getChildren()->isEmpty()) {
-                                    $emptyGroups[] = $associatedGroup->getCode();
+                                    foreach ($pack->getChildArticles() as $article) {
+                                        $projectHistoryRecordService->changeProject($entityManager, $article, $project, $date);
+                                    }
+                                }
+                                $signatureFile = $request->files->get("signature_$index");
+                                $photoFile = $request->files->get("photo_$index");
+                                $fileNames = [];
+                                if (!empty($signatureFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+                                }
+                                if (!empty($photoFile)) {
+                                    $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
+                                }
+                                $attachments = $attachmentService->createAttachements($fileNames);
+                                foreach ($attachments as $attachment) {
+                                    $entityManager->persist($attachment);
+                                    $packMvt->addAttachment($attachment);
                                 }
                             }
-                        }
 
-                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                        $entityManager->persist($createdMvt);
-                        $numberOfRowsInserted++;
+                            $entityManager->persist($packMvt);
+                            $entityManager->flush();
+                        } else { //cas mouvement stock classique sur un article ou une ref
+                            $options += $trackingMovementService->treatStockMovement($entityManager, $type?->getCode(), $mvt, $nomadUser, $location, $date);
+                            if ($options['invalidLocationTo'] ?? null) {
+                                $invalidLocationTo = $options['invalidLocationTo'];
+                                throw new Exception(TrackingMovementService::INVALID_LOCATION_TO);
+                            }
 
-                        if ($type?->getCode() === TrackingMovement::TYPE_DEPOSE) {
-                            $finishMouvementTraca[] = $mvt['ref_article'];
+                            $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
+
+                            $createdMvt = $trackingMovementService->createTrackingMovement(
+                                //either reference or article
+                                $mvt["ref_article"],
+                                $location,
+                                $nomadUser,
+                                $date,
+                                true,
+                                $mvt['finished'],
+                                $type,
+                                $options,
+                            );
+
+                            $entityManager->persist($createdMvt);
+
+                            $associatedPack = $createdMvt->getPack();
+                            $createdMvt->setLogisticUnitParent($associatedPack?->getArticle()?->getCurrentLogisticUnit());
+
+                            if($type->getCode() === TrackingMovement::TYPE_PRISE && $associatedPack?->getArticle()?->getCurrentLogisticUnit()) {
+                                $movement = $trackingMovementService->persistTrackingMovement(
+                                    $entityManager,
+                                    $associatedPack,
+                                    $location,
+                                    $nomadUser,
+                                    $date,
+                                    true,
+                                    TrackingMovement::TYPE_PICK_LU,
+                                    false,
+                                    $options
+                                )['movement'];
+                                $logisticUnit = $associatedPack->getArticle()->getCurrentLogisticUnit();
+                                $movement->setLogisticUnitParent($logisticUnit);
+                                $createdMvt->setMainMovement($movement);
+                                $associatedPack->getArticle()->setCurrentLogisticUnit(null);
+                                $logisticUnit->setQuantity($logisticUnit->getQuantity() - $associatedPack->getQuantity());
+                                $trackingMovementService->persistSubEntities($entityManager, $movement);
+                                $entityManager->persist($movement);
+                                $numberOfRowsInserted++;
+                            }
+
+                            if ($associatedPack) {
+                                $associatedGroup = $associatedPack->getParent();
+
+                                if ($associatedGroup) {
+                                    $associatedGroup->removeChild($associatedPack);
+                                    if ($associatedGroup->getChildren()->isEmpty()) {
+                                        $emptyGroups[] = $associatedGroup->getCode();
+                                    }
+                                }
+                            }
+
+                            $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
+                            $entityManager->persist($createdMvt);
+                            $numberOfRowsInserted++;
+
+                            if ($type?->getCode() === TrackingMovement::TYPE_DEPOSE) {
+                                $finishMouvementTraca[] = $mvt['ref_article'];
+                            }
                         }
                     }
                 });
@@ -547,7 +686,7 @@ class MobileController extends AbstractApiController
                 if ($throwable->getMessage() === TrackingMovementService::INVALID_LOCATION_TO) {
                     $successData['data']['errors'][$mvt['ref_article']] = ($mvt['ref_article'] . " doit être déposé sur l'emplacement \"$invalidLocationTo\"");
                 } else if ($throwable->getMessage() === Pack::PACK_IS_GROUP) {
-                    $successData['data']['errors'][$mvt['ref_article']] = 'Le colis scanné est un groupe';
+                    $successData['data']['errors'][$mvt['ref_article']] = 'L\'unité logistique scannée est un groupe';
                 } else {
                     $exceptionLoggerService->sendLog($throwable, $request);
                     $successData['data']['errors'][$mvt['ref_article']] = 'Une erreur s\'est produite lors de l\'enregistrement de ' . $mvt['ref_article'];
@@ -610,6 +749,7 @@ class MobileController extends AbstractApiController
     public function finishPrepa(Request $request,
                                 ExceptionLoggerService $exceptionLoggerService,
                                 LivraisonsManagerService $livraisonsManager,
+                                TrackingMovementService $trackingMovementService,
                                 PreparationsManagerService $preparationsManager,
                                 EntityManagerInterface $entityManager)
     {
@@ -642,7 +782,8 @@ class MobileController extends AbstractApiController
                         $preparation,
                         $nomadUser,
                         $dateEnd,
-                        $entityManager
+                        $entityManager,
+                        $trackingMovementService
                     ) {
 
                         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -669,21 +810,86 @@ class MobileController extends AbstractApiController
                         }
 
                         $articlesToKeep = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $nomadUser, $entityManager);
-                        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-                        $mouvements = $mouvementRepository->findByPreparation($preparation);
+                        $movementRepository = $entityManager->getRepository(MouvementStock::class);
+                        $movements = $movementRepository->findByPreparation($preparation);
 
-                        foreach ($mouvements as $mouvement) {
-                            if ($mouvement->getType() === MouvementStock::TYPE_TRANSFER) {
-                                $preparationsManager->createMouvementLivraison(
-                                    $mouvement->getQuantity(),
+                        foreach ($movements as $movement) {
+                            if ($movement->getType() === MouvementStock::TYPE_TRANSFER) {
+                                $preparationsManager->createMovementLivraison(
+                                    $entityManager,
+                                    $movement->getQuantity(),
                                     $nomadUser,
                                     $livraison,
-                                    !empty($mouvement->getRefArticle()),
-                                    $mouvement->getRefArticle() ?? $mouvement->getArticle(),
+                                    !empty($movement->getRefArticle()),
+                                    $movement->getRefArticle() ?? $movement->getArticle(),
                                     $preparation,
                                     false,
                                     $emplacementPrepa
                                 );
+                                $code = $movement->getRefArticle() ? $movement->getRefArticle()->getBarCode() : $movement->getArticle()->getBarCode();
+                                $trackingMovementPick = $trackingMovementService->createTrackingMovement(
+                                    $code,
+                                    $movement->getEmplacementFrom(),
+                                    $nomadUser,
+                                    $dateEnd,
+                                    true,
+                                    true,
+                                    TrackingMovement::TYPE_PRISE,
+                                    [
+                                        'mouvementStock' => $movement,
+                                        'preparation' => $preparation,
+                                    ]
+                                );
+                                $entityManager->persist($trackingMovementPick);
+                                $entityManager->flush();
+                                $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
+                                    $code,
+                                    $movement->getEmplacementTo(),
+                                    $nomadUser,
+                                    $dateEnd,
+                                    true,
+                                    true,
+                                    TrackingMovement::TYPE_DEPOSE,
+                                    [
+                                        'mouvementStock' => $movement,
+                                        'preparation' => $preparation,
+                                    ],
+                                );
+
+                                $entityManager->persist($trackingMovementDrop);
+                                $ulToMove[] = $movement->getArticle()?->getCurrentLogisticUnit();
+                                $entityManager->flush();
+                            }
+                        }
+                        if (isset($ulToMove)){
+                            foreach (array_unique($ulToMove) as $lu) {
+                                if ($lu != null){
+                                    $pickTrackingMovement = $trackingMovementService->createTrackingMovement(
+                                        $lu,
+                                        $lu->getLastDrop()->getEmplacement(),
+                                        $nomadUser,
+                                        $dateEnd,
+                                        true,
+                                        true,
+                                        TrackingMovement::TYPE_PRISE,
+                                        ['preparation' => $preparation]
+
+                                    );
+                                    $DropTrackingMovement = $trackingMovementService->createTrackingMovement(
+                                        $lu,
+                                        $emplacementPrepa,
+                                        $nomadUser,
+                                        $dateEnd,
+                                        true,
+                                        true,
+                                        TrackingMovement::TYPE_DEPOSE,
+                                        ['preparation' => $preparation]
+                                    );
+                                    $entityManager->persist($pickTrackingMovement);
+                                    $entityManager->persist($DropTrackingMovement);
+
+                                    $lu->setLastDrop($DropTrackingMovement)->setLastTracking($DropTrackingMovement);
+                                }
                             }
                         }
 
@@ -693,7 +899,10 @@ class MobileController extends AbstractApiController
                             $preparationsManager->deleteLigneRefOrNot($ligneArticle, $preparation, $entityManager);
                         }
 
-                        $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, $articlesToKeep, $entityManager);
+                        $insertedPreparation = $preparationsManager->treatPreparation($preparation, $nomadUser, $emplacementPrepa, [
+                            "articleLinesToKeep" => $articlesToKeep,
+                            "entityManager" => $entityManager
+                        ]);
 
                         if ($insertedPreparation) {
                             $insertedPrepasIds[] = $insertedPreparation->getId();
@@ -771,7 +980,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function beginLivraison(Request $request, EntityManagerInterface $entityManager)
+    public function beginLivraison(Request                  $request,
+                                   EntityManagerInterface   $entityManager,
+                                   TranslationService       $translation)
     {
         $nomadUser = $this->getUser();
 
@@ -792,7 +1003,7 @@ class MobileController extends AbstractApiController
             $data['success'] = true;
         } else {
             $data['success'] = false;
-            $data['msg'] = "Cette livraison a déjà été prise en charge par un opérateur.";
+            $data['msg'] = "Cette " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . " a déjà été prise en charge par un opérateur.";
         }
 
         return new JsonResponse($data);
@@ -936,10 +1147,11 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function finishLivraison(Request $request,
-                                    ExceptionLoggerService $exceptionLoggerService,
-                                    EntityManagerInterface $entityManager,
-                                    LivraisonsManagerService $livraisonsManager)
+    public function finishLivraison(Request                     $request,
+                                    ExceptionLoggerService      $exceptionLoggerService,
+                                    EntityManagerInterface      $entityManager,
+                                    LivraisonsManagerService    $livraisonsManager,
+                                    TranslationService          $translation)
     {
         $nomadUser = $this->getUser();
 
@@ -961,11 +1173,9 @@ class MobileController extends AbstractApiController
                 try {
                     if ($location) {
                         // flush auto at the end
-                        $entityManager->transactional(function () use ($livraisonsManager, $entityManager, $nomadUser, $livraison, $dateEnd, $location) {
-                            $livraisonsManager->setEntityManager($entityManager);
-                            $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
-                            $entityManager->flush();
-                        });
+                        $livraisonsManager->setEntityManager($entityManager);
+                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
+                        $entityManager->flush();
 
                         $resData['success'][] = [
                             'numero_livraison' => $livraison->getNumero(),
@@ -981,11 +1191,15 @@ class MobileController extends AbstractApiController
                         $livraisonsManager->setEntityManager($entityManager);
                     }
 
-                    $message = (
-                    ($throwable->getMessage() === LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION) ? "L'emplacement que vous avez sélectionné n'existe plus." :
-                        (($throwable->getMessage() === LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN) ? "La livraison a déjà été commencée" :
-                            false)
-                    );
+                    $message = match ($throwable->getMessage()) {
+                        LivraisonsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION => "L'emplacement que vous avez sélectionné n'existe plus.",
+                        LivraisonsManagerService::LIVRAISON_ALREADY_BEGAN => "La " . mb_strtolower($translation->translate("Ordre", "Livraison", "Livraison", false)) . " a déjà été commencée",
+                        default => false,
+                    };
+
+                    if($throwable->getCode() === LivraisonsManagerService::NATURE_NOT_ALLOWED){
+                        $message = $throwable->getMessage();
+                    }
 
                     if (!$message) {
                         $exceptionLoggerService->sendLog($throwable, $request);
@@ -998,12 +1212,67 @@ class MobileController extends AbstractApiController
                         'message' => $message ?: 'Une erreur est survenue',
                     ];
                 }
-
-                $entityManager->flush();
             }
         }
 
         return new JsonResponse($resData, $statusCode);
+    }
+
+    /**
+     * @Rest\Get("/api/check-logistic-unit-content", name="api_check_logistic_unit_content", methods={"GET"},condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function checkLogisticUnitContent(Request                  $request,
+                                             ExceptionLoggerService   $exceptionLoggerService,
+                                             EntityManagerInterface   $entityManager,
+                                             LivraisonsManagerService $livraisonsManager): Response
+    {
+        $logisticUnit = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('logisticUnit')]);
+        $articlesAllInTransit = Stream::from($logisticUnit->getChildArticles())->every(fn(Article $article) => $article->isInTransit());
+        $articlesNotInTransit = [];
+        if (!$articlesAllInTransit) {
+
+            $articlesNotInTransit = Stream::from($logisticUnit->getChildArticles())
+                    ->filter(fn(Article $article) => !$article->isInTransit())
+                    ->map(fn(Article $article) => [
+                        'barcode' => $article->getBarCode(),
+                        'reference' => $article->getReference(),
+                        'quantity' => $article->getQuantite(),
+                        'label' => $article->getLabel(),
+                        'location' => $article->getEmplacement()->getLabel(),
+                        'currentLogisticUnitCode' => $article->getCurrentLogisticUnit()->getCode(),
+                        'selected' => true
+                    ])
+                    ->values();
+        }
+
+        return $this->json([
+            'extraArticles' => $articlesNotInTransit
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/check-delivery-logistic-unit-content", name="api_check_delivery_logistic_unit_content", methods={"GET"},condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function checkDeliveryLogisticUnitContent(Request                  $request,
+                                             ExceptionLoggerService   $exceptionLoggerService,
+                                             EntityManagerInterface   $entityManager,
+                                             LivraisonsManagerService $livraisonsManager): Response
+    {
+        $delivery = $entityManager->getRepository(Livraison::class)->findOneBy(['id' => $request->query->get('livraisonId')]);
+
+        $articlesLines = $delivery->getDemande()->getArticleLines();
+        $numberArticlesInLU = Stream::from($articlesLines)
+            ->filter(fn(DeliveryRequestArticleLine $line) => $line->getPack())
+            ->keymap(fn(DeliveryRequestArticleLine $line) => [$line->getPack()->getCode(), $line->getPack()->getChildArticles()->count()])
+            ->toArray();
+
+        return $this->json([
+            'numberArticlesInLU' => $numberArticlesInLU
+        ]);
     }
 
     /**
@@ -1323,37 +1592,52 @@ class MobileController extends AbstractApiController
      */
     public function validateManualDL(Request                    $request,
                                      EntityManagerInterface     $entityManager,
-                                     DemandeLivraisonService    $demandeLivraisonService,
+                                     DeliveryRequestService     $demandeLivraisonService,
                                      LivraisonsManagerService   $livraisonsManagerService,
                                      MouvementStockService      $mouvementStockService,
                                      FreeFieldService           $freeFieldService,
+                                     TrackingMovementService    $trackingMovementService,
                                      PreparationsManagerService $preparationsManagerService): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $logisticUnitRepository = $entityManager->getRepository(Pack::class);
 
         $nomadUser = $this->getUser();
         $location = json_decode($request->request->get('location'), true);
         $delivery = json_decode($request->request->get('delivery'), true);
         $now = new DateTime();
+
         $request = $demandeLivraisonService->newDemande([
             'isManual' => true,
             'type' => $delivery['type'],
             'demandeur' => $nomadUser,
             'destination' => $location['id'],
-            'expectedAt' => $now->format('Y-m-d H:i:s'),
+            'expectedAt' => $delivery['expectedAt'] ?? $now->format('Y-m-d'),
+            'project' => $delivery['project'] ?? null,
             'commentaire' => $delivery['comment'] ?? null,
         ], $entityManager, $freeFieldService, true);
 
         $entityManager->persist($request);
-        foreach ($delivery['articles'] as $article) {
-            $article = $articleRepository->findOneBy([
-                'barCode' => $article['barCode']
-            ]);
 
-            $line = $demandeLivraisonService->createArticleLine($article, $request, $article->getQuantite(), $article->getQuantite());
-            $entityManager->persist($line);
+        $location = $entityManager->find(Emplacement::class, $location['id']);
+        foreach ($delivery['articles'] as $article) {
+            $barcode = $article['barCode'];
+            $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+
+            if(!$article) {
+                $logisticUnit = $logisticUnitRepository->findOneBy(['code' => $barcode]);
+            }
+
+            $articles = $article ? [$article] : $logisticUnit->getChildArticles();
+            foreach ($articles as $art) {
+                $line = $demandeLivraisonService->createArticleLine($art, $request, [
+                    'quantityToPick' => $art->getQuantite(),
+                    'pickedQuantity' => $art->getQuantite(),
+                ]);
+                $entityManager->persist($line);
+            }
         }
+
         $entityManager->flush();
         $response = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
@@ -1369,26 +1653,52 @@ class MobileController extends AbstractApiController
             $entityManager->flush();
             return new JsonResponse($response);
         }
-        $preparation = $request->getPreparations()->first();
-        $order = $livraisonsManagerService->createLivraison($now, $preparation, $entityManager);
+        $preparationOrder = $request->getPreparations()->first();
+        $deliveryOrder = $livraisonsManagerService->createLivraison($now, $preparationOrder, $entityManager);
+
+        // articles in delivery  which the logistics unit is not in delivery
+        foreach ($delivery['articles'] as $articleArray) {
+            $barcode = $articleArray['barCode'];
+            $article = $articleRepository->findOneBy(['barCode' => $articleArray['barCode']]);
+            if($article && $article->getCurrentLogisticUnit()) {
+                $article->setCurrentLogisticUnit(null);
+
+                $trackingMovementService->persistTrackingMovement(
+                    $entityManager,
+                    $article->getTrackingPack() ?? $barcode,
+                    $location,
+                    $nomadUser,
+                    $now,
+                    false,
+                    TrackingMovement::TYPE_PICK_LU,
+                    false,
+                    ["delivery" => $deliveryOrder]
+                );
+            }
+        }
 
         foreach ($request->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
-            $outMovement = $preparationsManagerService->createMouvementLivraison(
+            $outMovement = $preparationsManagerService->createMovementLivraison(
+                $entityManager,
                 $article->getQuantite(),
-                $nomadUser, $order,
-                false, $article,
-                $preparation,
+                $nomadUser,
+                $deliveryOrder,
+                false,
+                $article,
+                $preparationOrder,
                 true,
                 $article->getEmplacement()
             );
             $entityManager->persist($outMovement);
             $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
         }
-        $preparationsManagerService->treatPreparation($preparation, $nomadUser, $request->getDestination(), [], $entityManager);
-        $preparationsManagerService->updateRefArticlesQuantities($preparation, $entityManager);
-
-        $livraisonsManagerService->finishLivraison($nomadUser, $order, $now, $request->getDestination());
+        $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
+            "entityManager" => $entityManager,
+            "changeArticleLocation" => false,
+        ]);
+        $preparationsManagerService->updateRefArticlesQuantities($preparationOrder, $entityManager);
+        $livraisonsManagerService->finishLivraison($nomadUser, $deliveryOrder, $now, $request->getDestination());
         $entityManager->flush();
 
         return new JsonResponse([
@@ -1402,10 +1712,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function checkAndValidateDL(Request $request,
+    public function checkAndValidateDL(Request                $request,
                                        EntityManagerInterface $entityManager,
-                                       DemandeLivraisonService $demandeLivraisonService,
-                                       FreeFieldService $champLibreService): Response
+                                       DeliveryRequestService $demandeLivraisonService,
+                                       FreeFieldService       $champLibreService): Response
     {
         $nomadUser = $this->getUser();
 
@@ -1573,6 +1883,265 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/default-article-values", name="api_get_default_article_values")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getDefaultArticleValues(EntityManagerInterface $entityManager): Response
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $articleDefaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $articleDefaultLocation = $articleDefaultLocationId ? $locationRepository->find($articleDefaultLocationId) : null;
+
+        $defaultValues = [
+            'destination' => $articleDefaultLocation?->getId(),
+            'type' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_TYPE),
+            'reference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_REFERENCE),
+            'label' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_LABEL),
+            'quantity' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_QUANTITY),
+            'supplier' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER),
+            'supplierReference' => $settingRepository->getOneParamByLabel(Setting::ARTICLE_SUPPLIER_REFERENCE),
+        ];
+
+        return $this->json([
+            'success' => true,
+            'defaultValues' => $defaultValues
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/article-by-rfid-tag/{rfid}", name="api_get_article_by_rfid_tag")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getArticleByRFIDTag(EntityManagerInterface $entityManager, string $rfid): Response
+    {
+        $article = $entityManager->getRepository(Article::class)->findOneBy([
+            'RFIDtag' => $rfid
+        ]);
+        return $this->json([
+            'success' => true,
+            'article' => $article?->getId()
+        ]);
+    }
+
+    /**
+     * @Rest\Get("/api/supplier_reference/{ref}/{supplier}", name="api_get_supplier_reference_by_ref_and_supplier")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getArticleFournisseursByRefAndSupplier(EntityManagerInterface $entityManager, int $ref, int $supplier): Response
+    {
+        $articlesFournisseurs = $entityManager->getRepository(ArticleFournisseur::class)->getByRefArticleAndFournisseur($ref, $supplier);
+        $formattedReferences = Stream::from($articlesFournisseurs)
+            ->map(function(ArticleFournisseur $supplier) {
+                return [
+                    'label' => $supplier->getReference(),
+                    'id' => $supplier->getId(),
+                ];
+            })->toArray();
+
+        return $this->json([
+            'supplierReferences' => $formattedReferences
+        ]);
+    }
+
+    /**
+     * @Rest\Post("/api/create-article", name="api_post_article")
+     * @Rest\View()
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postArticle(Request $request,
+                                EntityManagerInterface $entityManager,
+                                ArticleDataService $articleDataService,
+                                MouvementStockService $mouvementStockService,
+                                TrackingMovementService $trackingMovementService): Response
+    {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $supplierArticleRepository = $entityManager->getRepository(ArticleFournisseur::class);
+
+        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
+        $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
+
+        $now = new DateTime('now');
+
+        $rfidTag = $request->request->get('rfidTag');
+        $countryStr = $request->request->get('country');
+        $destinationStr = $request->request->get('destination');
+        $referenceStr = $request->request->get('reference');
+
+        if (empty($rfidTag)) {
+            throw new FormException("Le tag RFID est invalide.");
+        }
+
+        if (!empty($rfidPrefix) && !str_starts_with($rfidTag, $rfidPrefix)) {
+            throw new FormException("Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix).");
+        }
+        $article = $articleRepository->findOneBy(['RFIDtag' => $rfidTag]);
+
+        if ($article) {
+            throw new FormException("Tag RFID déjà existant en base.");
+        }
+
+        $typeStr = $request->request->get('type');
+        $type = $typeStr
+            ? $typeRepository->find($typeStr)
+            : null;
+
+        $statut = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+
+        $fromMatrix = $request->request->getBoolean('fromMatrix');
+        $destination = !empty($destinationStr)
+            ? ($fromMatrix
+                ? ($locationRepository->findOneBy(['label' => $destinationStr]) ?: $defaultLocation)
+                : $locationRepository->find($destinationStr))
+            : null;
+
+        if (!$destination) {
+            throw new FormException("L'emplacement de destination de l'article est inconnu.");
+        }
+
+        $countryFrom = !empty($countryStr)
+            ? $nativeCountryRepository->findOneBy(['code' => $countryStr])
+            : null;
+        if (!$countryFrom && $countryStr) {
+            throw new FormException("Le code pays est inconnu");
+        }
+
+        if ($fromMatrix) {
+            $ref = $referenceArticleRepository->findOneBy([
+                'reference' => $referenceStr,
+                'typeQuantite' => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+            ]);
+        } else {
+            $ref = $referenceArticleRepository->find($referenceStr);
+            $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
+        }
+        if (!$ref) {
+            throw new FormException("Référence scannée (${referenceStr}) inconnue.");
+        } else if ($fromMatrix) {
+            $type = $ref->getType();
+            if ($ref->getArticlesFournisseur()->isEmpty()) {
+                throw new FormException("La référence scannée (${referenceStr}) n'a pas d'article fournisseur paramétré.");
+            } else {
+                $articleSupplier = $ref->getArticlesFournisseur()->first();
+            }
+        }
+        $refTypeLabel = $ref->getType()->getLabel();
+        if ($ref->getType()?->getId() !== $type?->getId()) {
+            throw new FormException("Le type selectionné est différent de celui de la référence (${refTypeLabel})");
+        }
+
+        if (!$articleSupplier) {
+            throw new FormException("Référence fournisseur inconnue.");
+        }
+
+        $expiryDateStr = $request->request->get('expiryDate');
+        $expiryDate = $expiryDateStr
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $expiryDateStr)
+                : new DateTime($expiryDateStr))
+            : null;
+
+        $manufacturingDateStr = $request->request->get('manufacturingDate');
+        $manufacturingDate = $manufacturingDateStr
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $manufacturingDateStr)
+                : new DateTime($manufacturingDateStr))
+            : null;
+
+        $productionDateStr = $request->request->get('productionDate');
+        $productionDate = $productionDateStr
+            ? ($fromMatrix
+                ? DateTime::createFromFormat('dmY', $productionDateStr)
+                : new DateTime($productionDateStr))
+            : null;
+
+        $labelStr = $request->request->get('label');
+        $commentStr = $request->request->get('comment');
+        $priceStr = $request->request->get('price');
+        $quantityStr = $request->request->getInt('quantity');
+        $deliveryLineStr = $request->request->get('deliveryLine');
+        $commandNumberStr = $request->request->get('commandNumber');
+        $batchStr = $request->request->get('batch');
+
+        $article = new Article();
+        $article
+            ->setLabel($labelStr)
+            ->setConform(true)
+            ->setStatut($statut)
+            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setPrixUnitaire(floatval($priceStr))
+            ->setReference($ref)
+            ->setQuantite($quantityStr)
+            ->setEmplacement($destination)
+            ->setArticleFournisseur($articleSupplier)
+            ->setType($type)
+            ->setBarCode($articleDataService->generateBarcode())
+            ->setStockEntryDate($now)
+            ->setDeliveryNote($deliveryLineStr)
+            ->setNativeCountry($countryFrom)
+            ->setProductionDate($productionDate)
+            ->setManifacturingDate($manufacturingDate)
+            ->setPurchaseOrder($commandNumberStr)
+            ->setRFIDtag($rfidTag)
+            ->setBatch($batchStr)
+            ->setExpiryDate($expiryDate);
+
+        $entityManager->persist($article);
+
+        $stockMovement = $mouvementStockService->createMouvementStock(
+            $this->getUser(),
+            null,
+            $article->getQuantite(),
+            $article,
+            MouvementStock::TYPE_ENTREE
+        );
+
+        $mouvementStockService->finishMouvementStock(
+            $stockMovement,
+            $now,
+            $article->getEmplacement()
+        );
+
+        $entityManager->persist($stockMovement);
+
+        $trackingMovement = $trackingMovementService->createTrackingMovement(
+            $article->getTrackingPack() ?: $article->getBarCode(),
+            $article->getEmplacement(),
+            $this->getUser(),
+            $now,
+            true,
+            true,
+            TrackingMovement::TYPE_DEPOSE,
+            [
+                "refOrArticle" => $article,
+                "mouvementStock" => $stockMovement,
+            ]
+        );
+
+        $entityManager->persist($trackingMovement);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Article bien généré.'
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/transfer/finish", name="transfer_finish")
      * @Rest\View()
      * @Wii\RestAuthenticated()
@@ -1611,6 +2180,7 @@ class MobileController extends AbstractApiController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $ordreCollecteRepository = $entityManager->getRepository(OrdreCollecte::class);
@@ -1625,8 +2195,11 @@ class MobileController extends AbstractApiController
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
         $transferOrderRepository = $entityManager->getRepository(TransferOrder::class);
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -1634,11 +2207,18 @@ class MobileController extends AbstractApiController
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
-        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+        $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
 
-        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
+        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
+
+        $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON]))
+            ->map(fn(Type $type) => [
+                'id' => $type->getId(),
+                'label' => $type->getLabel(),
+                'category' => $type->getCategory()->getLabel()
+            ])->toArray();
 
         if ($rights['inventoryManager']) {
             $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
@@ -1647,8 +2227,17 @@ class MobileController extends AbstractApiController
 
         if ($rights['stock']) {
             // livraisons
+            $deliveriesExpectedDateColors = [
+                'after' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
+                'DDay' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
+                'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
+            ];
             $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
-                ->map(function ($deliveryArray) {
+                ->map(function ($deliveryArray) use ($deliveriesExpectedDateColors) {
+                    $deliveryArray['color'] = $this->mobileApiService->expectedDateColor($deliveryArray['expectedAt'], $deliveriesExpectedDateColors);
+                    $deliveryArray['expectedAt'] = $deliveryArray['expectedAt']
+                        ? $deliveryArray['expectedAt']->format('d/m/Y')
+                        : null;
                     if (!empty($deliveryArray['comment'])) {
                         $deliveryArray['comment'] = substr(strip_tags($deliveryArray['comment']), 0, 200);
                     }
@@ -1664,10 +2253,13 @@ class MobileController extends AbstractApiController
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
-
             /// preparations
             $preparations = Stream::from($preparationRepository->getMobilePreparations($user))
-                ->map(function ($preparationArray) {
+                ->map(function ($preparationArray) use ($deliveriesExpectedDateColors) {
+                    $preparationArray['color'] = $this->mobileApiService->expectedDateColor($preparationArray['expectedAt'], $deliveriesExpectedDateColors);
+                    $preparationArray['expectedAt'] = $preparationArray['expectedAt']
+                        ? $preparationArray['expectedAt']->format('d/m/Y')
+                        : null;
                     if (!empty($preparationArray['comment'])) {
                         $preparationArray['comment'] = substr(strip_tags($preparationArray['comment']), 0, 200);
                     }
@@ -1690,6 +2282,9 @@ class MobileController extends AbstractApiController
                 }
                 return $collecteArray;
             }, $collectes);
+
+            $suppliers = $supplierRepository->getForNomade();
+            $refs = $referenceArticleRepository->getForNomade();
 
             $collectesIds = Stream::from($collectes)
                 ->map(function ($collecteArray) {
@@ -1714,9 +2309,17 @@ class MobileController extends AbstractApiController
             // inventory
             $articlesInventory = $inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
-
+            $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
+            $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
+
+            $projects = Stream::from($projectRepository->findAll())
+                ->map(fn(Project $project) => [
+                    'id' => $project->getId(),
+                    'code' => $project->getCode(),
+                ])
+                ->toArray();
         }
 
         if ($rights['demande']) {
@@ -1800,10 +2403,6 @@ class MobileController extends AbstractApiController
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
-            [
-                'dispatches' => $dispatches,
-                'dispatchPacks' => $dispatchPacks,
-            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
         }
 
         if($rights['demande'] || $rights['stock']) {
@@ -1812,6 +2411,23 @@ class MobileController extends AbstractApiController
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ])
+                ->toArray();
+
+        }
+
+        if($rights['demande'] || $rights['tracking']){
+            [
+                'dispatches' => $dispatches,
+                'dispatchPacks' => $dispatchPacks,
+                'dispatchReferences' => $dispatchReferences,
+            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
+            $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $dispatchEmergencies = Stream::from($elements)
+                ->toArray();
+
+            $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+            $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypeElements ?? '')
+                ->filter()
                 ->toArray();
         }
 
@@ -1845,10 +2461,12 @@ class MobileController extends AbstractApiController
             'transportRoundLines' => $transportRoundLines ?? [],
             'handlings' => $handlings ?? [],
             'handlingAttachments' => $handlingAttachments ?? [],
-            'inventoryMission' => array_merge(
+            'articlesInventaire' => array_merge(
                 $articlesInventory ?? [],
                 $refArticlesInventory ?? []
             ),
+            'inventoryMission' => $inventoryMissions ?? [],
+            'inventoryLocationZone' => $inventoryLocationsZone ?? [],
             'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),
             'trackingTaking' => $trackingTaking ?? [],
             'stockTaking' => $stockTaking ?? [],
@@ -1860,12 +2478,19 @@ class MobileController extends AbstractApiController
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
+            'dispatchReferences' => $dispatchReferences ?? [],
             'status' => $status,
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
             'fieldsParam' => $fieldsParam ?? [],
+            'projects' => $projects ?? [],
+            'types' => $mobileTypes,
+            'suppliers' => $suppliers ?? [],
+            'reference_articles' => $refs ?? [],
             'drivers' => $driverRepository->getDriversArray(),
             'carriers' => $carriers ?? [],
+            'dispatchEmergencies' => $dispatchEmergencies ?? [],
+            'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
         ];
     }
 
@@ -1928,9 +2553,10 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function treatAnomalies(Request $request,
-                                   InventoryService $inventoryService,
-                                   ExceptionLoggerService $exceptionLoggerService)
+    public function treatAnomalies(Request                  $request,
+                                   InventoryService         $inventoryService,
+                                   ExceptionLoggerService   $exceptionLoggerService,
+                                   TranslationService       $translation)
     {
 
         $nomadUser = $this->getUser();
@@ -1968,7 +2594,7 @@ class MobileController extends AbstractApiController
         $data['errors'] = $errors;
         $data['data']['status'] = ($numberOfRowsInserted === 0)
             ? ($anomalies > 0
-                ? 'Une ou plusieus erreurs, des ordres de livraison sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
+                ? 'Une ou plusieus erreurs, des ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . ' sont en cours pour ces articles ou ils ne sont pas disponibles, veuillez recharger vos données'
                 : "Aucune anomalie d'inventaire à synchroniser.")
             : ($numberOfRowsInserted . ' anomalie' . $s . ' d\'inventaire synchronisée' . $s);
 
@@ -1976,22 +2602,148 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/inventory-missions/{inventoryMission}/summary/{zone}", name="api_zone_rfid_summary", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function rfidSummary(Request                $request,
+                                InventoryMission       $inventoryMission,
+                                Zone                   $zone,
+                                EntityManagerInterface $entityManager,
+                                InventoryService       $inventoryService): Response
+    {
+
+
+
+        $rfidTagsStr = $request->request->get('rfidTags');
+        $rfidTags = json_decode($rfidTagsStr ?: '[]', true) ?: [];
+
+        return $this->json([
+            "success" => true,
+            "data" => $inventoryService->summarizeLocationInventory(
+                $entityManager,
+                $inventoryMission,
+                $zone,
+                $rfidTags,
+                $this->getUser()
+            )
+        ]);
+    }
+
+
+    /**
+     * @Rest\Post("/api/finish-mission", name="api_finish_mission", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function finishMission(Request                $request,
+                                  EntityManagerInterface $entityManager,
+                                  MailerService          $mailerService,
+                                  Twig_Environment       $templating): Response
+    {
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $missionRepository = $entityManager->getRepository(InventoryMission::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
+
+        $mission = $missionRepository->find($request->request->get('mission'));
+        $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
+        $locations = $locationRepository->findByMissionAndZone($zones, $mission);
+
+        $tags = Stream::from(json_decode($request->request->get('tags')))
+            ->filter(fn(string $tag) => str_starts_with($tag, $rfidPrefix))
+            ->toArray();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
+
+        $now = new DateTime('now');
+        $validator = $this->getUser();
+        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+
+        /** @var Article $article */
+        foreach ($articlesOnLocations as $article) {
+            if (in_array($article->getRFIDtag(), $tags)) {
+                $presentArticle = $article;
+                if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
+                    $correctionMovement = new MouvementStock();
+                    $correctionMovement
+                        ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
+                        ->setArticle($presentArticle)
+                        ->setDate($now)
+                        ->setQuantity($presentArticle->getQuantite())
+                        ->setEmplacementFrom($presentArticle->getEmplacement())
+                        ->setEmplacementTo($presentArticle->getEmplacement())
+                        ->setUser($validator);
+                    $entityManager->persist($correctionMovement);
+                }
+                $presentArticle
+                    ->setFirstUnavailableDate(null)
+                    ->setLastAvailableDate($now)
+                    ->setStatut($activeStatus)
+                    ->setDateLastInventory($now);
+            } else {
+                $missingArticle = $article;
+                if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                    $correctionMovement = new MouvementStock();
+                    $correctionMovement
+                        ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
+                        ->setArticle($missingArticle)
+                        ->setDate($now)
+                        ->setQuantity($missingArticle->getQuantite())
+                        ->setEmplacementFrom($missingArticle->getEmplacement())
+                        ->setEmplacementTo($missingArticle->getEmplacement())
+                        ->setUser($validator);
+                    $entityManager->persist($correctionMovement);
+                    $missingArticle
+                        ->setFirstUnavailableDate($now);
+                }
+                $missingArticle
+                    ->setStatut($inactiveStatus)
+                    ->setDateLastInventory($now);
+            }
+        }
+
+        $mission
+            ->setValidatedAt($now)
+            ->setValidator($validator)
+            ->setDone(true);
+
+        $entityManager->flush();
+
+        if ($mission->getRequester()) {
+            $mailerService->sendMail(
+                "Follow GT // Validation d’une mission d’inventaire",
+                $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
+                    'mission' => $mission,
+                ]),
+                $mission->getRequester()
+            );
+        }
+        return $this->json([
+            "success" => true,
+            "data" => ""
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/emplacement", name="api-new-emp", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function addEmplacement(Request $request, EntityManagerInterface $entityManager): Response
+    public function addEmplacement(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
-            $toInsert = new Emplacement();
-            $toInsert
-                ->setLabel($request->request->get('label'))
-                ->setIsActive(true)
-                ->setDescription('')
-                ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
-            $entityManager->persist($toInsert);
+            $toInsert = $emplacementDataService->persistLocation([
+                "label" => $request->request->get('label'),
+                "isDeliveryPoint" => $request->request->getBoolean('isDelivery'),
+            ], $entityManager);
             $entityManager->flush();
 
             return $this->json([
@@ -2004,6 +2756,30 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Get("/api/logistic-unit/articles", name="api_logistic_unit_articles", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function getLogisticUnitArticles(Request $request, EntityManagerInterface $entityManager) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $code = $request->query->get('code');
+
+        $pack = $packRepository->findOneBy(['code' => $code]);
+
+        $articles = $pack->getChildArticles()->map(fn(Article $article) => [
+            'id' => $article->getId(),
+            'barCode' => $article->getBarCode(),
+            'label' => $article->getLabel(),
+            'location' => $article->getEmplacement()?->getLabel(),
+            'quantity' => $article->getQuantite(),
+            'reference' => $article->getReference()
+        ]);
+
+        return $this->json($articles);
+    }
+
+    /**
      * @Rest\Get("/api/articles", name="api-get-articles", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
@@ -2012,6 +2788,7 @@ class MobileController extends AbstractApiController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $referenceActiveStatusId = $statutRepository
@@ -2021,28 +2798,69 @@ class MobileController extends AbstractApiController
         $resData = [];
 
         $barCode = $request->query->get('barCode');
+        $barcodes = $request->query->get('barcodes');
         $location = $request->query->get('location');
+        $createIfNotExist = $request->query->get('createIfNotExist');
 
-        if (!empty($barCode)) {
+        if(!empty($barcodes)) {
+            $barcodes = json_decode($barcodes, true);
+            $articles = Stream::from($articleRepository->findBy(['barCode' => $barcodes]))
+                ->map(fn(Article $article) => [
+                    'barcode' => $article->getBarCode(),
+                    'quantity' => $article->getQuantite(),
+                    'reference' => $article->getArticleFournisseur()->getReferenceArticle()->getReference()
+                ])->toArray();
+
+            return $this->json([
+                'articles' => $articles
+            ]);
+        } else if (!empty($barCode)) {
             $statusCode = Response::HTTP_OK;
-
-            $referenceArticleArray = $referenceArticleRepository->getOneReferenceByBarCodeAndLocation($barCode, $location);
-            if (!empty($referenceArticleArray)) {
-                $referenceArticle = $referenceArticleRepository->find($referenceArticleArray['id']);
+            $referenceArticle = $referenceArticleRepository->findOneBy([
+                'barCode' => $barCode,
+            ]);
+            if (!empty($referenceArticle) && (!$location || $referenceArticle->getEmplacement()->getLabel() === $location)) {
                 $statusReferenceArticle = $referenceArticle->getStatut();
                 $statusReferenceId = $statusReferenceArticle ? $statusReferenceArticle->getId() : null;
                 // we can transfer if reference is active AND it is not linked to any active orders
-                $referenceArticleArray['can_transfer'] = (
-                    ($statusReferenceId === $referenceActiveStatusId)
-                    && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
-                );
+                $referenceArticleArray = [
+                    'can_transfer' => (
+                        ($statusReferenceId === $referenceActiveStatusId)
+                        && !$referenceArticleRepository->isUsedInQuantityChangingProcesses($referenceArticle)
+                    ),
+                    "id" => $referenceArticle->getId(),
+                    "barCode" => $referenceArticle->getBarCode(),
+                    "quantity" => $referenceArticle->getQuantiteDisponible(),
+                    "is_ref" => "1"
+                ];
                 $resData['article'] = $referenceArticleArray;
-            } else {
+            }
+            else {
                 $article = $articleRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+
                 if (!empty($article)) {
+                    $canAssociate = in_array($article['articleStatusCode'], [Article::STATUT_ACTIF, Article::STATUT_EN_LITIGE]);
+
                     $article['can_transfer'] = ($article['reference_status'] === ReferenceArticle::STATUT_ACTIF);
+                    $article['can_associate'] = $canAssociate;
+                    $resData['article'] = $canAssociate ? $article : null;
+                } else {
+                    $pack = $packRepository->getOneArticleByBarCodeAndLocation($barCode, $location);
+                    if(!empty($pack)) {
+                        $pack["can_transfer"] = 1;
+                        $pack["articles"] = $pack["articles"] ? explode(";", $pack["articles"]) : null;
+                    } else if ($createIfNotExist) {
+                        $pack = [
+                            'barCode' => $barCode,
+                            'articlesCount' => null,
+                            'is_lu' => "1",
+                            'project' => null,
+                            'location' => null,
+                            'is_ref' => 0,
+                        ];
+                    }
+                    $resData['article'] = $pack;
                 }
-                $resData['article'] = $article;
             }
 
             if (!empty($resData['article'])) {
@@ -2053,10 +2871,52 @@ class MobileController extends AbstractApiController
         } else {
             throw new BadRequestHttpException();
         }
-
         return new JsonResponse($resData, $statusCode);
     }
 
+    /**
+     * @Rest\Post("/api/drop-in-lu", name="api-post-drop-in-lu", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postDropInLu(Request $request, EntityManagerInterface $entityManager, TrackingMovementService $trackingMovementService): Response
+    {
+        $articlesRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $articles = json_decode($request->request->get('articles'));
+
+        $articlesEntites = Stream::from($articles)
+            ->map(fn(string $barCode) => $articlesRepository->findOneBy(['barCode' => $barCode]))
+            ->filter()
+            ->toArray();
+
+        $luToDropIn = $request->request->get('lu');
+
+        $luToDropInEntity = $packRepository->findOneBy([
+            'code' => $luToDropIn
+        ]);
+
+        $location = $request->request->get('location');
+
+        $trackingMovementService->persistLogisticUnitMovements(
+            $entityManager,
+            $luToDropInEntity ?? $luToDropIn,
+            $locationRepository->findOneBy(['label' => $location]),
+            $articlesEntites,
+            $this->getUser(),
+            [
+                'entityManager' => $entityManager
+            ]
+        );
+
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true
+        ], Response::HTTP_OK);
+    }
     /**
      * @Rest\Get("/api/tracking-drops", name="api-get-tracking-drops-on-location", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
@@ -2190,6 +3050,7 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function group(Request $request,
+                          PackService $packService,
                           EntityManagerInterface $entityManager,
                           GroupService $groupService,
                           TrackingMovementService $trackingMovementService): Response {
@@ -2236,7 +3097,7 @@ class MobileController extends AbstractApiController
         }
 
         foreach ($packs as $data) {
-            $pack = $trackingMovementService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
+            $pack = $packService->persistPack($entityManager, $data["code"], $data["quantity"], $data["nature_id"]);
             if (!$pack->getParent()) {
                 $pack->setParent($parentPack);
 
@@ -2645,9 +3506,11 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $now = new DateTime();
+        $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
-            ->setCreationDate(new DateTime())
+            ->setCreationDate($now)
             ->setRequester($this->getUser())
             ->setType($type)
             ->setStatus($draftStatuses[0])
@@ -2655,7 +3518,9 @@ class MobileController extends AbstractApiController
             ->setLocationTo($dropLocation)
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
-            ->setEmergency($request->request->get('emergency'))
+            ->setEmergency(!empty($emergency) ? $emergency : null)
+            ->setCreatedBy($this->getUser())
+            ->setUpdatedAt($now)
             ->setEmails($emails);
 
         if($receiver) {
@@ -2674,13 +3539,17 @@ class MobileController extends AbstractApiController
             $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
         }
 
-        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
-        $serializedDispatch = Stream::from($serializedDispatch)
-            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
-        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
+        $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatches = Stream::from($serializedDispatches)
+            ->reduce(fn(array $accumulator, array $serializedDispatch) => $mobileApiService->serializeDispatch($accumulator, $serializedDispatch), []);
+
+        $serializedDispatches = !empty($serializedDispatches)
+            ? $serializedDispatches[array_key_first($serializedDispatches)]
+            : null;
         return $this->json([
             'success' => true,
-            'dispatch' => $serializedDispatch
+            "msg" => "L'acheminement a été créé avec succès.",
+            "dispatch" => $serializedDispatches
         ]);
     }
 
@@ -2728,17 +3597,9 @@ class MobileController extends AbstractApiController
      */
     public function dispatchValidate(Request                $request,
                                      EntityManagerInterface $entityManager,
-                                     RefArticleDataService  $refArticleDataService,
-                                     PackService            $packService,
-                                     StatusHistoryService   $statusHistoryService,
-                                     KernelInterface        $kernel): Response {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
+                                     DispatchService        $dispatchService,
+                                     StatusHistoryService   $statusHistoryService): Response {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
@@ -2749,111 +3610,10 @@ class MobileController extends AbstractApiController
 
         if($toTreatStatus) {
             foreach ($references as $data) {
-                $creation = false;
-                $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
-                if(!$reference) {
-                    $creation = true;
-                    $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
-                    $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
-                    $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
-
-                    if($dispatchNewReferenceType === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de type par défaut pour la création de références."
-                        ]);
-                    } elseif ($dispatchNewReferenceStatus === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de statut par défaut pour la création de références."
-                        ]);
-                    } elseif ($dispatchNewReferenceQuantityManagement === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de gestion de quantité par défaut pour la création de références."
-                        ]);
-                    }
-
-                    $type = $typeRepository->find($dispatchNewReferenceType);
-                    $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
-
-                    $reference = (new ReferenceArticle())
-                        ->setReference($data['reference'])
-                        ->setLibelle($data['reference'])
-                        ->setType($type)
-                        ->setStatut($status)
-                        ->setTypeQuantite($dispatchNewReferenceQuantityManagement == 0
-                            ? ReferenceArticle::QUANTITY_TYPE_REFERENCE
-                            : ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                        )
-                        ->setCreatedBy($user)
-                        ->setCreatedAt($now)
-                        ->setBarCode($refArticleDataService->generateBarCode())
-                        ->setQuantiteStock(0)
-                        ->setQuantiteDisponible(0);
-
-                    $entityManager->persist($reference);
-                }
-
-                $oldDescription = $reference->getDescription();
-                $refArticleDataService->updateDescriptionField($entityManager, $reference, [
-                    'outFormatEquipment' => $data['outFormatEquipment'],
-                    'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' =>  $data['volume'],
-                    'length' =>  $data['length'] ?: ($oldDescription['length'] ?? null),
-                    'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
-                    'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
-                    'weight' => $data['weight'],
-                    'associatedDocumentTypes' => $data['associatedDocumentTypes'],
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                    'loggedUser' => $user,
+                    'now' => $now
                 ]);
-
-                if ($data['logisticUnit']) {
-                    $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);
-
-                    $logisticUnit->setNature($defaultNature);
-
-                    $entityManager->persist($logisticUnit);
-
-                    $dispatchPack = (new DispatchPack())
-                        ->setDispatch($dispatch)
-                        ->setPack($logisticUnit)
-                        ->setTreated(false);
-
-                    $entityManager->persist($dispatchPack);
-
-                    $dispatchReferenceArticle = (new DispatchReferenceArticle())
-                        ->setReferenceArticle($reference)
-                        ->setDispatchPack($dispatchPack)
-                        ->setQuantity($data['quantity'])
-                        ->setBatchNumber($data['batchNumber'])
-                        ->setSerialNumber($data['serialNumber'])
-                        ->setSealingNumber($data['sealingNumber'])
-                        ->setComment($data['comment'])
-                        ->setADR(isset($data['adr']) && boolval($data['adr']));
-
-                    $maxNbFilesSubmitted = 10;
-                    $fileCounter = 1;
-                    // upload of photo_1 to photo_10
-                    do {
-                        $photoFile = $data["photo_$fileCounter"] ?? [];
-                        if (!empty($photoFile)) {
-                            $name = uniqid();
-                            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                            file_put_contents($path, file_get_contents($photoFile));
-                            $attachment = new Attachment();
-                            $attachment
-                                ->setOriginalName("photo_$fileCounter.jpeg")
-                                ->setFileName("$name.jpeg")
-                                ->setFullPath("/uploads/attachements/$name.jpeg");
-
-                            $dispatchReferenceArticle->addAttachment($attachment);
-                            $entityManager->persist($attachment);
-                        }
-                        $fileCounter++;
-                    } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
-
-                    $entityManager->persist($dispatchReferenceArticle);
-                }
             }
             $dispatch
                 ->setValidationDate(new DateTime('now'));
@@ -2940,6 +3700,30 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $zoneId = $request->request->getInt('zone');
+        $missionId = $request->request->get('mission');
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
+        $inventoryLocationMissions = Stream::from($queryResult)
+            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
+            ->toArray();
+
+        foreach ($inventoryLocationMissions as $inventoryLocationMission){
+            $inventoryLocationMission->setDone(true);
+        }
+        $entityManager->flush();
+        return $this->json([
+            'success' => true
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/get-waybill-data/{dispatch}", name="api_get_waybill_data", methods="GET", condition="request.isXmlHttpRequest()")
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
@@ -2982,9 +3766,9 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function finishTruckArrival(Request                $request,
-                                     EntityManagerInterface $entityManager,
-                                     UniqueNumberService $uniqueNumberService,
-                                     KernelInterface $kernel): Response {
+                                       EntityManagerInterface $entityManager,
+                                       UniqueNumberService    $uniqueNumberService,
+                                       KernelInterface        $kernel): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);

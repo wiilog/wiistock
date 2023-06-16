@@ -1,0 +1,27 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    {% set missionType = mission.type %}
+    {% set typesLabel = constant('App\\Entity\\Inventory\\InventoryMission::TYPES_LABEL') %}
+    {% set zones = mission.inventoryLocationMissions
+        | map((inventoryLocation) => inventoryLocation.location)
+        | map((location) => location.zone ? location.zone.name : null)
+        | filter((zone) => zone)
+        | unique %}
+    {% set sZones = zones | length > 1 ? 's' %}
+
+    <p>Une mission d’inventaire de type <b>{{ typesLabel[missionType] ?? "<type introuvable>" }}</b> a été validée.</p>
+
+    <ul>
+        {% if zones is not empty %}
+            <li>Zone{{ sZones }} inventoriée{{ sZones}} : <b>{{ zones | join(', ') }}</b></li>
+        {% endif %}
+        <li>Opérateur : <b>{{ mission.validator | format_helper('user', '-') }}</b></li>
+        <li>Libellé de la mission : <b>{{ mission.name }}</b></li>
+        <li>Date de création : <b>{{ mission.createdAt|format_helper('datetime', '-', true) }}</b></li>
+        <li>Date de validation : <b>{{ mission.validatedAt|format_helper('datetime', '-', true) }}</b></li>
+    </ul>
+
+    <br>
+    <br>
+{% endblock %}

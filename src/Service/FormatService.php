@@ -15,6 +15,7 @@ use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Statut;
@@ -22,6 +23,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use DateTime;
 use DateTimeInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -95,8 +97,16 @@ class FormatService
         return $user ? $user->getUsername() : $else;
     }
 
-    public function supplier(?Fournisseur $supplier, $else = "") {
+    public function supplier(?Fournisseur $supplier, string $else = ""): string {
         return $supplier ? $supplier->getNom() : $else;
+    }
+
+    public function suppliers(?array $suppliers, string $else = ""): string {
+        return $suppliers
+            ? Stream::from($suppliers)
+                ->map(fn(Fournisseur $supplier) => $this->supplier($supplier))
+                ->join(', ')
+            : $else;
     }
 
     public function users($users) {
@@ -146,6 +156,10 @@ class FormatService
         return $date ? $date->format($addAt ? "$prefix à H:i" : "$prefix H:i") : $else;
     }
 
+    public function project(?Project $project, $else = "") {
+        return $project ? $project->getCode() : $else;
+    }
+
     public function time(?DateTimeInterface $date, $else = "") {
         return $date ? $date->format("H:i") : $else;
     }
@@ -158,6 +172,7 @@ class FormatService
         $short = $options['short'] ?? false;
         $time = $options['time'] ?? false;
         $year = $options['year'] ?? true;
+        $at = ($options['removeAt'] ?? false) ? 'à' : '';
 
         return $date
             ? (($short
@@ -168,7 +183,7 @@ class FormatService
                 . " "
                 . strtolower(self::MONTHS[$date->format("n")])
                 . ($year ? (" " . $date->format("Y")) : '')
-                . ($time ? $date->format(" à H:i") : ""))
+                . ($time ? $date->format(" $at H:i") : ""))
             : $else;
     }
 
@@ -218,6 +233,7 @@ class FormatService
         "d/m/Y H:i:s",
         "Y-m-d H:i",
         "Y-m-d\TH:i",
+        DATE_ATOM,
         "d/m/Y H:i",
         "Y-m-d",
         "d/m/Y"
@@ -358,6 +374,18 @@ class FormatService
             "<a href=\"tel:$0\">$0</a>",
             $stringWithPhone
         ) : null;
+    }
+
+    public function zone(?Zone $zone, string $else = ""): string {
+        return $zone ? $zone->getName() : $else;
+    }
+
+    public function zones(?array $zones, string $else = ""): string {
+        return $zones
+            ? Stream::from($zones)
+                ->map(fn(Zone $zone) => $this->zone($zone))
+                ->join(', ')
+            : $else;
     }
 
     public function driver(?Chauffeur $driver, $else = ''): string {

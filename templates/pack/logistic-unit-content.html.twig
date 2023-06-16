@@ -1,0 +1,77 @@
+<div class="logistic-unit-content" data-pack="{{ pack.code }}">
+    <span class="wii-title">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Contenu unité logistique') }}</span>
+    <div class="logistic-unit-tabs">
+        <div class="logistic-unit-tab active" data-target=".current-articles">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Articles') }}</div>
+        <div class="logistic-unit-tab" data-target=".article-history">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique des articles') }}</div>
+    </div>
+
+    <div class="content current-articles">
+        {% for article in pack.childArticles %}
+            {% include 'pack/article-card.html.twig' with {
+                article: article,
+            } %}
+        {% else %}
+            <div class="logistic-unit-no-items">
+                <div class="logistic-unit-no-items-icon-circle">
+                    <img src="/svg/UL-black.svg">
+                </div>
+                {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun article actuellement') }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="content article-history d-none">
+        {% for movement in movements %}
+            {% set article = movement.packArticle %}
+
+            {% if article %}
+                <div class="logistic-unit-history-interstice">
+                    {% if movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_DROP_LU') %}
+                        <div class="logistic-unit-entry">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Entrée') }}</div>
+                    {% elseif movement.type.code == constant('App\\Entity\\TrackingMovement::TYPE_PICK_LU') %}
+                        <div class="logistic-unit-exit">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Sortie') }}</div>
+                    {% endif %}
+                    <span class="wii-small-text">{{ movement.datetime|format_helper('longDate', {short: true, time: true}) }}</span>
+                </div>
+                <div class="logistic-unit-card m-0">
+                    <div class="row">
+                        <div class="col d-flex align-items-center">
+                    <span class="article-code">
+                        <span class="wii-icon wii-icon-article wii-icon-25px-primary mr-2"></span>
+                        {{ article.barCode }}
+                    </span>
+                        </div>
+                        <div class="col-auto d-flex align-items-center">
+                            {% if article.statut.code == constant('App\\Entity\\Article::STATUT_ACTIF') %}
+                                <span class="badge green">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Disponible') }}</span>
+                            {% elseif article.statut.code == constant('App\\Entity\\Article::STATUT_EN_TRANSIT') %}
+                                <span class="badge purple">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'En transit') }}</span>
+                            {% elseif article.statut.code == constant('App\\Entity\\Article::STATUT_INACTIF') %}
+                                <span class="badge grey">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Indisponible') }}</span>
+                            {% else %}
+                                <span class="badge grey">{{ article.statut.nom }}</span>
+                            {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col d-flex align-items-center">
+                            <img src="/svg/pack.svg" alt="Icône UL" width="25px" class="mr-2">
+                            <span class="wii-label">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Ref') }} : {{ article.referencearticle.reference }}</span>
+                        </div>
+                        <div class="col-auto d-flex align-items-center">
+                            <span class="wii-body-text">{{ article.referencearticle.libelle }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="logistic-unit-no-items">
+                <div class="logistic-unit-no-items-icon-circle">
+                    <img src="/svg/UL-black.svg">
+                </div>
+                {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'L\'unité logistique ne contient aucun historique actuellement') }}
+            </div>
+        {% endfor %}
+    </div>
+</div>

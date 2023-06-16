@@ -130,7 +130,8 @@ class DisputeRepository extends EntityRepository
             ->createQueryBuilderByDates($dateMin, $dateMax, $statuses)
             ->join('dispute.articles', 'article')
             ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
-            ->join('receptionReferenceArticle.reception', 'reception')
+            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
             ->getQuery()
             ->toIterable();
 	}
@@ -152,18 +153,17 @@ class DisputeRepository extends EntityRepository
 
     public function findByReception($reception)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            'SELECT DISTINCT dispute
-            FROM App\Entity\Dispute dispute
-            INNER JOIN dispute.articles a
-            INNER JOIN a.receptionReferenceArticle rra
-            INNER JOIN rra.reception r
-            WHERE r.id = :reception'
-        )->setParameter('reception', $reception);
-
-        return $query->execute();
+        $qb = $this->createQueryBuilder('dispute');
+        $qb
+            ->distinct()
+            ->select('dispute')
+            ->join('dispute.articles', 'article')
+            ->join('article.receptionReferenceArticle', 'receptionReferenceArticle')
+            ->join('receptionReferenceArticle.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
+            ->where('reception.id = :reception')
+            ->setParameter('reception', $reception);
+        return $qb->getQuery()->execute();
     }
 
 	public function findByParamsAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService): array
@@ -205,7 +205,8 @@ class DisputeRepository extends EntityRepository
             ->leftJoin('dispute.articles', 'art')
 			->leftJoin('art.receptionReferenceArticle', 'rra')
 			->leftJoin('rra.referenceArticle', 'ra')
-			->leftJoin('rra.reception', 'r')
+			->leftJoin('rra.receptionLine', 'rl')
+			->leftJoin('rl.reception', 'r')
 			->leftJoin('r.fournisseur', 'rFourn');
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispute');

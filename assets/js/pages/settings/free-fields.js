@@ -125,6 +125,10 @@ export function createHandlingFreeFieldsPage($container, canEdit) {
     createFreeFieldsPage($container, canEdit, MODE_HANDLING)
 }
 
+export function createDeliveryRequestFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_DELIVERY_REQUEST)
+}
+
 export function createFreeFieldsPage($container, canEdit, mode) {
     const category = $container.find('.management-body').data('category');
     const table = createManagementPage($container, {

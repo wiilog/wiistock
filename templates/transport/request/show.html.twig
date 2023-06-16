@@ -33,7 +33,7 @@
                                             {% if request_delivery is not null %}
                                                 <div class="dropdown-item pointer edit-button"
                                                      data-request-id="{{ request_delivery.id }}">
-                                                    <i class="fa fa-pen mr-2"></i> Modifier la livraison
+                                                    <i class="fa fa-pen mr-2"></i> Modifier la {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}
                                                 </div>
                                             {% endif %}
 
@@ -86,7 +86,9 @@
                                 </div>
                                 {% if order and order.rejected %}
                                     <img src="{{ asset('svg/rejected-delivery.svg') }}" class="ml-3"
-                                         alt="Livraison rejetée" title="Livraison rejetée" width="25px">
+                                         alt="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"
+                                         title="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"
+                                         width="25px">
                                 {% endif %}
                             </div>
                             <div class="d-flex align-items-center justify-content-end">
@@ -107,7 +109,7 @@
                                 <div class="col-4">
                                     <div class="d-flex align-items-center">
                                         <img class="mr-2" src="{{ asset('svg/delivery.svg') }}" alt="" width="20px"/>
-                                        <strong>Livraison</strong>
+                                        <strong>{{ trans('Demande', 'Livraison', 'Livraison', false) }}</strong>
                                     </div>
                                 </div>
                                 <div class="col">
@@ -149,7 +151,7 @@
                         <div class="d-flex align-items-center">
                         </div>
                     </div>
-                    <div class="content status-history-container">
+                    <div class="content history-container">
                         <div class="d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>
                             <span class="ml-3">Génération de l'historique en cours</span>
@@ -240,7 +242,7 @@
                 <div class="wii-box">
                     <div class="header optioned d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
-                            <span class="wii-title">Colis</span>
+                            <span class="wii-title">Unité logistique</span>
                             <div>
                                 <span class="wii-small-text packing-label-counter ml-3"></span>
                             </div>
@@ -260,7 +262,7 @@
                     <div class="bordered packs-container">
                         <div class="content d-flex align-items-center justify-content-center">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <span class="ml-3">Génération de la liste des colis en cours...</span>
+                            <span class="ml-3">Génération de la liste des unités logitiques en cours...</span>
                         </div>
                     </div>
                 </div>

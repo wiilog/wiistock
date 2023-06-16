@@ -36,7 +36,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('fournisseur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }}</label>
             <input type="text" id="fournisseurLitige" class="form-control data" name="fournisseurLitige"
                    value="{{ arrivage.fournisseur ? arrivage.fournisseur.nom }}" disabled>
         </div>
@@ -44,7 +44,7 @@
 
     {% if fieldsParam|isFieldRequired('transporteur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur') }}</label>
             <input type="text" id="transporteurLitige" class="form-control data" name="transporteurLitige"
                    value="{{ arrivage.transporteur ? arrivage.transporteur.label }}" disabled>
         </div>
@@ -52,21 +52,21 @@
 
     {% if fieldsParam|isFieldRequired('chauffeur', 'displayedCreate') %}
         <div class="form-group col-4">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Chauffeur') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Chauffeur') }}</label>
             <input type="text" id="chauffeurLitige" class="form-control data" name="chauffeurLitige"
                    value="{{ arrivage.chauffeur ? arrivage.chauffeur.nom }}" disabled>
         </div>
     {% endif %}
 
     <div class="form-group col-4">
-        <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "N° d'arrivage") }}</label>
+        <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', "N° d'arrivage UL") }}</label>
         <input type="text" id="arrivageOrderLitige" class="form-control data" name="arrivageOrderLitige"
                value="{{ arrivage.numeroArrivage }}" disabled>
     </div>
 
     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedCreate') %}
         <div class="form-group w-100 col-4">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }}</label>
             <select class="form-control data"
                     name="numeroCommandeListLitige"
                     multiple="multiple"
@@ -87,7 +87,7 @@
 
     {% if fieldsParam|isFieldRequired('acheteurs', 'displayedCreate') %}
         <div class="form-group w-100 col-4">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)') }}</label>
+            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)') }}</label>
             <select class="form-control data"
                     name="acheteursLitige"
                     id="acheteursLitige"
@@ -134,7 +134,7 @@
     <div class="form-group col-4">
         <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
         <select class="form-control w-100 data needed" name="disputePacks" data-s2
-                data-placeholder="Sélectionner un ou plusieurs colis..." multiple>
+                data-placeholder="Sélectionner une ou plusieurs UL..." multiple>
             {% for pack in packs %}
                 <option value="{{ pack.id }}">{{ pack.code }}</option>
             {% endfor %}

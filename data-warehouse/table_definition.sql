@@ -130,20 +130,24 @@ CREATE TABLE dw_reception
     statut                   varchar(255),
     commentaire              text,
     date                     timestamp(0),
+    date_attendue            date,
     numero                   varchar(255),
     fournisseur              varchar(255),
+    emplacement              varchar(255),
     reference                varchar(255),
     libelle                  varchar(255),
     quantite_reference       integer,
     quantite_article_associe integer,
     code_barre_article       varchar(255),
+    code_UL                  varchar(255),
     type_flux                varchar(255),
     quantite_recue           integer,
     quantite_a_recevoir      integer,
     code_barre_reference     varchar(255),
     urgence_reference        varchar(3),
     urgence_reception        varchar(3),
-    numero_demande_achat     varchar(255)
+    numero_demande_achat     varchar(255),
+    arrivage_id              integer
 );
 
 CREATE TABLE dw_reference_article
@@ -212,6 +216,7 @@ CREATE TABLE dw_tracabilite
 (
     date_mouvement        timestamp(0),
     code_colis            varchar(255),
+    code_barre_article    varchar(255),
     type_mouvement        varchar(255),
     groupe                varchar(255),
     quantite_mouvement    integer,
@@ -219,7 +224,8 @@ CREATE TABLE dw_tracabilite
     operateur             varchar(255),
     mouvement_traca_id    integer,
     arrivage_id           integer,
-    acheminement_id       integer
+    acheminement_id       integer,
+    reception_id          integer
 );
 
 CREATE TABLE dw_tracabilite_champs_libres
@@ -268,7 +274,7 @@ CREATE TABLE dw_arrivage
     utilisateur              varchar(255),
     numero_projet            varchar(255),
     business_unit            varchar(255),
-    no_arrivage_camion       varchar(255)
+    reception_id             integer
 );
 
 CREATE TABLE dw_acheminement
@@ -309,7 +315,18 @@ CREATE TABLE dw_acheminement
     numero_lot					 varchar(255),
     numero_serie				 varchar(255),
     numero_plombage_scelle		 varchar(255),
-    adr							 varchar(3)
+    adr							 varchar(3),
+    commentaire                  text
+);
+
+CREATE TABLE dw_acheminement_statut
+(
+    id                      integer,
+    statut                  varchar(255),
+    date_statut             timestamp(0),
+    signataire_enlevement   varchar(255),
+    signataire_livraison    varchar(255),
+    utilisateur             varchar(255)
 );
 
 CREATE TABLE dw_demande_collecte
@@ -351,6 +368,8 @@ CREATE TABLE dw_demande_livraison
     date_creation       timestamp(0),
     date_traitement     timestamp(0),
     date_validation     timestamp(0),
+    date_attendue       date,
+    projet              varchar(255),
     demandeur           varchar(255),
     type                varchar(255),
     statut              varchar(255),
@@ -363,7 +382,8 @@ CREATE TABLE dw_demande_livraison
     code_barre          varchar(255),
     quantite_disponible integer,
     quantite_a_prelever integer,
-    delais_traitement   float
+    delais_traitement   float,
+    code_UL             varchar(255)
 );
 
 CREATE TABLE dw_ordre_transfert
@@ -487,28 +507,48 @@ CREATE TABLE dw_article_champs_libres
     valeur             text
 );
 
-CREATE TABLE dw_arrivage_camion
+CREATE TABLE dw_projet_article
 (
-    id                  integer,
-    no_arrivage_camion  varchar(255),
-    date_creation       timestamp(0),
-    transporteur        varchar(255),
-    chauffeur           varchar(255),
-    immatriculation     varchar(255),
-    emplacement         varchar(255),
-    operateur           varchar(255),
-    nb_tracking_total   integer,
-    reserve_general     varchar(255),
-    reserve_quantite    varchar(255)
+    article_id          integer,
+    projet              varchar(255),
+    date_assignation    timestamp(0)
 );
 
-CREATE TABLE dw_numero_tracking
+CREATE TABLE dw_arrivage_camion
 (
-    no_tracking         varchar(255),
-    no_arrivage_camion  varchar(255),
-    reserve_qualite     varchar(255),
-    retard              varchar(255),
-    no_arrivage_UL      varchar(255)
+    id                   		integer,
+    reference 			 		varchar(255),
+    libelle				 		varchar(255),
+    code_barre            		varchar(255),
+    statut              		varchar(255),
+    quantite            		integer,
+    commentaire                 varchar(255),
+    emplacement     			text,
+    date_dernier_inventaire		timestamp(0),
+    lot							varchar(255),
+    date_entree_stock			timestamp(0),
+    date_peremption				date,
+    code_fournisseur			varchar(255),
+    reference_fournisseur		varchar(255),
+    label_fournisseur			varchar(255),
+    label_reference_fournisseur	varchar(255),
+    projet						varchar(255),
+    date_assignation_projet		timestamp(0),
+    code_UL						varchar(255),
+    prix_unitaire				integer,
+    anomalie					varchar(255)
+);
+
+CREATE TABLE dw_unite_logistique
+(
+    code_unite_logistique   varchar(255),
+    nature                  varchar(255),
+    quantite                integer,
+    projet                  varchar(255),
+    acheminement_id         integer,
+    arrivage_id             integer,
+    nb_articles_contenus    integer,
+    code_barre_article      varchar(255)
 );
 
 CREATE TABLE dw_informations

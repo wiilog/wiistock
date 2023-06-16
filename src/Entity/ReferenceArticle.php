@@ -36,11 +36,14 @@ class ReferenceArticle
     const DRAFT_STATUS = 'brouillon';
     const QUANTITY_TYPE_REFERENCE = 'reference';
     const QUANTITY_TYPE_ARTICLE = 'article';
+    const DATA_SECURITY_YES = 1;
+    const DATA_SECURITY_NO = 0;
     const BARCODE_PREFIX = 'REF';
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
+    const MAX_NOMADE_SYNC = 4000;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -170,7 +173,7 @@ class ReferenceArticle
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticleImage', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -197,6 +200,24 @@ class ReferenceArticle
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $description = [];
 
+    #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
+    private Collection $storageRules;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $ndpCode = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $onuCode = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $productClass = null;
+
+    #[ORM\Column(type:'boolean')]
+    private ?bool $dangerousGoods;
+
+    #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    private ?Attachment $sheet = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -215,11 +236,13 @@ class ReferenceArticle
         $this->carts = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
         $this->requestTemplateLines = new ArrayCollection();
+        $this->storageRules = new ArrayCollection();
 
         $this->quantiteStock = 0;
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
         $this->upToDateInventory = false;
+        $this->dangerousGoods = false;
     }
 
     public function getId(): ?int {
@@ -895,6 +918,18 @@ class ReferenceArticle
         return $this->purchaseRequestLines;
     }
 
+    public function getAssociatedArticles(bool $active = false, bool $count = false): array|int {
+        $articles = $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
+            ? []
+            : Stream::from($this->articlesFournisseur)
+                ->flatMap(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getArticles()->toArray())
+                ->unique()
+                ->filter(fn( Article $article) => !$active || $article->getStatut()->getCode() === Article::STATUT_ACTIF)
+                ->toArray();
+
+        return $count ? count($articles) : $articles;
+    }
+
     public function addPurchaseRequestLine(PurchaseRequestLine $purchaseRequestLine): self {
         if(!$this->purchaseRequestLines->contains($purchaseRequestLine)) {
             $this->purchaseRequestLines[] = $purchaseRequestLine;
@@ -925,18 +960,6 @@ class ReferenceArticle
         }
 
         return $this;
-    }
-
-    public function getAssociatedArticles(): array {
-        return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE
-            ? []
-            : Stream::from($this->articlesFournisseur)
-                ->map(function(ArticleFournisseur $articleFournisseur) {
-                    return $articleFournisseur->getArticles()->toArray();
-                })
-                ->flatten()
-                ->unique()
-                ->toArray();
     }
 
     public function getOrderState(): ?string {
@@ -998,14 +1021,14 @@ class ReferenceArticle
     }
 
     public function setImage(?Attachment $image): self {
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
             $oldImage = $this->image;
             $this->image = null;
-            $oldImage->setReferenceArticle(null);
+            $oldImage->setReferenceArticleImage(null);
         }
         $this->image = $image;
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
-            $this->image->setReferenceArticle($this);
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
+            $this->image->setReferenceArticleImage($this);
         }
 
         return $this;
@@ -1095,4 +1118,104 @@ class ReferenceArticle
         return $this->typeQuantite === self::QUANTITY_TYPE_REFERENCE;
     }
 
+    public function getStorageRules(): Collection {
+        return $this->storageRules;
+    }
+
+    public function addStorageRule(StorageRule $storageRule): self {
+        if (!$this->storageRules->contains($storageRule)) {
+            $this->storageRules[] = $storageRule;
+            $storageRule->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStorageRule(StorageRule $storageRule): self {
+        if ($this->storageRules->removeElement($storageRule)) {
+            if ($storageRule->getReferenceArticle() === $this) {
+                $storageRule->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setStorageRules(?iterable $storageRules): self {
+        foreach($this->getStorageRules()->toArray() as $storageRule) {
+            $this->removeStorageRule($storageRule);
+        }
+
+        $this->storageRules = new ArrayCollection();
+        foreach($storageRules ?? [] as $storageRule) {
+            $this->addStorageRule($storageRule);
+        }
+
+        return $this;
+    }
+
+    public function getNdpCode(): ?string
+    {
+        return $this->ndpCode;
+    }
+
+    public function setNdpCode(?string $ndpCode): self
+    {
+        $this->ndpCode = $ndpCode;
+
+        return $this;
+    }
+
+    public function getOnuCode(): ?string
+    {
+        return $this->onuCode;
+    }
+
+    public function setOnuCode(?string $onuCode): self
+    {
+        $this->onuCode = $onuCode;
+
+        return $this;
+    }
+
+    public function getProductClass(): ?string
+    {
+        return $this->productClass;
+    }
+
+    public function setProductClass(?string $productClass): self
+    {
+        $this->productClass = $productClass;
+
+        return $this;
+    }
+
+    public function isDangerousGoods(): ?bool
+    {
+        return $this->dangerousGoods;
+    }
+
+    public function setDangerousGoods(bool $dangerousGoods): self
+    {
+        $this->dangerousGoods = $dangerousGoods;
+
+        return $this;
+    }
+
+    public function getSheet(): ?Attachment {
+        return $this->sheet;
+    }
+    public function setSheet(?Attachment $image): self {
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $oldImage = $this->sheet;
+            $this->sheet = null;
+            $oldImage->setReferenceArticleSheet(null);
+        }
+        $this->sheet = $image;
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $this->sheet->setReferenceArticleSheet($this);
+        }
+
+        return $this;
+    }
 }

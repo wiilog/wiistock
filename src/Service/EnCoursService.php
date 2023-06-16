@@ -188,7 +188,7 @@ class EnCoursService
                     [
                         'natures' => $natures,
                         'isCount' => false,
-                        'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId',
+                        'field' => 'pack.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId',
                         'limit' => $maxQueryResultLength,
                         'start' => $dropsCounter,
                         'order' => 'asc',
@@ -207,7 +207,7 @@ class EnCoursService
                     $isLate = $timeInformation['countDownLateTimespan'] < 0;
                     if ($isLate) {
                         $emplacementInfo[] = [
-                            'colis' => $oldestDrop['code'],
+                            'LU' => $oldestDrop['code'],
                             'delay' => $timeInformation['ageTimespan'],
                             'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                             'late' => $isLate,
@@ -231,7 +231,7 @@ class EnCoursService
                 [
                     'natures' => $natures,
                     'isCount' => false,
-                    'field' => 'colis.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId'
+                    'field' => 'pack.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId'
                 ]
             );
             $oldestDrops = $oldestDrops[0];
@@ -242,7 +242,7 @@ class EnCoursService
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
                 $emplacementInfo[] = [
-                    'colis' => $oldestDrop['code'],
+                    'LU' => $oldestDrop['code'],
                     'delay' => $timeInformation['ageTimespan'],
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
@@ -376,7 +376,7 @@ class EnCoursService
     {
         $line = [
             $encours['emp'] ?: '',
-            $encours['colis'] ?: '',
+            $encours['LU'] ?: '',
             $encours['date'] ?: '',
             $encours['delay'] ? $this->renderMillisecondsToDelay($encours['delay']): '',
             FormatHelper::bool($encours['late'])

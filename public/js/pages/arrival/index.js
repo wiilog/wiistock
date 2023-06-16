@@ -28,7 +28,7 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax, .date-cl', DATE_FORMATS_TO_DISPLAY[format]);
     Select2Old.location($('#emplacement'), {}, Translation.of('Traçabilité', 'Mouvements', 'Emplacement de dépose', false));
-    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Transporteurs', false));
+    Select2Old.init($filtersContainer.find('[name="carriers"]'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Transporteurs', false));
     initOnTheFlyCopies($('.copyOnTheFly'));
 
     initTableArrival(false).then((returnedArrivalsTable) => {
@@ -39,7 +39,7 @@ $(function () {
     displayFiltersSup(filters, true);
 
     pageLength = Number($('#pageLengthForArrivage').val());
-    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Flux - Arrivages', 'Divers', 'Fournisseurs', false));
+    Select2Old.provider($('.ajax-autocomplete-fournisseur'), Translation.of('Traçabilité', 'Arrivages UL', 'Divers', 'Fournisseurs', false));
 
     const $arrivalsTable = $(`#arrivalsTable`);
     const $dispatchModeContainer = $(`.dispatch-mode-container`);
@@ -190,10 +190,10 @@ function initTableArrival(dispatchMode = false) {
     }
 }
 
-function listColis(elem) {
+function listPacks(elem) {
     let arrivageId = elem.data('id');
-    let path = Routing.generate('arrivage_list_colis_api', true);
-    let modal = $('#modalListColis');
+    let path = Routing.generate('arrivage_list_packs_api', true);
+    let modal = $('#modalListPacks');
     let params = {id: arrivageId};
 
     $.post(path, JSON.stringify(params), function (data) {
@@ -371,11 +371,10 @@ function createArrival(form = null) {
                     },
                     success: (res) => {
                         res = res || {};
-                        let newForm = JSON.parse(res.new_form);
-                        $(`#arrivalForm`).val(res.new_form);
-                        createArrival(newForm);
-                        if (res.success === false) {
-                            $submit.popLoader();
+                        let newForm = res.new_form;
+                        if (newForm) {
+                            $(`#arrivalForm`).val(JSON.stringify(newForm));
+                            createArrival(newForm);
                         }
 
                         arrivalCallback(
@@ -386,10 +385,6 @@ function createArrival(form = null) {
                                 }
                             },
                         );
-
-                        $.get(Routing.generate(`arrivage_new_api`, true), function (data) {
-                            $(`#arrivalForm`).val(JSON.stringify(data));
-                        });
                         hasDataToRefresh = true;
                     },
                 }).catch(() => {

@@ -29,7 +29,7 @@ class Urgence {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $createdAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $commande = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'emergencies')]
@@ -49,6 +49,9 @@ class Urgence {
 
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'urgences')]
     private ?Arrivage $lastArrival = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $type = null;
 
     public function __construct() {
         $this->createdAt = new DateTime('now');
@@ -82,7 +85,7 @@ class Urgence {
         return $this->commande;
     }
 
-    public function setCommande(string $commande): self {
+    public function setCommande(?string $commande): self {
         $this->commande = $commande;
 
         return $this;
@@ -101,7 +104,7 @@ class Urgence {
         return $this->trackingNb;
     }
 
-    public function setTrackingNb(string $trackingNb): self {
+    public function setTrackingNb(?string $trackingNb): self {
         $this->trackingNb = $trackingNb;
 
         return $this;
@@ -111,7 +114,7 @@ class Urgence {
         return $this->postNb;
     }
 
-    public function setPostNb(string $postNb): self {
+    public function setPostNb(?string $postNb): self {
         $this->postNb = $postNb;
 
         return $this;
@@ -153,6 +156,18 @@ class Urgence {
 
     public function setCreatedAt(DateTime $createdAt): self {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): self
+    {
+        $this->type = $type;
+
         return $this;
     }
 

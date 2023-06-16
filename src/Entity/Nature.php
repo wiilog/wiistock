@@ -65,7 +65,7 @@ class Nature {
     private ?bool $displayed = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 0])]
-    private ?bool $defaultForDispatch = null;
+    private ?bool $defaultNature = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $displayedOnForms = null;
@@ -83,10 +83,14 @@ class Nature {
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $defaultQuantityForDispatch = null;
 
+    #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'natures')]
+    private Collection $tags;
+
     public function __construct() {
         $this->packs = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
         $this->temperatureRanges = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -203,12 +207,12 @@ class Nature {
         return $this;
     }
 
-    public function getDefaultForDispatch(): ?bool {
-        return $this->defaultForDispatch;
+    public function getDefaultNature(): ?bool {
+        return $this->defaultNature;
     }
 
-    public function setDefaultForDispatch(?bool $defaultForDispatch): self {
-        $this->defaultForDispatch = $defaultForDispatch;
+    public function setDefaultNature(?bool $defaultNature): self {
+        $this->defaultNature = $defaultNature;
 
         return $this;
     }
@@ -315,6 +319,14 @@ class Nature {
         $this->defaultQuantityForDispatch = $defaultQuantityForDispatch;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, TagTemplate>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
     }
 
 }

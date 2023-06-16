@@ -6,13 +6,13 @@
     <div class="row">
         <div class="form-group col-3">
             <label for="reference" class="wii-field-name">Code fournisseur*</label>
-            <select class="ajax-autocomplete-fournisseur form-control w-100 data needed" onchange="loadAndDisplayInfos($(this))"
+            <select class="ajax-autocomplete-fournisseur form-control w-100 data needed" onchange="loadAndDisplayInfos($(this), 'fournisseurLabel')"
                 name="fournisseur">
             </select>
         </div>
         <div class="form-group col-3">
             <label for="reference" class="wii-field-name">Nom fournisseur*</label>
-            <select class="ajax-autocomplete-fournisseurLabel form-control w-100 data needed" onchange="loadAndDisplayLabels($(this))"
+            <select class="ajax-autocomplete-fournisseurLabel form-control w-100 data needed" onchange="loadAndDisplayLabels($(this), 'fournisseur')"
                     name="fournisseurLabel">
             </select>
         </div>

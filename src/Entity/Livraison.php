@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
 use App\Repository\LivraisonRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -17,40 +18,96 @@ class Livraison {
     const STATUT_LIVRE = 'livré';
     const STATUT_INCOMPLETE = 'partiellement livré';
 
+    const DELIVERY_NOTE_DATA = [
+        'consignor' => true,
+        'deliveryAddress' => false,
+        'deliveryNumber' => false,
+        'deliveryDate' => false,
+        'dispatchEmergency' => false,
+        'packs' => false,
+        'salesOrderNumber' => false,
+        'wayBill' => false,
+        'customerPONumber' => false,
+        'customerPODate' => false,
+        'respOrderNb' => false,
+        'projectNumber' => false,
+        'username' => false,
+        'userPhone' => false,
+        'userFax' => false,
+        'buyer' => false,
+        'buyerPhone' => false,
+        'buyerFax' => false,
+        'invoiceNumber' => false,
+        'soldNumber' => false,
+        'invoiceTo' => false,
+        'soldTo' => false,
+        'endUserNo' => false,
+        'deliverNo' => false,
+        'endUser' => false,
+        'deliverTo' => false,
+        'consignor2' => true,
+        'date' => false,
+        'notes' => true,
+    ];
+
+    const WAYBILL_DATA = [
+        'carrier' => false,
+        'dispatchDate' => false,
+        'consignor' => false,
+        'receiver' => false,
+        'consignorUsername' => false,
+        'consignorEmail' => false,
+        'receiverUsername' => false,
+        'receiverEmail' => false,
+        'locationFrom' => true,
+        'locationTo' => true,
+        'notes' => true,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $numero;
+    private ?string $numero = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'livraisons')]
-    private $destination;
+    private ?Emplacement $destination = null;
 
-    /**
-     * @var Statut
-     */
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'livraisons')]
-    private $statut;
+    private ?Statut $statut = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
+    private ?DateTime $date = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateFin;
+    private ?DateTime $dateFin = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'livraisons')]
-    private $utilisateur;
+    private ?Utilisateur $utilisateur = null;
 
-    #[ORM\OneToOne(targetEntity: Preparation::class, inversedBy: 'livraison')]
+    #[ORM\OneToOne(inversedBy: 'livraison', targetEntity: Preparation::class)]
     private ?Preparation $preparation = null;
 
-    #[ORM\OneToMany(targetEntity: MouvementStock::class, mappedBy: 'livraisonOrder')]
-    private $mouvements;
+    #[ORM\OneToMany(mappedBy: 'livraisonOrder', targetEntity: MouvementStock::class)]
+    private Collection $mouvements;
+
+    #[ORM\OneToMany(mappedBy: 'delivery', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $deliveryNoteData;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $waybillData;
+
+    #[ORM\OneToMany(mappedBy: 'deliveryOrder', targetEntity: Attachment::class)]
+    private Collection $attachements;
 
     public function __construct() {
         $this->mouvements = new ArrayCollection();
+        $this->deliveryNoteData = [];
     }
 
     public function getId(): ?int {
@@ -170,4 +227,91 @@ class Livraison {
         );
     }
 
+    /**
+     * @return array
+     */
+    public function getDeliveryNoteData(): array {
+        return $this->deliveryNoteData ?? [];
+    }
+
+    /**
+     * @param array $deliveryNoteData
+     * @return self
+     */
+    public function setDeliveryNoteData(array $deliveryNoteData): self {
+        $this->deliveryNoteData = $deliveryNoteData;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getWaybillData(): array {
+        return $this->waybillData ?? [];
+    }
+
+    /**
+     * @param array $waybillData
+     * @return self
+     */
+    public function setWaybillData(array $waybillData): self {
+        $this->waybillData = $waybillData;
+        return $this;
+    }
+
+    /**
+     * @return Collection|Attachment[]
+     */
+    public function getAttachments(): Collection {
+        return $this->attachements;
+    }
+
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachements->contains($attachment)) {
+            $this->attachements[] = $attachment;
+            $attachment->setDeliveryOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachements->contains($attachment)) {
+            $this->attachements->removeElement($attachment);
+            // set the owning side to null (unless already changed)
+            if($attachment->getDeliveryOrder() === $this) {
+                $attachment->setDeliveryOrder(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setDelivery($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getDelivery() === $this) {
+                $trackingMovement->setDelivery(null);
+            }
+        }
+
+        return $this;
+    }
 }

@@ -1,10 +1,10 @@
-<div class="d-flex">
+<div class="d-flex justify-content-between">
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             {% if pack.arrivage %}
             <a class="dropdown-item  d-flex align-items-center"
-               href="{{ path('print_arrivage_single_colis_bar_codes', {arrivage: pack.arrivage.id, colis: pack.id}) }}">
+               href="{{ path('print_arrivage_single_pack_bar_codes', {arrivage: pack.arrivage.id, pack: pack.id}) }}">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Général', null, 'Zone liste', 'Imprimer') }}
             </a>
             {% endif %}
@@ -13,7 +13,7 @@
                      data-toggle='modal'
                      data-target='#modalEditPack'
                      data-id="{{ pack.id }}"
-                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeGroupHistoryTable({{ pack.id }}));">
+                     onclick="editRow($(this), Routing.generate('pack_edit_api', true), $('#modalEditPack'), $('#submitEditPack'), false, () => initializeHistoryTables({{ pack.id }}));">
                     <i class='fas fa-edit mr-2'></i>{{ trans('Général', null, 'Modale', 'Modifier') }}
                 </div>
             {% endif %}

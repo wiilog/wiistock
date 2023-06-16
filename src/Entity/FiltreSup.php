@@ -21,14 +21,17 @@ class FiltreSup {
     const FIELD_TYPE = 'type';
     const FIELD_FILE_NUMBER = 'fileNumber';
     const FIELD_CONTACT = 'contact';
+    const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
-    const FIELD_COLIS = 'colis';
+    const FIELD_PACK = 'UL';
     const FIELD_REFERENCE = 'reference';
     const FIELD_DEM_COLLECTE = 'demCollecte';
     const FIELD_DEMANDE = 'demande';
     const FIELD_EMERGENCY = 'emergency';
     const FIELD_EMERGENCY_MULTIPLE = 'emergencyMultiple';
     const FIELD_BUSINESS_UNIT = 'businessUnit';
+    const FIELD_PROJECT_NUMBER = 'projectNumber';
+    const FIELD_ARTICLE = 'article';
     const FIELD_ANOMALY = 'anomaly';
     const FIELD_RECEPTION_STRING = 'reception_string';
     const FIELD_COMMANDE = 'commande';
@@ -68,7 +71,7 @@ class FiltreSup {
     const PAGE_ORDRE_LIVRAISON = 'olivraison';
     const PAGE_PREPA = 'prépa';
     const PAGE_PACK = 'pack';
-    const PAGE_ARRIVAGE = 'arrivage';
+    const PAGE_LU_ARRIVAL = 'LUArrival';
     const PAGE_MVT_STOCK = 'mvt_stock';
     const PAGE_MVT_TRACA = 'mvt_traca';
     const PAGE_DISPATCH = 'acheminement';
@@ -95,6 +98,8 @@ class FiltreSup {
     const FIELD_DROP_LOCATION = 'dropLocation';
     const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
     const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
+    const PAGE_SHIPPING = 'shipping_request';
+    const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

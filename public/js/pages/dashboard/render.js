@@ -37,6 +37,7 @@ const REFERENCE_RELIABILITY = 'reference_reliability';
 const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
+const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
 
 const SECURITY_PADDING = 0;
 let DELAYS = {};
@@ -139,6 +140,9 @@ const creators = {
         callback: createExternalImage
     },
     [HANDLING_TRACKING]: {
+        callback: createChart
+    },
+    [DAILY_DELIVERY_ORDERS]: {
         callback: createChart
     },
 };
@@ -588,7 +592,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     console.log(isObject(title),title[USER_SLUG],title, USER_SLUG);
     const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
-        style: mode === MODE_EDIT ? `` : `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
+        style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
         html: [
             createTooltip(isObject(tooltip) ? tooltip[USER_SLUG] : tooltip),
             title
@@ -974,7 +978,7 @@ function buildLabelOnBarChart(chartInstance, redForFirstData) {
 }
 
 function loadLatePacks($table, data) {
-    let datatableColisConfig = {
+    let datatablePacksConfig = {
         responsive: true,
         domConfig: {
             needsMinimalDomOverride: true
@@ -1035,15 +1039,15 @@ function loadLatePacks($table, data) {
         }
     };
     if(mode === MODE_EDIT) {
-        datatableColisConfig.data = data.tableData;
+        datatablePacksConfig.data = data.tableData;
     } else {
-        datatableColisConfig.ajax = {
+        datatablePacksConfig.ajax = {
             "url": Routing.generate('api_late_pack', true),
             "type": "GET",
         };
     }
 
-    initDataTable($table.attr('id'), datatableColisConfig);
+    initDataTable($table.attr('id'), datatablePacksConfig);
 }
 
 function createAndUpdateMultipleCharts($canvas,

@@ -27,7 +27,7 @@ const locationsTableConfig = {
         {data: 'pairing', title: '', className: 'pairing-row'},
         {data: 'name', title: 'Nom'},
         {data: 'description', title: 'Description'},
-        {data: 'deliveryPoint', title: 'Point de livraison'},
+        {data: 'deliveryPoint', title: 'Point de ' + Translation.of('Demande', 'Livraison', 'Livraison', false).toLowerCase()},
         {data: 'ongoingVisibleOnMobile', title: 'Encours visible'},
         {data: 'maxDelay', title: 'Délai maximum'},
         {data: 'active', title: 'Actif / Inactif'},
@@ -35,6 +35,7 @@ const locationsTableConfig = {
         {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
         {data: 'signatories', title: 'Signataires', orderable: false},
         {data: 'email', title: 'Email'},
+        {data: 'zone', title: 'Zone'},
     ]
 };
 
@@ -63,15 +64,42 @@ const groupsTableConfig = {
     ]
 };
 
+const zonesTableConfig = {
+    processing: true,
+    serverSide: true,
+    paging: true,
+    lengthMenu: [10, 25, 50, 100],
+    order: [['name', 'desc']],
+    ajax: {
+        url: Routing.generate("zones_api", true),
+        type: "POST",
+    },
+    rowConfig: {
+        needsRowClickAction: true,
+    },
+    drawConfig: {
+        needsSearchOverride: true,
+    },
+    columns: [
+        {data: 'actions', title: '', className: 'noVis', orderable: false},
+        {data: 'name', title: 'Nom'},
+        {data: 'description', title: 'Description'},
+        {data: 'active', title: 'Actif'},
+    ]
+};
+
 const TAB_LOCATIONS = 1;
 const TAB_GROUPS = 2;
+const TAB_ZONES = 3;
 
 const HASH_LOCATIONS = `#emplacements`;
 const HASH_GROUPS = `#groupes`;
+const HASH_ZONES = `#zones`;
 
 let selectedTab = TAB_LOCATIONS;
 let locationsTable;
 let groupsTable;
+let zonesTable;
 
 $(document).ready(() => {
     managePrintButtonTooltip(true, $('#btnPrint'));
@@ -87,6 +115,8 @@ function switchPageBasedOnHash() {
         switchLocations();
     } else if(hash === HASH_GROUPS) {
         switchGroups();
+    } else if(hash === HASH_ZONES) {
+        switchZones();
     } else {
         switchLocations();
         window.location.hash = HASH_LOCATIONS;
@@ -103,12 +133,32 @@ function switchLocations() {
     if(!locationsTable) {
         locationsTable = initDataTable(`locationsTable`, locationsTableConfig);
 
+        $(`.new-location`).on(`click`, function() {
+            wrapLoadingOnActionButton($(this), () => (
+                AJAX.route(`GET`, `location_api_new`)
+                    .json()
+                    .then(({content}) => {
+                        const $modal = $(`#modalNewEmplacement`);
+                        $modal.find(`.modal-body`).html(content);
+                        $('.select2').select2();
+
+                        $modal.modal(`show`);
+                    })
+            ))
+        });
+
         let $modalNewEmplacement = $("#modalNewEmplacement");
         let $submitNewEmplacement = $("#submitNewEmplacement");
         let urlNewEmplacement = Routing.generate('emplacement_new', true);
         InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [locationsTable]});
 
-        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {tables: [locationsTable]});
+        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {
+            tables: [locationsTable],
+            success: () => {},
+            error: (response) => {
+                showBSAlert(response.msg, 'danger');
+            }
+        });
 
         let $modalModifyEmplacement = $('#modalEditEmplacement');
         let $submitModifyEmplacement = $('#submitEditEmplacement');
@@ -118,11 +168,13 @@ function switchLocations() {
         locationsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).removeClass('d-none');
+    $(`.locationsTableContainer, .new-location`).removeClass('d-none');
     $(`.action-button`).removeClass('d-none');
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
+    $(`.zonesTableContainer, [data-target="#modalNewZone"]`).addClass('d-none');
     $(`#locationsTable_filter`).parent().show();
     $(`#groupsTable_filter`).parent().hide();
+    $(`#zonesTable_filter`).parent().hide();
 }
 
 function switchGroups() {
@@ -149,11 +201,92 @@ function switchGroups() {
         groupsTable.ajax.reload();
     }
 
-    $(`.locationsTableContainer, [data-target="#modalNewEmplacement"]`).addClass('d-none');
+    $(`.locationsTableContainer, .new-location`).addClass('d-none');
     $(`.action-button`).addClass('d-none');
     $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).removeClass('d-none');
+    $(`.zonesTableContainer, [data-target="#modalNewZone"]`).addClass('d-none');
     $(`#locationsTable_filter`).parent().hide();
     $(`#groupsTable_filter`).parent().show();
+    $(`#zonesTable_filter`).parent().hide();
+
+}
+
+function switchZones() {
+    selectedTab = TAB_ZONES;
+    window.location.hash = HASH_ZONES;
+
+    if(!zonesTable) {
+        zonesTable = initDataTable(`zonesTable`, zonesTableConfig);
+
+        $('.newZoneButton').on('click', function(){
+            let $modalNewZone = $("#modalNewZone");
+            Form.create($modalNewZone)
+                .clearSubmitListeners()
+                .onSubmit((data, form) => {
+                    form.loading(() => (
+                        AJAX.route(AJAX.POST, 'zone_new')
+                            .json(data)
+                            .then(({success}) => {
+                                if(success){
+                                    $modalNewZone.modal(`hide`);
+                                    zonesTable.ajax.reload();
+                                }
+                            })
+                    ), false)
+                });
+            $modalNewZone.modal(`show`);
+        });
+    } else {
+        zonesTable.ajax.reload();
+    }
+
+    $(`.locationsTableContainer, .new-location`).addClass('d-none');
+    $(`.groupsTableContainer, [data-target="#modalNewLocationGroup"]`).addClass('d-none');
+    $(`.action-button`).addClass('d-none');
+    $(`.zonesTableContainer, [data-target="#modalNewZone"]`).removeClass('d-none');
+    $(`#locationsTable_filter`).parent().hide();
+    $(`#groupsTable_filter`).parent().hide();
+    $(`#zonesTable_filter`).parent().show();
+}
+
+function deleteZone($button){
+    const zone = $button.data('id');
+    Modal.confirm({
+        ajax: {
+            method: AJAX.DELETE,
+            route: 'zone_delete',
+            params: {zone},
+        },
+        message: 'Voulez-vous réellement supprimer cette zone ?',
+        title: 'Supprimer la zone',
+        validateButton: {
+            color: 'danger',
+            label: 'Supprimer',
+        },
+        cancelButton: {
+            label: 'Annuler',
+        },
+        table: zonesTable,
+    });
+}
+
+function editZone(zoneId){
+    let $modalEditZone = $("#modalEditZone");
+    Form.create($modalEditZone)
+        .clearSubmitListeners()
+        .onSubmit((data, form) => {
+            form.loading(() => (
+                AJAX.route(AJAX.POST, 'zone_edit')
+                    .json(data)
+                    .then(({success}) => {
+                        if(success){
+                            $modalEditZone.modal(`hide`);
+                            zonesTable.ajax.reload();
+                        }
+                    })
+            ), false)
+        });
+    $modalEditZone.modal(`show`);
 }
 
 function checkAndDeleteRowEmplacement(icon) {

@@ -81,10 +81,22 @@
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_PURCHASE_REQUESTS'))
                         ) %}
+                    {% set hasShippingRequestRights = (
+                        hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_SHIPPING'))
+                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING'))
+                        ) %}
                     <div class="col-auto pr-0 mr-0">
                         <a class="header-icon cart" href="{{ path('cart') }}">
-                            <div class="icon-figure small {{ not app.user.cart or not app.user.cart.references | length ? 'd-none' }}">
-                                {{ app.user.cart.references | length }}
+                            {% set referencesQuantity = app.user.cart.references|length %}
+                            {% set articlesQuantity = app.user.cart.articles|length %}
+                            {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}
+                            <div class="icon-figure small {{ not (referencesQuantity != 0 or articlesQuantity != 0 or logisticUnitsQuantity != 0) ? 'd-none' }}">
+                                {{ referencesQuantity != 0
+                                    ? referencesQuantity
+                                    : logisticUnitsQuantity != 0
+                                        ? logisticUnitsQuantity
+                                        : articlesQuantity
+                                }}
                             </div>
                         </a>
                     </div>
@@ -101,7 +113,9 @@
                         or hasDispatchRights
                         or hasTransferRights
                         or hasPurchaseRequestRights
-                        or hasTransportRights %}
+                        or hasTransportRights
+                        or hasShippingRequestRights
+                    %}
                         <div class="col-auto dropdown">
                             <button class="quick-plus" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="icon"></span>
@@ -112,10 +126,9 @@
                                 {% if hasDeliveryRights %}
                                     {% set isCurrentPage = (app.request.attributes.get('_route') == 'demande_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
-                                       href="{{ path('demande_index', {'open-modal': 'new'}) }}">
+                                       href="{{ path('redirect_before_index', {'open-modal': 'new'}) }}">
                                         <span class="wii-icon wii-icon-menu-delivery quick-menu-icon mx-2"></span>
-                                        <span class="flex-fill align-self-center">Livraison</span>
+                                        <span class="flex-fill align-self-center">{{ trans('Demande', 'Livraison', 'Livraison') }}</span>
                                     </a>
                                 {% endif %}
 
@@ -157,8 +170,10 @@
                                     </a>
                                 {% endif %}
                                 {% if hasPurchaseRequestRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'purchase_request_index') %}
                                     <a class="d-flex align-items-center"
-                                       onclick="createPurchaseRequest()"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('purchase_request_index', {'open-modal': 'new'}) }}"
                                        title="Achat">
                                         <span class="wii-icon wii-icon-menu-achat quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Achat</span>
@@ -179,6 +194,16 @@
                                        href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u">
                                         <span class="wii-icon wii-icon-add quick-menu-icon mx-2"></span>
                                         <span class="flex-fill align-self-center">Créer un article</span>
+                                    </a>
+                                {% endif %}
+                                {% if hasShippingRequestRights %}
+                                    {% set isCurrentPage = (app.request.attributes.get('_route') == 'shipping_request_index') %}
+                                    <a class="d-flex align-items-center"
+                                       onclick="{{ isCurrentPage ? "openQueryModal({'open-modal': 'new'}, event)" }}"
+                                       href="{{ path('shipping_request_index', {'open-modal': 'new'}) }}"
+                                       title="Achat">
+                                        <span class="wii-icon wii-icon-menu-expedition quick-menu-icon mx-2"></span>
+                                        <span class="flex-fill align-self-center">{{ trans('Demande', 'Expédition', 'Expédition') }}</span>
                                     </a>
                                 {% endif %}
                             </div>

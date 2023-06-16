@@ -137,7 +137,7 @@
                         </div>
                     </div>
                     <div class="content bordered p-0">
-                        <div class="content status-history-container p-0">
+                        <div class="content history-container p-0">
                             <div class="d-flex align-items-center justify-content-center p-3">
                                 <div class="spinner-border text-primary" role="status"></div>
                                 <span class="ml-3">Génération de l'historique en cours</span>
@@ -289,7 +289,7 @@
 {% block javascripts %}
     {{ parent() }}
 
-    {{ encore_entry_script_tags('reference-article-form') }}
+    {{ encore_entry_script_tags('reference-article-form-common') }}
     <script src="{{ asset('js/pages/dispatch-show.js') }}?v={{ web_version }}"></script>
 
 {% endblock %}

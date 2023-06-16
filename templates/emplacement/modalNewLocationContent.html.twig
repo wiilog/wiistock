@@ -1,0 +1,99 @@
+{% import 'form.html.twig' as form %}
+
+<div class="form-group">
+    <label class="wii-field-name" for="label">Nom*</label>
+    <input type="text" id="label" class="form-control data needed is-barcode" name="label"/>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name" for="description">Description*</label>
+    <input type="text" id="description" class="form-control data needed" name="description">
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name" for="description">Délais traça HH:MM</label>
+    <input type="text" id="dateMaxTime" class="form-control data" name="dateMaxTime">
+</div>
+
+<div class="form-group">
+    {{ form.select('zone', 'Zone', true, {
+        type: 'zones',
+        items: locationZone,
+        inputClass: 'w-100 no-clear',
+        emptyOption: (
+        selectZone
+        ? {
+            text: selectZone.name,
+            value: selectZone.id,
+            selected: true,
+        }
+        : {}
+        ),
+        disabled: selectZone is not null,
+    }) }}
+</div>
+<div class="form-group">
+    <label class="wii-field-name">Natures autorisées</label>
+    <select name="allowed-natures" class="form-control data select2 w-100" multiple>
+        {% for nature in natures %}
+            <option value="{{ nature.id }}">{{ nature.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Températures autorisées</label>
+    <select name="allowedTemperatures" class="form-control data select2 w-100" multiple>
+        {% for temperature in temperatures %}
+            <option value="{{ temperature.id }}">{{ temperature.value }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}s autorisés</label>
+    <select name="allowedDeliveryTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
+        {% for type in deliveryTypes %}
+            <option value="{{ type.id }}" selected>{{ type.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Types de collectes autorisés</label>
+    <select name="allowedCollectTypes" class="form-control data needs-default select2 w-100" data-default-all multiple>
+        {% for type in collectTypes %}
+            <option value="{{ type.id }}" selected>{{ type.label }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+
+<div class="form-group d-flex align-content-center">
+    <label class="wii-field-text">Point de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }} ? </label>
+    <label class="switch ml-2">
+        <input class="checkbox form-control data" type="checkbox" name="isDeliveryPoint">
+        <span class="slider round"></span>
+    </label>
+</div>
+
+<div class="form-group d-flex align-content-center">
+    <label class="wii-field-text">Encours visible nomade ? </label>
+    <label class="switch ml-2">
+        <input class="checkbox form-control data" type="checkbox" name="isOngoingVisibleOnMobile">
+        <span class="slider round"></span>
+    </label>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Signataires</label>
+    <select class="form-control data select2 w-100"
+            name="signatories"
+            data-s2="user"
+            multiple></select>
+</div>
+
+<div class="form-group">
+    <label class="wii-field-name">Email</label>
+    <input class="form-control data" type="text" name="email">
+</div>

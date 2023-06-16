@@ -1,12 +1,13 @@
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
 
-    initPageDataTable();
+    const purchaseRequestTable = initPageDataTable();
 
     initDateTimePicker();
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, "Emplacement", 3);
     Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2Old.user($('.filterService select[name="buyers"]'), "Acheteurs");
+    Select2Old.provider($('.select-filter select[name="providers"]'), "Fournisseurs");
 
     // applique les filtres si pré-remplis
     let val = $('#filterStatus').val();
@@ -26,6 +27,16 @@ $(function() {
             displayFiltersSup(data);
         }, 'json');
     }
+
+    const $modalNewPurchaseRequest = $('#modalNewPurchaseRequest');
+
+    Form
+        .create($modalNewPurchaseRequest, {clearOnOpen: true})
+        .submitTo( AJAX.POST, 'purchase_request_new', {
+            success: ({redirect}) => {
+                window.location.href = redirect;
+            }
+        });
 });
 
 function initPageDataTable() {
@@ -46,6 +57,7 @@ function initPageDataTable() {
         drawConfig: {
             needsSearchOverride: true,
         },
+        order: [['creationDate', 'desc']],
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},
@@ -56,6 +68,7 @@ function initPageDataTable() {
             {"data": 'requester', 'name': 'Demandeur', 'title': 'Demandeur'},
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'buyer', 'name': 'Acheteur', 'title': 'Acheteur'},
+            {"data": 'supplier', 'name': 'Fournisseur', 'title': 'Fournisseur'},
         ]
     };
     return initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);

@@ -31,8 +31,21 @@
         <div class="form-group d-flex flex-column col-auto mt-3">
             {{ form.image(setting('LABEL_LOGO'), 'Logo sur étiquette', false, setting_value('LABEL_LOGO'), {
                 formats: 'image/png, image/jpeg, image/jpg',
-                tooltip: 'Logo visible sur les étiquettes de colis d’arrivages, des articles, et sur le bon d’acheminement',
+                tooltip: 'Logo visible sur les étiquettes d’UL d’arrivages, des articles, et sur le bon d’acheminement',
             }) }}
         </div>
     </div>
 </div>
+
+<div class="wii-section-title">Modèle d'étiquette</div>
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Le modèle d'étiquette viendra remplacer l'étiquette par défaut pour les cas paramétrés.
+        </div>
+    </div>
+    <table id="tagTemplateTable" data-table-processing="tagTemplateTable"></table>
+</div>
+<input type="hidden" id="type_options" value="{{ typeOptions | json_encode }}">
+<input type="hidden" id="nature_options" value="{{ natureOptions | json_encode }}">
+

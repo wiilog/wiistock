@@ -3,17 +3,22 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
+use App\Entity\ScheduleRule;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
+use App\Service\ShippingRequest\ShippingRequestService;
 use App\Service\Transport\TransportRoundService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,7 +39,19 @@ class DataExportService
     public ArrivageService $arrivalService;
 
     #[Required]
-    public ScheduledExportService $scheduledExportService;
+    public StorageRuleService $storageRuleService;
+
+    #[Required]
+    public ScheduleRuleService $scheduleRuleService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public ShippingRequestService $shippingRequestService;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
@@ -72,6 +89,9 @@ class DataExportService
         return array_merge([
             'reference',
             'libelle',
+            'fournisseur',
+            'référence article fournisseur',
+            'tag RFID',
             'quantité',
             'type',
             'statut',
@@ -79,10 +99,19 @@ class DataExportService
             'emplacement',
             'code barre',
             'date dernier inventaire',
+            'date de disponibilité constatée',
+            'date d\'épuisement constaté',
             'lot',
             'date d\'entrée en stock',
             'date de péremption',
-            'groupe de visibilité'
+            'groupe de visibilité',
+            mb_strtolower($this->translation->translate('Référentiel', 'Projet', 'Projet', false)),
+            'prix unitaire',
+            'numéro de commande',
+            'numéro de bon de livraison',
+            'pays d\'origine',
+            'date de fabrication',
+            'date de production',
         ], $freeFieldsConfig['freeFieldsHeader']);
     }
 
@@ -109,6 +138,49 @@ class DataExportService
         ];
     }
 
+    public function createShippingRequestHeader() {
+        return [
+            "Numéro",
+            "Statut",
+            "Date de création",
+            "Date de validation",
+            "Date de planification",
+            "Date d'enlèvement prévu",
+            "Date d'expédition",
+            "Date de prise en charge souhaitée",
+            "Demandeur(s)",
+            "N° commande client",
+            "Livraison à titre gracieux",
+            "Articles conformes",
+            "Client",
+            "A l'attention de",
+            "Téléphone client",
+            "Adresse livraison",
+            "Unité logistique",
+            "Nature",
+            "Référence",
+            "Libellé",
+            "Article",
+            "Quantité",
+            "Prix unitaire ()",
+            "Poids nets (kg)",
+            "Montant total",
+            "Marchandise dangereuse",
+            "FDS",
+            "Code ONU",
+            "Classe produit",
+            "Code NDP",
+            "Envoi",
+            "Port",
+            "Nombre de colis",
+            "Dimension colis (cm)",
+            "Poids net transport (kg)",
+            "Poids brut transport (kg)",
+            "Valeur total transport",
+            "Spécification transport"
+        ];
+    }
+
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
                                          array $columnToExport): array
     {
@@ -122,6 +194,17 @@ class DataExportService
             ->toArray();
     }
 
+    public function createStorageRulesHeader(): array
+    {
+        return [
+            'Référence',
+            'Emplacement',
+            'Quantité sécurité',
+            'Quantité de conditionnement',
+            'Zone'
+        ];
+    }
+
     public function exportReferences(RefArticleDataService $refArticleDataService,
                                      array $freeFieldsConfig,
                                      iterable $data,
@@ -132,9 +215,12 @@ class DataExportService
         }
     }
 
-    public function exportArticles(ArticleDataService $articleDataService, array $freeFieldsConfig, iterable $data, mixed $output) {
+    public function exportArticles(ArticleDataService   $articleDataService,
+                                   array                $freeFieldsConfig,
+                                   iterable             $data,
+                                   mixed                $output) {
         foreach($data as $article) {
-            $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
+                $articleDataService->putArticleLine($output, $article, $freeFieldsConfig);
         }
     }
 
@@ -192,6 +278,25 @@ class DataExportService
         }
     }
 
+    public function exportShippingRequests(iterable $data,
+                                           mixed $output) {
+        foreach ($data as $shippingRequestData) {
+            $this->shippingRequestService->putShippingRequestLine($output, $shippingRequestData);
+        }
+    }
+
+    public function exportRefLocation(iterable $data,
+                                      mixed $output)
+    {
+        /** @var StorageRule $storageRule */
+        foreach ($data as $storageRule) {
+            $this->storageRuleService->putStorageRuleLine($output, $storageRule);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
     public function updateExport(EntityManagerInterface $entityManager,
                                  Export                 $export,
                                  array                  $data): void {
@@ -259,18 +364,39 @@ class DataExportService
                 ->filter()
                 ->toArray();
             $export->setColumnToExport($columnToExport);
-        }
-        else {
+        } else {
             $export->setColumnToExport([]);
         }
 
         if($entity === Export::ENTITY_ARRIVAL || $entity === Export::ENTITY_DELIVERY_ROUND) {
-            $export->setPeriod($data["period"]);
-            $export->setPeriodInterval($data["periodInterval"]);
+            $export->setPeriod($data["period"])
+                ->setPeriodInterval($data["periodInterval"]);
+        } else {
+            $export->setPeriod(null)
+                ->setPeriodInterval(null);
         }
-        else {
-            $export->setPeriod(null);
-            $export->setPeriodInterval(null);
+
+        if ($entity === Export::ENTITY_ARTICLE) {
+            $export
+                ->setReferenceTypes($data["referenceTypes"] ? explode(",", $data["referenceTypes"]) : [])
+                ->setStatuses($data["statuses"] ? explode(",", $data["statuses"]) : [])
+                ->setSuppliers($data["suppliers"] ? explode(",", $data["suppliers"]) : []);
+
+            if (isset($data["scheduled-date-radio"]) && $data["scheduled-date-radio"] === "fixed-date") {
+                if (isset($data["scheduledDateMin"]) && isset($data["scheduledDateMax"])) {
+                    $export->setStockEntryStartDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMin"]))
+                        ->setStockEntryEndDate(DateTime::createFromFormat('Y-m-d', $data["scheduledDateMax"]));
+                }
+            } else {
+                if (isset($data["minus-day"]) && isset($data["additional-day"])) {
+                    $now = new DateTime("now");
+                    $endDate = (clone $now)->modify("-{$data["minus-day"]} days");
+                    $startDate = (clone $endDate)->modify("-{$data["additional-day"]} days");
+
+                    $export->setStockEntryStartDate($startDate)
+                        ->setStockEntryEndDate($endDate);
+                }
+            }
         }
 
         if (!$export->getExportScheduleRule()) {
@@ -279,7 +405,7 @@ class DataExportService
 
         $begin = FormatHelper::parseDatetime($data["startDate"]);
 
-        if (in_array($data["frequency"], [ExportScheduleRule::DAILY, ExportScheduleRule::WEEKLY, ExportScheduleRule::MONTHLY])) {
+        if (in_array($data["frequency"], [ScheduleRule::DAILY, ScheduleRule::WEEKLY, ScheduleRule::MONTHLY])) {
             $begin->setTime(0, 0);
         }
 
@@ -294,6 +420,6 @@ class DataExportService
             ->setMonthDays(isset($data["monthDays"]) ? explode(",", $data["monthDays"]) : null);
 
         $export
-            ->setNextExecution($this->scheduledExportService->calculateNextExecutionDate($export));
+            ->setNextExecution($this->scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
     }
 }

@@ -24,10 +24,19 @@
     {% endif %}
 
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: (page == 'PAGE_HAND'
+        placeholder: (page in ['PAGE_HAND', 'PAGE_SHIPPING']
             ? trans('Demande', 'Général', 'Demandeurs', false)
             : trans('Général', null, 'Zone filtre', 'Utilisateurs', false))
     } %}
+
+    {% if page != 'PAGE_SHIPPING' %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            placeholder: (page == 'PAGE_HAND'
+                ? trans('Demande', 'Général', 'Destinataires', false)
+                : trans('Général', null, 'Zone filtre', 'Destinataires', false)),
+            name: constant('App\\Entity\\FiltreSup::FIELD_RECEIVERS')
+        } %}
+    {% endif %}
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
@@ -48,4 +57,24 @@
     {% elseif emergency is defined and emergency %}
         {% include 'filters/filter_item/filterEmergency.html.twig' %}
     {% endif %}
+
+    {% if page == 'PAGE_DEM_LIVRAISON' %}
+        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+            {% include 'filters/filter_item/filterProject.html.twig' %}
+        {% endif %}
+    {% endif %}
+
+    {% if page == 'PAGE_SHIPPING' %}
+        {% include 'filters/filter_item/filterBasicString.html.twig' with {
+            name: 'customerOrderNumber',
+            placeholder: 'N° commande client',
+        } %}
+
+        {% include 'filters/filter_item/filterCarrier.html.twig' with {
+            carriers : carriersForFilter,
+        } %}
+
+    {% endif %}
+
 {% endblock %}

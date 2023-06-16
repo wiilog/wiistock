@@ -77,7 +77,7 @@ function displayFirstModal(importId = null) {
             $inputImportId.val(importId);
         }
 
-        importTemplateChanged();
+        importTemplateChanged($modalNewImport.find("[name=entity]"));
 
         $modalNewImport.modal({
             backdrop: 'static',
@@ -195,7 +195,7 @@ function updateOptions($select) {
     $allSelects.each((index, element) => {
         $(element).find('option').removeAttr('disabled');
         let selectedValue = $(element).val();
-        if (selectedValue != '') {
+        if (selectedValue !== '') {
             selectedValues.push('option[value="' + selectedValue + '"]');
         }
     });
@@ -209,7 +209,7 @@ function updateOptions($select) {
         });
     }
 
-    if (selectValue != '') {
+    if (selectValue !== '') {
         $select.find('option[value="' + selectValue + '"]').removeAttr('disabled');
     }
 }
@@ -263,9 +263,14 @@ function importTemplateChanged($dataTypeImport = null) {
         USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`},
         DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`},
         LOCATION: {label: 'emplacements', url: `${templateDirectory}/modele-import-emplacements.csv`},
+        CUSTOMER: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
+        PROJECT: {label: 'projets', url: `${templateDirectory}/modele-import-projets.csv`},
+        REF_LOCATION: {label: 'quantités référence par emplacement', url: `${templateDirectory}/modele-import-reference-emplacement-quantites.csv`},
     };
 
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    differentialDataToggle($dataTypeImport);
+
     if (configDownloadLink[valTypeImport]) {
         const {url, label} = configDownloadLink[valTypeImport];
         $linkToTemplate
@@ -284,4 +289,13 @@ function importTemplateChanged($dataTypeImport = null) {
     else {
         $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
     }
+}
+
+function differentialDataToggle($dataTypeImport) {
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    const eraseData = valTypeImport !== `REF_LOCATION` && valTypeImport !== `ART_FOU`;
+    const $modal = $dataTypeImport.closest('.modal');
+    $modal.find('.delete-differential-data')
+        .toggleClass(`d-none`, eraseData)
+        .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
 }

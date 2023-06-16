@@ -36,7 +36,6 @@ class KeptFieldService {
     }
 
     public function save(string $entity, string $field, mixed $value): void {
-        //TODO: sauvegarder uniquement si le paramétrage l'autorise
         if(!isset($this->cache[$entity])) {
             $this->loadKeptFieldsCache($entity);
         }

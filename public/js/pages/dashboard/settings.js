@@ -91,6 +91,10 @@ function loadDashboards(m, refreshRate) {
         .arrive(".segments-list .segment-hour", function () {
             onSegmentInputChange($(this), true);
         });
+
+    $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
+        $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
+    });
 }
 
 function registerComponentOnChange() {
@@ -1438,32 +1442,32 @@ function onEntityChange($select, onInit = false) {
     const $correspondingStatuses = $selectStatus.find(`option[data-category-label="${categoryStatus}"]`);
     const $otherTypes = $selectType.find(`option[data-category-label!="${categoryType}"]`);
     const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
+    const $toHide = $modal.find(`.toToggle:not(.${categoryStatus})`);
+    const $toShow = $modal.find(`.toToggle.${categoryStatus}`);
 
-    const disabledSelect = (
-        !categoryType
-        || !categoryStatus
-        || $correspondingTypes.length === 0
-        || $correspondingStatuses.length === 0
-    );
+    const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
+    const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
 
-    $selectType.prop('disabled', disabledSelect);
-    $selectStatus.prop('disabled', disabledSelect);
-    $selectAllAvailableTypes.prop('disabled', disabledSelect);
-    $selectAllAvailableStatuses.prop('disabled', disabledSelect);
+    $selectType.prop('disabled', disabledTypeSelect);
+    $selectStatus.prop('disabled', disabledStatusSelect);
+    $selectAllAvailableTypes.prop('disabled', disabledTypeSelect);
+    $selectAllAvailableStatuses.prop('disabled', disabledStatusSelect);
     $otherTypes.prop('disabled', true);
     $otherStatuses.prop('disabled', true);
-
+    $toHide.addClass('d-none');
+    $toShow.removeClass('d-none');
     if (!onInit) {
         $selectType.val(null);
         $selectStatus.val(null);
 
-        if (!disabledSelect) {
+        if(!disabledTypeSelect){
             $correspondingTypes.prop('disabled', false);
-            $correspondingStatuses.prop('disabled', false);
-
             if ($correspondingTypes.length === 1) {
                 $selectType.val($correspondingTypes[0].value);
             }
+        }
+        if(!disabledStatusSelect){
+            $correspondingStatuses.prop('disabled', false);
             if ($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
             }

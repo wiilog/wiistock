@@ -82,6 +82,35 @@ function checkIfRowSelected(success) {
     }
 }
 
+function printArticles(collecteId) {
+    let templates;
+    try {
+        templates = JSON.parse($('#tagTemplates').val());
+    } catch (error) {
+        templates = [];
+    }
+    const params = {
+        ordreCollecte: collecteId
+    };
+    if (templates.length > 0) {
+        Promise.all(
+            [AJAX.route('GET', `collecte_bar_codes_print`, {forceTagEmpty: true, ...params}).file({})]
+                .concat(templates.map(function (template) {
+                    params.template = template;
+                    return AJAX
+                        .route('GET', `collecte_bar_codes_print`, params)
+                        .file({})
+                }))
+        ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
+    } else {
+        window.location.href = Routing.generate(
+            'collecte_bar_codes_print',
+            params,
+            true
+        );
+    }
+}
+
 function openLocationModal() {
     let $tbody = $("#modalFinishCollecte div.modal-body table.table > tbody");
     $tbody.empty();

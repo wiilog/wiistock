@@ -57,7 +57,7 @@
     <div class="col-4">
         {{ form.number(
             setting('TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME'),
-            'Livraison',
+            trans('Ordre', 'Livraison', 'Livraison', false),
             false,
             setting_value('TRANSPORT_ROUND_DELIVERY_AVERAGE_TIME'),
             {
@@ -83,7 +83,7 @@
     <div class="col-4">
         {{ form.number(
             setting('TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME'),
-            'Livraison/Collecte',
+            trans('Ordre', 'Livraison', 'Livraison', false) ~ '/Collecte',
             false,
             setting_value('TRANSPORT_ROUND_DELIVERY_COLLECT_AVERAGE_TIME'),
             {
@@ -96,7 +96,7 @@
 </div>
 
 <div class="wii-section-title">
-    Colis écartés
+    Unités logistiques écartées
 </div>
 
 <div class="wii-section row">
@@ -115,12 +115,12 @@
 </div>
 
 <div class="wii-section-title">
-    Collectes / Livraisons
+    Collectes / {{ trans('Demande', 'Livraison', 'Livraison', false) }}s
 </div>
 
 <div class="wii-section row">
     <div class="col-8 mb-3">
-        {{ form.select(setting('TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES'), "Motifs de non livraison", false, {
+        {{ form.select(setting('TRANSPORT_ROUND_DELIVERY_REJECT_MOTIVES'), "Motifs de non " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower, false, {
             type: null,
             editable: true,
             noEmptyOption: true,
@@ -198,12 +198,12 @@
 </div>
 
 <div class="wii-section-title">
-    Dépose des colis non livrés
+    Dépose des unités logistiques non livrées
 </div>
 
 <div class="wii-section row">
     <div class="col-8">
-        {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des colis non livrés', false, {
+        {{ form.select(setting('TRANSPORT_ROUND_REJECTED_PACKS_LOCATIONS'), 'Emplacements de retour des UL non livrés', false, {
             labelClass: 'wii-field-name w-100',
             items: transportRoundRejectedPacksLocations,
             values: transportRoundRejectedPacksLocations,

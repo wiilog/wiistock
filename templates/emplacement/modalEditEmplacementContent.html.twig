@@ -1,17 +1,42 @@
+{% import 'form.html.twig' as form %}
+
 <div class="form-group">
     <label class="wii-field-name">Nom</label>
-    <input class="form-control data needed is-barcode" type="text" value='{{ location.label }}' name="Label" id="Label">
+    <input class="form-control data needed is-barcode" type="text" value='{{ location.label }}' name="label" id="label">
 </div>
 
 <div class="form-group">
     <label class="wii-field-name">Description*</label>
-    <input class="form-control data needed" type="text" value='{{ location.description }}' name="Description"
-           id="Description">
+    <input class="form-control data needed" type="text" value='{{ location.description }}' name="description"
+           id="description">
 </div>
 <div class="form-group">
     <label class="wii-field-name">Délais traça HH:MM</label>
     <input class="form-control data" type="text" value='{{ location.dateMaxTime }}' name="dateMaxTime"
            id="dateMaxTime">
+</div>
+
+<div class="form-group">
+    {{ form.select('zone', 'Zone', true, {
+        type: 'zones',
+        items: location.zone
+            ? [{
+                label: location.zone.name,
+                value: location.zone.id,
+                selected: true,
+            }]
+            : null,
+        emptyOption: (
+            selectZone
+            ? {
+                text: selectZone.name,
+                value: selectZone.id,
+                selected: true,
+            }
+            : {}
+        ),
+        disabled: selectZone,
+    }) }}
 </div>
 
 <div class="form-group">
@@ -35,7 +60,7 @@
 </div>
 
 <div class="form-group">
-    <label class="wii-field-name">Types de livraisons autorisés</label>
+    <label class="wii-field-name">Types de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}s autorisés</label>
     <select name="allowedDeliveryTypes" class="form-control data select2 w-100" multiple>
         {% for type in deliveryTypes %}
             <option value="{{ type.id }}" {{ type in location.allowedDeliveryTypes ? 'selected' }}>{{ type.label }}</option>
@@ -53,7 +78,7 @@
 </div>
 
 <div class="form-group">
-    <label class="wii-field-text">Point de livraison ?</label>
+    <label class="wii-field-text">Point de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }} ?</label>
     <label class="switch ml-2">
         <input class="checkbox data needed" type="checkbox" {{ location.isDeliveryPoint ? 'checked' }} name="isDeliveryPoint">
         <span class="slider round"></span>

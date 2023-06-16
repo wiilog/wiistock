@@ -20,7 +20,9 @@ $(function() {
             {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
             {"data": 'stockQuantity', 'title': 'Quantité en stock'},
             {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
-            {"data": 'orderNumber', 'title': 'N° commande'}
+            {"data": 'orderNumber', 'title': 'N° commande'},
+            {"data": 'supplier', 'title': 'Fournisseur'},
+            {"data": 'location', 'title': 'Emplacement (Zone)'}
         ],
     });
 
@@ -33,6 +35,17 @@ $(function() {
     let $submitAddLine = $modalAddLine.find('.submit-button');
     let urlAddLine = Routing.generate('purchase_request_add_line', {purchaseRequest: id});
     InitModal($modalAddLine, $submitAddLine, urlAddLine, {tables: [tablePurchaseRequestLines]});
+
+
+    $modalAddLine.find('[name="location"]').on('change', function() {
+        const quantity = $(this).find('option:selected').data('quantity');
+        const $stockQuantity = $modalAddLine.find('[name="stockQuantity"]');
+        if (quantity !== undefined) {
+            $stockQuantity.val(quantity);
+        } else {
+            $stockQuantity.val($stockQuantity.data('init'));
+        }
+    })
 
     let modalDeleteRequest = $("#modalDeleteRequest");
     let submitDeleteRequest = $("#submitDeleteRequest");
@@ -83,10 +96,14 @@ function onReferenceChange($select) {
     $.get(route)
         .then((data) => {
             const $modal = $select.closest(".modal");
-
+            const $location = $modal.find('[name="location"]');
+            const $quantity = $modal.find('[name="stockQuantity"]');
+            $location.attr('disabled', false);
+            $location.empty();
             $modal.find('[name="label"]').val(data.label);
             $modal.find('[name="buyer"]').val(data.buyer);
-            $modal.find('[name="stockQuantity"]').val(data.stockQuantity);
+            $quantity.val(data.stockQuantity);
+            $quantity.data('init', data.stockQuantity);
 
             const $requestedQuantity = $modal.find('[name="requestedQuantity"]');
             $requestedQuantity.val(null);
@@ -96,13 +113,32 @@ function onReferenceChange($select) {
 
             const $submitButton = $modal.find(".submit-button");
             $submitButton.removeAttr('disabled');
+
+
+            const quantityType = data.quantityType;
+
+            if (quantityType === 'reference') {
+                $location.attr('disabled', true);
+            } else {
+                const locationsOption = JSON.parse(data.locations);
+
+                const $option = $(new Option('', '',false, false));
+                $location.append($option);
+                locationsOption.forEach((option) => {
+                    const $option = $(new Option(option.location.label, option.location.id,false, false));
+                    $option
+                        .data('quantity',  option.quantity)
+                        .attr('data-quantity', option.quantity);
+                    $location.append($option);
+                });
+            }
         })
         .catch(() => {
             clearLineAddModal();
         });
 }
 
-function clearLineAddModal(clearReferenceInput = false){
+function clearLineAddModal(clearReferenceInput = false) {
     const $modal = $('#modalAddPurchaseRequestLine');
 
     if (clearReferenceInput) {

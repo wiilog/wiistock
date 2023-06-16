@@ -4,14 +4,27 @@ namespace App\Entity\Inventory;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Repository\Inventory\InventoryMissionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
+use Doctrine\ORM\Mapping\OneToMany;
 
 #[ORM\Entity(repositoryClass: InventoryMissionRepository::class)]
 class InventoryMission {
+
+    const ARTICLE_TYPE = 'article';
+    const LOCATION_TYPE = 'location';
+
+    const TYPES_LABEL = [
+        self::ARTICLE_TYPE => 'Art/Ref',
+        self::LOCATION_TYPE => 'Emplacement',
+    ];
+
+    const INVENTORY_TYPES = [self::ARTICLE_TYPE, self::LOCATION_TYPE];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -37,12 +50,37 @@ class InventoryMission {
     private Collection $articles;
 
     #[ORM\ManyToOne(targetEntity: InventoryMissionRule::class, inversedBy: 'createdMissions')]
-    private InventoryMissionRule $creator;
+    private ?InventoryMissionRule $creator = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $description = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $done = null;
+
+    #[ORM\Column(type: 'string')]
+    private ?string $type = null;
+
+    #[OneToMany(mappedBy: "inventoryMission", targetEntity: InventoryLocationMission::class, cascade: ['remove'])]
+    private Collection $inventoryLocationMissions;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $requester = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $validator = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $validatedAt = null;
 
     public function __construct() {
         $this->refArticles = new ArrayCollection();
         $this->entries = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->inventoryLocationMissions = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -167,4 +205,117 @@ class InventoryMission {
         return $this;
     }
 
+    public function getDescription(): ?string {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): self {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function isDone(): ?bool {
+        return $this->done;
+    }
+
+    public function setDone(bool $isDone): self {
+        $this->done = $isDone;
+
+        return $this;
+    }
+
+    public function getType(): ?string {
+        return $this->type;
+    }
+
+    public function setType(string $type): self {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, InventoryLocationMission>
+     */
+    public function getInventoryLocationMissions(): Collection {
+        return $this->inventoryLocationMissions;
+    }
+
+    public function addInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if (!$this->inventoryLocationMissions->contains($inventoryLocationMission)) {
+            $this->inventoryLocationMissions[] = $inventoryLocationMission;
+            $inventoryLocationMission->setInventoryMission($this);
+        }
+
+        return $this;
+    }
+
+    public function removeInventoryLocationMission(InventoryLocationMission $inventoryLocationMission): self {
+        if ($this->inventoryLocationMissions->removeElement($inventoryLocationMission)) {
+            if ($inventoryLocationMission->getInventoryMission() === $this) {
+                $inventoryLocationMission->setInventoryMission(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setInventoryLocationMissions(?iterable $inventoryLocationMissions): self {
+        foreach($this->getInventoryLocationMissions()->toArray() as $inventoryLocationMission) {
+            $this->removeInventoryLocationMission($inventoryLocationMission);
+        }
+
+        $this->inventoryLocationMissions = new ArrayCollection();
+        foreach($inventoryLocationMissions ?? [] as $inventoryLocationMission) {
+            $this->addInventoryLocationMission($inventoryLocationMission);
+        }
+
+        return $this;
+    }
+
+    public function getRequester(): ?Utilisateur
+    {
+        return $this->requester;
+    }
+
+    public function setRequester(?Utilisateur $requester): self
+    {
+        $this->requester = $requester;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(?DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getValidatedAt(): ?DateTime
+    {
+        return $this->validatedAt;
+    }
+
+    public function setValidatedAt(?DateTime $validatedAt): self
+    {
+        $this->validatedAt = $validatedAt;
+
+        return $this;
+    }
+
+    public function getValidator(): ?Utilisateur {
+        return $this->validator;
+    }
+
+    public function setValidator(?Utilisateur $validator): self {
+        $this->validator = $validator;
+        return $this;
+    }
 }

@@ -265,22 +265,22 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
-            if ((isset($data['article-to-pick']) && !$data['article-to-pick']) && ($data['quantity-to-pick'] ?? 0) <= 0) {
+            if ((isset($data['article-to-pick']) && !$data['article-to-pick']) && ($data['quantity-to-pick'] ?? 0) < 1) {
                 return new JsonResponse([
                     "success" => false,
-                    "msg" => "Vous devez sélectionner un article ou la quantité doit être superieure à zero"
+                    "msg" => "Vous devez sélectionner un article où la quantité doit être supérieure à zéro"
                 ]);
             }
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || empty($data['roleIsHandlingArticles'])) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 0)); // protection contre quantités négatives
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 1)); // protection contre quantités < 1
                 } else {
                     $collecteReference = new CollecteReference();
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite(max($data['quantity-to-pick'], 0)); // protection contre quantités négatives
+                        ->setQuantite(max($data['quantity-to-pick'], 1)); // protection contre quantités < 1
 
                     $entityManager->persist($collecteReference);
                 }

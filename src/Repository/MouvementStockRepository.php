@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -75,23 +74,6 @@ class MouvementStockRepository extends EntityRepository
             FROM App\Entity\MouvementStock m
             WHERE m.preparationOrder = :preparation"
         )->setParameter('preparation', $preparation);
-
-        return $query->execute();
-    }
-
-    /**
-     * @param Livraison $livraison
-     * @return MouvementStock[]
-     */
-    public function findByLivraison($livraison)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT m
-            FROM App\Entity\MouvementStock m
-            WHERE m.livraisonOrder = :livraison"
-        )->setParameter('livraison', $livraison);
 
         return $query->execute();
     }

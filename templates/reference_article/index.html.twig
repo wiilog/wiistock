@@ -52,14 +52,13 @@
                 <div class="btn-group">
                     {% if hasRightToCreate %}
                         <button type="button" class="btn btn-primary split-button d-flex align-items-center"
-                                onclick="window.location.href = Routing.generate('reference_article_new_page', {}, true)">
+                                onclick="window.location.href = Routing.generate('reference_article_new_page', {})">
                             <span class="wii-icon wii-icon-plus mr-2"></span>
                             Nouvel article de référence
                         </button>
                     {% elseif hasRightToExport %}
-                        <div tabindex="0"
-                             title="Veuillez faire une recherche ou renseigner un filtre pour imprimer."
-                             data-toggle="tooltip">
+                        <div tabindex="0" class="has-tooltip"
+                             title="Veuillez faire une recherche ou renseigner un filtre pour imprimer.">
                             <button type="button"
                                     class="btn btn-primary split-button printButton d-flex align-items-center"
                                     id="printTag"

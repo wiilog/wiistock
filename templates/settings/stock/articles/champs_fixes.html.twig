@@ -1,0 +1,15 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez
+            paramétrer leur visibilité ou leur caractère obligatoire.
+        </div>
+    </div>
+    <table id="table-article-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
+        {% include 'datatable/main-header.html.twig' with {
+            cells: 6
+        } %}
+    </table>
+</div>

@@ -1,0 +1,85 @@
+{% if lines|length == 0 %}
+    <div class="text-center" style="font-size: .8em;">
+        {{ trans('Général', null, 'Zone liste', 'Aucune donnée disponible') }}
+    </div>
+{% else %}
+    {% for line in lines %}
+        {% set pack = line.pack ?? null %}
+        {% set references = line.references ?? [] %}
+
+        {% include 'pack/utils/packItemListTemplate.html.twig' with {
+            header: pack
+                ? {
+                    data: {
+                        'pack-id': pack.id,
+                    },
+                    sideLabel: pack.nature,
+                    color: pack.color,
+                    content: [
+                        {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                        {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
+                    ] | merge(pack.project ? [{label: trans('Référentiel', 'Projet', "Projet", false), value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
+                },
+            content: references|map((reference) => reference|merge({
+                actions: include(
+                    'reception/datatableLigneRefArticleRow.html.twig',
+                    {
+                        ligneId: reference.id,
+                        referenceBarcode: reference.barCode,
+                        ligneArticleQuantity: reference.receivedQuantity,
+                        receptionId: reception.id,
+                        isReferenceTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),
+                        isArticleTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE'),
+                        modifiable: reception.statut.code != constant('App\\Entity\\Reception::STATUT_RECEPTION_TOTALE'),
+                        packFilter:  reference.quantityType,
+                    }
+                )
+            })),
+            action: pack
+            ? {
+                icon: 'wii-icon wii-icon-new-article',
+                datatarget: "#modalNewReceptionReferenceArticle",
+                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
+            }
+        } %}
+    {% endfor %}
+
+    <div class="dataTables_wrapper mt-2">
+        <div class="datatable-paging">
+            <div class="dataTables_paginate paging_simple_numbers">
+                <a class="paginate_button previous {{ current == 0 ? 'disabled' }}"
+                   data-page="{{ current - pageLength }}">
+                    {{ trans('Général', '', 'Zone liste', 'Précédent') }}
+                </a>
+                {% set lowest = max(0, currentPage - 2) %}
+                {% set highest = min(pagesCount - 1, currentPage + 2) %}
+
+                {% if lowest >= 1 %}
+                    <a class="paginate_button" data-page="0">1</a>
+                    {% if lowest > 1 %}
+                        <span class="ellipsis">…</span>
+                    {% endif %}
+                {% endif %}
+
+                {% for i in lowest..highest %}
+                    <a class="paginate_button {{ i * pageLength == current ? 'current' }} {{ pageLength >= total ? 'disabled' }}"
+                       data-page="{{ i * pageLength }}">
+                        {{ i + 1 }}
+                    </a>
+                {% endfor %}
+
+                {% if highest + 1 < pagesCount %}
+                    {% if highest + 2 != pagesCount %}
+                        <span class="ellipsis">…</span>
+                    {% endif %}
+                    <a class="paginate_button" data-page="{{ (pagesCount - 1) * pageLength }}">{{ pagesCount }}</a>
+                {% endif %}
+
+                <a class="paginate_button next {{ (current + pageLength >= total) ? 'disabled' }}"
+                   data-page="{{ current + pageLength }}">
+                    {{ trans('Général', '', 'Zone liste', 'Suivant') }}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endif %}

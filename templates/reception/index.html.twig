@@ -45,7 +45,8 @@
                                 data-target="#modalNewReception"
                                 class="btn btn-primary split-button d-flex align-items-center"
                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                            <span class="wii-icon wii-icon-plus mr-2"></span></span><span title="nouvelle réception">{{ trans('Ordre','Réceptions', 'nouvelle réception', false) }}</span>
+                            <span class="wii-icon wii-icon-plus mr-2"></span>
+                            {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
                         </button>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -72,7 +73,7 @@
                                  class="btn btn-primary split-button d-flex align-items-center"
                                  onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
                                 <span class="wii-icon wii-icon-plus mr-2"></span>
-                                <span title="nouvelle réception">{{ trans('Ordre','Réceptions', 'nouvelle réception', false) }}</span>
+                                {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
                             </div>
                             <button type="button"
                                     class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
@@ -137,8 +138,9 @@
     </div>
     <input type="hidden" value="{{ purchaseRequestFilter }}" id="purchaseRequestFilter">
     <input type="hidden" value="{{ purchaseRequest }}" id="purchaseRequest">
-
-    {% include "reception/modalNewReception.html.twig" %}
+    {% include "reception/modalNewReception.html.twig" with {
+        arrivageToReception: arrivageToReception
+    } %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
         'table': 'receptionsTable',

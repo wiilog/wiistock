@@ -1,0 +1,23 @@
+{% set deletable = deletable is defined and deletable %}
+
+<form class="modal fade" id="modalDeleteProject" aria-labelledby="dataModalCenterTitle"
+      aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Supprimer le " ~ (trans('Référentiel', 'Projet', "Projet", false) | lower)
+            } %}
+
+            <div class="modal-body">
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-danger data', text: 'Supprimer', type: 'submit', name: 'id', id: 'submitDeleteProject'}
+                ],
+                renderErrorContainer: false
+            } %}
+
+        </div>
+    </div>
+</form>

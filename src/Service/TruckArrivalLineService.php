@@ -59,14 +59,14 @@ class TruckArrivalLineService
 
     public function dataRowTruckArrivalLine(TruckArrivalLine $truckArrivalLine, EntityManagerInterface $entityManager): array {
         return [
-            'actions' => $this->templating->render('utils/action-buttons.html.twig', [
-                'noButton' => true,
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [
                         'hasRight' => $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER),
                         'title' => 'Supprimer',
                         'icon' => 'wii-icon wii-icon-trash',
                         'class' => 'truck-arrival-lines-delete',
+                        "actionOnClick" => true,
                         'attributes' => [
                             "data-id" => $truckArrivalLine->getId(),
                             "onclick" => "deleteTruckArrivalLine($(this))"

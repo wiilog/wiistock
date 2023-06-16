@@ -19,6 +19,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
 use App\Service\GeoService;
+use App\Service\TranslationService;
 use DateTime;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,6 +47,9 @@ class TransportRoundService
 
     #[Required]
     public GeoService $geoService;
+
+    #[Required]
+    public TranslationService $translation;
 
     private array $cacheStatuses = [];
 
@@ -198,7 +202,7 @@ class TransportRoundService
                             ->join(', ');
 
                         $ordersInformation = array_merge($dataRounds, [
-                            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? "Livraison - Collecte" : "Livraison") : "Collecte",
+                            $request instanceof TransportDeliveryRequest ? ($request->getCollect() ? $this->translation->translate("Demande", "Livraison", "Livraison", false) . " - Collecte" : $this->translation->translate("Demande", "Livraison", "Livraison", false)) : "Collecte",
                             FormatHelper::user($round->getDeliverer()),
                             $vehicle?->getRegistrationNumber() ?: '',
                             $round->getRealDistance() ?: '',

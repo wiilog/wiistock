@@ -60,7 +60,6 @@ class UniqueNumberService
 
         $dateStr = $date->format($dateFormat);
         $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix);
-
         $counterLen = strlen($counterFormat);
         $lastCounter = (
             (!empty($lastNumber) && $counterLen <= strlen($lastNumber))

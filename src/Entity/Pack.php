@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
@@ -20,6 +21,7 @@ class Pack implements PairedEntity {
     use SensorMessageTrait;
 
     public const CONFIRM_CREATE_GROUP = 'CONFIRM_CREATE_GROUP';
+    public const IN_ONGOING_RECEPTION = 'IN_ONGOING_RECEPTION';
     public const PACK_IS_GROUP = 'PACK_IS_GROUP';
     public const EMPTY_ROUND_PACK = 'passageavide';
 
@@ -74,8 +76,8 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
     private Collection $locationClusterRecords;
 
-    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Article $article = null;
 
     #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]
@@ -104,6 +106,21 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
     private ?TransportDeliveryOrderPack $transportDeliveryOrderPack = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
+    #[ORM\OneToMany(mappedBy: "currentLogisticUnit", targetEntity: Article::class)]
+    private Collection $childArticles;
+
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
+    private Collection $projectHistoryRecords;
+
+    #[ORM\Column(type: 'boolean')]
+    private ?bool $articleContainer = false;
+
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
+    private ?ShippingRequestPack $shippingRequestPack = null;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -113,6 +130,8 @@ class Pack implements PairedEntity {
         $this->childTrackingMovements = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
+        $this->childArticles = new ArrayCollection();
+        $this->projectHistoryRecords = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -628,4 +647,122 @@ class Pack implements PairedEntity {
         return $this;
     }
 
+    public function getProject(): ?Project
+    {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Article>
+     */
+    public function getChildArticles(): Collection {
+        return $this->childArticles;
+    }
+
+    public function addChildArticle(Article $childArticle): self {
+        if (!$this->childArticles->contains($childArticle)) {
+            $this->childArticles[] = $childArticle;
+            $childArticle->setCurrentLogisticUnit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChildArticle(Article $childArticle): self {
+        if ($this->childArticles->removeElement($childArticle)) {
+            if ($childArticle->getCurrentLogisticUnit() === $this) {
+                $childArticle->setCurrentLogisticUnit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setChildArticles(?iterable $childArticles): self {
+        foreach($this->getChildArticles()->toArray() as $childArticle) {
+            $this->removeChildArticle($childArticle);
+        }
+
+        $this->childArticles = new ArrayCollection();
+        foreach($childArticles ?? [] as $childArticle) {
+            $this->addChildArticle($childArticle);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProjectHistoryRecord>
+     */
+    public function getProjectHistoryRecords(): Collection {
+        return $this->projectHistoryRecords;
+    }
+
+    public function addProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if (!$this->projectHistoryRecords->contains($projectHistoryRecord)) {
+            $this->projectHistoryRecords[] = $projectHistoryRecord;
+            $projectHistoryRecord->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProjectHistoryRecord(ProjectHistoryRecord $projectHistoryRecord): self {
+        if ($this->projectHistoryRecords->removeElement($projectHistoryRecord)) {
+            if ($projectHistoryRecord->getPack() === $this) {
+                $projectHistoryRecord->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setProjectHistoryRecords(?iterable $projectHistoryRecords): self {
+        foreach($this->getProjectHistoryRecords()->toArray() as $projectHistoryRecord) {
+            $this->removeProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        $this->projectHistoryRecords = new ArrayCollection();
+        foreach($projectHistoryRecords ?? [] as $projectHistoryRecord) {
+            $this->addProjectHistoryRecord($projectHistoryRecord);
+        }
+
+        return $this;
+    }
+
+    public function isArticleContainer(): ?bool
+    {
+        return $this->articleContainer;
+    }
+
+    public function setArticleContainer(?bool $articleContainer): self
+    {
+        $this->articleContainer = $articleContainer;
+        return $this;
+    }
+
+    public function getShippingRequestPack(): ?ShippingRequestPack {
+        return $this->shippingRequestPack;
+    }
+
+    public function setShippingRequestPack(?ShippingRequestPack $shippingRequestPack): self {
+        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+            $oldShippingRequestPack = $this->shippingRequestPack;
+            $this->shippingRequestPack = null;
+            $oldShippingRequestPack->setPack(null);
+        }
+        $this->shippingRequestPack = $shippingRequestPack;
+        if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
+            $this->shippingRequestPack->setPack($this);
+        }
+
+        return $this;
+    }
 }

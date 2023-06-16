@@ -5,7 +5,8 @@
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
         'page': 'PAGE_INV_MISSIONS',
-        'tableSelector': '#tableMissionsInv'
+        'tableSelector': '#tableMissionsInv',
+        'types' : types
     } %}
 {% endblock %}
 
@@ -49,8 +50,9 @@
             </div>
         </div>
     </div>
-    {% include 'inventaire/modalNewMissionInv.html.twig' %}
+    {% include 'inventaire/modalNewMissionInv.html.twig' with { newMission } %}
     {% include 'inventaire/modalDeleteMission.html.twig' %}
+    {% include 'inventaire/modalDuplicateMission.html.twig'%}
 {% endblock %}
 
 {% block javascripts %}

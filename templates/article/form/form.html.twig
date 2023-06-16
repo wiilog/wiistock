@@ -1,0 +1,383 @@
+{% import 'form.html.twig' as form %}
+{% set statuses = {
+    'disponible': {
+        'status': 'disponible',
+        'color': 'rgba(47, 194, 171, 0.35)'
+    },
+    'en transit': {
+        'status': 'en transit',
+        'color': 'rgba(100, 51, 215, 0.15)'
+    },
+    'consommé': {
+        'status': 'consommé',
+        'color': '#E8E8E8'
+    }
+} %}
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
+<input type="hidden" name="article-id" value="{{ article.id }}">
+<div class="details-page-container d-flex justify-content-center align-content-center">
+    <div class="row wii-form wii-column">
+        <div class="col-12 col-md-6">
+            <div class="details-page-header d-flex flex-column {{ article.id ? 'edit' }}" {% if article.id %}style="border-color: {{ article.type.color }}{% endif %}">
+                {% if article.id %}
+                    <div class="wii-type" style="background-color: {{ article.type.color }}">
+                        <span>{{ article.type.label }}</span>
+                    </div>
+                {% endif %}
+                <div class="d-flex header-wrapper">
+                    <div class="image-container-show article">
+                        <img src="{{ asset('svg/article-barcode.svg') }}" width="80">
+                    </div>
+                    <div class="specifications w-100">
+                        {% if article.id %}
+                            <div><strong class="ref text-break">{{ article.barCode }}</strong></div>
+                            <input type="hidden" class="data" value="{{ article.id }}" name="id">
+                            <input type="hidden" class="data" value="{{ article.articleFournisseur.referenceArticle.id }}" name="refArticle">
+                            <div>
+                                <div><strong class="text-break">Ref : {{ article.referenceArticle.reference }}</strong></div>
+                                <div><strong class="text-break wii-subtitle">{{ article.referenceArticle.libelle }}</strong></div>
+                            </div>
+                        {% else %}
+                            <div class="form-group">
+                                {{ form.select('refArticle', trans('Stock', 'Références', 'Référence', false), true, {
+                                    type: 'reference',
+                                    additionalAttributes :[{
+                                        name: 'data-other-params',
+                                    },
+                                    {
+                                        name: 'data-other-params-type-quantity',
+                                        value: 'article',
+                                    },
+                                    {
+                                        name: 'data-other-params-status',
+                                        value: 'actif',
+                                    }],
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.input('type', trans('Stock', 'Références', 'Type', false), false, null, {
+                                    disabled: true,
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.input('barcode', 'Code barre (auto-généré)', true, barcode, {
+                                    disabled: true,
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.input('libelle', 'Libellé', true) }}
+                            </div>
+                        {% endif %}
+
+                        {% if article.id %}
+                            <div class="d-flex justify-content-between mr-4">
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
+                                    <span class="wii-field-name">Quantité <span class="wii-body-text">{{ article.quantite }}</span></span>
+                                </div>
+                                <div class="d-flex align-content-center">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" class="mr-2" width="15px">
+                                    <span class="wii-field-name">Emplacement <span class="wii-body-text">{{ article.emplacement.label }}</span></span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="form-group">
+                                {{ form.input('quantite', 'Quantité', true, null, {
+                                    type: 'number',
+                                    min: 0,
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form.select('emplacement', 'Emplacement', true, {
+                                    type: 'location'
+                                }) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="wii-box mt-3">
+                <div class="header wii-title">Informations</div>
+                <div class="content">
+                    <div class="row">
+                        {% if article.id %}
+                            <div class="col-12 col-md-5 d-flex">
+                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date d'entrée en stock</span>
+                                    <span class="wii-body-text">{{ article.stockEntryDate|format_helper('longDate') }}</span>
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_ANOMALY') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-12 col-md-4 d-flex">
+                                {{ form.switch('conform', {url: '/svg/reference_article/threshold.svg', text: 'Anomalie'}, required, [
+                                    {label: 'Oui', value: '0', checked: article.id and article.conform is not null and article.conform == 0},
+                                    {label: 'Non', value: '1', checked: not article.id or (article.id and article.conform is not null and article.conform == 1)},
+                                ]) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="row mt-3">
+                        {% if article.id %}
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/document.svg') }}" alt="Icône projet" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</span>
+                                    <span class="wii-body-text">{{ article.currentLogisticUnit and article.currentLogisticUnit.project ? article.currentLogisticUnit.project.code : '-' }}</span>
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_COMMENT') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-12">
+                                {{ form.wysiwyg('commentaire', 'Commentaire', false, article.id and article.commentaire ? article.commentaire) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="wii-box">
+                <div class="header wii-title">Description</div>
+                <div class="content">
+                    <div class="row">
+                        <div class="col-6 mt-2">
+                            {{ form.input('rfidTag', 'Tag RFID', false) }}
+                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.input('deliveryNoteLine', 'Ligne bon de ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, required, article.id ? article.deliveryNote) }}
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.input('manufactureDate', 'Date de fabrication', required, article.id and article.manifacturingDate ? article.manifacturingDate|date('Y-m-d'), {
+                                    type: 'date'
+                                }) }}
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.input('productionDate', 'Date de production', required, article.id and article.productionDate ? article.productionDate|date('Y-m-d'), {
+                                    type: 'date'
+                                }) }}
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.input('purchaseOrderLine', "Ligne commande d'achat", required, article.id ? article.purchaseOrder) }}
+                            </div>
+                        {% endif %}
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-6 mt-2">
+                                {{ form.select('nativeCountry', "Pays d'origine", required, {
+                                    type: 'nativeCountries',
+                                    value: article.id and article.nativeCountry ? article.nativeCountry.id
+                                }) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="wii-box">
+                <div class="header wii-title">Gestion de stock</div>
+                <div class="content">
+                    <div class="row">
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_BATCH') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-12 col-md-6">
+                                {{ form.input('batch', {url: '/svg/reference_article/stock.svg', text: 'Lot'}, false, article.id and article.batch ? article.batch) }}
+                            </div>
+                        {% endif %}
+                        <div class="col-12 col-md-6">
+                            {{ form.input('expiry', {url: '/svg/calendar.svg', text: 'Date de péremption'}, false, article.id and article.expiryDate ? article.expiryDate|date('Y-m-d'), {
+                                type: 'date'
+                            }) }}
+                        </div>
+
+                        {% if article.id %}
+                            {% set managers = article.referenceArticle.managers|map((manager) => manager.username)|join(', ') %}
+                            {% set plural = article.referenceArticle.managers | length > 1 ? 's' : '' %}
+                            <div class="col-12 col-md-6 mt-3">
+                                <img src="{{ asset('svg/user.svg') }}" alt="Icône utilisateur" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Gestionnaire{{ plural }}</span>
+                                    <span class="wii-body-text">{{ managers is not empty ? managers : '-' }}</span>
+                                </label>
+                            </div>
+                        {% endif %}
+
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_UNIT_PRICE') %}
+                        {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
+                            or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
+                            {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
+                            <div class="col-12 col-md-6 mt-3">
+                                {{ form.input('prix', {url: '/svg/price.svg', text: 'Prix unitaire (€)'}, false, article.id and article.prixUnitaire is not null ? article.prixUnitaire, {
+                                    type: 'number',
+                                    min: 0,
+                                }) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if article.id %}
+                    <div class="details-page-dropdown">
+                        <span class="wii-subtitle dropdown-wrapper unique">Fournisseur</span>
+                        <div class="provider-label">
+                            <span class="wii-field-name ml-3">{{ article.articleFournisseur.fournisseur.nom }}</span>&nbsp;-&nbsp;
+                            <span class="wii-body-text">{{ article.articleFournisseur.fournisseur.codeReference }}</span>
+                        </div>
+                        <div class="d-flex py-3">
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Ref article fournisseur</span>
+                                <span class="wii-body-text">{{ article.articleFournisseur.reference }}</span>
+                            </div>
+                            <div class="col-6 d-flex flex-column">
+                                <span class="wii-field-name">Label</span>
+                                <span class="wii-body-text">{{ article.articleFournisseur.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if not article.id %}
+                <div class="wii-box">
+                    <div class="header wii-title">Fournisseur</div>
+                    <div class="content">
+                        <div class="form-group w-100">
+                            {{ form.select('fournisseur', 'Fournisseur', true, {
+                                type: 'supplierCode',
+                                includeParams: 'select[name=refArticle]',
+                                minLength: 0,
+                                disabled: true,
+                            }) }}
+                        </div>
+                        <div class="form-group w-100">
+                            {{ form.select('articleFournisseur', 'Référence fournisseur', true, {
+                                type: 'supplierArticles',
+                                includeParams: 'select[name=fournisseur], select[name=refArticle]',
+                                minLength: 0,
+                                disabled: true,
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if article.id %}
+                <div class="wii-box">
+                    <div class="header wii-title">Inventaire</div>
+                    <div class="content">
+                        <div class="row">
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/inventory-category.svg') }}" alt="Icône inventaire" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Catégorie d'inventaire</span>
+                                    <span class="wii-body-text">{{ article.referenceArticle.category ? article.referenceArticle.category.label : '-' }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 d-flex">
+                                <img src="{{ asset('svg/calendar.svg') }}" alt="Icône calendrier" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Date de dernier inventaire</span>
+                                    <span class="wii-body-text">{{ article.dateLastInventory ? article.dateLastInventory|format_helper('longDate') : '-' }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="wii-box mt-3">
+                <div class="header wii-title">Champs libres</div>
+                {% if not article.id %}
+                    <div class="px-3 free-fields-container">
+                        <div class="content d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Récupération des champs libres en cours...</span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="px-3">
+                        {% include 'free_field/freeFieldsEdit.html.twig' with {
+                            freeFields: freeFieldsGroupedByTypes[article.type.id] is defined ? freeFieldsGroupedByTypes[article.type.id] : [],
+                            freeFieldValues: article.freeFields,
+                            colType: 'col-md-6 col-12',
+                            requiredType: 'requiredEdit',
+                            actionType: 'edit',
+                            fieldNameClass: 'wii-field-name'
+                        } %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if article.id %}
+            <div class="col-12">
+                <div class="wii-box">
+                    <div class="header wii-title d-flex justify-content-between align-items-center p-2">
+                        <span class="ml-2">Mouvements de traçabilité</span>
+                        <a class="btn btn-outline-primary {{ not hasMovements ? 'disabled' }}"
+                           href="{{ path('mvt_traca_index', {article: article.id}) }}" target="_blank">
+                            <i class="fas fa-share-square mr-2"></i>Ouvrir la page
+                        </a>
+                    </div>
+                    <div class="content" data-loader-color="primary" data-loader-size="normal">
+                        <div class="history-container overflow-hidden">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique des mouvements en cours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="col-12">
+            <div class="save-buttons">
+                <button class="btn btn-outline-secondary" onclick="history.back()">
+                    <span>Annuler</span>
+                </button>
+                <button class="btn btn-success ml-2" type="submit">
+                    <span>Enregistrer</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template class="loading-template">
+    <div class="content d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" role="status"></div>
+        <span class="ml-3">Récupération des champs libres en cours...</span>
+    </div>
+</template>

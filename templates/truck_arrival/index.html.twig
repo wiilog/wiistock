@@ -15,7 +15,7 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 {% set hasRightToCreateTruckArrival = hasRight(constant('App\\Entity\\Menu::TRACA'),constant('App\\Entity\\Action::CREATE_TRUCK_ARRIVALS')) %}
-                {% include "utils/action-buttons.html.twig" with {
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
                     actions: [
                         {
                             hasRight: hasRightToCreateTruckArrival,

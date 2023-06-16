@@ -1,0 +1,241 @@
+<div class="row">
+    <div class="form-group col-6">
+        <label class="wii-field-name" title="n° de réception">{{ trans('Ordre','Réceptions', 'n° de réception', false) }}</label>
+        <input type="text"
+               class="form-control"
+               value="{{ reception.number }}" disabled>
+    </div>
+    <div class="form-group col-6">
+        <label class="wii-field-name" for="statut">Statut*</label>
+        <select class="form-control data" name="statut">
+            {% for statut in statuts %}
+                {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
+                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('dateCommande', 'displayedEdit') %}
+        <div class="form-group col-6">
+            <label class="wii-field-name" for="dateCommande">Date commande{{ fieldsParam|isFieldRequired('dateCommande', 'requiredEdit') ? '*' : '' }}</label>
+            <input type="text"
+                   class="form-control cursor-default data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredEdit') ? 'needed' : '' }}"
+                   name="dateCommande" id="dateCommande"
+                   placeholder="jj/mm/aaaa"
+                   value="{{ reception.dateCommande is empty ? '' : (reception.dateCommande | date('d/m/Y')) }}"
+                   required="true">
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('dateAttendue', 'displayedEdit') %}
+        <div class="form-group col-6">
+            <label class="wii-field-name" for="dateAttendue">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'requiredEdit') ? '*' : '' }}</label>
+            <input type="text" class="form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredEdit') ? 'needed' : '' }}"
+                   name="dateAttendue" id='dateAttendue'
+                   value="{{ reception.dateAttendue is empty ? '' : reception.dateAttendue | date('d/m/Y') }}"
+                   placeholder="jj/mm/aaaa"
+                   required="true">
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('numCommande', 'displayedEdit') %}
+        <div class="form-group col-6">
+            <label class="wii-field-name" for="numeroCommande">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? '*' : '' }}</label>
+            <select name="orderNumber" data-s2 data-editable multiple class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
+                {% for orderNumber in reception.orderNumber %}
+                    <option value="{{ orderNumber }}" selected>{{ orderNumber }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('emplacement', 'displayedEdit') %}
+        <div class="form-group col-6 w-100">
+            <label class="wii-field-name">Emplacement{{ fieldsParam|isFieldRequired('emplacement', 'requiredEdit') ? '*' : '' }}</label>
+            <select
+                class="ajax-autocomplete-location-edit data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredEdit') ? 'needed' : '' }}"
+                name="location">
+                {% if reception.location != null %}
+                    <option value="{{ reception.location.id }}">{{ reception.location.label }}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row fly-form">
+    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedEdit') %}
+        <div class="form-group col">
+            <label class="wii-field-name" for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredEdit') ? '*' : '' }}</label>
+            <select
+                class="w-100 form-control ajax-autocomplete-fournisseur-edit data {{ fieldsParam|isFieldRequired('fournisseur', 'requiredEdit') ? 'needed' : '' }}"
+                name="fournisseur" id='fournisseur'>
+                <option
+                    value="{{ reception.fournisseur ? reception.fournisseur.id : '' }}">{{ reception.fournisseur ? reception.fournisseur.nom : '' }}</option>
+            </select>
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="form-group col-auto toggle-button-container">
+                <span class="btn btn-primary d-flex align-items-center p-2"
+                      onclick="onFlyFormToggle('fournisseurDisplay', 'addFournisseur')">
+                    <span class="wii-icon wii-icon-plus"></span>
+                </span>
+            </div>
+        {% endif %}
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('transporteur', 'displayedEdit') %}
+        <div class="form-group col">
+            <label class="wii-field-name" for="transporteur">Transporteur{{ fieldsParam|isFieldRequired('transporteur', 'requiredEdit') ? '*' : '' }}</label>
+            <select
+                class="w-100 form-control data ajax-autocomplete-transporteur-edit {{ fieldsParam|isFieldRequired('transporteur', 'requiredEdit') ? 'needed' : '' }}"
+                name="transporteur" id="transporteur">
+                <option
+                    value="{{ reception.transporteur ? reception.transporteur.id : '' }}">{{ reception.transporteur ? reception.transporteur.label : '' }}</option>
+            </select>
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+            <div class="form-group col-auto toggle-button-container">
+                <span class="btn btn-primary d-flex align-items-center p-2"
+                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                    <span class="wii-icon wii-icon-plus"></span>
+                </span>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+
+{% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
+    <div class="row align-items-start">
+        <div class="col-md-6 col-12 fly-form" style="height: 0">
+            <div class="row">
+                <div class="form-group col invisible" id="fournisseurDisplay">
+                    <label class="wii-field-name" for="newFournisseur">Nom*</label>
+                    <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly" name="name"
+                           maxlength="64">
+                    <label for="newFournisseurCode" class="wii-field-name mt-2">Code*</label>
+                    <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
+                           maxlength="64">
+                </div>
+                <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
+                    <span class="btn btn-primary"
+                          onclick="onFlyFormSubmit(Routing.generate('supplier_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-12 fly-form" style="height: 0">
+            <div class="row">
+                <div class="form-group col invisible" id="transporteurDisplay">
+                    <label class="wii-field-name" for="newTransporteur">Nom*</label>
+                    <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly" name="label"
+                           maxlength="64">
+                    <label for="newTransporteurCode" class="wii-field-name mt-2">Code*</label>
+                    <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
+                           maxlength="64">
+                </div>
+                <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
+                    <span class="btn btn-primary"
+                          onclick="onFlyFormSubmit(Routing.generate('transporteur_save', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('storageLocation', 'displayedEdit') %}
+        <div class="form-group col-6 w-100">
+            <label class="wii-field-name">Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredEdit') ? '*' : '' }}</label>
+            <select
+                class="ajax-autocomplete-location-edit data form-control {{ fieldsParam|isFieldRequired('storageLocation', 'requiredEdit') ? 'needed' : '' }}"
+                name="storageLocation">
+                {% if reception.storageLocation != null %}
+                    <option value="{{ reception.storageLocation.id }}">{{ reception.storageLocation.label }}</option>
+                {% endif %}
+            </select>
+        </div>
+    {% endif %}
+
+    {% if fieldsParam|isFieldRequired('manualUrgent', 'displayedEdit') %}
+        <div class="form-group col-3 mt-4">
+            <label class="wii-field-text">Urgence ?{{ fieldsParam|isFieldRequired('manualUrgent', 'requiredEdit') ? '*' : '' }}</label>
+            <label class="switch">
+                <input class="checkbox {{ fieldsParam|isFieldRequired('manualUrgent', 'requiredEdit') ? 'needed' : '' }}"
+                       type="checkbox" name="emergency" {{ reception.manualUrgent ? 'checked': ''}}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    {% endif %}
+    {% if fieldsParam|isFieldRequired('anomalie', 'displayedEdit') %}
+        <div class="form-group col-3 pt-4">
+            <label class="wii-field-text">Anomalie{{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? '*' : '' }}</label>
+            <label class="switch">
+                <input class="checkbox"
+                    {{ fieldsParam|isFieldRequired('anomalie', 'mustToModify') ? 'needed' : '' }}
+                       type="checkbox" name="anomalie" {{ reception.statut.code == constant('App\\Entity\\Reception::STATUT_ANOMALIE') ? 'checked': ''}}>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    {% if fieldsParam|isFieldRequired('utilisateur', 'displayedEdit') %}
+        <div class="form-group w-100 col-6">
+            <label class="wii-field-name" for="utilisateur">Utilisateur{{ fieldsParam|isFieldRequired('utilisateur', 'requiredEdit') ? '*' : '' }}</label>
+            <select
+                class="form-control ajax-autocomplete-user-edit data {{ fieldsParam|isFieldRequired('utilisateur', 'requiredEdit') ? 'needed' : '' }}"
+                name="utilisateur">
+                <option
+                    value="{{ reception.utilisateur ? reception.utilisateur.id : '' }}">{{ reception.utilisateur ? reception.utilisateur.username : ' ' }}</option>
+            </select>
+        </div>
+    {% endif %}
+</div>
+<div class="row">
+    {% if fieldsParam|isFieldRequired('commentaire', 'displayedEdit') %}
+        <div class="form-group col-8">
+            <label class="wii-field-name" for="Reception">Commentaire{{ fieldsParam|isFieldRequired('commentaire', 'requiredEdit') ? '*' : '' }}</label>
+            <input id='commentaire' class="form-control data {{ fieldsParam|isFieldRequired('commentaire', 'requiredEdit') ? 'needed' : '' }}"
+                   name="commentaire" type="hidden"
+                   value="{{ reception.commentaire }}">
+            <div class="editor-container-edit"
+                 value="{{ reception.commentaire }}" data-wysiwyg> {{ reception.commentaire|raw }}
+            </div>
+        </div>
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
+        <div class="form-group col-4">
+            <div>
+                {% include 'attachment/attachment.html.twig' with {
+                    'isNew': false,
+                    'required': fieldsParam|isFieldRequired(fieldCode, 'requiredEdit'),
+                    'attachments': reception.attachments
+                } %}
+            </div>
+        </div>
+    {% else %}
+        <input type="hidden" name="isAttachmentForm" value="1"/>
+    {% endif %}
+</div>
+
+<!-- CHAMPS LIBRES -->
+<span class="toggle-collapsible expanded">Champs libres</span>
+<div class="collapsible expanded free-fields-container">
+    {% include 'free_field/freeFieldsEdit.html.twig' with {
+        freeFields: freeFieldsGroupedByTypes,
+        freeFieldValues: reception.freeFields,
+        colType: 'col-md-4 col-12',
+        requiredType: 'requiredEdit',
+        actionType: 'edit'
+    } %}
+</div>
+

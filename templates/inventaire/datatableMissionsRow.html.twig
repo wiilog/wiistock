@@ -1,5 +1,26 @@
 <div class="d-flex">
-    <div class="d-none">
-        <a href='{{ path('inventory_mission_show', {'id': id}) }}' class="d-none action-on-click"></a>
+    <div class="dropdown dropright">
+        {{ include('datatable/dotsRow.html.twig') }}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) and type == constant('App\\Entity\\Inventory\\InventoryMission::LOCATION_TYPE') %}
+                <div class="dropdown-item d-flex align-items-center"
+                     data-id="{{ id }}"
+                     onclick="openDuplicateInventoryMissionModal($(this))">
+                    <i class='fas fa-sync-alt mr-2'></i>{{ trans('Général', null, 'Modale', 'Dupliquer') }}
+                </div>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
+                <div class="dropdown-item d-flex align-items-center"
+                     data-target="#modalDeleteMission"
+                     data-toggle="modal"
+                     data-id=" {{ id }} "
+                     onclick="deleteRow($(this), $('#modalDeleteMission'), $('#submitDeleteMission'))">
+                    <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="d-none">
+            <a href='{{ path('inventory_mission_show', {'id': id}) }}' class="d-none action-on-click"></a>
+        </div>
     </div>
 </div>

@@ -1,0 +1,120 @@
+{% import 'form.html.twig' as form %}
+
+{% set displayAction = emergency.id ? 'displayedEdit' : 'displayedCreate' %}
+{% set requiredAction = emergency.id ? 'requiredEdit' : 'requiredCreate' %}
+
+{{ form.input('id', null, false, emergency.id, {
+    type: 'hidden',
+}) }}
+<div class="row">
+    <div class="col-6 mb-2">
+        {{ form.input('dateStart', trans('Traçabilité', 'Urgences', 'Date de début', false), true, emergency.id ? emergency.dateStart|date('Y-m-d\\TH:i') : "now"|date("Y-m-d\\T00:00"), {
+            type: 'datetime-local',
+        } ) }}
+    </div>
+    <div class="col-6 mb-2">
+        {{ form.input('dateEnd', trans('Traçabilité', 'Urgences', 'Date de fin', false), true, emergency.id ? emergency.dateEnd|date('Y-m-d\\TH:i') : "now"|date("Y-m-d\\T23:59"), {
+            type: 'datetime-local',
+        } ) }}
+    </div>
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, trans('Traçabilité', 'Urgences', 'N° de commande', false), requiredOnform, emergency.commande) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, trans('Traçabilité', 'Urgences', 'N° poste', false), requiredOnform, emergency.postNb) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_BUYER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Traçabilité', 'Urgences', 'Acheteur', false), requiredOnform, {
+                type: 'user',
+                items: emergency.buyer ? [{
+                    label: emergency.buyer.username,
+                    value: emergency.buyer.id,
+                    selected: true
+                }] : [],
+            }) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Traçabilité', 'Urgences', 'Fournisseur', false), requiredOnform, {
+                type: 'provider',
+                items: emergency.provider ? [{
+                    label: emergency.provider.nom,
+                    value: emergency.provider.id,
+                    selected: true
+                }] : [],
+            }) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_CARRIER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Traçabilité', 'Urgences', 'Transporteur', false), requiredOnform, {
+                type: 'carrier',
+                items: emergency.carrier ? [{
+                    label: emergency.carrier.label,
+                    value: emergency.carrier.id,
+                    selected: true
+                }] : [],
+            }) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, trans('Traçabilité', 'Urgences', 'N° tracking transporteur', false), requiredOnform, emergency.trackingNb) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_TYPE') %}
+    {% set fieldLabel = constant('App\\Entity\\FieldsParam::FIELD_LABEL_EMERGENCY_TYPE') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, fieldLabel|capitalize , requiredOnform, {
+                type: '',
+                items: types| map((type) => {
+                    label: type,
+                    value: type,
+                    selected: emergency.type is same as (type),
+                }),
+            }) }}
+        </div>
+    {% endif %}
+
+</div>

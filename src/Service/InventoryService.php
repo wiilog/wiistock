@@ -3,15 +3,22 @@
 namespace App\Service;
 
 use App\Entity\Article;
-use App\Entity\Inventory\InventoryCategory;
+use App\Entity\CategorieStatut;
+use App\Entity\Emplacement;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
+use App\Entity\Statut;
+use App\Entity\StorageRule;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Repository\ArticleRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -23,6 +30,9 @@ class InventoryService {
     #[Required]
     public EntityManagerInterface $entityManager;
 
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
     public function doTreatAnomaly(int         $idEntry,
                                    string      $barCode,
                                    bool        $isRef,
@@ -31,10 +41,11 @@ class InventoryService {
                                    Utilisateur $user): array {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
+        $statutRepository = $this->entityManager->getRepository(Statut::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 
         $quantitiesAreEqual = true;
-
+        $consumedStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
         if ($isRef) {
             $refOrArt = $referenceArticleRepository->findOneBy(['barCode' => $barCode])
                 ?: $referenceArticleRepository->findOneBy(['reference' => $barCode]);
@@ -85,6 +96,50 @@ class InventoryService {
                 $mvt->setArticle($refOrArt);
                 //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantite($newQuantity);
+                if ($newQuantity === 0) {
+                    $refOrArt
+                        ->setStatut($consumedStatus);
+
+                    $articleLeave = new MouvementStock();
+                    $articleLeave
+                        ->setUser($user)
+                        ->setArticle($refOrArt)
+                        ->setEmplacementFrom($emplacement)
+                        ->setEmplacementTo($emplacement)
+                        ->setDate(new DateTime('now'))
+                        ->setComment(StringHelper::cleanedComment($comment))
+                        ->setType(MouvementStock::TYPE_SORTIE)
+                        ->setQuantity(abs($diff));
+
+                    $this->entityManager->persist($articleLeave);
+                    $this->entityManager->flush();
+
+                    if ($refOrArt->getCurrentLogisticUnit()) {
+                        $refOrArt
+                            ->setCurrentLogisticUnit(null);
+
+                        $movement = $this->trackingMovementService->persistTrackingMovement(
+                            $this->entityManager,
+                            $refOrArt->getBarCode(),
+                            $emplacement,
+                            $user,
+                            new DateTime('now'),
+                            true,
+                            TrackingMovement::TYPE_PICK_LU,
+                            false,
+                            [
+                                'entityManager' => $this->entityManager,
+                                'mouvementStock' => $articleLeave
+                            ]
+                        );
+
+                        if ($movement['movement']) {
+                            $this->entityManager->persist($movement['movement']);
+                            $this->entityManager->flush();
+                        }
+
+                    }
+                }
             }
 
             $typeMvt = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
@@ -135,110 +190,144 @@ class InventoryService {
         return $nbMissions > 0;
     }
 
-    public function generateMissions() {
-        $rules = $this->entityManager->getRepository(InventoryMissionRule::class)->findAll();
+    public function summarizeLocationInventory(EntityManagerInterface $entityManager,
+                                               InventoryMission       $mission,
+                                               Zone                   $zone,
+                                               array                  $rfidTags,
+                                               Utilisateur            $user): array {
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
-        $now = new DateTime();
-        $now->setTime(0, 0);
+        $tagRFIDPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
 
-        $firstSundayThisMonth = new DateTime("first sunday of {$now->format("Y")}-{$now->format("m")}");
-        $firstSundayThisMonth->setTime(0, 0);
-
-        $isFirstSunday = $firstSundayThisMonth == $now;
-        foreach ($rules as $rule) {
-            $nextRun = null;
-            if($rule->getLastRun()) {
-                $nextRun = clone $rule->getLastRun();
-                $nextRun->modify("+{$rule->getPeriodicity()} {$rule->getPeriodicityUnit()}");
-                $nextRun->setTime(0, 0);
-            }
-
-            if($rule->getPeriodicityUnit() === InventoryMissionRule::MONTHS && !$isFirstSunday
-                || $nextRun && $nextRun > $now) {
-                continue;
-            }
-
-            $rule->setLastRun($now);
-
-            $this->createMission($rule);
-        }
-    }
-
-    public function createMission(InventoryMissionRule $rule) {
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
-        $articleRepository = $this->entityManager->getRepository(Article::class);
-
-        $mission = new InventoryMission();
-        $mission->setName($rule->getLabel());
-        $mission->setStartPrevDate(new DateTime("tomorrow"));
-        $mission->setEndPrevDate(new DateTime("tomorrow +{$rule->getDuration()} {$rule->getDurationUnit()}"));
-        $mission->setCreator($rule);
-
-        $frequencies = Stream::from($rule->getCategories())
-            ->map(fn(InventoryCategory $category) => $category->getFrequency())
+        $rfidTags = Stream::from($rfidTags)
+            ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
             ->toArray();
 
-        $this->entityManager->persist($mission);
+        $locations = $locationRepository->findByMissionAndZone([$zone], $mission);
 
-        foreach ($frequencies as $frequency) {
-            // récupération des réf et articles à inventorier (fonction date dernier inventaire)
-            $referencesToInventory = $referenceArticleRepository->iterateReferencesToInventory($frequency,
-                $mission);
-            $articlesToInventory = $articleRepository->iterateArticlesToInventory($frequency, $mission);
+        $scannedArticlesByStorageRule = $articleRepository->findAvailableArticlesToInventory($rfidTags, $locations, [
+            "groupByStorageRule" => true,
+            "mode" => ArticleRepository::INVENTORY_MODE_SUMMARY,
+        ]);
 
-            $treated = 0;
+        $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
 
-            foreach ($referencesToInventory as $reference) {
-                $reference->addInventoryMission($mission);
-                $treated++;
-                if ($treated >= 500) {
-                    $treated = 0;
-                    $this->entityManager->flush();
-                }
+        $now = new DateTime('now');
+
+        $minStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN);
+        $maxStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX);
+        $min = $minStr ? intval($minStr) : null;
+        $max = $maxStr ? intval($maxStr) : null;
+
+        $this->clearInventoryZone($mission, $zone);
+
+        $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
+
+        $locationsData = [];
+        $result = [];
+        $numScannedObjects = 0;
+
+        foreach ($storageRules as $storageRule) {
+            $rowMissingReferenceResult = null;
+
+            $storageRuleId = $storageRule->getId();
+            $location = $storageRule->getLocation();
+            $locationId = $location?->getId();
+            $locationLabel = $location?->getLabel();
+            $referenceArticle = $storageRule->getReferenceArticle();
+            $reference = $referenceArticle?->getReference();
+
+            $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
+            $articleCounter = count($scannedArticles);
+            $numScannedObjects += $articleCounter;
+
+            $key = "location" . $locationId;
+            $rowLocationResult = $locationsData[$key] ?? [
+                "location" => $locationLabel,
+                "locationId" => $locationId,
+                "articleCounter" => 0,
+                "storageRuleCounter" => 0,
+            ];
+
+            $rowLocationResult["articleCounter"] += $articleCounter;
+            $rowLocationResult["storageRuleCounter"] += 1;
+
+            $rowLocationResult["articles"] = array_merge(
+                $rowLocationResult["articles"] ?? [],
+                $scannedArticles
+            );
+
+            $locationsData[$key] = $rowLocationResult;
+
+            if ($articleCounter === 0) {
+                $rowMissingReferenceResult = [
+                    "location" => $locationLabel,
+                    "reference" => $reference,
+                    "missing" => true,
+                ];
+                $result[] = $rowMissingReferenceResult;
+            }
+        }
+
+        // calculate percentage and save in inventory stats and scanned articles
+        foreach($locationsData as $locationRow) {
+            /** @var InventoryLocationMission $linkedLine */
+            $linkedLine = $mission
+                ->getInventoryLocationMissions()
+                ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationRow["locationId"])
+                ->first() ?: null;
+
+            if ($linkedLine) {
+                $ratio = $zoneInventoryIndicator
+                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                    : 0;
+
+                $linkedLine
+                    ->setOperator($user)
+                    ->setScannedAt($now)
+                    ->setPercentage($ratio)
+                    ->setArticles($locationRow["articles"] ?? []);
             }
 
-            $treated = 0;
-            $this->entityManager->flush();
+            $result[] = [
+                "location" => $locationRow['location'],
+                "ratio" => $ratio ?? 0,
+            ];
+        }
 
-            /** @var Article $article */
-            foreach ($articlesToInventory as $article) {
-                $article->addInventoryMission($mission);
-                $treated++;
-                if ($treated >= 500) {
-                    $treated = 0;
-                    $this->entityManager->flush();
-                }
+        $locationsData = Stream::from($result)
+            ->filter(fn(array $line) => (
+                !isset($line["ratio"])
+                || (
+                    (!isset($min) || $line["ratio"] >= $min)
+                    && (!isset($max) || $line["ratio"] <= $max)
+                )
+            ))
+            ->values();
+
+        $entityManager->flush();
+
+        return [
+            "numScannedObjects" => $numScannedObjects,
+            "lines" => $locationsData,
+        ];
+    }
+
+
+    public function clearInventoryZone(InventoryMission $mission,
+                                       Zone             $zone): void {
+        $inventoryLocationMissionArray = $mission->getInventoryLocationMissions();
+        foreach ($inventoryLocationMissionArray as $inventoryLocationMission) {
+            if ($inventoryLocationMission->getLocation()?->getZone()?->getId() === $zone->getId()) {
+                $inventoryLocationMission
+                    ->setOperator(null)
+                    ->setScannedAt(null)
+                    ->setPercentage(null)
+                    ->setArticles([]);
             }
-
-            $this->entityManager->flush();
-
-            // lissage des réf et articles jamais inventoriés
-            $nbRefAndArtToInv = $referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
-            $nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
-
-            $limit = (int) ($nbToInv / ($frequency->getNbMonths() * 4));
-
-            $listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
-                $limit / 2);
-            $listArtNextMission = $articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
-                $limit / 2);
-
-            /** @var ReferenceArticle $ref */
-            foreach ($listRefNextMission as $ref) {
-                $alreadyInMission = $this->isInMissionInSamePeriod($ref, $mission, true);
-                if (!$alreadyInMission) {
-                    $ref->addInventoryMission($mission);
-                }
-            }
-            /** @var Article $art */
-            foreach ($listArtNextMission as $art) {
-                $alreadyInMission = $this->isInMissionInSamePeriod($art, $mission, false);
-                if (!$alreadyInMission) {
-                    $art->addInventoryMission($mission);
-                }
-            }
-
-            $this->entityManager->flush();
         }
     }
 

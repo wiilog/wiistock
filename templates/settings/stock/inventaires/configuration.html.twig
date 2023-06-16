@@ -1,0 +1,35 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section-title">RFID</div>
+<div class="wii-section">
+    <div class="row">
+            <div class="col-12 wii-small-text">
+                Préfixe RFID - Si rempli, les scans RFID sur le module inventaire filtrent les résultats suivant ce
+                prefixe.
+            </div>
+            <div class="form-group w-100 col-12 col-xl-6 mt-3">
+                {{ form.input(setting('RFID_PREFIX'), 'Préfixe', false, setting_value('RFID_PREFIX')) }}
+            </div>
+
+    </div>
+    <div class="row">
+        <div class="col-lg-8 col-md-6 col-12 mb-3 wii-small-text">
+            Tranche pourcentage KPI 1 : Tranche en pourcentage mettant en avant les emplacements à rescanner en RFID.
+        </div>
+    </div>
+    <div>
+        Entre
+        {{ form.number(setting('RFID_KPI_MIN'), null, false, setting_value('RFID_KPI_MIN'),{
+            min : 0,
+            max: 100,
+            buttons: false
+        }) }}
+        % et
+        {{ form.number(setting('RFID_KPI_MAX'), null, false, setting_value('RFID_KPI_MAX'),{
+            min : 0,
+            max: 1000,
+            buttons: false
+        }) }}
+        %
+    </div>
+</div>

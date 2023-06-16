@@ -21,9 +21,13 @@ use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
 use App\Entity\MailerServer;
+use App\Entity\NativeCountry;
+use App\Entity\Nature;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
+use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
 use App\Entity\Transport\CollectTimeSlot;
@@ -33,6 +37,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
@@ -131,6 +136,19 @@ class SettingsService {
             }
         }
 
+        $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+        $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+
+        if ($request->request->get('createMvt')) {
+            if ($defaultLocationUL === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose UL par défaut.");
+            }
+            if ($defaultLocationReception === null) {
+                throw new RuntimeException("Vous devez sélectionner un emplacement de dépose Réception par défaut.");
+            }
+        }
+
+
         $settingNames = array_merge(
             array_keys($request->request->all()),
             array_keys($request->files->all()),
@@ -193,6 +211,7 @@ class SettingsService {
      */
     private function saveCustom(Request $request, array $settings, array &$updated, array &$result): void {
         $data = $request->request;
+        $settingRepository = $this->manager->getRepository(Setting::class);
 
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
@@ -229,33 +248,7 @@ class SettingsService {
             }
         }
 
-        if ($request->request->has("deliveryType") && $request->request->has("deliveryRequestLocation")) {
-            $deliveryTypes = explode(',', $request->request->get("deliveryType"));
-            $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
-
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DEFAULT_LOCATION_LIVRAISON]);
-            $associatedTypesAndLocations = array_combine($deliveryTypes, $deliveryRequestLocations);
-            $invalidDeliveryTypes = (
-                empty($associatedTypesAndLocations)
-                || !Stream::from($associatedTypesAndLocations)
-                    ->filter(fn(string $key, string $value) => !$key || !$value)
-                    ->isEmpty()
-            );
-            if ($invalidDeliveryTypes) {
-                throw new RuntimeException("Une configuration d'emplacement de livraison par défaut est invalide");
-            }
-            $setting->setValue(json_encode($associatedTypesAndLocations));
-
-            $updated = array_merge($updated, [
-                Setting::DEFAULT_LOCATION_LIVRAISON,
-                "deliveryType",
-                "deliveryRequestLocation",
-            ]);
-        }
-
         if ($request->request->has("deliveryRequestBehavior")) {
-            $settingRepository = $this->manager->getRepository(Setting::class);
             $deliveryRequestBehavior = $request->request->get("deliveryRequestBehavior");
 
             $previousDeliveryRequestBehaviorSetting = $settingRepository->findOneBy([
@@ -337,6 +330,31 @@ class SettingsService {
 
             $updated[] = "temperatureRanges";
         }
+
+        if ($request->request->has('createMvt')) {
+            $defaultLocationUL = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL");
+            $defaultLocationReception = $request->request->get("BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM");
+            $check = $request->request->get('createMvt');
+            $settingRepository = $this->manager->getRepository(Setting::class);
+
+            if (!$check) {
+                if ($defaultLocationUL !== null) {
+                    $defaultLocationUL = null;
+                }
+                if ($defaultLocationReception !== null) {
+                    $defaultLocationReception = null;
+                }
+            }
+
+            $settingUL = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL]);
+            $settingUL->setValue($defaultLocationUL);
+
+            $settingReception = $settingRepository->findOneBy(["label" => Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM]);
+            $settingReception->setValue($defaultLocationReception);
+
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+            $updated[] = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
+        }
     }
 
     /**
@@ -379,7 +397,7 @@ class SettingsService {
             [Setting::FILE_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
             [Setting::FILE_TOP_RIGHT_LOGO, null],
             [Setting::FILE_LABEL_EXAMPLE_LOGO, Setting::DEFAULT_LABEL_EXAMPLE_VALUE],
-            [Setting::FILE_WAYBILL_LOGO, null],
+            [Setting::FILE_WAYBILL_LOGO, null], // TODO WIIS-8882
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
             [Setting::FILE_SHIPMENT_NOTE_LOGO, null],
             [Setting::LABEL_LOGO, null],
@@ -603,31 +621,38 @@ class SettingsService {
             }
         }
 
-        if (isset($tables["missionRulesTable"])) {
-            $missionRuleRepository = $this->manager->getRepository(InventoryMissionRule::class);
-            $categoryRepository = $this->manager->getRepository(InventoryCategory::class);
+        if(isset($tables["tagTemplateTable"])) {
+            $tagTemplateRepository = $this->manager->getRepository(TagTemplate::class);
+            $typeRepository = $this->manager->getRepository(Type::class);
+            $natureRepository = $this->manager->getRepository(Nature::class);
 
-            $missions = Stream::from($tables["missionRulesTable"])
-                ->filter()
-                ->map(fn($data) => [isset($data["id"]) ? $missionRuleRepository->find($data["id"]) : new InventoryMissionRule(), $data])
-                ->toArray();
-
-            $existingLabels = [];
-            foreach ($missions as [$rule, $ruleData]) {
-                if(in_array($ruleData["label"], $existingLabels)) {
-                    throw new RuntimeException("Le libellé de mission \"{$ruleData["label"]}\" est en doublon");
-                } else {
-                    $existingLabels[] = $ruleData["label"];
+            foreach (array_filter($tables["tagTemplateTable"]) as $tagTemplateData) {
+                $tagTemplateExist = $tagTemplateRepository->findOneBy(['prefix' => $tagTemplateData['prefix']]);
+                if ($tagTemplateExist && $tagTemplateExist->getId() !== intval($tagTemplateData['tagTemplateId'] ?? null)){
+                    throw new RuntimeException("Un modèle d'étiquette existe déjà avec ce préfixe.");
                 }
 
-                $rule->setLabel($ruleData["label"])
-                    ->setCategories($categoryRepository->findBy(["id" => explode(",", $ruleData["categories"])]))
-                    ->setPeriodicity($ruleData["periodicity"])
-                    ->setPeriodicityUnit($ruleData["periodicityUnit"])
-                    ->setDuration($ruleData["duration"])
-                    ->setDurationUnit($ruleData["durationUnit"]);
+                $tagTemplate = isset($tagTemplateData['tagTemplateId'])
+                    ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
+                    : new TagTemplate();
 
-                $this->manager->persist($rule);
+                $tagTemplate->setPrefix($tagTemplateData['prefix']);
+                $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
+                $tagTemplate->setHeight($tagTemplateData['height']);
+                $tagTemplate->setWidth($tagTemplateData['width']);
+                $tagTemplate->setModule($tagTemplateData['module']);
+                Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                        if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
+                            $nature = $natureRepository->find($id);
+                            $tagTemplate->addNature($nature);
+                        } else {
+                            $type = $typeRepository->find($id);
+                            $tagTemplate->addType($type);
+                        }
+                    } );
+
+                $this->manager->persist($tagTemplate);
             }
         }
 
@@ -674,7 +699,8 @@ class SettingsService {
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
-                    ->setSendMail($data["mailRequester"] ?? false)
+                    ->setSendMailRequester($data["mailRequester"] ?? false)
+                    ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 if (isset($files["logo"])) {
@@ -710,6 +736,10 @@ class SettingsService {
                     $elements = Stream::explode(";", $item["elements"])
                         ->map(fn(string $element) => trim($element))
                         ->toArray();
+                }
+
+                if ($item["label"] === "") {
+                    throw new RuntimeException("Le libellé du champ libre ne peut pas être vide");
                 }
 
                 $freeField
@@ -775,12 +805,47 @@ class SettingsService {
                 if ($fieldsParam) {
                     $code = $fieldsParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam->setDisplayedCreate($item["displayedCreate"])
-                        ->setRequiredCreate($alwaysRequired || $item["requiredCreate"])
+                    $fieldsParam
+                        ->setDisplayedCreate($item["displayedCreate"] ?? null)
+                        ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setDisplayedEdit($item["displayedEdit"])
-                        ->setRequiredEdit($alwaysRequired || $item["requiredEdit"])
+                        ->setDisplayedEdit($item["displayedEdit"] ?? null)
+                        ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                }
+            }
+        }
+
+        if (isset($tables["subFixedFields"])) {
+            $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
+
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
+                ->keymap(fn($day) => [$day->getId(), $day])
+                ->toArray();
+
+            foreach (array_filter($tables["subFixedFields"]) as $item) {
+                /** @var SubLineFieldsParam $fieldsParam */
+                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+
+                if ($fieldsParam) {
+                    $fieldsParam
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
+                        ->setRequired($item["required"] ?? null);
+
+                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
+                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                        ->filter()
+                        ->toArray();
+
+                    if ($displayedUnderCondition && empty($conditionFixedFieldValue)) {
+                        throw new FormException("Vous devez saisir la colonne valeur");
+                    }
+
+                    $fieldsParam
+                        ->setDisplayedUnderCondition($displayedUnderCondition)
+                        ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
             }
         }
@@ -963,6 +1028,37 @@ class SettingsService {
                 $this->manager->persist($line);
             }
         }
+
+        if (isset($tables["nativeCountriesTable"])) {
+            $nativeCountriesData = array_filter($tables["nativeCountriesTable"]);
+            $nativeCountryRepository = $this->manager->getRepository(NativeCountry::class);
+
+            if (!empty($nativeCountriesData)) {
+                foreach ($nativeCountriesData as $nativeCountryData) {
+                    $persistedNativeCountries = [];
+                    if (isset($nativeCountryData['nativeCountryId'])) {
+                        $nativeCountry = Stream::from($persistedNativeCountries)
+                            ->filter(fn(NativeCountry $nativeCountry) => $nativeCountry->getId() == $nativeCountryData['nativeCountryId'])
+                            ->first();
+
+                        if (!$nativeCountry) {
+                            $nativeCountry = $nativeCountryRepository->find($nativeCountryData['nativeCountryId']);
+                            $persistedNativeCountries[] = $nativeCountry;
+                        }
+                    } else {
+                        $nativeCountry = new NativeCountry();
+                        $persistedNativeCountries[] = $nativeCountry;
+                    }
+
+                    $nativeCountry
+                        ->setCode($nativeCountryData['code'])
+                        ->setLabel($nativeCountryData['label'])
+                        ->setActive($nativeCountryData['active']);
+
+                    $this->manager->persist($nativeCountry);
+                }
+            }
+        }
     }
 
     /**
@@ -1097,10 +1193,10 @@ class SettingsService {
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
@@ -1138,10 +1234,10 @@ class SettingsService {
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
 
-        $defaultDeliveryLocationsParam = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_LIVRAISON);
-        $defaultDeliveryLocationsIds = json_decode($defaultDeliveryLocationsParam, true) ?: [];
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {

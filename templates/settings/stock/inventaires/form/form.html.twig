@@ -1,0 +1,101 @@
+{% import 'form.html.twig' as form %}
+
+{% set articleType = constant('App\\Entity\\Inventory\\InventoryMission::ARTICLE_TYPE') %}
+{% set locationType = constant('App\\Entity\\Inventory\\InventoryMission::LOCATION_TYPE') %}
+{% set isMissionArticleType = missionRule.id ? missionRule.missionType == articleType : false %}
+{% set isMissionLocationType = missionRule.id ? missionRule.missionType == locationType : false %}
+
+
+<div class="row">
+    {% if missionRule.id %}
+        <input type="hidden" class="data" value="{{ missionRule.id }}" name="ruleId"/>
+        <input type="hidden" class="data" value="{{ missionRule.missionType }}" name="missionType"/>
+        <div class="col-12">
+            <div class="wii-field-name">Type de mission</div>
+            <div class="wii-body-text">
+                {{ isMissionArticleType ? 'Quantité article' : 'Article sur emplacement' }}
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12">
+            {{ form.switch('missionType', 'Type de mission', true, [
+                {label: 'Quantité article', value: articleType, checked: isMissionArticleType},
+                {label: 'Article sur emplacement', value: locationType, checked: isMissionLocationType},
+            ]) }}
+        </div>
+    {% endif %}
+    <div class="col-6 mt-3">
+        {{ form.input('label', 'Libellé de la tache', true, missionRule.label, {
+            type: 'text',
+        }) }}
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.input('description', 'Description', true, missionRule.description, {
+            type: 'text',
+        }) }}
+    </div>
+    <div class="col-6 mt-3">
+        <label class="w-100" data-dashlane-label="true">
+            <span class="d-inline-flex align-items-center field-label wii-field-name" style="margin-bottom: 5px">
+                 Durée*
+            </span>
+            <div class="d-flex no-gutters">
+                <div class="col-4 pr-2">
+                    {{ form.input('duration', null, true, missionRule.duration, {
+                        type: 'number',
+                        min: 0,
+                        max: 999,
+                        step: 1,
+                    }) }}
+                </div>
+                <div class="col-8">
+                    {{ form.select('durationUnit', null ,true, {
+                        items: constant('App\\Entity\\Inventory\\InventoryMissionRule::DURATION_UNITS_LABELS'),
+                        value: missionRule.durationUnit
+                    }) }}
+                </div>
+            </div>
+        </label>
+    </div>
+    <div class="col-6 mt-3">
+        {{ form.select('requester', 'Demandeur', true, {
+            type: 'user',
+            items: {
+                (missionRule.requester.id ?? app.user.id): (missionRule.requester.username ?? app.user.username),
+            }
+        }) }}
+    </div>
+    <div class="col-12">
+        {% include 'planner/planner.html.twig' with {
+            frequency: missionRule.frequency,
+            begin: missionRule.begin,
+            intervalPeriod: missionRule.intervalPeriod,
+            intervalTime: missionRule.intervalTime,
+            period: missionRule.period,
+            weekDays: missionRule.weekDays,
+            months: missionRule.months,
+            monthDays: missionRule.monthDays,
+            required: true,
+        } %}
+    </div>
+</div>
+<div class="row location-type-form {{ isMissionLocationType ? '' : 'd-none' }}">
+    <div class="col-12">
+        <div class="wii-section-title my-3">Contenu de l'inventaire</div>
+    </div>
+    <div class="col-12">
+        {% include 'inventaire/formAddInventoryLocations.html.twig' with {
+            initialLocations: initialLocations,
+        } %}
+    </div>
+</div>
+<div class="row article-type-form {{ isMissionArticleType ? '' : 'd-none' }}">
+    <div class="col-6">
+        {{ form.select('categories', 'Catégorie(s)', true, {
+            multiple: true,
+            type: 'inventoryCategories',
+            items: missionRule.categories|map((categorie) => {value: categorie.id, label: categorie.label, selected: true}),
+        }) }}
+    </div>
+</div>
+
