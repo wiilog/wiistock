@@ -59,6 +59,9 @@ class ArticleDataService
     #[Required]
     public TranslationService $translation;
 
+    #[Required]
+    public EmplacementDataService $emplacementDataService;
+
     private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
@@ -283,14 +286,9 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
-                $zoneRepository = $entityManager->getRepository(Zone::class);
-                $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-
-                $location = new Emplacement();
-                $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER)
-                    ->setZone($defaultZone);
-                $entityManager->persist($location);
+                $location = $this->emplacementDataService->persistLocation([
+                    "Label" => Emplacement::LABEL_A_DETERMINER,
+                ], $entityManager);
             }
             $location->setIsActive(true);
         }
