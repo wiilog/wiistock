@@ -1029,9 +1029,13 @@ class DemandeController extends AbstractController
             $lineId = $data['lineId'] ?? null;
             if ($lineId) {
                 $projectRepository = $entityManager->getRepository(Project::class);
+                $locationRepository = $entityManager->getRepository(Emplacement::class);
                 // modification
                 if (isset($data['type']) && $data['type'] === 'article') {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+                    $targetLocationPicking = isset($data['target-location-picking'])
+                        ? $locationRepository->find($data['target-location-picking'])
+                        : null;
                 } else {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
                 }
@@ -1039,7 +1043,8 @@ class DemandeController extends AbstractController
                 $line
                     ->setQuantityToPick($data['quantity-to-pick'] ?? null)
                     ->setComment($data['comment'] ?? null)
-                    ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null);
+                    ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null)
+                    ->setTargetLocationPicking($targetLocationPicking ?? null);
 
                 if ($line instanceof DeliveryRequestArticleLine && !empty($data['article'])) {
                     $line->setArticle($entityManager->getRepository(Article::class)->find($data['article']));

@@ -96,6 +96,10 @@ class ZoneController extends AbstractController
                 }
             }
 
+            if ($data["name"] != $zone->getName() && $zone === $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME])) {
+                throw new FormException("Vous ne pouvez pas renommer la zone " . $zone->getName());
+            }
+
             $zone
                 ->setName($data["name"])
                 ->setDescription($data["description"])
