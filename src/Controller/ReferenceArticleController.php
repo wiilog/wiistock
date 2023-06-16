@@ -164,7 +164,7 @@ class ReferenceArticleController extends AbstractController
 
             $type = $typeRepository->find($data['type']);
 
-            if (($data['emplacement'] ?? null) !== null) {
+            if ($data['emplacement'] ?? false) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)

@@ -94,14 +94,14 @@
                             </select>
                         {% endif %}
                         {% if not partialEdit %}
-                                {% set statusesSwitchAttibutes = [{ name: "onclick", value: "changeNewReferenceStatus($(this))"}] %}
+                                {% set statusesSwitchAttributes = [{ name: "onclick", value: "changeNewReferenceStatus($(this))"}] %}
                                 {% set statusSwitchContent = [] %}
                                 {% if not reference.id or reference.statut.draft %}
                                     {% set statusSwitchContent = statusSwitchContent|merge([{
                                         label: 'Brouillon',
                                         value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
                                         checked: (reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS')) or (not reference.id and hasRightCreateDraft),
-                                        additionalAttributes: statusesSwitchAttibutes,
+                                        additionalAttributes: statusesSwitchAttributes,
                                     }]) %}
                                 {% endif %}
 
@@ -111,13 +111,13 @@
                                             label: 'Actif',
                                             value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ,
                                             checked: not reference.statut or reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF'),
-                                            additionalAttributes: statusesSwitchAttibutes,
+                                            additionalAttributes: statusesSwitchAttributes,
                                         },
                                         {
                                             label: 'Inactif',
                                             value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
                                             checked: reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
-                                            additionalAttributes: statusesSwitchAttibutes,
+                                            additionalAttributes: statusesSwitchAttributes,
                                         }
                                     ]) %}
                                 {% endif %}
