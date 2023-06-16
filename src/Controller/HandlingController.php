@@ -164,7 +164,7 @@ class HandlingController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $receivers = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
-        $receiversId = $receivers[$typeId];
+        $receiversId = $receivers[$typeId] ?? [];
         $users = [];
         foreach ($receiversId as $receiverId) {
             $users[$receiverId] = $userRepository->find($receiverId)->getUsername();
@@ -573,7 +573,7 @@ class HandlingController extends AbstractController {
                     ->map(fn(StatusHistory $statusHistory) => [
                         "status" => $this->getFormatter()->status($statusHistory->getStatus()),
                         "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
-                                    ? FormatHelper::longDate($statusHistory->getDate(), ["short" => true, "time" => true])
+                                    ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                                     : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
                     ])
                     ->toArray(),

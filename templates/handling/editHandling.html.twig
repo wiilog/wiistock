@@ -5,7 +5,7 @@
 {% block titleLink path('handling_index') %}
 
 {% block page_content %}
-<div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+<div class="mb-4 details-page-container d-flex justify-content-center align-content-center">
     <div class="row wii-form wii-column">
         <div class="col-md-6 col-12">
             <div class="wii-box">
@@ -78,7 +78,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), true, {
+                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), false, {
                                     items: emergencies,
                                     required: false,
                                     emptyOption : { value : null , text : trans( 'Demande', 'Général', 'Non urgent', false), selected : emergency ? false : true},
@@ -145,9 +145,9 @@
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.source, {
+                                {{ form.input('destination', trans('Demande', 'Services', 'Modale et détails', 'Déchargement'), required, handling.destination, {
                                     attributes: {
-                                        'data-short-label': 'Chargement',
+                                        'data-short-label': 'Déchargement',
                                     },
                                 }) }}
                             </div>
@@ -198,7 +198,7 @@
                     <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
                     <div>
                         <input class="commentaire form-control data" name="comment" type="hidden" id="commentaire">
-                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | striptags }}</div>
+                        <div class="editor-container-new" data-wysiwyg>{{ handling.comment | raw }}</div>
                     </div>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                     <span class="d-flex align-items-center pl-2">{{ trans('Demande', 'Services', 'Modale et détails', 'Statut') }}</span>
                 </div>
                 <div class="content p-0">
-                    <div class="content status-history-container p-0">
+                    <div class="content history-container p-0">
                         <div class="d-flex align-items-center justify-content-center p-3">
                             <div class="spinner-border text-primary" role="status"></div>
                             <span class="ml-3">{{ trans('Demande', 'Services', 'Modale et détails', 'Génération de l\'historique en cours') }}</span>

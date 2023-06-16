@@ -11,6 +11,7 @@ use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
 use App\Entity\PurchaseRequest;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
@@ -48,6 +49,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
             CategorieStatut::TRANSFER_ORDER,
             CategorieStatut::IMPORT,
             CategorieStatut::PURCHASE_REQUEST,
+            CategorieStatut::SHIPPING_REQUEST,
         ];
 
         $categoriesStatus = [
@@ -105,6 +107,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TrackingMovement::TYPE_GROUP,
                 TrackingMovement::TYPE_UNGROUP,
                 TrackingMovement::TYPE_EMPTY_ROUND,
+                TrackingMovement::TYPE_DROP_LU,
+                TrackingMovement::TYPE_PICK_LU
             ],
             CategorieStatut::MVT_STOCK => [
                 MouvementStock::TYPE_ENTREE,
@@ -189,6 +193,12 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 TransportRound::STATUS_AWAITING_DELIVERER,
                 TransportRound::STATUS_ONGOING,
                 TransportRound::STATUS_FINISHED,
+            ],
+            CategorieStatut::SHIPPING_REQUEST => [
+                ShippingRequest::STATUS_DRAFT => Statut::DRAFT,
+                ShippingRequest::STATUS_TO_TREAT => Statut::NOT_TREATED,
+                ShippingRequest::STATUS_SCHEDULED => Statut::SCHEDULED,
+                ShippingRequest::STATUS_SHIPPED => Statut::SHIPPED,
             ],
         ];
 

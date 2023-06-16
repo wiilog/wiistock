@@ -130,12 +130,12 @@ function clearNewArticleContent(button) {
     clearModal('#' + $modal.attr('id'));
 }
 
-function ajaxGetFournisseurByRefArticle(select) {
-    let refArticleId = select.val();
+function ajaxGetFournisseurByRefArticle($select) {
+    let refArticleId = $select.val();
     let json = {};
     json['refArticle'] = refArticleId;
 
-    if (select.val()) {
+    if ($select.val()) {
         let fournisseur = $('#fournisseur');
         let modalfooter = $('#modalNewArticle').find('.modal-footer');
 
@@ -158,19 +158,38 @@ function ajaxGetFournisseurByRefArticle(select) {
 }
 
 function printArticlesBarCodes($button, event) {
+    let templates;
+    try {
+        templates = JSON.parse($('#tagTemplates').val());
+    } catch (error) {
+        templates = [];
+    }
     if (!$button.hasClass('dropdown-item') || !$button.hasClass('disabled')) {
         let listArticles = $('.article-row-id')
             .map((_, element) => $(element).val())
             .toArray();
 
         if (tableArticle.page.info().length > 0) {
-            window.location.href = Routing.generate(
-                'article_print_bar_codes',
-                {
-                    listArticles: listArticles,
-                },
-                true
-            );
+            const params = {
+                listArticles: listArticles,
+            };
+            if (templates.length > 0) {
+                Promise.all(
+                    [AJAX.route('GET', `article_print_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
+                        .concat(templates.map(function(template) {
+                            params.template = template;
+                            return AJAX
+                                .route('GET', `article_print_bar_codes`, params)
+                                .file({})
+                        }))
+                ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
+            } else {
+                window.location.href = Routing.generate(
+                    'article_print_bar_codes',
+                    params,
+                    true
+                );
+            }
         } else {
             showBSAlert("Il n'y a aucun article à imprimer", 'danger');
         }

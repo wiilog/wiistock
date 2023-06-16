@@ -40,6 +40,7 @@ class ComponentType
     public const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
     public const DAILY_HANDLING = 'daily_handling';
     public const DAILY_OPERATIONS = 'daily_operations';
+    public const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
     public const PENDING_REQUESTS = 'pending_requests';
     public const EXTERNAL_IMAGE = 'external_image';
     public const ORDERS_TO_TREAT = 'orders_to_treat';
@@ -53,6 +54,7 @@ class ComponentType
     public const REQUESTS_TO_TREAT_DELIVERY = 'requests_to_treat_delivery';
     public const REQUESTS_TO_TREAT_DISPATCH = 'requests_to_treat_dispatch';
     public const REQUESTS_TO_TREAT_TRANSFER = 'requests_to_treat_transfer';
+    public const REQUESTS_TO_TREAT_SHIPPING = 'requests_to_treat_shipping';
     public const GENERIC_TEMPLATE = 'generic_template';
 
     public const REQUESTS_SELF = 'self';
@@ -78,6 +80,7 @@ class ComponentType
             self::PACK_TO_TREAT_FROM,
             self::ENTRIES_TO_HANDLE,
             self::ORDERS_TO_TREAT,
+            self::DAILY_DELIVERY_ORDERS
         ],
         self::CATEGORY_STOCK => [
             self::ACTIVE_REFERENCE_ALERTS,

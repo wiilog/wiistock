@@ -1,0 +1,22 @@
+<div class="modal fade" id="modalNewZone" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Nouvelle zone"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'zone/form.html.twig' with {
+                    zone: newZone
+                }%}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

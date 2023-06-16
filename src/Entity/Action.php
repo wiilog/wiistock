@@ -21,13 +21,13 @@ class Action {
     const DISPLAY_MOUV = 'afficher mouvements';
     const DISPLAY_ASSO = 'afficher associations BR';
     const DISPLAY_ENCO = 'afficher encours';
-    const DISPLAY_PACK = 'afficher colis';
+    const DISPLAY_PACK = 'afficher unité logistique';
     const DISPLAY_URGE = 'afficher urgences';
     const LIST_ALL = 'lister tous les arrivages';
-    const ADD_PACK = 'ajouter colis';
-    const EDIT_PACK = 'modifier colis';
-    const MANAGE_PACK = 'gérer colis';
-    const DELETE_PACK = 'supprimer colis';
+    const ADD_PACK = 'ajouter unité logistique';
+    const EDIT_PACK = 'modifier unité logistique';
+    const MANAGE_PACK = 'gérer unité logistique';
+    const DELETE_PACK = 'supprimer unité logistique';
     const EDIT_ARRI = 'modifier arrivage UL';
     const DELETE_ARRI = 'supprimer arrivage UL';
     const EMPTY_ROUND = 'autoriser la sélection du Passage à vide';
@@ -63,12 +63,14 @@ class Action {
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
     const DISPLAY_PURCHASE_REQUESTS = "afficher demandes d'achat";
     const DELETE_DRAFT_PURCHASE_REQUEST = "supprimer demandes d'achat brouillon";
     const CREATE_PURCHASE_REQUESTS = "créer demandes d'achat";
+    const MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE = "planifier demandes d'achat";
     const EDIT_ONGOING_PURCHASE_REQUESTS = "modifier demandes d'achat à traiter et en cours";
     const DELETE_TREATED_PURCHASE_REQUESTS = "supprimer demandes d'achat traitées";
     const EDIT_DRAFT_PURCHASE_REQUEST = "modifier demandes d'achat brouillon";
@@ -88,6 +90,18 @@ class Action {
     const DISPLAY_TRANSPORT_SUBCONTRACT = 'afficher sous-traitance';
     const EDIT_TRANSPORT_SUBCONTRACT = 'modifier sous-traitance';
 
+    const DISPLAY_SHIPPING = 'afficher expédition';
+    const CREATE_SHIPPING = 'créer expédition';
+    const DISPLAY_SCHEDULE_BUTTON = 'afficher le bouton Planifier';
+    const DISPLAY_SHIP_BUTTON = 'afficher le bouton Expédier';
+    const EDIT_TO_TREAT_SHIPPING = 'modifier expédition en "A traiter"';
+    const EDIT_PLANIFIED_SHIPPING = 'modifier expédition en "Planifiée"';
+    const EDIT_SHIPPED_SHIPPING = 'modifier expédition en "Expédiée"';
+    const DELETE_TO_TREAT_SHIPPING = 'supprimer expédition en "A traiter"';
+    const DELETE_PLANIFIED_SHIPPING = 'supprimer expédition en "Planifiée"';
+    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "Expédiée"';
+    const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
+    const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
@@ -117,7 +131,9 @@ class Action {
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
     const DISPLAY_VEHICLE = 'afficher véhicule';
-    const DISPLAY_PACK_NATURE = 'afficher nature de colis';
+    const DISPLAY_PACK_NATURE = 'afficher nature d\'unité logistique';
+    const DISPLAY_PROJECTS = 'afficher projets';
+    const DISPLAY_CUSTOMER = 'afficher clients';
     // menu IOT
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
@@ -144,17 +160,21 @@ class Action {
     const SETTINGS_DISPLAY_TRUCK_ARRIVALS = 'afficher arrivages camion';
     const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
     const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services trace';
+    const SETTINGS_DISPLAY_BR_ASSOCIATION = 'afficher association BR';
 
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
     const SETTINGS_DISPLAY_TEMPERATURES = 'afficher températures';
+    const SETTINGS_DISPLAY_EMERGENCIES = 'afficher urgences';
 
 
     const SETTINGS_DISPLAY_MOBILE_DISPATCH = 'afficher acheminements mobile';
     const SETTINGS_DISPLAY_MOBILE_HAND = 'afficher services mobile';
     const SETTINGS_DISPLAY_TRANSFER_TO_TREAT = 'afficher transferts à traiter';
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
+    const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
+    const SETTINGS_DISPLAY_DELIVERIES = 'afficher livraisons';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
 
@@ -174,6 +194,7 @@ class Action {
 
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
+    const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
     // menu nomade
     const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
@@ -185,6 +206,7 @@ class Action {
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
+    const CREATE_ARTICLE_FROM_NOMADE = 'Accès création article RFID';
     const MODULE_ACCESS_TRUCK_ARRIVALS = 'Accès arrivages camion';
 
     #[ORM\Id]

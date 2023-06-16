@@ -1,55 +1,83 @@
+
+{% set preparation = livraison.preparation %}
+{% set demande = preparation.demande %}
+{% set titleLogo = preparation.pairings|length >= 1 ? 'pairing' : null %}
+{% set titleLogoTooltip = "Cette " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower ~ " est liée à un capteur" %}
+
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Ordre de livraison') %}
+{% block showTitle (trans('Ordre', 'Livraison', 'Ordre de livraison', false)) %}
 {% block showSubtitle ('n°' ~ livraison.numero) %}
 
 {% block showActions %}
-    <div class="btn-group">
-        {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
-            {% if not finished %}
-                {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')) %}
-                    <button
-                       data-id="22"
-                       id="delete-delivery-button"
-                       class="btn btn-primary split-button d-flex align-items-center"
-                       onclick="endLivraison($(this))">
-                        <span class="wii-icon wii-icon-check-white mr-2"></span>
-                        Finir la livraison
-                    </button>
-                {% endif %}
-            {% endif %}
-        {% endif %}
-        <button type="button"
-                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                data-toggle="dropdown"
-                aria-haspopup="true"
-                aria-expanded="false">
-            <span class="fa fa-angle-down"></span>
-        </button>
-        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-            {% if (livraison.preparation.pairings is not empty)
-                and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
-                <a class="dropdown-item"
-                   href="{{ path('show_data_history', {id: livraison.preparation.demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}) }}">
-                    <span class="wii-icon wii-icon-pairing"></span>
-                    Historique des données
-                </a>
-            {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')) %}
-                <a class="dropdown-item pointer d-flex align-items-center"
-                   onclick="askForDeleteDelivery()">
-                    <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                </a>
-            {% endif %}
-            {% if not livraison.preparation.demande.manual %}
-                <a href="{{ path('demande_show', {'id': demande.id}) }}" class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la demande de livraison
-                </a>
-                <a href="{{ path('preparation_show', {'id': preparation.id}) }}"
-                   class="dropdown-item">
-                    <i class="mr-2 fas fa-external-link-alt"></i>Retourner à la préparation
-                </a>
-            {% endif %}
-        </div>
-    </div>
+    {% set displayFileGeneretionButtons = preparation.articleLines|filter((line) => line.pack) is not empty %}
+
+    {% include 'utils/action-buttons/header-buttons.html.twig' with {
+        forceActionButton: true,
+        actions: [
+            {
+                hasRight: (
+                    livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER')
+                    and not finished
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))
+                ),
+                icon: "wii-icon wii-icon-check-white",
+                title: "Finir la " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower,
+                attributes: {
+                    "onclick": "endLivraison($(this))"
+                }
+            },
+            {
+                hasRight: displayFileGeneretionButtons,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Générer un bon de livraison",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "openDeliveryNoteModal($(this), true)",
+                },
+            },
+            {
+                hasRight: displayFileGeneretionButtons,
+                icon: "wii-icon wii-icon-printer-black",
+                title: "Générer une lettre de voiture",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "openWaybillModal($(this))",
+                },
+            },
+            {
+                hasRight: not demande.manual,
+                icon: "fas fa-external-link-alt",
+                title: "Retourner à la " ~ trans('Demande', 'Livraison', 'Demande de livraison', false) | lower,
+                dropdownOnly: true,
+                href: path('demande_show', {'id': demande.id}),
+            },
+            {
+                hasRight: not demande.manual,
+                icon: "fas fa-external-link-alt",
+                title: "Retourner à la préparation",
+                dropdownOnly: true,
+                href: path('preparation_show', {'id': preparation.id}),
+            },
+            {
+                hasRight: (
+                    preparation.pairings is not empty
+                    and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR'))
+                ),
+                icon: "wii-icon wii-icon-pairing",
+                title: "Historique des données",
+                dropdownOnly: true,
+                href: path('show_data_history', {id: demande.id, type: constant('App\\Entity\\IOT\\Sensor::DELIVERY_REQUEST')}),
+            },
+            {
+                hasRight: hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DELETE')),
+                icon: "wii-icon wii-icon-trash-black",
+                title: "Supprimer",
+                dropdownOnly: true,
+                attributes: {
+                    "onclick": "askForDeleteDelivery()",
+                },
+            },
+        ]
+    } %}
 {% endblock %}

@@ -46,7 +46,7 @@
                                 Livreur : <span class="bold">{{ transportRound.deliverer.username }}</span>
                             </div>
                         </div>
-                        <div class="content status-history-container">
+                        <div class="content history-container">
                             <div class="d-flex align-items-center justify-content-center">
                                 <div class="spinner-border text-primary" role="status"></div>
                                 <span class="ml-3">Génération de l'historique en cours</span>
@@ -115,10 +115,10 @@
                                     <span class="wii-field-name d-inline-flex">
                                         <img src="{{ asset('svg/rejected-pack.svg') }}"
                                              class="transport-status-icon mr-1"
-                                             alt="Colis écarté"
+                                             alt="UL écartée"
                                              width="15"
-                                             title="Colis écarté"/>
-                                            {{ nbRejectedPacks ?? 0}} colis écarté{{ s }}
+                                             title="UL écartée"/>
+                                            {{ nbRejectedPacks ?? 0}} unité{{ s }} logistique{{ s }} écartée{{ s }}
                                     </span>
                                 </div>
                                 <div class="col-6 d-flex flex-column">
@@ -127,9 +127,9 @@
                                         <img src="{{ asset('svg/rejected-delivery.svg') }}"
                                              class="transport-status-icon mr-1"
                                              width="15"
-                                             alt="Livraison rejetée"
-                                             title="Livraison rejetée"/>
-                                        {{ nbRejectedOrders ?? 0 }} livraison{{ s }} rejetée{{ s }}
+                                             alt="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"
+                                             title="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"/>
+                                        {{ nbRejectedOrders ?? 0 }} {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}{{ s }} rejetée{{ s }}
                                     </span>
                                 </div>
                             </div>

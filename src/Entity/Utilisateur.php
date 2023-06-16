@@ -30,14 +30,16 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     const DEFAULT_ARTICLE_VISIBLE_COLUMNS = ["actions", "label", "reference", "articleReference", "type", "quantity", "location"];
     const DEFAULT_REFERENCE_VISIBLE_COLUMNS = ["actions", "label", "reference", "type", "availableQuantity", "stockQuantity", "location"];
-    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["date", "numeroArrivage", "transporteur", "chauffeur", "noTracking", "NumeroCommandeList", "fournisseur", "destinataire", "acheteurs", "NbUM", "customs", "frozen", "Statut", "Utilisateur", "urgent", "actions"];
+    const DEFAULT_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "arrivalNumber", "type", "status", "provider", "carrier", "nbUm", "user"];
     const DEFAULT_DISPATCH_VISIBLE_COLUMNS = ["number", "creationDate", "validationDate", "treatmentDate", "type", "requester", "receiver", "locationFrom", "locationTo", "nbPacks", "status", "emergency", "actions"];
-    const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "colis", "reference", "label", "quantity", "location", "type", "operateur", "group"];
+    const DEFAULT_TRACKING_MOVEMENT_VISIBLE_COLUMNS = ["origin", "date", "pack", "reference", "label", "quantity", "location", "type", "operateur", "group"];
     const DEFAULT_DISPUTE_VISIBLE_COLUMNS = ["type", "arrivalNumber", "receptionNumber", "buyers", "numCommandeBl", "command", "provider", "references", "lastHistorique", "creationDate", "updateDate", "status", "actions"];
     const DEFAULT_RECEPTION_VISIBLE_COLUMNS = ["actions", "Date", "number", "dateAttendue", "DateFin", "orderNumber", "receiver", "Fournisseur", "Statut", "Commentaire", "deliveries", "storageLocation"];
     const DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS = ["actions", "pairing", "createdAt", "validatedAt", "requester", "number", "status", "type"];
     const DEFAULT_HANDLING_VISIBLE_COLUMNS = ["actions", "desiredDate", "creationDate", "requester", "validationDate", "number", "status", "type", "subject", "treatedBy", "emergency"];
+    const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
+    const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -49,6 +51,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'deliveryRequest' => self::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS,
         'handling' => self::DEFAULT_HANDLING_VISIBLE_COLUMNS,
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
+        'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
+        'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -200,7 +204,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private ?array $savedDispatchDeliveryNoteData = [];
 
     #[ORM\Column(type: 'json')]
+    private ?array $savedDeliveryDeliveryNoteData = [];
+
+    #[ORM\Column(type: 'json')]
     private ?array $savedDispatchWaybillData = [];
+
+    #[ORM\Column(type: 'json')]
+    private ?array $savedDeliveryWaybillData = [];
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $phone = null;
@@ -293,6 +303,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
+
     public function __construct() {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
@@ -332,7 +343,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
-        $this->vehicles = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1950,6 +1960,24 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
+    public function getSavedDeliveryOrderDeliveryNoteData(): array {
+        return $this->savedDeliveryDeliveryNoteData ?? [];
+    }
+
+    public function setSavedDeliveryOrderDeliveryNoteData(array $savedDeliveryOrderDeliveryNoteData): self {
+        $this->savedDeliveryDeliveryNoteData = $savedDeliveryOrderDeliveryNoteData;
+        return $this;
+    }
+
+    public function getSavedDeliveryWaybillData(): array {
+        return $this->savedDeliveryWaybillData ?? [];
+    }
+
+    public function setSavedDeliveryWaybillData(array $savedDeliveryWaybillData): self {
+        $this->savedDeliveryWaybillData = $savedDeliveryWaybillData;
+        return $this;
+    }
+
     public function getSignatoryPassword(): ?string {
         return $this->signatoryPassword;
     }
@@ -1958,4 +1986,5 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->signatoryPassword = $signatoryPassword;
         return $this;
     }
+
 }

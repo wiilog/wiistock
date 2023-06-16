@@ -1,7 +1,11 @@
+{% import 'form.html.twig' as form %}
+
+{% set disableQuantity = pack.childArticles is not empty %}
+
 <form>
     <div class="row">
-        <div class="form-group col-12">
-            <label class="wii-field-name" title="Numéro colis">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
+        <div class="form-group col-md-6 col-12">
+            <label class="wii-field-name" style="margin-bottom:5px" title="Numéro UL">{{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Numéro d\'UL') }}</label>
             <input type="text"
                    class="form-control"
                    value="{{ pack.code }}"
@@ -9,7 +13,7 @@
                    disabled/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', "Nature") }}*</label>
+            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Général', "Nature") }}*</label>
             <select class="form-control data needed"
                     name="nature"
                     title="{{ trans('Traçabilité', 'Général', "Nature", false) }}">
@@ -21,24 +25,34 @@
             </select>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Quantité') }}</label>
+            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Général', 'Quantité') }}</label>
             <input type="number"
                    class="form-control data needed"
                    value="{{ pack.quantity }}"
                    name="quantity"
                    min="1"
                    step="1"
-                   title="{{ trans('Traçabilité', 'Général', 'Quantité', false) }}"/>
+                   title="{{ trans('Traçabilité', 'Général', 'Quantité', false) }}"
+                   {{ disableQuantity ? 'disabled' }}/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)') }}</label>
+            {{ form.select('projects', trans('Référentiel', 'Projet', "Projet", false), false, {
+                items: projects,
+                placeholder: 'Sélectionnez un ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower),
+                emptyOption: {text: '', value: ''},
+                disabled: disabledProject,
+                tooltip: disabledProject ? 'Le ' ~ (trans('Référentiel', 'Projet', "Projet", false) | lower) ~ ' ne peut pas être modifié car l\'unité logistique est dans une réception en cours, une ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower ~ ' en cours ou un panier' : null
+            }) }}
+        </div>
+        <div class="form-group col-md-6 col-12">
+            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)') }}</label>
             <input class="form-control data"
                    value="{{ pack.weight }}"
                    name="weight"
                    title="{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Poids (kg)', false) }}"/>
         </div>
         <div class="form-group col-md-6 col-12">
-            <label class="wii-field-name">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Volume (m3)') }}</label>
+            <label class="wii-field-name" style="margin-bottom:5px">{{ trans('Traçabilité', 'Unités logistiques', 'Divers', 'Volume (m3)') }}</label>
             <input class="form-control data"
                    value="{{ pack.volume }}"
                    name="volume"
@@ -58,6 +72,12 @@
                 {{ trans('Traçabilité', 'Unités logistiques', 'Onglet "Unités logistiques"', 'Historique de groupage') }}
             </div>
             <table id="groupHistoryTable" class="table w-100"></table>
+        </div>
+        <div class="col-12 mt-3">
+            <div class="wii-section-title my-3 d-flex align-items-center">
+                {{ trans('Référentiel', 'Projet', "Projet", false) ~ 's' }} assignés
+            </div>
+            <table id="projectHistoryTable" class="table w-100"></table>
         </div>
     </div>
 </form>

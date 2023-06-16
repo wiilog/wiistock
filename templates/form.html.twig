@@ -67,7 +67,7 @@
             {{ attribute.name }}="{{ attribute.value ?? '' }}"
         {% endfor %}
         data-name="{{ name }}"
-        data-title="{{ label | striptags }}{{ required ? '*' }}">
+        data-title="{{ label is not iterable ? label | striptags : label.text | striptags }}{{ required ? '*' }}">
         {% for switch in switches %}
             {% set id = random(100000, 10000000) %}
             {% set disabled = switch.disabled ?? false %}
@@ -106,9 +106,8 @@
     {% set id = options.id ?? ('checkbox-' ~ random(100000, 10000000)) %}
     {% set checkboxClass = isSlider ? 'switch' : 'wii-checkbox' %}
     {% set containerTag = isSlider ? 'label' : 'div' %}
-    <{{ containerTag }} class="{{ checkboxClass }}
-    data-name="{{ name }}"
-    {{ options.containerClass ?? '' }}">
+    <{{ containerTag }} class="{{ checkboxClass }} {{ options.containerClass ?? '' }}"
+    data-name="{{ name }}">
     <input type="checkbox"
            id="{{ id }}"
            class="checkbox data {{ options.inputClass ?? '' }}"
@@ -151,7 +150,7 @@
                     {{ (item.disabled ?? false) ? 'disabled' }}
                     {{ (item.checked ?? false) ? 'checked' }} />
 
-                <label class="{{ options.labelClass ?? '' }} pointer d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
+                <label class="{{ options.labelClass ?? '' }} d-inline-flex align-items-center" for="radio-{{ id }}-{{ item.id ?? '' }}">
                     {% if item.iconUrl ?? false %}
                         <img src="{{ item.iconUrl }}" alt="" width="20px" class="mr-2 {{ options.iconClass }}">
                     {% endif %}
@@ -193,6 +192,7 @@
                                 {% if options.autoSelect ?? false %}data-auto-select{% endif %}
                                 {% if options.placeholder is defined %}data-placeholder="{{ options.placeholder }}"{% endif %}
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
+                                {% if options.includeParamsParent is defined %}data-include-params-parent="{{ options.includeParamsParent }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
                             {% endif %}
                             {% if options.keepOpen is defined %}data-keep-open{% endif %}
@@ -211,7 +211,7 @@
                         {% endif %}
 
                         {% set definedItems = options.items ?? [] %}
-                        {% set items = (definedItems is iterable) ? definedItems : [definedItems] %}
+                        {% set items = definedItems is iterable ? definedItems : [definedItems] %}
 
                         {% for value, text in items|filter((item) => item) %}
                             {% if text.value is defined and text.label is defined %}
@@ -240,14 +240,39 @@
     </label>
 {% endmacro %}
 
+{% macro hidden(name, value, options = {}) %}
+    {% set dataInput = options.data ?? true %}
+    {% set noClear = options.noClear ?? false %}
+    <input type="hidden"
+           class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ options.inputClass ?? '' }}"
+           value="{{ value }}"
+           {% for attribute in options.additionalAttributes ?? [] %}
+               {{ attribute.name }}="{{ attribute.value ?? '' }}"
+           {% endfor %}
+           {{ _self.common_attributes(name, options) }}
+           {{ _self.multiple_key(options) }}>
+{% endmacro %}
+
 {% macro input(name, label, required, value = '', options = {}) %}
     {% set inline = options.inline ?? false %}
+    {% set dataInput = options.data ?? true %}
+    {% set noClear = options.noClear ?? false %}
+    {% set type = options.type ?? 'text' %}
+    {% set labelWrap = (options.isLabelFree is not defined or options.isLabelFree is not same as(true)) or inline %}
 
+    {% if type == 'fax' %}
+        {% set type = 'tel' %}
+        {% set fax = true %}
+    {% endif %}
+
+    {% if labelWrap %}
     <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {{ _self.tooltip(options.tooltip ?? null, inline) }}
-        <input type="{{ options.type ?? 'text' }}"
-               class="form-control {{ options.width ?? 'w-100' }}  data {{ options.inputClass ?? '' }}  {{ options.noClear is defined and options.noClear ? 'no-clear' }} {{ required ? 'needed' }}"
+        <input type="{{ type }}"
+               {{ fax ?? false ? 'data-fax' }}
+               class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
                value="{{ value }}"
                placeholder="{{ options.placeholder ?? '' }}"
                {% if options.autocompleteOff is defined and options.autocompleteOff %}
@@ -258,7 +283,9 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
+    {% if labelWrap %}
     </label>
+    {% endif %}
 {% endmacro %}
 
 {% macro color(name, label, required, value = '', options = {}) %}
@@ -410,3 +437,38 @@
         {% endfor %}
     </label>
 {% endmacro %}
+
+{% set macroName = macroName ?? null %}
+{% set macroParams = macroParams ?? null %}
+
+{% if macroName and macroParams %}
+    {# Ability to call an macro dynamicly is not implemented in Twig yet. #}
+    {# See https://github.com/twigphp/Twig/issues/922#issuecomment-11133299 #}
+    {# So i do basic elseif   #}
+    {% if macroName == 'label' %}
+        {{ _self.label(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null) }}
+    {% elseif macroName == 'switch' %}
+        {{ _self.switch(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'checkbox' %}
+        {{ _self.checkbox(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'radio' %}
+        {{ _self.radio(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'select' %}
+        {{ _self.select(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'input' %}
+        {{ _self.input(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'hidden' %}
+        {{ _self.hidden(macroParams[0] ?? null, macroParams[1] ?? null, macroParams[2] ?? null) }}
+    {% elseif macroName == 'color' %}
+        {{ _self.color(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'textarea' %}
+        {{ _self.textarea(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'wysiwyg' %}
+        {{ _self.wysiwyg(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'image' %}
+        {{ _self.image(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
+    {% elseif macroName == 'lang' %}
+        {{ _self.lang(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
+    {% endif %}
+{% endif %}
+

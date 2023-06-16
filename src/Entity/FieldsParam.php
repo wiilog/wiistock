@@ -10,6 +10,9 @@ class FieldsParam {
 
     const MODAL_TYPE_FREE = 'FREE';
     const MODAL_TYPE_USER = 'USER_BY_TYPE';
+    const MODAL_RECEIVER = 'RECEIVER';
+    const MODAL_TYPE = 'TYPE';
+    const MODAL_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
 
     const ENTITY_CODE_RECEPTION = 'réception';
 
@@ -60,6 +63,7 @@ class FieldsParam {
     const FIELD_CODE_ARRIVAL_STATUS = 'arrivalStatus'; // not in settings table
     const FIELD_CODE_ARRIVAL_DATE = 'arrivalDate'; // not in settings table
     const FIELD_CODE_ARRIVAL_CREATOR = 'arrivalCreator'; // not in settings table
+    const FIELD_CODE_PROJECT = 'project';
 
     const FIELD_LABEL_PROVIDER_ARRIVAGE = 'fournisseur';
     const FIELD_LABEL_CARRIER_ARRIVAGE = 'transporteur';
@@ -82,6 +86,7 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_STATUS = 'Statut'; // not in settings table
     const FIELD_LABEL_ARRIVAL_DATE = 'Date'; // not in settings table
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
+    const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrivals';
     const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'carrier';
@@ -131,17 +136,68 @@ class FieldsParam {
     const FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT = 'nombre d\'opération(s) réalisée(s)';
     const FIELD_LABEL_RECEIVERS_HANDLING = 'destinataires';
 
+    const ENTITY_CODE_ARTICLE = 'articles';
+    const FIELD_LABEL_ARTICLE_UNIT_PRICE = 'prix unitaire';
+    const FIELD_LABEL_ARTICLE_BATCH = 'lot';
+    const FIELD_LABEL_ARTICLE_ANOMALY = 'anomalie';
+    const FIELD_LABEL_ARTICLE_EXPIRY_DATE = 'date de péremption';
+    const FIELD_LABEL_ARTICLE_COMMENT = 'commentaire';
+    const FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE = 'ligne bon de livraison';
+    const FIELD_LABEL_ARTICLE_MANUFACTURE_DATE = 'date de fabrication';
+    const FIELD_LABEL_ARTICLE_PRODUCTION_DATE = 'date de production';
+    const FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE = "ligne commande d'achat";
+    const FIELD_LABEL_ARTICLE_NATIVE_COUNTRY = "pays d'origine";
+
+    const FIELD_CODE_ARTICLE_UNIT_PRICE = 'unitPrice';
+    const FIELD_CODE_ARTICLE_BATCH = 'batch';
+    const FIELD_CODE_ARTICLE_ANOMALY = 'anomaly';
+    const FIELD_CODE_ARTICLE_EXPIRY_DATE = 'expiryDate';
+    const FIELD_CODE_ARTICLE_COMMENT = 'comment';
+    const FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE = 'deliveryNoteLine';
+    const FIELD_CODE_ARTICLE_MANUFACTURE_DATE = 'manufactureDate';
+    const FIELD_CODE_ARTICLE_PRODUCTION_DATE = 'productionDate';
+    const FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE = "purchaseOrderLine";
+    const FIELD_CODE_ARTICLE_NATIVE_COUNTRY = "nativeCountry";
 
     const ENTITY_CODE_DEMANDE = 'demande';
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
+    const FIELD_CODE_RECEIVER_DEMANDE = 'receivers';
+    const FIELD_LABEL_RECEIVER_DEMANDE = 'destinataire';
+    const FIELD_CODE_TYPE_DEMANDE = 'type';
+    const FIELD_LABEL_TYPE_DEMANDE = 'type';
+    const FIELD_CODE_DESTINATION_DEMANDE = 'destinationDemande';
+    const FIELD_LABEL_DESTINATION_DEMANDE = 'destination';
+    const FIELD_CODE_DELIVERY_REQUEST_PROJECT = 'deliveryRequestProject';
+    const FIELD_LABEL_DELIVERY_REQUEST_PROJECT = 'projet';
+
+    const ENTITY_CODE_EMERGENCY = "urgence";
+    const FIELD_CODE_EMERGENCY_BUYER = "buyer";
+    const FIELD_CODE_EMERGENCY_PROVIDER = "provider";
+    const FIELD_CODE_EMERGENCY_COMMAND_NUMBER = "commandNumber";
+    const FIELD_CODE_EMERGENCY_POST_NUMBER= "postNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER = "emergencyCarrier";
+    const FIELD_CODE_EMERGENCY_TYPE = "emergencyType";
+
+    const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
+    const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";
+    const FIELD_LABEL_EMERGENCY_COMMAND_NUMBER = "numéro de commande";
+    const FIELD_LABEL_EMERGENCY_POST_NUMBER= "numéro de poste";
+    const FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER = "numéro de tracking transporteur";
+    const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
+    const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
     ];
 
     public const FILTER_ONLY_FIELDS = [
+        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -153,6 +209,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
         FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
+        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
 
@@ -173,11 +230,21 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+
+        // Livraison
+        FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT
+    ];
+
+    public const NOT_EDITABLE_FIELDS = [
+        // Arrivages
+        FieldsParam::FIELD_CODE_PROJECT
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     #[ORM\Id]
@@ -336,9 +403,10 @@ class FieldsParam {
         return $this->modalType;
     }
 
-    public function setModalType(?string $modalType): void
+    public function setModalType(?string $modalType): self
     {
         $this->modalType = $modalType;
-    }
 
+        return $this;
+    }
 }

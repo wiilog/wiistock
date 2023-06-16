@@ -1,0 +1,23 @@
+<div class="modal fade" id="modalAddLocationAndZoneToMission" role="dialog" aria-hidden="true">
+    <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter une mission - Type article sur emplacement"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                <input type="hidden" class="data" value="{{ missionId }}" name="missionId">
+                <div class="raw no-gutters">
+                    {% include 'inventaire/formAddInventoryLocations.html.twig'  %}
+                </div>
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

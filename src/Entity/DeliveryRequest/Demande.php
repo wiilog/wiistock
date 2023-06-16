@@ -9,9 +9,12 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\Livraison;
+use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Entity\Type;
@@ -21,6 +24,7 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -35,6 +39,8 @@ class Demande implements PairedEntity {
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVRE = 'livré';
     const STATUT_LIVRE_INCOMPLETE = 'livré partiellement';
+    const VISIBLE_COLUMNS_SHOW_FIELD = 'deliveryRequestShow';
+const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
     use CleanedCommentTrait;
     use SensorMessageTrait;
     use FreeFieldsManagerTrait;
@@ -77,6 +83,9 @@ class Demande implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'demandes')]
     private ?Reception $reception = null;
 
+    #[ORM\ManyToOne(targetEntity: Project::class)]
+    private ?Project $project = null;
+
     #[ORM\ManyToOne(targetEntity: SensorWrapper::class)]
     private ?SensorWrapper $triggeringSensorWrapper = null;
 
@@ -89,10 +98,24 @@ class Demande implements PairedEntity {
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $manual = false;
 
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    private ?Utilisateur $receiver = null;
+
+    #[ORM\OneToMany(mappedBy: 'deliveryRequest', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
+
+    #[ORM\OneToMany(mappedBy: 'deliveryRequest', targetEntity: MouvementStock::class)]
+    private Collection $stockMovements;
+
+    #[ORM\Column(type: Types::JSON , nullable: true)]
+    private ?array $visibleColumns;
+
     public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
         $this->articleLines = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
+        $this->stockMovements = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -180,11 +203,9 @@ class Demande implements PairedEntity {
      * @return Livraison[]|Collection
      */
     public function getLivraisons(): Collection {
-        return $this->getPreparations()->map(function(Preparation $preparation) {
-            return $preparation->getLivraison();
-        })->filter(function(?Livraison $livraison) {
-            return isset($livraison);
-        });
+        return $this->getPreparations()
+            ->map(fn(Preparation $preparation) => $preparation->getLivraison())
+            ->filter(fn(?Livraison $livraison) => isset($livraison));
     }
 
     public function getStatut(): ?Statut {
@@ -315,6 +336,16 @@ class Demande implements PairedEntity {
         return $this;
     }
 
+    public function getProject(): ?Project {
+        return $this->project;
+    }
+
+    public function setProject(?Project $project): self {
+        $this->project = $project;
+
+        return $this;
+    }
+
     public function needsToBeProcessed(): bool {
         $demandeStatus = $this->getStatut();
         return (
@@ -367,6 +398,82 @@ class Demande implements PairedEntity {
 
     public function setManual(bool $manual): self {
         $this->manual = $manual;
+        return $this;
+    }
+
+    public function getReceiver(): ?Utilisateur {
+        return $this->receiver;
+    }
+
+    public function setReceiver(?Utilisateur $receiver): self {
+        $this->receiver = $receiver;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setDeliveryRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getDeliveryRequest() === $this) {
+                $trackingMovement->setDeliveryRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getStockMovements(): Collection {
+        return $this->stockMovements;
+    }
+
+    public function addStockMovement(MouvementStock $stockMovement): self {
+        if(!$this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements[] = $stockMovement;
+            $stockMovement->setDeliveryRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockMovement(MouvementStock $stockMovement): self {
+        if($this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements->removeElement($stockMovement);
+            // set the owning side to null (unless already changed)
+            if($stockMovement->getDeliveryRequest() === $this) {
+                $stockMovement->setDeliveryRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getVisibleColumns(): ?array {
+        return $this->visibleColumns;
+    }
+
+    public function setVisibleColumns(?array $visibleColumns): self {
+        $this->visibleColumns = $visibleColumns;
+
         return $this;
     }
 }

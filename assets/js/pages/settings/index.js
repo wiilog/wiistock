@@ -13,7 +13,7 @@ import {
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
     initializeIotFreeFields,
-    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage,
+    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage, createDeliveryRequestFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -28,12 +28,17 @@ import {onHeaderPageEditStop} from "./utils";
 import Form from '../../form';
 import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import AJAX, {GET, POST} from "@app/ajax";
+import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
+import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
 global.addTypeRow = addTypeRow;
 global.removeTypeRow = removeTypeRow;
 global.deleteTemplate = deleteTemplate;
+global.changeSettingsAssoBR = changeSettingsAssoBR;
+global.changeReceiverInput = changeReceiverInput;
+global.changeDisplayRefArticleTable = changeDisplayRefArticleTable;
 
 const index = JSON.parse($(`input#settings`).val());
 let category = $(`input#category`).val();
@@ -53,7 +58,8 @@ const initializers = {
     global_etiquettes: initializeGlobalLabels,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
-    stock_demandes_types_champs_libres_livraisons: createFreeFieldsPage,
+    stock_articles_champs_fixes: initializeArticleFixedFields,
+    stock_demandes_types_champs_libres_livraisons: createDeliveryRequestFieldsPage,
     stock_demandes_types_champs_libres_collectes: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_livraisons: createFreeFieldsPage,
     track_demande_transport_types_champs_libres_collectes: createFreeFieldsPage,
@@ -73,10 +79,9 @@ const initializers = {
     trace_acheminements_champs_fixes: initializeDispatchFixedFields,
     trace_arrivages_champs_fixes: initializeArrivalFixedFields,
     trace_services_champs_fixes: initializeHandlingFixedFields,
-    stock_demandes_livraisons: initializeDeliveries,
     stock_inventaires_frequences: initializeInventoryFrequenciesTable,
     stock_inventaires_categories: initializeInventoryCategoriesTable,
-    stock_inventaires_missions: initializeInventoryMissionsTable,
+    stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
     stock_borne_tactile: initializeTouchTerminal,
     utilisateurs_utilisateurs: initUserPage,
@@ -91,11 +96,15 @@ const initializers = {
     stock_demandes_statuts_achats: initializePurchaseRequestStatuses,
     stock_demandes_modeles_demande_livraisons: initializeRequestTemplates,
     stock_demandes_modeles_demande_collectes: initializeRequestTemplates,
+    stock_demandes_planification_achats: initializePurchaseRequestPlanner,
     track_tournees: initializeTransportRound,
     modeles_livraison_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_lettre_de_voiture: initializeDeliveryWaybillTemplate,
     modeles_acheminement_compte_rendu: initializeDeliveryWaybillTemplate,
-    trace_arrivages_camion_champs_fixes : initializeTruckArrivalFixedFields,
+    modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
+    stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
+    trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
+    trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
 };
 
 const saveCallbacks = {
@@ -259,8 +268,13 @@ $(function() {
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field}).json(data);
-            $modal.modal(`hide`);
+            AJAX.route(`POST`, `settings_save_field_param`, {field})
+                .json(data)
+                .then((response) => {
+                    if(response.success){
+                        $modal.modal(`hide`);
+                    }
+                });
         }
     });
 
@@ -444,6 +458,62 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
+
+    const $typeOptions = JSON.parse($(`#type_options`).val());
+    const $natureOptions = JSON.parse($(`#nature_options`).val());
+
+    const table = EditableDatatable.create(`#tagTemplateTable`, {
+        route: Routing.generate('settings_tag_template_api', true),
+        deleteRoute: `settings_delete_tag_template`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paginate: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `prefix`, title: `Préfixe`, required: true},
+            {data: `barcodeType`, title: `Type d'étiquette`, required: true},
+            {data: `height`, title: `Hauteur (mm)`, required: true},
+            {data: `width`, title: `Largeur (mm)`, required: true},
+            {data: `module`, title: `Brique`, required: true},
+            {data: `natureOrType`, title: `Nature(s) / Type(s)`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            prefix: `<input type='text' name='prefix' class='form-control data needed' data-global-error='Préfixe'/>`,
+            barcodeType: () => {
+                const elements = [{label: 'Code 128', value: '1', checked: false}, {label: 'QR Code', value: '0', checked: true}]
+                    .map(({label, value, checked}) => {
+                        const id = 'barcodeType-' + Math.floor(Math.random() * 1000000);
+                        return `
+                            <input type='radio' id='${id}' name='barcodeType' class='form-control data d-none' value='${value}' ${checked ? 'checked' : ''} content='${label}'>
+                            <label for="${id}">${label}</label>
+                        `;
+                    })
+                    .join('');
+                return `<form><div class='wii-switch needed' data-title="Type d'étiquette" data-name="barcodeType">${elements}</div></form>`;
+            },
+            height: `<input type='number' name='height' class='form-control data needed' data-global-error='Hauteur'/>`,
+            width: `<input type='number' name='width' class='form-control data needed' data-global-error='Largeur'/>`,
+            module: `<select name='module' class='form-control data needed' data-global-error='Brique'>
+                        <option value='arrivage' selected>Arrivage</option>
+                        <option value='article'>Article</option>
+                    </select>`,
+            natureOrType: `<select name='natureOrType' multiple data-s2="natureOrTypeSelect" data-include-params-parent="tr" data-include-params='select[name=module]' class='form-control data needed' data-global-error='Nature(s) / Type(s)'>`+$typeOptions+`</select>`,
+        },
+    });
+
+    $(window).on('resize', function () {
+        table.table.columns.adjust();
+    });
 }
 
 function initializeStockArticlesLabels($container) {
@@ -541,11 +611,59 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+
+    EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `demandeRefArticle`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`, width: `115px`},
+            {data: `displayed`, title: `Afficher`, width: `70px`},
+            {data: `displayedUnderCondition`, title: `Afficher sous condition`, width: `50px`},
+            {data: `conditionFixedField`, title: `Champ fixe`,  width: `150px`},
+            {data: `conditionFixedFieldValue`, title: `Valeur`,  width: `220px`},
+            {data: `required`, title: `Obligatoire`},
+        ],
+    });
+
+    initializeLocationByTypeForDeliveries();
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-dispatch-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function initializeArticleFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-article-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `articles`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
@@ -617,7 +735,7 @@ function initializeHandlingFixedFields($container, canEdit) {
     initializeType();
 }
 
-function initializeDeliveries() {
+function initializeLocationByTypeForDeliveries() {
     initDeliveryRequestDefaultLocations();
     $('.new-type-association-button').on('click', function () {
         newTypeAssociation($(this));
@@ -659,7 +777,8 @@ function initDeliveryRequestDefaultLocations() {
 }
 
 function newTypeAssociation($button, type = undefined, location = undefined, firstLoad = false) {
-    const $settingTypeAssociation = $(`.setting-type-association`);
+    const $modal = $('#modal-fixed-field-destinationdemande');
+    const $settingTypeAssociation = $modal.find(`.setting-type-association`);
     const $typeTemplate = $(`#type-template`);
 
     let allFilledSelect = true;
@@ -784,61 +903,6 @@ function initializeInventoryCategoriesTable(){
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             label: `<input type='text' name='label' class='form-control data needed'  data-global-error="Libellé"/>`,
             frequency: `<select name='frequency' class='form-control data needed' data-global-error="Fréquence">`+$frequencyOptions+`</select>`,
-        },
-    });
-}
-
-function initializeInventoryMissionsTable($container){
-    $container.on(`click`, `.force-missions`, function() {
-        AJAX.route(`POST`, `settings_mission_rules_force`)
-            .json()
-            .then(() => Flash.add(`success`, `Les missions d'inventaire ont été générées`));
-    });
-
-    const table = EditableDatatable.create(`#missionRulesTable`, {
-        route: Routing.generate('settings_mission_rules_api', true),
-        deleteRoute: `settings_delete_mission_rule`,
-        mode: MODE_CLICK_EDIT_AND_ADD,
-        save: SAVE_MANUALLY,
-        search: false,
-        paginate: false,
-        scrollY: false,
-        scrollX: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: `label`, title: `Libellé`, required: true},
-            {data: `categories`, title: `Catégorie(s)`, required: true},
-            {data: `periodicity`, title: `Périodicité`, required: true},
-            {data: `duration`, title: `Durée`, required: true},
-        ],
-        form: {
-            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
-            label: `<input type='text' name='label' class='form-control data needed' data-global-error='Libellé'/>`,
-            categories: `<select name='categories' class='form-control data needed' data-s2='inventoryCategories' multiple data-parent='body' data-global-error='Catégorie(s)'></select>`,
-            periodicity: `
-                <div class='d-flex'>
-                    <input type='text' name='periodicity' class='form-control data needed mr-1 w-50px' data-global-error='Périodicité'/>
-                    <select name='periodicityUnit' class='form-control data needed maxw-150px' data-global-error='Unité de periodicité'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
-            duration: `
-                <div class='d-flex'>
-                    <input type='text' name='duration' class='form-control data needed mr-1 w-50px' data-global-error='Durée'/>
-                    <select name='durationUnit' class='form-control data needed maxw-150px' data-global-error='Unité de durée'>
-                        <option value='weeks'>semaine(s)</option>
-                        <option value='months'>mois(s)</option>
-                    </select>
-                </div>
-            `,
         },
     });
 }
@@ -1156,4 +1220,110 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
         ],
     });
     initializeType();
+}
+
+function initializeArticleNativeCountriesTable() {
+    const table = EditableDatatable.create(`#nativeCountriesTable`, {
+        route: Routing.generate('settings_native_countries_api', true),
+        deleteRoute: `settings_delete_native_country`,
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: 'code', title: 'Code', required: true},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `active`, title: `Actif`, required: true},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            code: `<input type='text' name='code' class='form-control data needed' data-global-error="Code"/>`,
+            label: `<input type='text' name='label' class='form-control data needed' data-global-error="Libellé"/>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+        },
+    });
+}
+
+function changeSettingsAssoBR($checkbox) {
+    const check = $checkbox.is(':checked');
+    if (!check) {
+        $checkbox.parent('.wii-checkbox').next().addClass('d-none');
+        $checkbox.parent('.wii-checkbox').next().find('select').val(null).change();
+    } else {
+        $checkbox.parent('.wii-checkbox').next().removeClass('d-none');
+    }
+}
+
+function initializeEmergenciesFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-emergencies-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `urgence`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
+function changeDisplayRefArticleTable($checkbox) {
+    const check = $checkbox.is(':checked');
+    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
+    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
+    const $required = $checkbox.closest('tr').find('input[name=required]');
+    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
+    if (!check) {
+        if ($checkbox[0].name === "displayed") {
+            $displayedUnderCondition.attr('disabled', true);
+            $required.attr('disabled', true);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.addClass("d-none");
+                $conditionFixedFieldValueDiv.addClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.addClass("d-none");
+            $conditionFixedFieldValueDiv.addClass("d-none");
+        }
+    } else {
+        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
+            $displayedUnderCondition.attr('disabled', false);
+            $required.attr('disabled', false);
+            if ($displayedUnderCondition.is(':checked')) {
+                $conditionFixedField.removeClass("d-none");
+                $conditionFixedFieldValueDiv.removeClass("d-none");
+            }
+        } else if ($checkbox[0].name === "displayedUnderCondition") {
+            $conditionFixedField.removeClass("d-none");
+            $conditionFixedFieldValueDiv.removeClass("d-none");
+        }
+    }
+}
+
+function changeReceiverInput($checkbox) {
+    const isChecked = $checkbox.is(':checked');
+    const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
+
+    $inputReceiver.attr('disabled', isChecked);
 }

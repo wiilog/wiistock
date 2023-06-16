@@ -3,15 +3,20 @@
 namespace App\Repository\Inventory;
 
 use App\Entity\Article;
+use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method InventoryMission|null find($id, $lockMode = null, $lockVersion = null)
@@ -24,7 +29,9 @@ class InventoryMissionRepository extends EntityRepository {
     const DtToDbLabels = [
         'start' => 'startPrevDate',
         'end' => 'endPrevDate',
-        'name' => 'name'
+        'name' => 'name',
+        'requester' => 'requester',
+        'type' => 'type',
     ];
 
     public function getCurrentMissionRefNotTreated(): mixed {
@@ -40,6 +47,8 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('refArticle.reference AS reference')
             ->addSelect('emplacement.label AS location')
             ->addSelect('1 AS is_ref')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('inventoryEntry.id AS ieid')
             ->addSelect('refArticle.barCode AS barCode')
             ->join('inventoryMission.refArticles', 'refArticle')
@@ -70,12 +79,19 @@ class InventoryMissionRepository extends EntityRepository {
             ->addSelect('inventoryMission.name AS mission_name')
             ->addSelect('referenceArticle.reference AS reference')
             ->addSelect('article.barCode AS barCode')
+            ->addSelect('current_logistic_unit.code as logistic_unit_code')
+            ->addSelect('current_logistic_unit.id as logistic_unit_id')
+            ->addSelect('nature.label as logistic_unit_nature')
             ->addSelect('emplacement.label AS location')
+            ->addSelect('inventoryMission.done AS done')
+            ->addSelect('inventoryMission.type AS type')
             ->addSelect('0 AS is_ref')
             ->addSelect('inventoryMission.id AS ied')
             ->join('inventoryMission.articles', 'article')
             ->join('article.emplacement', 'emplacement')
             ->join('article.articleFournisseur', 'articleFournisseur')
+            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit')
+            ->leftJoin('current_logistic_unit.nature', 'nature')
             ->join('articleFournisseur.referenceArticle', 'referenceArticle')
             ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
             ->where($exprBuilder->andX(
@@ -212,7 +228,15 @@ class InventoryMissionRepository extends EntityRepository {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->andWhere('
+                            a.label LIKE :value
+                            OR a.reference LIKE :value
+                            OR a.barCode LIKE :value
+                            OR join_emplacement.label LIKE :value
+                            OR join_logisticUnit.code LIKE :value
+                        ')
+                        ->leftJoin('a.emplacement', 'join_emplacement')
+                        ->leftJoin('a.currentLogisticUnit', 'join_logisticUnit')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = QueryBuilderHelper::count($qb, 'a');
@@ -268,6 +292,15 @@ class InventoryMissionRepository extends EntityRepository {
                         ->andWhere('im.startPrevDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
+                case 'multipleTypes':
+                    $types = explode(',', $filter['value']);
+                    $types = Stream::from($types)
+                        ->map(fn(string $type) => strtok($type, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere('im.type IN (:type_filter)')
+                        ->setParameter('type_filter', $types);
+                    break;
             }
         }
 
@@ -276,7 +309,13 @@ class InventoryMissionRepository extends EntityRepository {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
-                    $qb->orderBy('im.' . $column, $order);
+                    if ($column === 'requester') {
+                        $qb
+                            ->leftJoin('im.requester', 'order_requester')
+                            ->orderBy('order_requester.username', $order);
+                    } else {
+                        $qb->orderBy('im.' . $column, $order);
+                    }
                 }
             }
         }
@@ -351,4 +390,27 @@ class InventoryMissionRepository extends EntityRepository {
             ->setParameter('endDate', $endDate);
     }
 
+    public function getInventoryMissions(): mixed {
+        $now = new DateTime('now');
+
+        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+        $exprBuilder = $queryBuilder->expr();
+
+        $queryBuilder
+            ->select('inventoryMission.id AS id')
+            ->addSelect('inventoryMission.startPrevDate AS mission_start')
+            ->addSelect('inventoryMission.endPrevDate AS mission_end')
+            ->addSelect('inventoryMission.name AS mission_name')
+            ->addSelect('inventoryMission.type AS type')
+            ->where($exprBuilder->andX(
+                'inventoryMission.startPrevDate <= :now',
+                'inventoryMission.endPrevDate >= :now',
+                'inventoryMission.done IS NULL OR inventoryMission.done = 0'
+            ))
+            ->setParameter('now', $now->format('Y-m-d'));
+
+        return $queryBuilder
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

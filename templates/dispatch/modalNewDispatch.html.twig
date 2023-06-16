@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Demande d\'acheminement')
+                title: trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Demande d\'acheminement')
             } %}
 
             <div class="modal-body modal-input container-fluid">
@@ -14,7 +14,7 @@
                                 <label class="wii-field-text pointer">
                                     <div class="wii-radio">
                                         <input type="radio" class="no-clear data" name="existingOrNot" value="0" checked>
-                                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Créer une nouvelle demande') }}
+                                        {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Créer une nouvelle demande') }}
                                     </div>
                                 </label>
                             </div>
@@ -22,20 +22,20 @@
                                 <label class="wii-field-text pointer">
                                     <div class="wii-radio">
                                         <input type="radio" class="no-clear data" name="existingOrNot" value="1">
-                                        {{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Ajouter à une demande existante') }}
+                                        {{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Ajouter à une demande existante') }}
                                     </div>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <div class="wii-section-title">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Ma demande d\'acheminement') }}</div>
+                    <div class="wii-section-title">{{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Ma demande d\'acheminement') }}</div>
 
                     <div class="row existing-dispatch mt-3 d-none">
                         <div class="col-12 form-group">
-                            <label class="wii-field-name">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Mes demandes') }}</label>
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Mes demandes') }}</label>
                             <select class="w-100 data no-clear" name="existingDispatch" data-s2
-                                    data-placeholder="{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Sélectionnez  un acheminement') }}">
+                                    data-placeholder="{{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Sélectionnez  un acheminement') }}">
                                 {% if existingDispatches is defined and existingDispatches is not empty %}
                                     {% for dispatch in existingDispatches %}
                                         <option value="{{ dispatch['id'] }}">
@@ -61,7 +61,7 @@
                                 {{ uniqueType ? 'disabled' }}
                                 {{ uniqueType ? ('data-init="' ~ (typeChampsLibres|first).typeId ~ '"')|raw }}>
                                 {% if not uniqueType %}
-                                    <option value="">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Type à choisir...') }}</option>
+                                    <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Type à choisir...') }}</option>
                                     {% for type in typeChampsLibres %}{# TODO Traduire #}
                                         <option
                                             data-pick-location-id="{{ type.pickLocation.id }}"
@@ -111,7 +111,7 @@
                             <select name="status"
                                     disabled
                                     class="form-control data w-100 needed">
-                                <option value="">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale création nouvel arrivage', 'Choisir un statut...') }}</option>
+                                <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Choisir un statut...') }}</option>
                                 {% for statut in notTreatedStatus %}
                                     <option class="d-none"
                                             data-type-id="{{ statut.type.id }}"
@@ -329,7 +329,7 @@
                                             colType: 'col-md-4 col-12',
                                             requiredType: 'requiredCreate',
                                             actionType: 'new',
-                                            disabledNeeded: true,
+                                            disabledNeeded: false,
                                             needsDateFormatting: true
                                         } %}
                                     </div>
@@ -365,7 +365,7 @@
                 </div>
 
                 {% if packs is defined and packs is not empty %}
-                    <div class="wii-section-title">{{ trans('Traçabilité', 'Flux - Arrivages', 'Modale Nouvelle demande d\'acheminement', 'Unités logistiques à acheminer') }}</div>
+                    <div class="wii-section-title">{{ trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Unités logistiques à acheminer') }}</div>
                     <div class="row mt-3">
                         <div class="col-12 arrival-dispatch-packs">
                             {% for pack in packs %}

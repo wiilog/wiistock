@@ -109,11 +109,8 @@ class DisputeService {
         $commands = $receptionReferenceArticleRepository->getAssociatedIdAndOrderNumbers($disputeId)[$disputeId] ?? '';
         $references = $receptionReferenceArticleRepository->getAssociatedIdAndReferences($disputeId)[$disputeId] ?? '';
 
-        $isNumeroBLJson = !empty($dispute['arrivageId']);
         $numerosBL = isset($dispute['numCommandeBl'])
-            ? ($isNumeroBLJson
-                ? implode(', ', json_decode($dispute['numCommandeBl'], true))
-                : $dispute['numCommandeBl'])
+            ? (implode(', ', json_decode($dispute['numCommandeBl'], true)))
             : '';
 
         return [
@@ -152,7 +149,7 @@ class DisputeService {
 
     public function getLitigeOrigin(): array {
         return [
-            Dispute::ORIGIN_ARRIVAGE => $this->translation->translate("Traçabilité", "Flux - Arrivages", "Divers", "Arrivage", false),
+            Dispute::ORIGIN_ARRIVAGE => $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false),
             Dispute::ORIGIN_RECEPTION => $this->translation->translate("Ordre", "Réceptions", "Réception", false)
         ];
     }
@@ -175,23 +172,23 @@ class DisputeService {
 
         if (!empty($recipients)) {
             $translatedCategory = $isArrival
-                ? ["Traçabilité", "Flux - Arrivages", "Email litige", "un arrivage", false]
+                ? ["Traçabilité", "Arrivages UL", "Email litige", "un arrivage UL", false]
                 : ["Ordre", "Réceptions", "une réception", false];
             $title = fn(string $slug) => (
                 !$isUpdate
-                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [
+                    ? ["Traçabilité", "Arrivages UL", "Email litige", "Un litige a été déclaré sur {1} vous concernant :", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
-                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [
+                    : ["Traçabilité", "Arrivages UL", "Email litige", "Changement de statut d'un litige sur {1} vous concernant :", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
             );
             $subject = fn(string $slug) => (
                 !$isUpdate
-                    ? ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
+                    ? ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
-                    : ["Traçabilité", "Flux - Arrivages", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
+                    : ["Traçabilité", "Arrivages UL", "Email litige", "FOLLOW GT // Changement de statut d'un litige sur {1}", false, [
                         1 => $this->translation->translateIn($slug, ...$translatedCategory)
                     ]]
             );
@@ -219,14 +216,14 @@ class DisputeService {
         return $this->visibleColumnService->getArrayConfig(
             [
                 ["name" => 'disputeNumber', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Numéro de litige')],
-                ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Type')],
-                ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage')],
+                ["name" => 'type', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Type')],
+                ["name" => 'arrivalNumber', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL')],
                 ["name" => 'receptionNumber', 'title' => $this->translation->translate('Traçabilité', 'Association BR', 'N° de réception')],
-                ["name" => 'buyers', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Acheteur(s)')],
-                ["name" => 'numCommandeBl', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL')],
+                ["name" => 'buyers', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)')],
+                ["name" => 'numCommandeBl', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL')],
                 ["name" => 'reporter', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Déclarant')],
                 ["name" => 'command', 'title' => 'N° ligne'],
-                ["name" => 'provider', 'title' => $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur')],
+                ["name" => 'provider', 'title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur')],
                 ["name" => 'references', 'title' => 'Référence'],
                 ["name" => 'lastHistoryRecord', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Dernier historique')],
                 ["name" => 'creationDate', 'title' => $this->translation->translate('Qualité', 'Litiges', 'Créé le')],
@@ -294,7 +291,7 @@ class DisputeService {
 
             $receptionNumber = $firstArticle ? $firstArticle['receptionNumber'] : '';
             $receptionSupplier = $firstArticle ? $firstArticle['supplier'] : '';
-            $receptionOrderNumber = $firstArticle ? $firstArticle['receptionOrderNumber'] : '';
+            $receptionOrderNumber = $firstArticle ? join(", ", $firstArticle['receptionOrderNumber']) : '';
 
             $references = $associatedIdAndReferences[$dispute["id"]];
             $orderNumbers = $associatedIdsAndOrderNumbers[$dispute["id"]];
@@ -349,10 +346,12 @@ class DisputeService {
             ->setUser($user);
 
         if ($dispute->getStatus()) {
-            $historyRecord->setStatusLabel($this->formatService->status($dispute->getStatus()));
+            // set french status name to translate it after
+            $historyRecord->setStatusLabel($dispute->getStatus()->getNom());
         }
 
         if ($dispute->getType()) {
+            // set french type label to translate it after
             $historyRecord->setTypeLabel($dispute->getType()->getLabel());
         }
 

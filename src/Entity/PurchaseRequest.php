@@ -55,8 +55,11 @@ class PurchaseRequest {
     #[ORM\JoinColumn(nullable: true)]
     private ?Statut $status = null;
 
-    #[ORM\OneToMany(targetEntity: PurchaseRequestLine::class, mappedBy: 'purchaseRequest', cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'purchaseRequest', targetEntity: PurchaseRequestLine::class, cascade: ['remove'])]
     private ?Collection $purchaseRequestLines;
+
+    #[ORM\ManyToOne(targetEntity: Fournisseur::class)]
+    private ?Fournisseur $supplier = null;
 
     public function __construct() {
         $this->purchaseRequestLines = new ArrayCollection();
@@ -242,6 +245,18 @@ class PurchaseRequest {
             'considerationDate' => FormatHelper::datetime($this->getConsiderationDate()),
             'comment' => FormatHelper::html($this->getComment()),
         ];
+    }
+
+    public function getSupplier(): ?Fournisseur
+    {
+        return $this->supplier;
+    }
+
+    public function setSupplier(?Fournisseur $supplier): self
+    {
+        $this->supplier = $supplier;
+
+        return $this;
     }
 
 }

@@ -7,7 +7,9 @@
 {% block stylesheets %}
     {{ parent() }}
     {{ encore_entry_link_tags('cart') }}
+    {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
+
 {% macro reference_card(reference, index, quantityLabel, disabled = false, maxIsAvailableQuantity = false, showTargetLocationPicking = false) %}
     <div class="cart-reference-container"
          data-multiple-key="cart"
@@ -62,7 +64,6 @@
 {% endmacro %}
 
 {% block page_content %}
-    {% set emptyCart = app.user.cart.references is empty %}
     <div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
         <div class="row wii-form wii-large-column">
             <div class="col-12 col-xl-4">
@@ -70,23 +71,23 @@
                     <div class="header wii-title">Demande</div>
                     <div class="content">
                         {{ form.switch('requestType', 'Type de demande', false, [
-                            {label: 'Livraison', value: 'delivery', wiiIcon: 'cart-delivery', checked: true},
-                            {label: 'Collecte', wiiIcon: 'cart-collect', value: 'collect'},
-                            {label: 'Achat', wiiIcon: 'cart-purchase', value: 'purchase'},
+                            {label: trans('Demande', 'Livraison', 'Livraison', false), wiiIcon: 'cart-delivery', value: 'delivery', checked: true},
+                            {label: 'Collecte', wiiIcon: 'cart-collect', value: 'collect', disabled: app.user.cart.articles is not empty},
+                            {label: 'Achat', wiiIcon: 'cart-purchase', value: 'purchase', disabled: app.user.cart.articles is not empty},
                         ]) }}
 
                         <div class="mt-3">
                             {{ form.radio('addOrCreate', null, true, [
-                                {label: 'Ajouter à une de mes demandes en brouillon', value: 'add'},
-                                {label: 'Créer une nouvelle demande', value: 'create'},
+                                {label: 'Ajouter à une de mes demandes en brouillon', value: 'add', disabled: app.user.cart.articles is not empty},
+                                {label: 'Créer une nouvelle demande', value: 'create', checked: app.user.cart.articles is not empty},
                             ]) }}
                         </div>
 
                         <div class="sub-form existing-delivery mt-3 d-none">
                             <div class="my-delivery-requests pb-2">
-                                <div class="section mt-3">Ma demande de livraison</div>
-                                {{ form.select('existingDelivery', 'Mes livraisons', true, {
-                                    placeholder: 'Sélectionnez une livraison',
+                                <div class="section mt-3">Ma demande de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</div>
+                                {{ form.select('existingDelivery', 'Mes ' ~ (trans('Demande', 'Livraison', 'Livraison', false) | lower) ~ 's', true, {
+                                    placeholder: 'Sélectionnez une ' ~ (trans('Demande', 'Livraison', 'Livraison', false) | lower),
                                     items: deliveryRequests,
                                     onChange: 'onDeliveryChanged($(this))',
                                 }) }}
@@ -109,8 +110,8 @@
                             </div>
                         </div>
 
-                        <div class="sub-form create-delivery mt-3 d-none">
-                            <div class="section mt-3">Ma nouvelle demande de livraison</div>
+                        <div class="sub-form create-delivery mt-3 {{ app.user.cart.articles is empty ? 'd-none' }}">
+                            <div class="section mt-3">Ma nouvelle demande de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}</div>
 
                             <div class="row mt-2">
                                 <div class="col-md-6 col-12 mb-2">
@@ -140,6 +141,15 @@
                                         }) }}
                                     </div>
                                 {% endif %}
+                                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+                                {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                                    <div class="col-md-6 col-12">
+                                        <label class="box-item">
+                                            <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</span>
+                                            <span class="wii-body-text">{{ project ?? '' }}</span>
+                                        </label>
+                                    </div>
+                                {% endif %}
                                 <div class="col-12">
                                     <span class="toggle-collapsible wii-subtitle mt-3 expanded">Champs libres</span>
                                     <div class="collapsible expanded free-fields-container mb-2">
@@ -151,7 +161,6 @@
                                                     colType: 'col-md-6 col-12',
                                                     requiredType: 'requiredCreate',
                                                     actionType: 'new',
-                                                    disabledNeeded: true
                                                 } %}
                                             </div>
                                         {% endfor %}
@@ -161,7 +170,6 @@
                                     {{ form.wysiwyg('comment', 'Commentaire', false) }}
                                 </div>
                             </div>
-
 
                             <input type="hidden" id="default-delivery-locations" value="{{ defaultDeliveryLocations | json_encode }}">
                         </div>
@@ -249,7 +257,7 @@
                                                     colType: 'col-md-6 col-12',
                                                     requiredType: 'requiredCreate',
                                                     actionType: 'new',
-                                                    disabledNeeded: true
+                                                    disabledNeeded: false
                                                 } %}
                                             </div>
                                         {% endfor %}
@@ -276,7 +284,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-8 empty-cart {{ not emptyCart ? 'd-none' }}">
+            <div class="col-12 col-xl-8 empty-cart {{ not app.user.cart.empty ? 'd-none' }}">
                 <div class="wii-box">
                     <div class="row justify-content-center align-items-center">
                         <div>
@@ -291,7 +299,7 @@
                 </div>
             </div>
             <div class="col-12 col-xl-8 cart-content d-none" data-request-type="delivery">
-                <div class="wii-box">
+                <div class="wii-box {{ app.user.cart.empty or app.user.cart.references is empty ? 'd-none' }}">
                     <div class="header wii-title">Références</div>
                     <div class="content cart-reference-list">
                         {% for reference in app.user.cart.references %}
@@ -299,6 +307,18 @@
                             {%  set buyerId = reference.buyer.id is defined ? reference.buyer.id : "null" %}
                             <input type="hidden" value="{{reference.id ~'/'~ buyerId }}" class="data" name="referenceBuyer"/>
                         {% endfor %}
+                    </div>
+                </div>
+                <div class="wii-box {{ app.user.cart.empty or app.user.cart.articles is empty ? 'd-none' }}">
+                    <div class="header wii-title">Unités logistiques</div>
+                    <input type="hidden" value="{{ app.user.cart.articles|length }}" class="data" name="articlesInCart"/>
+                    <div class="content">
+                        <div class="row">
+                            <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
+                                 data-loader-color="primary"
+                                 data-loader-size="normal">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <button class="btn btn-success float-right mt-3" type="submit">

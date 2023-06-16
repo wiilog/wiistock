@@ -95,7 +95,9 @@ class AppExtension extends AbstractExtension {
             new TwigFilter("format_helper", [$this, "formatHelper"]),
             new TwigFilter("json_decode", "json_decode"),
             new TwigFilter("flip", [$this, "flip"]),
+            new TwigFilter("unique", [$this, "unique"]),
             new TwigFilter("some", [$this, "some"]),
+            new TwigFilter("ucfirst", "ucfirst"),
             new TwigFilter("transFreeFieldElements", [$this, "transFreeFieldElements"]),
         ];
     }
@@ -247,6 +249,10 @@ class AppExtension extends AbstractExtension {
 
     public function flip(array $array): array {
         return array_flip($array);
+    }
+
+    public function unique(array $array): array {
+        return array_unique($array);
     }
 
     public function formatHistory(TransportHistory $history): ?string {

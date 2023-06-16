@@ -7,11 +7,16 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryEntry;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
+use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Helper\FormatHelper;
+use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -38,6 +43,12 @@ class InvMissionService {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public InventoryService $inventoryService;
+
     public function getDataForMissionsDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
@@ -59,7 +70,7 @@ class InvMissionService {
         ];
     }
 
-    public function dataRowMission($mission): array {
+    public function dataRowMission(InventoryMission $mission): array {
         $inventoryMissionRepository = $this->entityManager->getRepository(InventoryMission::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
         $articleRepository = $this->entityManager->getRepository(Article::class);
@@ -68,29 +79,26 @@ class InvMissionService {
 		$nbArtInMission = $articleRepository->countByMission($mission);
 		$nbRefInMission = $referenceArticleRepository->countByMission($mission);
 		$nbEntriesInMission = $inventoryEntryRepository->count(['mission' => $mission]);
-
-        $rateBar = (($nbArtInMission + $nbRefInMission) != 0)
-            ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
-            : 0;
-
+        $treatedLocations = $mission->getInventoryLocationMissions()->filter(fn(InventoryLocationMission $line) => $line->isDone())->count();
+        $lines = $mission->getInventoryLocationMissions()->count();
+        $rateBar = $mission->getType() === InventoryMission::LOCATION_TYPE ?
+            ($lines === 0 ? 0 : ($treatedLocations / $lines)*100)
+            : ((($nbArtInMission + $nbRefInMission) != 0)
+                ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
+                : 0);
         return [
             'name' => $mission->getName() ?? '',
-            'start' => FormatHelper::date($mission->getStartPrevDate()),
-            'end' => FormatHelper::date($mission->getEndPrevDate()),
+            'start' => $this->formatService->date($mission->getStartPrevDate()),
+            'end' => $this->formatService->date($mission->getEndPrevDate()),
             'anomaly' => $inventoryMissionRepository->countAnomaliesByMission($mission) > 0,
             'rate' => $this->templating->render('inventaire/datatableMissionsBar.html.twig', [
                 'rateBar' => $rateBar,
             ]),
-            'delete' => $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)
-                ? $this->templating->render('datatable/trash.html.twig', [
-                    'id' => $mission->getId(),
-                    'modal' => '#modalDeleteMission',
-                    'route' => 'mission_check_delete',
-                    'submit' => '#submitDeleteMission',
-                    'color' => 'black'
-                ]) : [],
+            'type' => $mission->getType() ? InventoryMission::TYPES_LABEL[$mission->getType()] ?? '' : '',
+            'requester' => $this->formatService->user($mission->getRequester()),
             'actions' => $this->templating->render('inventaire/datatableMissionsRow.html.twig', [
                 'id' => $mission->getId(),
+                'type' => $mission->getType(),
             ]),
         ];
     }
@@ -128,6 +136,63 @@ class InvMissionService {
             'recordsTotal' => $queryResult['total'],
             'recordsFiltered' => $queryResult['count'],
         ];
+    }
+
+    public function getDataForOneLocationMissionDatatable(EntityManagerInterface $entityManager,
+                                                          InventoryMission       $mission,
+                                                          ParameterBag           $params = null) {
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
+
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_INV_SHOW_MISSION, $this->security->getUser());
+
+        $result = $inventoryLocationMissionRepository->findDataByMission($mission, $params, $filters);
+
+        return [
+            "data" => Stream::from($result['data'])
+                ->map(fn(InventoryLocationMission $inventoryLocation) => [
+                    'zone' => $this->formatService->zone($inventoryLocation->getLocation()?->getZone()),
+                    'location' => $this->formatService->location($inventoryLocation->getLocation()),
+                    'date' => $mission->isDone() ? $this->formatService->date($inventoryLocation->getScannedAt()) : null,
+                    'operator' => $mission->isDone() ? $this->formatService->user($inventoryLocation->getOperator()) : null,
+                    'percentage' => $mission->isDone() ? (($inventoryLocation->getPercentage() ?: 0) . '%') : null,
+                    'actions' => $mission->isDone()
+                        ? $this->templating->render("utils/action-buttons/dropdown.html.twig", [
+                            "actions" => [
+                                [
+                                    "title" => "Annuler la planification",
+                                    "actionOnClick" => true,
+                                    "attributes" => [
+                                        "data-id" => $inventoryLocation->getId(),
+                                        "onclick" => "openShowScannedArticlesModal($(this))",
+                                    ],
+                                ],
+                                [
+                                    "title" => "Voir les articles",
+                                    "icon" => "bg-black fas fa-eye",
+                                    "attributes" => [
+                                        "class" => "pointer",
+                                        "data-id" => $inventoryLocation->getId(),
+                                        "onclick" => "openShowScannedArticlesModal($(this))",
+                                    ],
+                                ],
+                            ],
+                        ])
+                        : null,
+                ])
+                ->toArray(),
+            'recordsFiltered' => $result['recordsFiltered'],
+            'recordsTotal' => $result['recordsTotal']
+        ];
+
+    }
+
+    public function getDataForArticlesDatatable(EntityManagerInterface   $entityManager,
+                                                InventoryLocationMission $mission,
+                                                ParameterBag             $params = null) {
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        return $inventoryLocationMissionRepository->getArticlesByInventoryLocationMission($mission, $params);
     }
 
     public function dataRowRefMission(ReferenceArticle $ref, InventoryMission $mission): array {
@@ -182,7 +247,8 @@ class InvMissionService {
             !empty($artDateAndQuantity) ? $artDateAndQuantity['date'] : null,
             $inventoryEntryRepository->countInventoryAnomaliesByArt($art) > 0 ? 'oui' : ($artDateAndQuantity ? 'non' : '-'),
             $art->getQuantite(),
-            (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null
+            (!empty($artDateAndQuantity) && isset($artDateAndQuantity['quantity'])) ? $artDateAndQuantity['quantity'] : null,
+            $art->getCurrentLogisticUnit()
         );
     }
 
@@ -193,7 +259,8 @@ class InvMissionService {
                                           ?DateTimeInterface $date,
                                           ?string            $anomaly,
                                           ?string            $quantiteStock,
-                                          ?string            $quantiteComptee): array {
+                                          ?string            $quantiteComptee,
+                                          ?Pack              $pack = null): array {
         if ($emplacement) {
             $location = $emplacement->getLabel();
             $emptyLocation = false;
@@ -207,6 +274,7 @@ class InvMissionService {
             'Ref' => $reference,
             'CodeBarre' => $codeBarre,
             'Label' => $label,
+            'UL' => $pack ? $pack->getCode() : '',
             'Location' => $location,
             'Date' => isset($date) ? $date->format('d/m/Y') : '',
             'Anomaly' => $anomaly,
@@ -214,5 +282,110 @@ class InvMissionService {
             'QuantiteComptee' => $quantiteComptee,
             'EmptyLocation' => $emptyLocation,
         ];
+    }
+
+    public function generateMission(InventoryMissionRule $rule): void
+    {
+        $now = new DateTime();
+        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
+
+        $mission = new InventoryMission();
+        $mission->setCreator($rule);
+        $mission->setDescription($rule->getDescription());
+        $mission->setName($rule->getLabel());
+        $mission->setCreatedAt($now);
+        $mission->setStartPrevDate(new DateTime("now"));
+        $mission->setEndPrevDate(new DateTime("now +{$rule->getDuration()} {$rule->getDurationUnit()}"));
+        $mission->setRequester($rule->getRequester());
+        $mission->setType($rule->getMissionType());
+        $mission->setDone(false);
+
+        if ($mission->getType() === InventoryMission::LOCATION_TYPE) {
+            foreach ($rule->getLocations() as $location) {
+                $missionLocation = new InventoryLocationMission();
+                $missionLocation->setLocation($location);
+                $missionLocation->setInventoryMission($mission);
+                $missionLocation->setDone(false);
+                $this->entityManager->persist($missionLocation);
+            }
+        } else {
+            $this->createMissionArticleType($rule, $mission);
+        }
+
+        $rule->addCreatedMission($mission);
+        $rule->setLastRun($now);
+        $this->entityManager->persist($mission);
+        $this->entityManager->flush();
+    }
+
+    public function createMissionArticleType(InventoryMissionRule $rule, InventoryMission $mission): void
+    {
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $this->entityManager->getRepository(Article::class);
+
+        $frequencies = Stream::from($rule->getCategories())
+            ->map(fn(InventoryCategory $category) => $category->getFrequency())
+            ->toArray();
+
+        $this->entityManager->persist($mission);
+
+        foreach ($frequencies as $frequency) {
+            // récupération des réf et articles à inventorier (fonction date dernier inventaire)
+            $referencesToInventory = $referenceArticleRepository->iterateReferencesToInventory($frequency,
+                $mission);
+            $articlesToInventory = $articleRepository->iterateArticlesToInventory($frequency, $mission);
+
+            $treated = 0;
+
+            foreach ($referencesToInventory as $reference) {
+                $reference->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
+            }
+
+            $treated = 0;
+            $this->entityManager->flush();
+
+            /** @var Article $article */
+            foreach ($articlesToInventory as $article) {
+                $article->addInventoryMission($mission);
+                $treated++;
+                if ($treated >= 500) {
+                    $treated = 0;
+                    $this->entityManager->flush();
+                }
+            }
+
+            $this->entityManager->flush();
+
+            // lissage des réf et articles jamais inventoriés
+            $nbRefAndArtToInv = $referenceArticleRepository->countActiveByFrequencyWithoutDateInventory($frequency);
+            $nbToInv = $nbRefAndArtToInv['nbRa'] + $nbRefAndArtToInv['nbA'];
+
+            $limit = (int)($nbToInv / ($frequency->getNbMonths() * 4));
+
+            $listRefNextMission = $referenceArticleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
+                $limit / 2);
+            $listArtNextMission = $articleRepository->findActiveByFrequencyWithoutDateInventoryOrderedByEmplacementLimited($frequency,
+                $limit / 2);
+
+            /** @var ReferenceArticle $ref */
+            foreach ($listRefNextMission as $ref) {
+                $alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($ref, $mission, true);
+                if (!$alreadyInMission) {
+                    $ref->addInventoryMission($mission);
+                }
+            }
+            /** @var Article $art */
+            foreach ($listArtNextMission as $art) {
+                $alreadyInMission = $this->inventoryService->isInMissionInSamePeriod($art, $mission, false);
+                if (!$alreadyInMission) {
+                    $art->addInventoryMission($mission);
+                }
+            }
+        }
     }
 }

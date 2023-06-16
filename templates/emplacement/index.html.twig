@@ -14,6 +14,9 @@
             <li class="nav-item">
                 <a href="#groupes" class="nav-link">Groupes</a>
             </li>
+            <li class="nav-item">
+                <a href="#zones" class="nav-link">Zones</a>
+            </li>
         </ul>
 
         <hr>
@@ -31,14 +34,22 @@
                         Nouveau groupe
                     </div>
                 </button>
+                <button type="button"
+                        data-toggle="modal"
+                        data-target="#modalNewZone"
+                        class="btn btn-primary d-none newZoneButton"
+                        onclick="clearModal('#modalNewZone')">
+                    <div class="d-flex align-items-center ">
+                        <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
+                        Nouvelle zone
+                    </div>
+                </button>
                 {% endif %}
                 <div class="btn-group">
                     {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                         <button type="button"
                                 data-toggle="modal"
-                                data-target="#modalNewEmplacement"
-                                class="btn btn-primary split-button d-none"
-                                onclick="clearModal('#modalNewEmplacement')">
+                                class="btn btn-primary split-button d-none new-location">
                             <div class="d-flex align-items-center">
                                 <span class="wii-icon wii-icon-plus mr-2 align-middle"></span>
                                 Nouvel emplacement
@@ -83,6 +94,9 @@
             <div class="col-12 groupsTableContainer">
                 <table id="groupsTable" class="table w-100"></table>
             </div>
+            <div class="col-12 zonesTableContainer">
+                <table id="zonesTable" class="table w-100"></table>
+            </div>
         </div>
     </div>
 
@@ -93,6 +107,9 @@
     {% include "location_group/new.html.twig" %}
     {% include "location_group/edit.html.twig" %}
     {% include "location_group/delete.html.twig" %}
+
+    {% include "zone/new.html.twig" %}
+    {% include "zone/edit.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

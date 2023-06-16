@@ -1,0 +1,78 @@
+<div class="modal show" id="modalAddPacks" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Ajouter des unités logistiques')
+
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% if projects != null %}
+                    <div class="row">
+                        <div class="col-auto m-1 pr-0">
+                            <div class="form-group">
+                                <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
+                                <select class="form-control data cursor-default filter-input"
+                                        name="project"
+                                        id="project">
+                                    <option selected value="">Choisir un {{ trans('Référentiel', 'Projet', "Projet", false) | lower }} ...</option>
+                                    {% for project in projects | sort((a, b) => a.code <=> b.code) %}
+                                        <option value="{{ project.id }}">{{ project.code }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if natures != null %}
+                    <div class="row mt-4">
+                        <div class="col-12 mb-2">
+                            <span class="wii-section-title">{{ trans('Traçabilité', 'Arrivages UL', 'Divers', "Nombre d'unités logistiques à ajouter :") }}</span>
+                        </div>
+                        <div class="form-group col-12 blocVisible d-block">
+                            <div class="d-block">
+                                <div class="row mt-2">
+                                    {% for nature in natures %}
+                                        <div class="form-group col-6">
+                                            <label class="wii-field-name">
+                                                {{nature.label | capitalize}}
+                                            </label>
+                                            <input type="number"
+                                                   class="form-control data-array needed-positiv needs-default"
+                                                   value="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                                   data-init="{{ nature.defaultQuantity ? nature.defaultQuantity : 0 }}"
+                                                   name="pack"
+                                                   data-id="{{ nature.id }}"
+                                                   min="0"
+                                                   max="500">
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {% include 'utils/warningSelectEmpty.html.twig' with {
+                        array: natures,
+                        warningLabel: 'Attention ! Aucune nature d\'unité logistique n\'a été créée',
+                        redirectPath: path('nature_param_index'),
+                        redirectLabel: 'Aller vers la création des natures',
+                        block: true,
+                        rights: {
+                            menu: constant('App\\Entity\\Menu::REFERENTIEL'),
+                            action: constant('App\\Entity\\Action::CREATE')
+                        }
+                    } %}
+                {% endif %}
+            </div>
+
+            <input hidden value="{{ arrivage.id }}" name="arrivageId" class="data">
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: natures is not empty ? [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                    {id: 'submitAddPacks', classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer')}
+                ] : [],
+            } %}
+        </div>
+    </div>
+</div>

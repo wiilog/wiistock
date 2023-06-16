@@ -9,19 +9,89 @@ $(function () {
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
+    initDateTimePicker('#datetime', DATE_FORMATS_TO_DISPLAY[format] + ` HH:mm`, {setTodayDate: true});
     initDatePickers();
     Select2Old.init($('#emplacement'), 'Emplacements');
 
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
-    const filters = JSON.parse($(`#trackingMovementFilters`).val())
-    displayFiltersSup(filters, true);
+    if(!$(`#filterArticle`).exists()) {
+        const filters = JSON.parse($(`#trackingMovementFilters`).val())
+        displayFiltersSup(filters, true);
+    }
 
     Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of( 'Traçabilité', 'Général', 'Emplacement', false), 3);
 
     initNewModal($modalNewMvtTraca);
+
+    $(document).on(`keypress`, `[data-fill-location]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLULocation($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-location]`, function () {
+        loadLULocation($(this));
+    });
+
+    $(document).on(`keypress`, `[data-fill-quantity]`, function(event) {
+        if(event.code === `Enter`) {
+            loadLUQuantity($(this));
+        }
+    });
+
+    $(document).on(`focusout`, `[data-fill-quantity]`, function () {
+        loadLUQuantity($(this));
+    });
 });
+
+function loadLUQuantity($selector) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
+    const code = $selector.val();
+
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_quantity`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
+
+            if (response.quantity) {
+                $quantity.val(response.quantity);
+            } else {
+                $quantity.empty();
+                $quantity.val(1);
+            }
+
+            $quantity.prop(`disabled`, !!response.quantity).trigger(`change`);
+        });
+}
+
+function loadLULocation($input) {
+    const $modalNewMvtTraca = $('#modalNewMvtTraca');
+    const code = $input.val();
+
+    AJAX.route(`GET`, `tracking_movement_logistic_unit_location`, {code})
+        .json()
+        .then(response => {
+            $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
+            if (response.error) {
+                Flash.add(`danger`, response.error);
+            }
+
+            const $location = $modalNewMvtTraca.find(`[name="emplacement"]`);
+            if (response.location) {
+                $location.append(new Option(response.location.label, response.location.id, true, true))
+            } else {
+                $location.val(null);
+            }
+
+            $location.prop(`disabled`, !!response.location).trigger(`change`);
+        });
+}
 
 function initTrackingMovementTable(columns) {
     let trackingMovementTableConfig = {
@@ -30,8 +100,11 @@ function initTrackingMovementTable(columns) {
         processing: true,
         order: [['date', "desc"]],
         ajax: {
-            "url": Routing.generate('tracking_movement_api', true),
-            "type": "POST",
+            url: Routing.generate('tracking_movement_api', true),
+            type: "POST",
+            data: {
+                article: $(`#filterArticle`).val(),
+            }
         },
         drawConfig: {
             needsSearchOverride: true,
@@ -61,9 +134,9 @@ $.fn.dataTable.ext.search.push(
 
         let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
-        return ((dateMin == "" && dateMax == "")
-            || (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+        return ((dateMin === "" && dateMax === "")
+            || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
             || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)));
     }
 );
@@ -96,6 +169,35 @@ function initPageModal(tableMvt) {
             tables: [tableMvt],
             keepModal: Number($('#redirectAfterTrackingMovementCreation').val()),
             keepForm: true,
+            confirmMessage: $modal => {
+                return new Promise((resolve, reject) => {
+                    const pack = $modal.find(`[name="pack"]`).val();
+                    const type = $modal.find(`[name="type"] option:selected`).text().trim();
+
+                    if(type !== `prise` || !pack) {
+                        return resolve(true);
+                    }
+
+                    AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
+                        .json()
+                        .then(result => {
+                            if(result.in_logistic_unit) {
+                                Modal.confirm({
+                                    title: `Article dans unité logistique`,
+                                    message: `L'article ${pack} sera enlevé de l'unité logistique ${result.logistic_unit}`,
+                                    validateButton: {
+                                        color: 'success',
+                                        label: 'Continuer',
+                                        click: () => resolve(true)
+                                    },
+                                    cancelled: () => resolve(false),
+                                });
+                            } else {
+                                resolve(true)
+                            }
+                        })
+                })
+            },
             success: ({success, trackingMovementsCounter, group}) => {
                 if (group) {
                     displayConfirmationModal(group);
@@ -119,9 +221,9 @@ function initNewModal($modal) {
     if ($moreMassMvtContainer.length > 0) {
         const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
         const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
-        const $colis = $moreMassMvtContainer.find('.select2-free[name="colis"]');
-        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $colis});
-        Select2Old.initFree($colis);
+        const $pack = $moreMassMvtContainer.find('.select2-free[name="pack"]');
+        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
+        Select2Old.initFree($pack);
         Select2Old.location($emplacementDepose, {autoSelect: true});
     }
 }
@@ -159,6 +261,9 @@ function resetNewModal($modal) {
 function switchMvtCreationType($input) {
     let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
+
+    $(`#submitNewMvtTraca`).prop(`disabled`, false);
+
     $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
         if (response) {
             const $modal = $input.closest('.modal');
@@ -170,11 +275,19 @@ function switchMvtCreationType($input) {
 
             const $emptyRound = $modal.find('input[name=empty-round]');
             if ($input.find(':selected').text().trim() === $emptyRound.val()) {
-                const $packInput = $modal.find('input[name=colis]');
+                const $packInput = $modal.find('select[name=pack]');
                 $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                 $packInput.val('passageavide');
                 $packInput.prop('disabled', true);
             }
+
+            $modal.find(`select[name=pack]`).select2({
+                tags: true,
+                tokenSeparators: [" "],
+                tokenizer: (input, selection, callback) => {
+                    return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
+                },
+            });
         }
     });
 }
@@ -191,7 +304,7 @@ function displayConfirmationModal(group) {
         undefined,
         $('<div/>', {
             class: 'text-center',
-            html: `Ce colis est présent dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
+            html: `Cette unité logistique est présente dans le groupe <strong>${group}</strong>. Confirmer le mouvement l\'enlèvera du groupe. <br>Voulez-vous continuer ?`
         }),
         [
             {

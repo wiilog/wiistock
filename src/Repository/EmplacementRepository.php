@@ -4,10 +4,13 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\IOT\Sensor;
 use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
+use App\Entity\Utilisateur;
+use App\Entity\Zone;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -66,8 +69,10 @@ class EmplacementRepository extends EntityRepository
             ->select('location.id')
             ->addSelect('location.label')
             ->addSelect("GROUP_CONCAT(join_temperature_ranges.value SEPARATOR ';') AS temperature_ranges")
+            ->addSelect("GROUP_CONCAT(join_signatories.id SEPARATOR ';') AS signatories")
             ->where('location.isActive = true')
             ->leftJoin('location.temperatureRanges', 'join_temperature_ranges')
+            ->leftJoin('location.signatories', 'join_signatories')
             ->groupBy('location.id')
             ->addGroupBy('location.label')
             ->getQuery()
@@ -158,11 +163,13 @@ class EmplacementRepository extends EntityRepository
                 if (!empty($search)) {
                     $queryBuilder
                         ->leftJoin('location.signatories', 'search_signatory')
+                        ->leftJoin('location.zone', 'search_zone')
                         ->andWhere($exprBuilder->orX(
                             'location.label LIKE :value',
                             'location.description LIKE :value',
                             'location.email LIKE :value',
                             'search_signatory.username LIKE :value',
+                            'search_zone.name LIKE :value',
                         ))
                         ->setParameter('value', '%' . $search . '%');
                 }
@@ -241,25 +248,15 @@ class EmplacementRepository extends EntityRepository
             ->getResult();
     }
 
-    public function countSignatories($user) {
-        $qb = $this->createQueryBuilder('location');
-        $qb->select('count(location.id)')
-            ->leftJoin('location.signatories', 'signatory')
-            ->where('signatory.id = :user')
-            ->setParameter("user", $user->getId());
-
-        return $qb
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function findWithActivePairing(){
-        $qb = $this->createQueryBuilder('location');
-        $qb
-            ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.active = 1');
-
-        return $qb
+    public function findByMissionAndZone(array $zones, InventoryMission $mission) {
+        return $this->createQueryBuilder('location')
+            ->join('location.inventoryLocationMissions', 'inventory_location_missions')
+            ->andWhere('location.zone IN (:zones)')
+            ->andWhere('inventory_location_missions.inventoryMission = :mission')
+            ->setParameters([
+                'zones' => $zones,
+                'mission' => $mission,
+            ])
             ->getQuery()
             ->getResult();
     }
@@ -496,5 +493,39 @@ class EmplacementRepository extends EntityRepository
             ->setParameter('now', new DateTime())
             ->getQuery()
             ->getResult();
+    }
+
+    public function countLocationByUser(Utilisateur $user): int
+    {
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
+            ->leftJoin('location.signatories', 'signatory')
+            ->andWhere('signatory.id = :user')
+            ->setParameter('user', $user->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function isLocationInZoneInventoryMissionRule(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryMissionRules IS NOT EMPTY')
+            ->setParameter('zone', $zone)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
+    }
+
+    public function isLocationInNotDoneInventoryMission(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryLocationMissions IS NOT EMPTY')
+            ->andWhere('inventoryMission.done = false OR inventoryMission.done IS NULL')
+            ->innerJoin('location.inventoryLocationMissions', 'inventoryLocationMission')
+            ->innerJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->setParameter('zone', $zone)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
     }
 }

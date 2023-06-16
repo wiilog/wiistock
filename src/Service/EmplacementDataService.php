@@ -106,6 +106,7 @@ class EmplacementDataService {
             'allowedTemperatures' => $allowedTemperatures,
             'signatories' => $this->formatService->users($emplacement->getSignatories()),
             'email' => $emplacement->getEmail(),
+            'zone' => $emplacement->getZone() ? $emplacement->getZone()->getName() : "",
             'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                 'url' => $url,
                 'emplacementId' => $emplacement->getId(),

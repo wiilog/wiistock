@@ -83,7 +83,7 @@ class StatutRepository extends EntityRepository {
 
         if (!empty($states)) {
             $queryBuilder
-                ->andWhere('status.state IN (:states)')
+                ->andWhere('status.state IN (:states) OR status.state IS NULL')
                 ->setParameter('states', $states);
         }
 
@@ -219,8 +219,10 @@ class StatutRepository extends EntityRepository {
                 ->addSelect('status.nom AS label')
                 ->addSelect('status_category.nom AS category')
                 ->addSelect('status.commentNeeded AS commentNeeded')
+                ->addSelect('status.groupedSignatureColor AS groupedSignatureColor')
                 ->addSelect('status.groupedSignatureType AS groupedSignatureType')
                 ->addSelect('type.id AS typeId')
+                ->addSelect('status.state AS stateNumber')
                 ->addSelect("(
                     CASE
                         WHEN status.state = :treatedState THEN 'treated'
@@ -241,7 +243,7 @@ class StatutRepository extends EntityRepository {
 
             if ($dispatchStatus) {
                 $queryBuilder
-                    ->where('status_category.nom = :dispatchCategoryLabel')
+                    ->orWhere('status_category.nom = :dispatchCategoryLabel')
                     ->setParameter('dispatchCategoryLabel', CategorieStatut::DISPATCH);
             }
 

@@ -17,35 +17,35 @@
     <p>{{ translateIn(language, 'Général', null, 'Emails', 'Bonjour,', false) }}</p>
     <p>
         {{ isUrgentArrival
-            ? translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande urgente est arrivée :', false)
-            : translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Email arrivage', 'Votre commande est arrivée :', false)
+            ? translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Votre commande urgente est arrivée :', false)
+            : translateIn(language, 'Traçabilité', 'Arrivages UL', 'Email arrivage UL', 'Votre commande est arrivée :', false)
         }}
     </p>
     <ul>
-        <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
+        <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL', false) }} : <strong>{{ arrival.numeroArrivage }}</strong></li>
 
         {% if numeroCommandeList|length > 0 %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false) }} : <strong>{{ numeroCommandeList|join(', ') }}</strong></li>
         {% endif %}
 
         {% if arrival.fournisseur %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false) }} : <strong>{{ arrival.fournisseur.nom }}</strong></li>
         {% endif %}
 
         {% if arrival.transporteur %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false) }} : <strong>{{ arrival.transporteur.label }}</strong></li>
         {% endif %}
 
         {% if arrival.noTracking %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur', false) }} : <strong>{{ arrival.noTracking }}</strong></li>
         {% endif %}
 
         {% if arrival.projectNumber %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet', false) }} : <strong>{{ arrival.projectNumber }}</strong></li>
         {% endif %}
 
         {% if arrival.businessUnit %}
-            <li>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
+            <li>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit', false) }} : <strong>{{ arrival.businessUnit }}</strong></li>
         {% endif %}
 
         <li>
@@ -90,20 +90,49 @@
             </p>
         {% else %}
             <p style="font-weight: bold">
-                Votre colis sera livré en dropzone en milieu d'après-midi.
+                Votre unité logistique sera livrée en dropzone en milieu d'après-midi.
             </p>
         {% endif %}
     {% elseif isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
         <p>
-            Votre colis est disponible auprès du magasin.
+            Votre unité logistique est disponible auprès du magasin.
         </p>
+    {% endif %}
+    {%  if packsNatureNb is not empty %}
+        <p>
+            Unités logistiques réceptionnées :
+        </p>
+        <table class="table table-stripped" style="border: 1px solid black;border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th class="th" style="border: 1px solid black; padding: 10px; text-align: left; font-weight: bold;">
+                        Nature
+                    </th>
+                    <th class="th" style="border: 1px solid black; padding: 10px; text-align: left; font-weight: bold;">
+                        Quantité
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nature, packNb in packsNatureNb %}
+                    <tr>
+                        <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
+                            {{ nature }}
+                        </td>
+                        <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
+                            {{ packNb }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 {% endblock %}
 {% block postScriptum %}
     {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED')) %}
         <p>
             PS&nbsp;: En cas de changement de Drop Zone, merci de nous avertir pour que nous puissions mettre à jour la base de données.
-            Ecrivez-nous aux adresses suivantes&nbsp;: s.marion@gt-logistics.fr, s.montembault@gt-logistics.fr.
+            Ecrivez-nous aux adresses suivantes&nbsp;: r.rossard@gt-logistics.fr, s.montembault@gt-logistics.fr.
         </p>
     {% endif %}
 {% endblock %}

@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use DateTime;
@@ -254,7 +255,8 @@ class SubcontractController extends AbstractController
                          Request                 $request,
                          TransportService        $transportService,
                          AttachmentService       $attachmentService,
-                         TransportHistoryService $transportHistoryService): ?Response {
+                         TransportHistoryService $transportHistoryService,
+                         TranslationService      $translation): ?Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
         $data = $request->request;
@@ -273,8 +275,8 @@ class SubcontractController extends AbstractController
             return $this->json([
                 "success" => false,
                 "errors" => [
-                    "delivery-start-date" => "La date de début de livraison ne peut être supérieure à la date de fin de livraison",
-                    "delivery-end-date" => "La date de fin de livraison ne peut être inférieure à la date de début de livraison",
+                    "delivery-start-date" => "La date de début de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . " ne peut être supérieure à la date de fin de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
+                    "delivery-end-date" => "La date de fin de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . " ne peut être inférieure à la date de début de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                 ]
             ]);
         }

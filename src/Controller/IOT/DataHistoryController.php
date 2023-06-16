@@ -149,10 +149,10 @@ class DataHistoryController extends AbstractController {
             $title = 'Stock | Articles';
             $path = 'article_index';
         } else if($entity instanceof Pack) {
-            $title = 'Traçabilité | Colis';
+            $title = 'Traçabilité | Unités logistiques';
             $path = 'pack_index';
         } else if($entity instanceof Preparation || $entity instanceof Demande) {
-            $title = 'Demande | Livraison';
+            $title = 'Demande | ' . $trans->translate("Demande", "Livraison", "Livraison", false);
             $path = 'demande_index';
         } else if($entity instanceof OrdreCollecte || $entity instanceof Collecte) {
             $title = 'Demande | Collecte';

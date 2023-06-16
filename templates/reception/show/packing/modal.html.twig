@@ -1,0 +1,178 @@
+{% import 'form.html.twig' as form %}
+{% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
+
+<div class="modal fade" id="modalNewLigneReception" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: trans('Ordre','Réceptions', 'nouvelle réception')
+            } %}
+            <div class="modal-body">
+                <div class="row reference-container"
+                     data-form-id="reference-container-form">
+                    <input name="reception" type="hidden" value="{{ reception.id }}"/>
+                    <div class="form-group col-4">
+                        <label class="wii-field-name">Référence</label>
+                        <select class="form-control select2-autocomplete-ref-articles w-100"
+                                name="referenceToReceive"></select>
+                    </div>
+                    <div class="form-group col-4">
+                        <label class="wii-field-name">Référence fournisseur</label>
+                        <select class="form-control select2 w-100" name="articleFournisseurDefault"></select>
+                    </div>
+                    {% if reception %}
+                        <div class="form-group col-4">
+                            <label class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique') }}</label>
+                            <select class="w-100 form-control wii-field-text"
+                                    name="pack"
+                                    data-s2="receptionLogisticUnits"
+                                    data-min-length="0"
+                                    data-other-params
+                                    data-other-params-reception="{{ reception.id }}">
+                            </select>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row packing-container"
+                     data-form-id="packing-container-form"
+                     data-loader-color="primary"
+                     data-loader-size="normal">
+                </div>
+
+                <div class="wii-section-title d-none my-4">Génération d'articles</div>
+                <div class="articles-container mt-3"></div>
+
+                <div class="wii-section-title d-none my-4">Création d'une demande</div>
+                <div class="create-request-container d-none">
+                    {{ form.switch('requestType', '', false, [
+                        {label: deliverySwitchLabel, value: 'delivery', wiiIcon: 'cart-delivery', checked: precheckedDelivery},
+                        {label: 'Transfert', wiiIcon: 'transfer-black', value: 'transfer'},
+                        {label: 'Aucune', value: 'none', checked: not precheckedDelivery},
+                    ]) }}
+                </div>
+
+                <div class="transfer-form mt-4">
+                    <div class="row">
+                        <div class="col-4 form-group">
+                            <label class="wii-field-name">Emplacement de stockage*</label>
+                            <select name="storage" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="storage">
+                            </select>
+                            <input hidden id="storageTransfer"
+                                   data-id="{{ reception.storageLocation ? reception.storageLocation.id }}"
+                                   data-text="{{ reception.storageLocation ? reception.storageLocation.label }}">
+                        </div>
+                        <div class="col-4 form-group">
+                            <label class="wii-field-name">Emplacement d'origine*</label>
+                            <select name="origin" class="data ajax-autocomplete-location-edit w-100 needed wii-field-text" id="origin">
+                            </select>
+                            <input hidden id="originTransfer"
+                                   data-id="{{ reception.location ? reception.location.id }}"
+                                   data-text="{{ reception.location ? reception.location.label }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demande-form mt-4 d-none">
+                    <input type="hidden"
+                           name="defaultDeliveryLocations"
+                           data-value="{{ defaultDeliveryLocations|json_encode }}"/>
+                    <div class="row demande-header-form">
+                        <div class="col-4 form-group">
+                            <label class="wii-field-name">Demandeur*</label>
+                            <select class="data needed wii-field-text w-100"
+                                    name="demandeur"
+                                    data-s2="user"
+                                    data-other-params-add-dropzone="1"
+                                    onchange="demandeurChanged($(this))"
+                                    disabled>
+                            </select>
+                        </div>
+                        <input type="hidden"
+                               id="currentUser"
+                               data-id="{{ needsCurrentUser ? app.user.id }}"
+                               data-text="{{ needsCurrentUser ? app.user.username }}">
+                        <div class="col-4 form-group">
+                            <label class="wii-field-name">Type*</label>
+                            <select class="select2-type data w-100 needed wii-field-text" name="type"
+                                    onchange="onRequestTypeChange($(this))" disabled>
+                                <option>&nbsp;</option>
+                                {% set uniqueType = typeChampsLibres | length == 1  %}
+                                {% for type in typeChampsLibres %}
+                                    <option value="{{ type.typeId }}" {{ uniqueType ? "selected" }} >{{ type.typeLabel }} </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-4 form-group">
+                            <label class="wii-field-name">Destination*</label>
+                            <div class="w-100">
+                                <select name="destination" class="data ajax-autocomplete-location needed wii-field-text" id="locationDemandeLivraison"
+                                    disabled>
+                                    <option></option>
+                                </select>
+                                {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
+                                <input hidden id="locationDemandeLivraisonValue"
+                                       data-id="{{ isLocation and needsCurrentUser ? app.user.dropzone.id }}"
+                                       data-text="{{ isLocation and needsCurrentUser ? app.user.dropzone.label }}">
+                            </div>
+                            <input type="hidden" name="restrictedLocations" value="{{ restrictedLocations }}">
+                        </div>
+                        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                            <div class="col-4 form-group">
+                                <label class="wii-field-name">Date attendue{{ fieldRequired ? '*' }}</label>
+                                <input name="expectedAt"
+                                       type="date"
+                                       class="form-control data {{fieldRequired ? 'needed'}}"/>
+                            </div>
+                        {% endif %}
+
+                        {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+                        {% if fieldsParam|isFieldRequired(fieldCodeProject, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredCreate') %}
+                            <div class="col-4 form-group6">
+                                <div class="form-group w-100">
+                                    <label class="wii-field-name">Projet{{ fieldRequired ? '*' }}</label>
+                                    <select data-s2="project" name="project" class="form-control data d-block {{fieldRequired ? 'needed'}}">
+                                    </select>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <span class="toggle-collapsible expanded">Champs libres</span>
+                    <div class="collapsible expanded free-fields-container mb-2">
+                        {% for type in typeChampsLibres %}
+                            <div class="d-none"
+                                 data-type="{{ type.typeId }}">
+                                {% include 'free_field/freeFieldsEdit.html.twig' with {
+                                    freeFields: type.champsLibres,
+                                    freeFieldValues: [],
+                                    colType: 'col-md-4 col-12',
+                                    requiredType: 'requiredCreate',
+                                    actionType: 'new',
+                                    disabledNeeded: false
+                                } %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {{ form.wysiwyg('commentaire', 'Commentaire', false) }}
+                </div>
+            </div>
+
+            <input class="data" name="reception" type="hidden" value="{{ reception.id }}"/>
+            <input class="data" name="precheckedDelivery" type="hidden" value="{{ precheckedDelivery }}"/>
+            <input type="hidden" class="data" name="packingArticles" value="">
+
+            {% include 'utils/modal/footer.html.twig' with {
+                classes: 'd-none',
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: "submit"}
+                ]
+            } %}
+        </div>
+    </div>
+</div>

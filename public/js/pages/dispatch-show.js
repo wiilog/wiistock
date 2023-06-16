@@ -4,7 +4,9 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    loadDispatchReferenceArticle();
+    if(!$('#packTable').exists()) {
+        loadDispatchReferenceArticle();
+    }
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -34,7 +36,8 @@ $(function() {
     let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
     let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
     InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId}) => {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
             AJAX.route(`GET`, `print_delivery_note_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
@@ -50,7 +53,8 @@ $(function() {
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
     InitModal($modalPrintWaybill, $submitPrintWayBill, urlPrintWaybill, {
-        success: ({attachmentId}) => {
+        success: ({attachmentId, headerDetailsConfig}) => {
+            $(`.zone-entete`).html(headerDetailsConfig);
             AJAX.route(`GET`, `print_waybill_dispatch`, {
                 dispatch: dispatchId,
                 attachment: attachmentId,
@@ -207,34 +211,62 @@ function openTreatDispatchModal() {
     $modal.modal('show');
 }
 
-function runDispatchPrint() {
+function runDispatchPrint($button) {
     const dispatchId = $('#dispatchId').val();
-    $.get({
-        url: Routing.generate('get_dispatch_packs_counter', {dispatch: dispatchId}),
-    })
-        .then(function({packsCounter}) {
-            if(!packsCounter) {
-                showBSAlert('Vous ne pouvez pas imprimer un acheminement sans colis', 'danger');
-            } else {
-                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
-            }
-        });
+
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `get_dispatch_packs_counter`, {dispatch: dispatchId})
+            .json()
+            .then(({packsCounter}) => {
+                if (!packsCounter) {
+                    showBSAlert('Vous ne pouvez pas imprimer un acheminement sans UL', 'danger');
+                } else {
+                    AJAX.route(`GET`, `dispatch_note`, {dispatch: dispatchId})
+                        .json()
+                        .then(({success, headerDetailsConfig}) => {
+                            if (success) {
+                                $(`.zone-entete`).html(headerDetailsConfig);
+                                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+                            }
+                        });
+                }
+            })));
 }
 
-function openDeliveryNoteModal($button) {
+function openDeliveryNoteModal($button, fromDelivery = false) {
     const dispatchId = $button.data('dispatch-id');
-    $
-        .get(Routing.generate('api_delivery_note_dispatch', {dispatch: dispatchId}))
-        .then((result) => {
-            if(result.success) {
-                const $modal = $('#modalPrintDeliveryNote');
-                const $modalBody = $modal.find('.modal-body');
-                $modalBody.html(result.html);
-                $modal.modal('show');
-            } else {
-                showBSAlert(result.msg, "danger");
-            }
-        });
+
+    wrapLoadingOnActionButton($button, () => (
+        AJAX.route(`GET`, `api_delivery_note_dispatch`, {dispatch: dispatchId, fromDelivery})
+            .json()
+            .then((result) => {
+                if (result.success) {
+                    const $modal = $('#modalPrintDeliveryNote');
+                    const $modalBody = $modal.find('.modal-body');
+                    $modalBody.html(result.html);
+                    $modal.modal('show');
+
+                    $('select[name=buyer]').on('change', function () {
+                        const data = $(this).select2('data');
+                        if (data.length > 0) {
+                            const {fax, phoneNumber, address} = data[0];
+                            const $modal = $(this).closest('.modal');
+                            if (fax) {
+                                $modal.find('input[name=buyerFax]').val(fax);
+                            }
+                            if (phoneNumber) {
+                                $modal.find('input[name=buyerPhone]').val(phoneNumber);
+                            }
+                            if (address) {
+                                $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
+                            }
+                        }
+                    });
+                } else {
+                    showBSAlert(result.msg, "danger");
+                }
+            })
+    ))
 }
 
 function openWaybillModal($button) {
@@ -256,6 +288,20 @@ function openWaybillModal($button) {
             const $modalBody = $modal.find('.modal-body');
             $modalBody.html(result.html);
             $modal.modal('show');
+
+            $('select[name=receiverUsername]').on('change', function (){
+                const data = $(this).select2('data');
+                if(data.length > 0){
+                    const {email, phoneNumber, address} = data[0];
+                    const $modal = $(this).closest('.modal');
+                    if(phoneNumber || email){
+                        $modal.find('input[name=receiverEmail]').val(phoneNumber.concat(' - ', email));
+                    }
+                    if(address){
+                        $modal.find('[name=receiver]').val(address);
+                    }
+                }
+            });
         } else {
             showBSAlert(result.msg, "danger");
         }
@@ -321,7 +367,7 @@ function initializePacksTable(dispatchId, isEdit) {
         serverSide: false,
         ajax: {
             type: "GET",
-            url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId}, true),
+            url: Routing.generate('dispatch_editable_logistic_units_api', {dispatch: dispatchId}, true),
         },
         rowConfig: {
             needsRowClickAction: true,
@@ -562,14 +608,10 @@ function addPackRow(table, $button) {
     }
 }
 
-function scrollToBottom() {
-    window.scrollTo(0, document.body.scrollHeight);
-}
-
 function getStatusHistory(dispatch) {
     return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
         .then(({template}) => {
-            const $statusHistoryContainer = $(`.status-history-container`);
+            const $statusHistoryContainer = $(`.history-container`);
             $statusHistoryContainer.html(template);
         });
 }
@@ -590,11 +632,11 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('GET', 'dispatch_packs_api', params)
+            AJAX.route('GET', 'dispatch_reference_in_logistic_units_api', params)
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);
-                    $logisticUnitsContainer.find('.reference-articles-container table')
+                    $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
                             const $table = $(this);
                             initDataTable($table, {

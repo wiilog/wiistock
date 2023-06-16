@@ -14,7 +14,7 @@ $(function () {
         columns: [
             {data: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: 'name', title: 'Nom'},
-            {data: 'code', title: 'Code de référence'},
+            {data: 'code', title: 'Code fournisseur'},
             {data: 'possibleCustoms', title: 'Possible douane'},
             {data: 'urgent', title: 'Urgent'},
         ],

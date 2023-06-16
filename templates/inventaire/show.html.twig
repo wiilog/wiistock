@@ -6,78 +6,119 @@
 {% block page_filter %}
     {% include 'filters/filtersMissionInv.html.twig' with {
         'page': 'PAGE_INV_SHOW_MISSION',
-        'tableSelector': '#tableMissionInvArticle, #tableMissionInvReferenceArticle'
+        'tableSelector': typeLocation ? '#tableLocationMissions' : '#tableMissionInvArticle, #tableMissionInvReferenceArticle',
     } %}
 {% endblock %}
 
 {% block page_content %}
-    <div class="mx-4 mt-3 mb-2">
-        <div class="wii-page-card">
-            <div class="row wii-page-card-header mb-0">
-                <div class="col-auto ml-auto">
-                    <div class="btn-group">
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalAddToMission"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                onclick="clearModal($('#modalAddToMission'))">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des références ou des articles
-                        </button>
-                        <button type="button"
-                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                data-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false">
-                            <span class="fa fa-angle-down"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="saveExportFile('get_inventory_mission_csv', false, {mission: {{ missionId }} })">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="mx-4 mb-4 mt-3">
-        <div class="row">
-            <div class="col-6 pr-2">
-                <div class="wii-box mt-0">
-                    <div class="header wii-title">Liste des articles</div>
-                    <div class="content">
-                        <div class="d-none justify-content-center">
-                            <div class="spinner-border sizeLoader" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                        </div>
-                        <table id="tableMissionInvArticle" class="table">
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 pl-2">
-                <div class="wii-box mt-0">
-                    <div class="header wii-title">Liste des références</div>
-                    <div class="content">
-                        <div class="d-none justify-content-center">
-                            <div class="spinner-border sizeLoader" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                        </div>
-                        <table id="tableMissionInvReferenceArticle" class="table w-100">
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     <input value="{{ missionId }}" id="missionId" hidden/>
+    <input value="{{ typeLocation }}" id="typeLocation" hidden/>
+    <input value="{{ locationsAlreadyAdded }}" id="locationsAlreadyAdded" hidden/>
+    {% if typeLocation %}
+        <div class="mx-4 mt-3 mb-2 wii-page-card">
+            <div class="row wii-page-card-header">
+                {% if not isInventoryStarted %}
+                    <div class="col-auto ml-auto">
+                        <div class="btn-group">
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#modalAddLocationAndZoneToMission"
+                                    class="btn btn-primary split-button d-flex align-items-center mr-2"
+                                    onclick="onOpenModalAddLocationAndZone($('.add-inventory-location-container').find('table'))">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des emplacements
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+                <div class="row">
+                    <div class="col-12">
+                        <table id="tableLocationMissions" class="table"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="mx-4 mt-3 mb-2">
+            <div class="wii-page-card">
+                <div class="row wii-page-card-header mb-0">
+                    <div class="col-auto ml-auto">
+                        <div class="btn-group">
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#modalAddLocationToMission"
+                                    class="btn btn-primary split-button d-flex align-items-center mr-2"
+                                    onclick="clearModal($('#modalAddLocationToMission'))">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des emplacements
+                            </button>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#modalAddToMission"
+                                    class="btn btn-primary split-button d-flex align-items-center"
+                                    onclick="clearModal($('#modalAddToMission'))">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter des références ou des articles
+                            </button>
+                            <button type="button"
+                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                <div class="dropdown-item" onclick="saveExportFile('get_inventory_mission_csv', false, {mission: {{ missionId }} })">
+                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mx-4 mb-4 mt-3">
+            <div class="row">
+                <div class="col-6 pr-2">
+                    <div class="wii-box mt-0">
+                        <div class="header wii-title">Liste des articles</div>
+                        <div class="content">
+                            <div class="d-none justify-content-center">
+                                <div class="spinner-border sizeLoader" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                            <table id="tableMissionInvArticle" class="table">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 pl-2">
+                    <div class="wii-box mt-0">
+                        <div class="header wii-title">Liste des références</div>
+                        <div class="content">
+                            <div class="d-none justify-content-center">
+                                <div class="spinner-border sizeLoader" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                            <table id="tableMissionInvReferenceArticle" class="table w-100">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     {% include 'inventaire/modalAddToMission.html.twig' %}
+    {% include 'inventaire/modalAddLocationToMission.html.twig' %}
+    {% include 'inventaire/modalAddLocationAndZoneToMission.html.twig' %}
     {% include 'inventaire/modalRemoveRef.html.twig' %}
+    {% include 'inventaire/modalShowScannedArticles.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('form-add-inventory-locations') }}
     <script src="{{ asset('js/pages/mission-inventaire-show.js') }}?v={{ web_version }}"></script>
 {% endblock %}

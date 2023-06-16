@@ -4,19 +4,23 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
+use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
+use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Helper\FormatHelper;
 use App\Helper\LanguageHelper;
-use App\Repository\NatureRepository;
 use App\Repository\PackRepository;
 use DateTime;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use RuntimeException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -25,6 +29,9 @@ use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class PackService {
+
+    #[Required]
+    public ProjectHistoryRecordService $projectHistoryRecordService;
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -48,13 +55,31 @@ class PackService {
     public LanguageService $languageService;
 
     #[Required]
+    public TranslationService $translation;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
+
+    #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public ReceptionService $receptionService;
+
+    #[Required]
+    public PDFGeneratorService $PDFGeneratorService;
+
+    #[Required]
+    public ReceptionLineService $receptionLineService;
+
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $packRepository = $this->entityManager->getRepository(Pack::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
+        $filters = $params->get("codeUl") ? [["field"=> "UL", "value"=> $params->get("codeUl")]] : $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PACK, $this->security->getUser());
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
@@ -115,13 +140,19 @@ class PackService {
                 'pack' => $pack,
                 'hasPairing' => $hasPairing
             ]),
+            'cart' => $this->templating->render('pack/cart-column.html.twig', [
+                'pack' => $pack,
+            ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,
                 'hasPairing' => $hasPairing
             ]),
-            'packNum' => $pack->getCode(),
+            'packNum' => $this->templating->render("pack/logisticUnitColumn.html.twig", [
+                "pack" => $pack,
+            ]),
             'packNature' => $this->formatService->nature($pack->getNature()),
             'quantity' => $pack->getQuantity() ?: 1,
+            'project' => $pack->getProject()?->getCode(),
             'packLastDate' => $lastPackMovement
                 ? ($lastPackMovement->getDatetime()
                     ? $lastPackMovement->getDatetime()->format($prefix . ' \à H:i:s')
@@ -138,9 +169,9 @@ class PackService {
 
     public function dataRowGroupHistory(TrackingMovement $trackingMovement) {
         return [
-            'group' => $trackingMovement->getPackParent() ? (FormatHelper::pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
-            'date' => FormatHelper::datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
-            'type' => FormatHelper::status($trackingMovement->getType())
+            'group' => $trackingMovement->getPackParent() ? ($this->formatService->pack($trackingMovement->getPackParent()) . '-' . $trackingMovement->getGroupIteration()) : '',
+            'date' => $this->formatService->datetime($trackingMovement->getDatetime(), "", false, $this->security->getUser()),
+            'type' => $this->formatService->status($trackingMovement->getType())
         ];
     }
 
@@ -177,9 +208,14 @@ class PackService {
         ];
     }
 
-    public function editPack(array $data, NatureRepository $natureRepository, Pack $pack)
-    {
+    public function editPack(EntityManagerInterface $entityManager,
+                             array                  $data,
+                             Pack                   $pack): void {
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
+
         $natureId = $data['nature'] ?? null;
+        $projectId = $data['projects'] ?? null;
         $quantity = $data['quantity'] ?? null;
         $comment = $data['comment'] ?? null;
         $weight = !empty($data['weight']) ? str_replace(",", ".", $data['weight']) : null;
@@ -190,6 +226,15 @@ class PackService {
             $pack->setNature($nature);
         }
 
+        $project = $projectRepository->findOneBy(["id" => $projectId]);
+
+        $recordDate = new DateTime();
+        $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
+
+        foreach($pack->getChildArticles() as $article) {
+            $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+        }
+
         $pack
             ->setQuantity($quantity)
             ->setWeight($weight)
@@ -197,11 +242,14 @@ class PackService {
             ->setComment(StringHelper::cleanedComment($comment));
     }
 
-    public function createPack(array $options = []): Pack
+    public function createPack(EntityManager $entityManager, array $options = []): Pack
     {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
+            /** @var ?Project $project */
+            $project = $options['project'] ?? null;
+
             if(isset($options['arrival'])) {
                 /** @var Arrivage $arrival */
                 $arrival = $options['arrival'];
@@ -217,6 +265,11 @@ class PackService {
                 $pack = $this
                     ->createPackWithCode($code)
                     ->setNature($nature);
+                if (isset($options['reception'])) {
+                    /** @var Reception $reception */
+                    $reception = $options['reception'];
+                    $this->receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
+                }
 
                 $arrival->addPack($pack);
             }
@@ -244,6 +297,15 @@ class PackService {
             else {
                 throw new RuntimeException('Unhandled pack configuration');
             }
+
+            if ($project) {
+                $recordDate = new DateTime();
+                $this->projectHistoryRecordService->changeProject($entityManager, $pack, $project, $recordDate);
+
+                foreach($pack->getChildArticles() as $article) {
+                    $this->projectHistoryRecordService->changeProject($entityManager, $article, $project, $recordDate);
+                }
+            }
         }
         return $pack;
     }
@@ -255,11 +317,48 @@ class PackService {
         return $pack;
     }
 
+    public function persistPack(EntityManagerInterface $entityManager,
+                                                       $packOrCode,
+                                                       $quantity,
+                                                       $natureId = null,
+                                bool                   $onlyPack = false): Pack {
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $codePack = $packOrCode instanceof Pack ? $packOrCode->getCode() : $packOrCode;
+
+        $pack = ($packOrCode instanceof Pack)
+            ? $packOrCode
+            : $packRepository->findOneBy(['code' => $packOrCode]);
+
+        if ($onlyPack && $pack && $pack->isGroup()) {
+            throw new Exception(Pack::PACK_IS_GROUP);
+        }
+
+        if (!isset($pack)) {
+            $pack = $this->createPackWithCode($codePack);
+            $pack->setQuantity($quantity);
+            $entityManager->persist($pack);
+        }
+
+        if (!empty($natureId)) {
+            $natureRepository = $entityManager->getRepository(Nature::class);
+            $nature = $natureRepository->find($natureId);
+
+            if (!empty($nature)) {
+                $pack->setNature($nature);
+            }
+        }
+
+        return $pack;
+    }
+
     public function persistMultiPacks(EntityManagerInterface $entityManager,
-                                      Arrivage $arrivage,
-                                      array $colisByNatures,
-                                      $user,
-                                      bool $persistTrackingMovements = true): array
+                                      Arrivage               $arrivage,
+                                      array                  $packByNatures,
+                                                             $user,
+                                      bool                   $persistTrackingMovements = true,
+                                      Project                $project = null,
+                                      Reception              $reception = null): array
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -267,17 +366,17 @@ class PackService {
             ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
             : null;
 
-        $totalPacks = Stream::from($colisByNatures)->sum();
+        $totalPacks = Stream::from($packByNatures)->sum();
         if($totalPacks > 500) {
-            throw new FormException("Vous ne pouvez pas ajouter plus de 500 colis");
+            throw new FormException("Vous ne pouvez pas ajouter plus de 500 UL");
         }
 
         $now = new DateTime('now');
         $createdPacks = [];
-        foreach ($colisByNatures as $natureId => $number) {
+        foreach ($packByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack(['arrival' => $arrivage, 'nature' => $nature]);
+                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,
@@ -315,14 +414,14 @@ class PackService {
             $lastDrop = $pack->getLastDrop();
 
             $this->mailerService->sendMail(
-                "Follow GT // Colis non récupéré$titleSuffix",
-                $this->templating->render('mailPackDeliveryDone.html.twig', [
-                    'title' => 'Votre colis est toujours présent dans votre magasin',
+                "Follow GT // Unité logistique non récupéré$titleSuffix",
+                $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
+                    'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),
-                    'colis' => FormatHelper::pack($pack),
+                    'pack' => $this->formatService->pack($pack),
                     'emplacement' => $lastDrop->getEmplacement(),
                     'date' => $lastDrop->getDatetime(),
-                    'fournisseur' => FormatHelper::supplier($arrival->getFournisseur()),
+                    'fournisseur' => $this->formatService->supplier($arrival->getFournisseur()),
                     'pjs' => $arrival->getAttachments()
                 ]),
                 $arrival->getDestinataire()
@@ -339,5 +438,137 @@ class PackService {
         }
 
         return $counter;
+    }
+
+    public function getColumnVisibleConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getVisibleColumns()['arrivalPack'];
+        return $this->visibleColumnService->getArrayConfig(
+            [
+                ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true, "searchable" => true],
+                ["name" => 'nature', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Nature'), "searchable" => true],
+                ["name" => 'code', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Unités logistiques'), "searchable" => true],
+                ["name" => 'project', 'title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "searchable" => true],
+                ["name" => 'lastMvtDate', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Date dernier mouvement'), "searchable" => true],
+                ["name" => 'lastLocation', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Dernier emplacement'), "searchable" => true],
+                ["name" => 'operator', 'title' => $this->translation->translate('Traçabilité', 'Général', 'Opérateur'), "searchable" => true],
+            ],
+            [],
+            $columnsVisible
+        );
+    }
+
+    public function updateArticlePack(EntityManagerInterface $entityManager,
+                                      Article                $article): Pack {
+        $trackingPack = $article->getTrackingPack();
+        if(!isset($trackingPack)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+            $trackingPack = $packRepository->findOneBy(["code" => $article->getBarCode()])
+                ?? $this->persistPack($entityManager, $article->getBarCode(), $article->getQuantite());
+            $article->setTrackingPack($trackingPack);
+        }
+        return $trackingPack;
+    }
+
+    public function getBarcodePackConfig(Pack         $pack,
+                                         ?Utilisateur $destinataire = null,
+                                         ?string      $packIndex = '',
+                                         ?bool        $typeArrivalParamIsDefined = false,
+                                         ?bool        $usernameParamIsDefined = false,
+                                         ?bool        $dropzoneParamIsDefined = false,
+                                         ?bool        $packCountParamIsDefined = false,
+                                         ?bool        $commandAndProjectNumberIsDefined = false,
+                                         ?array       $firstCustomIconConfig = null,
+                                         ?array       $secondCustomIconConfig = null,
+                                         ?bool        $businessUnitParam = false,
+                                         ?bool $projectParam = false,
+    ): array {
+
+        $arrival = $pack->getArrivage();
+
+        $businessUnit = $businessUnitParam
+            ? $arrival->getBusinessUnit()
+            : '';
+
+        $project = $projectParam
+            ? $pack->getProject()?->getCode()
+            : '';
+
+        $arrivalType = $typeArrivalParamIsDefined
+            ? $this->formatService->type($arrival->getType())
+            : '';
+
+        $recipientUsername = ($usernameParamIsDefined && $destinataire)
+            ? $destinataire->getUsername()
+            : '';
+
+        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
+            ? ($destinataire->getDropzone()
+                ? $destinataire->getDropzone()->getLabel()
+                : '')
+            : '';
+
+        $arrivalCommand = [];
+        $arrivalLine = "";
+        $i = 0;
+        foreach($arrival?->getNumeroCommandeList() ?? [] as $command) {
+            $arrivalLine .= $command;
+
+            if(++$i % 4 == 0) {
+                $arrivalCommand[] = $arrivalLine;
+                $arrivalLine = "";
+            } else {
+                $arrivalLine .= " ";
+            }
+        }
+
+        if(!empty($arrivalLine)) {
+            $arrivalCommand[] = $arrivalLine;
+        }
+
+        $arrivalProjectNumber = $arrival
+            ? ($arrival->getProjectNumber() ?? '')
+            : '';
+
+        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
+
+        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+
+        $labels = [$arrivalType];
+
+        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
+
+        if ($commandAndProjectNumberIsDefined) {
+            if ($arrivalCommand && $arrivalProjectNumber) {
+                if(count($arrivalCommand) > 1) {
+                    $labels = array_merge($labels, $arrivalCommand);
+                    $labels[] = $arrivalProjectNumber;
+                } else if(count($arrivalCommand) == 1) {
+                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
+                }
+            } else if ($arrivalCommand) {
+                $labels = array_merge($labels, $arrivalCommand);
+            } else if ($arrivalProjectNumber) {
+                $labels[] = $arrivalProjectNumber;
+            }
+        }
+
+        if($businessUnitParam) {
+            $labels[] = $businessUnit;
+        }
+
+        if($projectParam) {
+            $labels[] = $project;
+        }
+
+        if ($packLabel) {
+            $labels[] = $packLabel;
+        }
+
+        return [
+            'code' => $pack->getCode(),
+            'labels' => $labels,
+            'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
+            'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null
+        ];
     }
 }

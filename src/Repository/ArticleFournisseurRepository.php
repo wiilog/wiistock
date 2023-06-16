@@ -276,25 +276,6 @@ class ArticleFournisseurRepository extends EntityRepository
     }
 
     /**
-     * @param $reference
-     * @return array
-     */
-    public function getIdAndLibelleByRefRef($reference)
-    {
-        $queryBuilder = $this->createQueryBuilder('articleFournisseur');
-        $queryBuilder
-            ->select('articleFournisseur.id AS id')
-            ->addSelect('articleFournisseur.reference as reference')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->where('referenceArticle.reference = :reference')
-            ->setParameter('reference', $reference);
-
-        return $queryBuilder
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
      * @param string $reference
      * @return int
      * @throws NoResultException
@@ -331,5 +312,59 @@ class ArticleFournisseurRepository extends EntityRepository
             ->setParameter('label', $label);
 
         return (int) $query->getSingleScalarResult();
+    }
+
+    public function getForSelect(?string $search, array $options = []): array {
+        $supplier = $options['supplier'] ?? null;
+        $referenceArticle = $options['referenceArticle'] ?? null;
+
+        $qb = $this->createQueryBuilder("supplier_article")
+            ->select("supplier_article.id AS id")
+            ->addSelect("supplier_article.reference AS text")
+            ->andWhere("supplier_article.reference LIKE :search")
+            ->setParameter("search", "%$search%");
+
+        if($supplier) {
+            $qb
+                ->leftJoin("supplier_article.fournisseur", "join_supplier")
+                ->andWhere("join_supplier.id = :supplier")
+                ->setParameter("supplier", $supplier);
+        }
+
+        if($referenceArticle) {
+            $qb
+                ->leftJoin("supplier_article.referenceArticle", "join_referenceArticle")
+                ->andWhere("join_referenceArticle.id = :referenceArticle")
+                ->setParameter("referenceArticle", $referenceArticle);
+        }
+
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function deleteSupplierArticles(array $ignoredSupplierArticles, array $linkedReferenceArticles): void {
+        $supplierArticleIdToDelete = $this->createQueryBuilder('supplierArticle')
+            ->select('supplierArticle.id')
+            ->join("supplierArticle.referenceArticle", "join_referenceArticle")
+            ->leftJoin("supplierArticle.articles", "join_linkedArticle")
+            ->leftJoin("supplierArticle.receptionReferenceArticles", "join_linkedReceptionReferenceArticles")
+            ->andWhere("supplierArticle.reference NOT IN (:ignoredSupplierArticles)")
+            ->andWhere("join_referenceArticle.id IN (:linkedReferenceArticles)")
+            ->andWhere("join_linkedArticle.id IS NULL")
+            ->andWhere("join_linkedReceptionReferenceArticles.id IS NULL")
+            ->setParameter("ignoredSupplierArticles", $ignoredSupplierArticles)
+            ->setParameter("linkedReferenceArticles", $linkedReferenceArticles)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        if (!empty($supplierArticleIdToDelete)) {
+            $this->createQueryBuilder('supplierArticle2')
+                ->delete()
+                ->andWhere("supplierArticle2.id IN (:supplierArticleIdToDelete)")
+                ->setParameter("supplierArticleIdToDelete", $supplierArticleIdToDelete)
+                ->getQuery()
+                ->execute();
+        }
     }
 }

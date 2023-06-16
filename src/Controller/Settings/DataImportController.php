@@ -6,6 +6,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\FieldsParam;
 use App\Entity\Import;
 use App\Entity\Statut;
+use App\Entity\StorageRule;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
@@ -55,6 +56,7 @@ class DataImportController extends AbstractController
             ->setLabel($post->get('label'))
             ->setEntity($post->get('entity'))
             ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+            ->setEraseData($post->get('deleteDifData') ?? false)
             ->setUser($loggedUser);
 
         $entityManager->persist($import);
@@ -215,7 +217,7 @@ class DataImportController extends AbstractController
 
         if ($import) {
             $importModeTodo = ($force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN);
-            $importModeDone = $importService->treatImport($import, $this->getUser(), $importModeTodo);
+            $importModeDone = $importService->treatImport($import, $importModeTodo);
 
             $success = true;
             $message = (

@@ -29,10 +29,10 @@
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
     <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
-    <div class="ra-container d-flex justify-content-center align-content-center">
+    <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
-                <div class="ra-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
+                <div class="details-page-header d-flex flex-column" style="border-color: {{ referenceArticle.type.color }}">
                     <div class="wii-type" style="background-color: {{ referenceArticle.type.color }}">
                         <span>{{ referenceArticle.type.label }}</span>
                     </div>
@@ -50,10 +50,10 @@
                             </div>
                             <div class="d-flex align-content-center my-3">
                                 <img src="{{ asset('svg/reference_article/stock.svg') }}" alt="Icône stock" class="mr-2" width="15px">
-                                <span class="wii-field-text">Quantité disponible <strong>{{ referenceArticle.quantiteDisponible }}</strong></span>
+                                <span class="wii-field-name">Quantité disponible <span class="wii-body-text">{{ referenceArticle.quantiteDisponible }}</span></span>
                             </div>
                             <div class="d-flex align-content-center">
-                                <span class="reference-status wii-body-text mr-3"
+                                <span class="current-status wii-body-text mr-3"
                                       style="background-color: {{ statuses[referenceArticle.statut.code]['color'] }};">
                                     Référence {{ statuses[referenceArticle.statut.code]['status'] }}
                                 </span>
@@ -69,7 +69,7 @@
                                                   alt="Icône information"
                                                   width="10px"
                                                   class="has-tooltip"
-                                                  title="Permet de sélectionner la {{ trans('Stock', 'Réceptions', 'référence', false) }} lors de la création d'une demande de livraison sur l'application mobile">
+                                                  title="Permet de sélectionner la {{ trans('Stock', 'Réceptions', 'référence', false) }} lors de la création d'une {{ trans('Demande', 'Livraison', 'Demande de livraison', false) | lower }} sur l'application mobile">
                                         </sup>
                                     </span>
                                 </div>
@@ -87,6 +87,13 @@
                                 <label class="box-item ml-3">
                                     <span class="wii-field-name">Groupe de visibilité</span>
                                     <span class="wii-body-text">{{ referenceArticle.visibilityGroup ? referenceArticle.visibilityGroup.label : '-' }}</span>
+                                </label>
+                            </div>
+                            <div class="col-12 col-md-6 mt-3 d-flex">
+                                <img src="{{ asset('svg/Douane.svg') }}" alt="Icône code NDP" width="20px">
+                                <label class="box-item ml-3">
+                                    <span class="wii-field-name">Code NDP</span>
+                                    <span class="wii-body-text">{{ referenceArticle.ndpCode ? referenceArticle.ndpCode : '-' }}</span>
                                 </label>
                             </div>
                         </div>
@@ -117,12 +124,10 @@
                         </div>
                     </div>
                     <div class="content comment-container">
-                        <div class="ml-3">
-                            <span class="wii-subtitle">Commentaire</span>
-                            <div class="mt-2 wii-body-text text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
-                                ? referenceArticle.commentaire | raw
-                                : '-' }}
-                            </div>
+                        <span class="wii-subtitle">Commentaire</span>
+                        <div class="mt-2 wii-body-text text-break">{{ referenceArticle.commentaire and referenceArticle.commentaire != '<p><br></p>'
+                            ? referenceArticle.commentaire | raw
+                            : '-' }}
                         </div>
                     </div>
                 </div>
@@ -148,6 +153,55 @@
                         </div>
                     </div>
                 </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Données Sécurité</div>
+                    <div class="content">
+                        <div class="d-flex flex-column mb-3">
+                            <label class="wii-field-name w-100">
+                                Marchandise dangereuse
+                            </label>
+                            <span class="wii-field-text">{{ referenceArticle.dangerousGoods ? 'Oui' : 'Non' }}</span>
+                        </div>
+                        <div class="d-flex flex-column mb-3">
+                            <div class="d-flex flex-wrap">
+                                <label class="wii-field-name w-100">
+                                    Fiche
+                                </label>
+                                {% set url = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
+                                {% if referenceArticle.sheet %}
+                                    <div class="attachment-item show">
+                                            <img src="{{ asset('svg/reference_article/file.svg') }}" alt="Icône fichier" width="13px" class="mr-2">
+                                            <a target="_blank" class="wii-small-text has-tooltip"
+                                               href="{{ url ~ referenceArticle.sheet.fullPath }}"
+                                               download="{{ referenceArticle.sheet.originalName }}"
+                                               title="{{ referenceArticle.sheet.originalName }}">
+                                                {{ referenceArticle.sheet.originalName }}
+                                            </a>
+                                        </div>
+                                {% else %}
+                                    <div class="d-flex mt-2">
+                                        <span class="wii-small-text"
+                                              title="Cette référence n'a aucune pièce jointe">Cette {{ trans('Stock', 'Réceptions', 'référence', false) }} n'a aucune pièce jointe</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-6 d-flex flex-column mb-3">
+                                <label class="wii-field-name w-100">
+                                    Code ONU
+                                </label>
+                                <span class="wii-field-text">{{ referenceArticle.onuCode ? referenceArticle.onuCode : '-' }}</span>
+                            </div>
+                            <div class="col-12 col-md-6 d-flex flex-column mb-3">
+                                <label class="wii-field-name w-100">
+                                    Classe produit
+                                </label>
+                                <span class="wii-field-text">{{ referenceArticle.productClass ? referenceArticle.productClass : '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-12 col-md-6">
                 <div class="wii-box">
@@ -157,13 +211,13 @@
                             <div class="col-auto d-flex">
                                 {% set isReferenceManagementQuantity = referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
                                 <img src="{{ asset('svg/' ~ (isReferenceManagementQuantity ? 'pack.svg' : 'reference_article/article.svg')) }}"
-                                     alt="Icône colis" width="20px">
+                                     alt="Icône UL" width="20px">
                                 <span class="wii-field-name ml-3">
                                     Quantité gérée à {{ isReferenceManagementQuantity ? 'la référence' : 'l\'article' }}
                                 </span>
                             </div>
                         </div>
-                        <div class="row mt-4">
+                        <div class="row mt-3">
                             {% if isReferenceManagementQuantity %}
                                 <div class="col-6 d-flex">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
@@ -238,17 +292,20 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% if referenceArticle.isUrgent %}
-                        <div class="d-flex align-items-center urgent-container">
-                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
-                            <div class="d-flex flex-column ml-3">
-                                <span class="wii-field-name">Référence urgente</span>
-                                <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+
+                        {% if referenceArticle.isUrgent %}
+                            <div class="row mt-3">
+                                <div class="col-6 d-flex align-items-center">
+                                    <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                                    <div class="d-flex flex-column ml-3">
+                                        <span class="wii-field-name">Référence urgente</span>
+                                        <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    {% endif %}
-                    <div class="ra-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
+                        {% endif %}
+                    </div>
+                    <div class="details-page-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}
                             <span class="wii-subtitle dropdown-wrapper">Fournisseur{{ plural }}</span>
@@ -279,6 +336,41 @@
                                     </div>
                                 </li>
                             {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="details-page-dropdown">
+                        {% set storageRules = referenceArticle.storageRules %}
+                        <label for="storageRulesDropdown" class="w-100">
+                            {% set plural = storageRules | length > 1 ? 's' : '' %}
+                            <span class="wii-subtitle dropdown-wrapper">Règle{{ plural }} de stockage</span>
+                        </label>
+                        <input type="checkbox" id="storageRulesDropdown">
+                        <ul class="slide">
+                            {% if storageRules | length != 0 %}
+                                {% for storageRule in storageRules %}
+                                    <li class="mb-3">
+                                        <div class="provider-label">
+                                            <span class="wii-field-name ml-3">{{ storageRule.location.label }}</span>
+                                        </div>
+                                        <div class="d-flex mt-3">
+                                            <div class="col-6 d-flex flex-column">
+                                                <span class="wii-field-name">Qté sécurité</span>
+                                                <span class="wii-body-text">{{ storageRule.securityQuantity }}</span>
+                                            </div>
+                                            <div class="col-6 d-flex flex-column">
+                                                <span class="wii-field-name">Qté conditionnement</span>
+                                                <span class="wii-body-text">{{ storageRule.conditioningQuantity }}</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="mb-3">
+                                    <div class="provider-label">
+                                        <span class="wii-field-name ml-3">Aucune règle de stockage</span>
+                                    </div>
+                                </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>

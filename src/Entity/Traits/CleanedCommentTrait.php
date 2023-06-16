@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait CleanedCommentTrait {
 
     #[ORM\Column(type: 'text', nullable: true)]
-    private $cleanedComment;
+    private ?string $cleanedComment = null;
 
     public function getCleanedComment(): ?string {
         return $this->cleanedComment;

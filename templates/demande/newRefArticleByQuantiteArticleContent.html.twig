@@ -4,7 +4,7 @@
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">Choisir un article</option>
         {% set index = 0 %}
-        {% for article in articles %}
+        {% for article in articles | filter(v => not v.currentLogisticUnit)%}
             {% if article.id not in articleIdsInRequest %}
                 <option value="{{ article.id }}"
                         {{ preselect and index == 0 ? 'selected' }}>

@@ -1,0 +1,64 @@
+{% import 'form.html.twig' as form %}
+
+{% set receptionLine = receptionReferenceArticle.receptionLine %}
+{% set pack = receptionLine.pack ?? selectedPack %}
+{% set packProject = pack ? pack.project %}
+
+<div class="col-2">
+    <div class="d-flex flex-column justify-content-center dark-background quantity-to-receive">
+        {{ form.input('quantityToReceive', 'Article(s)', true, 1, {
+            type: 'number',
+            min: 1
+        }) }}
+    </div>
+</div>
+<div class="col-10">
+    <div class="values">
+        <div class="d-flex">
+            <div class="col-2 form-group mt-2">
+                {% set receivedQuantity = receptionReferenceArticle.quantite ?? 0 %}
+                {% set quantityToReceived = receptionReferenceArticle.quantiteAR ?? 0 %}
+                {% set quantity = quantityToReceived - receivedQuantity %}
+                {{ form.number('quantity', 'Quantité', true, quantity ? quantity : null, {
+                    buttons: false,
+                    min: 1,
+                }) }}
+            </div>
+            <div class="col-3 form-group mt-2">
+                {{ form.input('batch', 'Lot') }}
+            </div>
+            <div class="col-3 form-group mt-2">
+                {{ form.input('expiry', 'Date de péremption', false, '', {type: 'date'}) }}
+            </div>
+            {% if pack %}
+                <div class="col-2 form-group mt-2">
+                    <div class="d-flex flex-column h-100">
+                        <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
+                        <span class="wii-body-text my-auto">{{ packProject ? packProject.code : '-' }}</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% include 'free_field/freeFieldsEdit.html.twig' with {
+            freeFields: freeFields|sort((a, b) => a.label <=> b.label),
+            freeFieldValues: [],
+            colType: 'col-md-4 col-12',
+            requiredType: 'requiredCreate',
+            actionType: 'new',
+            containerClasses: 'row px-3'
+        } %}
+    </div>
+</div>
+<input type="hidden" class="data" name="receptionReferenceArticle" value="{{ receptionReferenceArticle.id }}">
+<input type="hidden" class="data" name="supplierReference" value="{{ supplierReference ? supplierReference.reference }}">
+{% if pack %}
+    <input type="hidden" class="data" name="pack" value="{{ pack.id }}">
+{% endif %}
+
+<div class="col-12 d-flex justify-content-end mt-3">
+    <button class="btn btn-primary d-flex align-items-center add-packing-lines">
+        <span class='wii-icon wii-icon-plus mr-2'></span>
+        Ajouter des articles
+    </button>
+</div>
+

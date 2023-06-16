@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -15,19 +17,23 @@ use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
+use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Service\DemandeLivraisonService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
-use App\Service\PreparationsManagerService;
-use App\Service\RefArticleDataService;
+use App\Service\TagTemplateService;
+use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
@@ -80,7 +86,7 @@ class ArticleController extends AbstractController
      * @Route("/", name="article_index", methods={"GET", "POST"})
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
-    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
+    public function index(EntityManagerInterface $entityManager, ArticleDataService $articleDataService, TagTemplateService $tagTemplateService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         /** @var Utilisateur $currentUser */
@@ -90,6 +96,7 @@ class ArticleController extends AbstractController
         return $this->render('article/index.html.twig', [
             "fields" => $articleDataService->getColumnVisibleConfig($entityManager, $currentUser),
             "searches" => $currentUser->getRechercheForArticle(),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
             "activeOnly" => !empty($filter) && ($filter->getValue() === $articleDataService->getActiveArticleFilterValue())
         ]);
     }
@@ -136,6 +143,25 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @Route("/voir/{id}", name="article_show_page", options={"expose"=true})
+     * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
+     */
+    public function showPage(Article $article, EntityManagerInterface $manager): Response {
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $type = $article->getType();
+        $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+
+        return $this->render("article/show/index.html.twig", [
+            'article' => $article,
+            'hasMovements' => $hasMovements,
+            'freeFields' => $freeFields,
+            'fieldsParam' => $fieldsParam,
+        ]);
+    }
+
+    /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
@@ -168,7 +194,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function editApi(Request $request,
+    public function show(Request $request,
                             ArticleDataService $articleDataService,
                             EntityManagerInterface $entityManager): Response
     {
@@ -189,18 +215,58 @@ class ArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
+    #[Route("/nouveau-page", name: "article_new_page", options: ["expose" => true])]
+    public function newTemplate(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+
+        $barcode = $articleDataService->generateBarcode();
+
+        return $this->render("article/form/new.html.twig", [
+            "new_article" => new Article(),
+            "submit_url" => $this->generateUrl("article_new"),
+            "types" => $types,
+            "fieldsParam" => $fieldsParam,
+            "barcode" => $barcode
+        ]);
+    }
+
     /**
      * @Route("/nouveau", name="article_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        MouvementStockService $mouvementStockService): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
+                        MouvementStockService $mouvementStockService,
+                        ArticleDataService $articleDataService,
+                        TrackingMovementService $trackingMovementService): Response {
+        $data = $request->request->all();
+
+        $barcode = $data['barcode'];
+        $existingArticle = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $barcode]);
+        if(!$existingArticle) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
-            $article = $this->articleDataService->newArticle($data, $entityManager);
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
+            if (isset($data['rfidTag']) && !empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
+                ]);
+            }
+
+            $article = $this->articleDataService->newArticle($entityManager, $data);
+            $refArticleId = $data["refArticle"];
+            $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
+
+            if ($refArticleId != $refArticleFournisseurId) {
+                throw new FormException("La référence article fournisseur ne correspond pas à la référence article");
+            }
+
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
@@ -221,24 +287,56 @@ class ArticleController extends AbstractController
 
                 $entityManager->persist($stockMovement);
                 $entityManager->flush();
+
+                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                    $article,
+                    $article->getEmplacement(),
+                    $this->getUser(),
+                    new DateTime('now'),
+                    false,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $trackingMovement->setMouvementStock($stockMovement);
+
+                $entityManager->persist($trackingMovement);
+                $entityManager->flush();
             }
 
-            return new JsonResponse(!empty($article));
+            return $this->json([
+                'success' => true,
+                'articleId' => $article->getId(),
+            ]);
+        } else {
+            return $this->json([
+                'success' => false,
+                'msg' => "Le code barre de l'article a été actualisé, veuillez valider de nouveau le formulaire.",
+                'barcode' => $articleDataService->generateBarcode()
+            ]);
         }
-        throw new BadRequestHttpException();
     }
 
     /**
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request): Response
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         TranslationService     $translation): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
-            if ($data['article']) {
+        if ($data = $request->request->all()) {
+            $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $this->articleDataService->editArticle($data);
-                    $response = ['success' => true];
+                    $article = $this->articleDataService->newArticle($entityManager, $data, [
+                        "existing" => $article,
+                    ]);
+                    $response = [
+                        'success' => true,
+                        'articleId' => $data['id'],
+                        'barcode' => $article->getBarCode(),
+                    ];
+                    $entityManager->flush();
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
                 catch(ArticleNotAvailableException $exception) {
@@ -251,12 +349,9 @@ class ArticleController extends AbstractController
                 catch(RequestNeedToBeProcessedException $exception) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
-            } else {
-                $response = ['success' => false];
-            }
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
@@ -268,17 +363,18 @@ class ArticleController extends AbstractController
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
-                           PreparationsManagerService $preparationsManagerService,
-                           DemandeLivraisonService $demandeLivraisonService,
-                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
+
+            $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+            $shippingRequestLineCounter = $shippingRequestLineRepository->count(['article' => $article]);
 
             $trackingPack = $article->getTrackingPack();
 
@@ -287,7 +383,9 @@ class ArticleController extends AbstractController
                 && $article->getOrdreCollecte()->isEmpty()
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
-                && $article->getInventoryEntries()->isEmpty()) {
+                && $article->getInventoryEntries()->isEmpty()
+                && $locationMissionCounter === 0
+                && $shippingRequestLineCounter === 0) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);
@@ -372,6 +470,13 @@ class ArticleController extends AbstractController
 
             $articleAssociations = $article->getUsedAssociation();
 
+            if (!$articleAssociations) {
+                $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+                if ($locationMissionCounter > 0) {
+                    $articleAssociations = Article::USED_ASSOC_INVENTORY_ENTRY;
+                }
+            }
+
             if ($articleAssociations !== null) {
                 return new JsonResponse([
                     'delete' => false,
@@ -409,11 +514,11 @@ class ArticleController extends AbstractController
                     return new JsonResponse([
                         'delete' => ($isFromReception || $isNotUsedInAssoc),
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
-                            'request' => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
-                            'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
-                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
-                            'askQuestion' => $isFromReception
+                            "prepa" => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
+                            "request" => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
+                            "mvtStockIsEmpty" => $articlesMvtStockIsEmpty,
+                            "mvtTracaIsEmpty" => $articlesMvtTracaIsEmpty,
+                            "askQuestion" => $isFromReception,
                         ])
                     ]);
                 } else {
@@ -633,17 +738,27 @@ class ArticleController extends AbstractController
                                           PDFGeneratorService $PDFGeneratorService,
                                           ArticleDataService $articleDataService): Response {
         $articleRepository = $entityManager->getRepository(Article::class);
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
         $listArticles = $request->query->all('listArticles') ?: [];
-        $barcodeConfigs = array_map(
-            function (Article $article) use ($articleDataService) {
-                return $articleDataService->getBarcodeConfig($article);
-            },
-            $articleRepository->findBy(['id' => $listArticles])
-        );
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
+        $articles = $articleRepository->findBy(['id' => $listArticles]);
+        $barcodeConfigs = Stream::from($articles)
+            ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                return
+                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+            })
+            ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article))
+            ->toArray();
+
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
             $fileName
         );
     }
@@ -654,12 +769,75 @@ class ArticleController extends AbstractController
     public function getSingleArticleBarCode(Article $article,
                                             ArticleDataService $articleDataService,
                                             PDFGeneratorService $PDFGeneratorService): Response {
+        $tag = $article->getType()->getTags()->first() ?: null;
         $barcodeConfigs = [$articleDataService->getBarcodeConfig($article)];
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article');
-
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'article', $tag ? $tag->getPrefix() : 'ETQ');
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
             $fileName
         );
+    }
+
+    #[Route("/get-article-tracking-movements", name: "get_article_tracking_movements", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getTrackingMovements(EntityManagerInterface $manager, Request $request): Response {
+        $article = $request->query->get('article');
+
+        $movements = $manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article, ['mainMovementOnly'=>true]);
+
+        return $this->json([
+            'template' => $this->renderView('article/show/timeline.html.twig', [
+                'movements' => $movements,
+            ]),
+        ]);
+    }
+
+    /**
+     * @Route("/modifier-page/{article}", name="article_edit_page", options={"expose"=true})
+     */
+    public function editTemplate(EntityManagerInterface $manager, Article $article) {
+        $typeRepository = $manager->getRepository(Type::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
+        $freeFieldsGroupedByTypes = [];
+        $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
+        foreach ($types as $type) {
+            $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+            $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
+        }
+
+        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+
+        return $this->render("article/form/edit.html.twig", [
+            "article" => $article,
+            "submit_url" => $this->generateUrl("article_edit"),
+            "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
+            "hasMovements" => $hasMovements,
+            "fieldsParam" => $fieldsParam,
+        ]);
+    }
+
+    #[Route("/get-free-fields-by-type", name: "get_free_fields_by_type", options: ["expose" => true], methods: "GET")]
+    public function getFreefieldsByType(Request $request, EntityManagerInterface $manager): Response {
+        $referenceArticleRepository = $manager->getRepository(ReferenceArticle::class);
+        $freeFieldRepository = $manager->getRepository(FreeField::class);
+
+        $reference = $request->query->has('referenceId')
+            ? $referenceArticleRepository->find($request->query->get('referenceId'))
+            : null;
+
+        $freeFields = [];
+        if($reference) {
+            $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($reference->getType(), CategorieCL::ARTICLE);
+        }
+
+        return $this->json([
+            'success' => true,
+            'template' => $this->renderView('article/form/free-fields.html.twig', [
+                'freeFields' => $freeFields
+            ]),
+            'type' => $reference?->getType()?->getLabel()
+        ]);
     }
 }

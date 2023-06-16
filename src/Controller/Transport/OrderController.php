@@ -25,6 +25,7 @@ use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
 use App\Service\IOT\IOTService;
 use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use App\Service\UserService;
@@ -233,7 +234,8 @@ class OrderController extends AbstractController {
 
     #[Route("/liste", name: "transport_order_index", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface    $manager,
+                          TranslationService        $translation): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         return $this->render('transport/order/index.html.twig', [
@@ -241,7 +243,7 @@ class OrderController extends AbstractController {
                 [
                     "category" => CategoryType::DELIVERY_TRANSPORT,
                     "icon" => "cart-delivery",
-                    "label" => "Livraison",
+                    "label" => $translation->translate("Demande", "Livraison", "Livraison", false),
                 ], [
                     "category" => CategoryType::COLLECT_TRANSPORT,
                     "icon" => "cart-collect",
@@ -401,11 +403,11 @@ class OrderController extends AbstractController {
                 'Commentaire'];
 
             $packsHeader = [
-                'Nature colis',
-                'Nombre de colis à livrer',
+                'Nature UL',
+                'Nombre d\'UL à livrer',
                 'Températures',
                 'Dépassement température',
-                'Code colis',
+                'Code UL',
                 'Ecarté',
                 'Motif écartement',
                 'Retourné le',
@@ -438,7 +440,7 @@ class OrderController extends AbstractController {
             ];
 
             $csvLines = [
-                'Nature colis',
+                'Nature UL',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];

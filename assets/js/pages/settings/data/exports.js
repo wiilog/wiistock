@@ -3,7 +3,9 @@ import Modal from "@app/modal";
 
 import Form from '@app/form';
 import Flash from '@app/flash';
+import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
+import moment from "moment";
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -12,9 +14,9 @@ const ENTITY_REFERENCE = "reference";
 const ENTITY_ARTICLE = "article";
 const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
+const ENTITY_REF_LOCATION = "reference_emplacement";
 
 global.displayExportModal = displayExportModal;
-global.toggleFrequencyInput = toggleFrequencyInput;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
 global.destinationExportChange = destinationExportChange;
 global.forceExport = forceExport;
@@ -85,7 +87,7 @@ function displayExportModal(exportId) {
             </div>
         `);
 
-    $.get(Routing.generate('export_template', params, true), function(resp){
+    $.get(Routing.generate('export_template', params, true), function(resp) {
         $modal.find('.modal-body').html(resp);
         onFormEntityChange();
         onFormTypeChange(false);
@@ -96,58 +98,23 @@ function displayExportModal(exportId) {
             toggleFrequencyInput($checkedFrequency);
         }
 
-        const $dateInput = $modal.find('[name=dateMin], [name=dateMax]');
+        const $dateInput = $modal.find('[name=dateMin], [name=dateMax], [name=articleDateMin], [name=articleDateMax]');
         initDateTimePicker($dateInput);
 
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
         $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
+        $modal.find('select[name=referenceTypes]').select2({closeOnSelect: false});
+        $modal.find('select[name=statuses]').select2({closeOnSelect: false});
+        $modal.find('select[name=suppliers]').select2({closeOnSelect: false});
         $modal.find('.select-all-options').on('click', onSelectAll);
 
-        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')){
+        if($modal.find('input[name=destinationType]:checked').hasClass('export-by-sftp')) {
             destinationExportChange();
         }
     });
 
     $modal.modal('show');
-}
-
-function onSelectAll() {
-    const $select = $(this).closest(`.input-group`).find(`select`);
-
-    $select.find(`option:not([disabled])`).each(function () {
-        $(this).prop(`selected`, true);
-    });
-
-    $select.trigger(`change`);
-}
-
-function toggleFrequencyInput($input) {
-    const $modal = $input.closest('.modal');
-    const $globalFrequencyContainer = $modal.find('.frequency-content');
-    const inputName = $input.attr('name');
-    const $inputChecked = $modal.find(`[name="${inputName}"]:checked`);
-    const inputCheckedVal = $inputChecked.val();
-
-    $globalFrequencyContainer.addClass('d-none');
-    $globalFrequencyContainer.find('.frequency').addClass('d-none');
-    $globalFrequencyContainer
-        .find('input.frequency-data, select.frequency-data')
-        .removeClass('data')
-        .removeClass('needed');
-    $globalFrequencyContainer.find('.is-invalid').removeClass('is-invalid');
-
-    if(inputCheckedVal) {
-        $globalFrequencyContainer.removeClass('d-none');
-        const $frequencyContainer = $globalFrequencyContainer.find(`.frequency.${inputCheckedVal}`);
-        $frequencyContainer.removeClass('d-none');
-        $frequencyContainer
-            .find('input.frequency-data, select.frequency-data')
-            .addClass('needed')
-            .addClass('data');
-    }
-
-    $('.select-all-options').on('click', onSelectAll);
 }
 
 function selectHourlyFrequencyIntervalType($select) {
@@ -192,14 +159,14 @@ function createForm() {
         .on('change', '[name=periodInterval]', function() {
             onPeriodIntervalChange($modal);
         })
-        .addProcessor((data, errors, $form) => {
+        .addProcessor((data, errors, form) => {
             const destinationType = Number(data.get('destinationType'));
             const recipientUsers = data.get('recipientUsers');
             const recipientEmails = data.get('recipientEmails');
             const isEmailExport = destinationType === 1;
             if (isEmailExport && !recipientUsers && !recipientEmails) {
                 errors.push({
-                    elements: [$form.find('[name=recipientUsers]'), $form.find('[name=recipientEmails]')],
+                    elements: [form.find('[name=recipientUsers]'), form.find('[name=recipientEmails]')],
                     message: `Vous devez renseigner au moins un utilisateur ou une adresse email destinataire`,
                 });
             }
@@ -216,13 +183,30 @@ function createForm() {
                     if (content.entityToExport === ENTITY_REFERENCE) {
                         window.open(Routing.generate(`settings_export_references`));
                     } else if (content.entityToExport === ENTITY_ARTICLE) {
-                        window.open(Routing.generate(`settings_export_articles`));
+                        const referenceTypes = $modal.find(`[name=referenceTypes]`).val();
+                        const statuses = $modal.find(`[name=statuses]`).val();
+                        const suppliers = $modal.find(`[name=suppliers`).val();
+                        const dateMin = $modal.find(`[name=articleDateMin]`).val();
+                        const dateMax = $modal.find(`[name=articleDateMax]`).val();
+
+                        if (dateMin !== '' && dateMax !== '' && moment(dateMin, 'DD/MM/YYYY').isAfter(moment(dateMax, 'DD/MM/YYYY'))) {
+                            Flash.add(`danger`, `Les bornes de dates d'entrée de stock sont invalides`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_articles`, {
+                            dateMin,
+                            dateMax,
+                            referenceTypes,
+                            statuses,
+                            suppliers
+                        }));
                     } else if (content.entityToExport === ENTITY_TRANSPORT_ROUNDS) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
                             return Promise.resolve();
                         }
 
@@ -236,7 +220,7 @@ function createForm() {
                         const columnToExport = $modal.find(`[name=columnToExport]`).val();
 
                         if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
-                            Flash.add(`danger`, `Les bornes de dates sont requise pour les exports de tournées`);
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de tournées`);
                             return Promise.resolve();
                         } else if(columnToExport.length === 0){
                             Flash.add(`danger`, `Veuillez choisir des colonnes à exporter`);
@@ -248,6 +232,8 @@ function createForm() {
                             dateMax,
                             columnToExport
                         }));
+                    } else if (content.entityToExport === ENTITY_REF_LOCATION) {
+                        window.open(Routing.generate(`settings_export_ref_location`));
                     }
 
                     return new Promise((resolve) => {
@@ -262,6 +248,14 @@ function createForm() {
                     const exportId = $modal.find('[name=exportId]').val();
                     const route = exportId ? 'settings_edit_export' : 'settings_new_export';
                     const params = exportId ? {export: exportId} : {};
+
+                    if ($modal.find(`[name=scheduledDateMin]`).val()
+                        && $modal.find(`[name=scheduledDateMax]`).val()
+                        && $modal.find(`[name=scheduledDateMin]`).val() > $modal.find(`[name=scheduledDateMax]`).val()) {
+                        Flash.add(`danger`, `Les dates fixes d'entrée en stock sont invalides`);
+                        return Promise.resolve();
+                    }
+
                     return AJAX.route(POST, route, params)
                         .json(data)
                         .then(({success}) => {
@@ -279,18 +273,21 @@ function onFormEntityChange() {
     const selectedEntity = $modal.find('[name=entityToExport]:checked').val();
     const $articlesSentence = $modal.find('.articles-sentence');
     const $referencesSentence = $modal.find('.references-sentence');
-    const $dateLimit = $modal.find('.date-limit');
+    const $articleFields = $modal.find('.article-fields');
     const $columnToExportContainer = $modal.find('.column-to-export');
     const $columnToExport = $columnToExportContainer.find('select');
     const $periodInterval = $modal.find('.period-interval');
+    const $dateLimit = $modal.find('.date-limit');
+    const $scheduledArticleDates = $modal.find('.scheduled-article-dates');
 
     $articlesSentence.addClass('d-none');
     $referencesSentence.addClass('d-none');
-    $dateLimit.addClass('d-none');
+    $articleFields.addClass('d-none');
     $columnToExportContainer.addClass('d-none');
-    $columnToExport
-        .removeClass('needed');
+    $columnToExport.removeClass('needed');
     $periodInterval.addClass('d-none');
+    $scheduledArticleDates.addClass('d-none');
+    $dateLimit.addClass('d-none');
 
     switch (selectedEntity) {
         case ENTITY_REFERENCE:
@@ -298,6 +295,8 @@ function onFormEntityChange() {
             break;
         case ENTITY_ARTICLE:
             $articlesSentence.removeClass('d-none');
+            $articleFields.removeClass('d-none');
+            $scheduledArticleDates.removeClass('d-none');
             break;
         case ENTITY_TRANSPORT_ROUNDS:
             $dateLimit.removeClass('d-none');
@@ -319,6 +318,7 @@ function onFormTypeChange(resetFrequency = true) {
     const exportType = $modal.find('[name=type]:checked').val()
     $modal.find('.unique-export-container').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
     $modal.find('.scheduled-export-container').toggleClass('d-none', exportType !== EXPORT_SCHEDULED);
+    $modal.find('.article-date-limit').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
 
     if (resetFrequency) {
         $modal.find('.frequencies').find('input[type=radio]').each(function () {

@@ -1,5 +1,6 @@
 import WysiwygManager from "./wysiwyg-manager";
 import Flash from "./flash";
+import AJAX, {POST} from "@app/ajax";
 
 export default class Form {
 
@@ -20,6 +21,7 @@ export default class Form {
     static create(selector, {clearOnOpen} = {}) {
         const $form = $(selector);
         let form = $form.data('form');
+
         if (!form || !(form instanceof Form)) {
             form = new Form(++Form.FormCounter);
 
@@ -166,7 +168,7 @@ export default class Form {
      * @param {boolean} endLoading default to true
      */
     loading(action, endLoading = true) {
-        const $submit = this.element.find('[type=submit]');
+        const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
     }
 
@@ -197,7 +199,7 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-            if (value !== null) {
+            if (value !== null && value !== "") {
                 if($input.is('[data-intl-tel-input]')){
                     $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
                 }
@@ -318,7 +320,9 @@ export default class Form {
             : $field;
 
         if($field.is(`[data-global-error]`)) {
-            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            let label = $field.data(`global-error`)
+                || $parent.find(`.field-label`).text()
+                || $field.data('field-label');
             label = label
                 .trim()
                 .replace(/\*$/, '');
@@ -440,7 +444,7 @@ function treatInputError($input, errors, form) {
         if ($input.val() && !$input.val().match(regex)) {
             errors.push({
                 elements: [$input],
-                message: `Le numéro de téléphone n'est pas valide`,
+                message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
             });
         }
     }
@@ -499,6 +503,10 @@ function formatInputValue($input) {
         value = $input.is(`:checked`) ? `1` : `0`;
     } else if ($input.attr(`type`) === `file`) {
         value = $input[0].files[0] || null;
+    } else if ($input.attr(`type`) === `radio`) {
+        value = $input.is(`:checked`)
+            ? $input.val()
+            : null;
     } else {
         value = $input.val() || null;
     }

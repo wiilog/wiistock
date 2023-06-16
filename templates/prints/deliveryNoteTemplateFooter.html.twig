@@ -1,0 +1,59 @@
+{% set dn = entity.deliveryNoteData %}
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+
+        * {
+            font-family: Arial, sans-serif;
+            font-size: 23px;
+        }
+
+        .footer {
+            width: 34.4cm;
+            height: 4cm;
+        }
+
+        * {
+            font-family: Arial, sans-serif;
+        }
+
+        label {
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function subst() {
+            var vars = {};
+            var queryStringsFromUrl = document.location.search.substring(1).split('&');
+            for (var queryString in queryStringsFromUrl) {
+                if (queryStringsFromUrl.hasOwnProperty(queryString)) {
+                    var tempVar = queryStringsFromUrl[queryString].split('=', 2);
+                    vars[tempVar[0]] = decodeURI(tempVar[1]);
+                }
+            }
+            var cssSelectorClasses = ['page', 'topage'];
+            for (var cssClass in cssSelectorClasses) {
+                if (cssSelectorClasses.hasOwnProperty(cssClass)) {
+                    var element = document.getElementsByClassName(cssSelectorClasses[cssClass]);
+                    for (var j = 0; j < element.length; ++j) {
+                        element[j].textContent = vars[cssSelectorClasses[cssClass]];
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<br>
+<body onload="subst()">
+    <div class="footer">
+        <label>{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Note(s)') }}</label><br>
+        {{ dn.notes | nl2br }}
+    </div>
+</body>
+<div style="position: absolute; right: 0;">
+    <label>Page <span class="page"></span>/<span class="topage"></span></label>
+</div>
+</html>

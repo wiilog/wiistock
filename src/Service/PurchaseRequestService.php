@@ -3,9 +3,12 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\FiltreSup;
+use App\Entity\Fournisseur;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -15,9 +18,11 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
-class PurchaseRequestService {
+class PurchaseRequestService
+{
 
     #[Required]
     public Twig_Environment $templating;
@@ -62,7 +67,8 @@ class PurchaseRequestService {
         ];
     }
 
-    public function dataRowPurchaseRequest(PurchaseRequest $request) {
+    public function dataRowPurchaseRequest(PurchaseRequest $request)
+    {
         $url = $this->router->generate('purchase_request_show', [
             "id" => $request->getId()
         ]);
@@ -70,13 +76,14 @@ class PurchaseRequestService {
         return [
             'id' => $request->getId(),
             'number' => $request->getNumber(),
-            'status' => FormatHelper::status($request->getStatus()),
-            'requester' => FormatHelper::user($request->getRequester()),
-            'buyer' => FormatHelper::user($request->getBuyer()),
-            'creationDate' => FormatHelper::datetime($request->getCreationDate()),
-            'processingDate' => FormatHelper::datetime($request->getProcessingDate()),
-            'validationDate' => FormatHelper::datetime($request->getValidationDate()),
-            'considerationDate' => FormatHelper::datetime($request->getConsiderationDate()),
+            'status' => $this->formatService->status($request->getStatus()),
+            'requester' => $this->formatService->user($request->getRequester()),
+            'buyer' => $this->formatService->user($request->getBuyer()),
+            'creationDate' => $this->formatService->datetime($request->getCreationDate()),
+            'processingDate' => $this->formatService->datetime($request->getProcessingDate()),
+            'validationDate' => $this->formatService->datetime($request->getValidationDate()),
+            'considerationDate' => $this->formatService->datetime($request->getConsiderationDate()),
+            'supplier' => $this->formatService->supplier($request->getSupplier()),
             'actions' => $this->templating->render('purchase_request/actions.html.twig', [
                 'url' => $url,
             ]),
@@ -86,32 +93,37 @@ class PurchaseRequestService {
     public function putPurchaseRequestLine($handle,
                                            CSVExportService $CSVExportService,
                                            array $request,
-                                           array $line = []) {
+                                           array $line = [])
+    {
         $CSVExportService->putLine($handle, [
             $request['number'] ?? '',
             $request['statusName'] ?? '',
             $request['requester'] ?? '',
             $request['buyer'] ?? '',
-            FormatHelper::datetime($request['creationDate'] ?? null),
-            FormatHelper::datetime($request['validationDate'] ?? null),
-            FormatHelper::datetime($request['considerationDate'] ?? null),
-            FormatHelper::datetime($request['processingDate'] ?? null),
-            FormatHelper::html($request['comment'] ?? null),
+            $this->formatService->datetime($request['creationDate'] ?? null),
+            $this->formatService->datetime($request['validationDate'] ?? null),
+            $this->formatService->datetime($request['considerationDate'] ?? null),
+            $this->formatService->datetime($request['processingDate'] ?? null),
+            $this->formatService->html($request['comment'] ?? null),
             $line['reference'] ?? '',
             $line['barcode'] ?? '',
             $line['label'] ?? '',
+            $line['supplierName'] ?? '',
         ]);
     }
 
-    public function createHeaderDetailsConfig(PurchaseRequest $request): array {
+    public function createHeaderDetailsConfig(PurchaseRequest $request): array
+    {
         return [
-            ['label' => 'Statut', 'value' => FormatHelper::status($request->getStatus())],
-            ['label' => 'Demandeur', 'value' => FormatHelper::user($request->getRequester())],
-            ['label' => 'Acheteur', 'value' => FormatHelper::user($request->getBuyer())],
-            ['label' => 'Date de création', 'value' => FormatHelper::datetime($request->getCreationDate())],
-            ['label' => 'Date de validation', 'value' => FormatHelper::datetime($request->getValidationDate())],
-            ['label' => 'Date de prise en compte', 'value' => FormatHelper::datetime($request->getConsiderationDate())],
-            ['label' => 'Date de traitement', 'value' => FormatHelper::datetime($request->getProcessingDate())],
+
+            ['label' => 'Statut', 'value' => $this->formatService->status($request->getStatus())],
+            ['label' => 'Demandeur', 'value' =>  $this->formatService->user($request->getRequester())],
+            ['label' => 'Acheteur', 'value' => $this->formatService->user($request->getBuyer())],
+            ['label' => 'Date de création', 'value' => $this->formatService->datetime($request->getCreationDate())],
+            ['label' => 'Date de validation', 'value' => $this->formatService->datetime($request->getValidationDate())],
+            ['label' => 'Date de prise en compte', 'value' => $this->formatService->datetime($request->getConsiderationDate())],
+            ['label' => 'Date de traitement', 'value' => $this->formatService->datetime($request->getProcessingDate())],
+            ['label' => 'Fournisseur', 'value' => $this->formatService->supplier($request->getSupplier())],
             [
                 'label' => 'Commentaire',
                 'value' => $request->getComment() ?: "",
@@ -129,31 +141,59 @@ class PurchaseRequestService {
         ];
     }
 
-    public function createPurchaseRequest(EntityManagerInterface $entityManager,
-                                          ?Statut $status,
+    public function createPurchaseRequest(?Statut      $status,
                                           ?Utilisateur $requester,
-                                          ?string $comment = null,
-                                          ?DateTime $validationDate = null,
-                                          ?Utilisateur $buyer = null): PurchaseRequest {
-        $now =  new DateTime("now");
+                                                       $options = []): PurchaseRequest
+    {
+        $comment = $options["comment"] ?? null;
+        $validationDate = $options["validationDate"] ?? null;
+        $buyer = $options["buyer"] ?? null;
+        $supplier = $options["supplier"] ?? null;
+        $now = new DateTime("now");
         $purchase = new PurchaseRequest();
-        $purchaseRequestNumber = $this->uniqueNumberService->create($entityManager, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $purchaseRequestNumber = $this->uniqueNumberService->create($this->em, PurchaseRequest::NUMBER_PREFIX, PurchaseRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
         $purchase
             ->setCreationDate($now)
             ->setStatus($status)
             ->setRequester($requester)
             ->setComment(StringHelper::cleanedComment($comment))
             ->setNumber($purchaseRequestNumber)
+            ->setSupplier($supplier)
             ->setValidationDate($validationDate);
 
-        if($buyer) {
+        if ($buyer) {
             $purchase->setBuyer($buyer);
         }
 
         return $purchase;
     }
 
-    public function sendMailsAccordingToStatus(PurchaseRequest $purchaseRequest) {
+    public function createPurchaseRequestLine(?ReferenceArticle $reference,
+                                              ?int              $requestedQuantity,
+                                              array             $options = []): PurchaseRequestLine
+    {
+        $supplier = $options["supplier"] ?? null;
+        $purchaseRequest = $options["purchaseRequest"] ?? null;
+        $location = $options["location"] ?? null;
+
+        $purchaseLine = new PurchaseRequestLine();
+        $purchaseLine
+            ->setReference($reference)
+            ->setRequestedQuantity($requestedQuantity)
+            ->setSupplier($supplier)
+            ->setLocation($location)
+            ->setPurchaseRequest($purchaseRequest);
+
+        return $purchaseLine;
+    }
+
+    public function sendMailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                               PurchaseRequest        $purchaseRequest,
+                                               array                  $options = []): void {
+        $customSubject = $options['customSubject'] ?? null;
+
+        $articleRepository = $entityManager->getRepository(Article::class);
+
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
@@ -164,22 +204,43 @@ class PurchaseRequestService {
             $requester = $purchaseRequest->getRequester() ?? null;
             $buyer = $purchaseRequest->getBuyer() ?? null;
 
-            $mail = ($status->isNotTreated() && $buyerAbleToReceivedMail) ? $buyer : $requester;
+            $needsRefsBuyer = !$buyer;
 
-            $subject = $status->isTreated()
-                ? 'Traitement d\'une demande d\'achat'
-                : ($status->isNotTreated()
-                    ? 'Création d\'une demande d\'achat'
-                    : 'Changement de statut d\'une demande d\'achat');
+            $mails = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? [$buyer] : [$requester];
+
+            if ($needsRefsBuyer) {
+                $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                    ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
+                    ->concat($mails)
+                    ->toArray();
+            }
+
+            $subject = $customSubject ?: (
+                $status->isTreated()
+                    ? 'Traitement d\'une demande d\'achat'
+                    : ($status->isNotTreated()
+                        ? 'Création d\'une demande d\'achat'
+                        : 'Changement de statut d\'une demande d\'achat')
+            );
 
             $statusName = $this->formatService->status($status);
             $number = $purchaseRequest->getNumber();
-            $processingDate = FormatHelper::datetime($purchaseRequest->getProcessingDate(), "", true);
+            $processingDate = $this->formatService->datetime($purchaseRequest->getProcessingDate(), "", true);
             $title = $status->isTreated()
                 ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
                 : ($status->isNotTreated()
                     ? 'Une demande d\'achat vous concerne'
                     : 'Changement de statut d\'une demande d\'achat vous concernant');
+
+            $refsAndQuantities = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                ->keymap(function(PurchaseRequestLine $line) use ($articleRepository) {
+                    $key = $line->getId();
+                    $value = $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line->getLocation()
+                        ? $articleRepository->quantityForRefOnLocation($line->getReference(), $line->getLocation())
+                        : $line->getReference()->getQuantiteStock();
+                    return [$key, $value];
+                })
+                ->toArray();
 
             if (isset($requester)) {
                 $this->mailerService->sendMail(
@@ -187,14 +248,16 @@ class PurchaseRequestService {
                     $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
                         'title' => $title,
                         'purchaseRequest' => $purchaseRequest,
+                        'refsAndQuantities' => $refsAndQuantities
                     ]),
-                    $mail
+                    $mails
                 );
             }
         }
     }
 
-    public function getDataForReferencesDatatable($params = null) {
+    public function getDataForReferencesDatatable($params = null)
+    {
         $demande = $this->em->find(PurchaseRequest::class, $params);
         $referenceLines = $demande->getPurchaseRequestLines();
 
@@ -209,7 +272,8 @@ class PurchaseRequestService {
         ];
     }
 
-    public function dataRowReference(PurchaseRequestLine $line) {
+    public function dataRowReference(PurchaseRequestLine $line)
+    {
         return [
             'reference' => $line->getReference()->getReference(),
             'libelle' => $line->getReference()->getLibelle(),

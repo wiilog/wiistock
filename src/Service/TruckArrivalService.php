@@ -72,13 +72,12 @@ class TruckArrivalService
                 ->some(fn(TruckArrivalLine $line) => $line->getReserve());
 
         return [
-            'actions' => $this->templating->render('utils/action-buttons.html.twig', [
-                'noButton' => true,
+            'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [
                         'title' => 'Détails',
                         'icon' => 'fa fa-eye',
-                        'class' => 'action-on-click',
+                        "actionOnClick" => true,
                         'attributes' => [
                             'onclick' => "window.location.href = '{$this->router->generate('truck_arrival_show', ['id' => $truckArrival->getId()])}'",
                         ]

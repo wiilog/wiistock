@@ -2,10 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
+use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryMission;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
+use App\Entity\Zone;
+use App\Service\InventoryService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
+use Symfony\Component\HttpFoundation\Request;
 
 
 #[Route("/")]
@@ -13,6 +21,7 @@ class AppController extends AbstractController {
 
     #[Route("/accueil", name: "app_index")]
     public function index(): Response {
+
         /** @var Utilisateur $user */
         $user = $this->getUser();
 

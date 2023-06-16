@@ -1,0 +1,14 @@
+{% set articles = pack.childArticles | length %}
+
+{% if articles or pack.isArticleContainer %}
+    {% set plural = articles > 1 ? 's' %}
+    <span class="logistic-unit-number" data-id="{{ pack.id }}" data-pack="{{ pack.code }}">
+        <span class="d-flex align-items-center">
+            <div class="mt-1">{{ pack.code }}</div>
+            <span class="wii-icon wii-icon-article-in-lu wii-icon-20px-black primary-on-hover ml-1 has-tooltip"
+                  title="{{ articles ~ ' article' ~ plural ~ ' dans l\'unité logistique. Cliquez pour voir le contenu.'}}"></span>
+        </span>
+     </span>
+{% else %}
+    {{ pack.code }}
+{% endif %}

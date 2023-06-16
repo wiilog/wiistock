@@ -105,7 +105,9 @@ export default class AJAX {
         return this.raw(body)
             .then((response) => {
                 if (!response.ok) {
-                    Flash.add(ERROR, error)
+                    if (error) {
+                        Flash.add(ERROR, error);
+                    }
                     throw new Error('printing error');
                 }
                 return response.blob().then((blob) => {
@@ -113,7 +115,9 @@ export default class AJAX {
                     const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
 
                     saveAs(blob, cleanedFileName);
-                    Flash.add(SUCCESS, success);
+                    if (success) {
+                        Flash.add(SUCCESS, success);
+                    }
                 });
             });
     }

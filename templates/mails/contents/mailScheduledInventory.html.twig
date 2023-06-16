@@ -1,0 +1,40 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    {% set type = edit is defined and edit ? 'modifiée' : 'créée' %}
+    <p>Bonjour,</p>
+    <p>La mission de planification d’inventaire "{{ missionLabel }}" vient d'être {{ type }} avec les informations suivantes : </p>
+    <ul>
+        <li>Demandeur : {{ requester | format_helper('user', '-')}}</li>
+        <li>Créateur : {{ creator | format_helper('user', '-') }}</li>
+        <li>Type de mission :  {{ missionType }}</li>
+        <li>Libellé de la mission : {{ missionLabel }}</li>
+        <li>Description : {{ describe }}</li>
+        <li>Frequence : {{ frequency }}</li>
+        <li>Liste des emplacements : </li>
+        <br>
+         <table class=table" style="border: 1px solid black;border-collapse: collapse;">
+             <thead>
+             <tr>
+                 <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">Zone</th>
+                 <th class="th" style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">Emplacement</th>
+             </tr>
+             </thead>
+             <tbody>
+             {% for location in locations %}
+                 <tr>
+                     <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">{{ location.zone.name }}</td>
+                     <td class="td"
+                            style="border: 1px solid black; padding: 10px; text-align: center;">{{ location.label }}</td>
+                 </tr>
+             {% endfor %}
+             </tbody>
+         </table>
+    </ul>
+
+    <br>
+    <br>
+    <br>
+
+{% endblock %}

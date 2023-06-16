@@ -6,27 +6,12 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                <div class="row">
-                    <div class="form-group col-12">
-                        <label class="wii-field-name">Libellé*</label>
-                        <input type="text" class="form-control data needed" name="name">
-                    </div>
-
-                    <div class="mb-3 form-group col-12">
-                        <label class="wii-field-name">Date prévue de début*</label>
-                        <input type="date" class="data form-control needed" name="startDate">
-                    </div>
-
-                    <div class="mb-3 form-group col-12">
-                        <label class="wii-field-name">Date prévue de fin*</label>
-                        <input type="date" class="data form-control needed" name="endDate">
-                    </div>
-                </div>
+                {% include 'inventaire/formInventoryMission.html.twig' with { mission : newMission } %}
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewMission'}
+                    {classes: 'btn btn-success', text: 'Enregistrer', id: 'submitNewMission', type: 'submit'}
                 ],
             } %}
 

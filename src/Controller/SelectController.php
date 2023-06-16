@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
+use App\Entity\Customer;
 use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -14,8 +16,11 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Project;
+use App\Entity\ReceptionLine;
 use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReferenceArticle;
@@ -28,6 +33,7 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
+use App\Entity\Zone;
 use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -235,16 +241,39 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
+        $options = [
+            'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
+            'type-quantity' => $request->query->get('type-quantity'),
+            'status' => $request->query->get('status'),
+            'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
+            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+        ];
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user);
+        $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
+
+        $redirectRoute = $request->query->get('redirect-route');
+        $redirectParams = $request->query->get('redirect-route-params');
+        if ($redirectRoute) {
+            $results
+                ->unshift([
+                    "id" => "redirect-url",
+                    "url" => $this->generateUrl('reference_article_new_page', [
+                        "shipping" => 1,
+                        'redirect-route' => $redirectRoute,
+                        'redirect-route-params' => $redirectParams
+                    ]),
+                    "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
+                ]);
+        }
 
         return $this->json([
-            "results" => $results,
+            "results" => $results->toArray(),
         ]);
     }
 
     /**
-     * @Route("/select/colis", name="ajax_select_packs", options={"expose": true})
+     * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
         $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
@@ -291,12 +320,14 @@ class SelectController extends AbstractController {
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
         $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
+        $withPhoneNumber = $request->query->getBoolean("with-phone-numbers") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),
             [
                 "addDropzone" => $addDropzone,
-                "delivererOnly" => $delivererOnly
+                "delivererOnly" => $delivererOnly,
+                "withPhoneNumber" => $withPhoneNumber,
             ]
         );
         return $this->json([
@@ -328,7 +359,7 @@ class SelectController extends AbstractController {
     }
 
     /**
-     * @Route("/select/colis-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
+     * @Route("/select/unites-logistiques-sans-association", name="ajax_select_packs_without_pairing", options={"expose"=true})
      */
     public function packsWithoutPairing(Request $request, EntityManagerInterface $entityManager): Response {
         $results = $entityManager->getRepository(Pack::class)->findWithNoPairing($request->query->get("term"));
@@ -428,9 +459,10 @@ class SelectController extends AbstractController {
      */
     public function supplierByCode(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
+        $reference = $request->query->get('refArticle');
 
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search, $reference);
 
         return $this->json(['results' => $fournisseur]);
     }
@@ -494,7 +526,7 @@ class SelectController extends AbstractController {
         if($packMustBeNew) {
             if($packRepository->findOneBy(["code" => $packCode])) {
                 return $this->json([
-                    "error" => "Ce colis existe déjà en base de données"
+                    "error" => "Cette unité logistique existe déjà en base de données"
                 ]);
             } else {
                 $results = [];
@@ -512,7 +544,7 @@ class SelectController extends AbstractController {
 
         array_unshift($results, [
             "id" => "new-item",
-            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau colis</b></div>",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle unité logistique</b></div>",
         ]);
 
         if(isset($results[1])) {
@@ -606,6 +638,173 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $packs
+        ]);
+    }
+
+
+    /**
+     * @Route("/select/project", name="ajax_select_project", options={"expose": true})
+     */
+    public function project(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $projects = $entityManager->getRepository(Project::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $projects
+        ]);
+    }
+
+    /**
+     * @Route("/select/zones", name="ajax_select_zones", options={"expose": true})
+     */
+    public function zones(Request $request, EntityManagerInterface $entityManager): Response {
+        $zones = $entityManager->getRepository(Zone::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $zones
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles", name="ajax_select_articles", options={"expose"=true})
+     */
+    public function articles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"));
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/reception-logistic-units", name="ajax_select_reception_logistic_units", options={"expose"=true})
+     */
+    public function receptionLogisticUnits(Request $request,
+                                           EntityManagerInterface $entityManager): Response {
+
+        $options = [];
+
+        if (!$request->query->getBoolean("all")) {
+            $options["reference"] = $request->query->get("reference");
+            $options["order-number"] = $request->query->get("order-number");
+            $options["include-empty"] = true;
+        }
+
+        $results = $entityManager->getRepository(ReceptionLine::class)->getForSelectFromReception(
+            $request->query->get("term"),
+            $request->query->get("reception"),
+            $options
+        );
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
+     */
+    public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+
+        $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
+            $request->query->get("term"),
+            $request->query->get("delivery"),
+            (!$projectField->isDisplayedCreate() || !$projectField->isRequiredCreate())
+            && (!$projectField->isDisplayedEdit() || !$projectField->isRequiredEdit())
+        );
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/articles-disponibles", name="ajax_select_available_articles", options={"expose"=true})
+     */
+    public function availableArticles(Request $request, EntityManagerInterface $entityManager): Response {
+        $results = $entityManager->getRepository(Article::class)->getForSelect($request->query->get("term"), Article::STATUT_ACTIF);
+
+        return $this->json([
+            "results" => $results
+        ]);
+    }
+
+    /**
+     * @Route("/select/customers", name="ajax_select_customers", options={"expose": true})
+     */
+    public function customers(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
+        array_unshift($customers, [
+            "id" => "new-item",
+            "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
+        ]);
+
+        return $this->json([
+            "results" => $customers
+        ]);
+    }
+
+    /**
+     * @Route("/select/nature-or-type", name="ajax_select_nature_or_type", options={"expose": true})
+     */
+    public function natureOrType(Request $request, EntityManagerInterface $entityManager): Response {
+        $module = $request->query->get("module");
+        $term = $request->query->get("term");
+
+        $naturesOrTypes = $module === CategoryType::ARRIVAGE ?
+            $entityManager->getRepository(Nature::class)->getForSelect($term) :
+            $entityManager->getRepository(Type::class)->getForSelect(CategoryType::ARTICLE, $term);
+
+
+        return $this->json([
+            "results" => $naturesOrTypes,
+        ]);
+    }
+
+    /**
+     * @Route("/select/provider", name="ajax_select_provider", options={"expose"=true})
+     */
+    public function provider(Request $request,
+                                   EntityManagerInterface $entityManager): Response
+    {
+        $search = $request->query->get('term');
+
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $fournisseur = $fournisseurRepository->getIdAndCodeBySearch($search);
+
+        return $this->json(['results' => $fournisseur]);
+    }
+
+    /**
+     * @Route("/select/native-countries", name="ajax_select_native_countries", options={"expose": true})
+     */
+    public function nativeCountries(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get("term");
+        $nativeCountries = $entityManager->getRepository(NativeCountry::class)->getForSelect($search);
+
+        return $this->json([
+            "results" => $nativeCountries
+        ]);
+    }
+
+    /**
+     * @Route("/select/supplier-articles", name="ajax_select_supplier_articles", options={"expose": true})
+     */
+    public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
+        $search = $request->query->get('term');
+        $supplier = $request->query->get('fournisseur');
+        $referenceArticle = $request->query->get('refArticle');
+
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, [
+            'supplier' => $supplier,
+            'referenceArticle' => $referenceArticle
+        ]);
+
+        return $this->json([
+            "results" => $supplierArticles
         ]);
     }
 

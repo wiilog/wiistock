@@ -11,24 +11,28 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Menu;
-use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Type;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
+use App\Service\TagTemplateService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -69,7 +73,7 @@ class PreparationController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager, $locationEndPrepa);
         } catch (NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
             return new JsonResponse([
@@ -80,13 +84,12 @@ class PreparationController extends AbstractController
         $dateEnd = new DateTime('now');
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, $articlesNotPicked);
+        $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
+
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
-        $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
-
         $entityManager->flush();
-        $preparationsManager->handlePreparationTreatMovements($mouvementRepository, $preparation, $livraison, $locationEndPrepa, $user);
+        $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
         $preparationsManager->updateRefArticlesQuantities($preparation);
 
         $entityManager->flush();
@@ -138,90 +141,120 @@ class PreparationController extends AbstractController
         return new JsonResponse($data);
     }
 
+    #[Route("/preparation-order-logistic-units-api", name: "preparation_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA], mode: HasPermission::IN_JSON)]
+    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+        $preparationOrder = $manager->find(Preparation::class, $request->query->get('id'));
 
-    /**
-     * @Route("/api_article/{preparation}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA}, mode=HasPermission::IN_JSON)
-     */
-    public function apiLignePreparation(Preparation $preparation): Response
-    {
-        $demande = $preparation->getDemande();
-        $preparationStatut = $preparation->getStatut()?->getCode();
+        $preparationStatut = $preparationOrder->getStatut()->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser());
+            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparationOrder->getUtilisateur() == $this->getUser());
+        $lines = Stream::from($preparationOrder->getArticleLines())
+            ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
+            ->unique()
+            // null packs in first
+            ->sort(fn(?Pack $logisticUnit1, ?Pack $logisticUnit2) => ($logisticUnit1?->getCode() <=> $logisticUnit2?->getCode()))
+            ->map(fn(?Pack $logisticUnit) => [
+                "pack" => $logisticUnit
+                    ? [
+                        "packId" => $logisticUnit?->getId(),
+                        "code" => $logisticUnit?->getCode() ?? null,
+                        "location" => $this->formatService->location($logisticUnit?->getLastDrop()?->getEmplacement()),
+                        "project" => $logisticUnit?->getProject()?->getCode() ?? null,
+                        "nature" => $this->formatService->nature($logisticUnit?->getNature()),
+                        "color" => $logisticUnit?->getNature()?->getColor() ?? null,
+                        "quantity" => Stream::from($preparationOrder->getArticleLines())
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getArticle()->getCurrentLogisticUnit() && $line->getArticle()->getCurrentLogisticUnit() === $logisticUnit)
+                            ->reduce(fn(int $total, PreparationOrderArticleLine $line) => $total + $line->getPickedQuantity()) ?: '-',
+                        "quantityArticleInLocation" => $logisticUnit?->getChildArticles()?->count() ?: null,
+                        "alreadyTreated" => Stream::from($preparationOrder->getArticleLines())
+                            ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack() === $logisticUnit)
+                            ->every(fn(PreparationOrderArticleLine $line) => $line->getPickedQuantity() !== 0)
+                    ]
+                    : null,
+                "articles" => Stream::from($preparationOrder->getArticleLines())
+                    ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
+                    ->map(function(PreparationOrderArticleLine $line) use ($isPrepaEditable) {
+                        $article = $line->getArticle();
+                        return [
+                            "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
+                            "barcode" => $article->getBarCode() ?: '',
+                            "label" => $article->getLabel() ?: '',
+                            "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                            "quantity" => $article->getQuantite(),
+                            "quantityToPick" => $line->getQuantityToPick(),
+                            "pickedQuantity" => $line->getPickedQuantity(),
+                            "lineId" => $line->getId(),
+                            "active" => !$line->getPack() && !empty($line->getPickedQuantity()),
+                            "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                'barcode' => $article->getBarCode(),
+                                'artOrRefId' => $article->getId(),
+                                'isRef' => false,
+                                'isRefByArt' => false,
+                                'quantity' => $line->getPickedQuantity(),
+                                'id' => $line->getId(),
+                                'isPrepaEditable' => $isPrepaEditable,
+                                'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement(),
+                                'inLogisticUnit' => (bool) $line->getPack()
+                            ]),
+                        ];
+                    })
+                    ->values(),
+            ])
+            ->values();
 
-        if (isset($demande)) {
-            $rows = [];
-            /** @var PreparationOrderReferenceLine $referenceLine */
-            foreach ($preparation->getReferenceLines() as $referenceLine) {
-                $articleRef = $referenceLine->getReference();
-                $isRefByArt = $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                if ($referenceLine->getPickedQuantity() > 0 ||
-                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $rows[] = [
-                        "reference" => $articleRef->getReference(),
-                        "label" => $articleRef->getLibelle(),
-                        "location" => FormatHelper::location($articleRef->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($referenceLine->getTargetLocationPicking()),
-                        "quantity" => $articleRef->getQuantiteStock(),
-                        "quantityToPick" => $referenceLine->getQuantityToPick() ?: ' ',
-                        "pickedQuantity" => $referenceLine->getPickedQuantity() ?: ' ',
-                        'active' => !empty($referenceLine->getPickedQuantity()),
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $articleRef->getBarCode(),
-                            'isRef' => true,
-                            'artOrRefId' => $articleRef->getId(),
-                            'isRefByArt' => $isRefByArt,
-                            'id' => $referenceLine->getId(),
-                            'isPrepaEditable' => $isPrepaEditable,
-                            'stockManagement' => $articleRef->getStockManagement()
-                        ])
-                    ];
-                }
-            }
+        $references = Stream::from($preparationOrder->getReferenceLines())
+            ->map(function(PreparationOrderReferenceLine $line) use ($isPrepaEditable) {
+                $articleRef = $line->getReference();
+                return [
+                    "reference" => $articleRef->getReference(),
+                    "label" => $articleRef->getLibelle(),
+                    "barcode" => "",
+                    "location" => $this->formatService->location($articleRef->getEmplacement()),
+                    "targetLocationPicking" => $this->formatService->location($line->getTargetLocationPicking()),
+                    "quantity" => $articleRef->getQuantiteStock(),
+                    "quantityToPick" => $line->getQuantityToPick() ?: ' ',
+                    "pickedQuantity" => $line->getPickedQuantity() ?: ' ',
+                    "active" => !empty($line->getPickedQuantity()),
+                    "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                        'barcode' => $articleRef->getBarCode(),
+                        'isRef' => true,
+                        'artOrRefId' => $articleRef->getId(),
+                        'isRefByArt' => $articleRef->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                        'id' => $line->getId(),
+                        'isPrepaEditable' => $isPrepaEditable,
+                        'stockManagement' => $articleRef->getStockManagement(),
+                        'inLogisticUnit' => false
+                    ])
+                ];
+            })
+            ->toArray();
 
-            /** @var PreparationOrderArticleLine $articleLine */
-            foreach ($preparation->getArticleLines() as $articleLine) {
-                $article = $articleLine->getArticle();
-                if ($articleLine->getPickedQuantity() > 0 ||
-                    ($preparationStatut !== Preparation::STATUT_PREPARE && $preparationStatut !== Preparation::STATUT_INCOMPLETE)) {
-                    $rows[] = [
-                        "reference" => ($article->getArticleFournisseur() && $article->getArticleFournisseur()->getReferenceArticle()) ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "label" => $article->getLabel() ?? '',
-                        "location" => FormatHelper::location($article->getEmplacement()),
-                        "targetLocationPicking" => FormatHelper::location($articleLine->getTargetLocationPicking()),
-                        "quantity" => $article->getQuantite() ?? '',
-                        "quantityToPick" => $articleLine->getQuantityToPick() ?? ' ',
-                        "pickedQuantity" => $articleLine->getPickedQuantity() ?? ' ',
-                        'active' => !empty($articleLine->getPickedQuantity()),
-                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'barcode' => $article->getBarCode(),
-                            'artOrRefId' => $article->getId(),
-                            'isRef' => false,
-                            'isRefByArt' => false,
-                            'quantity' => $articleLine->getPickedQuantity(),
-                            'id' => $articleLine->getId(),
-                            'isPrepaEditable' => $isPrepaEditable,
-                            'stockManagement' => $article->getArticleFournisseur()->getReferenceArticle()->getStockManagement()
-                        ])
-                    ];
-                }
-            }
-
-            $data['data'] = $rows;
-        } else {
-            $data = false; //TODO gérer affichage erreur
+        if (!isset($lines[0]) || $lines[0]['pack'] !== null) {
+            array_unshift($lines, [
+                'pack' => null,
+                'articles' => [],
+            ]);
         }
-        return new JsonResponse($data);
+
+        $lines[0]['articles'] = array_merge($lines[0]['articles'], $references);
+        return $this->json([
+            "success" => true,
+            "html" => $this->renderView("preparation/show/line-list.html.twig", [
+                "lines" => $lines,
+            ]),
+        ]);
     }
 
     /**
-     * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
+     * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
-    public function show(Preparation            $preparation,
-                         EntityManagerInterface $entityManager): Response
+    public function show(Preparation                $preparation,
+                         TagTemplateService         $tagTemplateService,
+                         EntityManagerInterface     $entityManager,
+                         TranslationService         $translation): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $sensorWrappers = Stream::from($sensorWrappers)
@@ -250,23 +283,25 @@ class PreparationController extends AbstractController
             )
             : $preparation->getStatut()->getCode();
 
-        return $this->render('preparation/show.html.twig', [
+        return $this->render('preparation/show/index.html.twig', [
             "sensorWrappers" => $sensorWrappers,
             'demande' => $demande,
             'showTargetLocationPicking' => $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'livraison' => $preparation->getLivraison(),
             'preparation' => $preparation,
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
             'isPrepaEditable' => $preparationStatusCode === Preparation::STATUT_A_TRAITER
                 || $preparationStatusCode === Preparation::STATUT_VALIDATED
-                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() == $this->getUser()),
+                || ($preparationStatusCode == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparation->getUtilisateur() === $this->getUser()),
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
-                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Point de ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Livraison", false)), 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
-                ['label' => 'Demandeur', 'value' => FormatHelper::deliveryRequester($demande)],
-                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => FormatHelper::date($demande->getExpectedAt())]] : []),
-                ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => FormatHelper::date($preparation->getExpectedAt())]] : []),
+                ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
+                ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => $this->formatService->date($demande->getExpectedAt())]] : []),
+                ...($demande->getProject() ? [['label' => $translation->translate('Référentiel', 'Projet', 'Projet', false), 'value' => $demande->getProject()->getCode() ]] : []),
+                ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => $this->formatService->date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',
                     'value' => $comment ?: '',
@@ -286,10 +321,11 @@ class PreparationController extends AbstractController
     public function delete(Preparation                $preparation,
                            EntityManagerInterface     $entityManager,
                            PreparationsManagerService $preparationsManagerService,
+                           MouvementStockService      $mouvementStockService,
                            RefArticleDataService      $refArticleDataService): Response
     {
 
-        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager, $mouvementStockService);
         $entityManager->flush();
 
         $entityManager->remove($preparation);
@@ -466,10 +502,14 @@ class PreparationController extends AbstractController
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
 
-        if ($data = json_decode($request->getContent(), true)) {
+        $values = $request->getContent() ?: $request->query->get("values");
+        $data = json_decode($values, true);
 
-            /** @var PreparationOrderArticleLine|PreparationOrderReferenceLine $line */
-            $line = $data['isRef']
+        // Allows you to determine if the data comes from the quantity confirmation modal or from the LU line click
+        $lines = Stream::from($data)->some(fn(string|array $value) => is_array($value)) ? $data : [$data];
+
+        foreach ($lines as $data) {
+            $line = !empty($data['isRef'])
                 ? $preparationOrderReferenceLineRepository->find($data['ligneArticle'])
                 : $preparationOrderArticleLineRepository->find($data['ligneArticle']);
 
@@ -488,11 +528,13 @@ class PreparationController extends AbstractController
             if (isset($data['quantite'])) {
                 $line->setPickedQuantity(max($data['quantite'], 0));
             }
-            $entityManager->flush();
-
-            return new JsonResponse();
         }
-        throw new BadRequestHttpException();
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true
+        ]);
     }
 
     /**
@@ -628,44 +670,49 @@ class PreparationController extends AbstractController
     public function getBarCodes(Preparation           $preparation,
                                 RefArticleDataService $refArticleDataService,
                                 ArticleDataService    $articleDataService,
+                                EntityManagerInterface $entityManager,
+                                Request $request,
                                 PDFGeneratorService   $PDFGeneratorService): ?Response
     {
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        $tag = $forceTagEmpty
+            ? null
+            : ($request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null);
+
         $articles = $preparation->getArticleLines()->toArray();
         $lignesArticle = $preparation->getReferenceLines()->toArray();
-        $referenceArticles = [];
 
-        /** @var PreparationOrderReferenceLine $ligne */
-        foreach ($lignesArticle as $ligne) {
-            $reference = $ligne->getReference();
-            if ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $referenceArticles[] = $reference;
-            }
-        }
-        $barcodeConfigs = array_merge(
-            array_map(
-                function (PreparationOrderArticleLine $article) use ($articleDataService) {
-                    return $articleDataService->getBarcodeConfig($article->getArticle());
-                },
-                $articles
-            ),
-            array_map(
-                function (ReferenceArticle $referenceArticle) use ($refArticleDataService) {
-                    return $refArticleDataService->getBarcodeConfig($referenceArticle);
-                },
-                $referenceArticles
-            )
-        );
+        $barCodesArticles = Stream::from($articles)
+            ->filter(function(PreparationOrderArticleLine $line) use ($forceTagEmpty, $tag) {
+                $article = $line->getArticle();
+                return
+                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+            })
+            ->map(fn(PreparationOrderArticleLine $line) => $articleDataService->getBarcodeConfig($line->getArticle()))
+            ->toArray();
 
+        $referenceBarCode = $forceTagEmpty
+            ? Stream::from($lignesArticle)
+                ->filter(fn(PreparationOrderReferenceLine $line) => $line->getReference()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE)
+                ->map(fn(PreparationOrderReferenceLine $line) => $refArticleDataService->getBarcodeConfig($line->getReference()))
+                ->toArray()
+            : [];
+
+        $barcodeConfigs = array_merge($barCodesArticles, $referenceBarCode);
         $barcodeCounter = count($barcodeConfigs);
 
         if ($barcodeCounter > 0) {
             $fileName = $PDFGeneratorService->getBarcodeFileName(
                 $barcodeConfigs,
-                'preparation'
+                'preparation',
+                $tag ? $tag->getPrefix() : 'ETQ'
             );
 
             return new PdfResponse(
-                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+                $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
                 $fileName
             );
         } else {
@@ -837,15 +884,17 @@ class PreparationController extends AbstractController
 
     #[Route('/lancement-preparations/check-preparation-stock', name: 'planning_preparation_launch_check_stock', options: ['expose' => true], methods: 'POST')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function checkStock(Request                $request,
-                               EntityManagerInterface $manager,
-                               MailerService          $mailerService,
-                               RefArticleDataService  $refArticleDataService,
-                               NotificationService    $notificationService): JsonResponse {
+    public function checkStock(Request                  $request,
+                               EntityManagerInterface   $manager,
+                               MailerService            $mailerService,
+                               RefArticleDataService    $refArticleDataService,
+                               NotificationService      $notificationService,
+                               TranslationService       $translation): JsonResponse {
         $data = json_decode($request->getContent());
 
         $preparationRepository = $manager->getRepository(Preparation::class);
         $statutRepository = $manager->getRepository(Statut::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
         $launchPreparation = $request->query->get('launchPreparations');
 
@@ -890,8 +939,6 @@ class PreparationController extends AbstractController
         }
 
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
-
-
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
                 $demande = $preparation->getDemande();
@@ -899,21 +946,31 @@ class PreparationController extends AbstractController
                 if ($demande->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($preparation);
                 }
-                if ($demande->getType()->getSendMail()) {
+
+                if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                    $to = [];
+                    if ($demande->getType()->getSendMailRequester()) {
+                        $to[] = $demande->getUtilisateur();
+                    }
+                    if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                        $to[] = $demande->getReceiver();
+                    }
+
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
                         'FOLLOW GT // Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
-                            'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                            'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                                 . $demande->getType()->getLabel()
                                 . ' a bien été validée le '
                                 . $nowDate->format('d/m/Y \à H:i')
                                 . '.',
                         ]),
-                        $demande->getUtilisateur()
+                        $to
                     );
                 }
+
                 foreach ($refLines as $refLine) {
                     $referenceArticle = $refLine->getReference();
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {

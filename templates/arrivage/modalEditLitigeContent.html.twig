@@ -42,12 +42,12 @@
                data-id="{{ dispute.reporter ? dispute.reporter.id : '' }}"/>
     </div>
     <div class="form-group w-100 col-12">
-        <label class="wii-field-name" for="colisEditLitige">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
-        <select class="form-control data select2 needed" name="colis" multiple="multiple"
-                id="colisEditLitige">
-            {% for coli in colis %}
-                <option value="{{ coli.id }}">
-                    {{ coli.code }}
+        <label class="wii-field-name" for="packEditLitige">{{ trans('Traçabilité', 'Général', 'Unités logistiques') }}*</label>
+        <select class="form-control data select2 needed" name="pack" multiple="multiple"
+                id="packEditLitige">
+            {% for pack in packs %}
+                <option value="{{ pack.id }}">
+                    {{ pack.code }}
                 </option>
             {% endfor %}
         </select>
@@ -70,7 +70,7 @@
     </div>
 </div>
 <div class="wii-section-title my-3 d-flex align-items-center">
-    {{ trans('Traçabilité', 'Flux - Arrivages', 'Détails arrivage - Liste des litiges', 'Historique') }}
+    {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Liste des litiges', 'Historique') }}
 </div>
 <div class="tableHistoric">
     <table id="tableHistoLitige" class="table w-100"></table>

@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
-use App\Service\DisputeService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -59,10 +58,13 @@ class FiltreSupController extends AbstractController
                 'contact' => FiltreSup::FIELD_CONTACT,
                 'numTruckArrival' => FiltreSup::FIELD_NUM_TRUCK_ARRIVAL,
                 'noTracking' => FiltreSup::FIELD_TRACKING_CARRIER_NUMBER,
+                'projectNumber' => FiltreSup::FIELD_PROJECT_NUMBER,
+                'project' => FiltreSup::FIELD_PROJECT,
                 'registrationNumber' => FiltreSup::FIELD_REGISTRATION_NUMBER,
                 'carrierTrackingNumber' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER,
                 'truckArrivalNumber' => FiltreSup::FIELD_TRUCK_ARRIVAL_NUMBER,
                 'carrierTrackingNumberNotAssigned' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED,
+                'customerOrderNumber' => FiltreSup::FIELD_CUSTOMER_ORDER_NUMBER
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -104,7 +106,7 @@ class FiltreSupController extends AbstractController
                 'dropLocation' => FiltreSup::FIELD_DROP_LOCATION,
                 'reference' => FiltreSup::FIELD_REFERENCE,
                 'statut' => FiltreSup::FIELD_STATUT,
-                'colis' => FiltreSup::FIELD_COLIS,
+                'UL' => FiltreSup::FIELD_PACK,
                 'carriers' => FiltreSup::FIELD_CARRIERS,
                 'providers' => FiltreSup::FIELD_PROVIDERS,
                 'demCollecte' => FiltreSup::FIELD_DEM_COLLECTE,
@@ -119,6 +121,7 @@ class FiltreSupController extends AbstractController
                 'dispatchNumber' => FiltreSup::FIELD_DISPATCH_NUMBER,
                 'emergencyMultiple' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                 'businessUnit' => FiltreSup::FIELD_BUSINESS_UNIT,
+                'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
                 'drivers' => FiltreSup::FIELD_DRIVERS,
             ];
@@ -160,7 +163,6 @@ class FiltreSupController extends AbstractController
                 'statuses-filter',
                 'date-choice'
             ];
-
             foreach ($filterCheckboxes as $filterCheckbox) {
                 $value = Stream::from($data)
                     ->filter(fn ($filter, $key) => str_starts_with($key, $filterCheckbox) && $filter === true)

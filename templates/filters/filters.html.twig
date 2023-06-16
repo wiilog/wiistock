@@ -19,7 +19,7 @@
                             {{ tableSelector is defined ? ("'" ~ tableSelector ~ "'") : 'undefined' }},
                             {{ callback is defined ? callback : 'null' }},
                             {{ needsDateFormatting is defined ? needsDateFormatting : 'false' }}
-                        )">
+                        )" {{ disabled }}>
                     <i class="fas fa-filter mr-1"></i>
                     {{ trans('Général', null, 'Zone filtre', 'Filtrer') }}
                 </button>

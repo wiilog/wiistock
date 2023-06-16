@@ -42,7 +42,7 @@
                         {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
                         {% if hasRightEditReserve %}
                             <div style="text-align: right">
-                                {% include "utils/action-buttons.html.twig" with {
+                                {% include "utils/action-buttons/header-buttons.html.twig" with {
                                     actions: [
                                         {
                                             hasRight: true,
@@ -71,7 +71,7 @@
                     <div class="content py-0">
                         {% if hasRightEditReserve %}
                             <div class="d-flex justify-content-end">
-                                {% include "utils/action-buttons.html.twig" with {
+                                {% include "utils/action-buttons/header-buttons.html.twig" with {
                                     actions: [
                                         {
                                             title: 'Ajouter une réserve',

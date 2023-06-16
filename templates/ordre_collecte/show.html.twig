@@ -29,6 +29,7 @@
         </div>
     </div>
     <input id="collecte-id" hidden value="{{ collecte.id }}">
+    <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
     {% include 'ordre_collecte/modalEditArticle.html.twig' %}
     {% include 'reference_article/modalShowRefArticle.html.twig' %}

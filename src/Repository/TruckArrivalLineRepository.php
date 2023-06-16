@@ -4,9 +4,7 @@ namespace App\Repository;
 
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**

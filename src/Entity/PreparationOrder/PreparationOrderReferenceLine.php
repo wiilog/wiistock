@@ -2,6 +2,7 @@
 
 namespace App\Entity\PreparationOrder;
 
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\Emplacement;
 use App\Entity\ReferenceArticle;
 use App\Repository\PreparationOrder\PreparationOrderReferenceLineRepository;
@@ -31,6 +32,10 @@ class PreparationOrderReferenceLine {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'preparationOrderReferenceLines')]
     private ?Emplacement $targetLocationPicking = null;
+
+    #[ORM\ManyToOne(targetEntity: DeliveryRequestReferenceLine::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?DeliveryRequestReferenceLine $deliveryRequestReferenceLine = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -108,4 +113,14 @@ class PreparationOrderReferenceLine {
         return $this;
     }
 
+    public function getDeliveryRequestReferenceLine(): ?DeliveryRequestReferenceLine
+    {
+        return $this->deliveryRequestReferenceLine;
+    }
+
+    public function setDeliveryRequestReferenceLine(?DeliveryRequestReferenceLine $deliveryRequestReferenceLine): self
+    {
+        $this->deliveryRequestReferenceLine = $deliveryRequestReferenceLine;
+        return $this;
+    }
 }

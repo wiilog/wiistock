@@ -169,11 +169,17 @@ class ArrivageRepository extends EntityRepository
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
+                case 'type':
+					$qb
+						->join('arrival.type', 'filter_type')
+						->andWhere('filter_type.label = :type')
+						->setParameter('type', $filter['value']);
+					break;
                 case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('arrival.statut', 's')
-						->andWhere('s.id in (:statut)')
+						->join('arrival.statut', 'filter_status')
+						->andWhere('filter_status.id in (:statut)')
 						->setParameter('statut', $value);
 					break;
                 case 'utilisateurs':
@@ -221,16 +227,12 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case 'customs':
                     if ($filter['value'] === '1') {
-                        $qb
-                            ->andWhere('arrival.customs = :value')
-                            ->setParameter('value', $filter['value']);
+                        $qb->andWhere('arrival.customs = 1');
                     }
                     break;
                 case 'frozen':
                     if ($filter['value'] === '1') {
-                        $qb
-                            ->andWhere('arrival.frozen = :value')
-                            ->setParameter('value', $filter['value']);
+                        $qb->andWhere('arrival.frozen = 1');
                     }
                     break;
                 case FiltreSup::FIELD_BUSINESS_UNIT:
@@ -238,8 +240,14 @@ class ArrivageRepository extends EntityRepository
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb
-                        ->andWhere("arrival.businessUnit IN (:values)")
-                        ->setParameter('values', $values);
+                        ->andWhere("arrival.businessUnit IN (:businessUnit)")
+                        ->setParameter('businessUnit', $values);
+                    break;
+                case FiltreSup::FIELD_PROJECT_NUMBER:
+                    $value = $filter['value'];
+                    $qb
+                        ->andWhere("arrival.projectNumber LIKE :projectNumber")
+                        ->setParameter('projectNumber', "%$value%");
                     break;
                 case 'numArrivage':
                     $qb

@@ -36,6 +36,7 @@ use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\StringService;
+use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -66,8 +67,9 @@ class RequestController extends AbstractController {
      */
     #[Route("/liste", name: "transport_request_index", methods: "GET")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
-    public function index(EntityManagerInterface $entityManager,
-                          Request $request): Response {
+    public function index(EntityManagerInterface    $entityManager,
+                          Request                   $request,
+                          TranslationService        $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
@@ -90,7 +92,7 @@ class RequestController extends AbstractController {
                 [
                     "category" => CategoryType::DELIVERY_TRANSPORT,
                     "icon" => "cart-delivery",
-                    "label" => "Livraison",
+                    "label" => $translation->translate("Demande", "Livraison", "Livraison", false),
                 ], [
                     "category" => CategoryType::COLLECT_TRANSPORT,
                     "icon" => "cart-collect",
@@ -429,9 +431,10 @@ class RequestController extends AbstractController {
 
     #[Route('/api', name: 'transport_request_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function api(Request                $request,
-                        TransportService       $transportService,
-                        EntityManagerInterface $entityManager): Response {
+    public function api(Request                 $request,
+                        TransportService        $transportService,
+                        EntityManagerInterface  $entityManager,
+                        TranslationService      $translation): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $transportRepository = $entityManager->getRepository(TransportRequest::class);
 
@@ -465,7 +468,7 @@ class RequestController extends AbstractController {
             $deliveryCount = $counts[TransportDeliveryRequest::class] ?? null;
             if($deliveryCount) {
                 $s = $deliveryCount > 1 ? "s" : "";
-                $deliveryCount = "<span class='wii-icon wii-icon-cart-delivery wii-icon-15px-primary mr-1'></span> $deliveryCount livraison$s";
+                $deliveryCount = "<span class='wii-icon wii-icon-cart-delivery wii-icon-15px-primary mr-1'></span> $deliveryCount " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . "$s";
             }
 
             $collectCount = $counts[TransportCollectRequest::class] ?? null;
@@ -525,7 +528,7 @@ class RequestController extends AbstractController {
         $success = $transportRequest->canBeDeleted();
 
         if ($success) {
-            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons colis, ordres, ....)
+            // TODO supprimer la demande et toutes les données liées, il faut attendre que tout soit effectif (liaisons UL, ordres, ....)
             $msg = 'Demande supprimée.';
 
             /**
@@ -823,10 +826,10 @@ class RequestController extends AbstractController {
             ];
 
             $packsHeader = [
-                'Nature colis',
-                'Nombre de colis à livrer',
+                'Nature UL',
+                'Nombre d\'UL à livrer',
                 'Températures',
-                'Code colis',
+                'Code UL',
                 'Ecarté',
                 'Motif écartement',
                 'Retourné le',
@@ -856,7 +859,7 @@ class RequestController extends AbstractController {
             ];
 
             $naturesHeader = [
-                'Nature colis',
+                'Nature UL',
                 'Quantité à collecter',
                 'Quantités collectées',
             ];

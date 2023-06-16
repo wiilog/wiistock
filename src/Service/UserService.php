@@ -8,23 +8,32 @@ use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Inventory\InventoryLocationMission;
+use App\Entity\Inventory\InventoryMission;
+use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
 use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
+use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Symfony\Component\Security\Core\Security;
 
 class UserService
 {
+
+    #[Required]
+    public TranslationService $translation;
 
     public const MIN_MOBILE_KEY_LENGTH = 14;
     public const MAX_MOBILE_KEY_LENGTH = 24;
@@ -113,6 +122,11 @@ class UserService
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryMissionRuleRepository = $entityManager->getRepository(InventoryMissionRule::class);
+        $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
+        $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -124,12 +138,23 @@ class UserService
         $isUsedInDispatches = $dispatchRepository->countByUser($user);
         $isUsedInArrivals = $arrivageRepository->countByUser($user);
         $hasTrackingMovement = $trackingMovementRepository->count(['operateur' => $user]);
-        $hasSignatoryLocation = $locationRepository->countSignatories($user);
+        $hasSignatoryLocation = $locationRepository->countLocationByUser($user);
+        $hasInventoryMissionRules = (
+            $inventoryMissionRuleRepository->count(['creator' => $user])
+            + $inventoryMissionRuleRepository->count(['requester' => $user])
+        );
+        $hasInventoryMissions = (
+            $inventoryMissionRepository->count(['requester' => $user])
+            + $inventoryMissionRepository->count(['validator' => $user])
+            + $inventoryLocationMissionRepository->count(['operator' => $user])
+        );
+        $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
+        $hasStatusHistory = $statusHistoryRepository->count(['changedBy' => $user->getId()]) + $statusHistoryRepository->count(['initiatedBy' => $user->getId()]);
 
         return [
-            'demande(s) de livraison' => $isUsedInRequests,
+            mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
             'demande(s) de collecte' => $isUsedInCollects,
-            'ordre(s) de livraison' => $isUsedInDeliveryOrders,
+            mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) => $isUsedInDeliveryOrders,
             'ordre(s) de collecte' => $isUsedInCollectOrders,
             'demande(s) de service' => $isUsedInHandlings,
             'ordre(s) de préparation' => $isUsedInPreparationOrders,
@@ -138,6 +163,10 @@ class UserService
             'arrivage(s)' => $isUsedInArrivals,
             'mouvement(s) de traçabilité' => $hasTrackingMovement,
             'emplacement(s)' => $hasSignatoryLocation,
+            "planification(s) d'inventaire" => $hasInventoryMissionRules,
+            "mission(s) d'inventaire" => $hasInventoryMissions,
+            "planification(s) de demande d'achat" => $hasPurchaseRequestShcheduleRules,
+            "historique(s) de statut" => $hasStatusHistory,
         ];
 	}
 
@@ -190,7 +219,9 @@ class UserService
             'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
             'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),
-            'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user)
+            'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user),
+            'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user),
+            'dispatchOfflineMode' => $this->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $user),
         ];
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Article;
 use App\Entity\Cart;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
@@ -15,8 +16,8 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,29 +28,35 @@ use WiiCommon\Helper\StringHelper;
 
 class CartService {
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public Environment $twig;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
-    /** @Required */
-    public DemandeLivraisonService $demandeLivraisonService;
+    #[Required]
+    public DeliveryRequestService $demandeLivraisonService;
 
-    /** @Required */
+    #[Required]
     public PurchaseRequestService $purchaseRequestService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translation;
 
     private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
         if ($referencesToRemove) {
@@ -61,6 +68,7 @@ class CartService {
             }
         } else {
             $cart->getReferences()->clear();
+            $cart->getArticles()->clear();
         }
     }
 
@@ -72,6 +80,10 @@ class CartService {
         $status = $statusRepository->findOneByCategorieNameAndStatutState(CategorieStatut::PURCHASE_REQUEST, Statut::DRAFT);
         $treatedCartReferences = [];
 
+        if (!$user->getCart()?->getArticles()->isEmpty()) {
+            throw new \RuntimeException("Invalid cart for purchase request");
+        }
+
         if ($status) {
             if (!isset($data['buyers'])) {
                 return [
@@ -82,7 +94,7 @@ class CartService {
                 $requestsByBuyer = Stream::from(json_decode($data['buyers'], true))
                     ->keymap(fn(array $buyerData) => [
                         $buyerData['buyer'],
-                        !empty($buyerData['existingPurchase']) ? $entityManager->find(PurchaseRequest::class, $buyerData['existingPurchase']) : null
+                        !empty($buyerData['existingPurchase']) ? $entityManager->find(PurchaseRequest::class, $buyerData['existingPurchase']) : null,
                     ])
                     ->toArray();
                 $cart = json_decode($data['cart'], true);
@@ -99,7 +111,7 @@ class CartService {
 
                             if ($quantity > 0) {
                                 if (!isset($associatedPurchaseRequest)) {
-                                    $associatedPurchaseRequest = $this->purchaseRequestService->createPurchaseRequest($entityManager, $status, $user, null, null, $buyer);
+                                    $associatedPurchaseRequest = $this->purchaseRequestService->createPurchaseRequest($status, $user, ["buyer" => $buyer]);
                                     $entityManager->persist($associatedPurchaseRequest);
 
                                     $entityManager->flush();
@@ -117,11 +129,7 @@ class CartService {
                                 if ($associatedLine) {
                                     $associatedLine->setRequestedQuantity($associatedLine->getRequestedQuantity() + $quantity);
                                 } else {
-                                    $line = new PurchaseRequestLine();
-                                    $line
-                                        ->setRequestedQuantity($quantity)
-                                        ->setReference($reference)
-                                        ->setPurchaseRequest($associatedPurchaseRequest);
+                                    $line = $this->purchaseRequestService->createPurchaseRequestLine($reference, $quantity, ["purchaseRequest" => $associatedPurchaseRequest]);
                                     $entityManager->persist($line);
                                 }
                             }
@@ -151,22 +159,32 @@ class CartService {
         ];
     }
 
-    public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
-        $cartContent = json_decode($data['cart'], true);
+    public function manageDeliveryRequest(array                     $data,
+                                          Utilisateur               $user,
+                                          EntityManagerInterface    $manager): array {
+        $cartContent = json_decode($data['cart'] ?? '[]', true);
+
+        $userCart = $user->getCart();
+        $isLogisticUnitCart = !$userCart->getArticles()->isEmpty();
 
         if ($data['addOrCreate'] === "add") {
+            if ($isLogisticUnitCart || empty($cartContent)) {
+                throw new \RuntimeException("Invalid cart");
+            }
+
             $deliveryRequest = $manager->find(Demande::class, $data['existingDelivery']);
-            $this->addReferencesToCurrentUserCart($manager, $user, $deliveryRequest, $cartContent);
+            $this->addCartReferencesToRequest($manager, $user, $deliveryRequest, $cartContent);
 
             $manager->flush();
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
             $msg = "Les références ont bien été ajoutées dans la demande existante";
-        } else if ($data['addOrCreate'] === "create") {
+        }
+        else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
-            $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? null);
+            $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::DEM_LIVRAISON,
@@ -193,21 +211,34 @@ class CartService {
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);
 
-            $this->addReferencesToCurrentUserCart($manager, $user, $deliveryRequest, $cartContent);
+            if ($isLogisticUnitCart) {
+                /** @var Article $firstArticle */
+                $firstArticle = $userCart->getArticles()->first();
+                $project = $firstArticle->getTrackingPack()?->getProject();
+                $deliveryRequest->setProject($project);
+
+                $this->addCartArticlesToRequest($manager, $user, $deliveryRequest);
+            }
+            else {
+                if (empty($cartContent)) {
+                    throw new \RuntimeException("Invalid cart");
+                }
+                $this->addCartReferencesToRequest($manager, $user, $deliveryRequest, $cartContent);
+            }
 
             try {
                 $manager->flush();
             }
             /** @noinspection PhpRedundantCatchClauseInspection */
-            catch (UniqueConstraintViolationException $e) {
+            catch (UniqueConstraintViolationException) {
                 return [
                     'success' => false,
-                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                    'msg' => 'Une autre demande de ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Livraison", false)) . ' est en cours de création, veuillez réessayer.',
                 ];
             }
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
-            $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
+            $msg = "Les references ont bien été ajoutées dans une nouvelle " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false));
         } else {
             throw new \RuntimeException("Unknown parameter");
         }
@@ -215,7 +246,7 @@ class CartService {
         return [
             "success" => true,
             "msg" => $msg,
-            "link" => $link
+            "link" => $link,
         ];
     }
 
@@ -224,9 +255,13 @@ class CartService {
                                          EntityManagerInterface $manager): array {
         $cartContent = json_decode($data['cart'], true);
 
+        if (!$user->getCart()?->getArticles()->isEmpty()) {
+            throw new \RuntimeException("Invalid cart for collect");
+        }
+
         if ($data['addOrCreate'] === "add") {
             $collectRequest = $manager->find(Collecte::class, $data['existingCollect']);
-            $this->addReferencesToCurrentUserCart($manager, $user, $collectRequest, $cartContent);
+            $this->addCartReferencesToRequest($manager, $user, $collectRequest, $cartContent);
 
             $manager->flush();
 
@@ -257,7 +292,7 @@ class CartService {
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);
             $manager->persist($collectRequest);
 
-            $this->addReferencesToCurrentUserCart($manager, $user, $collectRequest, $cartContent);
+            $this->addCartReferencesToRequest($manager, $user, $collectRequest, $cartContent);
 
             $manager->flush();
 
@@ -270,14 +305,14 @@ class CartService {
         return [
             "success" => true,
             "msg" => $msg,
-            "link" => $link
+            "link" => $link,
         ];
     }
 
-    private function addReferencesToCurrentUserCart(EntityManagerInterface $entityManager,
-                                                    Utilisateur            $user,
-                                                                           $request,
-                                                    array                  $cart) {
+    private function addCartReferencesToRequest(EntityManagerInterface $entityManager,
+                                                Utilisateur            $user,
+                                                                       $request,
+                                                array                  $cart): void {
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $references = $referenceRepository->findByIds(
             Stream::from($cart)
@@ -327,6 +362,22 @@ class CartService {
                     }
                 }
             }
+        }
+
+        $this->emptyCart($user->getCart());
+    }
+
+    private function addCartArticlesToRequest(EntityManagerInterface $entityManager,
+                                              Utilisateur            $user,
+                                              Demande                $request): void {
+        $cart = $user->getCart();
+
+        /** @var Article $article */
+        foreach ($cart->getArticles() as $article) {
+            $line = $this->demandeLivraisonService->createArticleLine($article, $request, [
+                'quantityToPick' => $article->getQuantite()
+            ]);
+            $entityManager->persist($line);
         }
 
         $this->emptyCart($user->getCart());

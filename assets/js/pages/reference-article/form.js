@@ -1,42 +1,74 @@
-import '../../../scss/pages/reference-article.scss';
+import '@styles/details-page.scss';
 import AJAX from "@app/ajax";
-import {computeDescriptionFormValues, computeDescriptionShowValues} from "./common";
+import {computeDescriptionFormValues} from "./common";
 
-window.onTypeQuantityChange = onTypeQuantityChange;
-window.toggleEmergency = toggleEmergency;
-window.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeQuantityChange = onTypeQuantityChange;
+global.toggleEmergency = toggleEmergency;
+global.changeNewReferenceStatus = changeNewReferenceStatus;
+global.onTypeSecurityChange = onTypeSecurityChange;
+
+global.onReferenceChange = onReferenceChange;
+global.onLabelChange = onLabelChange;
 
 $(document).ready(() => {
     const $periodSwitch = $('input[name="period"]');
+    handleNeededFileSheet();
 
-    $periodSwitch.on('click', function() {
+    const requestQuery = GetRequestQuery();
+    const redirectRoute = requestQuery['redirect-route'];
+    let redirectRouteParams;
+    try {
+        redirectRouteParams = requestQuery['redirect-route-params']
+            ? JSON.parse(requestQuery['redirect-route-params'])
+            : undefined;
+    } catch (_) {
+        delete requestQuery['redirect-route-params'];
+        SetRequestQuery(requestQuery);
+        redirectRouteParams = redirectRouteParams || {};
+    }
+
+
+    $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
     })
 
     buildQuantityPredictions();
 
-    $(`.add-supplier-article`).click(function() {
-        $(this).siblings(`.supplier-articles`).append($(`#supplier-article-template`).html());
+    $(`.add-supplier-article`).click(function () {
+        formAddLine($(this), `.supplier-articles`, `#supplier-article-template`);
     });
 
-    $(document).on(`click`, `.delete-supplier-article`, function() {
+    $(document).on(`click`, `.delete-supplier-article`, function () {
         $(this).closest(`.ligneFournisseurArticle`).remove();
     });
 
-    $(`#touch`).change(function() {
-        $(this).closest(`.ra-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
+    $(`.add-storage-rule`).click(function () {
+        formAddLine($(this), `.storage-rules`, `#storage-rule-template`);
+    });
+
+    $(document).on(`click`, `.delete-storage-rule`, function () {
+        $(this).closest(`.lineStorageRule`).remove();
+    });
+
+    $(`.touch`).change(function () {
+        $(this).closest(`.details-page-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
     })
 
-    $(`.save`).click(function() {
-        if($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
+    $(`.save`).click(function () {
+        if ($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
             showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'danger');
         } else {
             const $button = $(this);
             const $form = $(`.wii-form`);
             clearFormErrors($form);
             processSubmitAction($form, $button, $button.data(`submit`), {
+                keepForm: true,
                 success: data => {
-                    window.location.href = data.redirect || Routing.generate('reference_article_show_page', {id: data.data.id});
+                    window.location.href = redirectRoute
+                        ? Routing.generate(redirectRoute, redirectRouteParams)
+                        : data.id
+                            ? Routing.generate('reference_article_show_page', {id: data.id})
+                            : Routing.generate('reference_article_index');
                 },
             }).then((data) => {
                 if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
@@ -44,6 +76,10 @@ $(document).ready(() => {
                 }
             });
         }
+    });
+
+    $('.btn.cancel').on('click', () => {
+        window.location.href = Routing.generate( redirectRoute || 'reference_article_index', redirectRoute ? redirectRouteParams : undefined);
     });
 
     const $deleteImage = $('.delete-image');
@@ -67,7 +103,7 @@ $(document).ready(() => {
         const $uploadArticleReferenceImage = $('#upload-article-reference-image')[0];
         if ($uploadArticleReferenceImage.files && $uploadArticleReferenceImage.files.length > 0) {
             $deleteImage.removeClass('d-none');
-            if($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
+            if ($uploadArticleReferenceImage.files[0].size > MAX_UPLOAD_FILE_SIZE) {
                 showBSAlert(`La taille de l'image ne peut excéder 10mo`, `danger`);
             } else {
                 updateArticleReferenceImage($('.image-container'), $uploadArticleReferenceImage);
@@ -75,15 +111,15 @@ $(document).ready(() => {
         }
     });
 
-    $('.delete-button-container').click(function() {
-        const supplierArticleId = $(this).data('id');
-        const $suppliersToRemove = $('#suppliers-to-remove');
-        if($suppliersToRemove.val() === '') {
-            $suppliersToRemove.val(supplierArticleId);
+    $('.delete-button-container').click(function () {
+        const entityId = $(this).data('id');
+        const $inputToUpdate = $($(this).data('input-to-update'));
+        if ($inputToUpdate.val() === '') {
+            $inputToUpdate.val(entityId);
         } else {
-            $suppliersToRemove.val($suppliersToRemove.val() + ',' + supplierArticleId);
+            $inputToUpdate.val($inputToUpdate.val() + ',' + entityId);
         }
-        $(this).closest('.supplier-container').remove();
+        $(this).closest('.entity-container').remove();
     });
 
     $(`input[name=length], input[name=width], input[name=height]`).on(`input`, () => {
@@ -95,7 +131,31 @@ $(document).ready(() => {
             $size: $(`input[name=size]`),
         });
     });
+
+    const $type = $('select[name=type].data');
+    const preselectedTypeVal = $type.val();
+    if(preselectedTypeVal){
+        $type.trigger('change');
+    }
 });
+
+function deleteLine($button, $inputToUpdate) {
+    const entityId = $button.data('id');
+    if ($inputToUpdate.val() === '') {
+        $inputToUpdate.val(entityId);
+    } else {
+        $inputToUpdate.val($inputToUpdate.val() + ',' + entityId);
+    }
+    $(this).closest('.supplier-container').remove();
+}
+
+function formAddLine($button, container, template) {
+    let $container = $button.siblings(container);
+    let lastIndex = $container.children().last().data('multiple-object-index');
+    let $storageRuleTemplate = $($(template).html());
+    $storageRuleTemplate.data('multiple-object-index', lastIndex !== undefined ? lastIndex + 1 : 0);
+    $container.append($storageRuleTemplate);
+}
 
 function buildQuantityPredictions(period = 1) {
     const $id = $('input[name="reference-id"]')
@@ -154,7 +214,7 @@ function onTypeQuantityChange($input) {
     changeNewReferenceStatus($('[name=statut]:checked'));
 }
 
-function changeNewReferenceStatus($select){
+function changeNewReferenceStatus($select) {
     if ($select.exists()) {
         const draftStatusName = $(`input[name="draft-status-name"]`).val();
         const draftSelected = $select.val() === draftStatusName;
@@ -201,3 +261,41 @@ function changeNewReferenceStatus($select){
     }
 }
 
+function onTypeSecurityChange($input) {
+    changeNewReferenceStatus($input);
+    handleNeededFileSheet();
+}
+function handleNeededFileSheet(){
+    //if radio yes is checked, sheet is needed
+    const radioYesChecked = $('input[name=security]:checked').val();
+    const inputRequired = $('input[name=isSheetFileNeeded]');
+
+    const oldTextLabelRequired = $.trim($('span[title=Fiche]').text().split("*")[0]);
+    const labelRequired = $('span[title=Fiche]')
+
+    if(radioYesChecked === "1"){
+        inputRequired.val(1);
+        labelRequired.text(`${oldTextLabelRequired}*`)
+    }else{
+        inputRequired.val(0);
+        labelRequired.text(oldTextLabelRequired)
+    }
+}
+
+function onLabelChange(){
+    const $referenceLabel = $('[name=libelle].data');
+    const $articleSupplierLabel = $('[name=labelFournisseur].data');
+
+    if($articleSupplierLabel.length === 1){
+        $articleSupplierLabel.val($referenceLabel.val());
+    }
+}
+
+function onReferenceChange(){
+    const $referenceReference = $('[name=reference].data');
+    const $articleSupplierReference = $('[name=referenceFournisseur].data');
+
+    if($articleSupplierReference.length === 1){
+        $articleSupplierReference.val($referenceReference.val());
+    }
+}

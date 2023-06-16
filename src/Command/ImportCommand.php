@@ -54,8 +54,6 @@ class ImportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        ini_set("memory_limit", "1024M");
-
         $importRepository = $this->getEntityManager()->getRepository(Import::class);
         $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 
@@ -82,7 +80,7 @@ class ImportCommand extends Command
         $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
 
         foreach ($importsToLaunch as $import) {
-            $this->importService->treatImport($import, null, ImportService::IMPORT_MODE_RUN);
+            $this->importService->treatImport($import, ImportService::IMPORT_MODE_RUN);
             $import
                 ->setStatus($statusFinished)
                 ->setEndDate(new DateTime('now'));

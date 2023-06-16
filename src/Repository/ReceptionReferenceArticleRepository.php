@@ -6,8 +6,6 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -18,7 +16,21 @@ use WiiCommon\Helper\Stream;
  */
 class ReceptionReferenceArticleRepository extends EntityRepository
 {
-
+    public function countNotConformByReception($reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT (a)
+            FROM App\Entity\ReceptionReferenceArticle a
+            JOIN a.receptionLine line
+            JOIN line.reception reception
+            WHERE a.anomalie = :conform AND reception = :reception"
+        )->setParameters([
+            'conform' => 1,
+            'reception' => $reception
+        ]);
+        return $query->getSingleScalarResult();
+    }
 	/**
 	 * @param Reception $reception
 	 * @return ReceptionReferenceArticle[]|null
@@ -91,9 +103,10 @@ class ReceptionReferenceArticleRepository extends EntityRepository
 	    $queryExpression = $queryBuilder->expr();
         $query = $queryBuilder
             ->join('reception_reference_article.referenceArticle', 'reference_article')
-            ->join('reception_reference_article.reception', 'reception')
+            ->join('reception_reference_article.receptionLine', 'receptionLine')
+            ->join('receptionLine.reception', 'reception')
             ->join('reception.statut', 'status')
-            ->where('reference_article = :ref')
+            ->andWhere('reference_article = :ref')
             ->andWhere('status.code IN (:statuses)')
             ->andWhere(
                 $queryExpression->orX(

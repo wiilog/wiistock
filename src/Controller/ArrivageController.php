@@ -17,18 +17,23 @@ use App\Entity\Fournisseur;
 use App\Entity\Dispute;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
+use App\Entity\TagTemplate;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\DataExportService;
 use App\Service\FilterSupService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
+use App\Service\TagTemplateService;
 use App\Service\VisibleColumnService;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -82,6 +87,7 @@ class ArrivageController extends AbstractController {
     public function index(Request $request,
                           EntityManagerInterface $entityManager,
                           KeptFieldService $keptFieldService,
+                          TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -113,6 +119,7 @@ class ArrivageController extends AbstractController {
         $request->request->add(['length' => $pageLength]);
 
         return $this->render('arrivage/index.html.twig', [
+            "types" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'statuts' => $statuses,
             "fieldsParam" => $fieldsParam,
@@ -122,9 +129,10 @@ class ArrivageController extends AbstractController {
             'pageLengthForArrivage' => $pageLength,
             "fields" => $fields,
             "initial_arrivals" => $this->api($request, $arrivageService)->getContent(),
-            "initial_form" => $this->createApi($entityManager, $keptFieldService, $fromTruckArrivalOptions)->getContent(),
+            "initial_form" => $arrivageService->generateNewForm($entityManager, $fromTruckArrivalOptions),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
-            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_ARRIVAGE)),
+            "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
             "openNewModal" => count($fromTruckArrivalOptions) > 0,
         ]);
     }
@@ -144,86 +152,17 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/api-creer", name="arrivage_new_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function createApi(EntityManagerInterface $entityManager, KeptFieldService $keptFieldService, array $fromTruckArrivalOptions = []): Response
-    {
-        if ($this->userService->hasRightFunction(Menu::TRACA, Action::CREATE)) {
-            $settingRepository = $entityManager->getRepository(Setting::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
-            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $transporteurRepository = $entityManager->getRepository(Transporteur::class);
-            $locationRepository = $entityManager->getRepository(Emplacement::class);
-
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
-                ->map(fn(Statut $statut) => [
-                    'id' => $statut->getId(),
-                    'type' => $statut->getType(),
-                    'nom' => $this->getFormatter()->status($statut),
-                ])
-                ->toArray();
-            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
-
-            $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
-                ->map(fn(Nature $nature) => [
-                    'id' => $nature->getId(),
-                    'label' => $this->getFormatter()->nature($nature),
-                    'defaultQuantity' => $nature->getDefaultQuantity(),
-                ])
-                ->toArray();
-
-            $keptFields = $keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
-
-            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
-                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
-            }
-
-            $html = $this->renderView("arrivage/modalNewArrivage.html.twig", [
-                "keptFields" => $keptFields,
-                "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
-                "statuses" => $statuses,
-                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
-                "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
-                "natures" => $natures,
-                "carriers" => $transporteurRepository->findAllSorted(),
-                "chauffeurs" => $chauffeurRepository->findAllSorted(),
-                "fieldsParam" => $fieldsParam,
-                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
-                "defaultLocation" => $defaultLocation,
-                "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
-                "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_COLIS),
-                "fromTruckArrivalOptions" => $fromTruckArrivalOptions
-            ]);
-        }
-
-        return new JsonResponse([
-            'html' => $html ?? "",
-            'acheteurs' => $acheteursUsernames ?? []
-        ]);
-    }
-
-    /**
      * @Route("/creer", name="arrivage_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         AttachmentService      $attachmentService,
-                        ArrivageService        $arrivageDataService,
+                        ArrivageService        $arrivalService,
                         FreeFieldService       $champLibreService,
-                        PackService            $colisService,
+                        PackService            $packService,
                         KeptFieldService       $keptFieldService,
-                        TranslationService    $translation): Response
+                        TranslationService     $translation): Response
     {
         $data = $request->request->all();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -264,6 +203,7 @@ class ArrivageController extends AbstractController {
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
         $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
+        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT, $data["project"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -284,7 +224,7 @@ class ArrivageController extends AbstractController {
             return new JsonResponse([
                 'success' => false,
                 'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    '1' =>  $translation->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Statut', false),
+                    '1' =>  $translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut', false),
                 ]),
             ]);
         }
@@ -340,6 +280,45 @@ class ArrivageController extends AbstractController {
         }
         $this->persistAttachmentsForEntity($arrivage, $attachmentService, $request, $entityManager);
 
+        $natures = Stream::from(isset($data['packs']) ? json_decode($data['packs'], true) : [])
+            ->filter()
+            ->keymap(fn($value, $key) => [intval($key), intval($value)]);
+        $total = $natures->sum();
+
+        if ($total == 0) {
+            throw new FormException(
+                $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
+                    '1' =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques', false),
+                ])
+            );
+        }
+
+        $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
+
+        $supplierEmergencyAlert = $arrivalService->createSupplierEmergencyAlert($arrivage);
+        $isArrivalUrgent = isset($supplierEmergencyAlert);
+        $alertConfigs = $isArrivalUrgent
+            ? [
+                $supplierEmergencyAlert,
+                $arrivalService->createArrivalAlertConfig($arrivage, false)
+            ]
+            : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
+
+        if ($isArrivalUrgent) {
+            $arrivage->setIsUrgent(true);
+        }
+
+        $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
+        // persist packs after set arrival urgent
+        $packService->persistMultiPacks(
+            $entityManager,
+            $arrivage,
+            $natures->toArray(),
+            $currentUser,
+            false,
+            $project
+        );
+
         try {
             $entityManager->flush();
         }
@@ -347,40 +326,13 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Un autre arrivage est en cours de création, veuillez réessayer')
+                'msg' => $translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Un autre arrivage UL est en cours de création, veuillez réessayer')
             ]);
         }
 
-        $colis = isset($data['colis']) ? json_decode($data['colis'], true) : [];
-        $natures = [];
-        foreach ($colis as $key => $value) {
-            if (isset($value)) {
-                $natures[intval($key)] = intval($value);
-            }
+        if ($sendMail) {
+            $arrivalService->sendArrivalEmails($entityManager, $arrivage);
         }
-        $total = array_reduce($natures, function (int $carry, $nature) {
-            return $carry + $nature;
-        }, 0);
-
-        if ($total === 0) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translation->translate("Général", null, "Modale", "Veuillez renseigner le champ {1}", [
-                    '1' =>  $translation->translate('Traçabilité', 'Général', 'Unités logistiques', false),
-                ]),
-            ]);
-        }
-
-        $champLibreService->manageFreeFields($arrivage, $data, $entityManager, $this->getUser());
-
-        $supplierEmergencyAlert = $arrivageDataService->createSupplierEmergencyAlert($arrivage);
-        $isArrivalUrgent = isset($supplierEmergencyAlert);
-        $alertConfigs = $isArrivalUrgent
-            ? [
-                $supplierEmergencyAlert,
-                $arrivageDataService->createArrivalAlertConfig($arrivage, false)
-            ]
-            : $arrivageDataService->processEmergenciesOnArrival($arrivage);
 
         if ($useTruckArrivals) {
             $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
@@ -391,43 +343,25 @@ class ArrivageController extends AbstractController {
                 ->join(',');
             if ($linesNeedingConfirmation) {
                 $lastElement = array_pop($alertConfigs);
-                $alertConfigs[] = $arrivageDataService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
                 $alertConfigs[] = $lastElement;
             }
         }
 
-        if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
-        }
-
-        // persist packs after set arrival urgent
-        $colisService->persistMultiPacks(
-            $entityManager,
-            $arrivage,
-            $natures,
-            $currentUser,
-            false
-        );
-
         $entityManager->flush();
 
-        if ($sendMail) {
-            $arrivageDataService->sendArrivalEmails($arrivage);
-        }
-
-        $entityManager->flush();
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
         return new JsonResponse([
             'success' => true,
             "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
                 ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                 : null,
-            'printColis' => (isset($data['printColis']) && $data['printColis'] === 'true'),
+            'printPacks' => (isset($data['printPacks']) && $data['printPacks'] === 'true'),
             'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
             'arrivageId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
-            "new_form" => $this->createApi($entityManager, $keptFieldService)->getContent(),
+            "new_form" => $arrivalService->generateNewForm($entityManager),
         ]);
     }
 
@@ -512,7 +446,7 @@ class ArrivageController extends AbstractController {
         $success = !empty($urgencesMatching);
 
         if ($success) {
-            $arrivageDataService->setArrivalUrgent($arrival, $urgencesMatching);
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
             $entityManager->flush();
         }
 
@@ -633,7 +567,7 @@ class ArrivageController extends AbstractController {
         }
         $entityManager->flush();
         if ($sendMail && $destinataireChanged) {
-            $arrivageDataService->sendArrivalEmails($arrivage);
+            $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
         $listAttachmentIdToKeep = $post->all('files') ?? [];
@@ -738,16 +672,16 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
+     * @Route("/lister-UL", name="arrivage_list_packs_api", options={"expose"=true}, condition="request.isXmlHttpRequest()")
      */
-    public function listColisByArrivage(Request $request,
+    public function listPacksByArrivage(Request $request,
                                         EntityManagerInterface $entityManager)
     {
         if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($data['id']);
 
-            $html = $this->renderView('arrivage/modalListColisContent.html.twig', [
+            $html = $this->renderView('arrivage/modalListPacksContent.html.twig', [
                 'arrivage' => $arrivage
             ]);
 
@@ -805,7 +739,9 @@ class ArrivageController extends AbstractController {
      */
     public function show(EntityManagerInterface $entityManager,
                          ArrivageService        $arrivageDataService,
+                         PackService            $packService,
                          Request                $request,
+                         TagTemplateService     $tagTemplateService,
                          Arrivage               $arrivage): Response
     {
         // HasPermission annotation impossible
@@ -813,13 +749,14 @@ class ArrivageController extends AbstractController {
             && !in_array($this->getUser(), $arrivage->getAcheteurs()->toArray())) {
             return $this->render('securite/access_denied.html.twig');
         }
-        $printColis = $request->query->get('printColis');
+        $printPacks = $request->query->get('printPacks');
         $printArrivage = $request->query->get('printArrivage');
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
+        $projectRepository = $entityManager->getRepository(Project::class);
         $acheteursNames = [];
         foreach ($arrivage->getAcheteurs() as $user) {
             $acheteursNames[] = $user->getUsername();
@@ -837,19 +774,23 @@ class ArrivageController extends AbstractController {
             ])
             ->toArray();
 
+        $fields = $packService->getColumnVisibleConfig($this->getUser());
+
         return $this->render("arrivage/show.html.twig", [
             'arrivage' => $arrivage,
             'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
             'acheteurs' => $acheteursNames,
             'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'),
-            'allColis' => $arrivage->getPacks(),
             'natures' => $natures,
-            'printColis' => $printColis,
+            'printPacks' => $printPacks,
             'printArrivage' => $printArrivage,
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+            "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
+            "projects" => $projectRepository->findActive(),
+            'fields' => $fields,
         ]);
     }
 
@@ -934,7 +875,7 @@ class ArrivageController extends AbstractController {
         catch (UniqueConstraintViolationException $e) {
             return new JsonResponse([
                 'success' => false,
-                'msg' => $translation->trans('arrivage.Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
+                'msg' => $translation->translate('Arrivages UL', 'Divers', 'Un autre litige d\'arrivage est en cours de création, veuillez réessayer').'.'
             ]);
         }
 
@@ -975,37 +916,58 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/ajouter-colis", name="arrivage_add_colis", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/ajouter-UL", name="arrivage_add_pack", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function addColis(Request $request,
+    public function addPack(Request $request,
                              EntityManagerInterface $entityManager,
-                             PackService $colisService)
+                             PackService $packService)
     {
         if ($data = json_decode($request->getContent(), true)) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+            $projectRepository = $entityManager->getRepository(Project::class);
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
+            $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
 
-            $natures = json_decode($data['colis'], true);
+            $natures = json_decode($data['pack'], true);
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
 
-            $persistedColis = $colisService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser);
-            $entityManager->flush();
-
-            return new JsonResponse([
-                'success' => true,
-                'packs' => array_map(function (Pack $pack) {
-                    return [
-                        'id' => $pack->getId(),
-                        'code' => $pack->getCode()
+            $response = [];
+            $persistedPack = [];
+            if ($reception = $arrivage->getReception()) {
+                $statusCode = $reception->getStatut()->getCode();
+                if ($statusCode === Reception::STATUT_EN_ATTENTE) {
+                    $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
+                    $entityManager->flush();
+                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
                     ];
-                }, $persistedColis),
-                'arrivageId' => $arrivage->getId(),
-                'arrivage' => $arrivage->getNumeroArrivage()
-            ]);
+                }
+            } else {
+                $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+                $entityManager->flush();
+            }
+
+            if ($response === []) {
+                $response = [
+                    'success' => true,
+                    'packs' => array_map(function (Pack $pack) {
+                        return [
+                            'id' => $pack->getId(),
+                            'code' => $pack->getCode()
+                        ];
+                    }, $persistedPack),
+                    'arrivageId' => $arrivage->getId(),
+                    'arrivage' => $arrivage->getNumeroArrivage()
+                ];
+            }
+
+            return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }
@@ -1062,9 +1024,9 @@ class ArrivageController extends AbstractController {
 
             $dispute = $disputeRepository->find($data['disputeId']);
 
-            $colisCode = [];
+            $packCode = [];
             foreach ($dispute->getPacks() as $pack) {
-                $colisCode[] = $pack->getId();
+                $packCode[] = $pack->getId();
             }
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
@@ -1085,10 +1047,10 @@ class ArrivageController extends AbstractController {
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
-                'colis' => $arrivage->getPacks(),
+                'packs' => $arrivage->getPacks(),
             ]);
 
-            return new JsonResponse(['html' => $html, 'colis' => $colisCode]);
+            return new JsonResponse(['html' => $html, 'packs' => $packCode]);
         }
         throw new BadRequestHttpException();
     }
@@ -1134,16 +1096,16 @@ class ArrivageController extends AbstractController {
             $dispute->setType($typeRepository->find($typeAfter));
         }
 
-        if (!empty($newColis = $post->get('colis'))) {
-            // on détache les colis existants...
+        if (!empty($newPack = $post->get('pack'))) {
+            // on détache les UL existants...
             $existingPacks = $dispute->getPacks();
             foreach ($existingPacks as $existingPack) {
                 $dispute->removePack($existingPack);
             }
             // ... et on ajoute ceux sélectionnés
-            $listColis = explode(',', $newColis);
-            foreach ($listColis as $colisId) {
-                $dispute->addPack($packRepository->find($colisId));
+            $listPacks = explode(',', $newPack);
+            foreach ($listPacks as $packId) {
+                $dispute->addPack($packRepository->find($packId));
             }
         }
 
@@ -1194,9 +1156,9 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/colis/api/{arrivage}", name="colis_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/packs/api/{arrivage}", name="packs_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function apiColis(Arrivage $arrivage): Response
+    public function apiPacks(Arrivage $arrivage): Response
     {
         $packs = $arrivage->getPacks()->toArray();
         /** @var Utilisateur $user */
@@ -1211,9 +1173,10 @@ class ArrivageController extends AbstractController {
                 'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '') : '',
                 'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                 'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                'actions' => $this->renderView('arrivage/datatableColisRow.html.twig', [
+                'project' => $pack->getProject() ? $pack->getProject()->getCode() : '',
+                'actions' => $this->renderView('arrivage/datatablePackRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
-                    'colisId' => $pack->getId()
+                    'packId' => $pack->getId()
                 ])
             ];
         }
@@ -1223,15 +1186,27 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/{arrivage}/colis/{colis}/etiquette", name="print_arrivage_single_colis_bar_codes", options={"expose"=true}, methods="GET")
+     * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
      */
-    public function printArrivageColisBarCodes(Arrivage $arrivage,
-                                               Request $request,
+    public function printArrivagePackBarCodes(Arrivage               $arrivage,
+                                               Request                $request,
                                                EntityManagerInterface $entityManager,
-                                               PDFGeneratorService $PDFGeneratorService,
-                                               Pack $colis = null,
-                                               array $packIdsFilter = []): Response
-    {
+                                               PDFGeneratorService    $PDFGeneratorService,
+                                               PackService            $packService,
+                                               Pack                   $pack = null,
+                                               array                  $packIdsFilter = [],
+                                               TagTemplate $tagTemplate = null,
+                                               bool $forceTagEmpty = false): Response {
+        if (!$tagTemplate) {
+            $tagTemplate = $request->query->get('template')
+                ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+                : null;
+        }
+        $forceTagEmpty = !$forceTagEmpty ? $request->query->get('forceTagEmpty', false) : $forceTagEmpty;
+
+        if ($pack && !$tagTemplate) {
+            $tagTemplate = $pack->getNature()?->getTags()?->first() ?: null;
+        }
         $barcodeConfigs = [];
         $settingRepository = $entityManager->getRepository(Setting::class);
         $usernameParamIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_RECIPIENT_IN_LABEL);
@@ -1241,6 +1216,7 @@ class ArrivageController extends AbstractController {
         $commandAndProjectNumberIsDefined = $settingRepository->getOneParamByLabel(Setting::INCLUDE_COMMAND_AND_PROJECT_NUMBER_IN_LABEL);
         $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
+        $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1265,13 +1241,14 @@ class ArrivageController extends AbstractController {
             ]
             : null;
 
-        if (!isset($colis)) {
-            $printColis = $request->query->getBoolean('printColis');
+        if (!isset($pack)) {
+            $printPacks = $request->query->getBoolean('printPacks');
             $printArrivage = $request->query->getBoolean('printArrivage');
 
-            if ($printColis) {
-                $barcodeConfigs = $this->getBarcodeConfigPrintAllColis(
+            if ($printPacks) {
+                $barcodeConfigs = $this->getBarcodeConfigPrintAllPacks(
                     $arrivage,
+                    $packService,
                     $typeArrivalParamIsDefined,
                     $usernameParamIsDefined,
                     $dropzoneParamIsDefined,
@@ -1280,8 +1257,15 @@ class ArrivageController extends AbstractController {
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
                     $packIdsFilter,
-                    $businessUnitParam
+                    $businessUnitParam,
+                    $projectParam,
+                    $forceTagEmpty ? null :$tagTemplate,
+                    $forceTagEmpty
                 );
+            }
+
+            if (empty($barcodeConfigs) && $printPacks) {
+                throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
             }
 
             if ($printArrivage) {
@@ -1290,15 +1274,15 @@ class ArrivageController extends AbstractController {
                 ];
             }
         } else {
-            if (!$colis->getArrivage() || $colis->getArrivage()->getId() !== $arrivage->getId()) {
+            if (!$pack->getArrivage() || $pack->getArrivage()->getId() !== $arrivage->getId()) {
                 throw new BadRequestHttpException();
             }
 
             $total = $arrivage->getPacks()->count();
-            $position = $arrivage->getPacks()->indexOf($colis) + 1;
+            $position = $arrivage->getPacks()->indexOf($pack) + 1;
 
-            $barcodeConfigs[] = $this->getBarcodeColisConfig(
-                $colis,
+            $barcodeConfigs[] = $packService->getBarcodePackConfig(
+                $pack,
                 $arrivage->getDestinataire(),
                 "$position/$total",
                 $typeArrivalParamIsDefined,
@@ -1308,7 +1292,8 @@ class ArrivageController extends AbstractController {
                 $commandAndProjectNumberIsDefined,
                 $firstCustomIconConfig,
                 $secondCustomIconConfig,
-                $businessUnitParam
+                $businessUnitParam,
+                $projectParam,
             );
         }
 
@@ -1323,10 +1308,10 @@ class ArrivageController extends AbstractController {
             throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
         }
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage');
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage', $tagTemplate ? $tagTemplate->getPrefix() : 'ETQ');
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $forceTagEmpty ? null : $tagTemplate),
             $fileName
         );
     }
@@ -1334,32 +1319,45 @@ class ArrivageController extends AbstractController {
     /**
      * @Route("/{arrivage}/etiquettes", name="print_arrivage_bar_codes", options={"expose"=true}, methods="GET")
      */
-    public function printArrivageAlias(Arrivage $arrivage,
-                                       Request $request,
+    public function printArrivageAlias(Arrivage               $arrivage,
+                                       Request                $request,
+                                       PackService            $packService,
                                        EntityManagerInterface $entityManager,
-                                       PDFGeneratorService $PDFGeneratorService)
+                                       PDFGeneratorService    $PDFGeneratorService)
     {
+        $template = $request->query->get('template')
+            ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
+            : null;
         $packIdsFilter = $request->query->all('packs') ?: [];
-        return $this->printArrivageColisBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, null, $packIdsFilter);
+        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
+        return $this->printArrivagePackBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter, $template, $forceTagEmpty);
     }
 
-    private function getBarcodeConfigPrintAllColis(Arrivage $arrivage,
-                                                   ?bool $typeArrivalParamIsDefined = false,
-                                                   ?bool $usernameParamIsDefined = false,
-                                                   ?bool $dropzoneParamIsDefined = false,
-                                                   ?bool $packCountParamIsDefined = false,
-                                                   ?bool $commandAndProjectNumberIsDefined = false,
-                                                   ?array $firstCustomIconConfig = null,
-                                                   ?array $secondCustomIconConfig = null,
-                                                   array $packIdsFilter = [],
-                                                   ?bool $businessUnitParam = false ): array {
+    private function getBarcodeConfigPrintAllPacks(Arrivage    $arrivage,
+                                                   PackService $packService,
+                                                   ?bool       $typeArrivalParamIsDefined = false,
+                                                   ?bool       $usernameParamIsDefined = false,
+                                                   ?bool       $dropzoneParamIsDefined = false,
+                                                   ?bool       $packCountParamIsDefined = false,
+                                                   ?bool       $commandAndProjectNumberIsDefined = false,
+                                                   ?array      $firstCustomIconConfig = null,
+                                                   ?array      $secondCustomIconConfig = null,
+                                                   array       $packIdsFilter = [],
+                                                   ?bool       $businessUnitParam = false,
+                                                   ?bool $projectParam = false,
+                                                   ?TagTemplate $tagTemplate = null,
+                                                   bool $forceTagEmpty = false,
+    ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
-
         foreach($arrivage->getPacks() as $index => $pack) {
             $position = $index + 1;
-            if (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) {
-                $packs[] = $this->getBarcodeColisConfig(
+            if (
+                (!$forceTagEmpty || $pack->getNature()?->getTags()?->isEmpty()) &&
+                (empty($packIdsFilter) || in_array($pack->getId(), $packIdsFilter)) &&
+                (empty($tagTemplate) || in_array($pack->getNature(), $tagTemplate->getNatures()->toArray()))
+            ) {
+                $packs[] = $packService->getBarcodePackConfig(
                     $pack,
                     $arrivage->getDestinataire(),
                     "$position/$total",
@@ -1370,106 +1368,13 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
-                    $businessUnitParam
+                    $businessUnitParam,
+                    $projectParam,
                 );
             }
         }
 
         return $packs;
-    }
-
-    private function getBarcodeColisConfig(Pack $colis,
-                                           ?Utilisateur $destinataire,
-                                           ?string $packIndex = '',
-                                           ?bool $typeArrivalParamIsDefined,
-                                           ?bool $usernameParamIsDefined = false,
-                                           ?bool $dropzoneParamIsDefined = false,
-                                           ?bool $packCountParamIsDefined = false,
-                                           ?bool $commandAndProjectNumberIsDefined = false,
-                                           ?array $firstCustomIconConfig = null,
-                                           ?array $secondCustomIconConfig = null,
-                                           ?bool $businessUnitParam = false)
-    {
-
-        $arrival = $colis->getArrivage();
-
-        $businessUnit = $businessUnitParam
-            ? $arrival->getBusinessUnit()
-            : '';
-
-        $arrivalType = $typeArrivalParamIsDefined
-            ? $this->getFormatter()->type($arrival->getType())
-            : '';
-
-        $recipientUsername = ($usernameParamIsDefined && $destinataire)
-            ? $destinataire->getUsername()
-            : '';
-
-        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
-            ? ($destinataire->getDropzone()
-                ? $destinataire->getDropzone()->getLabel()
-                : '')
-            : '';
-
-        $arrivalCommand = [];
-        $arrivalLine = "";
-        $i = 0;
-        foreach($arrival->getNumeroCommandeList() as $command) {
-            $arrivalLine .= $command;
-
-            if(++$i % 4 == 0) {
-                $arrivalCommand[] = $arrivalLine;
-                $arrivalLine = "";
-            } else {
-                $arrivalLine .= " ";
-            }
-        }
-
-        if(!empty($arrivalLine)) {
-            $arrivalCommand[] = $arrivalLine;
-        }
-
-        $arrivalProjectNumber = $arrival
-            ? ($arrival->getProjectNumber() ?? '')
-            : '';
-
-        $packLabel = ($packCountParamIsDefined ? $packIndex : '');
-
-        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
-
-        $labels = [$arrivalType];
-
-        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
-
-        if ($commandAndProjectNumberIsDefined) {
-            if ($arrivalCommand && $arrivalProjectNumber) {
-                if(count($arrivalCommand) > 1) {
-                    $labels = array_merge($labels, $arrivalCommand);
-                    $labels[] = $arrivalProjectNumber;
-                } else if(count($arrivalCommand) == 1) {
-                    $labels[] = $arrivalCommand[0] . ' / ' . $arrivalProjectNumber;
-                }
-            } else if ($arrivalCommand) {
-                $labels = array_merge($labels, $arrivalCommand);
-            } else if ($arrivalProjectNumber) {
-                $labels[] = $arrivalProjectNumber;
-            }
-        }
-
-        if($businessUnitParam) {
-            $labels[] = $businessUnit;
-        }
-
-        if ($packLabel) {
-            $labels[] = $packLabel;
-        }
-
-        return [
-            'code' => $colis->getCode(),
-            'labels' => $labels,
-            'firstCustomIcon' => $arrival->getCustoms() ? $firstCustomIconConfig : null,
-            'secondCustomIcon' => $arrival->getIsUrgent() ? $secondCustomIconConfig : null
-        ];
     }
 
     private function getResponseReloadArrivage(EntityManagerInterface $entityManager,
@@ -1587,5 +1492,18 @@ class ArrivageController extends AbstractController {
             $this->defaultLanguageSlug = $this->languageService->getDefaultSlug();
         }
         return $this->defaultLanguageSlug;
+    }
+
+    /**
+     * @Route("/list-pack-api-columns", name="arrival_list_packs_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
+     */
+    public function listPackApiColumns(PackService $packService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $packService->getColumnVisibleConfig($currentUser);
+        return new JsonResponse($columns);
     }
 }

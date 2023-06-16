@@ -102,8 +102,6 @@ function getTranslations(language) {
             const $translationsContainer = $(`.translations-container`);
             $translationsContainer.html(template);
 
-            $('[data-toggle="tooltip"]').tooltip();
-
             // delete language
             const $modaleDeleteTranslationSubmit = $("#submitDeleteLanguage");
             const $modaleDeleteTranslation = $("#modalDeleteLanguage");
