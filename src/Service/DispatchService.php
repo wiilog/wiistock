@@ -1700,7 +1700,7 @@ class DispatchService {
             }
         }
 
-        $reference->setCleanedComment($data['comment']);
+        $reference->setCommentaire($data['comment']);
 
         $oldDescription = $reference->getDescription();
         $this->refArticleDataService->updateDescriptionField($entityManager, $reference, [
