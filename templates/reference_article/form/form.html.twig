@@ -192,9 +192,9 @@
                             <div class="d-flex">
                                 <img src="{{ asset('svg/Douane.svg') }}" class="icon mr-2" alt="Image code NDP"
                                      width="15px">
-                                <span class="wii-field-name">Code NDP*</span>
+                                <span class="wii-field-name">Code NDP</span>
                             </div>
-                            <input class="form-control data needed" name="ndpCode" type="text" value={{ reference.ndpCode }}>
+                            <input class="form-control data" name="ndpCode" type="text" value={{ reference.ndpCode }}>
                         </div>
                     </div>
 
@@ -273,8 +273,8 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                            <span class="wii-field-name">Code ONU</span>
-                            <input class="form-control data" name="onuCode" type="text" value={{ reference.onuCode }}>
+                            <span class="wii-field-name">Code ONU*</span>
+                            <input class="form-control data needed" name="onuCode" type="text" value={{ reference.onuCode }}>
                         </div>
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
                             <span class="wii-field-name">Classe produit*</span>
