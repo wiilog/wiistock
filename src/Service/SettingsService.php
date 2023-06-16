@@ -764,16 +764,17 @@ class SettingsService {
                         ->setTranslation($freeField->getLabel());
                 }
 
+                $defaultValue = $freeField->getDefaultValue();
                 $defaultValueTranslation = $freeField->getDefaultValueTranslation();
-                if($freeField->getDefaultValue() && !$defaultValueTranslation) {
+                if($defaultValue && !$defaultValueTranslation) {
                     $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
-                } else if($defaultValueTranslation && $freeField->getDefaultValue()) {
+                } else if($defaultValue && $defaultValueTranslation) {
                     $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
                         ?: (new Translation())
                             ->setLanguage($this->manager->getRepository(Language::class)->findOneBy((['slug'=> Language::FRENCH_SLUG])))
                             ->setSource($defaultValueTranslation);
                     $this->manager->persist($translation);
-                    $translation->setTranslation($freeField->getDefaultValue());
+                    $translation->setTranslation($defaultValue);
                 }
 
                 foreach($freeField->getElementsTranslations() as $source) {
