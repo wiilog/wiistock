@@ -211,11 +211,7 @@
                     </div>
                     <div class="row mt-3">
                         <div class="col-12">
-                            <label class="wii-field-name">Nomenclature</label>
-                            <input class="form-control data" name="commentaire" type="hidden" value="{{ reference.commentaire }}">
-                            <div class="form-control editor-container comment" data-wysiwyg>
-                                {{ reference.commentaire | raw }}
-                            </div>
+                            {{ form.wysiwyg('commentaire', 'Nomenclature', false, reference.commentaire) }}
                         </div>
                     </div>
                 </div>
@@ -511,35 +507,10 @@
                                         </div>
                                     {% endif %}
                                     <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
-                                        <label>
-                                        <span class="icon wii-field-name" style="margin-bottom: 5px">
-                                            <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                            Seuil d'alerte
-                                        </span>
-                                            <div class="increase-decrease-field">
-                                                <button class="decrease"></button>
-                                                <input type="number" data-no-arrow
-                                                       name="limitWarning" class="form-control data w-50"
-                                                       value="{{ reference.limitWarning ?? '' }}" min="0">
-                                                <button class="increase"></button>
-                                            </div>
-                                        </label>
+                                        {{ form.number('limitWarning', {url: '/svg/reference_article/threshold.svg', text: 'Seuil d\'alerte'}, false, reference.limitWarning) }}
                                     </div>
                                     <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
-                                        <label>
-                                        <span class="icon wii-field-name" style="margin-bottom: 5px">
-                                            <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
-                                                 alt="Image seuil de sécurité">
-                                            Seuil de sécurité
-                                        </span>
-                                            <div class="increase-decrease-field">
-                                                <button class="decrease"></button>
-                                                <input type="number" data-no-arrow
-                                                       name="limitSecurity" class="form-control data w-50"
-                                                       value="{{ reference.limitSecurity ?? '' }}" min="0">
-                                                <button class="increase"></button>
-                                            </div>
-                                        </label>
+                                        {{ form.number('limitSecurity', {url: '/svg/reference_article/threshold_red.svg', text: 'Seuil de sécurité'}, false, reference.limitSecurity) }}
                                     </div>
                                 </div>
                             </div>
