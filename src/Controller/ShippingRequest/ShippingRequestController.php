@@ -42,6 +42,7 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Util\Json;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -369,8 +370,7 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function checkExpectedLinesData(ShippingRequest          $shippingRequest,
-                                           ShippingRequestService   $shippingRequestService): JsonResponse
+    public function checkExpectedLinesData(ShippingRequest $shippingRequest): JsonResponse
     {
 
         $expectedLines = $shippingRequest->getExpectedLines();
@@ -382,30 +382,46 @@ class ShippingRequestController extends AbstractController {
             ]);
         }
 
+        $errors = [];
+
         /** @var ShippingRequestExpectedLine $expectedLine */
         foreach ($expectedLines as $expectedLine) {
             $referenceArticle = $expectedLine->getReferenceArticle();
 
             //FDS & codeOnu & classeProduct needed if it's dangerousGoods
-            if ($referenceArticle->isDangerousGoods()
-                && (!$referenceArticle->getSheet()
-                    || !$referenceArticle->getOnuCode()
-                    || !$referenceArticle->getProductClass())) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                ]);
+            if ($referenceArticle->isDangerousGoods()) {
+
+                if (!$referenceArticle->getSheet()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de FDS.";
+                }
+                if (!$referenceArticle->getOnuCode()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de code ONU.";
+                }
+                if (!$referenceArticle->getProductClass()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de classe de produit.";
+                }
             }
+
             //codeNdp needed if shipment is international
             if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL
                 && !$referenceArticle->getNdpCode()) {
 
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                ]);
+                $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de code NDP.";
             }
         }
+
+        return $this->json([
+            'success' => true,
+            'errors' => implode("<br>", $errors),
+        ]);
+    }
+
+
+    #[Route("/get-format-expected-lines/{id}", name: "get_format_expected_lines", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getFormatExpectedLinesForPacking (ShippingRequest          $shippingRequest,
+                                                      ShippingRequestService   $shippingRequestService):JsonResponse{
+        $expectedLines = $shippingRequest->getExpectedLines();
 
         return $this->json([
             'success' => true,
