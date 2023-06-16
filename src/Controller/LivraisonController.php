@@ -533,7 +533,7 @@ class LivraisonController extends AbstractController {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
 
@@ -581,7 +581,7 @@ class LivraisonController extends AbstractController {
         $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$nowDate->format('dmYHis')}";
 

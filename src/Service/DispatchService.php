@@ -931,7 +931,7 @@ class DispatchService {
         }
 
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -946,7 +946,7 @@ class DispatchService {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -958,7 +958,7 @@ class DispatchService {
 
     public function getDispatchNoteData(Dispatch $dispatch): array {
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -1164,7 +1164,7 @@ class DispatchService {
 
         $nowDate = new DateTime('now');
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
 

@@ -573,8 +573,7 @@ class ShippingRequestService {
 
         $now = new DateTime();
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
+        $client = $this->specificService->getAppClientLabel();
         $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
 
         $deliverySlipAttachment = new Attachment();
