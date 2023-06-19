@@ -19,3 +19,11 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+
+beforeEach( () => {
+    cy.session('loginTestingUser', () => {
+        cy.login('Test@test.fr', 'Test123456!')
+    }, {
+        cacheAcrossSpecs : true
+    })
+})
