@@ -14,11 +14,12 @@ use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -36,6 +37,9 @@ class MouvementStockService
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(Utilisateur $user, ?InputBag $params = null): array
     {
@@ -109,6 +113,13 @@ class MouvementStockService
             $path = 'demande_show';
             $pathParams = [
                 'id' => $mouvement->getDeliveryRequest()->getId()
+            ];
+        }
+        else if ($mouvement->getShippingRequest()) {
+            $from = mb_strtolower($this->translation->translate("Demande", "Expédition", "Demande d'expédition", false));
+            $path = 'shipping_request_show';
+            $pathParams = [
+                'id' => $mouvement->getShippingRequest()->getId()
             ];
         }
         else if ($mouvement->getPreparationOrder()) {
@@ -209,6 +220,9 @@ class MouvementStockService
             else if ($from instanceof Demande) {
                 $newMouvement->setDeliveryRequest($from);
             }
+            else if ($from instanceof ShippingRequest) {
+                $newMouvement->setShippingRequest($from);
+            }
         }
 
         if ($date) {
@@ -245,20 +259,20 @@ class MouvementStockService
         $orderNo = $mouvement['preparationOrder']
             ?? $mouvement['livraisonOrder']
             ?? $mouvement['collecteOrder']
-            ?? join(", ", $mouvement['receptionOrder'])
+            ?? (isset($mouvement['receptionOrder']) ? join(", ", $mouvement['receptionOrder']) : '')
             ?? null;
 
         $data = [
-            FormatHelper::datetime($mouvement['date']),
+            $this->formatService->datetime($mouvement['date'] ?? ''),
             $orderNo,
-            $mouvement['refArticleRef'],
+            $mouvement['refArticleRef'] ?? '',
             !empty($mouvement['refArticleBarCode']) ? $mouvement['refArticleBarCode']: '',
             !empty($mouvement['articleBarCode']) ? $mouvement['articleBarCode'] : '',
-            $mouvement['quantity'],
-            $mouvement['originEmpl'],
-            $mouvement['destinationEmpl'],
-            $mouvement['type'],
-            $mouvement['operator']
+            $mouvement['quantity'] ?? '',
+            $mouvement['originEmpl'] ?? '',
+            $mouvement['destinationEmpl'] ?? '',
+            $mouvement['type'] ?? '',
+            $mouvement['operator'] ?? ''
         ];
         $CSVExportService->putLine($handle, $data);
     }

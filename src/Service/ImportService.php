@@ -107,6 +107,9 @@ class ImportService
             "type",
             "typeQuantite",
             "outFormatEquipment",
+            "dangerousGoods",
+            "onuCode",
+            "productClass",
             "manufacturerCode",
             "volume",
             "weight",
@@ -258,6 +261,8 @@ class ImportService
     #[Required]
     public UserPasswordHasherInterface $encoder;
 
+    private EmplacementDataService $emplacementDataService;
+
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
 
@@ -265,9 +270,10 @@ class ImportService
 
     private array $entityCache = [];
 
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService) {
         $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
 
@@ -362,6 +368,8 @@ class ImportService
         $this->currentImport = $import;
         $this->resetCache();
         $csvFile = $this->currentImport->getCsvFile();
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
 
         // we check mode validity
         if (!in_array($mode, [self::IMPORT_MODE_RUN, self::IMPORT_MODE_FORCE_PLAN, self::IMPORT_MODE_PLAN])) {
@@ -949,7 +957,13 @@ class ImportService
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour le champ synchronisation nomade est invalide (autorisé : "oui" ou "non")');
             } else {
-                $refArt->setNeedsMobileSync($value === 'oui');
+                $neddsMobileSync = $value === 'oui';
+                if ($neddsMobileSync && $this->scalarCache['countReferenceArticleSyncNomade'] > ReferenceArticle::MAX_NOMADE_SYNC) {
+                    $this->throwError('Le nombre maximum de synchronisations nomade a été atteint.');
+                } else {
+                    $this->scalarCache['countReferenceArticleSyncNomade']++;
+                    $refArt->setNeedsMobileSync($neddsMobileSync);
+                }
             }
         }
 
@@ -1110,6 +1124,30 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
+        $dangerousGoods = (
+            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+        );
+
+        $refArt
+            ->setDangerousGoods($dangerousGoods);
+
+        if (isset($data['onuCode'])) {
+            $refArt->setOnuCode($data['onuCode'] ?: null);
+        }
+        if (isset($data['productClass'])) {
+            $refArt->setProductClass($data['productClass'] ?: null);
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getOnuCode()) {
+            $this->throwError("Le code ONU est requis");
+        }
+
+        if ($refArt->isDangerousGoods()
+            && !$refArt->getProductClass()) {
+            $this->throwError("La classe projet est requise");
+        }
 
         $original = $refArt->getDescription() ?? [];
 
@@ -1152,6 +1190,7 @@ class ImportService
         ];
         $refArt
             ->setDescription($description);
+
         // champs libres
         $this->checkAndSetChampsLibres($colChampsLibres, $refArt, $isNewEntity, $row);
 
@@ -1881,11 +1920,7 @@ class ImportService
         $project = $projectAlreadyExists ?? new Project();
 
         if (!$projectAlreadyExists && isset($data['code'])) {
-            if ((strlen($data['code'])) > ProjectService::MAX_LENGTH_CODE_PROJECT) {
-                $this->throwError("La valeur saisie pour le code ne doit pas dépasser ". ProjectService::MAX_LENGTH_CODE_PROJECT ." caractères");
-            } else {
-                $project->setCode($data['code']);
-            }
+            $project->setCode($data['code']);
         }
 
         if (isset($data['description'])) {
@@ -2120,16 +2155,13 @@ class ImportService
                 if (empty($defaultZoneLocation)) {
                     $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
-                $location = new Emplacement();
-                $location
-                    ->setLabel($data['emplacement'])
-                    ->setIsActive(true)
-                    ->setIsDeliveryPoint(false)
-                    ->setZone($defaultZoneLocation);
-
-                $this->entityManager->persist($location);
+                $location = $this->emplacementDataService->persistLocation([
+                    "label" => $data['emplacement'],
+                    "isActive" => true,
+                    "isDeliveryPoint" => false,
+                    "zone" => $defaultZoneLocation,
+                ], $this->entityManager);
             }
-
             $articleOrRef->setEmplacement($location);
         }
     }

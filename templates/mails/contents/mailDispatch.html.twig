@@ -10,7 +10,7 @@
     {% set endDateStr = endDate ? endDate.format('d/m/Y') : '-' %}
     {% set emergency = dispatch.emergency ?? 'Non' %}
     {% set receivers = dispatch.receivers ? dispatch.receivers|map(receiver => receiver.username)|join(", ") : '' %}
-    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '' %}
+    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '-' %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
     {% set hideTreatmentDateParam = hideTreatmentDate is defined and hideTreatmentDate %}
     {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
@@ -208,7 +208,13 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ dispatchReferenceArticle ? dispatchReferenceArticle.comment|striptags }}
+                            {{ dispatchReferenceArticle
+                                ? (dispatchReferenceArticle.cleanedComment
+                                    ? dispatchReferenceArticle.comment|striptags
+                                    : '-'
+                                )
+                                : '-'
+                            }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">

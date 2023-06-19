@@ -59,6 +59,9 @@ class ArticleDataService
     #[Required]
     public TranslationService $translation;
 
+    #[Required]
+    public EmplacementDataService $emplacementDataService;
+
     private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
@@ -283,14 +286,9 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
-                $zoneRepository = $entityManager->getRepository(Zone::class);
-                $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-
-                $location = new Emplacement();
-                $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER)
-                    ->setZone($defaultZone);
-                $entityManager->persist($location);
+                $location = $this->emplacementDataService->persistLocation([
+                    "Label" => Emplacement::LABEL_A_DETERMINER,
+                ], $entityManager);
             }
             $location->setIsActive(true);
         }
@@ -301,11 +299,15 @@ class ArticleDataService
         if ($existing) {
             $existing
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setConform($data['conform'] ?? true)
+                ->setBatch($data['batch'] ?? null);
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform(isset($data['conform']) && !$data['conform'])
+                ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
                 ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)

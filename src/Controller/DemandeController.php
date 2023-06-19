@@ -26,6 +26,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\FormService;
 use App\Service\RefArticleDataService;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
@@ -549,6 +550,7 @@ class DemandeController extends AbstractController
     }
 
     /**
+     *
      * @Route("/{lineId}", name="delivery_request_remove_article", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
@@ -992,6 +994,7 @@ class DemandeController extends AbstractController
     #[Route("/api/table-article-content/{request}", name: "api_table_articles_content", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function apiTableArticleContent(Demande                $request,
+                                           FormService            $formService,
                                            DeliveryRequestService $deliveryRequestService,
                                            EntityManagerInterface $entityManager): JsonResponse {
         $user = $this->getUser();
@@ -1006,21 +1009,10 @@ class DemandeController extends AbstractController
 
         $data = array_merge($referencesData, $articlesData);
 
-        $data[] = $deliveryRequestService->editatableLineForm($entityManager, $request, $user);
+        $emptyForm = $deliveryRequestService->editatableLineForm($entityManager, $request, $user);
 
-        $data[] = [
-            "createRow" => true,
-            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
-            "reference" => "",
-            "label" => "",
-            "quantityToPick" => "",
-            "project" => "",
-            "comment" => "",
-            "barcode" => "",
-            "location" => "",
-            "article" => "",
-            "targetLocationPicking" => "",
-        ];
+        $data[] = $emptyForm;
+        $data[] = $formService->editableAddRow($emptyForm);
 
         return $this->json([
             "data" => $data,
@@ -1037,9 +1029,13 @@ class DemandeController extends AbstractController
             $lineId = $data['lineId'] ?? null;
             if ($lineId) {
                 $projectRepository = $entityManager->getRepository(Project::class);
+                $locationRepository = $entityManager->getRepository(Emplacement::class);
                 // modification
                 if (isset($data['type']) && $data['type'] === 'article') {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestArticleLine::class);
+                    $targetLocationPicking = isset($data['target-location-picking'])
+                        ? $locationRepository->find($data['target-location-picking'])
+                        : null;
                 } else {
                     $lineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
                 }
@@ -1047,7 +1043,8 @@ class DemandeController extends AbstractController
                 $line
                     ->setQuantityToPick($data['quantity-to-pick'] ?? null)
                     ->setComment($data['comment'] ?? null)
-                    ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null);
+                    ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null)
+                    ->setTargetLocationPicking($targetLocationPicking ?? null);
 
                 if ($line instanceof DeliveryRequestArticleLine && !empty($data['article'])) {
                     $line->setArticle($entityManager->getRepository(Article::class)->find($data['article']));

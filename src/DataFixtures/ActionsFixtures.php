@@ -21,6 +21,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_GENERAL = 'général';
     const SUB_MENU_GLOBAL = 'global';
     const SUB_MENU_STOCK = 'stock';
+    const SUB_MENU_REQUESTS = 'demandes';
     const SUB_MENU_TERMINAL_MOBILE = 'terminal mobile';
     const SUB_MENU_DASHBOARD = 'dashboard';
     const SUB_MENU_IOT = 'iot';
@@ -355,6 +356,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_TEMPLATES => [
                 Action::SETTINGS_DISPLAY_DISPATCH_TEMPLATE,
                 Action::SETTINGS_DISPLAY_DELIVERY_TEMPLATE,
+                Action::SETTINGS_DISPLAY_SHIPPING_TEMPLATE,
             ],
         ],
         Menu::NOMADE => [
@@ -373,6 +375,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
             self::SUB_MENU_STOCK => [
                 Action::CREATE_ARTICLE_FROM_NOMADE
+            ],
+            self::SUB_MENU_REQUESTS => [
+                Action::DISPATCH_REQUEST_OFFLINE_MODE,
             ],
         ],
     ];

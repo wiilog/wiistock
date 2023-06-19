@@ -3,9 +3,7 @@
 namespace App\Entity\ShippingRequest;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestExpectedLineRepository;
-use App\Repository\ShippingRequest\ShippingRequestPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -23,10 +21,10 @@ class ShippingRequestExpectedLine {
     private ?int $quantity = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3)]
-    private ?float $price = null;
+    private ?float $unitPrice = null;
 
     #[ORM\Column(type: Types::FLOAT)]
-    private ?float $weight = null;
+    private ?float $unitWeight = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
     private ?ReferenceArticle $referenceArticle = null;
@@ -63,21 +61,21 @@ class ShippingRequestExpectedLine {
         return $this;
     }
 
-    public function getPrice(): ?float {
-        return $this->price;
+    public function getUnitPrice(): ?float {
+        return $this->unitPrice;
     }
 
-    public function setPrice(?float $price): self {
-        $this->price = $price;
+    public function setUnitPrice(?float $unitPrice): self {
+        $this->unitPrice = $unitPrice;
         return $this;
     }
 
-    public function getWeight(): ?float {
-        return $this->weight;
+    public function getUnitWeight(): ?float {
+        return $this->unitWeight;
     }
 
-    public function setWeight(?float $weight): self {
-        $this->weight = $weight;
+    public function setUnitWeight(?float $unitWeight): self {
+        $this->unitWeight = $unitWeight;
         return $this;
     }
 
@@ -118,4 +116,5 @@ class ShippingRequestExpectedLine {
 
         return $this;
     }
+
 }

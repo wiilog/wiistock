@@ -927,6 +927,7 @@ class DeliveryRequestService
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
         $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -934,12 +935,10 @@ class DeliveryRequestService
             ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
             ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
             ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
-            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$editMode],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
-
-            // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$isTargetLocationPickingDisplayed],
             ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
             ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
@@ -1088,15 +1087,15 @@ class DeliveryRequestService
             ]),
             "location" => $locationColumn,
             "barcode" => $barcodeColumn,
-            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line instanceof DeliveryRequestArticleLine
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && ($line instanceof DeliveryRequestArticleLine || !$line)
                 ? $this->formService->macro("select", "article", null, true, [
                     "items" => $articleItems ?? [],
                     "value" => $articleId ?? null,
                     "onChange" => 'onChangeFillComment($(this))',
                 ])
                 : ($line instanceof DeliveryRequestArticleLine ? $line->getArticle()->getBarCode() : ''),
-            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
-                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && (!$line || $line instanceof DeliveryRequestArticleLine)
+                ? $this->formService->macro("select", "target-location-picking", null, false, [
                     "type" => "location",
                     "items" => $targetLocationPickingItems ?? []
                 ])

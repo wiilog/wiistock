@@ -79,7 +79,10 @@
                    value="{{ switch.value ?? '' }}"
                 {{ disabled ? 'disabled' }}
                 {{ required ? 'required' }}
-                {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
+                {{ switch.checked ?? false ? 'data-init="checked" checked' }}
+                {% for attribute in switch.additionalAttributes ?? [] %}
+                    {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                {% endfor %}/>
 
             <label for="{{ name }}-{{ id }}"
                 {{ _self.custom_attributes(switch.attributes ?? []) }}>
@@ -258,12 +261,14 @@
     {% set dataInput = options.data ?? true %}
     {% set noClear = options.noClear ?? false %}
     {% set type = options.type ?? 'text' %}
+    {% set labelWrap = (options.isLabelFree is not defined or options.isLabelFree is not same as(true)) or inline %}
+
     {% if type == 'fax' %}
         {% set type = 'tel' %}
         {% set fax = true %}
     {% endif %}
 
-    {% if (options.isLabelFree is defined and options.isLabelFree is not same as(true)) or inline %}
+    {% if labelWrap %}
     <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
@@ -281,7 +286,7 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
-    {% if options.isLabelFree is defined and options.isLabelFree is not same as(true) %}
+    {% if labelWrap %}
     </label>
     {% endif %}
 {% endmacro %}

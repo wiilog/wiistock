@@ -510,9 +510,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                             ? ` doit être inférieure à ${max}.`
                             : ` doit être comprise entre ${min} et ${max}.`;
                     } else if (!isNaN(max)) {
-                        errorMessage += ` doit être inférieure à ${max}.`;
+                        errorMessage += ` doit être inférieure ou égale à ${max}.`;
                     } else if (!isNaN(min)) {
-                        errorMessage += ` doit être supérieure à ${min}.`;
+                        errorMessage += ` doit être supérieure ou égale à ${min}.`;
                     } else {
                         errorMessage += ` ne peut pas être rempli`;
                     }

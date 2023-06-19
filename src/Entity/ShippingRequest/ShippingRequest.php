@@ -2,10 +2,13 @@
 
 namespace App\Entity\ShippingRequest;
 
+use App\Entity\Attachment;
 use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Repository\ShippingRequest\ShippingRequestRepository;
@@ -120,6 +123,14 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $grossWeight = null;
 
+    /* Sum of line prices, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $totalValue = null;
+
+    /* Sum of line net weight, calculated on line adding or removing */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $netWeight = null;
+
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $trackingNumber = null;
 
@@ -155,12 +166,24 @@ class ShippingRequest extends StatusHistoryContainer {
     #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: TrackingMovement::class)]
+    private Collection $trackingMovements;
+
+    #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: MouvementStock::class)]
+    private Collection $stockMovements;
+
+    #[ORM\OneToMany(mappedBy: 'shippingRequest', targetEntity: Attachment::class)]
+    private Collection $attachments;
+
     public function __construct() {
         $this->requesters = new ArrayCollection();
         $this->expectedLines = new ArrayCollection();
         $this->lines = new ArrayCollection();
         $this->statusHistory = new ArrayCollection();
         $this->packLines = new ArrayCollection();
+        $this->trackingMovements = new ArrayCollection();
+        $this->stockMovements = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -500,6 +523,80 @@ class ShippingRequest extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getTotalValue(): ?float {
+        return $this->totalValue;
+    }
+
+    public function setTotalValue(?float $totalValue): self {
+        $this->totalValue = $totalValue;
+        return $this;
+    }
+
+    public function getNetWeight(): ?float {
+        return $this->netWeight;
+    }
+
+    public function setNetWeight(?float $netWeight): self {
+        $this->netWeight = $netWeight;
+        return $this;
+    }
+    /**
+     * @return Collection
+     */
+    public function getTrackingMovements(): Collection {
+        return $this->trackingMovements;
+    }
+
+    public function addTrackingMovement(TrackingMovement $trackingMovement): self {
+        if(!$this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements[] = $trackingMovement;
+            $trackingMovement->setShippingRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTrackingMovement(TrackingMovement $trackingMovement): self {
+        if($this->trackingMovements->contains($trackingMovement)) {
+            $this->trackingMovements->removeElement($trackingMovement);
+            // set the owning side to null (unless already changed)
+            if($trackingMovement->getShippingRequest() === $this) {
+                $trackingMovement->setShippingRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getStockMovements(): Collection {
+        return $this->stockMovements;
+    }
+
+    public function addStockMovement(MouvementStock $stockMovement): self {
+        if(!$this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements[] = $stockMovement;
+            $stockMovement->setShippingRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStockMovement(MouvementStock $stockMovement): self {
+        if($this->stockMovements->contains($stockMovement)) {
+            $this->stockMovements->removeElement($stockMovement);
+            // set the owning side to null (unless already changed)
+            if($stockMovement->getShippingRequest() === $this) {
+                $stockMovement->setShippingRequest(null);
+            }
+        }
+
+        return $this;
+    }
+
+
     public function isDraft(): ?bool {
         return $this->status->getCode() === self::STATUS_DRAFT;
     }
@@ -514,5 +611,33 @@ class ShippingRequest extends StatusHistoryContainer {
 
     public function isShipped(): ?bool {
         return $this->status->getCode() === self::STATUS_SHIPPED;
+    }
+
+
+    /**
+     * @return Collection|Attachment[]
+     */
+    public function getAttachments(): Collection {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): self {
+        if(!$this->attachments->contains($attachment)) {
+            $this->attachments[] = $attachment;
+            $attachment->setShippingRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachment(Attachment $attachment): self {
+        if($this->attachments->contains($attachment)) {
+            $this->attachments->removeElement($attachment);
+            if($attachment->getShippingRequest() === $this) {
+                $attachment->setShippingRequest(null);
+            }
+        }
+
+        return $this;
     }
 }

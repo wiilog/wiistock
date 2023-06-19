@@ -9,7 +9,7 @@
 {% set followingStatuses = followingStatusIndex is not null ? statusWorkflow|slice(followingStatusIndex + 1) : [] %}
 
 {% set finishedStatusesName = [constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_SHIPPED')] %}
-{% set requestCaredAt = shippingRequest.requestCaredAt ? shippingRequest.requestCaredAt|format_helper('longDate', {short: true, time: false}) : '' %}
+{% set expectedPickedAt = shippingRequest.expectedPickedAt ? shippingRequest.expectedPickedAt|format_helper('longDate', {short: true, time: false}) : '' %}
 
 {% for history in statusesHistory %}
     {% set state = (shippingRequest.status.code == history.status and loop.last
@@ -25,11 +25,11 @@
             {{ loop.last and followingStatuses is empty ? 'last' }}
             {{ state }}">
             <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
-                {% if requestCaredAt and history['status'] in finishedStatusesName %}
+                {% if expectedPickedAt and history['status'] in finishedStatusesName %}
                     <div class="ml-2">
                         <div class="wii-small-text">
                             Enlèvement prévu le : <br>
-                            {{ requestCaredAt }}
+                            {{ expectedPickedAt }}
                         </div>
                         <div class="pt-2">
                             Confirmé le :
@@ -48,10 +48,10 @@
             <div class="title-left future">{{ followingStatus }}</div>
         </div>
         <div class="history-line-right-content future {{ loop.last ? 'last'}}">
-            {% if requestCaredAt and followingStatus in finishedStatusesName %}
+            {% if expectedPickedAt and followingStatus in finishedStatusesName %}
                 <div class="title-right text-left future ml-2">
                     Enlèvement prévu le : <br>
-                    {{ requestCaredAt }}
+                    {{ expectedPickedAt }}
                 </div>
             {% endif %}
         </div>

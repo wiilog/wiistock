@@ -18,6 +18,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
+use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 
@@ -125,6 +126,7 @@ class UserService
         $inventoryMissionRepository = $entityManager->getRepository(InventoryMission::class);
         $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -147,6 +149,7 @@ class UserService
             + $inventoryLocationMissionRepository->count(['operator' => $user])
         );
         $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
+        $hasStatusHistory = $statusHistoryRepository->count(['changedBy' => $user->getId()]) + $statusHistoryRepository->count(['initiatedBy' => $user->getId()]);
 
         return [
             mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
@@ -163,6 +166,7 @@ class UserService
             "planification(s) d'inventaire" => $hasInventoryMissionRules,
             "mission(s) d'inventaire" => $hasInventoryMissions,
             "planification(s) de demande d'achat" => $hasPurchaseRequestShcheduleRules,
+            "historique(s) de statut" => $hasStatusHistory,
         ];
 	}
 
@@ -216,7 +220,8 @@ class UserService
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
             'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),
             'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user),
-            'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user)
+            'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user),
+            'dispatchOfflineMode' => $this->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $user),
         ];
     }
 

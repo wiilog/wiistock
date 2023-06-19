@@ -20,13 +20,15 @@ class ShippingRequestLine {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $quantity = null;
 
-    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'shippingRequestLines')]
+    #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $reference = null;
 
-    #[ORM\OneToOne(inversedBy: 'shippingRequestLine', targetEntity: Article::class)]
+    #[ORM\OneToOne(targetEntity: Article::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Article $article = null;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, inversedBy: 'lines')]
+    #[ORM\ManyToOne(targetEntity: ShippingRequestPack::class, cascade: ['persist'], inversedBy: 'lines')]
     private ?ShippingRequestPack $shippingPack = null;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequestExpectedLine::class, inversedBy: 'lines')]
@@ -45,7 +47,7 @@ class ShippingRequestLine {
         return $this;
     }
 
-    public function getArticleOrReference(): Article|ReferenceArticle {
+    public function getArticleOrReference(): Article|ReferenceArticle|null {
         return $this->article ?? $this->reference;
     }
 
@@ -54,9 +56,13 @@ class ShippingRequestLine {
      */
     public function setArticleOrReference(Article|ReferenceArticle $articleOrReference): self {
         if($articleOrReference instanceof Article) {
-            $this->setArticle($articleOrReference);
+            $this
+                ->setReference(null)
+                ->setArticle($articleOrReference);
         } else {
-            $this->setReference($articleOrReference);
+            $this
+                ->setArticle(null)
+                ->setReference($articleOrReference);
         }
         return $this;
     }
@@ -64,20 +70,12 @@ class ShippingRequestLine {
     /**
      * @throws Exception
      */
-    public function setArticle(Article $article): self {
-        if($this->reference){
+    public function setArticle(?Article $article): self {
+        if($this->reference && $article){
             throw new Exception("Can't set article if reference is set");
         }
 
-        if($this->article && $this->article->getShippingRequestLine() !== $this) {
-            $oldArticle = $this->article;
-            $this->article = null;
-            $oldArticle->setShippingRequestLine(null);
-        }
         $this->article = $article;
-        if($this->article && $this->article->getShippingRequestLine() !== $this) {
-            $this->article->setShippingRequestLine($this);
-        }
         return $this;
     }
 
@@ -86,16 +84,11 @@ class ShippingRequestLine {
      */
     public function setReference(?ReferenceArticle $reference): self
     {
-        if($this->article){
+        if($this->article && $reference){
             throw new Exception("Can't set reference if article is set");
         }
 
-        if($this->reference && $this->reference !== $reference) {
-            $this->reference->removeShippingRequestLines($this);
-        }
         $this->reference = $reference;
-        $reference?->addShippingRequestLines($this);
-
         return $this;
     }
 

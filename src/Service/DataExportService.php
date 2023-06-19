@@ -166,6 +166,7 @@ class DataExportService
             "Poids nets (kg)",
             "Montant total",
             "Marchandise dangereuse",
+            "FDS",
             "Code ONU",
             "Classe produit",
             "Code NDP",

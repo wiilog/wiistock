@@ -17,12 +17,16 @@
 
 {% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
 {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_PACKING_SLIP')) %}
 
 {% import "shipping_request/macro.html.twig" as macro %}
 
 {% block page_content %}
-    {{ form.input('shippingId', '', false, shipping.id, {
-        type: 'hidden'
+    {{ form.hidden('shippingId', shipping.id, {
+        data: false
+    }) }}
+    {{ form.hidden('editableExpectedLineForm', editableExpectedLineForm|json_encode, {
+        data: false
     }) }}
     <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
         <div class="row wii-column w-100">
@@ -46,10 +50,21 @@
                                         </a>
                                     {% endif %}
                                     {% if hasRightDelete %}
-                                        <a href="" data-id='{{ shipping.id }}' data-target='#modalDeleteDispatch' data-toggle='modal'
-                                           class="dropdown-item d-flex align-items-center">
+                                        <a
+                                            onclick="deleteShippingRequest($(this))"
+                                            data-id='{{ shipping.id }}'
+                                            data-target='#modalDeleteDispatch'
+                                            data-toggle='modal'
+                                            class="dropdown-item d-flex align-items-center">
                                             <span class="wii-icon wii-icon-trash-black mr-2"></span>
                                             {{ trans('Général', null, 'Modale', 'Supprimer') }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightGenerateDeliverySlip and shipping.status.code != constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_DRAFT')%}
+                                        <a class="dropdown-item d-flex align-items-center"
+                                            onclick="generateDeliverySlip({{ shipping.id }})">
+                                            <span class="fa fa-file mr-2"></span>
+                                            {{ trans('Général', null, 'Modale', 'Générer un bordereau de livraison') }}
                                         </a>
                                     {% endif %}
                                 </div>
@@ -65,7 +80,7 @@
                                 </div>
                             </div>
                             <div class="flex flex-col justify-content-end text-right">
-                                <p class="wii-field-name">{{ shipping.createdBy.username }}</p>
+                                <p class="wii-field-name">{{ shipping.requesters|map(requester => requester.username)|join(', ')  }}</p>
                                 <p class="wii-small-text">
                                     {% for phoneNumber in shipping.requesterPhoneNumbers %}
                                         {{ phoneNumber }}
@@ -103,9 +118,9 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem("user", "Client", shipping.customerRecipient) }}
+                            {{ macro.subItem("client", "Client", shipping.customerName) }}
                             {{ macro.subItem("phone", "Téléphone", shipping.customerPhone) }}
-                            {{ macro.subItem("client", "À l'attention de", shipping.customerName) }}
+                            {{ macro.subItem("user", "À l'attention de", shipping.customerRecipient) }}
                             {{ macro.subItem(null, "Adresse de livraison", shipping.customerAddress, asset('svg/location-blue.svg')) }}
                         </div>
                     </div>
@@ -115,11 +130,11 @@
                     </div>
                     <div class="content">
                         <div class="row">
-                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.plannedAt|date("d/m/Y")) }}
+                            {{ macro.subItem(null, 'Date de prise en charge souhaitée', shipping.requestCaredAt|date("d/m/Y")) }}
                             {{ macro.subItem(null, "Envoi", constant('App\\Entity\\ShippingRequest\\ShippingRequest::SHIPMENT_LABELS')[shipping.shipment]) }}
                         </div>
                         <div class="row">
-                            {{ macro.subItem(null, "Port", shipping.carrying) }}
+                            {{ macro.subItem(null, "Port", constant('App\\Entity\\ShippingRequest\\ShippingRequest::CARRYING_LABELS')[shipping.carrying]) }}
                         </div>
                     </div>
                 </div>
@@ -135,9 +150,17 @@
                 </div>
 
             </div>
-            <div class="transport-header col-md-8 col-12">
-                <div class="wii-box">
-                    {{ detailsTransportConfig|raw }}
+            <div class="col-md-8 col-12">
+                <div class="d-flex flex-column">
+                    <div class="wii-box transport-header">
+                        {{ detailsTransportConfig|raw }}
+                    </div>
+                    <div class="wii-box mt-3 details-container">
+                        <div class="d-flex align-items-center justify-content-center p-3">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération du detail en cours</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

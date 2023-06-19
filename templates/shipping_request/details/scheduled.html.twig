@@ -1,0 +1,21 @@
+<div class="header wii-title justify-content-between align-items-center row no-gutters py-3">
+    Produits à expédier
+</div>
+<div class="p-3 schedule-details">
+    {% for line in lines %}
+        {% set pack = line.pack ?? null %}
+        {% include 'pack/utils/packItemListTemplate.html.twig' with {
+            header:  {
+                sideLabel: pack.nature,
+                color: pack.color,
+                content: [
+                    {label: 'Unité logistique', value: pack.code, bold: 'value'},
+                    {label: "Dimension (cm)", value: pack.size, bold: 'label', icon: 'size'},
+                    {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'iot-location'},
+
+                ],
+            },
+            content: line.references,
+        } %}
+    {% endfor %}
+</div>

@@ -18,16 +18,16 @@ class ShippingRequestPack {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $size = null;
 
-    #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class)]
+    #[ORM\OneToOne(inversedBy: 'shippingRequestPack', targetEntity: Pack::class, cascade: ['persist'])]
     private ?Pack $pack = null;
 
     #[ORM\OneToMany(mappedBy: 'shippingPack', targetEntity: ShippingRequestLine::class)]
     private Collection $lines;
 
-    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'packLines')]
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, cascade: ['persist'], inversedBy: 'packLines')]
     private ?ShippingRequest $request = null;
 
     public function __construct() {
