@@ -48,7 +48,7 @@ class ShippingRequestExpectedLineService {
                         ["name" => "data-other-params-ignored-shipping-request", "value" => $shippingRequest?->getId()],
                         ["name" => "data-other-params-status", "value" => ReferenceArticle::STATUT_ACTIF],
                         ["name" => "data-other-params-redirect-route", "value" => "shipping_request_show"],
-                        ["name" => "data-other-params-redirect-route-params", "value" => json_encode(["shippingRequest" => $shippingRequest?->getId()])],
+                        ["name" => "data-other-params-redirect-route-params", "value" => json_encode(["id" => $shippingRequest?->getId()])],
                     ],
                 ]),
                 $this->formService->macro("hidden", "lineId")
@@ -66,7 +66,7 @@ class ShippingRequestExpectedLineService {
                 "reference" => $line->getReferenceArticle()?->getId(),
                 "shipping" => 1,
                 "redirect-route" => 'shipping_request_show',
-                "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+                "redirect-route-params" => json_encode(["id" => $shippingRequest?->getId()]),
             ])
             : '';
         $hasRightToEdit = $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT);
@@ -165,7 +165,7 @@ class ShippingRequestExpectedLineService {
                                 'onclick' => "window.location.href = '{$this->router->generate('reference_article_edit_page', [
                                     'reference' => $reference->getId(),
                                     'redirect-route' => 'shipping_request_show',
-                                    "redirect-route-params" => json_encode(["shippingRequest" => $shippingRequest?->getId()]),
+                                    "redirect-route-params" => json_encode(["id" => $shippingRequest?->getId()]),
                                 ])}'",
                             ]
                         ],

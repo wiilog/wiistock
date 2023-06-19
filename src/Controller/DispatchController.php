@@ -400,7 +400,7 @@ class DispatchController extends AbstractController {
         }
 
         if(!empty($receiver)) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, false);
         }
 
         return new JsonResponse([
@@ -950,7 +950,7 @@ class DispatchController extends AbstractController {
 
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
                     $entityManager->flush();
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                    $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
@@ -1449,7 +1449,7 @@ class DispatchController extends AbstractController {
                 }
 
                 $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
             }
         }
 
