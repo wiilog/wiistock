@@ -6,7 +6,7 @@ parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
     web_version: '6.33.15#rfid'
-    nomade_version: '=6.33.14#rfid'
+    nomade_version: '=6.33.15#rfid'
     nomade_apk: 'https://ftp.wiilog.fr/wiistock/app-current-aiabr.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
