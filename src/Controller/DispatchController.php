@@ -486,7 +486,7 @@ class DispatchController extends AbstractController {
         $dispatchNoteAttachment = new Attachment();
         $dispatchNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($dispatchNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($dispatchNoteData['name'] . '.pdf');
 
         $entityManager->persist($dispatchNoteAttachment);
@@ -1272,7 +1272,7 @@ class DispatchController extends AbstractController {
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($deliveryNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($deliveryNoteData['name'] . '.pdf');
 
         $entityManager->persist($deliveryNoteAttachment);
