@@ -455,7 +455,7 @@ function initEditableTableArticles($table) {
         }
 
         if (typeQuantite === 'reference') {
-            $row.find('select[name="targetLocationPicking"]').closest('label').remove();
+            $row.find('select[name="target-location-picking"]').closest('label').remove();
             $row.find('.article-location').text(location);
         }
 

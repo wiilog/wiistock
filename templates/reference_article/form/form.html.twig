@@ -1,4 +1,5 @@
 {% import "reference_article/form/macros.html.twig" as macros %}
+{% import 'form.html.twig' as form %}
 
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set partialEdit = reference.id and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
@@ -20,7 +21,7 @@
     }
 } %}
 <input type="hidden" name="draft-status-name" value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}"/>
-<div class="d-flex justify-content-center align-items-center" style="margin-bottom: 50px;">
+<div class="d-flex justify-content-center align-items-center" data-reference-article-form style="margin-bottom: 50px;">
     <div class="row wii-form wii-column">
         <div class="col-12 col-md-6">
             <div class="wii-box">
@@ -93,35 +94,34 @@
                             </select>
                         {% endif %}
                         {% if not partialEdit %}
-                            <label class="mt-3 wii-field-name">
-                                Statut*
-                            </label>
-                            <div class="wii-switch needed" data-title="Statut">
+                                {% set statusesSwitchAttributes = [{ name: "onclick", value: "changeNewReferenceStatus($(this))"}] %}
+                                {% set statusSwitchContent = [] %}
                                 {% if not reference.id or reference.statut.draft %}
-                                    <input type="radio"
-                                           name="statut"
-                                           value="{{ constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS') }}"
-                                           content="Brouillon"
-                                        {{ ((reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'))
-                                        or (not reference.id and hasRightCreateDraft)) ? 'checked' }}
-                                           onchange="changeNewReferenceStatus($(this))">
+                                    {% set statusSwitchContent = statusSwitchContent|merge([{
+                                        label: 'Brouillon',
+                                        value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
+                                        checked: (reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS')) or (not reference.id and hasRightCreateDraft),
+                                        additionalAttributes: statusesSwitchAttributes,
+                                    }]) %}
                                 {% endif %}
 
                                 {% if not hasRightCreateDraft %}
-                                    <input type="radio"
-                                           name="statut"
-                                           value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                                           content="Actif"
-                                        {{ not reference.statut or reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ? 'checked' }}
-                                           onchange="changeNewReferenceStatus($(this))">
-                                    <input type="radio"
-                                           name="statut"
-                                           value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
-                                           content="Inactif"
-                                        {{ reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') ? 'checked' }}
-                                           onchange="changeNewReferenceStatus($(this))">
+                                    {% set statusSwitchContent = statusSwitchContent|merge([
+                                        {
+                                            label: 'Actif',
+                                            value: constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') ,
+                                            checked: not reference.statut or reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF'),
+                                            additionalAttributes: statusesSwitchAttributes,
+                                        },
+                                        {
+                                            label: 'Inactif',
+                                            value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
+                                            checked: reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
+                                            additionalAttributes: statusesSwitchAttributes,
+                                        }
+                                    ]) %}
                                 {% endif %}
-                            </div>
+                                {{ form.switch('statut', 'Statut', true, statusSwitchContent ) }}
 
                             <label class="with-checkbox">
                                 <input type="checkbox" name="mobileSync"
@@ -211,11 +211,7 @@
                     </div>
                     <div class="row mt-3">
                         <div class="col-12">
-                            <label class="wii-field-name">Nomenclature</label>
-                            <input class="form-control data" name="commentaire" type="hidden" value="{{ reference.commentaire }}">
-                            <div class="form-control editor-container comment" data-wysiwyg>
-                                {{ reference.commentaire | raw }}
-                            </div>
+                            {{ form.wysiwyg('commentaire', 'Nomenclature', false, reference.commentaire) }}
                         </div>
                     </div>
                 </div>
@@ -231,27 +227,14 @@
             <div class="wii-box">
                 <div class="header wii-title">Données Sécurité</div>
                 <div class="content">
-                    <label class="wii-field-name w-100">
-                        Marchandise dangereuse
-                    </label>
-                    <div class="wii-switch" data-title="Security">
-                        <input type="radio"
-                               name="security"
-                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') }}"
-                               content="Oui"
-                               data-title="yes"
-                               onclick="onTypeSecurityChange($(this))"
-                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
-                            {{ reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_YES') ? 'checked' }}>
-                        <input type="radio"
-                               name="security"
-                               value="{{ constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') }}"
-                               content="Non"
-                               data-title="no"
-                               onclick="onTypeSecurityChange($(this))"
-                            {{ reference.id ? 'class="security"' : 'class="security data"' }}
-                            {{ not reference.id or reference.dangerousGoods == constant('App\\Entity\\ReferenceArticle::DATA_SECURITY_NO') ? 'checked' }}>
+                    <div class="wii-form">
+                        {% set securitySwitchAttibutes = [{ name: "onclick", value: "onTypeSecurityChange($(this))"}] %}
+                        {{ form.switch('security', 'Marchandise dangereuse', false, [
+                            {label: 'Oui', value: true, checked: reference.dangerousGoods, additionalAttributes: securitySwitchAttibutes},
+                            {label: 'Non', value: false, checked: not reference.dangerousGoods, additionalAttributes: securitySwitchAttibutes}
+                        ]) }}
                     </div>
+
                     <div class="row mb-3">
                         <div class="col-12">
                             {% include 'attachment/attachment.html.twig' with {
@@ -273,12 +256,12 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                            <span class="wii-field-name">Code ONU</span>
-                            <input class="form-control data" name="onuCode" type="text" value={{ reference.onuCode }}>
+                            <span class="wii-field-name">Code ONU*</span>
+                            <input class="form-control data needed" name="onuCode" type="text" value={{ reference.onuCode }}>
                         </div>
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                            <span class="wii-field-name">Classe produit</span>
-                            <input class="form-control data" name="productClass" type="text" value={{ reference.productClass }}>
+                            <span class="wii-field-name">Classe produit*</span>
+                            <input class="form-control data needed" name="productClass" type="text" value={{ reference.productClass }}>
                         </div>
                     </div>
                 </div>
@@ -524,35 +507,10 @@
                                         </div>
                                     {% endif %}
                                     <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
-                                        <label>
-                                        <span class="icon wii-field-name" style="margin-bottom: 5px">
-                                            <img src="{{ asset('svg/reference_article/threshold.svg') }}" class="icon" alt="Image seuil d'alerte">
-                                            Seuil d'alerte
-                                        </span>
-                                            <div class="increase-decrease-field">
-                                                <button class="decrease"></button>
-                                                <input type="number" data-no-arrow
-                                                       name="limitWarning" class="form-control data w-50"
-                                                       value="{{ reference.limitWarning ?? '' }}" min="0">
-                                                <button class="increase"></button>
-                                            </div>
-                                        </label>
+                                        {{ form.number('limitWarning', {url: '/svg/reference_article/threshold.svg', text: 'Seuil d\'alerte'}, false, reference.limitWarning) }}
                                     </div>
                                     <div class="col-12 col-md-4 mt-3 {{ partialEdit ? 'mr-auto' }}">
-                                        <label>
-                                        <span class="icon wii-field-name" style="margin-bottom: 5px">
-                                            <img src="{{ asset('svg/reference_article/threshold_red.svg') }}" class="icon"
-                                                 alt="Image seuil de sécurité">
-                                            Seuil de sécurité
-                                        </span>
-                                            <div class="increase-decrease-field">
-                                                <button class="decrease"></button>
-                                                <input type="number" data-no-arrow
-                                                       name="limitSecurity" class="form-control data w-50"
-                                                       value="{{ reference.limitSecurity ?? '' }}" min="0">
-                                                <button class="increase"></button>
-                                            </div>
-                                        </label>
+                                        {{ form.number('limitSecurity', {url: '/svg/reference_article/threshold_red.svg', text: 'Seuil de sécurité'}, false, reference.limitSecurity) }}
                                     </div>
                                 </div>
                             </div>
@@ -580,7 +538,7 @@
                     </div>
                 </div>
             </div>
-            <div class="wii-box">
+            <div class="wii-box" data-supplier-form>
                 <div class="header wii-title">Fournisseurs</div>
                 <div class="content">
                     <div class="supplier-articles">
@@ -745,7 +703,9 @@
                     <span>Annuler</span>
                 </button>
                 <button class="btn btn-success ml-2 save data"
-                        data-submit="{{ submit_url }}"
+                        type="submit"
+                        data-submit="{{ submit_route }}"
+                        data-submit-params="{{ submit_params ?? '' }}"
                         value="{{ reference.id }}"
                         name="idRefArticle">
                     <span>Enregistrer</span>

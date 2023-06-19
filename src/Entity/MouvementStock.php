@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Repository\MouvementStockRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
@@ -61,6 +62,10 @@ class MouvementStock {
     #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'preparation_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private $preparationOrder;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'stockMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?ShippingRequest $shippingRequest = null;
 
     #[ORM\ManyToOne(targetEntity: Import::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'import_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
@@ -245,6 +250,15 @@ class MouvementStock {
 
     public function setTransferOrder(?TransferOrder $transferOrder): self {
         $this->transferOrder = $transferOrder;
+
+        return $this;
+    }
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
 
         return $this;
     }

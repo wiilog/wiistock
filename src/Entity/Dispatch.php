@@ -182,10 +182,7 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
-    /**
-     * For old dispatches => we can't guess the creator
-     */
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $createdBy = null;
 
@@ -378,6 +375,16 @@ class Dispatch extends StatusHistoryContainer {
         }
 
         return $this;
+    }
+
+    public function getDispatchPack(Pack $pack): ?self {
+        foreach ($this->dispatchPacks as $dispatchPack){
+            if($dispatchPack->getPack()->getCode() === $pack->getCode()){
+                return $dispatchPack;
+            }
+        }
+
+        return null;
     }
 
     public function getType(): ?Type {
