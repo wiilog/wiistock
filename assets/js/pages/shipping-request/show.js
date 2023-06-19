@@ -68,14 +68,17 @@ function validateShippingRequest($button) {
     }
 }
 
-function deleteShippingRequest($event){
+function deleteShippingRequest($event) {
     const shipping_request_id = $event.data('id');
-    wrapLoadingOnActionButton($(".row.wii-column.w-100"), function () {
-        AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), () => {
+        AJAX.route(AJAX.DELETE, `delete_shipping_request`, {id: shipping_request_id})
             .json()
             .then((res) => {
                 if (res.success) {
                     window.location.href = Routing.generate('shipping_request_index');
+                } else {
+                    window.location.reload();
+                    showBSAlert(res.message, 'danger');
                 }
             });
     });
