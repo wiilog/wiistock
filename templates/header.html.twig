@@ -217,6 +217,7 @@
                     and app.user.username is defined %}
                     {% if hasRight(constant('App\\Entity\\Menu::PARAM'), constant('App\\Entity\\Action::SETTINGS_DISPLAY_USERS')) %}
                         <a class="col col-lg-auto user d-flex align-items-center"
+                           data-cy-user-header-button
                            href="{{ path('settings_item', {
                                'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_USERS'),
                                'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_USERS'),

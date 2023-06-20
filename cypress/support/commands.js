@@ -9,11 +9,13 @@ Cypress.Commands.add('register', (userCount) => {
 })
 
 Cypress.Commands.add('login', (email, password) => {
-    cy.visit('/login');
-    cy.get('[name=_username]').type(email);
-    cy.get('[name=_password]').type(password);
-    cy.get('button[type=submit]').click();
-    cy.url().should('contain', '/accueil#1')
+    cy.session(email, () => {
+        cy.visit('/login');
+        cy.get('[name=_username]').type(email);
+        cy.get('[name=_password]').type(password);
+        cy.get('button[type=submit]').click();
+        cy.url().should('contain', '/accueil#1')
+    })
 })
 Cypress.Commands.add('navigateInNavMenu', (menu, subMenu) => {
     cy

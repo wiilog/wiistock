@@ -37,7 +37,9 @@
                                         or label.environment is not defined
                                         or app.environment in label.environment %}
                                         <a href="{{ path(label.route is defined ? label.route : 'settings_item', label.route is not defined ? {category: category_key, menu, submenu: submenu ?? null} : []) }}"
-                                           class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}">
+                                           class="settings-item pb-1 {{ category.menus | length <= 4 ? 'full-size' }}"
+                                           data-cy-settings-menu="{{ menu ?? null }}"
+                                           data-cy-settings-submenu="{{ submenu ?? null }}">
                                             {{ label is iterable ? label.label : label }}
                                         </a>
                                     {% endif %}
