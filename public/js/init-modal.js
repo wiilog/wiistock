@@ -1000,8 +1000,7 @@ function saveDroppedFiles(event, $div) {
 }
 
 function saveInputFiles($inputFile, singleton) {
-    singleton = singleton ?? false;
-    let filesToSave = $inputFile[0].files;
+    let filesToSave = singleton || $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
     Array.from(filesToSave).forEach(file => {
@@ -1009,7 +1008,7 @@ function saveInputFiles($inputFile, singleton) {
             if (!isMultiple && !singleton) {
                 droppedFiles = [];
             }
-            if (!singleton) droppedFiles.push(file);
+            droppedFiles.push(file);
         }
     });
 
