@@ -20,6 +20,9 @@ $(function () {
         const $tableLocations = $('.add-inventory-location-container').find('table');
         onOpenModalAddLocationAndZone($tableLocations);
     }
+    $('#modalShowScannedArticles').on('hidden.bs.modal', function() {
+        $(this).find('.table').DataTable().clear().destroy();
+    });
 
     initLocationMissionsDataTable();
 });
