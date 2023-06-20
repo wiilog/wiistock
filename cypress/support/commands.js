@@ -15,14 +15,19 @@ Cypress.Commands.add('login', (email, password) => {
     cy.get('button[type=submit]').click();
     cy.url().should('contain', '/accueil#1')
 })
-
-Cypress.Commands.add('openMainMenu', () => {
-    cy.get('nav').click()
-    cy.get('nav div').should('have.attr', 'aria-expanded', 'true')
-})
-
-Cypress.Commands.add('openItemMainMenu', (textItem) => {
-    cy.get(`[title=${textItem}]`).click();
+Cypress.Commands.add('navigateInNavMenu', (menu, subMenu) => {
+    cy
+        .get('nav')
+        .click()
+        .get('.dropdown-menu')
+        .should('be.visible')
+        .get(` .dropdown-item-sub .wii-icon-${menu}`)
+        .click()
+        .parents('.dropdown-item-sub')
+        .siblings('.dropdown-menu.dropdown-menu-sub')
+        .should('be.visible')
+        .get(`.dropdown-item[data-cy-nav-item="${subMenu}"]`).first()
+        .click();
 })
 
 Cypress.Commands.add('logout', () => {
@@ -39,29 +44,32 @@ Cypress.Commands.add('select2Ajax', (selectName, value) => {
     cy.intercept('GET', '/select/*').as('select2Request');
     cy.get(`[name=${selectName}]`)
         .siblings('.select2')
-        .click();
-
-    cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+        .click()
+        .parents()
+        .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .type(value)
-        .wait('@select2Request')
+        .wait('@select2Request', {timeout: 10000})
         .its('response.statusCode').should('eq', 200)
-
-    cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
-        .click({waitForAnimations: false})
-        .type('{enter}');
-
-    cy.get(`[name=${selectName}]`).find('option:selected').should('have.length', 1);
+        .then(() => {
+            cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+                .parents('.select2-dropdown')
+                .find('.select2-results__option')
+                .first()
+                .click({waitForAnimations: false, multiple: true})
+                .then(() => {
+                    cy.get(`[name=${selectName}]`).find('option:selected').should('have.length', 1);
+                });
+        })
 })
 
 Cypress.Commands.add('select2AjaxMultiple', (selectName, value) => {
     cy.intercept('GET', '/select/*').as('select2Request');
-
     value.forEach(element => {
         cy.get(`[name=${selectName}]`)
             .siblings('.select2')
-            .click();
-
-        cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
+            .click()
+            .parents()
+            .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
             .type(element)
             .wait('@select2Request')
             .its('response.statusCode').should('eq', 200)
@@ -89,26 +97,3 @@ Cypress.Commands.add('select2', (selectName, value) => {
         }
     })
 })
-
-Cypress.Commands.add('statusAndRoleUpgrade', (userCount) => {
-    // TODO
-    cy.openMainMenu();
-    cy.openItemMainMenu('Paramétrage');
-    cy.openItemSettings('Utilisateurs');
-    cy.wait(5000);
-    cy.searchInputType(`${userCount}{enter}`);
-    cy.wait(10000)
-    cy.get('table tr').eq(2).click();
-    cy.wait(5000)
-    cy.get('#modalEditUser input[value="1"]').click();
-    cy.get('#modalEditUser [id^=select2-role-][id$=-container]').type('super admin');
-    cy.wait(5000)
-    cy.get('[id^=select2-role-][id$=-results] li').click()
-    cy.get('#modalEditUser button').contains('Enregistrer').click()
-})
-
-
-
-
-
-

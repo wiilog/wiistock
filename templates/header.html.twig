@@ -300,7 +300,8 @@
                                                     title: itemMenuSub.title is defined ? itemMenuSub.title,
                                                     isTranslation: itemMenuSub.isTranslation is defined and itemMenuSub.isTranslation,
                                                     url: itemMenuSub.url is defined ? itemMenuSub.url : (itemMenuSub.path is defined ? path(itemMenuSub.path) : '#'),
-                                                    isExtern: itemMenuSub.isExtern is defined
+                                                    isExtern: itemMenuSub.isExtern is defined,
+                                                    path: itemMenuSub.path is defined ? itemMenuSub.path : null
                                                 } %}
                                             {% endfor %}
                                         </div>
@@ -315,7 +316,8 @@
                                             title: itemMenu.title is defined ? itemMenu.title,
                                             isExtern: itemMenu.url is defined,
                                             arrowPlaceholder: true,
-                                            iconPlaceholder: true
+                                            iconPlaceholder: true,
+                                            path: itemMenu.path is defined ? itemMenu.path : null
                                         } %}
                                     {% endif %}
                                 {% endif %}

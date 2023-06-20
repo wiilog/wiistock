@@ -13,10 +13,10 @@ describe('Create incoming logistics unit', () => {
 
     it("Create incoming logistics unit", () => {
         cy.visit('/accueil#1')
-        cy.openMainMenu();
-        cy.openItemMainMenu('Traçabilité');
-        cy.openSecondItemMainMenu('/arrivage/');
-        cy.openModal('Nouvel arrivage UL');
+        cy.navigateInNavMenu('traca', 'arrivage_index');
+
+        cy.get('button[name=new-arrival]').click();
+
         cy.select2Ajax('fournisseur', 'ADVANCED');
         cy.select2('transporteur', 'Alexis');
         cy.select2('chauffeur', 'FAURE');

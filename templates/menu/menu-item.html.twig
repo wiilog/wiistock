@@ -2,6 +2,7 @@
 {% if isLink %}
     <a class="dropdown-item"
        {{ isExtern is defined and isExtern ? 'target="_blank"' }}
+       {{ path is defined and path ? 'data-cy-nav-item=' ~ path }}
        href="{{ url }}">
 {% endif %}
 
