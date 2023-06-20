@@ -1,7 +1,11 @@
 const tableRoleName = 'tableRoles';
+const user = {
+    email: 'Test@test.fr',
+    password: 'Test123456!',
+}
 describe('', () => {
     beforeEach(() => {
-        cy.login('Test@test.fr', 'Test123456!')
+        cy.login(user.email, user.password);
     })
 
     it('should get all permissions', () => {
@@ -42,6 +46,9 @@ describe('', () => {
                     .should((response) => {
                         expect(response.status).to.eq(200);
                     })
+            })
+            .then(() => {
+                Cypress.session.clearAllSavedSessions()
             });
     })
 })

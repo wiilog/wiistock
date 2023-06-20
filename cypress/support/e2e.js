@@ -13,17 +13,7 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-
-
 // Import commands.js using ES2015 syntax:
-import './commands'
-
-beforeEach( () => {
-    cy.session('loginTestingUser', () => {
-        cy.login('Test@test.fr', 'Test123456!')
-    }, {
-        cacheAcrossSpecs : true
-    })
-})
+import './command/select2'
+import './command/session'
+import './command/general'
