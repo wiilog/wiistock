@@ -362,15 +362,22 @@ function packingPreviousStep($modal) {
 }
 
 function openScheduledShippingRequestModal($button){
-    const id = $button.data('id')
-    AJAX.route(GET, `check_expected_lines_data`, {id})
+    // doesn't block the process just inform some fields are missing (référence)
+    AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
-            if (res.success) {
-                $('#modalScheduledShippingRequest').modal('show');
-                expectedLines = res.expectedLines;
+            if (res.errors || res.success) {
+                showBSAlert(res.errors , "info");
+                AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
+                    .json()
+                    .then((res) => {
+                        if (res.success) {
+                            $('#modalScheduledShippingRequest').modal('show');
+                            expectedLines = res.expectedLines;
+                        }
+                    });
             }
-        });
+        })
 }
 
 function initShippingRequestExpectedLine($table) {
@@ -704,13 +711,24 @@ function initDetailsToTreat($table) {
 
 
 function treatShippingRequest($button) {
-    wrapLoadingOnActionButton($button, () => (
-        AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
-            .json()
-            .then((res) => {
-                updatePage();
-            })
-    ));
+    //block treatment if some required fields are not filled
+    AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
+        .json()
+        .then((res) => {
+            if(res.errors){
+                return showBSAlert(res.errors, 'danger');
+            }
+            if (res.success) {
+                wrapLoadingOnActionButton($button, () => (
+                    AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
+                        .json()
+                        .then(() => {
+                            updatePage();
+                        })
+                ));
+            }
+        });
+
 }
 
 function updatePage() {

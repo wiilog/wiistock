@@ -938,9 +938,7 @@ class DeliveryRequestService
             ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$editMode],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
-
-            // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$isTargetLocationPickingDisplayed],
             ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
             ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
@@ -1096,8 +1094,8 @@ class DeliveryRequestService
                     "onChange" => 'onChangeFillComment($(this))',
                 ])
                 : ($line instanceof DeliveryRequestArticleLine ? $line->getArticle()->getBarCode() : ''),
-            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
-                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && (!$line || $line instanceof DeliveryRequestArticleLine)
+                ? $this->formService->macro("select", "target-location-picking", null, false, [
                     "type" => "location",
                     "items" => $targetLocationPickingItems ?? []
                 ])

@@ -41,7 +41,9 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -274,10 +276,9 @@ class RefArticleDataService
 
     public function editRefArticle(EntityManagerInterface $entityManager,
                                    ReferenceArticle       $refArticle,
-                                                          $data,
+                                   ParameterBag           $data,
                                    Utilisateur            $user,
-                                   ?Request               $request = null)
-    {
+                                   ?FileBag               $fileBag = null) {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -288,19 +289,17 @@ class RefArticleDataService
         $storageRuleRepository = $entityManager->getRepository(StorageRule::class);
 
         //modification champsFixes
-        if (isset($data['reference'])) {
-            $refArticle->setReference($data['reference']);
-        }
-
-        if (isset($data['suppliers-to-remove']) && $data['suppliers-to-remove'] !== "") {
-            $suppliers = $supplierArticleRepository->findBy(['id' => explode(',', $data['suppliers-to-remove'])]);
+        $supplierToRemove = $data->get('suppliers-to-remove');
+        if (!empty($supplierToRemove)) {
+            $suppliers = $supplierArticleRepository->findBy(['id' => explode(',', $supplierToRemove)]);
             foreach ($suppliers as $supplier) {
                 $refArticle->removeArticleFournisseur($supplier);
             }
         }
 
-        if (isset($data['storage-rules-to-remove']) && $data['storage-rules-to-remove'] !== "") {
-            $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $data['storage-rules-to-remove'])]);
+        $storageRuleToRemove = $data->get('storage-rules-to-remove');
+        if (!empty($storageRuleToRemove)) {
+            $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);
             foreach ($storageRules as $storageRule) {
                 $refArticle->removeStorageRule($storageRule);
             }
@@ -309,212 +308,140 @@ class RefArticleDataService
         $wasDraft = $refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS;
 
         $sendMail = false;
-        if (isset($data['statut'])) {
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
-            if ($statut) {
-                $sendMail = $statut->getCode() !== ReferenceArticle::DRAFT_STATUS &&
-                    $refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS;
-                $refArticle->setStatut($statut);
-            }
+        $statutId = $data->get('statut');
+        $statut = $statutId ? $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $statutId) : null;
+        if ($statut) {
+            $sendMail = $statut->getCode() !== ReferenceArticle::DRAFT_STATUS &&
+                $refArticle->getStatut()->getCode() === ReferenceArticle::DRAFT_STATUS;
+            $refArticle->setStatut($statut);
         }
 
-        $this->updateDescriptionField($entityManager, $refArticle, $data);
+        $this->updateDescriptionField($entityManager, $refArticle, $data->all());
 
         $isVisible = $refArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
-        if (isset($data['frl'])) {
-            $supplierReferenceLines = json_decode($data['frl'], true);
-            foreach ($supplierReferenceLines as $supplierReferenceLine) {
-                $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
-                $existingSupplierArticle = $supplierArticleRepository->findOneBy([
-                    'reference' => $referenceArticleFournisseur
-                ]);
+        $supplierReferenceLines = json_decode($data->get('frl'), true) ?: [];
+        foreach ($supplierReferenceLines as $supplierReferenceLine) {
+            $referenceArticleFournisseur = $supplierReferenceLine['referenceFournisseur'];
+            $existingSupplierArticle = $supplierArticleRepository->findOneBy([
+                'reference' => $referenceArticleFournisseur
+            ]);
 
-                if (!isset($existingSupplierArticle)) {
-                    try {
-                        $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
-                            'fournisseur' => $supplierReferenceLine['fournisseur'],
-                            'article-reference' => $refArticle,
-                            'label' => $supplierReferenceLine['labelFournisseur'],
-                            'reference' => $referenceArticleFournisseur,
-                            'visible' => $isVisible
-                        ]);
+            if (!isset($existingSupplierArticle)) {
+                try {
+                    $supplierArticle = $this->articleFournisseurService->createArticleFournisseur([
+                        'fournisseur' => $supplierReferenceLine['fournisseur'],
+                        'article-reference' => $refArticle,
+                        'label' => $supplierReferenceLine['labelFournisseur'],
+                        'reference' => $referenceArticleFournisseur,
+                        'visible' => $isVisible
+                    ]);
 
-                        $entityManager->persist($supplierArticle);
-                    } catch (Exception $exception) {
-                        if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
-                            return [
-                                'success' => false,
-                                'msg' => "La référence <strong>$referenceArticleFournisseur</strong> existe déjà pour un article fournisseur."
-                            ];
-                        }
+                    $entityManager->persist($supplierArticle);
+                } catch (Exception $exception) {
+                    if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
+                        throw new FormException("La référence <strong>$referenceArticleFournisseur</strong> existe déjà pour un article fournisseur.");
                     }
-                } else if ($existingSupplierArticle->getReferenceArticle()) {
-                    $supplierArticleName = $existingSupplierArticle->getReference();
-                    $referenceName = $existingSupplierArticle->getReferenceArticle()->getReference();
-
-                    return [
-                        'success' => false,
-                        'msg' => "L'article fournisseur <strong>$supplierArticleName</strong> est déjà lié à la référence <strong>$referenceName</strong>, vous ne pouvez pas l'ajouter."
-                    ];
-                } else {
-                    $existingSupplierArticle
-                        ->setVisible($isVisible)
-                        ->setReferenceArticle($refArticle);
                 }
+            } else if ($existingSupplierArticle->getReferenceArticle()) {
+                $supplierArticleName = $existingSupplierArticle->getReference();
+                $referenceName = $existingSupplierArticle->getReferenceArticle()->getReference();
+                throw new FormException(
+                    "L'article fournisseur <strong>$supplierArticleName</strong> est déjà lié à la référence <strong>$referenceName</strong>, vous ne pouvez pas l'ajouter."
+                );
+            } else {
+                $existingSupplierArticle
+                    ->setVisible($isVisible)
+                    ->setReferenceArticle($refArticle);
             }
         }
 
-        if (isset($data['srl'])) {
-            $storageRuleLines = json_decode($data['srl'], true);
-            foreach ($storageRuleLines as $storageRuleLine) {
-                $storageRuleLocationId = $storageRuleLine['storageRuleLocation'] ?? null;
-                $storageRuleSecurityQuantity = $storageRuleLine['storageRuleSecurityQuantity'] ?? null;
-                $storageRuleConditioningQuantity = $storageRuleLine['storageRuleConditioningQuantity'] ?? null;
-                if ($storageRuleLocationId && $storageRuleSecurityQuantity && $storageRuleConditioningQuantity) {
-                    $storageRuleLocation = $locationRepository->find($storageRuleLocationId);
-                    if (!$storageRuleLocation) {
-                        return [
-                            'success' => false,
-                            'msg' => "Une règle de stockage n'a pas pu être créée car l'emplacement n'a pas été trouvé."
-                        ];
-                    }
-                    $storageRule = new StorageRule();
-                    $storageRule
-                        ->setLocation($storageRuleLocation)
-                        ->setSecurityQuantity($storageRuleSecurityQuantity)
-                        ->setConditioningQuantity($storageRuleConditioningQuantity)
-                        ->setReferenceArticle($refArticle);
-                    $entityManager->persist($storageRule);
-                } else {
-                    return [
-                        'success' => false,
-                        'msg' => "Une règle de stockage n'a pas pu être créée car un des champs requis n'a pas été renseigné."
-                    ];
+        $storageRuleLines = json_decode($data->get('srl'), true) ?: [];
+        foreach ($storageRuleLines as $storageRuleLine) {
+            $storageRuleLocationId = $storageRuleLine['storageRuleLocation'] ?? null;
+            $storageRuleSecurityQuantity = $storageRuleLine['storageRuleSecurityQuantity'] ?? null;
+            $storageRuleConditioningQuantity = $storageRuleLine['storageRuleConditioningQuantity'] ?? null;
+            if ($storageRuleLocationId && $storageRuleSecurityQuantity && $storageRuleConditioningQuantity) {
+                $storageRuleLocation = $locationRepository->find($storageRuleLocationId);
+                if (!$storageRuleLocation) {
+                    throw new FormException("Une règle de stockage n'a pas pu être créée car l'emplacement n'a pas été trouvé.");
                 }
+                $storageRule = new StorageRule();
+                $storageRule
+                    ->setLocation($storageRuleLocation)
+                    ->setSecurityQuantity($storageRuleSecurityQuantity)
+                    ->setConditioningQuantity($storageRuleConditioningQuantity)
+                    ->setReferenceArticle($refArticle);
+                $entityManager->persist($storageRule);
+            } else {
+                throw new FormException("Une règle de stockage n'a pas pu être créée car un des champs requis n'a pas été renseigné.");
             }
         }
-
         foreach ($refArticle->getArticlesFournisseur() as $article) {
             $article->setVisible($isVisible);
         }
 
-        if (isset($data['categorie'])) {
-            $category = $inventoryCategoryRepository->find($data['categorie']);
-            $refArticle->setCategory($category);
-        }
-
-        if (isset($data['urgence'])) {
-            if ($data['urgence'] && $data['urgence'] !== $refArticle->getIsUrgent()) {
-                $refArticle->setUserThatTriggeredEmergency($user);
-            } else if (!$data['urgence']) {
-                $refArticle->setUserThatTriggeredEmergency(null);
-                $refArticle->setEmergencyComment('');
+        $managersIds = $data->get('managers');
+        $refArticle->getManagers()->clear();
+        if (!empty($managersIds)) {
+            $managers = is_string($managersIds)
+                ? explode(',', $managersIds)
+                : $managersIds;
+            foreach ($managers as $manager) {
+                $refArticle->addManager($userRepository->find($manager));
             }
-            $refArticle->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN));
         }
 
-        if (isset($data['prix'])) {
-            $price = max(0, $data['prix']);
-            $refArticle->setPrixUnitaire($price);
+        $typeId = $data->getInt('type');
+        $type = $typeId ? $typeRepository->find($typeId) : null;
+        if ($type) {
+            $refArticle->setType($type);
         }
 
-        if (isset($data['libelle'])) {
-            $refArticle->setLibelle($data['libelle']);
+        if($data->has('libelle')){
+            $refArticle->setLibelle($data->get('libelle'));
         }
 
-        if (isset($data['commentaire'])) {
-            $refArticle->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
-        }
+        $categoryId = $data->getInt('categorie');
+        $category = $categoryId ? $inventoryCategoryRepository->find($categoryId) : null;
 
-        if (isset($data['mobileSync'])) {
+        $buyerId = $data->getInt('buyer');
+        $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+
+        $visibilityGroupId = $data->getInt('visibility-group');
+        $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
+
+        $isUrgent = $data->getBoolean('urgence');
+
+        $mobileSync= $data->getBoolean('mobileSync');
+        if ($mobileSync) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $syncCount = $referenceArticleRepository->count(['needsMobileSync' => true]);
-            if (!$refArticle->getNeedsMobileSync() && ($syncCount > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
+            if (!$refArticle->getNeedsMobileSync() && ($syncCount > ReferenceArticle::MAX_NOMADE_SYNC)) {
                 return [
                     'success' => false,
                     'msg' => "Le nombre maximum de synchronisations a été atteint."
                 ];
-            } else {
-                $refArticle->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN));
             }
         }
 
-        if (isset($data['buyer'])) {
-            $refArticle->setBuyer(!empty($data['buyer']) ? $userRepository->find($data['buyer']) : null);
-        }
-
-        $refArticle->setLimitWarning((empty($data['limitWarning']) && $data['limitWarning'] !== 0 && $data['limitWarning'] !== '0') ? null : intval($data['limitWarning']));
-        $refArticle->setLimitSecurity((empty($data['limitSecurity']) && $data['limitSecurity'] !== 0 && $data['limitSecurity'] !== '0') ? null : intval($data['limitSecurity']));
-
-        if (isset($data['emergency-comment-input'])) {
-            $refArticle->setEmergencyComment($data['emergency-comment-input']);
-        }
-
-        if (isset($data['type'])) {
-            $type = $typeRepository->find(intval($data['type']));
-            if ($type) {
-                $refArticle->setType($type);
-            }
-        }
-
-        if (isset($data['stockManagement'])) {
-            $refArticle->setStockManagement($data['stockManagement'] ?? null);
-        }
-
-        if (isset($data['managers'])) {
-            $refArticle->getManagers()->clear();
-
-            if (!empty($data['managers'])) {
-                $managers = is_string($data['managers'])
-                    ? explode(',', $data['managers'])
-                    : $data['managers'];
-                foreach ($managers as $manager) {
-                    $refArticle->addManager($userRepository->find($manager));
-                }
-            }
-        }
-
-        if (isset($data['ndpCode'])) {
-            $refArticle->setNdpCode($data['ndpCode']);
-        }
-
-        if (isset($data['security'])) {
-            $refArticle->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN));
-        }
-
-        if (isset($data['onuCode'])) {
-            $refArticle->setOnuCode($data['onuCode']);
-        }
-
-        if (isset($data['productClass'])) {
-            $refArticle->setProductClass($data['productClass']);
-        }
-
-
-        try {
-            $entityManager->flush();
-        } catch (UniqueConstraintViolationException $e) {
-            if (str_contains($e->getPrevious()->getMessage(), StorageRule::uniqueConstraintLocationReferenceArticleName)) {
-                return [
-                    'success' => false,
-                    'msg' => "Impossible de créer deux règles de stockage pour le même emplacement."
-                ];
-            } else {
-                return [
-                    'success' => false,
-                    'msg' => "Une erreur est survenue lors de la sauvegarde. Veuillez réessayer."
-                ];
-            }
-        }
-
-        if (isset($data["visibility-group"])) {
-            if ($data["visibility-group"] !== 'null') {
-                $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
-            } else {
-                $refArticle->setProperties(['visibilityGroup' => null]);
-            }
-        }
-
+        $refArticle
+            ->setCategory($category)
+            ->setReference($data->get('reference'))
+            ->setIsUrgent($isUrgent)
+            ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
+            ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
+            ->setPrixUnitaire(max(0, $data->get('prix')))
+            ->setCommentaire(StringHelper::cleanedComment($data->get('commentaire')))
+            ->setNeedsMobileSync($mobileSync)
+            ->setBuyer($buyer)
+            ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
+            ->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null)
+            ->setStockManagement($data->get('stockManagement'))
+            ->setNdpCode($data->get('ndpCode'))
+            ->setDangerousGoods($data->getBoolean('security'))
+            ->setOnuCode($data->get('onuCode'))
+            ->setProductClass($data->get('productClass'))
+            ->setProperties(['visibilityGroup' => $visibilityGroup]);
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
@@ -539,19 +466,17 @@ class RefArticleDataService
             ->setEditedAt(new DateTime('now'));
 
         $entityManager->persist($refArticle);
-        $entityManager->flush();
         //modification ou création des champsLibres
-
-        $this->freeFieldService->manageFreeFields($refArticle, $data, $entityManager);
-        if (isset($request)) {
-            if ($request->files->has('image')) {
-                $file = $request->files->get('image');
+        $this->freeFieldService->manageFreeFields($refArticle, $data->all(), $entityManager);
+        if ($fileBag) {
+            if ($fileBag->has('image')) {
+                $file = $fileBag->get('image');
                 $attachments = $this->attachmentService->createAttachements([$file]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
-                $request->files->remove('image');
-            } elseif ($request->request->has('deletedImage') && $request->request->getBoolean('deletedImage')) {
+                $fileBag->remove('image');
+            } elseif ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -560,15 +485,15 @@ class RefArticleDataService
                 }
             }
 
-            if ($request->files->has('fileSheet')) {
-                $file = $request->files->get('fileSheet');
+            if ($fileBag->has('fileSheet')) {
+                $file = $fileBag->get('fileSheet');
                 $attachments = $this->attachmentService->createAttachements([$file]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
                 $refArticle->setSheet($attachments[0]);
-                $request->files->remove('fileSheet');
-            }elseif ($request->request->has('deletedSheetFile') && $request->request->getBoolean('deletedSheetFile')) {
+                $fileBag->remove('fileSheet');
+            } elseif ($data->getBoolean('deletedSheetFile')) {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -576,10 +501,19 @@ class RefArticleDataService
                     $entityManager->remove($image);
                 }
             }
-            $this->attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
-
+            $this->attachmentService->manageAttachments($entityManager, $refArticle, $fileBag);
         }
-        $entityManager->flush();
+
+        try {
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException $e) {
+            if (str_contains($e->getPrevious()->getMessage(), StorageRule::uniqueConstraintLocationReferenceArticleName)) {
+                throw new FormException("Impossible de créer deux règles de stockage pour le même emplacement.");
+            } else {
+                throw new FormException("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
+            }
+        }
+
         //recup de la row pour insert datatable
         $rows = $this->dataRowRefArticle($refArticle);
         $response['success'] = true;
@@ -714,7 +648,7 @@ class RefArticleDataService
             }
 
             if (!$fromNomade && $editRef) {
-                $this->editRefArticle($entityManager, $referenceArticle, $data, $user);
+                $this->editRefArticle($entityManager, $referenceArticle, new ParameterBag($data), $user);
             }
             $resp['type'] = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
         } else if($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {

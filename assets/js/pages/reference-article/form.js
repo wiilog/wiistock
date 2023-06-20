@@ -1,6 +1,7 @@
 import '@styles/details-page.scss';
-import AJAX from "@app/ajax";
+import AJAX, {POST} from "@app/ajax";
 import {computeDescriptionFormValues} from "./common";
+import Form from "@app/form";
 
 global.onTypeQuantityChange = onTypeQuantityChange;
 global.toggleEmergency = toggleEmergency;
@@ -54,29 +55,51 @@ $(document).ready(() => {
         $(this).closest(`.details-page-dropdown`).find(`.dropdown-wrapper`).toggleClass(`open`)
     })
 
-    $(`.save`).click(function () {
-        if ($('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
-            showBSAlert('Un fournisseur minimum est obligatoire pour continuer', 'danger');
-        } else {
-            const $button = $(this);
-            const $form = $(`.wii-form`);
-            clearFormErrors($form);
-            processSubmitAction($form, $button, $button.data(`submit`), {
-                keepForm: true,
-                success: data => {
-                    window.location.href = redirectRoute
-                        ? Routing.generate(redirectRoute, redirectRouteParams)
-                        : data.id
-                            ? Routing.generate('reference_article_show_page', {id: data.id})
-                            : Routing.generate('reference_article_index');
-                },
-            }).then((data) => {
-                if (data && typeof data === "object" && !data.success && data.draftDefaultReference) {
-                    $('input[name="reference"]').val(data.draftDefaultReference);
-                }
+    const $form = $('[data-reference-article-form]');
+    const submitRoute = $form.find('button[type="submit"]').data('submit');
+    const submitParams = $form.find('button[type="submit"]').data('submit-params');
+    Form
+        .create($form)
+        .addProcessor((data, errors, $form) => {
+            if ($form.find('.supplier-container').length === 0 && $('.ligneFournisseurArticle').length === 0) {
+                errors.push({
+                    elements: [$form.find('[data-supplier-form]')],
+                    message: `Un fournisseur minimum est obligatoire pour continuer`,
+                    global: true,
+                });
+            }
+        })
+        .addProcessor((data, errors, $form) => {
+            $form.find('.wii-switch').each(function () {
+                const $this = $(this);
+                $this.find('input[type="radio"]:checked').each(function () {
+                    const $radio = $(this);
+                    data.append($radio.attr('name'), $radio.val());
+                });
+            })
+        })
+        .addProcessor((data, errors, $form) => {
+            Object.entries(submitParams || {}).forEach(([key, value]) => {
+                data.append(key, value);
             });
-        }
-    });
+        })
+        .submitTo(POST, submitRoute, {
+            success: (data) => {
+
+                console.log(data);
+
+
+                window.location.href = redirectRoute
+                    ? Routing.generate(redirectRoute, redirectRouteParams)
+                    : data.id
+                        ? Routing.generate('reference_article_show_page', {id: data.id})
+                        : Routing.generate('reference_article_index');
+            },
+        });
+
+    $('[name=security]').on('change', function () {
+        onTypeQuantityChange($(this))
+    }).trigger('change');
 
     $('.btn.cancel').on('click', () => {
         window.location.href = Routing.generate( redirectRoute || 'reference_article_index', redirectRoute ? redirectRouteParams : undefined);
