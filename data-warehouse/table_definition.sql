@@ -551,6 +551,49 @@ CREATE TABLE dw_unite_logistique
     code_barre_article      varchar(255)
 );
 
+CREATE TABLE dw_capteur
+(
+    code_capteur        varchar(255),
+    nom_capteur         varchar(255),
+    type_capteur        varchar(255),
+    profil_capteur      varchar(255),
+    derniere_remontee   timestamp(0),
+    niveau_batterie     varchar(255),
+    gestionnaire        varchar(255)
+);
+
+CREATE TABLE dw_capteur_champs_libres
+(
+    code_capteur            varchar(255),
+    libelle_champ_libre     varchar(255),
+    valeur_champ_libre      varchar(255)
+);
+
+CREATE TABLE dw_actionneur
+(
+    code_capteur    varchar(255),
+    type_modele     varchar(255),
+    nom_modele      varchar(255),
+    seuil_capteur   varchar(255),
+    type_seuil      varchar(255)
+);
+
+CREATE TABLE dw_capteur_elements_associes
+(
+    code_capteur            varchar(255),
+    element_associe         varchar(255),
+    date_association        timestamp(0),
+    date_fin_association    timestamp(0)
+);
+
+CREATE TABLE dw_capteur_messages
+(
+    code_capteur        varchar(255),
+    date_message        timestamp(0),
+    type_message        varchar(255),
+    donnee_principale   varchar(255)
+);
+
 CREATE TABLE dw_informations
 (
     version varchar(255)
