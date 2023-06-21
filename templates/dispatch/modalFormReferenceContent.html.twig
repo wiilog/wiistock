@@ -2,6 +2,41 @@
 {% import 'reference_article/form/macros.html.twig' as referenceArticleMacros %}
 
 {% set dispatchReferenceArticle = dispatchReferenceArticle ?? null %}
+{% if dispatchReferenceArticle %}
+    <div class="wii-section-title mt-2">Modification d'une UL</div>
+    <div class="row mb-2">
+        <div class="col-3 d-flex mt-2">
+            {{ form.select('pack', 'Unité logistique', false, {
+                additionalAttributes: [{
+                    name :"disabled",
+                    value: true,
+                }],
+                value: pack.id,
+                items: packItem
+            }) }}
+        </div>
+        <div class="col-3 d-flex mt-2">
+            {{ form.select('nature', 'Nature', true, {
+                value: pack.nature is not null ? pack.nature.id : null,
+                items: natures
+            }) }}
+        </div>
+        <div class="col-3 d-flex mt-2">
+        {{ form.input('ULWeight', trans('Demande', 'Acheminements', "Général", "Poids (kg)"), false, pack.weight, {
+            type: 'number'
+        } ) }}
+        </div>
+        <div class="col-3 d-flex mt-2">
+            {{ form.input('ULVolume', trans('Demande', 'Acheminements', "Général", "Volume (m3)"), false, pack.volume, {
+                type: 'number'
+            } ) }}
+        </div>
+        <div class="col-8 mt-2">
+            {{ form.wysiwyg('ULComment', 'Commentaire', false, pack.comment ?: null)}}
+        </div>
+    </div>
+    <div class="wii-section-title mt-2">Modification d'une référence</div>
+{% endif %}
 <div class="row">
     {{ form.input('dispatch', '', false, dispatch.id, {
         type: 'hidden'
@@ -39,23 +74,20 @@
             </div>
         {% endif %}
     </div>
-    <div class="col-4 d-flex mt-2">
-        {{ form.select('pack', 'Unité logistique', true, {
-            additionalAttributes: [{
-                name :"data-other-params"
-            },{
-                name :"data-other-params-dispatch-id",
-                value: dispatch.id,
-            }],
-            emptyOption: false,
-            items: packs,
-            value: dispatchReferenceArticle
-                    ? dispatchReferenceArticle.dispatchPack.pack.id
-                    : (pack
-                        ? pack.id
-                        : null),
-        }) }}
-    </div>
+    {% if not dispatchReferenceArticle %}
+        <div class="col-4 d-flex mt-2">
+            {{ form.select('pack', 'Unité logistique', true, {
+                additionalAttributes: [{
+                    name :"data-other-params"
+                },{
+                    name :"data-other-params-dispatch-id",
+                    value: dispatch.id,
+                }],
+                emptyOption: false,
+                items: packs,
+            }) }}
+        </div>
+    {% endif %}
     <div class="col-4 mt-2">
         {{ form.input('quantity', 'Quantité', true, dispatchReferenceArticle ? dispatchReferenceArticle.quantity : null, {
             labelClass: 'w-100',
