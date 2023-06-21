@@ -2024,6 +2024,7 @@ class ReceptionController extends AbstractController {
                 ->setIsUrgent(false)
                 ->setUserThatTriggeredEmergency(null)
                 ->setEmergencyComment('');
+            $entityManager->flush();
         }
 
         if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
