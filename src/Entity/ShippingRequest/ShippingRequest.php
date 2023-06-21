@@ -136,25 +136,32 @@ class ShippingRequest extends StatusHistoryContainer {
 
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Statut $status = null;
 
     #[ORM\ManyToOne(targetEntity: Transporteur::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Transporteur $carrier = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Utilisateur $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Utilisateur $validatedBy = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Utilisateur $plannedBy = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Utilisateur $treatedBy = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private Collection $requesters;
 
     #[ORM\OneToMany(mappedBy: 'request', targetEntity: ShippingRequestExpectedLine::class)]

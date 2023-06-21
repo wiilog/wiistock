@@ -465,9 +465,8 @@ class ShippingRequestController extends AbstractController {
         }
         $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
-        // remove ShippingRequesExpectedtLine
+        // remove ShippingRequestExpectedLine
         foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-
             $entityManager->remove($expectedLine);
             $shippingRequest->removeExpectedLine($expectedLine);
         }

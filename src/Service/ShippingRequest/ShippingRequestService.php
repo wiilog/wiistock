@@ -500,7 +500,7 @@ class ShippingRequestService {
     }
 
     public function deletePacking(EntityManagerInterface $entityManager,
-                                  ShippingRequest        $shippingRequest):void
+                                  ShippingRequest        $shippingRequest): void
     {
 
         // remove track mvt
