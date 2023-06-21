@@ -221,7 +221,7 @@ class HandlingController extends AbstractController {
             ->setDestination($post->get('destination') ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment(StringHelper::cleanedComment($post->get('comment')))
+            ->setComment(utf8_encode(StringHelper::cleanedComment($post->get('comment'))))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
