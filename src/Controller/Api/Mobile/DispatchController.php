@@ -136,10 +136,15 @@ class DispatchController extends AbstractApiController
                 try {
                     if($isCreation){
                         $uniqueNumberService->createWithRetry(
-                            $entityManager,
                             Dispatch::NUMBER_PREFIX,
                             Dispatch::class,
                             UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
+                            function () use (&$dispatchRepository, &$typeRepository, &$statusRepository, &$locationRepository, &$userRepository, &$entityManager){
+                                if(!$entityManager->isOpen()){
+                                    [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
+                                }
+                                return $entityManager;
+                            },
                             function (string $number) use ($dispatch, $entityManager) {
                                 $dispatch->setNumber($number);
                                 $entityManager->flush();
