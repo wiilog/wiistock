@@ -77,15 +77,15 @@ class UniqueNumberService
         return ($smartPrefix . $dateStr . $currentCounterStr);
     }
 
-    public function createWithRetry(EntityManagerInterface $entityManager,
-                                    string                 $prefix,
-                                    string                 $entity,
-                                    string                 $format,
-                                    callable               $flush,
-                                    int                    $maxNbRetry = self::MAX_RETRY): void {
-
+    public function createWithRetry(string   $prefix,
+                                    string   $entity,
+                                    string   $format,
+                                    callable $getEntityManager,
+                                    callable $flush,
+                                    int      $maxNbRetry = self::MAX_RETRY): void {
         $nbTry = 0;
         do {
+            $entityManager = $getEntityManager();
             try {
                 $number = $this->create($entityManager, $prefix, $entity, $format);
 
@@ -95,8 +95,6 @@ class UniqueNumberService
             } catch (UniqueConstraintViolationException $e) {
                 $stopTrying = ($nbTry >= $maxNbRetry);
             }
-        }
-        while (!$stopTrying);
+        } while (!$stopTrying);
     }
-
 }
