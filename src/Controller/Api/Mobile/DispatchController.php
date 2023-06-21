@@ -10,6 +10,7 @@ use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
 use App\Service\PackService;
@@ -17,6 +18,7 @@ use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -70,7 +72,10 @@ class DispatchController extends AbstractApiController
                 $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
                 $wasDraft = true;
                 $createdAt = $this->getFormatter()->parseDatetime($dispatchArray['createdAt']);
+                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH, $createdAt);
+
                 $dispatch = (new Dispatch())
+                    ->setNumber($dispatchNumber)
                     ->setCreationDate($createdAt)
                     ->setRequester($requester ?? $createdBy)
                     ->setType($type)
@@ -127,31 +132,18 @@ class DispatchController extends AbstractApiController
                 $filteredDispatchReferences = Stream::from($dispatchReferences)
                     ->filter(fn(array $dispatchReference) => $wasDraft && $dispatchReference['localDispatchId'] === $dispatchArray['localId']);
 
-                foreach ($filteredDispatchReferences as $dispatchReference) {
-                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
-                        'loggedUser' => $dispatch->getCreatedBy(),
-                        'now' => $syncedAt
-                    ]);
-                }
                 try {
-                    if($isCreation){
-                        $uniqueNumberService->createWithRetry(
-                            $entityManager,
-                            Dispatch::NUMBER_PREFIX,
-                            Dispatch::class,
-                            UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
-                            function (string $number) use ($dispatch, $entityManager) {
-                                $dispatch->setNumber($number);
-                                $entityManager->flush();
-                            }
-                        );
-                    } else {
-                        $entityManager->flush();
+                    foreach ($filteredDispatchReferences as $dispatchReference) {
+                        $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
+                            'loggedUser' => $dispatch->getCreatedBy(),
+                            'now' => $syncedAt
+                        ]);
                     }
+                    $entityManager->flush();
                     $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
                 } catch (Exception $error) {
                     $exceptionLoggerService->sendLog($error, $request);
-                    $errors[] = "Une erreur est survenue sur le traitement d'un des acheminements";
+                    $errors[] = $error instanceof FormException ? $error->getMessage() : "Une erreur est survenue sur le traitement d'un des acheminements";
                     [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                 }
             }
