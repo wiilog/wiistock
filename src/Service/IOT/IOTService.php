@@ -121,13 +121,15 @@ class IOTService
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false)
     {
         $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
-        $this->linkWithSubEntities($message,
-            $entityManager->getRepository(Pack::class),
-            $entityManager->getRepository(Article::class),
-        );
-        $entityManager->flush();
-        $this->treatTriggers($message, $entityManager);
-        $entityManager->flush();
+        if($message){
+            $this->linkWithSubEntities($message,
+                $entityManager->getRepository(Pack::class),
+                $entityManager->getRepository(Article::class),
+            );
+            $entityManager->flush();
+            $this->treatTriggers($message, $entityManager);
+            $entityManager->flush();
+        }
     }
 
     private function treatTriggers(SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
@@ -384,7 +386,7 @@ class IOTService
         $this->alertService->trigger($template, $message, $entityManager);
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): SensorMessage
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): ?SensorMessage
     {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
@@ -394,7 +396,14 @@ class IOTService
             'code' => $deviceCode,
         ]);
 
-        $newBattery = $this->extractBatteryLevelFromMessage($message, $device->getProfile()->getName());
+        $profile =  $device->getProfile()->getName();
+
+        $frameIsValid = $this->validateFrame($profile, $message);
+        if(!$frameIsValid){
+            return null;
+        }
+
+        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
         $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
@@ -918,5 +927,12 @@ class IOTService
                 }
             }
         }
+    }
+
+    public function validateFrame(string $profile, array $frame): bool {
+        return match ($profile) {
+            IOTService::TEMP_HYGRO => str_starts_with($frame['value']['payload'], '6d'),
+            default => true,
+        };
     }
 }

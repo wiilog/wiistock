@@ -21,6 +21,7 @@ class SpecificService
     const CLIENT_BOITE_ROSE_TAVERNY = 'boite-rose-taverny';
     const CLIENT_CLB = 'clb';
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
+    const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -39,6 +40,7 @@ class SpecificService
         self::CLIENT_CLB => 'CLB',
         self::CLIENT_SAFRAN_MC => 'Safran MC',
         self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
+        self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';
@@ -65,5 +67,9 @@ class SpecificService
 	public function getAppClient(): string {
 		return $_SERVER['APP_CLIENT'] ?? '';
 	}
+
+    public function getAppClientLabel(): string {
+        return self::CLIENTS[$this->getAppClient()] ?? $this->getAppClient();
+    }
 
 }
