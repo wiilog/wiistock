@@ -3613,8 +3613,15 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $dispatchPackAndReference = Stream::from($dispatch->getDispatchPacks())
+                ->flatMap(function (DispatchPack $dispatchPack) {
+                    return Stream::from($dispatchPack->getDispatchReferenceArticles()->toArray())
+                        ->keymap(fn(DispatchReferenceArticle $dispatchReferenceArticle) => [$dispatchPack->getPack()->getCode() . '-' . $dispatchReferenceArticle->getReferenceArticle()->getReference(), $dispatchReferenceArticle])
+                        ->toArray();
+                })
+                ->toArray();
             foreach ($references as $data) {
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $dispatchPackAndReference, [
                     'loggedUser' => $user,
                     'now' => $now
                 ]);

@@ -1635,6 +1635,7 @@ class DispatchService {
     public function treatMobileDispatchReference(EntityManagerInterface $entityManager,
                                                  Dispatch $dispatch,
                                                  array $data,
+                                                 array &$dispatchPackAndReference,
                                                  array $options){
         if(!isset($data['logisticUnit']) || !isset($data['reference'])){
             throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
@@ -1772,5 +1773,7 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+
+        unset($dispatchPackAndReference[$dispatchPack->getPack()?->getCode().'-'.$reference->getReference()]);
     }
 }

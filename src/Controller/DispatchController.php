@@ -30,6 +30,8 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\ArrivageService;
 use App\Helper\FormatHelper;
+use App\Service\Dispatch\DispatchPackService;
+use App\Service\Dispatch\DispatchReferenceArticleService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\RefArticleDataService;
@@ -898,15 +900,16 @@ class DispatchController extends AbstractController {
     /**
      * @Route("/packs/delete", name="dispatch_delete_pack", options={"expose"=true},methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
      */
-    public function deletePack(Request $request,
-                               TranslationService $translationService,
-                               EntityManagerInterface $entityManager): Response {
-        if($data = json_decode($request->getContent(), true)) {
+    public function deletePack(Request                $request,
+                               TranslationService     $translationService,
+                               DispatchPackService    $dispatchPackService,
+                               EntityManagerInterface $entityManager): Response
+    {
+        if ($data = json_decode($request->getContent(), true)) {
             $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
-            if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
-                $entityManager->remove($pack);
-                $pack->getDispatch()->setUpdatedAt(new DateTime());
+            if ($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
+                $dispatchPackService->deletePack($entityManager, $pack);
                 $entityManager->flush();
             }
 
@@ -1685,12 +1688,11 @@ class DispatchController extends AbstractController {
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
     #[HasPermission([Menu::DEM, Action::ADD_REFERENCE_IN_LU], mode: HasPermission::IN_JSON)]
     public function deleteReference(DispatchReferenceArticle $dispatchReferenceArticle,
+                                    DispatchReferenceArticleService $dispatchReferenceArticleService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
-        $dispatchReferenceArticle->getDispatchPack()->getDispatch()->setUpdatedAt(new DateTime());
-        $dispatchPack->removeDispatchReferenceArticles($dispatchReferenceArticle);
-        $entityManager->remove($dispatchReferenceArticle);
+        $dispatchReferenceArticleService->deleteReference($entityManager, $dispatchReferenceArticle, $dispatchPack);
         $entityManager->flush();
 
         return new JsonResponse([

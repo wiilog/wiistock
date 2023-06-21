@@ -6,6 +6,8 @@ use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -45,6 +47,7 @@ class DispatchController extends AbstractApiController
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $dispatchs = json_decode($data->get('dispatches'), true);
@@ -53,13 +56,13 @@ class DispatchController extends AbstractApiController
         $localIdsToInsertIds = [];
         $syncedAt = new DateTime();
         $errors = [];
-        foreach($dispatchs as $dispatchArray){
+        foreach ($dispatchs as $dispatchArray) {
             $currentError = false;
             $wasDraft = false;
             $isCreation = !$dispatchArray['id'];
             $validationDate = $this->getFormatter()->parseDatetime($dispatchArray['validatedAt']);
             // CREATION DES ACHEMINEMENTS
-            if($isCreation){
+            if ($isCreation) {
                 $type = $typeRepository->find($dispatchArray['typeId']);
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
@@ -83,7 +86,7 @@ class DispatchController extends AbstractApiController
                     ->setUpdatedAt($syncedAt);
                 $entityManager->persist($dispatch);
 
-                if($draftStatus){
+                if ($draftStatus) {
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                         'date' => $createdAt,
                     ]);
@@ -91,7 +94,7 @@ class DispatchController extends AbstractApiController
                     $errors[] = "Vous devez paramétrer un statut Brouillon et un à traiter pour ce type";
                 }
 
-                if($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()){
+                if ($dispatchStatus && $draftStatus->getId() !== $dispatchStatus->getId()) {
                     $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
                     $dispatch->setValidationDate($validationDate);
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
@@ -103,7 +106,7 @@ class DispatchController extends AbstractApiController
                 if (!$dispatch) {
                     $errors[] = "L'acheminement a été supprimé.";
                     $currentError = true;
-                } else if($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > $this->getFormatter()->parseDatetime($dispatchArray['updatedAt'], [DATE_ATOM])){
+                } else if ($dispatch->getUpdatedAt() && $dispatch->getUpdatedAt() > $this->getFormatter()->parseDatetime($dispatchArray['updatedAt'], [DATE_ATOM])) {
                     $errors[] = "L'acheminement {$dispatch->getNumber()} a été modifié à {$this->getFormatter()->datetime($dispatch->getUpdatedAt())}, modifications locales annulées.";
                     $currentError = true;
                 } else {
@@ -127,14 +130,35 @@ class DispatchController extends AbstractApiController
                 $filteredDispatchReferences = Stream::from($dispatchReferences)
                     ->filter(fn(array $dispatchReference) => $wasDraft && $dispatchReference['localDispatchId'] === $dispatchArray['localId']);
 
+                $dispatchPackAndReference = Stream::from($dispatch->getDispatchPacks())
+                    ->flatMap(function (DispatchPack $dispatchPack) {
+                        return Stream::from($dispatchPack->getDispatchReferenceArticles()->toArray())
+                            ->keymap(fn(DispatchReferenceArticle $dispatchReferenceArticle) => [$dispatchPack->getPack()->getCode() . '-' . $dispatchReferenceArticle->getReferenceArticle()->getReference(), $dispatchReferenceArticle])
+                            ->toArray();
+                    })
+                    ->toArray();
+
                 foreach ($filteredDispatchReferences as $dispatchReference) {
-                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
+                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, $dispatchPackAndReference, [
                         'loggedUser' => $dispatch->getCreatedBy(),
-                        'now' => $syncedAt
+                        'now' => $syncedAt,
                     ]);
                 }
+
+                /** @var DispatchReferenceArticle $dispatchRefArticle */
+                foreach ($dispatchPackAndReference as $dispatchRefArticle) {
+                    $dispatchPack = $dispatchRefArticle->getDispatchPack();
+                    $dispatchPack->removeDispatchReferenceArticles($dispatchRefArticle);
+                    $entityManager->remove($dispatchRefArticle);
+
+                    if ($dispatchPack->getDispatchReferenceArticles()->isEmpty()) {
+                        $dispatch->removeDispatchPack($dispatchPack);
+                        $entityManager->remove($dispatchPack);
+                    }
+                }
+
                 try {
-                    if($isCreation){
+                    if ($isCreation) {
                         $uniqueNumberService->createWithRetry(
                             $entityManager,
                             Dispatch::NUMBER_PREFIX,
@@ -202,7 +226,8 @@ class DispatchController extends AbstractApiController
         ]);
     }
 
-    public function closeAndReopenEntityManager(EntityManagerInterface $entityManager){
+    public function closeAndReopenEntityManager(EntityManagerInterface $entityManager)
+    {
         $entityManager->close();
         $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
