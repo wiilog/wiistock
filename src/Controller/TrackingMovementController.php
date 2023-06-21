@@ -208,10 +208,11 @@ class TrackingMovementController extends AbstractController
                 }
             }
             else {
-                $colisArray = explode(',', $packCode);
+                $packArrayFiltered = Stream::explode(',', $packCode)
+                    ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
                 $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
-                foreach ($colisArray as $colis) {
+                foreach ($packArrayFiltered as $colis) {
                     $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
                         $codeToPack[$colis] ?? $colis,
