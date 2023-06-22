@@ -49,7 +49,7 @@ class TrackingMovementService extends AbstractController
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public Logger $logger;
+    public LoggerInterface $logger;
 
     private $locationClusterService;
     private $visibleColumnService;
