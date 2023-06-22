@@ -23,6 +23,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -46,6 +47,9 @@ class TrackingMovementService extends AbstractController
 
     #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public LoggerInterface $logger;
 
     private $locationClusterService;
     private $visibleColumnService;
@@ -556,6 +560,11 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if ($tracking->isDrop()) {
+                    $this->logger->debug('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
+                        'user' => $tracking->getOperateur()->getUsername(),
+                        'pack' => $pack->getCode(),
+                        'location' => $tracking->getEmplacement()->getLabel(),
+                    ]);
                     $record->setActive(true);
                     $previousRecordLastTracking = $record->getLastTracking();
                     // check if pack previous last tracking !== record previous lastTracking
@@ -566,7 +575,10 @@ class TrackingMovementService extends AbstractController
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
-
+                    $this->logger->debug('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
+                        'pack' => $pack->getCode(),
+                        'cluster' => $cluster->getId(),
+                    ]);
                     $this->locationClusterService->setMeter(
                         $entityManager,
                         LocationClusterService::METER_ACTION_INCREASE,
@@ -576,11 +588,18 @@ class TrackingMovementService extends AbstractController
 
                     if ($previousLastTracking
                         && $previousLastTracking->isTaking()) {
-
+                        $this->logger->debug('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking', [
+                            'pack' => $pack->getCode(),
+                        ]);
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                            $this->logger->debug('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
+                                'pack' => $pack->getCode(),
+                                'cluster1' => $locationClusterPreviousLastTracking->getId(),
+                                'cluster2' => $cluster->getId(),
+                            ]);
                             $this->locationClusterService->setMeter(
                                 $entityManager,
                                 LocationClusterService::METER_ACTION_INCREASE,
