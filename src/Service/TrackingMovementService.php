@@ -592,7 +592,7 @@ class TrackingMovementService extends AbstractController
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         $this->logger->critical('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking from location : {location}', [
                             'pack' => $pack->getCode(),
-                            'location' => $locationPreviousLastTracking->getLabel()
+                            'location' => $locationPreviousLastTracking?->getLabel()
                         ]);
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
