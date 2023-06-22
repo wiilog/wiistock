@@ -51,6 +51,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
+use App\Service\FormService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -1190,7 +1191,6 @@ class SettingsController extends AbstractController {
                                 "modalType" => $defaultLocationByType?->getModalType(),
                                 "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                             ],
-                            "disabledDisplayedUnderConditionFields" => SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION,
                             "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         ];
                     },
@@ -2375,46 +2375,79 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity): Response {
-        $class = "form-control data";
+    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity, FormService $formService): Response
+    {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $arrayFields = $subLineFieldsParamRepository->findByEntityForEntity($entity);
+        $rows = Stream::from($subLineFieldsParamRepository->findByEntityForEntity($entity))
+            ->map(function (SubLineFieldsParam $field) use ($formService, $typeRepository) {
 
-        $rows = [];
-        foreach ($arrayFields as $field) {
-            $label = ucfirst($field->getFieldLabel());
-            $displayed = $field->isDisplayed() ? "checked" : "";
-            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
-            $conditionFixedField = $field->getConditionFixedField() ?? "";
-            $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
-            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
-            $disabledDisplayedUnderCondition = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION) ? 'disabled' : '';
+                $label = ucfirst($field->getFieldLabel());
 
-            $labelAttributes = "class='font-weight-bold'";
+                $fieldEntityCode = $field->getEntityCode();
+                $isDisplayUnderCondition = $field->isDisplayedUnderCondition();
+                $isDisplayUnderConditionDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$fieldEntityCode] ?? []);
+                $isRequiredDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$fieldEntityCode] ?? []);
 
-            $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
-                ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
-                : [];
+                $isDisplayUnderConditionDisplayed = !$isDisplayUnderConditionDisabled && $isDisplayUnderCondition;
 
-            $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
-                ->map(fn(Type $type) => "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>")
-                ->join("");
+                $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+                $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
+                    ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
+                    : [];
 
-            $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
-            $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
+                $conditionFixedFieldOptionsSelected = Stream::from(!$isDisplayUnderConditionDisabled ? $conditionFixedFieldValue : [])
+                    ->map(fn(Type $type) => [
+                        'value' => $type->getId(),
+                        'label' => $type->getLabel(),
+                        'selected' => true,
+                    ])
+                    ->toArray();
 
-            $row = [
-                "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                "displayed" => "<input type='checkbox' name='displayed' id='{$field->getFieldCode()}' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
-                "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
-                "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
-                "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
-                "required" => "<input type='checkbox' name='required' class='$class' $required />",
-            ];
+                $displayConditions = Stream::from(SubLineFieldsParam::DISPLAY_CONDITIONS[$field->getEntityCode()] ?? [])
+                    ->map(fn(string $condition) => [
+                        'value' => $condition,
+                        'label' => $condition,
+                        'selected' => $condition === $field->getConditionFixedField(),
+                    ])
+                    ->toArray();
 
-            $rows[] = $row;
-        }
+                return [
+                    "label" => "<span class='font-weight-bold'>$label</span>" . $formService->macro("hidden", "id", $field->getId(), []),
+
+                    "displayed" => $formService->macro("checkbox", "displayed", null, false, $field->isDisplayed(), [
+                        "additionalAttributes" => [
+                            ['name' => "onchange", "value" => "changeDisplayRefArticleTable($(this))"],
+                        ],
+                    ]),
+                    "displayedUnderCondition" => $formService->macro("checkbox", "displayedUnderCondition", null, false, $isDisplayUnderCondition, [
+                        "disabled" => $isDisplayUnderConditionDisabled,
+                        "additionalAttributes" => [
+                            ['name' => "onchange", "value" => "changeDisplayRefArticleTable($(this))"],
+                        ],
+                    ]),
+                    "conditionFixedField" => $isDisplayUnderConditionDisabled
+                        ? ''
+                        : $formService->macro("select", "conditionFixedField", null, false, [
+                            "items" => $displayConditions,
+                            "additionalAttributes" => $isDisplayUnderConditionDisplayed
+                                ? []
+                                : [['name' => "hidden", "value" => 'hidden']],
+                        ]),
+                    "conditionFixedFieldValue" => $isDisplayUnderConditionDisabled
+                        ? ''
+                        : $formService->macro("select", "conditionFixedFieldValue", null, false, [
+                        "type" => "referenceType",
+                        "items" => $conditionFixedFieldOptionsSelected,
+                        "hidden" => !$isDisplayUnderConditionDisplayed,
+                        "multiple" => true,
+                    ]),
+                    "required" => $formService->macro("checkbox", "required", null, false, $field->isRequired(), [
+                        "disabled" => $isRequiredDisabled,
+                    ]),
+                ];
+            })
+            ->toArray();
 
         return $this->json([
             "data" => $rows,

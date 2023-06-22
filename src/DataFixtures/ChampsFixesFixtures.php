@@ -120,8 +120,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
         $subLinesFieldCodes = [
             SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD, 'conditionFixedFieldValue' => [], 'required' => false]
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' =>  null, 'conditionFixedFieldValue' => [], 'required' => false],
             ],
         ];
 

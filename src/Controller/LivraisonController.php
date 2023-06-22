@@ -25,6 +25,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\DeliveryRequestService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
@@ -162,7 +163,9 @@ class LivraisonController extends AbstractController {
 
     #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request $request,
+                                     EntityManagerInterface $manager,
+                                     DeliveryRequestService $deliveryRequestService): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
 
@@ -188,7 +191,7 @@ class LivraisonController extends AbstractController {
                     : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(PreparationOrderArticleLine $line) {
+                    ->map(function(PreparationOrderArticleLine $line) use ($deliveryRequestService) {
                         $article = $line->getArticle();
                         $deliveryRequestLine = $line->getDeliveryRequestArticleLine() ?? $line->getDeliveryRequestReferenceLine();
                         return [
@@ -197,7 +200,8 @@ class LivraisonController extends AbstractController {
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
                             "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                            "comment" => $deliveryRequestLine?->getComment() ?: '',
+                            "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                            "notes" => $deliveryRequestLine?->getNotes() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
                             ]),
@@ -208,7 +212,7 @@ class LivraisonController extends AbstractController {
             ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
-            ->map(function(PreparationOrderReferenceLine $line) {
+            ->map(function(PreparationOrderReferenceLine $line) use ($deliveryRequestService) {
                 $reference = $line->getReference();
                 $deliveryRequestLine = $line->getDeliveryRequestReferenceLine();
                 return [
@@ -218,7 +222,8 @@ class LivraisonController extends AbstractController {
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
                     "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                    "comment" => $deliveryRequestLine?->getComment() ?: '',
+                    "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                    "notes" => $deliveryRequestLine?->getNotes() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
                     ]),

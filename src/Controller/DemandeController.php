@@ -405,7 +405,7 @@ class DemandeController extends AbstractController
                     : null,
                 "articles" => Stream::from($deliveryRequest->getArticleLines())
                     ->filter(fn(DeliveryRequestArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(DeliveryRequestArticleLine $line) use ($needsQuantitiesCheck, $deliveryRequest, $editable) {
+                    ->map(function(DeliveryRequestArticleLine $line) use ($deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
                         $article = $line->getArticle();
                         return [
                             "reference" => $article->getArticleFournisseur()->getReferenceArticle()
@@ -422,7 +422,8 @@ class DemandeController extends AbstractController
                                 && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON
                             ),
                             "project" => $this->getFormatter()->project($line->getProject()),
-                            "comment" => '<div class="text-wrap ">'.$line->getComment().'</div>',
+                            "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($line).'</div>',
+                            "notes" => '<div class="text-wrap ">'.$line->getNotes().'</div>',
                             "actions" => $this->renderView(
                                 'demande/datatableLigneArticleRow.html.twig',
                                 [
@@ -440,7 +441,7 @@ class DemandeController extends AbstractController
             ->values();
 
         $references = Stream::from($deliveryRequest->getReferenceLines())
-            ->map(function(DeliveryRequestReferenceLine $line) use ($needsQuantitiesCheck, $deliveryRequest, $editable) {
+            ->map(function(DeliveryRequestReferenceLine $line) use ($deliveryRequestService, $needsQuantitiesCheck, $deliveryRequest, $editable) {
                 $reference = $line->getReference();
                 return [
                     "reference" => $reference->getReference() ?: '',
@@ -453,7 +454,8 @@ class DemandeController extends AbstractController
                         && $reference->getQuantiteDisponible() < $line->getQuantityToPick()
                         && $deliveryRequest->getStatut()->getCode() === Demande::STATUT_BROUILLON,
                     "project" => $this->getFormatter()->project($line->getProject()),
-                    "comment" => '<div class="text-wrap">'.$line->getComment().'</div>',
+                    "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($line).'</div>',
+                    "notes" => '<div class="text-wrap">'.$line->getNotes().'</div>',
                     "actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -1042,7 +1044,7 @@ class DemandeController extends AbstractController
                 $line = $lineRepository->find($lineId);
                 $line
                     ->setQuantityToPick($data['quantity-to-pick'] ?? null)
-                    ->setComment($data['comment'] ?? null)
+                    ->setNotes($data['notes'] ?? null)
                     ->setProject(isset($data['project']) ? $projectRepository->find($data['project']) : null)
                     ->setTargetLocationPicking($targetLocationPicking ?? null);
 

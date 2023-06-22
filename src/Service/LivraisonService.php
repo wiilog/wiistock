@@ -355,12 +355,14 @@ class LivraisonService
         $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isNotesDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
 
         $columns= [
             ['name' => 'Actions', 'title' => '', 'className' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],
             ['name' => 'reference', 'title' => 'Référence', 'alwaysVisible' => true],
             ['name' => 'barcode', 'title' => 'Code barre', 'alwaysVisible' => false],
             ['name' => 'label', 'title' => 'Libellé', 'alwaysVisible' => false],
+            ['name' => 'notes', 'title' => 'Remarques', 'orderable' => false, 'alwaysVisible' => true, 'removeColumn' => !$isNotesDisplayed],
             ['name' => 'quantity', 'title' => 'Quantité', 'alwaysVisible' => true],
             ['name' => 'project', 'title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed],
             ['name' => 'comment', 'title' => 'Commentaire', 'orderable' => false, 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],

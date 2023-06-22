@@ -14,7 +14,7 @@ abstract class DeliveryRequestLine
     private ?Project $project = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $comment = null;
+    private ?string $notes = null;
 
     public function getProject(): ?Project
     {
@@ -28,14 +28,14 @@ abstract class DeliveryRequestLine
         return $this;
     }
 
-    public function getComment(): ?string
+    public function getNotes(): ?string
     {
-        return $this->comment;
+        return $this->notes;
     }
 
-    public function setComment(?string $comment): self
+    public function setNotes(?string $notes): self
     {
-        $this->comment = $comment;
+        $this->notes = $notes;
 
         return $this;
     }
