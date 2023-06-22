@@ -297,7 +297,7 @@ class DispatchController extends AbstractController {
         $requester = $requester ?? $this->getUser();
 
         $currentUser = $this->getUser();
-        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)
