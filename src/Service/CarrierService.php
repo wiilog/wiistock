@@ -6,6 +6,7 @@ use App\Entity\Arrivage;
 use App\Entity\Chauffeur;
 use App\Entity\Dispatch;
 use App\Entity\Reception;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\Urgence;
@@ -21,6 +22,7 @@ class CarrierService {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $receptionRepository = $entityManager->getRepository(Reception::class);
         $emergencyRepository = $entityManager->getRepository(Urgence::class);
+        $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
 
         return [
             'arrivage(s) camion' => $truckArrivalRepository->count(['carrier' => $transporteur]),
@@ -28,7 +30,8 @@ class CarrierService {
             'chauffeur(s)' => $driverRepository->count(['transporteur' => $transporteur]),
             'acheminement(s)' => $dispatchRepository->count(['carrier' => $transporteur]),
             'reception(s)' => $receptionRepository->count(['transporteur' => $transporteur]),
-            'urgence(s)' => $emergencyRepository->count(['carrier' => $transporteur])
+            'urgence(s)' => $emergencyRepository->count(['carrier' => $transporteur]),
+            "demande(s) d'expédition" => $shippingRequestRepository->count(['carrier' => $transporteur]),
         ];
     }
 }
