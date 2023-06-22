@@ -3495,7 +3495,7 @@ class MobileController extends AbstractApiController
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
