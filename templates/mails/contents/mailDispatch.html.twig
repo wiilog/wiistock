@@ -10,7 +10,11 @@
     {% set endDateStr = endDate ? endDate.format('d/m/Y') : '-' %}
     {% set emergency = dispatch.emergency ?? 'Non' %}
     {% set receivers = dispatch.receivers ? dispatch.receivers|map(receiver => receiver.username)|join(", ") : '' %}
-    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '-' %}
+    {% set comment = dispatch.commentaire
+                        ? (dispatch.commentaire|split('<p>')|length-1 > 1
+                            ? dispatch.commentaire|replace({'<p>': ''})|replace({'</p>': ' ; '})|striptags|slice(0, dispatch.commentaire|replace({'<p>': ''})|replace({'</p>': ' ; '})|striptags|length-3)
+                            : dispatch.commentaire|striptags)
+                        : '-' %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
     {% set hideTreatmentDateParam = hideTreatmentDate is defined and hideTreatmentDate %}
     {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
@@ -48,7 +52,7 @@
         {% endif %}
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
-        <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>
+        <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment }}</li>
         {% if dispatch.attachments|length > 0 %}
             <li>
                 {{ translateIn(language, "Général", null, "Modale", "Pièces jointes") }} :
