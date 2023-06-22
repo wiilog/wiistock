@@ -49,7 +49,7 @@ class TrackingMovementService extends AbstractController
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public LoggerInterface $logger;
+    public Logger $logger;
 
     private $locationClusterService;
     private $visibleColumnService;
@@ -560,7 +560,7 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if ($tracking->isDrop()) {
-                    $this->logger->debug('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
                         'user' => $tracking->getOperateur()->getUsername(),
                         'pack' => $pack->getCode(),
                         'location' => $tracking->getEmplacement()->getLabel(),
@@ -575,7 +575,7 @@ class TrackingMovementService extends AbstractController
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
-                    $this->logger->debug('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
                         'pack' => $pack->getCode(),
                         'cluster' => $cluster->getId(),
                     ]);
@@ -588,14 +588,14 @@ class TrackingMovementService extends AbstractController
 
                     if ($previousLastTracking
                         && $previousLastTracking->isTaking()) {
-                        $this->logger->debug('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking', [
+                        $this->logger->critical('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking', [
                             'pack' => $pack->getCode(),
                         ]);
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
-                            $this->logger->debug('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
+                            $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
                                 'pack' => $pack->getCode(),
                                 'cluster1' => $locationClusterPreviousLastTracking->getId(),
                                 'cluster2' => $cluster->getId(),
