@@ -1635,6 +1635,7 @@ class DispatchService {
     public function treatMobileDispatchReference(EntityManagerInterface $entityManager,
                                                  Dispatch $dispatch,
                                                  array $data,
+                                                 array &$createdReferences,
                                                  array $options){
         if(!isset($data['logisticUnit']) || !isset($data['reference'])){
             throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
@@ -1648,7 +1649,8 @@ class DispatchService {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
-        $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
+        $reference = ($createdReferences[$data['reference']] ?? null)
+            ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
         if(!$reference) {
             $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
             $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
@@ -1665,8 +1667,6 @@ class DispatchService {
             $type = $typeRepository->find($dispatchNewReferenceType);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
 
-
-
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['reference'])
@@ -1681,6 +1681,8 @@ class DispatchService {
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
+
+            $createdReferences[$data['reference']] = $reference;
 
             $entityManager->persist($reference);
         }
