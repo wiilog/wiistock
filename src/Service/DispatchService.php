@@ -1356,15 +1356,17 @@ class DispatchService {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
 
-            if (!isset($data['nature'])) {
-                throw new FormException('Il manque une nature à l\'UL');
-            } else if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
+            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
                 throw new FormException('Le poids doit être supérieur à 0');
             } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
                 throw new FormException('Le volume doit être supérieur à 0');
             }
 
-            $nature = $natureRepository->find($data['nature']);
+            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
+            if (!$nature) {
+                throw new FormException("La nature de l'UL est incorrecte");
+            }
+
             $dispatchPack->getPack()
                 ->setNature($nature)
                 ->setWeight($data['ULWeight'] ?? null)
