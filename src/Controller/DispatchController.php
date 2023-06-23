@@ -1708,21 +1708,24 @@ class DispatchController extends AbstractController {
         $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
 
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
-        $packs = [];
-        foreach ($dispatchPacks as $dispatchPack) {
-            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
-        }
+        $packs = Stream::from($dispatchPacks)
+            ->map(fn(DispatchPack $dispatchPack) => [
+                "label" => $dispatchPack->getPack()->getCode(),
+                "value" => $dispatchPack->getPack()->getId()
+            ])
+            ->toArray();
 
         $natures = $natureRepository->findBy([], ['label' => 'ASC']);
-        $natureItems = [];
-        foreach ($natures as $nature) {
-            $natureItems[$nature->getId()] = $nature->getLabel();
-        }
+        $natureItems = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                "label" => $nature->getLabel(),
+                "value" => $nature->getId()
+            ])
+            ->toArray();
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'packItem' => [$refDispatchPack->getPack()->getId() => $refDispatchPack->getPack()->getCode()],
             'pack' => $refDispatchPack->getPack(),
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
             'natures' => $natureItems,

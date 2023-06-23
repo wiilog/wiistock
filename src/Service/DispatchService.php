@@ -1356,6 +1356,14 @@ class DispatchService {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
 
+            if (!$data['nature']) {
+                throw new FormException('Il manque une nature à l\'UL');
+            } else if (intval($data['ULWeight']) < 0) {
+                throw new FormException('Le poids doit être supérieur à 0');
+            } else if (intval($data['ULVolume']) < 0) {
+                throw new FormException('Le volume doit être supérieur à 0');
+            }
+
             $nature = $natureRepository->find($data['nature']);
             $dispatchPack->getPack()
                 ->setNature($nature)

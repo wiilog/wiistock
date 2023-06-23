@@ -11,24 +11,26 @@
                     name :"disabled",
                     value: true,
                 }],
-                value: pack.id,
-                items: packItem
+                items: [{value: pack.id, label: pack.code, selected: true}]
             }) }}
         </div>
         <div class="col-3 d-flex mt-2">
             {{ form.select('nature', 'Nature', true, {
+                type: '',
                 value: pack.nature is not null ? pack.nature.id : null,
                 items: natures
             }) }}
         </div>
         <div class="col-3 d-flex mt-2">
         {{ form.input('ULWeight', trans('Demande', 'Acheminements', "Général", "Poids (kg)"), false, pack.weight, {
-            type: 'number'
+            type: 'number',
+            min: 0,
         } ) }}
         </div>
         <div class="col-3 d-flex mt-2">
             {{ form.input('ULVolume', trans('Demande', 'Acheminements', "Général", "Volume (m3)"), false, pack.volume, {
-                type: 'number'
+                type: 'number',
+                min: 0,
             } ) }}
         </div>
         <div class="col-8 mt-2">
