@@ -28,10 +28,8 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -1326,7 +1324,7 @@ class DispatchService {
         return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
+    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
@@ -1344,6 +1342,8 @@ class DispatchService {
         }
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
         $referenceArticle = $referenceRepository->find($referenceArticleId);
         $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
 
@@ -1355,6 +1355,23 @@ class DispatchService {
         if ($dispatchReferenceArticleId) {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
+
+            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
+                throw new FormException('Le poids doit être supérieur à 0');
+            } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
+                throw new FormException('Le volume doit être supérieur à 0');
+            }
+
+            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
+            if (!$nature) {
+                throw new FormException("La nature de l'UL est incorrecte");
+            }
+
+            $dispatchPack->getPack()
+                ->setNature($nature)
+                ->setWeight($data['ULWeight'] ?? null)
+                ->setVolume($data['ULVolume'] ?? null)
+                ->setComment($data['ULComment'] ?? null);
         } else {
             $dispatchReferenceArticle = new DispatchReferenceArticle();
         }
@@ -1393,7 +1410,7 @@ class DispatchService {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Référence ajoutée'
+            'msg' => $dispatchReferenceArticleId ? 'Référence et UL modifiées' : 'Référence ajoutée'
         ]);
     }
 

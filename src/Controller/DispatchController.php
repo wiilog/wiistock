@@ -26,16 +26,12 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
 use App\Exceptions\FormException;
-use App\Service\ArrivageService;
-use App\Helper\FormatHelper;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -70,7 +66,6 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use WiiCommon\Helper\StringHelper;
-use function PHPUnit\Framework\throwException;
 
 /**
  * @Route("/acheminements")
@@ -1679,7 +1674,7 @@ class DispatchController extends AbstractController {
         $data = $request->request->all();
         $data['files'] = $request->files ?? [];
 
-        return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
+        return $dispatchService->updateDispatchReferenceArticle($entityManager, $data);
     }
 
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
@@ -1706,19 +1701,35 @@ class DispatchController extends AbstractController {
                                     RefArticleDataService $refArticleDataService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
-        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $natureRepository = $entityManager->getRepository(Nature::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+
+        $refDispatchPack = $dispatchReferenceArticle->getDispatchPack();
+        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
-        $packs = [];
-        foreach ($dispatchPacks as $dispatchPack) {
-            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
-        }
+        $packs = Stream::from($dispatchPacks)
+            ->map(fn(DispatchPack $dispatchPack) => [
+                "label" => $dispatchPack->getPack()->getCode(),
+                "value" => $dispatchPack->getPack()->getId()
+            ])
+            ->toArray();
+
+        $natures = $natureRepository->findBy([], ['label' => 'ASC']);
+        $natureItems = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                "label" => $nature->getLabel(),
+                "value" => $nature->getId()
+            ])
+            ->toArray();
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'packs' => $packs,
+            'pack' => $refDispatchPack->getPack(),
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'natures' => $natureItems,
+            'packs' => $packs,
         ]);
 
         return new JsonResponse($html);
