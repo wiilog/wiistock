@@ -76,8 +76,6 @@ function deleteShippingRequest($event) {
             .then((res) => {
                 if (res.success) {
                     window.location.href = Routing.generate('shipping_request_index');
-                } else {
-                    showBSAlert(res.message, 'danger');
                 }
             })
     ));

@@ -658,20 +658,14 @@ class ShippingRequestService {
     }
 
     public function hasEditRightWithStatus(ShippingRequest $shippingRequest): bool {
-        if (($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING))
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING))
             || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING))
-            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING))) {
-            return false;
-        }
-        return true;
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)));
     }
 
     public function hasDeleteRightWithStatus(ShippingRequest $shippingRequest): bool {
-        if (($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING))
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING))
             || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING))
-            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING))) {
-            return false;
-        }
-        return true;
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING)));
     }
 }
