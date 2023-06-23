@@ -106,11 +106,11 @@ class Type {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
 
-    #[ORM\ManyToMany(targetEntity: Emplacement::class)]
-    private ?Collection $suggestedDropLocations = null;
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedDropLocations = [];
 
-    #[ORM\ManyToMany(targetEntity: Emplacement::class)]
-    private ?Collection $suggestedPickLocations = null;
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedPickLocations = [];
 
     #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
@@ -848,69 +848,29 @@ class Type {
         return $this->tags;
     }
 
-    /**
-     * @return Collection|Emplacement[]
-     */
-    public function getSuggestedDropLocations(): Collection {
+    public function getSuggestedDropLocations(): array {
         return $this->suggestedDropLocations;
     }
 
-    public function addSuggestedDropLocation(Emplacement $suggestedDropLocation): self {
-        if (!$this->suggestedDropLocations->contains($suggestedDropLocation)) {
+
+    public function setSuggestedDropLocations(?array $suggestedDropLocations): self {
+        $this->suggestedDropLocations = [];
+        foreach($suggestedDropLocations ?? [] as $suggestedDropLocation) {
             $this->suggestedDropLocations[] = $suggestedDropLocation;
         }
 
         return $this;
     }
 
-    public function removeSuggestedDropLocation(Emplacement $suggestedDropLocation): self {
-        $this->suggestedDropLocations->removeElement($suggestedDropLocation);
-
-        return $this;
-    }
-
-    public function setSuggestedDropLocations(?iterable $suggestedDropLocations): self {
-        foreach($this->getSuggestedDropLocations()->toArray() as $suggestedDropLocation) {
-            $this->removeSuggestedDropLocation($suggestedDropLocation);
-        }
-
-        $this->suggestedDropLocations = new ArrayCollection();
-        foreach($suggestedDropLocations ?? [] as $suggestedDropLocation) {
-            $this->addSuggestedDropLocation($suggestedDropLocation);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Emplacement[]
-     */
-    public function getSuggestedPickLocations(): Collection {
+    public function getSuggestedPickLocations(): array {
         return $this->suggestedPickLocations;
     }
 
-    public function addSuggestedPickLocation(Emplacement $suggestedPickLocation): self {
-        if (!$this->suggestedPickLocations->contains($suggestedPickLocation)) {
-            $this->suggestedPickLocations[] = $suggestedPickLocation;
-        }
 
-        return $this;
-    }
-
-    public function removeSuggestedPickLocation(Emplacement $suggestedPickLocation): self {
-        $this->suggestedPickLocations->removeElement($suggestedPickLocation);
-
-        return $this;
-    }
-
-    public function setSuggestedPickLocations(?iterable $suggestedPickLocations): self {
-        foreach($this->getSuggestedPickLocations()->toArray() as $suggestedPickLocation) {
-            $this->removeSuggestedPickLocation($suggestedPickLocation);
-        }
-
-        $this->suggestedPickLocations = new ArrayCollection();
+    public function setSuggestedPickLocations(?array $suggestedPickLocations): self {
+        $this->suggestedPickLocations = [];
         foreach($suggestedPickLocations ?? [] as $suggestedPickLocation) {
-            $this->addSuggestedPickLocation($suggestedPickLocation);
+            $this->suggestedPickLocations[] = $suggestedPickLocation;
         }
 
         return $this;

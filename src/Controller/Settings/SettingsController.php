@@ -1999,11 +1999,32 @@ class SettingsController extends AbstractController {
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                    $locationRepository = $this->manager->getRepository(Emplacement::class);
+
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = '';
-                    $suggestedDropLocationOptions = '';
+                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                        ? Stream::from($type->getSuggestedPickLocations())
+                            ->filterMap(function (string $location) use ($locationRepository) {
+                                return $locationRepository->findOneBy(['label' => $location]);
+                            })
+                            ->map(function (Emplacement $location) {
+                                return "<option value='{$location->getId()}' selected>{$location->getLabel()}</option>";
+                            })
+                            ->join("")
+                        : "";
+
+                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                        ? Stream::from($type->getSuggestedDropLocations())
+                            ->filterMap(function (string $location) use ($locationRepository) {
+                                return $locationRepository->findOneBy(['label' => $location]);
+                            })
+                            ->map(function (Emplacement $location) {
+                                return "<option value='{$location->getId()}' selected>{$location->getLabel()}</option>";
+                            })
+                            ->join("")
+                        : "";
 
                     $data = array_merge($data, [
                         [
@@ -2012,13 +2033,12 @@ class SettingsController extends AbstractController {
                         ], [
                             "label" => "Emplacement de dépose par défaut",
                             "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
-                        ],
-                        [
+                        ], [], [], [
                             "label" => "Emplacement(s) de prise suggéré(s)",
-                            "value" => "<select name='suggestedPickLocations' multiple data-parent='body' data-s2 data-editable class='data form-control'>$suggestedPickLocationOptions</select>",
+                            "value" => "<select name='suggestedPickLocations' data-s2='location' multiple data-parent='body' data-editable class='data form-control h-25'>$suggestedPickLocationOptions</select>",
                         ], [
                             "label" => "Emplacement(s) de dépose suggéré(s)",
-                            "value" => "<select name='suggestedDropLocations' multiple data-parent='body' data-s2 data-editable class='data form-control'>$suggestedDropLocationOptions</select>",
+                            "value" => "<select name='suggestedDropLocations' data-s2='location' multiple data-parent='body' data-editable class='data form-control h-25'>$suggestedDropLocationOptions</select>",
                         ],
                     ]);
                 }
@@ -2122,6 +2142,18 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                $suggestedPickLocations = $type && !empty($type->getSuggestedPickLocations())
+                    ? Stream::from($type?->getSuggestedPickLocations())
+                        ->map(fn(string $location) => $location)
+                        ->join(', ')
+                    : "";
+
+                $suggestedDropLocations = $type && !empty($type->getSuggestedDropLocations())
+                    ? Stream::from($type?->getSuggestedDropLocations())
+                        ->map(fn(string $location) => $location)
+                        ->join(', ')
+                    : "";
+
                 $data = array_merge($data, [
                     [
                         "label" => "Emplacement de prise par défaut",
@@ -2129,13 +2161,12 @@ class SettingsController extends AbstractController {
                     ], [
                         "label" => "Emplacement de dépose par défaut",
                         "value" => $this->formatService->location($type?->getDropLocation()),
-                    ],
-                    [
+                    ], [
                         "label" => "Emplacement(s) de prise suggéré(s)",
-                        "value" => join(", ", $type?->getSuggestedPickLocations() ?: []),
+                        "value" => $suggestedPickLocations,
                     ], [
                         "label" => "Emplacement(s) de dépose suggéré(s)",
-                        "value" => join(", ", $type?->getSuggestedDropLocations() ?: []),
+                        "value" => $suggestedDropLocations,
                     ],
                 ]);
             }
