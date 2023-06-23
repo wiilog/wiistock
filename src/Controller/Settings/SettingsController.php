@@ -2002,6 +2002,9 @@ class SettingsController extends AbstractController {
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
+                    $suggestedPickLocationOptions = '';
+                    $suggestedDropLocationOptions = '';
+
                     $data = array_merge($data, [
                         [
                             "label" => "Emplacement de prise par défaut",
@@ -2009,6 +2012,13 @@ class SettingsController extends AbstractController {
                         ], [
                             "label" => "Emplacement de dépose par défaut",
                             "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
+                        ],
+                        [
+                            "label" => "Emplacement(s) de prise suggéré(s)",
+                            "value" => "<select name='suggestedPickLocations' multiple data-parent='body' data-s2 data-editable class='data form-control'>$suggestedPickLocationOptions</select>",
+                        ], [
+                            "label" => "Emplacement(s) de dépose suggéré(s)",
+                            "value" => "<select name='suggestedDropLocations' multiple data-parent='body' data-s2 data-editable class='data form-control'>$suggestedDropLocationOptions</select>",
                         ],
                     ]);
                 }
@@ -2115,10 +2125,17 @@ class SettingsController extends AbstractController {
                 $data = array_merge($data, [
                     [
                         "label" => "Emplacement de prise par défaut",
-                        "value" => FormatHelper::location($type?->getPickLocation()),
+                        "value" => $this->formatService->location($type?->getPickLocation()),
                     ], [
                         "label" => "Emplacement de dépose par défaut",
-                        "value" => FormatHelper::location($type?->getDropLocation()),
+                        "value" => $this->formatService->location($type?->getDropLocation()),
+                    ],
+                    [
+                        "label" => "Emplacement(s) de prise suggéré(s)",
+                        "value" => join(", ", $type?->getSuggestedPickLocations() ?: []),
+                    ], [
+                        "label" => "Emplacement(s) de dépose suggéré(s)",
+                        "value" => join(", ", $type?->getSuggestedDropLocations() ?: []),
                     ],
                 ]);
             }
