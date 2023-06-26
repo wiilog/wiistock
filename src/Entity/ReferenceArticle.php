@@ -218,7 +218,7 @@ class ReferenceArticle
     #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $sheet = null;
 
-    #[ORM\OneToMany(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
+    #[ORM\OneToMany(mappedBy: 'reference', targetEntity: ShippingRequestLine::class)]
     private Collection $shippingRequestLines;
 
     public function __construct() {
