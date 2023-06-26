@@ -3613,8 +3613,9 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $createdReferences = [];
             foreach ($references as $data) {
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences,[
                     'loggedUser' => $user,
                     'now' => $now
                 ]);
