@@ -790,7 +790,8 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function getDetails(ShippingRequest                    $shippingRequest,
                                ShippingRequestService             $shippingRequestService,
-                               ShippingRequestExpectedLineService $shippingRequestExpectedLineService): Response
+                               ShippingRequestExpectedLineService $shippingRequestExpectedLineService,
+                               UserService $userService): Response
     {
         switch ($shippingRequest->getStatus()->getCode()) {
             case ShippingRequest::STATUS_DRAFT:
@@ -799,10 +800,16 @@ class ShippingRequestController extends AbstractController {
                 ]);
                 break;
             case ShippingRequest::STATUS_TO_TREAT:
-                $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
-                    'shippingRequest' => $shippingRequest,
-                    'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
-                ]);
+                if($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING)){
+                    $html = $this->renderView('shipping_request/details/draft.html.twig', [
+                        'shippingRequest' => $shippingRequest,
+                    ]);
+                } else {
+                    $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
+                        'shippingRequest' => $shippingRequest,
+                        'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
+                    ]);
+                }
                 break;
             case ShippingRequest::STATUS_SCHEDULED:
             case ShippingRequest::STATUS_SHIPPED:
