@@ -685,7 +685,7 @@ class RefArticleDataService
             $projectRepository = $entityManager->getRepository(Project::class);
             $project = ($data['project'] ?? null) ? $projectRepository->find($data['project']) : null;
             $line
-                ->setComment($data['comment'] ?? null)
+                ->setNotes($data['notes'] ?? null)
                 ->setProject($project);
 
             $resp['line'] = $line;

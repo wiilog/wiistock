@@ -253,7 +253,7 @@ function initPageModals() {
 
 function initDeliveryRequestModal() {
     const $modal = $('#modalEditDemande');
-    InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true));
+    InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true), { tables: [editableTableArticles]});
     toggleLocationSelect($modal.find('[name="type"]'));
 }
 
@@ -575,23 +575,16 @@ function addArticleRow(table, $button) {
 
 function onChangeFillComment($selector) {
     const $row = $selector.closest('tr');
-    const settingWithProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]').val();
-    const settingWithoutProject = $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]').val();
-    if (settingWithProject && settingWithoutProject) {
-        const $comment = $row.find('[name=comment]');
-        const project = $row.find('[name=project]').find(':selected').text();
-        const receiver = $('input[name=deliveryRequestReceiver]').val();
-
-        if (!project) {
-            let textWithoutProject = settingWithoutProject.replace("@Destinataire", receiver ?? "");
-            $comment.val(textWithoutProject);
-        } else {
-            let textWithProject = settingWithProject
-                                    .replace("@Destinataire", receiver ?? "")
-                                    .replace("@Projet", project);
-            $comment.val(textWithProject);
-        }
+    const project = $row.find('[name=project]').find(':selected').text();
+    let comment = (project
+        ? $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT]')
+        : $('input[name=DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT]')).val();
+    const $comment = $row.find('.line-comment');
+    if (project) {
+        comment = comment
+            .replace("@Projet", project);
     }
+    $comment.html(comment);
 }
 
 function loadTable() {

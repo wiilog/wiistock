@@ -7,18 +7,36 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
 class SubLineFieldsParam {
-
-    const DEFAULT_CONDITION_FIXED_FIELD = "Type Reference";
-
     const ENTITY_CODE_DEMANDE_REF_ARTICLE = 'demandeRefArticle';
+
+    const DISPLAY_CONDITIONS = [
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            self::DISPLAY_CONDITION_REFERENCE_TYPE,
+        ],
+    ];
+
+    const DISPLAY_CONDITION_REFERENCE_TYPE = "Type Reference";
 
     const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT = 'project';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT = 'projet';
+
     const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT = 'comment';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT = 'commentaire';
 
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES = 'notes';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES = 'remarques';
+
     public const DISABLED_DISPLAYED_UNDER_CONDITION = [
-        SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
+        ],
+    ];
+
+    public const DISABLED_REQUIRED = [
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+        ],
     ];
 
     #[ORM\Id]
