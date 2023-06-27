@@ -20,7 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
+use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
@@ -182,6 +182,7 @@ class HandlingController extends AbstractController {
                         TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
+                        ExceptionLoggerService $exceptionLoggerService,
                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -225,6 +226,8 @@ class HandlingController extends AbstractController {
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
+
+        $exceptionLoggerService->sendLog(new \Exception(mb_detect_encoding($post->get('comment'))), $request);
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
         ]);
