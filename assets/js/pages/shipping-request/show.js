@@ -81,7 +81,6 @@ function deleteShippingRequest($event){
     });
 }
 
-
 function initScheduledShippingRequestForm() {
     let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
     Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {

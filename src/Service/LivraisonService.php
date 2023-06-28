@@ -329,8 +329,7 @@ class LivraisonService
 
         $nowDate = new DateTime('now');
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
+        $client = $this->specificService->getAppClientLabel();
         $title = "LDV - {$deliveryOrder->getNumero()} - {$client} - {$nowDate->format('dmYHis')}";
 
         $wayBillAttachment = new Attachment();

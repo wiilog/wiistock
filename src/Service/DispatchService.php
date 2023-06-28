@@ -28,10 +28,8 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -407,7 +405,8 @@ class DispatchService {
         return $date ?: null;
     }
 
-    public function sendEmailsAccordingToStatus(Dispatch $dispatch,
+    public function sendEmailsAccordingToStatus(EntityManagerInterface $entityManager,
+                                                Dispatch $dispatch,
                                                 bool $isUpdate,
                                                 bool $fromGroupedSignature = false,
                                                 ?Utilisateur $signatory = null,
@@ -503,13 +502,13 @@ class DispatchService {
             $isTreatedByOperator = $dispatch->getTreatedBy() && $dispatch->getTreatedBy()->getUsername();
 
             $freeFieldArray = $this->freeFieldService->getFilledFreeFieldArray(
-                $this->entityManager,
+                $entityManager,
                 $dispatch,
                 ['type' => $dispatch->getType()]
             );
 
             if($isUpdate && $status->getSendReport()){
-                $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($this->entityManager, $dispatch, $signatory);
+                $updateStatusAttachment = $this->persistNewReportAttachmentForEmail($entityManager, $dispatch, $signatory);
             } else {
                 $updateStatusAttachment = null;
             }
@@ -602,7 +601,7 @@ class DispatchService {
         }
         $entityManager->flush();
 
-        $this->sendEmailsAccordingToStatus($dispatch, true);
+        $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
 
         foreach ($parsedPacks as $pack) {
             $this->arrivalService->sendMailForDeliveredPack($dispatch->getLocationTo(), $pack, $loggedUser, TrackingMovement::TYPE_DEPOSE, $date);
@@ -943,7 +942,7 @@ class DispatchService {
         }
 
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -958,7 +957,7 @@ class DispatchService {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -970,7 +969,7 @@ class DispatchService {
 
     public function getDispatchNoteData(Dispatch $dispatch): array {
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
@@ -1176,7 +1175,7 @@ class DispatchService {
 
         $nowDate = new DateTime('now');
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
 
@@ -1251,6 +1250,9 @@ class DispatchService {
 
         $variables['UL'] = $referenceArticlesStream
             ->map(function(DispatchReferenceArticle $dispatchReferenceArticle) {
+                $comment = $dispatchReferenceArticle->getComment()
+                    ? $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment()), '-')
+                    : null;
                 $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
                 $referenceArticle = $dispatchReferenceArticle->getReferenceArticle();
                 $description = $referenceArticle->getDescription() ?: [];
@@ -1271,9 +1273,7 @@ class DispatchService {
                     "codefabricantref" => $description['manufacturerCode'] ?? '',
                     "materielhorsformatref" => $this->formatService->bool($description['outFormatEquipment'] ?? null, "Non"),
                     // keep line breaking in docx
-                    "commentaireref" => $dispatchReferenceArticle->getCleanedComment() ?
-                        $this->formatService->html(str_replace("<br/>", "\n", $dispatchReferenceArticle->getComment()), '-')
-                        : '-',
+                    "commentaireref" => $comment ?: '-',
                 ];
             })
             ->toArray();
@@ -1324,7 +1324,7 @@ class DispatchService {
         return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
+    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
@@ -1342,6 +1342,8 @@ class DispatchService {
         }
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
         $referenceArticle = $referenceRepository->find($referenceArticleId);
         $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
 
@@ -1353,6 +1355,23 @@ class DispatchService {
         if ($dispatchReferenceArticleId) {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
+
+            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
+                throw new FormException('Le poids doit être supérieur à 0');
+            } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
+                throw new FormException('Le volume doit être supérieur à 0');
+            }
+
+            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
+            if (!$nature) {
+                throw new FormException("La nature de l'UL est incorrecte");
+            }
+
+            $dispatchPack->getPack()
+                ->setNature($nature)
+                ->setWeight($data['ULWeight'] ?? null)
+                ->setVolume($data['ULVolume'] ?? null)
+                ->setComment($data['ULComment'] ?? null);
         } else {
             $dispatchReferenceArticle = new DispatchReferenceArticle();
         }
@@ -1391,7 +1410,7 @@ class DispatchService {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Référence ajoutée'
+            'msg' => $dispatchReferenceArticleId ? 'Référence et UL modifiées' : 'Référence ajoutée'
         ]);
     }
 
@@ -1499,21 +1518,15 @@ class DispatchService {
                                  Utilisateur $signatory,
                                  Utilisateur $operator,
                                  DateTime $signatureDate,
-                                 string $comment,
+                                 ?string $comment,
                                  bool $fromNomade,
-                                 EntityManagerInterface $entityManager): array {
-        $errors = [];
+                                 EntityManagerInterface $entityManager): void {
         $containsReferences = !(Stream::from($dispatch->getDispatchPacks())
             ->flatMap(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatchReferenceArticles()->toArray())
             ->isEmpty());
 
         if (!$containsReferences) {
-            $error = "L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée";
-            if ($fromNomade) {
-                $errors[] = $error;
-            } else {
-                throw new FormException($error);
-            }
+            throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
         }
 
         if ($dispatch->getType()->getId() === $groupedSignatureStatus->getType()->getId()) {
@@ -1523,12 +1536,7 @@ class DispatchService {
                 'date' => $signatureDate
             ]);
         } else {
-            $error = "L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.";
-            if ($fromNomade) {
-                $errors[] = $errors;
-            } else {
-                throw new FormException($error);
-            }
+            throw new FormException("L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.");
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
@@ -1558,6 +1566,7 @@ class DispatchService {
                     'from' => $dispatch,
                     'removeFromGroup' => true,
                     'attachments' => $dispatch->getAttachments(),
+                    'entityManager' => $entityManager
                 ]
             );
             $trackingDrop = $this->trackingMovementService->createTrackingMovement(
@@ -1572,6 +1581,7 @@ class DispatchService {
                     'quantity' => $dispatchPack->getQuantity(),
                     'from' => $dispatch,
                     'attachments' => $dispatch->getAttachments(),
+                    'entityManager' => $entityManager
                 ]
             );
 
@@ -1581,11 +1591,9 @@ class DispatchService {
             $dispatchPack->setTreated(true);
         }
 
-
         if($groupedSignatureStatus->getSendReport()){
-            $this->sendEmailsAccordingToStatus($dispatch, true, true, $signatory);
+            $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true, true, $signatory);
         }
-        return $errors;
     }
 
     public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
@@ -1674,6 +1682,8 @@ class DispatchService {
             $type = $typeRepository->find($dispatchNewReferenceType);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
 
+
+
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['reference'])
@@ -1689,25 +1699,27 @@ class DispatchService {
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
 
-            if($data['photos']){
-                $photos = json_decode($data['photos'], true);
-                foreach ($photos as $index => $photo) {
-                    $name = uniqid();
-                    $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                    file_put_contents($path, file_get_contents($photo));
-                    $attachment = new Attachment();
-                    $attachment
-                        ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
-                        ->setFileName("$name.jpeg")
-                        ->setFullPath("/uploads/attachements/$name.jpeg");
-
-                    $entityManager->persist($attachment);
-                    $reference->addAttachment($attachment);
-                }
-            }
-
             $entityManager->persist($reference);
         }
+
+        if(isset($data['photos'])){
+            $photos = json_decode($data['photos'], true);
+            foreach ($photos as $index => $photo) {
+                $name = uniqid();
+                $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
+                file_put_contents($path, file_get_contents($photo));
+                $attachment = new Attachment();
+                $attachment
+                    ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
+                    ->setFileName("$name.jpeg")
+                    ->setFullPath("/uploads/attachements/$name.jpeg");
+
+                $entityManager->persist($attachment);
+                $reference->addAttachment($attachment);
+            }
+        }
+
+        $reference->setCommentaire($data['comment']);
 
         $oldDescription = $reference->getDescription();
         $this->refArticleDataService->updateDescriptionField($entityManager, $reference, [
@@ -1728,16 +1740,28 @@ class DispatchService {
 
         $entityManager->persist($logisticUnit);
 
-        $dispatchPack = (new DispatchPack())
-            ->setDispatch($dispatch)
-            ->setPack($logisticUnit)
-            ->setTreated(false);
+        $dispatchPack = $dispatch->getDispatchPack($logisticUnit);
 
-        $entityManager->persist($dispatchPack);
+        if (!$dispatchPack) {
+            $dispatchPack = (new DispatchPack())
+                ->setDispatch($dispatch)
+                ->setPack($logisticUnit)
+                ->setTreated(false);
 
-        $dispatchReferenceArticle = (new DispatchReferenceArticle())
-            ->setReferenceArticle($reference)
-            ->setDispatchPack($dispatchPack)
+            $entityManager->persist($dispatchPack);
+        }
+
+        $dispatchReferenceArticle = $dispatchPack->getDispatchReferenceArticle($reference);
+
+        if (!$dispatchReferenceArticle) {
+            $dispatchReferenceArticle = (new DispatchReferenceArticle())
+                ->setReferenceArticle($reference)
+                ->setDispatchPack($dispatchPack);
+
+            $entityManager->persist($dispatchReferenceArticle);
+        }
+
+        $dispatchReferenceArticle = $dispatchReferenceArticle
             ->setQuantity($data['quantity'])
             ->setBatchNumber($data['batchNumber'])
             ->setSerialNumber($data['serialNumber'])
@@ -1765,7 +1789,5 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
-
-        $entityManager->persist($dispatchReferenceArticle);
     }
 }

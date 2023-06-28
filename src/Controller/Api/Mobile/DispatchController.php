@@ -10,12 +10,15 @@ use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\DispatchService;
+use App\Service\ExceptionLoggerService;
 use App\Service\PackService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -36,6 +39,7 @@ class DispatchController extends AbstractApiController
                                               DispatchService        $dispatchService,
                                               PackService            $packService,
                                               RefArticleDataService  $refArticleDataService,
+                                              ExceptionLoggerService $exceptionLoggerService,
                                               StatusHistoryService   $statusHistoryService,
                                               UniqueNumberService    $uniqueNumberService): Response
     {
@@ -68,9 +72,12 @@ class DispatchController extends AbstractApiController
                 $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
                 $wasDraft = true;
                 $createdAt = $this->getFormatter()->parseDatetime($dispatchArray['createdAt']);
+                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH, $createdAt);
+
                 $dispatch = (new Dispatch())
+                    ->setNumber($dispatchNumber)
                     ->setCreationDate($createdAt)
-                    ->setRequester($requester ?? $this->getUser())
+                    ->setRequester($requester ?? $createdBy)
                     ->setType($type)
                     ->setLocationFrom($locationFrom)
                     ->setLocationTo($locationTo)
@@ -123,32 +130,20 @@ class DispatchController extends AbstractApiController
             }
             if (!$currentError) {
                 $filteredDispatchReferences = Stream::from($dispatchReferences)
-                    ->filter(fn(array $dispatchReferences) => $wasDraft && $dispatchReferences['localDispatchId'] === $dispatchArray['localId']);
+                    ->filter(fn(array $dispatchReference) => $wasDraft && $dispatchReference['localDispatchId'] === $dispatchArray['localId']);
 
-                foreach ($filteredDispatchReferences as $dispatchReference) {
-                    $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
-                        'loggedUser' => $this->getUser(),
-                        'now' => $syncedAt
-                    ]);
-                }
                 try {
-                    if($isCreation){
-                        $uniqueNumberService->createWithRetry(
-                            $entityManager,
-                            Dispatch::NUMBER_PREFIX,
-                            Dispatch::class,
-                            UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
-                            function (string $number) use ($dispatch, $entityManager) {
-                                $dispatch->setNumber($number);
-                                $entityManager->flush();
-                            }
-                        );
-                    } else {
-                        $entityManager->flush();
+                    foreach ($filteredDispatchReferences as $dispatchReference) {
+                        $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
+                            'loggedUser' => $dispatch->getCreatedBy(),
+                            'now' => $syncedAt
+                        ]);
                     }
+                    $entityManager->flush();
                     $localIdsToInsertIds[$dispatchArray['localId']] = $dispatch->getId();
-                } catch (Exception $ignored) {
-                    $errors[] = "Une erreur est survenue sur le traitement d'un des acheminements";
+                } catch (Exception $error) {
+                    $exceptionLoggerService->sendLog($error, $request);
+                    $errors[] = $error instanceof FormException ? $error->getMessage() : "Une erreur est survenue sur le traitement d'un des acheminements";
                     [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
                 }
             }
@@ -161,8 +156,6 @@ class DispatchController extends AbstractApiController
             ->keymap(fn($groupedSignature) => [$groupedSignature['localDispatchId'], $groupedSignature], true);
 
         foreach ($groupedSignatureHistory as $dispatchId => $groupedSignatureByDispatch) {
-            $user = $this->getUser();
-
             $dispatchId = $localIdsToInsertIds[$dispatchId] ?? null;
             if ($dispatchId) {
                 $dispatch = $dispatchRepository->find($dispatchId);
@@ -170,27 +163,22 @@ class DispatchController extends AbstractApiController
                     $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
                     $date = $this->getFormatter()->parseDatetime($groupedSignature['signatureDate']);
                     $signatory = $userRepository->find($groupedSignature['signatory']);
-                    $signatureErrors = $dispatchService->signDispatch(
-                        $dispatch,
-                        $groupedSignatureStatus,
-                        $signatory,
-                        $user,
-                        $date,
-                        $groupedSignature['comment'] ?? '',
-                        true,
-                        $entityManager
-                    );
-                    if(empty($signatureErrors)){
-                        try {
-                            $entityManager->flush();
-                        } catch (Exception $ignored) {
-                            $errors[] = "Une erreur est survenue lors de la signature de l'acheminement {$dispatch->getNumber()}";
-                            [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
-                        }
-                    } else {
-                        $errors = array_merge($errors, $signatureErrors);
+                    try {
+                        $dispatchService->signDispatch(
+                            $dispatch,
+                            $groupedSignatureStatus,
+                            $signatory,
+                            $dispatch->getCreatedBy() ?? $dispatch->getRequester() ?? $signatory,
+                            $date,
+                            $groupedSignature['comment'] ?? '',
+                            true,
+                            $entityManager
+                        );
+                        $entityManager->flush();
+                    } catch (Exception $error) {
+                        $exceptionLoggerService->sendLog($error, $request);
+                        $errors[] = "Une erreur est survenue lors de la signature de l'acheminement {$dispatch->getNumber()}";
                         [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
-                        break;
                     }
                 }
             }

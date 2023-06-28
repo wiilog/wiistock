@@ -162,7 +162,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "shippingRequest" => $shipping->getId()
+            "id" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
@@ -644,8 +644,7 @@ class ShippingRequestService {
 
         $now = new DateTime();
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
+        $client = $this->specificService->getAppClientLabel();
         $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
 
         $deliverySlipAttachment = new Attachment();
