@@ -42,6 +42,7 @@ use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Google\Service\Keep\User;
 use PHPUnit\Util\Json;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -815,8 +816,11 @@ class ShippingRequestController extends AbstractController {
                 break;
             case strtolower(ShippingRequest::STATUS_TO_TREAT):
                 if($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING)){
+                    $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
+
                     $html = $this->renderView('shipping_request/details/draft.html.twig', [
                         'shippingRequest' => $shippingRequest,
+                        'packingPackNature' => $packingPackNature,
                     ]);
                 } else {
                     $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
@@ -827,6 +831,7 @@ class ShippingRequestController extends AbstractController {
                         'packingPackNature' => $packingPackNature,
                     ]);
                 }
+                break;
             case strtolower(ShippingRequest::STATUS_SCHEDULED):
             case strtolower(ShippingRequest::STATUS_SHIPPED):
                 $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);

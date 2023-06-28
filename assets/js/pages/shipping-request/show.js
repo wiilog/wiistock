@@ -395,12 +395,16 @@ function openScheduledShippingRequestModal($button){
     AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
+            console.log(res);
             if (res.errors || res.success) {
                 showBSAlert(res.errors , "info");
                 AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
                     .json()
                     .then((res) => {
                         if (res.success) {
+                            console.log($('#modalScheduledShippingRequest'));
+                            console.log($('.details-container').find('#modalScheduledShippingRequest'));
+                            console.log(res.expectedLines);
                             $('#modalScheduledShippingRequest').modal('show');
                             expectedLines = res.expectedLines;
                         }
