@@ -2381,10 +2381,11 @@ class MobileController extends AbstractApiController
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $type = ($type === 'svg' ? 'svg+xml' : $type);
                         if (file_exists($path)) {
+                            $type = pathinfo($path, PATHINFO_EXTENSION);
+                            $type = ($type === 'svg' ? 'svg+xml' : $type);
                             $data = file_get_contents($path);
+
                             $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
                         }
                     }
