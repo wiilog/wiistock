@@ -387,7 +387,8 @@ function createArrival(form = null) {
                         );
                         hasDataToRefresh = true;
                     },
-                }).catch(() => {
+                }).catch((error) => {
+                    console.log(error);
                 });
             })
     }, 1);
