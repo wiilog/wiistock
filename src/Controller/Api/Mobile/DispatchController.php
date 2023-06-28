@@ -133,8 +133,9 @@ class DispatchController extends AbstractApiController
                     ->filter(fn(array $dispatchReference) => $wasDraft && $dispatchReference['localDispatchId'] === $dispatchArray['localId']);
 
                 try {
+                    $createdReferences = [];
                     foreach ($filteredDispatchReferences as $dispatchReference) {
-                        $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, [
+                        $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $dispatchReference, $createdReferences, [
                             'loggedUser' => $dispatch->getCreatedBy(),
                             'now' => $syncedAt
                         ]);

@@ -1107,8 +1107,6 @@ class DashboardSettingsService {
                 'delay' => $meter ? $meter->getDelay() : '-',
                 'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
-
-
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {

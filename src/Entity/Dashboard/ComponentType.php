@@ -60,7 +60,7 @@ class ComponentType
     public const REQUESTS_SELF = 'self';
     public const REQUESTS_EVERYONE = 'everyone';
 
-    public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^(([01]?[0-9])|(2[0-3])):[0-5][0-9]$/';
+    public const ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY = '/^\d+:[0-5][0-9]$/';
     public const DEFAULT_CHART_COLOR = '#A3D1FF';
 
     public const COMPONENT_ORDER = [
