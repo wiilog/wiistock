@@ -222,7 +222,7 @@ class ArticleDataService
                     ->setPrixUnitaire((float)$price)
                     ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate($expiryDate ?: null)
-                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                    ->setCommentaire($data['commentaire'] ?? null);
 
                 if (isset($data['conform'])) {
                     $article->setConform($data['conform'] == 1);
@@ -301,7 +301,7 @@ class ArticleDataService
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setConform($data['conform'] ?? true)
                 ->setBatch($data['batch'] ?? null);
         } else {
@@ -309,7 +309,7 @@ class ArticleDataService
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
                 ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)

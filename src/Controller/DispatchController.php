@@ -307,7 +307,7 @@ class DispatchController extends AbstractController {
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
-            $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
+            $dispatch->setCommentaire($comment);
         }
 
         if(!empty($startDate)) {
@@ -622,7 +622,7 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
+            ->setCommentaire($post->get('commentaire'))
             ->setDestination($destination)
             ->setEmails($emails);
 
@@ -871,7 +871,7 @@ class DispatchController extends AbstractController {
 
         $nature = $natureRepository->find($natureId);
         $pack->setNature($nature);
-        $pack->setComment(StringHelper::cleanedComment($comment));
+        $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);

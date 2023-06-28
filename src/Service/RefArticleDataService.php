@@ -431,7 +431,7 @@ class RefArticleDataService
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
             ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
             ->setPrixUnitaire(max(0, $data->get('prix')))
-            ->setCommentaire(StringHelper::cleanedComment($data->get('commentaire')))
+            ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
             ->setBuyer($buyer)
             ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)

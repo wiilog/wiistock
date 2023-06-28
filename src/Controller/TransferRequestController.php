@@ -78,7 +78,7 @@ class TransferRequestController extends AbstractController {
 
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
-            $validComment = StringHelper::cleanedComment($data['comment'] ?? null);
+            $validComment = $data['comment'] ?? null;
             $transfer = $transferRequestService->createTransferRequest($entityManager, $draft, $origin, $destination, $currentUser, $validComment);
 
             $entityManager->persist($transfer);
@@ -151,7 +151,7 @@ class TransferRequestController extends AbstractController {
             $transfer = $entityManager->getRepository(TransferRequest::class)->find($data['transfer']);
             $transfer
                 ->setDestination($destination)
-                ->setComment(StringHelper::cleanedComment($data['comment'] ?? null));
+                ->setComment($data['comment'] ?? null);
             if ($origin) {
                 $transfer->setOrigin($origin);
             }
