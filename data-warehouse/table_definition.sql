@@ -315,7 +315,18 @@ CREATE TABLE dw_acheminement
     numero_lot					 varchar(255),
     numero_serie				 varchar(255),
     numero_plombage_scelle		 varchar(255),
-    adr							 varchar(3)
+    adr							 varchar(3),
+    commentaire                  text
+);
+
+CREATE TABLE dw_acheminement_statut
+(
+    id                      integer,
+    statut                  varchar(255),
+    date_statut             timestamp(0),
+    signataire_enlevement   varchar(255),
+    signataire_livraison    varchar(255),
+    utilisateur             varchar(255)
 );
 
 CREATE TABLE dw_demande_collecte

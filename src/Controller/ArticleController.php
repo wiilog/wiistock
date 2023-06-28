@@ -17,6 +17,7 @@ use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
@@ -366,12 +367,14 @@ class ArticleController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
             $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+            $shippingRequestLineCounter = $shippingRequestLineRepository->count(['article' => $article]);
 
             $trackingPack = $article->getTrackingPack();
 
@@ -381,7 +384,8 @@ class ArticleController extends AbstractController
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
                 && $article->getInventoryEntries()->isEmpty()
-                && $locationMissionCounter === 0) {
+                && $locationMissionCounter === 0
+                && $shippingRequestLineCounter === 0) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);

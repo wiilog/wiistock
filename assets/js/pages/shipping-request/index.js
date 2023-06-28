@@ -35,7 +35,7 @@ $(function() {
         tableShippings = table;
     });
     initModalFormShippingRequest($('#modalNewShippingRequest'), 'shipping_request_new', (data) => {
-        window.location.href = Routing.generate('shipping_request_show', {shippingRequest: data.shippingRequestId});
+        window.location.href = Routing.generate('shipping_request_show', {id: data.shippingRequestId});
     });
 })
 
@@ -57,6 +57,7 @@ function initTableShippings() {
             processing: true,
             serverSide: true,
             paging: true,
+            order: [['number', "desc"]],
             ajax: {
                 url: Routing.generate('shipping_request_api', true),
                 type: POST,

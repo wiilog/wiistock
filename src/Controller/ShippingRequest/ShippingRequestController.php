@@ -5,6 +5,7 @@ namespace App\Controller\ShippingRequest;
 use App\Annotation\HasPermission;
 use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Language;
@@ -42,9 +43,13 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Google\Service\Keep\User;
+use PHPUnit\Util\Json;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -104,7 +109,6 @@ class ShippingRequestController extends AbstractController {
             "statuses" => $statutRepository->findByCategorieName(ShippingRequest::CATEGORIE, 'displayOrder'),
             "dateChoices" =>$dateChoice,
             "carriersForFilter" => $carrierRepository->findAll(),
-            "shipping" => new ShippingRequest(),
         ]);
     }
 
@@ -125,7 +129,7 @@ class ShippingRequestController extends AbstractController {
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route("/{shippingRequest}/voir", name:"shipping_request_show", options: ["expose" => true])]
+    #[Route("/{id}/voir", name:"shipping_request_show", options: ["expose" => true])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function show(ShippingRequest                    $shippingRequest,
                          ShippingRequestExpectedLineService $expectedLineService,
@@ -241,6 +245,11 @@ class ShippingRequestController extends AbstractController {
                     throw new FormException('Formulaire invalide');
                 }
 
+                $line = $shippingRequest->getExpectedLine($referenceArticle);
+                if($line){
+                    throw new FormException('La référence article a déjà été ajoutée');
+                }
+
                 $line = $expectedLineService->persist($entityManager, [
                     'referenceArticle' => $referenceArticle,
                     'request' => $shippingRequest
@@ -254,8 +263,8 @@ class ShippingRequestController extends AbstractController {
 
             $line
                 ->setQuantity($data['quantity'] ?? null)
-                ->setPrice($data['price'] ?? null)
-                ->setWeight($data['weight'] ?? null);
+                ->setUnitPrice($data['price'] ?? null)
+                ->setUnitWeight($data['weight'] ?? null);
 
             $shippingRequestService->updateNetWeight($shippingRequest);
             $shippingRequestService->updateTotalValue($shippingRequest);
@@ -265,7 +274,7 @@ class ShippingRequestController extends AbstractController {
             $resp = [
                 'success' => true,
                 'created' => $created,
-                'lineId' => $lineId
+                'lineId' => $lineId ?? $line->getId(),
             ];
         }
         return new JsonResponse(
@@ -300,8 +309,14 @@ class ShippingRequestController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         ShippingRequestService $shippingRequestService): JsonResponse {
+                         ShippingRequestService $shippingRequestService,
+                         UserService            $userService,
+                         TranslationService     $translationService): JsonResponse
+    {
         $data = $request->request;
+        $success = null;
+        $user = $this->getUser();
+
         $shippingRequestId = $request->get('shippingRequestId');
         if ($shippingRequestId) {
             $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
@@ -310,23 +325,49 @@ class ShippingRequestController extends AbstractController {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
 
-        $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
-        if($success){
+
+        // right & status to treat
+        if ($shippingRequest->isToTreat()) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING, $user)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+
+        // right & status scheduled
+        } else if ($shippingRequest->isScheduled()) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+
+        // right & status shipped
+        } else if ($shippingRequest->isShipped()) {
+            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)) {
+                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+            } else {
+                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
+            }
+        } else if ($shippingRequest->isDraft()) {
+            $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        }
+
+        if ($success) {
             $entityManager->flush();
             return $this->json([
                 'success' => true,
                 'msg' => 'Votre demande d\'expédition a bien été enregistrée',
                 'shippingRequestId' => $shippingRequest->getId(),
             ]);
-        } else {
-            throw new FormException();
         }
+        // usually never call
+        throw new FormException();
     }
 
     #[Route("/check_expected_lines_data/{id}", name: 'check_expected_lines_data', options: ["expose" => true], methods: ['GET'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function checkExpectedLinesData(ShippingRequest          $shippingRequest,
-                                           ShippingRequestService   $shippingRequestService): JsonResponse
+    public function checkExpectedLinesData(ShippingRequest $shippingRequest): JsonResponse
     {
 
         $expectedLines = $shippingRequest->getExpectedLines();
@@ -338,30 +379,46 @@ class ShippingRequestController extends AbstractController {
             ]);
         }
 
+        $errors = [];
+
         /** @var ShippingRequestExpectedLine $expectedLine */
         foreach ($expectedLines as $expectedLine) {
             $referenceArticle = $expectedLine->getReferenceArticle();
 
             //FDS & codeOnu & classeProduct needed if it's dangerousGoods
-            if ($referenceArticle->isDangerousGoods()
-                && (!$referenceArticle->getSheet()
-                    || !$referenceArticle->getOnuCode()
-                    || !$referenceArticle->getProductClass())) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                ]);
+            if ($referenceArticle->isDangerousGoods()) {
+
+                if (!$referenceArticle->getSheet()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de FDS.";
+                }
+                if (!$referenceArticle->getOnuCode()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de code ONU.";
+                }
+                if (!$referenceArticle->getProductClass()) {
+                    $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de classe de produit.";
+                }
             }
+
             //codeNdp needed if shipment is international
             if ($shippingRequest->getShipment() === ShippingRequest::SHIPMENT_INTERNATIONAL
                 && !$referenceArticle->getNdpCode()) {
 
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Des informations sont manquantes sur la référence " . $referenceArticle->getReference() . " afin de pouvoir effectuer la planification"
-                ]);
+                $errors[] = "La référence " . $referenceArticle->getReference() . " n'a pas de code NDP.";
             }
         }
+
+        return $this->json([
+            'success' => true,
+            'errors' => implode("<br>", $errors),
+        ]);
+    }
+
+
+    #[Route("/get-format-expected-lines/{id}", name: "get_format_expected_lines", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
+    public function getFormatExpectedLinesForPacking (ShippingRequest          $shippingRequest,
+                                                      ShippingRequestService   $shippingRequestService):JsonResponse{
+        $expectedLines = $shippingRequest->getExpectedLines();
 
         return $this->json([
             'success' => true,
@@ -371,11 +428,11 @@ class ShippingRequestController extends AbstractController {
 
     #[Route("/delete-shipping-request/{id}", name: "delete_shipping_request", options: ["expose" => true], methods: ['DELETE'])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
-    public function deleteShippingRequest(ShippingRequest           $shippingRequest,
-                                          EntityManagerInterface    $entityManager,
-                                          UserService               $userService,
-                                          ShippingRequestService    $shippingRequestService,
-                                          TranslationService        $translationService): Response
+    public function deleteShippingRequest(ShippingRequest        $shippingRequest,
+                                          EntityManagerInterface $entityManager,
+                                          UserService            $userService,
+                                          ShippingRequestService $shippingRequestService,
+                                          TranslationService     $translationService): Response
     {
 
         $user = $this->getUser();
@@ -383,67 +440,39 @@ class ShippingRequestController extends AbstractController {
 
         // status
         $isDraftOrTreat = ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_DRAFT)
-                            || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT);
+            || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT);
         $isScheduledOrShipped = ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED)
-                                || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED);
+            || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED);
 
         // right
         $hasRightDeleteDraftOrTreat = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user))
-                                            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
+            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
         $hasRightDeleteScheduledOrShipped = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user))
-                                            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING));
+            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING));
 
-        // remove status to treat only if user has right and shipping request is to treat
-        if ($isDraftOrTreat) {
-            if ($hasRightDeleteDraftOrTreat) {
-
-                // remove 'ShippingRequesExpectedtLine'
-                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-                    $shippingRequest->removeExpectedLine($expectedLine);
-                    $entityManager->remove($expectedLine);
-                }
-
-                // remove status_history
-                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
-                foreach ($statusHistoryToRemove as $status) {
-                    $entityManager->remove($status);
-                }
-
-                $entityManager->remove($shippingRequest);
-                $entityManager->flush();
-                return $this->json(["success" => true,]);
-            } else {
-                throw new FormException('Vous n\'avez pas pas la permission pour supprimer cette ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' (' . ShippingRequest::STATUS_DRAFT .' or '. ShippingRequest::STATUS_TO_TREAT .')');
-            }
+        if (($isDraftOrTreat && !$hasRightDeleteDraftOrTreat)
+            || ($isScheduledOrShipped && !$hasRightDeleteScheduledOrShipped)) {
+            throw new FormException("Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " au statut " . $this->getFormatter()->status($shippingRequest->getStatus()));
         }
 
-        // remove status scheduled only if user has right and shipping request is scheduled
-        else if ($isScheduledOrShipped) {
-            if ($hasRightDeleteScheduledOrShipped) {
-                // remove status_history
-                $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
-                foreach ($statusHistoryToRemove as $status) {
-                    $entityManager->remove($status);
-                }
-                $shippingRequestService->deletePacking($entityManager, $shippingRequest);
-
-                // remove ShippingRequesExpectedtLine
-                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-
-                    $entityManager->remove($expectedLine);
-                    $shippingRequest->removeExpectedLine($expectedLine);
-                }
-
-                $entityManager->remove($shippingRequest);
-
-                $entityManager->flush();
-                return $this->json(["success" => true]);
-            }
-            else {
-                throw new FormException('Vous n\'avez pas pas la permission pour supprimer cette ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' ('. ShippingRequest::STATUS_SCHEDULED .' or '. ShippingRequest::STATUS_SHIPPED . ')');
-            }
+        // remove status_history
+        $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
+        foreach ($statusHistoryToRemove as $status) {
+            $entityManager->remove($status);
         }
-        throw new FormException('Cette ' . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . ' ne peux pas être supprimer.');
+        $shippingRequestService->deletePacking($entityManager, $shippingRequest);
+
+        // remove ShippingRequesExpectedtLine
+        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+
+            $entityManager->remove($expectedLine);
+            $shippingRequest->removeExpectedLine($expectedLine);
+        }
+
+        $entityManager->remove($shippingRequest);
+
+        $entityManager->flush();
+        return $this->json(["success" => true]);
     }
 
 
@@ -659,7 +688,7 @@ class ShippingRequestController extends AbstractController {
                                         'refArticle' => $referenceArticle,
                                         'emplacement' => $packLocation,
                                         'quantite' => $pickedQuantity,
-                                        'prix' => $requestExpectedLine->getPrice(),
+                                        'prix' => $requestExpectedLine->getUnitPrice(),
                                         'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
                                         'currentLogisticUnit' => $shippingPack->getPack(),
                                     ],
@@ -669,11 +698,13 @@ class ShippingRequestController extends AbstractController {
                                 $generatedBarcode[] = $article->getBarCode();
                             }
 
+                            $articleOrReference = $article ?? $referenceArticle;
+
                             $stockMovement = $stockMovementService->createMouvementStock(
                                 $this->getUser(),
                                 null,
-                                isset($article) ? $article->getQuantite() : $pickedQuantity,
-                                $article ?? $referenceArticle,
+                                $pickedQuantity,
+                                $articleOrReference,
                                 MouvementStock::TYPE_ENTREE,
                                 [
                                     'from'=> $shippingRequest,
@@ -683,23 +714,24 @@ class ShippingRequestController extends AbstractController {
                             );
                             $entityManager->persist($stockMovement);
 
-                            $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                                ($article ?? $referenceArticle)->getBarCode(),
-                                $packLocation,
-                                $this->getUser(),
-                                $now,
-                                false,
-                                null,
-                                TrackingMovement::TYPE_DEPOSE,
-                                [
-                                    'from' => $shippingRequest,
-                                    'shippingRequest' => $shippingRequest,
-                                    'refOrArticle' => $article ?? $referenceArticle,
-                                    'mouvementStock' => $stockMovement,
-                                    'logisticUnitParent' => $shippingPack->getPack()
-                                ]
-                            );
-                            $entityManager->persist($trackingMovementDrop);
+                        $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
+                            $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
+                            $packLocation,
+                            $this->getUser(),
+                            $now,
+                            false,
+                            null,
+                            TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'from' => $shippingRequest,
+                                'shippingRequest' => $shippingRequest,
+                                'refOrArticle' => $articleOrReference,
+                                'mouvementStock' => $stockMovement,
+                                'logisticUnitParent' => $shippingPack->getPack(),
+                                "quantity" => $pickedQuantity,
+                            ]
+                        );
+                        $entityManager->persist($trackingMovementDrop);
 
                             if(isset($article)) {
                                 $trackingMovementDropLogisticUnit = $trackingMovementService->createTrackingMovement(
@@ -712,22 +744,23 @@ class ShippingRequestController extends AbstractController {
                                     TrackingMovement::TYPE_DROP_LU,
                                     [
                                         'from'=>$shippingRequest,
-                                        'shippingRequest'=>$shippingRequest,
+                                        'shippingRequest'=> $shippingRequest,
                                         'refOrArticle' => $article,
                                         'mouvementStock' => $stockMovement,
-                                        'logisticUnitParent' => $shippingPack->getPack()
+                                        'logisticUnitParent' => $shippingPack->getPack(),
+                                        "quantity" => $pickedQuantity,
                                     ]
                                 );
                                 $entityManager->persist($trackingMovementDropLogisticUnit);
                                 $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
                             }
 
-                            $requestLine = new ShippingRequestLine();
-                            $requestLine
-                                ->setQuantity($pickedQuantity)
-                                ->setArticleOrReference($article ?? $referenceArticle)
-                                ->setShippingPack($shippingPack)
-                                ->setExpectedLine($requestExpectedLine);
+                        $requestLine = new ShippingRequestLine();
+                        $requestLine
+                            ->setQuantity($pickedQuantity)
+                            ->setArticleOrReference($articleOrReference)
+                            ->setShippingPack($shippingPack)
+                            ->setExpectedLine($requestExpectedLine);
 
                             $entityManager->persist($requestLine);
                             $quantityByExpectedLine[$expectedLineId] = ($quantityByExpectedLine[$expectedLineId] ?? 0) + $pickedQuantity;
@@ -771,7 +804,8 @@ class ShippingRequestController extends AbstractController {
     public function getDetails(ShippingRequest                    $shippingRequest,
                                ShippingRequestService             $shippingRequestService,
                                ShippingRequestExpectedLineService $shippingRequestExpectedLineService,
-                               EntityManagerInterface             $entityManager): Response {
+                               EntityManagerInterface             $entityManager,
+                               UserService $userService): Response {
         $natureRepository = $entityManager->getRepository(Nature::class);
         switch (strtolower($shippingRequest->getStatus()->getCode())) {
             case strtolower(ShippingRequest::STATUS_DRAFT):
@@ -780,14 +814,19 @@ class ShippingRequestController extends AbstractController {
                 ]);
                 break;
             case strtolower(ShippingRequest::STATUS_TO_TREAT):
-                $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
-                $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
-                    'shippingRequest' => $shippingRequest,
-                    'packingPackNature' => $packingPackNature,
+                if($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING)){
+                    $html = $this->renderView('shipping_request/details/draft.html.twig', [
+                        'shippingRequest' => $shippingRequest,
+                    ]);
+                } else {
+                    $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
-                    'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
-                ]);
-                break;
+                    $html = $this->renderView('shipping_request/details/to_treat.html.twig', [
+                        'shippingRequest' => $shippingRequest,
+                        'expectedLines' => $shippingRequestExpectedLineService->getDataForDetailsTable($shippingRequest),
+                        'packingPackNature' => $packingPackNature,
+                    ]);
+                }
             case strtolower(ShippingRequest::STATUS_SCHEDULED):
             case strtolower(ShippingRequest::STATUS_SHIPPED):
                 $packingPackNature = $natureRepository->findOneBy(['defaultNature' => true]);
@@ -901,7 +940,6 @@ class ShippingRequestController extends AbstractController {
                     TrackingMovement::TYPE_DEPOSE,
                     [
                         'from' => $shippingRequest,
-                        'shippingRequest' => $shippingRequest
                     ]
                 );
                 $entityManager->persist($trackingMovement);
@@ -935,7 +973,6 @@ class ShippingRequestController extends AbstractController {
                         TrackingMovement::TYPE_PRISE,
                         [
                             'from' => $shippingRequest,
-                            'shippingRequest' => $shippingRequest,
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
                             "logisticUnitParent" => $logisticUnitParent,
@@ -954,7 +991,6 @@ class ShippingRequestController extends AbstractController {
                         TrackingMovement::TYPE_DEPOSE,
                         [
                             'from' => $shippingRequest,
-                            'shippingRequest' => $shippingRequest,
                             'mouvementStock' => $newMouvementStock,
                             "quantity" => $shippingRequestLine->getQuantity(),
                             "logisticUnitParent" => $logisticUnitParent,
@@ -991,5 +1027,30 @@ class ShippingRequestController extends AbstractController {
             'success' => true,
             'msg' => "La ".mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false))." a été expédiée."
         ]);
+    }
+
+    #[Route("/{shippingRequest}/delivery-slip", name: "post_delivery_slip", options: ["expose"=>true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    public function postDeliverySlip(EntityManagerInterface $entityManager,
+                                     ShippingRequest        $shippingRequest,
+                                     ShippingRequestService $shippingRequestService): JsonResponse {
+        $deliverySlipAttachment = $shippingRequestService->persistNewDeliverySlipAttachment($entityManager, $shippingRequest);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => 'Le téléchargement de votre bordereau de livraison va commencer...',
+            'attachmentId' => $deliverySlipAttachment->getId(),
+        ]);
+    }
+
+
+    #[Route("/{shippingRequest}/delivery-slip/{attachment}", name:"print_delivery_slip", options:["expose"=>true], methods:['GET'], condition: "request.isXmlHttpRequest()")]
+    public function printDeliverySlip(Attachment      $attachment,
+                                      KernelInterface $kernel): Response {
+
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
+
+        return $response;
     }
 }

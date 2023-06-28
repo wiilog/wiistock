@@ -78,7 +78,7 @@
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
                             <div class="col-6 d-flex flex-column mt-2">
-                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), true, {
+                                {{ form.select('emergency', trans( 'Demande', 'Général', 'Urgence'), false, {
                                     items: emergencies,
                                     required: false,
                                     emptyOption : { value : null , text : trans( 'Demande', 'Général', 'Non urgent', false), selected : emergency ? false : true},

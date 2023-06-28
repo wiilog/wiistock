@@ -4,6 +4,7 @@ namespace App\Controller\Api\Mobile;
 
 use App\Annotation as Wii;
 use App\Controller\Api\AbstractApiController;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
@@ -23,6 +24,7 @@ use App\Entity\Inventory\InventoryEntry;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
@@ -86,11 +88,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -2207,7 +2207,7 @@ class MobileController extends AbstractApiController
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
-        $status = $statutRepository->getMobileStatus($rights['tracking'], $rights['demande']);
+        $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
 
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -2383,9 +2383,10 @@ class MobileController extends AbstractApiController
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
                         $type = pathinfo($path, PATHINFO_EXTENSION);
                         $type = ($type === 'svg' ? 'svg+xml' : $type);
-                        $data = file_get_contents($path);
-
-                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        if (file_exists($path)) {
+                            $data = file_get_contents($path);
+                            $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
                     }
 
                     return [
@@ -2403,10 +2404,6 @@ class MobileController extends AbstractApiController
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
 
             ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
-            [
-                'dispatches' => $dispatches,
-                'dispatchPacks' => $dispatchPacks,
-            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
         }
 
         if($rights['demande'] || $rights['stock']) {
@@ -2415,6 +2412,23 @@ class MobileController extends AbstractApiController
                     'id' => $type->getId(),
                     'label' => $type->getLabel(),
                 ])
+                ->toArray();
+
+        }
+
+        if($rights['demande'] || $rights['tracking']){
+            [
+                'dispatches' => $dispatches,
+                'dispatchPacks' => $dispatchPacks,
+                'dispatchReferences' => $dispatchReferences,
+            ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
+            $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $dispatchEmergencies = Stream::from($elements)
+                ->toArray();
+
+            $associatedDocumentTypeElements = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
+            $associatedDocumentTypes = Stream::explode(',', $associatedDocumentTypeElements ?? '')
+                ->filter()
                 ->toArray();
         }
 
@@ -2465,6 +2479,7 @@ class MobileController extends AbstractApiController
             'translations' => $translations,
             'dispatches' => $dispatches ?? [],
             'dispatchPacks' => $dispatchPacks ?? [],
+            'dispatchReferences' => $dispatchReferences ?? [],
             'status' => $status,
             'dispatchTypes' => $dispatchTypes ?? [],
             'users' => $users ?? [],
@@ -2475,6 +2490,8 @@ class MobileController extends AbstractApiController
             'reference_articles' => $refs ?? [],
             'drivers' => $driverRepository->getDriversArray(),
             'carriers' => $carriers ?? [],
+            'dispatchEmergencies' => $dispatchEmergencies ?? [],
+            'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
         ];
     }
 
@@ -2719,18 +2736,15 @@ class MobileController extends AbstractApiController
      * @Wii\RestAuthenticated()
      * @Wii\RestVersionChecked()
      */
-    public function addEmplacement(Request $request, EntityManagerInterface $entityManager): Response
+    public function addEmplacement(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
-            $toInsert = new Emplacement();
-            $toInsert
-                ->setLabel($request->request->get('label'))
-                ->setIsActive(true)
-                ->setDescription('')
-                ->setIsDeliveryPoint((bool)$request->request->get('isDelivery'));
-            $entityManager->persist($toInsert);
+            $toInsert = $emplacementDataService->persistLocation([
+                "label" => $request->request->get('label'),
+                "isDeliveryPoint" => $request->request->getBoolean('isDelivery'),
+            ], $entityManager);
             $entityManager->flush();
 
             return $this->json([
@@ -3478,7 +3492,7 @@ class MobileController extends AbstractApiController
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
@@ -3493,10 +3507,11 @@ class MobileController extends AbstractApiController
             ]);
         }
 
+        $now = new DateTime();
         $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
-            ->setCreationDate(new DateTime())
+            ->setCreationDate($now)
             ->setRequester($this->getUser())
             ->setType($type)
             ->setStatus($draftStatuses[0])
@@ -3505,6 +3520,8 @@ class MobileController extends AbstractApiController
             ->setCarrierTrackingNumber($request->request->get('carrierTrackingNumber'))
             ->setCommentaire($request->request->get('comment'))
             ->setEmergency(!empty($emergency) ? $emergency : null)
+            ->setCreatedBy($this->getUser())
+            ->setUpdatedAt($now)
             ->setEmails($emails);
 
         if($receiver) {
@@ -3520,16 +3537,20 @@ class MobileController extends AbstractApiController
         $manager->flush();
 
         if($request->request->get('emergency') && $receiver) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
+            $dispatchService->sendEmailsAccordingToStatus($manager, $dispatch, false, false, $receiver, true);
         }
 
-        $serializedDispatch = $dispatchRepository->getMobileDispatches(null, $dispatch);
-        $serializedDispatch = Stream::from($serializedDispatch)
-            ->reduce(fn(array $accumulator, array $dispatch) => $mobileApiService->serializeDispatch($accumulator, $dispatch), []);
-        $serializedDispatch = $serializedDispatch[array_key_first($serializedDispatch)];
+        $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
+        $serializedDispatches = Stream::from($serializedDispatches)
+            ->reduce(fn(array $accumulator, array $serializedDispatch) => $mobileApiService->serializeDispatch($accumulator, $serializedDispatch), []);
+
+        $serializedDispatches = !empty($serializedDispatches)
+            ? $serializedDispatches[array_key_first($serializedDispatches)]
+            : null;
         return $this->json([
             'success' => true,
-            'dispatch' => $serializedDispatch
+            "msg" => "L'acheminement a été créé avec succès.",
+            "dispatch" => $serializedDispatches
         ]);
     }
 
@@ -3577,17 +3598,9 @@ class MobileController extends AbstractApiController
      */
     public function dispatchValidate(Request                $request,
                                      EntityManagerInterface $entityManager,
-                                     RefArticleDataService  $refArticleDataService,
-                                     PackService            $packService,
-                                     StatusHistoryService   $statusHistoryService,
-                                     KernelInterface        $kernel): Response {
-        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
+                                     DispatchService        $dispatchService,
+                                     StatusHistoryService   $statusHistoryService): Response {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         $references = json_decode($request->request->get('references'), true);
         $user = $this->getUser();
@@ -3597,112 +3610,12 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $createdReferences = [];
             foreach ($references as $data) {
-                $creation = false;
-                $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
-                if(!$reference) {
-                    $creation = true;
-                    $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
-                    $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
-                    $dispatchNewReferenceQuantityManagement = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT);
-
-                    if($dispatchNewReferenceType === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de type par défaut pour la création de références."
-                        ]);
-                    } elseif ($dispatchNewReferenceStatus === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de statut par défaut pour la création de références."
-                        ]);
-                    } elseif ($dispatchNewReferenceQuantityManagement === null) {
-                        return $this->json([
-                            'success' => false,
-                            'msg' => "Vous n'avez pas paramétré de gestion de quantité par défaut pour la création de références."
-                        ]);
-                    }
-
-                    $type = $typeRepository->find($dispatchNewReferenceType);
-                    $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
-
-                    $reference = (new ReferenceArticle())
-                        ->setReference($data['reference'])
-                        ->setLibelle($data['reference'])
-                        ->setType($type)
-                        ->setStatut($status)
-                        ->setTypeQuantite($dispatchNewReferenceQuantityManagement == 0
-                            ? ReferenceArticle::QUANTITY_TYPE_REFERENCE
-                            : ReferenceArticle::QUANTITY_TYPE_ARTICLE
-                        )
-                        ->setCreatedBy($user)
-                        ->setCreatedAt($now)
-                        ->setBarCode($refArticleDataService->generateBarCode())
-                        ->setQuantiteStock(0)
-                        ->setQuantiteDisponible(0);
-
-                    $entityManager->persist($reference);
-                }
-
-                $oldDescription = $reference->getDescription();
-                $refArticleDataService->updateDescriptionField($entityManager, $reference, [
-                    'outFormatEquipment' => $data['outFormatEquipment'],
-                    'manufacturerCode' => $data['manufacturerCode'],
-                    'volume' =>  $data['volume'],
-                    'length' =>  $data['length'] ?: ($oldDescription['length'] ?? null),
-                    'width' =>  $data['width'] ?: ($oldDescription['width'] ?? null),
-                    'height' =>  $data['height'] ?: ($oldDescription['height'] ?? null),
-                    'weight' => $data['weight'],
-                    'associatedDocumentTypes' => $data['associatedDocumentTypes'],
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences,[
+                    'loggedUser' => $user,
+                    'now' => $now
                 ]);
-
-                if ($data['logisticUnit']) {
-                    $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']]) ?? $packService->createPackWithCode($data['logisticUnit']);
-
-                    $logisticUnit->setNature($defaultNature);
-
-                    $entityManager->persist($logisticUnit);
-
-                    $dispatchPack = (new DispatchPack())
-                        ->setDispatch($dispatch)
-                        ->setPack($logisticUnit)
-                        ->setTreated(false);
-
-                    $entityManager->persist($dispatchPack);
-
-                    $dispatchReferenceArticle = (new DispatchReferenceArticle())
-                        ->setReferenceArticle($reference)
-                        ->setDispatchPack($dispatchPack)
-                        ->setQuantity($data['quantity'])
-                        ->setBatchNumber($data['batchNumber'])
-                        ->setSerialNumber($data['serialNumber'])
-                        ->setSealingNumber($data['sealingNumber'])
-                        ->setComment($data['comment'])
-                        ->setADR(isset($data['adr']) && boolval($data['adr']));
-
-                    $maxNbFilesSubmitted = 10;
-                    $fileCounter = 1;
-                    // upload of photo_1 to photo_10
-                    do {
-                        $photoFile = $data["photo_$fileCounter"] ?? [];
-                        if (!empty($photoFile)) {
-                            $name = uniqid();
-                            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                            file_put_contents($path, file_get_contents($photoFile));
-                            $attachment = new Attachment();
-                            $attachment
-                                ->setOriginalName("photo_$fileCounter.jpeg")
-                                ->setFileName("$name.jpeg")
-                                ->setFullPath("/uploads/attachements/$name.jpeg");
-
-                            $dispatchReferenceArticle->addAttachment($attachment);
-                            $entityManager->persist($attachment);
-                        }
-                        $fileCounter++;
-                    } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
-
-                    $entityManager->persist($dispatchReferenceArticle);
-                }
             }
             $dispatch
                 ->setValidationDate(new DateTime('now'));

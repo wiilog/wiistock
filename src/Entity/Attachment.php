@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -52,6 +53,10 @@ class Attachment {
     #[ORM\ManyToOne(targetEntity: Handling::class, inversedBy: 'attachments')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Handling $handling = null;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'attachments')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ShippingRequest $shippingRequest = null;
 
     #[ORM\OneToOne(mappedBy: 'image', targetEntity: ReferenceArticle::class)]
     private ?ReferenceArticle $referenceArticleImage = null;
@@ -224,6 +229,16 @@ class Attachment {
 
     public function setDeliveryOrder(?Livraison $deliveryOrder): self {
         $this->deliveryOrder = $deliveryOrder;
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
 
         return $this;
     }

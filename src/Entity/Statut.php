@@ -16,10 +16,11 @@ class Statut {
 
     const DRAFT = 0;
     const NOT_TREATED = 1;
-    const TREATED = 2;
-    const DISPUTE = 3;
-    const PARTIAL = 4;
-    const IN_PROGRESS = 5;
+    const IN_PROGRESS = 2;// 5
+    const PARTIAL = 3; // 4
+    const TREATED = 4; // 2
+    const DISPUTE = 5; // 3
+
     const SCHEDULED = 6;
     const SHIPPED = 7;
 

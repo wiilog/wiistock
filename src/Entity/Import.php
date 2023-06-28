@@ -218,6 +218,12 @@ class Import {
         self::ENTITY_CUSTOMER => [
             'name' =>  'Client',
         ],
+
+        self::ENTITY_REF => [
+            'dangerousGoods' =>  'Marchandise dangereuse',
+            'onuCode' =>  'Code ONU',
+            'productClass' =>  'Classe produit',
+        ],
     ];
 
     #[ORM\Id]

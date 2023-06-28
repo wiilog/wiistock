@@ -63,6 +63,7 @@ class Action {
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
@@ -193,6 +194,7 @@ class Action {
 
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
+    const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';

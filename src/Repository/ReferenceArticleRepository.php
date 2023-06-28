@@ -133,7 +133,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.typeQuantite as typeQuantite')
             ->addSelect('reference.barCode as barCode')
             ->addSelect('type.id as typeId')
-            ->addSelect('reference.dangerous_goods as dangerous')
+            ->addSelect('reference.dangerousGoods as dangerous')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -150,7 +150,31 @@ class ReferenceArticleRepository extends EntityRepository {
         $qb = $this->createQueryBuilder('referenceArticle');
 
         $qb->select('referenceArticle.id AS id')
-            ->addSelect('referenceArticle.reference AS label')
+            ->addSelect('referenceArticle.reference AS reference')
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"'))) AS outFormatEquipment")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"'))) AS manufacturerCode")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"'))) AS length")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"'))) AS width")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"'))) AS height")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"'))) AS volume")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"'))) AS weight")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"'))) AS associatedDocumentTypes")
             ->andWhere('referenceArticle.needsMobileSync = true');
 
         return $qb->getQuery()->getResult();
