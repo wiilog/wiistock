@@ -9974,7 +9974,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "cd41408b1504e0325e717a2089b2b5bd48de6cee"
+                "reference": "2778dcd4466124a1e11a953791f5678f3d68ec4f"
             },
             "require": {
                 "ext-json": "*"
@@ -9991,7 +9991,7 @@
                     "WiiCommon\\": "src/"
                 }
             },
-            "time": "2023-03-02T08:59:52+00:00"
+            "time": "2023-06-28T09:05:15+00:00"
         },
         {
             "name": "wiilog/zpl-generator",
