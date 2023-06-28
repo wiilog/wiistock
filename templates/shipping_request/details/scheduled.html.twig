@@ -12,10 +12,18 @@
                     {label: 'Unité logistique', value: pack.code, bold: 'value'},
                     {label: "Dimension (cm)", value: pack.size, bold: 'label', icon: 'size'},
                     {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'iot-location'},
-
                 ],
             },
             content: line.references,
         } %}
     {% endfor %}
 </div>
+
+{% if shippingRequest.status.code is same as constant('App\\Entity\\ShippingRequest\\ShippingRequest::STATUS_SCHEDULED') %}
+    {% include "shipping_request/modals/scheduled-modal.html.twig" with {
+        shipping: shippingRequest,
+    } %}
+    {% include "shipping_request/modals/packing.html.twig" with {
+        shipping: shippingRequest,
+    } %}
+{% endif %}

@@ -703,7 +703,7 @@ function processFilesForm($modal, data) {
         });
     }
 
-    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
+    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
     const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
     let dropFrame = [];
 

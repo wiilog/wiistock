@@ -26,9 +26,7 @@ $(function() {
         window.location.reload();
     });
 
-    initScheduledShippingRequestForm();
-    initPackingPack($('#modalPacking'))
-    getShippingRequestStatusHistory();
+    getShippingRequestStatusHistory(shippingId);
     updateDetails();
 
     $(document).arrive('.schedule-details', function () {
@@ -41,6 +39,14 @@ $(function() {
 
     $(document).arrive('#expectedLinesTable', function () {
         initDetailsToTreat($(this));
+    });
+
+    $(document).arrive('#modalScheduledShippingRequest', function () {
+        initScheduledShippingRequestForm($(this));
+    });
+
+    $(document).arrive('#modalPacking', function () {
+        initPackingPack($(this));
     });
 });
 
@@ -81,12 +87,35 @@ function deleteShippingRequest($event){
     });
 }
 
-function initScheduledShippingRequestForm() {
-    let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
-    Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
-        $modalScheduledShippingRequest.modal('hide');
-        openPackingModal(data, expectedLines, 1);
-    });
+
+function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
+    const form = Form
+        .create($modalScheduledShippingRequest)
+        .on('click', '#submitEditSchedule', function (event) {
+            const formData = form.process()
+            let scheduleData = {}
+            formData.forEach(function (value, key) {
+                scheduleData[key] = value
+            });
+
+            AJAX
+                .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
+                .json(
+                    {
+                        scheduleData,
+                    }
+                )
+                .then((res) => {
+                    if (res.success) {
+                        updatePage();
+                        $modalScheduledShippingRequest.modal('hide');
+                    }
+                });
+        })
+        .onSubmit((data, form) => {
+            $modalScheduledShippingRequest.modal('hide');
+            openPackingModal(data, expectedLines, 1);
+        });
 }
 
 function deleteExpectedLine($button, table) {
@@ -115,15 +144,16 @@ function deleteExpectedLine($button, table) {
 }
 
 function initPackingPack($modal) {
-    $modal.find('button.nextStep').on('click', function () {
+    $modal.find('button.nextStep').off().on('click', function () {
         packingNextStep($modal);
     })
 
-    $modal.find('button.previous').on('click', function () {
+    $modal.find('button.previous').off().on('click', function () {
         packingPreviousStep($modal);
     })
 
     $modal
+        .off()
         .on('hidden.bs.modal', function () {
             $modal.find('.modal-body').empty();
         })
@@ -365,12 +395,16 @@ function openScheduledShippingRequestModal($button){
     AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
+            console.log(res);
             if (res.errors || res.success) {
                 showBSAlert(res.errors , "info");
                 AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
                     .json()
                     .then((res) => {
                         if (res.success) {
+                            console.log($('#modalScheduledShippingRequest'));
+                            console.log($('.details-container').find('#modalScheduledShippingRequest'));
+                            console.log(res.expectedLines);
                             $('#modalScheduledShippingRequest').modal('show');
                             expectedLines = res.expectedLines;
                         }
