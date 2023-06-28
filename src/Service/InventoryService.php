@@ -204,6 +204,7 @@ class InventoryService {
 
         $rfidTags = Stream::from($rfidTags)
             ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
+            ->unique()
             ->toArray();
 
         $locations = $locationRepository->findByMissionAndZone([$zone], $mission);
@@ -241,18 +242,22 @@ class InventoryService {
             $reference = $referenceArticle?->getReference();
 
             $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
-            $articleCounter = count($scannedArticles);
+
+            $articleCounter = count($scannedArticles); // available and unavailable article counter
+            $availableArticleCounter = Stream::from($scannedArticles)
+                ->filter(fn(Article $article) => $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
+                ->count();
             $numScannedObjects += $articleCounter;
 
             $key = "location" . $locationId;
             $rowLocationResult = $locationsData[$key] ?? [
                 "location" => $locationLabel,
                 "locationId" => $locationId,
-                "articleCounter" => 0,
+                "availableArticleCounter" => 0,
                 "storageRuleCounter" => 0,
             ];
 
-            $rowLocationResult["articleCounter"] += $articleCounter;
+            $rowLocationResult["availableArticleCounter"] += $availableArticleCounter;
             $rowLocationResult["storageRuleCounter"] += 1;
 
             $rowLocationResult["articles"] = array_merge(
@@ -272,6 +277,8 @@ class InventoryService {
             }
         }
 
+        dump($locationsData);
+
         // calculate percentage and save in inventory stats and scanned articles
         foreach($locationsData as $locationRow) {
             /** @var InventoryLocationMission $linkedLine */
@@ -282,7 +289,7 @@ class InventoryService {
 
             if ($linkedLine) {
                 $ratio = $zoneInventoryIndicator
-                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                    ? floor(($locationRow['availableArticleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
                     : 0;
 
                 $linkedLine

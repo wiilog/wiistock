@@ -2687,7 +2687,8 @@ class MobileController extends AbstractApiController
                     ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
-            } else {
+            }
+            else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $correctionMovement = new MouvementStock();
