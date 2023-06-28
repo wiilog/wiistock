@@ -1,12 +1,9 @@
-const user = {
-    email: 'Test@test.fr',
-    password: 'Test123456!',
-}
+const user = Cypress.config('user');
 describe('Edit and save components in Stock > Articles settings', () => {
     const settingsItemName = 'types_champs_libres';
     const tableName = 'article';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('articles');
     })
 
@@ -39,7 +36,7 @@ describe('Edit and save components in Stock > Réceptions settings', () => {
     const settingsItemName = 'champs_libres';
     const tableName = 'reception';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('receptions');
     })
 
@@ -64,7 +61,7 @@ describe('Edit and save components in Trace > Acheminements settings', () => {
     const settingsItemName = 'types_champs_libres'
     const tableName = 'dispatch';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('acheminements');
     })
 
@@ -97,7 +94,7 @@ describe('Edit and save components in Trace > Arrivages UL settings', () => {
     const settingsItemName = 'types_champs_libres';
     const tableName = 'arrival';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('arrivages');
     })
 
@@ -129,7 +126,7 @@ describe('Edit and save components in Trace > Arrivages UL settings', () => {
 describe('Edit and save components in Trace > Arrivages camion settings', () => {
     const tableName = 'truck-arrival';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('arrivages_camion');
     })
 
@@ -145,7 +142,7 @@ describe('Edit and save components in Trace > Arrivages camion settings', () => 
 describe('Edit and save components in Trace > Mouvements settings', () => {
     const settingsItemName = 'champs_libres';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('mouvements');
     })
 
@@ -162,7 +159,7 @@ describe('Edit and save components in Trace > Services settings', () => {
     const settingsItemName = 'types_champs_libres';
     const tableName = 'handling';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('services');
     })
 
@@ -194,7 +191,7 @@ describe('Edit and save components in Trace > Services settings', () => {
 describe('Edit and save components in Trace > Urgences settings', () => {
     const tableName = 'emergencies';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('urgences');
     })
 
@@ -211,7 +208,7 @@ describe('Edit and save components in Track > Demandes settings', () => {
     const settingsItemNameForLivraisons = 'types_champs_libres_livraisons'
     const settingsItemNameForCollectes = 'types_champs_libres_collectes';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('demande_transport');
     })
 
@@ -250,7 +247,7 @@ describe('Edit and save components in Track > Demandes settings', () => {
 describe('Edit and save components in IoT > Types et champs libres settings', () => {
     const settingsItemName = 'types_champs_libres';
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.openSettingsItem('types_champs_libres');
     })
 

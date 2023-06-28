@@ -1,12 +1,10 @@
 const linesTableFreeFieldsComponent = 'table[data-table-processing=fixedFields] tbody tr';
-const user = {
-    email: 'Test@test.fr', password: 'Test123456!',
-}
+const user = Cypress.config('user');
 
 describe('Create and edit logistics unit', () => {
 
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.visit('/');
     })
 

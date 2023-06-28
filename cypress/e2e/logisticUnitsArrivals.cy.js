@@ -1,4 +1,5 @@
 const path = require('path');
+const user = Cypress.config('user');
 const downloadsFolder = Cypress.config('downloadsFolder');
 const linesTableFreeFieldsComponent = 'table[data-table-processing=fixedFields] tbody tr';
 const numberPacksPalette = 1;
@@ -62,17 +63,13 @@ const disputeChanged = {
 }
 let disputeCreationDate;
 let logisticUnitsCreationDate;
-const user = {
-    email: 'Test@test.fr',
-    password: 'Test123456!',
-}
 
 describe('Create and edit logistic units arrivals', () => {
 
     beforeEach(() => {
         const downloadsFolder = Cypress.config('downloadsFolder');
         cy.exec(`del /q ${downloadsFolder}\\*`, {failOnNonZeroExit: false});
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.visit('/');
     })
 

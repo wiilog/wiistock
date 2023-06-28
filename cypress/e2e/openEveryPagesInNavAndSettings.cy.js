@@ -1,12 +1,9 @@
 const tableRoleName = 'tableRoles';
-const user = {
-    email: 'Test@test.fr',
-    password: 'Test123456!',
-}
-describe('Open every pages in nav and settings', () => {
+const user = Cypress.config('user');
 
+describe('Open every pages in nav and settings', () => {
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.visit('/')
     })
 
