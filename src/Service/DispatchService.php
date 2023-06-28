@@ -1540,7 +1540,7 @@ class DispatchService {
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
-            ? ($dispatch->getCommentaire() . "<br/>")
+            ? ($dispatch->getCommentaire() . "\n")
             : "";
 
         $dispatch
