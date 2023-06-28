@@ -837,7 +837,7 @@ class DispatchService {
             $packQuantity = (int)$pack['packQuantity'];
             $pack = $packRepository->find($packId);
             $pack
-                ->setComment(StringHelper::cleanedComment($comment));
+                ->setComment($comment);
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)

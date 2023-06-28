@@ -169,7 +169,7 @@ class DemandeController extends AbstractController
                     ->setExpectedAt($expectedAt)
                     ->setType($type)
                     ->setReceiver($receiver)
-                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                    ->setCommentaire($data['commentaire'] ?? null);
                 $entityManager->flush();
                 $champLibreService->manageFreeFields($demande, $data, $entityManager);
                 $entityManager->flush();
@@ -203,7 +203,6 @@ class DemandeController extends AbstractController
                         TranslationService     $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
             $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {
@@ -967,7 +966,6 @@ class DemandeController extends AbstractController
             $data['demandeur'] = $this->getUser();
             $data['demandeReceiver'] = $recipient->getId();
             $data['type'] = $defaultType;
-            $data['commentaire'] = StringHelper::cleanedComment($data['commentaire'] ?? null);
             $demande = $deliveryRequestService->newDemande($data, $entityManager, $champLibreService);
 
             if ($demande instanceof Demande) {

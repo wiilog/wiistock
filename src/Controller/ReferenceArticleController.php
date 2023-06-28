@@ -190,7 +190,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix'] ?? null))
                 ->setType($type)

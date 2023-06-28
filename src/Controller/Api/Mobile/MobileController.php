@@ -1083,7 +1083,6 @@ class MobileController extends AbstractApiController
                 $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
                 $dateStr = (new DateTime())->format('d/m/y H:i:s');
                 $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
-                $commentaire = StringHelper::cleanedComment($commentaire);
                 $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
@@ -2082,7 +2081,7 @@ class MobileController extends AbstractApiController
             ->setLabel($labelStr)
             ->setConform(true)
             ->setStatut($statut)
-            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setCommentaire(!empty($commentStr) ? $commentStr : null)
             ->setPrixUnitaire(floatval($priceStr))
             ->setReference($ref)
             ->setQuantite($quantityStr)

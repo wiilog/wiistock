@@ -266,7 +266,7 @@ class IOTService
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
             ->setStatus($requestTemplate->getRequestStatus())
-            ->setComment(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setComment($requestTemplate->getComment())
             ->setAttachments($requestTemplate->getAttachments())
             ->setSubject($requestTemplate->getSubject())
             ->setDesiredDate($desiredDate);
@@ -286,7 +286,7 @@ class IOTService
         $request
             ->setStatut($statut)
             ->setCreatedAt($date)
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
@@ -322,7 +322,7 @@ class IOTService
             ->setStatut($status)
             ->setPointCollecte($requestTemplate->getCollectPoint())
             ->setObjet($requestTemplate->getSubject())
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setstockOrDestruct($requestTemplate->getDestination());
         $entityManager->persist($request);
         $entityManager->flush();

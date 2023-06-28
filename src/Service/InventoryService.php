@@ -81,7 +81,7 @@ class InventoryService {
             $mvt
                 ->setUser($user)
                 ->setDate(new DateTime('now'))
-                ->setComment(StringHelper::cleanedComment($comment))
+                ->setComment($comment)
                 ->setQuantity(abs($diff));
 
             $emplacement = $refOrArt->getEmplacement();
@@ -107,7 +107,7 @@ class InventoryService {
                         ->setEmplacementFrom($emplacement)
                         ->setEmplacementTo($emplacement)
                         ->setDate(new DateTime('now'))
-                        ->setComment(StringHelper::cleanedComment($comment))
+                        ->setComment($comment)
                         ->setType(MouvementStock::TYPE_SORTIE)
                         ->setQuantity(abs($diff));
 

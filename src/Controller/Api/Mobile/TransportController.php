@@ -1365,7 +1365,7 @@ class TransportController extends AbstractApiController
     {
         $order = $request->getOrder();
 
-        $order->setComment(StringHelper::cleanedComment($comment));
+        $order->setComment($comment);
 
         $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),

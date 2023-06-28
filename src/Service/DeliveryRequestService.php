@@ -329,7 +329,7 @@ class DeliveryRequestService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+            ->setCommentaire($data['commentaire'] ?? null)
             ->setReceiver($receiver)
             ->setVisibleColumns($visibleColumns);
 
