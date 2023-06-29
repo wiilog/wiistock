@@ -15,8 +15,28 @@
     {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
-{% set hasRightEdit = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT')) %}
-{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE')) %}
+{% set hasRightEdit =
+    shipping.draft
+    ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT'))
+    : (shipping.toTreat
+        ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_TO_TREAT_SHIPPING'))
+        : (shipping.scheduled
+            ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_PLANIFIED_SHIPPING'))
+            : hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EDIT_SHIPPED_SHIPPING'))
+        )
+    )
+%}
+{% set hasRightDelete =
+    shipping.draft
+    ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE'))
+    : (shipping.toTreat
+        ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_TO_TREAT_SHIPPING'))
+        : (shipping.scheduled
+            ? hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_PLANIFIED_SHIPPING'))
+            : hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DELETE_SHIPPED_SHIPPING'))
+        )
+    )
+%}
 {% set hasRightGenerateDeliverySlip = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_PACKING_SLIP')) %}
 
 {% import "shipping_request/macro.html.twig" as macro %}

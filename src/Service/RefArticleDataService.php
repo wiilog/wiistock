@@ -297,6 +297,12 @@ class RefArticleDataService
             }
         }
 
+        if($data->has('security')
+            && $data->has('fileSheet')
+            && $data->get('security') == "1"
+            && $data->get('fileSheet') === "undefined"){
+            throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+        }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);
