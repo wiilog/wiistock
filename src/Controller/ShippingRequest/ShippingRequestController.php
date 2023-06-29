@@ -53,6 +53,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 #[Route("/expeditions")]
@@ -463,25 +464,38 @@ class ShippingRequestController extends AbstractController {
 
         // remove status_history
         $statusHistoryToRemove = $statusHistoryRepository->findBy(['shippingRequest' => $shippingRequest->getId()]);
-        foreach ($statusHistoryToRemove as $status) {
-            $entityManager->remove($status);
+
+        try {
+            $entityManager->wrapInTransaction(function(EntityManagerInterface $entityManager) use ($shippingRequestService, $shippingRequest, $statusHistoryToRemove, $attachmentService) {
+                foreach ($statusHistoryToRemove as $status) {
+                    $entityManager->remove($status);
+                }
+                $shippingRequestService->deletePacking($entityManager, $shippingRequest);
+
+                // remove ShippingRequesExpectedtLine
+                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+
+                    $entityManager->remove($expectedLine);
+                    $shippingRequest->removeExpectedLine($expectedLine);
+                }
+
+                foreach ($shippingRequest->getAttachments() as $attachment) {
+                    $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
+                }
+
+                $entityManager->remove($shippingRequest);
+
+                $entityManager->flush();
+            });
         }
-        $shippingRequestService->deletePacking($entityManager, $shippingRequest);
-
-        // remove ShippingRequesExpectedtLine
-        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
-
-            $entityManager->remove($expectedLine);
-            $shippingRequest->removeExpectedLine($expectedLine);
+        catch(Throwable $throwable) {
+            if (!($throwable instanceof FormException)) {
+                throw new FormException("Une erreur est survenue lors de la suppression du colisage veuillez contacter le support");
+            }
+            else {
+                throw $throwable;
+            }
         }
-
-        foreach ($shippingRequest->getAttachments() as $attachment){
-            $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
-        }
-
-        $entityManager->remove($shippingRequest);
-
-        $entityManager->flush();
         return $this->json(["success" => true]);
     }
 
@@ -658,8 +672,20 @@ class ShippingRequestController extends AbstractController {
 
         if (isset($data['packing'])) {
             if ($isEdit) {
-                $shippingRequestService->deletePacking($entityManager, $shippingRequest);
-                $entityManager->flush();
+                try {
+                    $entityManager->wrapInTransaction(function(EntityManagerInterface $entityManager) use ($shippingRequestService, $shippingRequest) {
+                        $shippingRequestService->deletePacking($entityManager, $shippingRequest);
+                        $entityManager->flush();
+                    });
+                }
+                catch(Throwable $throwable) {
+                    if (!($throwable instanceof FormException)) {
+                        throw new FormException("Une erreur est survenue lors de la suppression du colisage veuillez contacter le support");
+                    }
+                    else {
+                        throw $throwable;
+                    }
+                }
             }
 
             $generatedBarcode = [];
