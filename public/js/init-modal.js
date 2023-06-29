@@ -991,7 +991,7 @@ function saveDroppedFiles(event, $div) {
             let files = Array.from(event.dataTransfer.files);
 
             const $inputFile = $div.find('.fileInput');
-            saveInputFiles($inputFile, files);
+            saveInputFiles($inputFile, {files});
         }
     } else {
         displayWrong($div);
@@ -999,18 +999,21 @@ function saveDroppedFiles(event, $div) {
     return false;
 }
 
-function saveInputFiles($inputFile, singleton) {
-    let filesToSave = singleton || $inputFile[0].files;
+function saveInputFiles($inputFile, options) {
+    const {files, singleton} = options || {};
+    let filesToSave = files || $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
-    Array.from(filesToSave).forEach(file => {
-        if (checkSizeFormat(file) && checkFileFormat(file)) {
-            if (!isMultiple && !singleton) {
-                droppedFiles = [];
+    if(!singleton){
+        Array.from(filesToSave).forEach(file => {
+            if (checkSizeFormat(file) && checkFileFormat(file)) {
+                if (!isMultiple && !singleton) {
+                    droppedFiles = [];
+                }
+                droppedFiles.push(file);
             }
-            droppedFiles.push(file);
-        }
-    });
+        });
+    }
 
     let dropFrame = $inputFile.closest('.dropFrame');
 

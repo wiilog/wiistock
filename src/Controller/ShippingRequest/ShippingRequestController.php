@@ -25,6 +25,7 @@ use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
+use App\Service\AttachmentService;
 use App\Service\LanguageService;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
@@ -433,6 +434,7 @@ class ShippingRequestController extends AbstractController {
     public function deleteShippingRequest(ShippingRequest        $shippingRequest,
                                           EntityManagerInterface $entityManager,
                                           UserService            $userService,
+                                          AttachmentService      $attachmentService,
                                           ShippingRequestService $shippingRequestService,
                                           TranslationService     $translationService): Response
     {
@@ -441,19 +443,21 @@ class ShippingRequestController extends AbstractController {
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
         // status
-        $isDraftOrTreat = ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_DRAFT)
-            || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT);
-        $isScheduledOrShipped = ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED)
-            || ($shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED);
+        $isDraft = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_DRAFT;
+        $isToTreat = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT;
+        $isScheduled = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED;
+        $isShipped = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED;
 
         // right
-        $hasRightDeleteDraftOrTreat = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user))
-            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE, $user));
-        $hasRightDeleteScheduledOrShipped = ($userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user))
-            || ($userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING));
+        $hasRightDeleteDraft = $userService->hasRightFunction(Menu::DEM, Action::DELETE, $user);
+        $hasRightDeleteTreat = $userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user);
+        $hasRightDeleteScheduled = $userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user);
+        $hasRightDeleteShipped = $userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING);
 
-        if (($isDraftOrTreat && !$hasRightDeleteDraftOrTreat)
-            || ($isScheduledOrShipped && !$hasRightDeleteScheduledOrShipped)) {
+        if (($isDraft && !$hasRightDeleteDraft)
+            || ($isToTreat && !$hasRightDeleteTreat)
+            || ($isScheduled && !$hasRightDeleteScheduled)
+            || ($isShipped && !$hasRightDeleteShipped)) {
             throw new FormException("Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " au statut " . $this->getFormatter()->status($shippingRequest->getStatus()));
         }
 
@@ -469,6 +473,10 @@ class ShippingRequestController extends AbstractController {
 
             $entityManager->remove($expectedLine);
             $shippingRequest->removeExpectedLine($expectedLine);
+        }
+
+        foreach ($shippingRequest->getAttachments() as $attachment){
+            $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
         }
 
         $entityManager->remove($shippingRequest);

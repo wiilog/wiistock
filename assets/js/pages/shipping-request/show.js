@@ -76,15 +76,15 @@ function validateShippingRequest($button) {
 
 function deleteShippingRequest($event){
     const shipping_request_id = $event.data('id');
-    wrapLoadingOnActionButton($(".row.wii-column.w-100"), function () {
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), () => (
         AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
             .json()
             .then((res) => {
                 if (res.success) {
                     window.location.href = Routing.generate('shipping_request_index');
                 }
-            });
-    });
+            })
+    ));
 }
 
 
@@ -392,16 +392,12 @@ function openScheduledShippingRequestModal($button){
     AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
-            console.log(res);
             if (res.errors || res.success) {
                 showBSAlert(res.errors , "info");
                 AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
                     .json()
                     .then((res) => {
                         if (res.success) {
-                            console.log($('#modalScheduledShippingRequest'));
-                            console.log($('.details-container').find('#modalScheduledShippingRequest'));
-                            console.log(res.expectedLines);
                             $('#modalScheduledShippingRequest').modal('show');
                             expectedLines = res.expectedLines;
                         }
@@ -684,7 +680,7 @@ function initDetailsScheduled($container) {
         let $table = $(this);
 
         const columns = [
-            {name: 'actions', data: 'actions', className: 'd-flex', title: '', orderable: false},
+            {name: 'actions', data: 'actions', title: '', orderable: false},
             {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},

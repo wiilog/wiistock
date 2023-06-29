@@ -474,7 +474,7 @@ class ShippingRequestService {
                         ]);
 
                         return [
-                            'actions' => $actions . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : ''),
+                            'actions' => '<div class="d-flex align-items-center">' . $actions . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
                             'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
