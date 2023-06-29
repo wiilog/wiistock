@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\Role;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 
@@ -196,6 +197,10 @@ class UserService
 
     public function getUserFCMChannel(Utilisateur $user): string {
         return 'user-' . $user->getId();
+    }
+
+    public function isValidateUser(Utilisateur $user) {
+        return $user->getStatus() && $user->getRole()->getLabel() !== Role::NO_ACCESS_USER;
     }
 
 }
