@@ -289,7 +289,7 @@ class ShippingRequestController extends AbstractController {
                                        ShippingRequestService      $shippingRequestService,
                                        ShippingRequestExpectedLine $line): Response {
 
-        if ($line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_DRAFT) {
+        if ($line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_DRAFT || $line->getRequest()?->getStatus()?->getCode() === ShippingRequest::STATUS_TO_TREAT) {
             $shippingRequest = $line->getRequest();
             $shippingRequest->removeExpectedLine($line);
             $entityManager->remove($line);
