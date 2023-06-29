@@ -244,20 +244,17 @@ class InventoryService {
             $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
 
             $articleCounter = count($scannedArticles); // available and unavailable article counter
-            $availableArticleCounter = Stream::from($scannedArticles)
-                ->filter(fn(Article $article) => $article->getStatut()?->getCode() === Article::STATUT_ACTIF)
-                ->count();
             $numScannedObjects += $articleCounter;
 
             $key = "location" . $locationId;
             $rowLocationResult = $locationsData[$key] ?? [
                 "location" => $locationLabel,
                 "locationId" => $locationId,
-                "availableArticleCounter" => 0,
+                "articleCounter" => 0,
                 "storageRuleCounter" => 0,
             ];
 
-            $rowLocationResult["availableArticleCounter"] += $availableArticleCounter;
+            $rowLocationResult["articleCounter"] += $articleCounter;
             $rowLocationResult["storageRuleCounter"] += 1;
 
             $rowLocationResult["articles"] = array_merge(
@@ -277,8 +274,6 @@ class InventoryService {
             }
         }
 
-        dump($locationsData);
-
         // calculate percentage and save in inventory stats and scanned articles
         foreach($locationsData as $locationRow) {
             /** @var InventoryLocationMission $linkedLine */
@@ -289,7 +284,7 @@ class InventoryService {
 
             if ($linkedLine) {
                 $ratio = $zoneInventoryIndicator
-                    ? floor(($locationRow['availableArticleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
                     : 0;
 
                 $linkedLine
