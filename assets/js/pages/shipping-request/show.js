@@ -684,7 +684,7 @@ function initDetailsScheduled($container) {
         let $table = $(this);
 
         const columns = [
-            {name: 'actions', data: 'actions', title: '', orderable: false},
+            {name: 'actions', data: 'actions', className: 'd-flex', title: '', orderable: false},
             {name: 'reference', data: 'reference', title: 'Référence', orderable: true},
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
