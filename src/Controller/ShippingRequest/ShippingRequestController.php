@@ -663,127 +663,123 @@ class ShippingRequestController extends AbstractController {
             }
 
             $generatedBarcode = [];
-            Stream::from($data['packing'])
-                ->each(function ($pack, $index) use (&$generatedBarcode, $stockMovementService, $trackingMovementService, $packLocation, $articleDataService, $now, $shippingRequestService, $shippingRequest, $entityManager, $ShippingRequestExpectedLineRepository, &$quantityByExpectedLine) {
-                    if (!count(($pack['lines'] ?? []))) {
+            foreach ($data['packing'] as $index => $pack) {
+                if (!count(($pack['lines'] ?? []))) {
+                    throw new FormException('Une Erreur est survenue lors de la récupération des données.');
+                }
+
+                $shippingPack = $shippingRequestService->createShippingRequestPack($entityManager, $shippingRequest, $index + 1, $pack['size'] ?? null, $packLocation, ['date' => $now]);
+                $entityManager->persist($shippingPack);
+
+                foreach($pack['lines'] as $line) {
+                    if (!isset($line['lineId']) || !isset($line['quantity'])) {
+                        throw new FormException();
+                    }
+                    $expectedLineId = $line['lineId'];
+                    $pickedQuantity = $line['quantity'];
+
+                    $requestExpectedLine = $ShippingRequestExpectedLineRepository->find($expectedLineId);
+                    if (!$requestExpectedLine) {
                         throw new FormException('Une Erreur est survenue lors de la récupération des données.');
                     }
 
-                    $shippingPack = $shippingRequestService->createShippingRequestPack($entityManager, $shippingRequest, $index + 1, $pack['size'] ?? null, $packLocation, ['date' => $now]);
-                    $entityManager->persist($shippingPack);
+                    $referenceArticle = $requestExpectedLine->getReferenceArticle();
 
-                    Stream::from($pack['lines'])
-                        ->each(function ($line) use ($shippingRequest, &$generatedBarcode, $stockMovementService, $now, $trackingMovementService, $shippingPack, $packLocation, $entityManager, $articleDataService, $ShippingRequestExpectedLineRepository, &$quantityByExpectedLine) {
-                            if (!isset($line['lineId']) || !isset($line['quantity'])) {
-                                throw new FormException();
-                            }
-                            $expectedLineId = $line['lineId'];
-                            $pickedQuantity = $line['quantity'];
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                        $referenceArticle->setQuantiteReservee($referenceArticle->getQuantiteReservee() + $pickedQuantity);
+                        $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $pickedQuantity);
+                    } else {
+                        $article = $articleDataService->newArticle(
+                            $entityManager,
+                            [
+                                'statut' => Article::STATUT_EN_TRANSIT,
+                                'refArticle' => $referenceArticle,
+                                'emplacement' => $packLocation,
+                                'quantite' => $pickedQuantity,
+                                'prix' => $requestExpectedLine->getUnitPrice(),
+                                'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
+                                'currentLogisticUnit' => $shippingPack->getPack(),
+                            ],
+                            [
+                                'excludeBarcodes' => $generatedBarcode,
+                            ]);
+                        $generatedBarcode[] = $article->getBarCode();
+                    }
 
-                            $requestExpectedLine = $ShippingRequestExpectedLineRepository->find($expectedLineId);
-                            if (!$requestExpectedLine) {
-                                throw new FormException('Une Erreur est survenue lors de la récupération des données.');
-                            }
+                    $articleOrReference = $article ?? $referenceArticle;
 
-                            $referenceArticle = $requestExpectedLine->getReferenceArticle();
+                    $stockMovement = $stockMovementService->createMouvementStock(
+                        $this->getUser(),
+                        null,
+                        $pickedQuantity,
+                        $articleOrReference,
+                        MouvementStock::TYPE_ENTREE,
+                        [
+                            'from'=> $shippingRequest,
+                            'date' => $now,
+                            'locationTo' => $packLocation
+                        ]
+                    );
+                    $entityManager->persist($stockMovement);
 
-                            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                                $referenceArticle->setQuantiteReservee($referenceArticle->getQuantiteReservee() + $pickedQuantity);
-                                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $pickedQuantity);
-                            } else {
-                                $article = $articleDataService->newArticle(
-                                    $entityManager,
-                                    [
-                                        'statut' => Article::STATUT_EN_TRANSIT,
-                                        'refArticle' => $referenceArticle,
-                                        'emplacement' => $packLocation,
-                                        'quantite' => $pickedQuantity,
-                                        'prix' => $requestExpectedLine->getUnitPrice(),
-                                        'articleFournisseur' => $requestExpectedLine->getReferenceArticle()->getArticlesFournisseur()->first()->getId(),
-                                        'currentLogisticUnit' => $shippingPack->getPack(),
-                                    ],
-                                    [
-                                        'excludeBarcodes' => $generatedBarcode,
-                                    ]);
-                                $generatedBarcode[] = $article->getBarCode();
-                            }
+                    $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
+                        $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
+                        $packLocation,
+                        $this->getUser(),
+                        $now,
+                        false,
+                        null,
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'from' => $shippingRequest,
+                            'shippingRequest' => $shippingRequest,
+                            'refOrArticle' => $articleOrReference,
+                            'mouvementStock' => $stockMovement,
+                            'logisticUnitParent' => $shippingPack->getPack(),
+                            "quantity" => $pickedQuantity,
+                        ]
+                    );
+                    $entityManager->persist($trackingMovementDrop);
 
-                            $articleOrReference = $article ?? $referenceArticle;
-
-                            $stockMovement = $stockMovementService->createMouvementStock(
-                                $this->getUser(),
-                                null,
-                                $pickedQuantity,
-                                $articleOrReference,
-                                MouvementStock::TYPE_ENTREE,
-                                [
-                                    'from'=> $shippingRequest,
-                                    'date' => $now,
-                                    'locationTo' => $packLocation
-                                ]
-                            );
-                            $entityManager->persist($stockMovement);
-
-                        $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
-                            $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
+                    if(isset($article)) {
+                        $trackingMovementDropLogisticUnit = $trackingMovementService->createTrackingMovement(
+                            $trackingMovementDrop->getPack(),
                             $packLocation,
                             $this->getUser(),
                             $now,
                             false,
                             null,
-                            TrackingMovement::TYPE_DEPOSE,
+                            TrackingMovement::TYPE_DROP_LU,
                             [
-                                'from' => $shippingRequest,
-                                'shippingRequest' => $shippingRequest,
-                                'refOrArticle' => $articleOrReference,
+                                'from'=>$shippingRequest,
+                                'shippingRequest'=> $shippingRequest,
+                                'refOrArticle' => $article,
                                 'mouvementStock' => $stockMovement,
                                 'logisticUnitParent' => $shippingPack->getPack(),
                                 "quantity" => $pickedQuantity,
                             ]
                         );
-                        $entityManager->persist($trackingMovementDrop);
-
-                            if(isset($article)) {
-                                $trackingMovementDropLogisticUnit = $trackingMovementService->createTrackingMovement(
-                                    $trackingMovementDrop->getPack(),
-                                    $packLocation,
-                                    $this->getUser(),
-                                    $now,
-                                    false,
-                                    null,
-                                    TrackingMovement::TYPE_DROP_LU,
-                                    [
-                                        'from'=>$shippingRequest,
-                                        'shippingRequest'=> $shippingRequest,
-                                        'refOrArticle' => $article,
-                                        'mouvementStock' => $stockMovement,
-                                        'logisticUnitParent' => $shippingPack->getPack(),
-                                        "quantity" => $pickedQuantity,
-                                    ]
-                                );
-                                $entityManager->persist($trackingMovementDropLogisticUnit);
-                                $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
-                            }
-
-                        $requestLine = new ShippingRequestLine();
-                        $requestLine
-                            ->setQuantity($pickedQuantity)
-                            ->setArticleOrReference($articleOrReference)
-                            ->setShippingPack($shippingPack)
-                            ->setExpectedLine($requestExpectedLine);
-
-                            $entityManager->persist($requestLine);
-                            $quantityByExpectedLine[$expectedLineId] = ($quantityByExpectedLine[$expectedLineId] ?? 0) + $pickedQuantity;
-                        });
-                });
-
-            Stream::from($shippingRequest->getExpectedLines())
-                ->each(function (ShippingRequestExpectedLine $expectedLine) use ($quantityByExpectedLine) {
-                    $expectedLineId = $expectedLine->getId();
-                    if (($quantityByExpectedLine[$expectedLineId] ?? 0) !== $expectedLine->getQuantity()) {
-                        throw new FormException('Une Erreur est survenue lors du traitement des données.');
+                        $entityManager->persist($trackingMovementDropLogisticUnit);
+                        $trackingMovementDrop->setMainMovement($trackingMovementDropLogisticUnit);
                     }
-                });
+
+                    $requestLine = new ShippingRequestLine();
+                    $requestLine
+                        ->setQuantity($pickedQuantity)
+                        ->setArticleOrReference($articleOrReference)
+                        ->setShippingPack($shippingPack)
+                        ->setExpectedLine($requestExpectedLine);
+
+                    $entityManager->persist($requestLine);
+                    $quantityByExpectedLine[$expectedLineId] = ($quantityByExpectedLine[$expectedLineId] ?? 0) + $pickedQuantity;
+                }
+            }
+
+            $quantityError = Stream::from($shippingRequest->getExpectedLines())
+                ->some(fn(ShippingRequestExpectedLine $expectedLine) => ($quantityByExpectedLine[$expectedLine->getId()] ?? 0) !== $expectedLine->getQuantity());
+            if ($quantityError) {
+                throw new FormException('Une Erreur est survenue lors du traitement des données.');
+            }
         }
 
         $statusHistoryService->updateStatus(

@@ -100,11 +100,7 @@ function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
 
             AJAX
                 .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
-                .json(
-                    {
-                        scheduleData,
-                    }
-                )
+                .json({scheduleData})
                 .then((res) => {
                     if (res.success) {
                         updatePage();
@@ -153,42 +149,31 @@ function initPackingPack($modal) {
     })
 
     $modal
-        .off()
         .on('hidden.bs.modal', function () {
             $modal.find('.modal-body').empty();
+            packingData = [];
         })
         .on('click', 'button[type=submit]', function () {
             if (packingNextStep($modal, true)) {
                 const packing = packingData.map(function (packingPack) {
-                    const lineData = packingPack.lines.map(function (lineFormData) {
-                        let linesData = {}
-                        if (Boolean(Number(lineFormData.get('picked')))) {
-                            lineFormData.forEach(function (value, key) {
-                                linesData[key] = value
-                            })
-                        }
-                        return linesData
-                    }).filter((lineData) => Object.keys(lineData).length)
-                    const packData = {}
-                    packingPack.pack.forEach(function (value, key) {
-                        packData[key] = value
-                    })
+                    const lineData = packingPack.lines
+                        .filter((lineFormData) => Boolean(Number(lineFormData.get('picked'))))
+                        .map((lineFormData) =>  lineFormData.asObject());
+                    const packData = packingPack.pack
+                        ? packingPack.pack.asObject()
+                        : {};
 
                     return {
                         lines: lineData,
                         ...packData
                     }
-                })
-                let scheduleData = {}
-                scheduledShippingRequestFormData.forEach(function (value, key) {
-                    scheduleData[key] = value
                 });
                 wrapLoadingOnActionButton($(this), () => (
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
                         .json({
                             packing,
-                            scheduleData,
+                            scheduleData: scheduledShippingRequestFormData.asObject(),
                         })
                         .then((res) => {
                             updatePage();
