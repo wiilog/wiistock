@@ -183,23 +183,20 @@ function initPackingPack($modal) {
                 scheduledShippingRequestFormData.forEach(function (value, key) {
                     scheduleData[key] = value
                 });
-                wrapLoadingOnActionButton($(this), function () {
+                wrapLoadingOnActionButton($(this), () => (
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
-                        .json(
-                            {
-                                packing,
-                                scheduleData,
-                            }
-                        )
+                        .json({
+                            packing,
+                            scheduleData,
+                        })
                         .then((res) => {
                             updatePage();
                             if (res.success) {
                                 $modal.modal('hide');
-
                             }
-                        });
-                })
+                        })
+                ))
             }
         });
 }

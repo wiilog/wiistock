@@ -520,7 +520,6 @@ class ShippingRequestService {
 
         /* @var ShippingRequestPack $packLine */
         foreach ($shippingRequest->getPackLines() as $packLine) {
-
             $pack = $packLine->getPack();
 
             /* @var ShippingRequestLine $requestLine */
@@ -529,8 +528,10 @@ class ShippingRequestService {
                 $articleOrReference = $requestLine->getArticleOrReference();
 
                 if ($articleOrReference instanceof Article) {
+                    $trackingPack = $articleOrReference->getTrackingPack();
                     $articleOrReference->setTrackingPack(null);
                     $entityManager->remove($articleOrReference);
+                    $entityManager->remove($trackingPack);
                 }
                 // only on scheduled status (quantities were added)
                 else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
@@ -552,11 +553,11 @@ class ShippingRequestService {
                 $pack->removeTrackingMovement($trackMvt);
             }
 
+            $shippingRequest->removePackLine($packLine);
+
             $entityManager->remove($pack);
             $entityManager->remove($packLine);
         }
-
-
     }
 
     public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,
