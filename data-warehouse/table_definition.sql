@@ -278,7 +278,8 @@ CREATE TABLE dw_arrivage
     utilisateur              varchar(255),
     numero_projet            varchar(255),
     business_unit            varchar(255),
-    reception_id             integer
+    reception_id             integer,
+    no_arrivage_camion       varchar(255)
 );
 
 CREATE TABLE dw_acheminement
