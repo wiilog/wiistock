@@ -607,6 +607,15 @@ CREATE TABLE dw_demande_expedition
     poids_brut_transport                integer
 );
 
+CREATE TABLE dw_numero_tracking
+(
+    no_tracking varchar(255),
+    no_arrivage_camion varchar(255),
+    reserve_qualite varchar(255),
+    retard varchar(255),
+    no_arrivage_UL varchar(255)
+);
+
 CREATE TABLE dw_informations
 (
     version varchar(255)
