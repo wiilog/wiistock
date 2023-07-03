@@ -298,9 +298,10 @@ class RefArticleDataService
         }
 
         if($data->has('security')
-            && $data->has('fileSheet')
-            && $data->get('security') == "1"
-            && $data->get('fileSheet') === "undefined"){
+            && $data->has('deletedSheetFile')
+            && ((!$fileBag->has('fileSheet') && $data->get('deletedSheetFile') === "1" )
+                || ($data->has('fileSheet') && $data->get('fileSheet') === 'undefined'))
+            && $data->get('security') === "1"){
             throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
         }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
