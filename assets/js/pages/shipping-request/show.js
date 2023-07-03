@@ -749,12 +749,6 @@ function treatShippingRequest($button) {
 
 }
 
-function updatePage() {
-    getShippingRequestStatusHistory();
-    updateDetails();
-    refreshTransportHeader();
-}
-
 function generateDeliverySlip(shippingRequestId) {
     AJAX.route(AJAX.POST, 'post_delivery_slip', {shippingRequest: shippingRequestId})
         .json()
