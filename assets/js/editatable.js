@@ -33,12 +33,6 @@ export default class EditableDatatable {
             $element.attr(`data-table-processing`, config.name)
         }
 
-        for(const column of config.columns) {
-            if(column.required) {
-                column.title += `<span class="d-none required-mark">*</span>`;
-            }
-        }
-
         const datatable = new EditableDatatable();
         datatable.element = $element;
         datatable.config = config;
@@ -121,7 +115,6 @@ export default class EditableDatatable {
 
     toggleEdit(state = this.state === STATE_VIEWING ? STATE_EDIT : STATE_VIEWING, reload = false, {params, rowIndex} = {}) {
         this.state = state;
-
         if(reload) {
             return new Promise((resolve) => {
                 this.table = initEditatable(this, () => {

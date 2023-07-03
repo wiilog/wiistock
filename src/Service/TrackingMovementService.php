@@ -20,11 +20,14 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -54,6 +57,9 @@ class TrackingMovementService extends AbstractController
 
     #[Required]
     public ProjectHistoryRecordService $projectHistoryRecordService;
+
+    #[Required]
+    public LoggerInterface $logger;
 
     private $locationClusterService;
     private $visibleColumnService;
@@ -161,6 +167,11 @@ class TrackingMovementService extends AbstractController
                 $data ['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
                 $data ['entityId'] = $movement->getDeliveryRequest()->getId();
                 $data ['from'] = $movement->getDeliveryRequest()->getNumero();
+            } else if ($movement->getShippingRequest()) {
+                $data ['entityPath'] = 'shipping_request_show';
+                $data ['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
+                $data ['entityId'] = $movement->getShippingRequest()->getId();
+                $data ['from'] = $movement->getShippingRequest()->getNumber();
             }
         }
         return $data;
@@ -373,7 +384,7 @@ class TrackingMovementService extends AbstractController
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null)
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
             ->setDelivery($delivery)
@@ -416,7 +427,7 @@ class TrackingMovementService extends AbstractController
                 ->setPackParent($pack->getParent())
                 ->setGroupIteration($pack->getParent() ? $pack->getParent()->getGroupIteration() : null)
                 ->setMouvementStock($mouvementStock)
-                ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null);
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
             $pack->addTrackingMovement($trackingUngroup);
             if ($removeFromGroup) {
                 $pack->setParent(null);
@@ -476,6 +487,8 @@ class TrackingMovementService extends AbstractController
                 $tracking->setPreparation($from);
             } else if ($from instanceof Livraison) {
                 $tracking->setDelivery($from);
+            } else if ($from instanceof ShippingRequest) {
+                $tracking->setShippingRequest($from);
             }
         }
 
@@ -579,6 +592,11 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if ($tracking->isDrop()) {
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
+                        'user' => $tracking->getOperateur()->getUsername(),
+                        'pack' => $pack->getCode(),
+                        'location' => $tracking->getEmplacement()->getLabel(),
+                    ]);
                     $record->setActive(true);
                     $previousRecordLastTracking = $record->getLastTracking();
                     // check if pack previous last tracking !== record previous lastTracking
@@ -589,7 +607,10 @@ class TrackingMovementService extends AbstractController
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
-
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
+                        'pack' => $pack->getCode(),
+                        'cluster' => $cluster->getId(),
+                    ]);
                     $this->locationClusterService->setMeter(
                         $entityManager,
                         LocationClusterService::METER_ACTION_INCREASE,
@@ -599,11 +620,19 @@ class TrackingMovementService extends AbstractController
 
                     if ($previousLastTracking
                         && $previousLastTracking->isTaking()) {
-
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
+                        $this->logger->critical('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking from location : {location}', [
+                            'pack' => $pack->getCode(),
+                            'location' => $locationPreviousLastTracking?->getLabel()
+                        ]);
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                            $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
+                                'pack' => $pack->getCode(),
+                                'cluster1' => $locationClusterPreviousLastTracking->getId(),
+                                'cluster2' => $cluster->getId(),
+                            ]);
                             $this->locationClusterService->setMeter(
                                 $entityManager,
                                 LocationClusterService::METER_ACTION_INCREASE,

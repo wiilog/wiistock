@@ -217,7 +217,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="row mt-4">
+                        <div class="row mt-3">
                             {% if isReferenceManagementQuantity %}
                                 <div class="col-6 d-flex">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" alt="Icône emplacement" width="20px">
@@ -292,16 +292,19 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% if referenceArticle.isUrgent %}
-                        <div class="d-flex align-items-center urgent-container">
-                            <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
-                            <div class="d-flex flex-column ml-3">
-                                <span class="wii-field-name">Référence urgente</span>
-                                <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+
+                        {% if referenceArticle.isUrgent %}
+                            <div class="row mt-3">
+                                <div class="col-6 d-flex align-items-center">
+                                    <img src="{{ asset('svg/reference_article/urgent.svg') }}" alt="Icône référence urgente" width="25px">
+                                    <div class="d-flex flex-column ml-3">
+                                        <span class="wii-field-name">Référence urgente</span>
+                                        <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                     <div class="details-page-dropdown {{ not referenceArticle.isUrgent ? 'mt-3' : 'border-0' }}">
                         <label for="touch">
                             {% set plural = referenceArticle.articlesFournisseur | length > 1 ? 's' : '' %}

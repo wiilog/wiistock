@@ -341,7 +341,7 @@ class DisputeService {
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord
             ->setDate(new DateTime('now'))
-            ->setComment(StringHelper::cleanedComment($comment ?: null))
+            ->setComment($comment ?: null)
             ->setDispute($dispute)
             ->setUser($user);
 

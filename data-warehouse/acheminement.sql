@@ -32,11 +32,12 @@ SELECT dispatch.id                                        AS id,
        dispatch.project_number                               AS numero_projet,
        dispatch.business_unit                                AS business_unit,
        reference_article.reference                           AS reference,
-       reference_article.quantite_stock                      AS quantite_reference,
+       dispatch_reference_article.quantity                   AS quantite_reference,
        dispatch_reference_article.batch_number               AS numero_lot,
        dispatch_reference_article.serial_number              AS numero_serie,
        dispatch_reference_article.sealing_number             AS numero_plombage_scelle,
-       IF(dispatch_reference_article.adr = 1, 'Oui', 'Non')  AS adr
+       IF(dispatch_reference_article.adr = 1, 'Oui', 'Non')  AS adr,
+       dispatch.commentaire                                  AS commentaire
 
 FROM dispatch
 
@@ -88,4 +89,9 @@ GROUP BY id,
          urgence,
          numero_projet,
          business_unit,
-         reference
+         reference,
+         numero_lot,
+         numero_serie,
+         numero_plombage_scelle,
+         adr
+

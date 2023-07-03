@@ -76,8 +76,8 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
     private Collection $locationClusterRecords;
 
-    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Article $article = null;
 
     #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]
@@ -118,7 +118,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
 
-    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class)]
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
 
     public function __construct() {

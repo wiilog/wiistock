@@ -9,6 +9,7 @@ use App\Entity\Role;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\RoleService;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

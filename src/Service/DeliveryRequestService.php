@@ -329,7 +329,7 @@ class DeliveryRequestService
             ->setDestination($destination)
             ->setNumero($number)
             ->setManual($isManual)
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+            ->setCommentaire($data['commentaire'] ?? null)
             ->setReceiver($receiver)
             ->setVisibleColumns($visibleColumns);
 
@@ -925,8 +925,10 @@ class DeliveryRequestService
         $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
         $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
         $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
-        $isCommentRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['required'] ?? false;
+        $isNotesDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
+        $isNotesRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
+        $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
         $columns = [
             ["name" => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
@@ -934,14 +936,13 @@ class DeliveryRequestService
             ['title' => 'Référence', 'required' => $editMode, 'name' => 'reference', 'alwaysVisible' => true],
             ['title' => 'Code barre', 'name' => 'barcode', 'alwaysVisible' => false],
             ['title' => 'Libellé', 'name' => 'label', 'alwaysVisible' => false],
-            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'removeColumn' => !$editMode, 'alwaysVisible' => true],
+            ['title' => 'Remarques', 'required' => $editMode && $isNotesRequired, 'data' => 'notes', 'name' => 'notes', 'alwaysVisible' => true, 'removeColumn' => !$isNotesDisplayed],
+            ['title' => 'Article', 'required' => $editMode, 'name' => 'article', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$editMode],
             ['title' => 'Quantité', 'required' => $editMode, 'name' => 'quantityToPick', 'alwaysVisible' => true],
             ['title' => 'Emplacement', 'name' => 'location', 'alwaysVisible' => false],
-
-            // TODO WIIS-9646
-            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => !$isTargetLocationPickingDisplayed],
+            ['title' => 'Emplacement cible picking', 'name' => 'targetLocationPicking', 'alwaysVisible' => true, 'removeColumn' => $isUserRoleQuantityTypeReference || !$isTargetLocationPickingDisplayed],
             ['title' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), 'required' => $editMode && $isProjectRequired, 'name' => 'project', 'alwaysVisible' => true, 'removeColumn' => !$isProjectDisplayed, 'data' => 'project'],
-            ['title' => 'Commentaire', 'required' => $editMode && $isCommentRequired, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
+            ['title' => 'Commentaire', 'required' => false, 'data' => 'comment', 'name' => 'comment', 'alwaysVisible' => true, 'removeColumn' => !$isCommentDisplayed],
         ];
 
         $columns = Stream::from($columns)
@@ -960,6 +961,7 @@ class DeliveryRequestService
                                        Utilisateur                                                  $currentUser,
                                        DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
             ?? $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
@@ -1023,7 +1025,7 @@ class DeliveryRequestService
                 $articleId = $line->getArticle()->getId();
             }
 
-            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === "Type Reference" && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
+            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
             $projectItems = $line->getProject()
                 ? [
                     'text' => $this->formatService->project($line->getProject()),
@@ -1082,25 +1084,50 @@ class DeliveryRequestService
                     "items" => $projectItems ?? []
                 ])
                 : $this->formatService->project($line?->getProject()),
-            "comment" => $this->formService->macro("textarea", "comment", null, $isCommentRequired, $line?->getComment(), [
+            "comment" =>
+                '<div class="text-wrap line-comment">'
+                .($line
+                    ? $this->getDeliveryRequestLineComment($line)
+                    : str_replace(
+                        "@Destinataire",
+                        $this->formatService->user($deliveryRequest->getReceiver()),
+                        $this->cache[Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT] ?? $settingRepository->getOneParamByLabel(Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT)))
+                .'</div>',
+            "notes" => $this->formService->macro("textarea", "notes", null, $isCommentRequired, $line?->getNotes(), [
                 "type" => "text",
                 "style" => "height: 36px"
             ]),
             "location" => $locationColumn,
             "barcode" => $barcodeColumn,
-            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $line instanceof DeliveryRequestArticleLine
+            "article" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && ($line instanceof DeliveryRequestArticleLine || !$line)
                 ? $this->formService->macro("select", "article", null, true, [
                     "items" => $articleItems ?? [],
                     "value" => $articleId ?? null,
                     "onChange" => 'onChangeFillComment($(this))',
                 ])
                 : ($line instanceof DeliveryRequestArticleLine ? $line->getArticle()->getBarCode() : ''),
-            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_REFERENCE
-                ? $this->formService->macro("select", "targetLocationPicking", null, false, [
+            "targetLocationPicking" => $userRole === ReferenceArticle::QUANTITY_TYPE_ARTICLE && (!$line || $line instanceof DeliveryRequestArticleLine)
+                ? $this->formService->macro("select", "target-location-picking", null, false, [
                     "type" => "location",
                     "items" => $targetLocationPickingItems ?? []
                 ])
                 : $this->formatService->location($line?->getTargetLocationPicking()),
         ];
+    }
+
+    public function getDeliveryRequestLineComment(DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
+        $request = $requestLine->getRequest();
+        $receiver = $request->getReceiver();
+        $project = $requestLine->getProject();
+        $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
+        if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
+            $settingRepository = $this->entityManager->getRepository(Setting::class);
+            $emptyComment = $settingRepository->getOneParamByLabel($emptyCommentSetting);
+            $this->cache[$emptyCommentSetting] = $emptyComment;
+        }
+        if ($project) {
+            $emptyComment = str_replace("@Projet", $this->formatService->project($project), $emptyComment);
+        }
+        return str_replace("@Destinataire", $this->formatService->user($receiver), $emptyComment);
     }
 }

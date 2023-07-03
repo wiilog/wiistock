@@ -4,3 +4,10 @@
 <div class="px-3 pb-3 schedule-details">
     <table id="expectedLinesEditableTable" class="table"></table>
 </div>
+
+{% include "shipping_request/modals/scheduled-modal.html.twig" with {
+    shipping: shippingRequest,
+} %}
+{% include "shipping_request/modals/packing.html.twig" with {
+    shipping: shippingRequest,
+} %}

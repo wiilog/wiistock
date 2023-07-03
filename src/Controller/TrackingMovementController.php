@@ -485,7 +485,7 @@ class TrackingMovementController extends AbstractController
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')));
+            ->setCommentaire($post->get('commentaire'));
 
         $entityManager->flush();
 
