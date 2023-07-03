@@ -26,7 +26,6 @@ use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
-use App\Service\ExceptionLoggerService;
 use App\Service\LanguageService;
 use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
@@ -631,7 +630,6 @@ class ShippingRequestController extends AbstractController {
                                       Request                 $request,
                                       EntityManagerInterface  $entityManager,
                                       ShippingRequestService  $shippingRequestService,
-                                      ExceptionLoggerService  $exceptionLoggerService,
                                       ArticleDataService      $articleDataService,
                                       TrackingMovementService $trackingMovementService,
                                       MouvementStockService   $stockMovementService,
@@ -647,7 +645,6 @@ class ShippingRequestController extends AbstractController {
 
         $data = json_decode($request->getContent(), true);
         if (!count($data)) {
-            $exceptionLoggerService->sendLog(new Exception('!count($data)'), $request);
             throw new FormException("Une Erreur est survenue lors de la récupération des données.");
         }
 
@@ -694,7 +691,6 @@ class ShippingRequestController extends AbstractController {
             $generatedBarcode = [];
             foreach ($data['packing'] as $index => $pack) {
                 if (!count(($pack['lines'] ?? []))) {
-                    $exceptionLoggerService->sendLog(new Exception("!count((pack['lines'] ?? []))"), $request);
                     throw new FormException('Une Erreur est survenue lors de la récupération des données.');
                 }
 
@@ -710,7 +706,6 @@ class ShippingRequestController extends AbstractController {
 
                     $requestExpectedLine = $ShippingRequestExpectedLineRepository->find($expectedLineId);
                     if (!$requestExpectedLine) {
-                        $exceptionLoggerService->sendLog(new Exception("requestExpectedLine"), $request);
                         throw new FormException('Une Erreur est survenue lors de la récupération des données.');
                     }
 
@@ -809,7 +804,6 @@ class ShippingRequestController extends AbstractController {
             $quantityError = Stream::from($shippingRequest->getExpectedLines())
                 ->some(fn(ShippingRequestExpectedLine $expectedLine) => ($quantityByExpectedLine[$expectedLine->getId()] ?? 0) !== $expectedLine->getQuantity());
             if ($quantityError) {
-                $exceptionLoggerService->sendLog(new Exception("quantityError"), $request);
                 throw new FormException('Une Erreur est survenue lors du traitement des données.');
             }
         }
