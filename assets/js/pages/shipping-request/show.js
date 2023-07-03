@@ -102,6 +102,7 @@ function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
                 .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
                 .json({scheduleData})
                 .then((res) => {
+                    console.log(res + ' line 105');
                     if (res.success) {
                         updatePage();
                         $modalScheduledShippingRequest.modal('hide');
@@ -176,8 +177,10 @@ function initPackingPack($modal) {
                             scheduleData: scheduledShippingRequestFormData.asObject(),
                         })
                         .then((res) => {
-                            updatePage();
+                            console.log(res + ' line 181');
+
                             if (res.success) {
+                                updatePage();
                                 $modal.modal('hide');
                             }
                         })
