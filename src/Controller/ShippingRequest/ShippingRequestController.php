@@ -812,7 +812,11 @@ class ShippingRequestController extends AbstractController {
             $entityManager,
             $shippingRequest,
             $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPPING_REQUEST, ShippingRequest::STATUS_SCHEDULED),
-            ['setStatus' => true, 'date' => $now],
+            [
+                'setStatus' => true,
+                'date' => $now,
+                'forceCreation' => false,
+            ],
         );
 
         $scheduleData = $data['scheduleData'] ?? [];

@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Menu;
 use App\Entity\Role;
@@ -506,6 +507,16 @@ class ShippingRequestService {
         // remove track mvt
         Stream::from($shippingRequest->getTrackingMovements())
             ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {
+                foreach ($trackingMovement->getFirstDropsRecords() as $firstDropRecord){
+                    $entityManager->remove($firstDropRecord);
+                    $trackingMovement->removeFirstDropRecord($firstDropRecord);
+                }
+
+                foreach ($trackingMovement->getLastTrackingRecords() as $lastTrackingRecord){
+                    $entityManager->remove($lastTrackingRecord);
+                    $trackingMovement->removeLastTrackingRecord($lastTrackingRecord);
+                }
+
                 $entityManager->remove($trackingMovement);
                 $shippingRequest->removeTrackingMovement($trackingMovement);
             });
