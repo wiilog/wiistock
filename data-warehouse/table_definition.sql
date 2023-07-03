@@ -520,6 +520,21 @@ CREATE TABLE dw_projet_article
 
 CREATE TABLE dw_arrivage_camion
 (
+    id                  integer,
+    no_arrivage_camion  varchar(255),
+    date_creation       timestamp(0),
+    transporteur        varchar(255),
+    chauffeur           varchar(255),
+    immatriculation     varchar(255),
+    emplacement         varchar(255),
+    operateur           varchar(255),
+    nb_tracking_total   integer,
+    reserve_general     varchar(255),
+    reserve_quantite    varchar(255)
+);
+
+CREATE TABLE dw_article
+(
     id                   		integer,
     reference 			 		varchar(255),
     libelle				 		varchar(255),
@@ -590,6 +605,15 @@ CREATE TABLE dw_demande_expedition
     valeur_total_transport              integer,
     nombre_colis                        integer,
     poids_brut_transport                integer
+);
+
+CREATE TABLE dw_numero_tracking
+(
+    no_tracking varchar(255),
+    no_arrivage_camion varchar(255),
+    reserve_qualite varchar(255),
+    retard varchar(255),
+    no_arrivage_UL varchar(255)
 );
 
 CREATE TABLE dw_informations
