@@ -555,7 +555,7 @@ class IOTService
             case IOTService::KOOVEA_HUB:
                 return $config['value'];
             case IOTService::INEO_SENS_ACS_BTN:
-                return $this->extractEventTypeFromMessage($config);
+                return $this->extractEventTypeFromMessage($config, $profile);
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
@@ -595,7 +595,7 @@ class IOTService
             case IOTService::TEMP_HYGRO:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
-            if (isset($config['payload'])) {
+                if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_msg_type'];
                 }
