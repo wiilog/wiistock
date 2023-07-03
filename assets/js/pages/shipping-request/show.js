@@ -2,7 +2,8 @@ import Form from "@app/form";
 import AJAX, {GET, POST} from "@app/ajax";
 import Modal from "@app/modal";
 import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
-import {ERROR} from "@app/flash";
+import Flash, {ERROR} from "@app/flash";
+import {wrapLoadingOnActionButton} from "@app/loading";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
@@ -91,16 +92,13 @@ function deleteShippingRequest($event){
 function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
     const form = Form
         .create($modalScheduledShippingRequest)
-        .on('click', '#submitEditSchedule', function (event) {
+        // validate without packing
+        .on('click', '#submitEditSchedule', function () {
             const formData = form.process()
-            let scheduleData = {}
-            formData.forEach(function (value, key) {
-                scheduleData[key] = value
-            });
 
             AJAX
                 .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
-                .json({scheduleData})
+                .json({scheduleData: formData.asObject()})
                 .then((res) => {
                     if (res.success) {
                         updatePage();
@@ -110,7 +108,7 @@ function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
         })
         .onSubmit((data, form) => {
             $modalScheduledShippingRequest.modal('hide');
-            openPackingModal(data, expectedLines, 1);
+            openPackingModal(data, 1);
         });
 }
 
@@ -177,6 +175,8 @@ function initPackingPack($modal) {
                         })
                         .then((res) => {
                             if (res.success) {
+                                packingData = [];
+                                expectedLines = null;
                                 updatePage();
                                 $modal.modal('hide');
                             }
@@ -186,7 +186,7 @@ function initPackingPack($modal) {
         });
 }
 
-function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
+function openPackingModal(dataShippingRequestForm, step = 1) {
     scheduledShippingRequestFormData = dataShippingRequestForm;
     const $modal = $('#modalPacking');
     $modal.modal('show');
@@ -209,12 +209,6 @@ function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
 
     $modal.find('[name=packCount]').html(packCount);
     packingAddStep($modal, lines, step);
-
-    $modal.find('.modal-body').on('change', 'input[name=quantity]', function () {
-        const $row = $(this).closest('tr');
-        const lineId = $row.find('[name=lineId]').val();
-        $row.find('span.total-price').html($(this).val() * expectedLines.find(line => Number(line.lineId) === Number(lineId)).price);
-    })
 }
 
 function fillActionTemplate(template, referenceArticleId, lineId, picked = false, disabled = false) {
@@ -245,7 +239,9 @@ function fillQuantityInputTemplate(template, quantity, isLastStep) {
 async function packingAddStep($modal, data, step) {
     const packTemplate = $modal.find('#packTemplate').clone().html();
     const $curentStep = $modal.find('.modal-body').append(packTemplate).find('.packing-step:last')
-    $curentStep.attr('data-step', step);
+    $curentStep
+        .data('step', step)
+        .attr('data-step', step);
     $modal.find('[name=step]').html(step);
     $curentStep.find('[name=modalNumber]').html(step);
 
@@ -272,7 +268,22 @@ async function packingAddStep($modal, data, step) {
     };
     const $table = $curentStep.find('.articles-container table').attr('id', 'packingTable' + step)
     await initDataTable($table, tablePackingConfig);
-    $modal.find('[name=quantity]').trigger('change');
+    const $quantity = $modal.find('[name=quantity]');
+
+    $quantity
+        .off('change.shipping-packing')
+        .on('change.shipping-packing', function () {
+            const $row = $(this).closest('tr');
+            const lineId = $row.find('[name=lineId]').val();
+            const quantity = $(this).val();
+            const expectedLine = expectedLines.find(line => Number(line.lineId) === Number(lineId));
+            if (expectedLine) {
+                $row.find('span.total-price').html(quantity * expectedLine.price);
+            }
+        });
+
+    $quantity
+        .trigger('change');
 
     managePackingModalButtons($modal, step)
 }
@@ -383,8 +394,8 @@ function openScheduledShippingRequestModal($button){
                     .json()
                     .then((res) => {
                         if (res.success) {
-                            $('#modalScheduledShippingRequest').modal('show');
                             expectedLines = res.expectedLines;
+                            $('#modalScheduledShippingRequest').modal('show');
                         }
                     });
             }
