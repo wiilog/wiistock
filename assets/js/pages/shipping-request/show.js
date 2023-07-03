@@ -69,7 +69,7 @@ function validateShippingRequest($button) {
             AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
                 .json()
                 .then((res) => {
-                    updatePage();
+                    window.location.reload();
                 })
         ));
     }
@@ -101,8 +101,7 @@ function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
                 .json({scheduleData: formData.asObject()})
                 .then((res) => {
                     if (res.success) {
-                        updatePage();
-                        $modalScheduledShippingRequest.modal('hide');
+                        window.location.reload();
                     }
                 });
         })
@@ -175,10 +174,7 @@ function initPackingPack($modal) {
                         })
                         .then((res) => {
                             if (res.success) {
-                                packingData = [];
-                                expectedLines = null;
-                                updatePage();
-                                $modal.modal('hide');
+                                window.location.reload();
                             }
                         })
                 ))
@@ -745,7 +741,7 @@ function treatShippingRequest($button) {
                     AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
                         .json()
                         .then(() => {
-                            updatePage();
+                            window.location.reload();
                         })
                 ));
             }
