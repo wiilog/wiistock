@@ -177,8 +177,7 @@ function initPackingPack($modal) {
                             scheduleData: scheduledShippingRequestFormData.asObject(),
                         })
                         .then((res) => {
-                            console.log(res + ' line 181');
-
+                            console.log(res.entries() + ' line 181');
                             if (res.success) {
                                 updatePage();
                                 $modal.modal('hide');
