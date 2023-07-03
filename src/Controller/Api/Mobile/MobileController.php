@@ -1065,7 +1065,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        $commentaire = $request->request->get('commentaire');
+        $commentaire = $request->request->get('comment');
         $id = $request->request->get('id');
         /** @var Handling $handling */
         $handling = $handlingRepository->find($id);
