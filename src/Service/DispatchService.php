@@ -1540,13 +1540,17 @@ class DispatchService {
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
-            ? ($dispatch->getCommentaire() . "\n")
+            ? ($dispatch->getCommentaire() . "<br>")
             : "";
 
         $dispatch
             ->setTreatmentDate($signatureDate)
-            ->setTreatedBy($operator)
-            ->setCommentaire($newCommentDispatch . $comment);
+            ->setTreatedBy($operator);
+
+        if($comment){
+            $dispatch->setCommentaire($newCommentDispatch . $comment);
+        }
+
 
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
