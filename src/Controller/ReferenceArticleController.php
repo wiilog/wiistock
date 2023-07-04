@@ -1083,12 +1083,10 @@ class ReferenceArticleController extends AbstractController
             $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
-        foreach ($barcodesToPrint as $barcode) {
-            $kioskService->printLabel($barcode, $entityManager);
-        }
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",
+                'barcodesToPrint' => json_encode($barcodesToPrint),
                 "referenceExist" => $referenceExist,
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]

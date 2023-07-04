@@ -4,7 +4,6 @@ namespace App\Controller\Kiosk;
 
 use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
-use App\Entity\ArticleFournisseur;
 use App\Entity\FreeField;
 use App\Entity\KioskToken;
 use App\Entity\ReferenceArticle;
@@ -26,7 +25,8 @@ use Symfony\Component\Routing\Annotation\Route;
 class KioskController extends AbstractController
 {
     #[Route("/generate-kiosk-token", name: "generate_kiosk_token", options: ["expose" => true], methods: "GET")]
-    public function generateToken(EntityManagerInterface $manager): Response {
+    public function generateToken(EntityManagerInterface $manager): Response
+    {
         $token = bin2hex(random_bytes(30));
         $date = (new DateTime())->add(new DateInterval('P3D'));
 
@@ -51,18 +51,20 @@ class KioskController extends AbstractController
 
     #[Route("/", name: "kiosk_index", options: ["expose" => true])]
     #[HasValidToken]
-    public function index(EntityManagerInterface $manager): Response {
+    public function index(EntityManagerInterface $manager): Response
+    {
         $articleRepository = $manager->getRepository(Article::class);
         $latestsPrint = $articleRepository->getLatestsKioskPrint();
 
-        return $this->render('kiosk/home.html.twig' , [
+        return $this->render('kiosk/home.html.twig', [
             'latestsPrint' => $latestsPrint
         ]);
     }
 
     #[Route("/formulaire", name: "kiosk_form", options: ["expose" => true])]
     #[HasValidToken]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response {
+    public function form(Request $request, EntityManagerInterface $entityManager): Response
+    {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -95,52 +97,14 @@ class KioskController extends AbstractController
 
     #[Route("/check-is-valid", name: "check_article_is_valid", options: ["expose" => true], methods: 'GET|POST')]
     #[HasValidToken]
-    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response {
+    public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response
+    {
         $articleRepository = $entityManager->getRepository(Article::class);
         $article = $articleRepository->findOneBy(['barCode' => $request->query->get('articleLabel')]);
         return new JsonResponse([
             'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
             'fromArticlePage' => $request->query->get('articleLabel') !== null
         ]);
-    }
-
-    #[Route("/imprimer", name: "print_article", options: ["expose" => true], methods: ["GET"])]
-    public function print(Request                $request,
-                                  EntityManagerInterface $entityManager,
-                                  KioskService $kioskService): JsonResponse
-    {
-        $articleRepository = $entityManager->getRepository(Article::class);
-
-        $articleId = $request->query->get('article');
-        $reprint = $request->query->get('reprint');
-        $testPrint = $request->query->get('testPrint');
-        if ($articleId) {
-            $article = $articleRepository->find($request->query->get('article'));
-        } elseif ($reprint) {
-            $article = $articleRepository->getLatestsKioskPrint()[0];
-        } elseif ($testPrint) {
-            $refArticle = new ReferenceArticle();
-            $refArticle->setReference('REFTESTIMPRESSION')
-                ->setLibelle('REFTESTIMPRESSION')
-                ->setQuantiteStock(1);
-
-            $article = new Article();
-            $article->setLabel('TESTIMPRESSION')
-                ->setBarCode('TEST-00000000')
-                ->setArticleFournisseur((new ArticleFournisseur())->setReferenceArticle($refArticle));
-
-            $options['serialNumber'] = $request->query->get('serialNumber');
-            $options['labelWidth'] = $request->query->get('labelWidth');
-            $options['labelHeight'] = $request->query->get('labelHeight');
-            $options['printerDPI'] = $request->query->get('printerDPI');
-        } else {
-            return $this->json(['success' => false]);
-        }
-        $options['text'] = $kioskService->getTextForLabel($article, $entityManager);
-        $options['barcode'] = $article->getBarCode();
-
-        $kioskService->printLabel($options, $entityManager);
-        return $this->json(['success' => true]);
     }
 
     #[Route("/kiosk-unlink", name: "kiosk_unlink", options: ["expose" => true], methods: "POST")]
@@ -155,5 +119,21 @@ class KioskController extends AbstractController
             'success' => true,
             'msg' => 'La borne a bien été déconnectée.'
         ]);
+    }
+
+    #[Route("/kiosk-print", name: "kiosk_print", options: ["expose" => true])]
+    public function printLabel(EntityManagerInterface $entityManager, Request $request, KioskService $kioskService){
+        $articleRepository = $entityManager->getRepository(Article::class);
+        $data = json_decode($request->query->get('barcodesToPrint'), true) ?? [];
+
+        $articleId = $request->query->get('article');
+        $reprint = $request->query->get('reprint');
+        if ($articleId) {
+            $article = $articleRepository->find($articleId);
+        } elseif ($reprint) {
+            $article = $articleRepository->getLatestsKioskPrint()[0];
+        }
+
+        return $kioskService->testPrintWiispool($data, $article ?? null);
     }
 }

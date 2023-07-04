@@ -206,7 +206,7 @@ class PDFGeneratorService {
      * @param string $name
      * @return string
      */
-    public function getBarcodeFileName(array $barcodeConfigs, string $name): string {
+    public function getBarcodeFileName(array $barcodeConfigs, string $name, string $prefix = PDFGeneratorService::PREFIX_BARCODE_FILENAME): string {
         $barcodeCounter = count($barcodeConfigs);
         // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
@@ -214,7 +214,7 @@ class PDFGeneratorService {
             : '';
 
         return (
-            PDFGeneratorService::PREFIX_BARCODE_FILENAME . '_' .
+            $prefix . '_' .
             $name .
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
