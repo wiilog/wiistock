@@ -28,10 +28,8 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -839,7 +837,7 @@ class DispatchService {
             $packQuantity = (int)$pack['packQuantity'];
             $pack = $packRepository->find($packId);
             $pack
-                ->setComment(StringHelper::cleanedComment($comment));
+                ->setComment($comment);
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
@@ -1326,7 +1324,7 @@ class DispatchService {
         return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
+    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
@@ -1344,6 +1342,8 @@ class DispatchService {
         }
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
         $referenceArticle = $referenceRepository->find($referenceArticleId);
         $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
 
@@ -1355,6 +1355,23 @@ class DispatchService {
         if ($dispatchReferenceArticleId) {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
+
+            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
+                throw new FormException('Le poids doit être supérieur à 0');
+            } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
+                throw new FormException('Le volume doit être supérieur à 0');
+            }
+
+            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
+            if (!$nature) {
+                throw new FormException("La nature de l'UL est incorrecte");
+            }
+
+            $dispatchPack->getPack()
+                ->setNature($nature)
+                ->setWeight($data['ULWeight'] ?? null)
+                ->setVolume($data['ULVolume'] ?? null)
+                ->setComment($data['ULComment'] ?? null);
         } else {
             $dispatchReferenceArticle = new DispatchReferenceArticle();
         }
@@ -1393,7 +1410,7 @@ class DispatchService {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Référence ajoutée'
+            'msg' => $dispatchReferenceArticleId ? 'Référence et UL modifiées' : 'Référence ajoutée'
         ]);
     }
 
@@ -1523,7 +1540,7 @@ class DispatchService {
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
-            ? ($dispatch->getCommentaire() . "<br/>")
+            ? ($dispatch->getCommentaire() . "\n")
             : "";
 
         $dispatch
@@ -1635,6 +1652,7 @@ class DispatchService {
     public function treatMobileDispatchReference(EntityManagerInterface $entityManager,
                                                  Dispatch $dispatch,
                                                  array $data,
+                                                 array &$createdReferences,
                                                  array $options){
         if(!isset($data['logisticUnit']) || !isset($data['reference'])){
             throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
@@ -1648,7 +1666,8 @@ class DispatchService {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
-        $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
+        $reference = ($createdReferences[$data['reference']] ?? null)
+            ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
         if(!$reference) {
             $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
             $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
@@ -1665,8 +1684,6 @@ class DispatchService {
             $type = $typeRepository->find($dispatchNewReferenceType);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
 
-
-
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['reference'])
@@ -1681,6 +1698,8 @@ class DispatchService {
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
+
+            $createdReferences[$data['reference']] = $reference;
 
             $entityManager->persist($reference);
         }

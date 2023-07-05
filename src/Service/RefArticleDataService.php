@@ -297,6 +297,12 @@ class RefArticleDataService
             }
         }
 
+        if($data->has('security')
+            && $data->has('fileSheet')
+            && $data->get('security') == "1"
+            && $data->get('fileSheet') === "undefined"){
+            throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+        }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);
@@ -431,7 +437,7 @@ class RefArticleDataService
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
             ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
             ->setPrixUnitaire(max(0, $data->get('prix')))
-            ->setCommentaire(StringHelper::cleanedComment($data->get('commentaire')))
+            ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
             ->setBuyer($buyer)
             ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
@@ -685,7 +691,7 @@ class RefArticleDataService
             $projectRepository = $entityManager->getRepository(Project::class);
             $project = ($data['project'] ?? null) ? $projectRepository->find($data['project']) : null;
             $line
-                ->setComment($data['comment'] ?? null)
+                ->setNotes($data['notes'] ?? null)
                 ->setProject($project);
 
             $resp['line'] = $line;

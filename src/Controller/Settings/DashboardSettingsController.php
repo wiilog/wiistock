@@ -190,7 +190,7 @@ class DashboardSettingsController extends AbstractController {
         ])) {
             if (in_array($componentType->getMeterKey(), [
                 Dashboard\ComponentType::PENDING_REQUESTS,
-                Dashboard\ComponentType::ORDERS_TO_TREAT,
+                Dashboard\ComponentType::REQUESTS_TO_TREAT,
             ])) {
                 $entities = [
                     'Service' => [

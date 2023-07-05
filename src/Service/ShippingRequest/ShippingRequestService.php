@@ -474,8 +474,8 @@ class ShippingRequestService {
                         ]);
 
                         return [
-                            'actions' => $actions,
-                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'actions' => '<div class="d-flex align-items-center">' . $actions . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getUnitPrice(),
@@ -520,7 +520,6 @@ class ShippingRequestService {
 
         /* @var ShippingRequestPack $packLine */
         foreach ($shippingRequest->getPackLines() as $packLine) {
-
             $pack = $packLine->getPack();
 
             /* @var ShippingRequestLine $requestLine */
@@ -529,8 +528,10 @@ class ShippingRequestService {
                 $articleOrReference = $requestLine->getArticleOrReference();
 
                 if ($articleOrReference instanceof Article) {
+                    $trackingPack = $articleOrReference->getTrackingPack();
                     $articleOrReference->setTrackingPack(null);
                     $entityManager->remove($articleOrReference);
+                    $entityManager->remove($trackingPack);
                 }
                 // only on scheduled status (quantities were added)
                 else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
@@ -552,11 +553,11 @@ class ShippingRequestService {
                 $pack->removeTrackingMovement($trackMvt);
             }
 
+            $shippingRequest->removePackLine($packLine);
+
             $entityManager->remove($pack);
             $entityManager->remove($packLine);
         }
-
-
     }
 
     public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,

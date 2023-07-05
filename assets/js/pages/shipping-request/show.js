@@ -26,9 +26,7 @@ $(function() {
         window.location.reload();
     });
 
-    initScheduledShippingRequestForm();
-    initPackingPack($('#modalPacking'))
-    getShippingRequestStatusHistory();
+    getShippingRequestStatusHistory(shippingId);
     updateDetails();
 
     $(document).arrive('.schedule-details', function () {
@@ -41,6 +39,14 @@ $(function() {
 
     $(document).arrive('#expectedLinesTable', function () {
         initDetailsToTreat($(this));
+    });
+
+    $(document).arrive('#modalScheduledShippingRequest', function () {
+        initScheduledShippingRequestForm($(this));
+    });
+
+    $(document).arrive('#modalPacking', function () {
+        initPackingPack($(this));
     });
 });
 
@@ -70,24 +76,42 @@ function validateShippingRequest($button) {
 
 function deleteShippingRequest($event){
     const shipping_request_id = $event.data('id');
-    wrapLoadingOnActionButton($(".row.wii-column.w-100"), function () {
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), () => (
         AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
             .json()
             .then((res) => {
                 if (res.success) {
                     window.location.href = Routing.generate('shipping_request_index');
                 }
-            });
-    });
+            })
+    ));
 }
 
 
-function initScheduledShippingRequestForm() {
-    let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
-    Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
-        $modalScheduledShippingRequest.modal('hide');
-        openPackingModal(data, expectedLines, 1);
-    });
+function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
+    const form = Form
+        .create($modalScheduledShippingRequest)
+        .on('click', '#submitEditSchedule', function (event) {
+            const formData = form.process()
+            let scheduleData = {}
+            formData.forEach(function (value, key) {
+                scheduleData[key] = value
+            });
+
+            AJAX
+                .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
+                .json({scheduleData})
+                .then((res) => {
+                    if (res.success) {
+                        updatePage();
+                        $modalScheduledShippingRequest.modal('hide');
+                    }
+                });
+        })
+        .onSubmit((data, form) => {
+            $modalScheduledShippingRequest.modal('hide');
+            openPackingModal(data, expectedLines, 1);
+        });
 }
 
 function deleteExpectedLine($button, table) {
@@ -116,61 +140,48 @@ function deleteExpectedLine($button, table) {
 }
 
 function initPackingPack($modal) {
-    $modal.find('button.nextStep').on('click', function () {
+    $modal.find('button.nextStep').off().on('click', function () {
         packingNextStep($modal);
     })
 
-    $modal.find('button.previous').on('click', function () {
+    $modal.find('button.previous').off().on('click', function () {
         packingPreviousStep($modal);
     })
 
     $modal
         .on('hidden.bs.modal', function () {
             $modal.find('.modal-body').empty();
+            packingData = [];
         })
         .on('click', 'button[type=submit]', function () {
             if (packingNextStep($modal, true)) {
                 const packing = packingData.map(function (packingPack) {
-                    const lineData = packingPack.lines.map(function (lineFormData) {
-                        let linesData = {}
-                        if (Boolean(Number(lineFormData.get('picked')))) {
-                            lineFormData.forEach(function (value, key) {
-                                linesData[key] = value
-                            })
-                        }
-                        return linesData
-                    }).filter((lineData) => Object.keys(lineData).length)
-                    const packData = {}
-                    packingPack.pack.forEach(function (value, key) {
-                        packData[key] = value
-                    })
+                    const lineData = packingPack.lines
+                        .filter((lineFormData) => Boolean(Number(lineFormData.get('picked'))))
+                        .map((lineFormData) =>  lineFormData.asObject());
+                    const packData = packingPack.pack
+                        ? packingPack.pack.asObject()
+                        : {};
 
                     return {
                         lines: lineData,
                         ...packData
                     }
-                })
-                let scheduleData = {}
-                scheduledShippingRequestFormData.forEach(function (value, key) {
-                    scheduleData[key] = value
                 });
-                wrapLoadingOnActionButton($(this), function () {
+                wrapLoadingOnActionButton($(this), () => (
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
-                        .json(
-                            {
-                                packing,
-                                scheduleData,
-                            }
-                        )
+                        .json({
+                            packing,
+                            scheduleData: scheduledShippingRequestFormData.asObject(),
+                        })
                         .then((res) => {
                             updatePage();
                             if (res.success) {
                                 $modal.modal('hide');
-
                             }
-                        });
-                })
+                        })
+                ))
             }
         });
 }

@@ -1065,7 +1065,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        $commentaire = $request->request->get('commentaire');
+        $commentaire = $request->request->get('comment');
         $id = $request->request->get('id');
         /** @var Handling $handling */
         $handling = $handlingRepository->find($id);
@@ -1083,7 +1083,6 @@ class MobileController extends AbstractApiController
                 $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
                 $dateStr = (new DateTime())->format('d/m/y H:i:s');
                 $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
-                $commentaire = StringHelper::cleanedComment($commentaire);
                 $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
@@ -2082,7 +2081,7 @@ class MobileController extends AbstractApiController
             ->setLabel($labelStr)
             ->setConform(true)
             ->setStatut($statut)
-            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setCommentaire(!empty($commentStr) ? $commentStr : null)
             ->setPrixUnitaire(floatval($priceStr))
             ->setReference($ref)
             ->setQuantite($quantityStr)
@@ -2381,10 +2380,11 @@ class MobileController extends AbstractApiController
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $type = ($type === 'svg' ? 'svg+xml' : $type);
                         if (file_exists($path)) {
+                            $type = pathinfo($path, PATHINFO_EXTENSION);
+                            $type = ($type === 'svg' ? 'svg+xml' : $type);
                             $data = file_get_contents($path);
+
                             $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
                         }
                     }
@@ -2687,7 +2687,8 @@ class MobileController extends AbstractApiController
                     ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
-            } else {
+            }
+            else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $correctionMovement = new MouvementStock();
@@ -3610,8 +3611,9 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $createdReferences = [];
             foreach ($references as $data) {
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences,[
                     'loggedUser' => $user,
                     'now' => $now
                 ]);

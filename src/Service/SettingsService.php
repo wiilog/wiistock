@@ -798,12 +798,17 @@ class SettingsService {
                         ->setTranslation($freeField->getLabel());
                 }
 
-                if($freeField->getDefaultValue() && !$freeField->getDefaultValueTranslation()) {
+                $defaultValue = $freeField->getDefaultValue();
+                $defaultValueTranslation = $freeField->getDefaultValueTranslation();
+                if($defaultValue && !$defaultValueTranslation) {
                     $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
-                } else if($freeField->getDefaultValueTranslation()) {
-                    $freeField->getDefaultValueTranslation()
-                        ->getTranslationIn(Language::FRENCH_SLUG)
-                        ->setTranslation($freeField->getDefaultValue());
+                } else if($defaultValue && $defaultValueTranslation) {
+                    $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
+                        ?: (new Translation())
+                            ->setLanguage($this->manager->getRepository(Language::class)->findOneBy((['slug'=> Language::FRENCH_SLUG])))
+                            ->setSource($defaultValueTranslation);
+                    $this->manager->persist($translation);
+                    $translation->setTranslation($defaultValue);
                 }
 
                 foreach($freeField->getElementsTranslations() as $source) {
@@ -833,13 +838,13 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FieldsParam $fieldsParam */
-                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+                /** @var FieldsParam $subLineFieldParam */
+                $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
-                if ($fieldsParam) {
-                    $code = $fieldsParam->getFieldCode();
+                if ($subLineFieldParam) {
+                    $code = $subLineFieldParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam
+                    $subLineFieldParam
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
@@ -859,17 +864,13 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["subFixedFields"]) as $item) {
-                /** @var SubLineFieldsParam $fieldsParam */
-                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+                /** @var SubLineFieldsParam|null $subLineFieldParam */
+                $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
-                if ($fieldsParam) {
-                    $fieldsParam
-                        ->setDisplayed($item["displayed"] ?? null)
-                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
-                        ->setRequired($item["required"] ?? null);
-
-                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
-                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                if ($subLineFieldParam) {
+                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()]);
+                    $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition ;
+                    $conditionFixedFieldValue = Stream::explode(",", $subLineFieldCanBeDisplayedUnderCondition ? ($item["conditionFixedFieldValue"] ?? "") : "")
                         ->filter()
                         ->toArray();
 
@@ -877,7 +878,13 @@ class SettingsService {
                         throw new FormException("Vous devez saisir la colonne valeur");
                     }
 
-                    $fieldsParam
+                    $subLineFieldRequired = ($item["required"] ?? false )
+                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()]);
+
+                    $subLineFieldParam
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setConditionFixedField($item["conditionFixedField"] ?? null)
+                        ->setRequired($subLineFieldRequired)
                         ->setDisplayedUnderCondition($displayedUnderCondition)
                         ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
@@ -975,7 +982,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? null))
+                        ->setComment($statusData['comment'] ?? null)
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)

@@ -146,6 +146,13 @@ class ReferenceArticleController extends AbstractController
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
+            if(isset($data['security'])
+                && isset($data['fileSheet'])
+                && $data['security'] == "1"
+                && $data['fileSheet'] === "undefined"){
+                throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+            }
+
             if ($refAlreadyExist) {
                 $errorData = [
                     'success' => false
@@ -190,7 +197,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix'] ?? null))
                 ->setType($type)

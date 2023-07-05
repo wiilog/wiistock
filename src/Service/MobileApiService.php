@@ -63,7 +63,6 @@ class MobileApiService {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                $dispatch['comment'] = utf8_encode(StringHelper::cleanedComment($dispatch['comment']));
                 return $dispatch;
             })
             ->values();
