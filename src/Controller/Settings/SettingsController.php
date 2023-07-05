@@ -2004,36 +2004,22 @@ class SettingsController extends AbstractController {
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
-                        ? Stream::from($type->getSuggestedPickLocations())
-                            ->filterMap(function (string $location) use ($locationRepository) {
-                                return $locationRepository->findOneBy(['label' => $location]);
-                            })
-                            ->map(fn(Emplacement $location) => [
-                                    "value" => $location->getId(),
-                                    "label" => $location->getLabel(),
-                                    "selected" => true,
-                                ]
-                            )
-                            ->toArray()
-                        : "";
+                    $suggestedPickLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                        ->map(fn(Emplacement $location) => [
+                            "value" => $location->getId(),
+                            "label" => $location->getLabel(),
+                            "selected" => true,
+                        ])
+                        ->toArray();
 
-                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
-                        ? Stream::from($type->getSuggestedDropLocations())
-                            ->filterMap(function (string $location) use ($locationRepository) {
-                                return $locationRepository->findOneBy(['label' => $location]);
-                            })
-                            ->map(fn(Emplacement $location) => [
-                                    "value" => $location->getId(),
-                                    "label" => $location->getLabel(),
-                                    "selected" => true,
-                                ]
-                            )
-                            ->toArray()
-                        : "";
+                    $suggestedDropLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                        ->map(fn(Emplacement $location) => [
+                            "value" => $location->getId(),
+                            "label" => $location->getLabel(),
+                            "selected" => true,
+                        ])
+                        ->toArray();
 
-
-                    dump($suggestedDropLocationOptions);
                     $data = array_merge($data, [
                         [
                             "label" => "Emplacement de prise par défaut",
@@ -2158,17 +2144,15 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
-                $suggestedPickLocations = $type && !empty($type->getSuggestedPickLocations())
-                    ? Stream::from($type?->getSuggestedPickLocations())
-                        ->map(fn(string $location) => $location)
-                        ->join(', ')
-                    : "";
+                $locationRepository = $this->manager->getRepository(Emplacement::class);
 
-                $suggestedDropLocations = $type && !empty($type->getSuggestedDropLocations())
-                    ? Stream::from($type?->getSuggestedDropLocations())
-                        ->map(fn(string $location) => $location)
-                        ->join(', ')
-                    : "";
+                $suggestedPickLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                    ->map(fn(Emplacement $location) => $location->getLabel())
+                    ->join(', ');
+
+                $suggestedDropLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                    ->map(fn(Emplacement $location) => $location->getLabel())
+                    ->join(', ');
 
                 $data = array_merge($data, [
                     [

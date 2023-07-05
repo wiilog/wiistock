@@ -242,7 +242,9 @@ class DispatchService {
                     'dropLocation' => [
                         "id" => $type->getDropLocation() ? $type->getDropLocation()->getId() : null,
                         "label" => $type->getDropLocation() ? $type->getDropLocation()->getLabel() : null,
-                    ]
+                    ],
+                    'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
+                    'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
                 ];
             }, $types),
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),

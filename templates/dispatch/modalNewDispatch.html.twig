@@ -68,6 +68,8 @@
                                             data-pick-location-label="{{ type.pickLocation.label }}"
                                             data-drop-location-id="{{ type.dropLocation.id }}"
                                             data-drop-location-label="{{ type.dropLocation.label }}"
+                                            data-suggested-drop-locations="{{ type.suggestedDropLocations }}"
+                                            data-suggested-pick-locations="{{ type.suggestedDropLocations }}"
                                             value="{{ type.typeId }}">
                                             {{ type.typeLabel }}
                                         </option>
@@ -143,10 +145,13 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="col-md-4 col-12">
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                            <input type="hidden" name="typeDispatchPickLocation">
                             <div class="form-group">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
                                 <select name="prise"
-                                        class="form-control data d-block {{ required ? 'needed' }} location-prise w-100" data-s2="location">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-prise w-100"
+                                        data-s2="location"
+                                        data-include-params="input[name=typeDispatchPickLocation]">
                                 </select>
                             </div>
                         </div>
@@ -156,10 +161,13 @@
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="col-md-4 col-12">
                         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                            <input type="hidden" name="typeDispatchDropLocation">
                             <div class="form-group w-100">
                                 <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
                                 <select name="depose"
-                                        class="form-control data d-block {{ required ? 'needed' }} location-depose" data-s2="location">
+                                        class="form-control data d-block {{ required ? 'needed' }} location-depose"
+                                        data-s2="location"
+                                        data-include-params="input[name=typeDispatchDropLocation]">
                                 </select>
                             </div>
                         </div>
