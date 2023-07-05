@@ -106,6 +106,12 @@ class Type {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedDropLocations = [];
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedPickLocations = [];
+
     #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
 
@@ -842,4 +848,31 @@ class Type {
         return $this->tags;
     }
 
+    public function getSuggestedDropLocations(): ?array {
+        return $this->suggestedDropLocations;
+    }
+
+
+    public function setSuggestedDropLocations(?array $suggestedDropLocations): self {
+        $this->suggestedDropLocations = [];
+        foreach($suggestedDropLocations ?? [] as $suggestedDropLocation) {
+            $this->suggestedDropLocations[] = $suggestedDropLocation;
+        }
+
+        return $this;
+    }
+
+    public function getSuggestedPickLocations(): ?array {
+        return $this->suggestedPickLocations;
+    }
+
+
+    public function setSuggestedPickLocations(?array $suggestedPickLocations): self {
+        $this->suggestedPickLocations = [];
+        foreach($suggestedPickLocations ?? [] as $suggestedPickLocation) {
+            $this->suggestedPickLocations[] = $suggestedPickLocation;
+        }
+
+        return $this;
+    }
 }

@@ -1913,7 +1913,7 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null): Response {
+    public function typeHeader(Request $request, ?Type $type = null, FormService $formService): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1999,9 +1999,41 @@ class SettingsController extends AbstractController {
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                    $locationRepository = $this->manager->getRepository(Emplacement::class);
+
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
+                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                        ? Stream::from($type->getSuggestedPickLocations())
+                            ->filterMap(function (string $location) use ($locationRepository) {
+                                return $locationRepository->findOneBy(['label' => $location]);
+                            })
+                            ->map(fn(Emplacement $location) => [
+                                    "value" => $location->getId(),
+                                    "label" => $location->getLabel(),
+                                    "selected" => true,
+                                ]
+                            )
+                            ->toArray()
+                        : "";
+
+                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                        ? Stream::from($type->getSuggestedDropLocations())
+                            ->filterMap(function (string $location) use ($locationRepository) {
+                                return $locationRepository->findOneBy(['label' => $location]);
+                            })
+                            ->map(fn(Emplacement $location) => [
+                                    "value" => $location->getId(),
+                                    "label" => $location->getLabel(),
+                                    "selected" => true,
+                                ]
+                            )
+                            ->toArray()
+                        : "";
+
+
+                    dump($suggestedDropLocationOptions);
                     $data = array_merge($data, [
                         [
                             "label" => "Emplacement de prise par défaut",
@@ -2009,6 +2041,20 @@ class SettingsController extends AbstractController {
                         ], [
                             "label" => "Emplacement de dépose par défaut",
                             "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
+                        ], [], [], [
+                            "label" => "Emplacement(s) de prise suggéré(s)",
+                            "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedPickLocationOptions,
+                            ]),
+                        ], [
+                            "label" => "Emplacement(s) de dépose suggéré(s)",
+                            "value" => $formService->macro("select", "suggestedDropLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedDropLocationOptions,
+                            ]),
                         ],
                     ]);
                 }
@@ -2112,13 +2158,31 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                $suggestedPickLocations = $type && !empty($type->getSuggestedPickLocations())
+                    ? Stream::from($type?->getSuggestedPickLocations())
+                        ->map(fn(string $location) => $location)
+                        ->join(', ')
+                    : "";
+
+                $suggestedDropLocations = $type && !empty($type->getSuggestedDropLocations())
+                    ? Stream::from($type?->getSuggestedDropLocations())
+                        ->map(fn(string $location) => $location)
+                        ->join(', ')
+                    : "";
+
                 $data = array_merge($data, [
                     [
                         "label" => "Emplacement de prise par défaut",
-                        "value" => FormatHelper::location($type?->getPickLocation()),
+                        "value" => $this->formatService->location($type?->getPickLocation()),
                     ], [
                         "label" => "Emplacement de dépose par défaut",
-                        "value" => FormatHelper::location($type?->getDropLocation()),
+                        "value" => $this->formatService->location($type?->getDropLocation()),
+                    ], [
+                        "label" => "Emplacement(s) de prise suggéré(s)",
+                        "value" => $suggestedPickLocations,
+                    ], [
+                        "label" => "Emplacement(s) de dépose suggéré(s)",
+                        "value" => $suggestedDropLocations,
                     ],
                 ]);
             }
