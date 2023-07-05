@@ -696,30 +696,30 @@ class SettingsService {
                 if (isset($data["suggestedDropLocations"])) {
                     $dropLocation = isset($data["dropLocation"])
                         ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getLabel()
-                        : $type->getDropLocation()->getLabel();
+                        : $type->getDropLocation()?->getLabel();
 
                     $suggestedDropLocations = Stream::from(explode(',', $data["suggestedDropLocations"]))
                             ->filterMap(fn(string $locationId) => $this->manager->find(Emplacement::class, $locationId))
                             ->map(fn(Emplacement $location) => $location->getLabel())
                             ->toArray();
 
-                    if (!in_array($dropLocation, $suggestedDropLocations)) {
+                    if ($dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
                         throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
                     }
                 }
 
                 $suggestedPickLocations = null;
                 if (isset($data["suggestedPickLocations"])) {
-                    $dropLocation = isset($data["pickLocation"])
+                    $pickLocation = isset($data["pickLocation"])
                         ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getLabel()
-                        : $type->getDropLocation()->getLabel();
+                        : $type->getPickLocation()?->getLabel();
 
                     $suggestedPickLocations = Stream::from(explode(',', $data["suggestedPickLocations"]))
                             ->filterMap(fn(string $locationId) => $this->manager->find(Emplacement::class, $locationId))
                             ->map(fn(Emplacement $location) => $location->getLabel())
                             ->toArray();
 
-                    if (!in_array($dropLocation, $suggestedPickLocations)) {
+                    if ($pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }

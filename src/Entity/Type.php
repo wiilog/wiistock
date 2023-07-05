@@ -848,7 +848,7 @@ class Type {
         return $this->tags;
     }
 
-    public function getSuggestedDropLocations(): array {
+    public function getSuggestedDropLocations(): ?array {
         return $this->suggestedDropLocations;
     }
 
@@ -862,7 +862,7 @@ class Type {
         return $this;
     }
 
-    public function getSuggestedPickLocations(): array {
+    public function getSuggestedPickLocations(): ?array {
         return $this->suggestedPickLocations;
     }
 

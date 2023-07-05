@@ -51,6 +51,7 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
+use App\Service\FormService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
@@ -1913,7 +1914,7 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null): Response {
+    public function typeHeader(Request $request, ?Type $type = null, FormService $formService): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -2009,10 +2010,13 @@ class SettingsController extends AbstractController {
                             ->filterMap(function (string $location) use ($locationRepository) {
                                 return $locationRepository->findOneBy(['label' => $location]);
                             })
-                            ->map(function (Emplacement $location) {
-                                return "<option value='{$location->getId()}' selected>{$location->getLabel()}</option>";
-                            })
-                            ->join("")
+                            ->map(fn(Emplacement $location) => [
+                                    "value" => $location->getId(),
+                                    "label" => $location->getLabel(),
+                                    "selected" => true,
+                                ]
+                            )
+                            ->toArray()
                         : "";
 
                     $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
@@ -2020,12 +2024,17 @@ class SettingsController extends AbstractController {
                             ->filterMap(function (string $location) use ($locationRepository) {
                                 return $locationRepository->findOneBy(['label' => $location]);
                             })
-                            ->map(function (Emplacement $location) {
-                                return "<option value='{$location->getId()}' selected>{$location->getLabel()}</option>";
-                            })
-                            ->join("")
+                            ->map(fn(Emplacement $location) => [
+                                    "value" => $location->getId(),
+                                    "label" => $location->getLabel(),
+                                    "selected" => true,
+                                ]
+                            )
+                            ->toArray()
                         : "";
 
+
+                    dump($suggestedDropLocationOptions);
                     $data = array_merge($data, [
                         [
                             "label" => "Emplacement de prise par défaut",
@@ -2035,10 +2044,18 @@ class SettingsController extends AbstractController {
                             "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
                         ], [], [], [
                             "label" => "Emplacement(s) de prise suggéré(s)",
-                            "value" => "<select name='suggestedPickLocations' data-s2='location' multiple data-parent='body' data-editable class='data form-control h-25'>$suggestedPickLocationOptions</select>",
+                            "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedPickLocationOptions,
+                            ]),
                         ], [
                             "label" => "Emplacement(s) de dépose suggéré(s)",
-                            "value" => "<select name='suggestedDropLocations' data-s2='location' multiple data-parent='body' data-editable class='data form-control h-25'>$suggestedDropLocationOptions</select>",
+                            "value" => $formService->macro("select", "suggestedDropLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedDropLocationOptions,
+                            ]),
                         ],
                     ]);
                 }
