@@ -37,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 /**
