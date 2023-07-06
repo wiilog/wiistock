@@ -487,7 +487,7 @@ class ArticleDataService
 		return $generatedBarcode;
 	}
 
-    public function getBarcodeConfig(Article $article, Reception $reception = null): array {
+    public function getBarcodeConfig(Article $article, Reception $reception = null, bool $fromKiosk = false): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
@@ -574,28 +574,29 @@ class ArticleDataService
             "L/R : $labelRefArticle",
             "C/R : $refRefArticle",
             "L/A : $labelArticle",
-            !empty($this->typeCLOnLabel) && !empty($champLibreValue) ? $champLibreValue : '',
+            !empty($this->typeCLOnLabel) && !empty($champLibreValue) && !$fromKiosk ? $champLibreValue : '',
         ];
 
-        $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
-        $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-        $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
-        $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+        if(!$fromKiosk){
+            $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
+            $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+            if ($includeBatch && $batchArticle) {
+                $labels[] = "N° lot : $batchArticle";
+            }
 
-        if ($includeBatch && $batchArticle) {
-            $labels[] = "N° lot : $batchArticle";
-        }
+            if ($includeExpirationDate && $expirationDateArticle) {
+                $labels[] = "Date péremption : $expirationDateArticle";
+            }
 
-        if ($includeExpirationDate && $expirationDateArticle) {
-            $labels[] = "Date péremption : $expirationDateArticle";
-        }
+            if ($includeStockEntryDate && $stockEntryDateArticle) {
+                $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
+            }
 
-        if ($includeStockEntryDate && $stockEntryDateArticle) {
-            $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
-        }
-
-        if ($includeQuantity) {
-            $labels[] = "Qte : $quantityArticle";
+            if ($includeQuantity) {
+                $labels[] = "Qte : $quantityArticle";
+            }
         }
 
         return [

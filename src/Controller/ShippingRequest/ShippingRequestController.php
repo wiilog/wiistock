@@ -732,7 +732,7 @@ class ShippingRequestController extends AbstractController {
                         $generatedBarcode[] = $article->getBarCode();
                     }
 
-                    $articleOrReference = $article ?? $referenceArticle;
+                    $articleOrReference = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $referenceArticle : $article ;
 
                     $stockMovement = $stockMovementService->createMouvementStock(
                         $this->getUser(),
@@ -812,7 +812,11 @@ class ShippingRequestController extends AbstractController {
             $entityManager,
             $shippingRequest,
             $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPPING_REQUEST, ShippingRequest::STATUS_SCHEDULED),
-            ['setStatus' => true, 'date' => $now],
+            [
+                'setStatus' => true,
+                'date' => $now,
+                'forceCreation' => false,
+            ],
         );
 
         $scheduleData = $data['scheduleData'] ?? [];
