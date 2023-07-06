@@ -839,7 +839,9 @@ class IOTService
                 ->map(fn(Emplacement $location) => $location->getId())
                 ->toArray();
 
-            $packs = $packRepository->getCurrentPackOnLocations(
+            /*
+             * TODO WIIS-9988
+             $packs = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 [
                     'isCount' => false,
@@ -849,7 +851,7 @@ class IOTService
             $packs = Stream::from($packs)
                 ->map(fn(Pack $pack) => $pack->getId())
                 ->toArray();
-
+            */
             $linked[] = [
                 'type' => 'vehicle_sensor_message',
                 'values' => [$vehicle->getId()],
@@ -869,6 +871,9 @@ class IOTService
                     'entityColumn' => 'emplacement_id'
                 ];
             }
+
+            /*
+             * TODO WIIS-9988
             if (!empty($packs)) {
                 $linked[] = [
                     'type' => 'pack_sensor_message',
@@ -876,6 +881,7 @@ class IOTService
                     'entityColumn' => 'pack_id'
                 ];
             }
+            */
         }
 
         $sensorMessageRepository->insertRaw([
