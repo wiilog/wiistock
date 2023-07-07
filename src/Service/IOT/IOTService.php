@@ -551,11 +551,12 @@ class IOTService
         switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::TEMP_HYGRO:
-                return hexdec(substr($config['value']['payload'], 6, 2));
+                $hexTemperature = substr($config['value']['payload'], 6, 2);
+                return $this->convertHexToSignedInt($hexTemperature);
             case IOTService::KOOVEA_HUB:
                 return $config['value'];
             case IOTService::INEO_SENS_ACS_BTN:
-                return $this->extractEventTypeFromMessage($config);
+                return $this->extractEventTypeFromMessage($config, $profile);
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
@@ -940,5 +941,13 @@ class IOTService
             IOTService::TEMP_HYGRO => str_starts_with($frame['value']['payload'], '6d'),
             default => true,
         };
+    }
+
+    private function convertHexToSignedInt(string $hexStr): string {
+        $dec = hexdec($hexStr);
+        $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
+        return $isNegative
+            ? $dec - pow(16, strlen($hexStr))
+            : $dec;
     }
 }
