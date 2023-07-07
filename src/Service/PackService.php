@@ -239,7 +239,7 @@ class PackService {
             ->setQuantity($quantity)
             ->setWeight($weight)
             ->setVolume($volume)
-            ->setComment(StringHelper::cleanedComment($comment));
+            ->setComment($comment);
     }
 
     public function createPack(EntityManager $entityManager, array $options = []): Pack

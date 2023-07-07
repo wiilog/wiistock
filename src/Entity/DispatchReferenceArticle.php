@@ -109,7 +109,11 @@ class DispatchReferenceArticle
 
     public function setDispatchPack(?DispatchPack $dispatchPack): self
     {
+        if($this->dispatchPack && $this->dispatchPack !== $dispatchPack) {
+            $this->dispatchPack->removeDispatchReferenceArticles($this);
+        }
         $this->dispatchPack = $dispatchPack;
+        $dispatchPack?->addDispatchReferenceArticles($this);
 
         return $this;
     }

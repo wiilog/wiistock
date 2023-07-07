@@ -179,7 +179,7 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private ?bool $withoutHistory = false;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -377,7 +377,8 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getDispatchPack(Pack $pack): ?self {
+    public function getDispatchPack(Pack $pack): ?DispatchPack {
+        /** @var DispatchPack $dispatchPack */
         foreach ($this->dispatchPacks as $dispatchPack){
             if($dispatchPack->getPack()->getCode() === $pack->getCode()){
                 return $dispatchPack;

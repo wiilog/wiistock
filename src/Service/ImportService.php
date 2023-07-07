@@ -261,6 +261,8 @@ class ImportService
     #[Required]
     public UserPasswordHasherInterface $encoder;
 
+    private EmplacementDataService $emplacementDataService;
+
     private Import $currentImport;
     private EntityManagerInterface $entityManager;
 
@@ -268,9 +270,10 @@ class ImportService
 
     private array $entityCache = [];
 
-    public function __construct(EntityManagerInterface $entityManager) {
+    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService) {
         $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
 
@@ -991,7 +994,7 @@ class ImportService
             $refArt->setBuyer($userRepository->findOneBy(['username' => $data['buyer']]));
         }
         if (isset($data['commentaire'])) {
-            $refArt->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+            $refArt->setCommentaire($data['commentaire']);
         }
         if (isset($data['emergencyComment'])) {
             $refArt->setEmergencyComment($data['emergencyComment']);
@@ -1731,7 +1734,7 @@ class ImportService
         }
 
         if (!$request->getCommentaire()) {
-            $request->setCommentaire(StringHelper::cleanedComment($commentaire));
+            $request->setCommentaire($commentaire);
         }
 
         $number = $this->uniqueNumberService->create(
@@ -2152,16 +2155,13 @@ class ImportService
                 if (empty($defaultZoneLocation)) {
                     $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
-                $location = new Emplacement();
-                $location
-                    ->setLabel($data['emplacement'])
-                    ->setIsActive(true)
-                    ->setIsDeliveryPoint(false)
-                    ->setZone($defaultZoneLocation);
-
-                $this->entityManager->persist($location);
+                $location = $this->emplacementDataService->persistLocation([
+                    "label" => $data['emplacement'],
+                    "isActive" => true,
+                    "isDeliveryPoint" => false,
+                    "zone" => $defaultZoneLocation,
+                ], $this->entityManager);
             }
-
             $articleOrRef->setEmplacement($location);
         }
     }
