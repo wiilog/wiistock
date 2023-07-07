@@ -25,6 +25,7 @@ use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\DeliveryRequestService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
@@ -162,7 +163,9 @@ class LivraisonController extends AbstractController {
 
     #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request $request,
+                                     EntityManagerInterface $manager,
+                                     DeliveryRequestService $deliveryRequestService): Response {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
 
@@ -188,13 +191,17 @@ class LivraisonController extends AbstractController {
                     : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(PreparationOrderArticleLine $line) {
+                    ->map(function(PreparationOrderArticleLine $line) use ($deliveryRequestService) {
                         $article = $line->getArticle();
+                        $deliveryRequestLine = $line->getDeliveryRequestArticleLine() ?? $line->getDeliveryRequestReferenceLine();
                         return [
                             "reference" => $article->getArticleFournisseur()->getReferenceArticle()->getReference(),
-                            "barCode" => $article->getBarCode() ?: '',
+                            "barcode" => $article->getBarCode() ?: '',
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
+                            "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
+                            "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                            "notes" => $deliveryRequestLine?->getNotes() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
                             ]),
@@ -205,14 +212,18 @@ class LivraisonController extends AbstractController {
             ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
-            ->map(function(PreparationOrderReferenceLine $line) {
+            ->map(function(PreparationOrderReferenceLine $line) use ($deliveryRequestService) {
                 $reference = $line->getReference();
+                $deliveryRequestLine = $line->getDeliveryRequestReferenceLine();
                 return [
                     "reference" => $reference->getReference(),
                     "label" => $reference->getLibelle(),
-                    "barCode" => $reference->getBarCode() ?: '',
+                    "barcode" => $reference->getBarCode() ?: '',
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
+                    "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
+                    "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                    "notes" => $deliveryRequestLine?->getNotes() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
                     ]),
@@ -251,7 +262,7 @@ class LivraisonController extends AbstractController {
                 if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0 && !$article->getCurrentLogisticUnit()) {
                     $rows[] = [
                         "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "barCode" => $article->getBarCode() ?: '',
+                        "barcode" => $article->getBarCode() ?: '',
                         "label" => $article->getLabel() ?: '',
                         "location" => FormatHelper::location($article->getEmplacement()),
                         "quantity" => $articleLine->getPickedQuantity(),
@@ -291,14 +302,15 @@ class LivraisonController extends AbstractController {
      * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
      */
-    public function show(Livraison $livraison, LivraisonService $livraisonService): Response
+    public function show(EntityManagerInterface $entityManager, Livraison $livraison, LivraisonService $livraisonService): Response
     {
         $headerDetailsConfig = $livraisonService->createHeaderDetailsConfig($livraison);
 
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
             'finished' => $livraison->isCompleted(),
-            'headerConfig' => $headerDetailsConfig
+            'headerConfig' => $headerDetailsConfig,
+            'initialVisibleColumns' => json_encode($livraisonService->getVisibleColumnsShow($entityManager, $livraison->getDemande())),
         ]);
     }
 
@@ -355,10 +367,11 @@ class LivraisonController extends AbstractController {
     /**
      * @Route("/csv", name="get_delivery_order_csv", options={"expose"=true}, methods={"GET"})
      */
-    public function getDeliveryOrderCSV(Request                $request,
-                                        CSVExportService       $CSVExportService,
-                                        EntityManagerInterface $entityManager,
-                                        LivraisonService       $livraisonService): Response {
+    public function getDeliveryOrderCSV(Request                 $request,
+                                        CSVExportService        $CSVExportService,
+                                        EntityManagerInterface  $entityManager,
+                                        LivraisonService        $livraisonService,
+                                        TranslationService      $translation): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -373,7 +386,7 @@ class LivraisonController extends AbstractController {
                 'numéro',
                 'statut',
                 'date création',
-                'date de livraison',
+                'date de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                 'date de la demande',
                 'demandeur',
                 'opérateur',
@@ -525,7 +538,7 @@ class LivraisonController extends AbstractController {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
 
@@ -557,14 +570,15 @@ class LivraisonController extends AbstractController {
     /**
      * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
      */
-    public function printDeliveryNote(EntityManagerInterface $entityManager,
-                                      Livraison $deliveryOrder,
-                                      PDFGeneratorService $pdfService,
-                                      SpecificService $specificService): Response {
+    public function printDeliveryNote(EntityManagerInterface    $entityManager,
+                                      Livraison                 $deliveryOrder,
+                                      PDFGeneratorService       $pdfService,
+                                      SpecificService           $specificService,
+                                      TranslationService        $translation): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => 'Le bon de livraison n\'existe pas pour cette ordre de livraison'
+                "msg" => 'Le bon de livraison n\'existe pas pour cette ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false))
             ]);
         }
 
@@ -572,7 +586,7 @@ class LivraisonController extends AbstractController {
         $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$nowDate->format('dmYHis')}";
 

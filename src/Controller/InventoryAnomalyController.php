@@ -12,6 +12,7 @@ use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Service\InventoryEntryService;
 use App\Service\InventoryService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,7 +69,9 @@ class InventoryAnomalyController extends AbstractController {
 
     #[Route("/traitement", name: "anomaly_treat", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::INVENTORY_MANAGER], mode: HasPermission::IN_JSON)]
-    public function treatAnomaly(Request $request, InventoryService $inventoryService): Response {
+    public function treatAnomaly(Request            $request,
+                                 InventoryService   $inventoryService,
+                                 TranslationService $translation): Response {
         if ($data = json_decode($request->getContent(), true)) {
             try {
                 $res = $inventoryService->doTreatAnomaly(
@@ -90,7 +93,7 @@ class InventoryAnomalyController extends AbstractController {
                 $responseData = [
                     'success' => false,
                     'msg' => ($exception instanceof RequestNeedToBeProcessedException)
-                        ? 'Impossible : un ordre de livraison est en cours sur cet article'
+                        ? 'Impossible : un ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . ' est en cours sur cet article'
                         : 'Impossible : l\'article n\'est pas disponible',
                 ];
             }

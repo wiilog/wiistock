@@ -20,6 +20,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\CartService;
 use App\Service\SettingsService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -244,7 +245,8 @@ class CartController extends AbstractController
     #[Route("/add-to-cart-logistic-units", name: "cart_add_logistic_units", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function addLogisticUnitsToCart(Request                $request,
-                                           EntityManagerInterface $entityManager): Response {
+                                           EntityManagerInterface $entityManager,
+                                           TranslationService     $translation): Response {
         $data = $request->query->all();
         $ids = explode(",", $data["ids"]);
         $response = [];
@@ -308,7 +310,7 @@ class CartController extends AbstractController
             $response[] = [
                 "success" => false,
                 "msg" => count($wrongProject) === 1
-                    ? "L'unité logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
+                    ? "L'unité logistique " . $wrongProject[0] . " ne peut pas être ajoutée au panier car le panier ne peut avoir des unités logistiques que d'un seul " . mb_strtolower($translation->translate('Référentiel', 'Projet', 'Projet', false))
                     : "Les unités logistiques  " . join(", ", $wrongProject) . " ne peuvent pas être ajoutées au panier car le panier ne peut avoir des unités logistiques que d'un seul projet"
             ];
         }

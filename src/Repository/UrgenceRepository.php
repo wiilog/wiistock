@@ -50,7 +50,8 @@ class UrgenceRepository extends EntityRepository {
 
         foreach ($fields as $field) {
             if(!empty($values[$field])) {
-                $queryBuilder->andWhere("u.$field = :$field")
+                $queryBuilder
+                    ->andWhere("u.$field = :$field")
                     ->setParameter("$field", $values[$field]);
             }
         }

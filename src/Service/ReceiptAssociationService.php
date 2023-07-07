@@ -3,31 +3,43 @@
 
 namespace App\Service;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 
+use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
-use App\Helper\FormatHelper;
+use App\Entity\Reception;
+use App\Entity\Setting;
+use App\Entity\TrackingMovement;
+use DateTime;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class ReceiptAssociationService
 {
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public Security $security;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public FormatService $formatService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
 
 
     public function getDataForDatatable($params = null)
@@ -56,13 +68,59 @@ class ReceiptAssociationService
     {
         return [
             'id' => $receiptAssocation->getId(),
-            'creationDate' => FormatHelper::datetime($receiptAssocation->getCreationDate(), "", false, $this->security->getUser()),
+            'creationDate' => $this->formatService->datetime($receiptAssocation->getCreationDate(), "", false, $this->security->getUser()),
             'packCode' => $receiptAssocation->getPackCode() ?? '',
             'receptionNumber' => $receiptAssocation->getReceptionNumber() ?? '',
-            'user' => FormatHelper::user($receiptAssocation->getUser()),
+            'user' => $this->formatService->user($receiptAssocation->getUser()),
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
                 'receipt_association' => $receiptAssocation,
             ])
         ];
+    }
+
+    public function createMovements(array $receptions, array $packs = [])
+    {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+
+        $now = new DateTime('now');
+        $defaultLocationUL = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
+        $defaultLocationReception = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
+
+        /** @var Pack $pack */
+        foreach ($packs as $pack) {
+            //prise UL
+            $pickMvt = $this->trackingMovementService->createTrackingMovement($pack,
+                $pack->getLastTracking()->getEmplacement(),
+                $this->userService->getUser(),
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_PRISE);
+            $this->entityManager->persist($pickMvt);
+
+            //dépose UL
+            $dropMvtLU = $this->trackingMovementService->createTrackingMovement($pack,
+                $defaultLocationUL,
+                $this->userService->getUser(),
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE);
+            $this->entityManager->persist($dropMvtLU);
+        }
+
+        /** @var Reception $reception */
+        foreach ($receptions as $reception) {
+            //dépose
+            $dropMvt = $this->trackingMovementService->createTrackingMovement($reception,
+                $defaultLocationReception,
+                $this->userService->getUser(),
+                $now,
+                false,
+                true,
+                TrackingMovement::TYPE_DEPOSE);
+            $this->entityManager->persist($dropMvt);
+        }
+        $this->entityManager->flush();
     }
 }

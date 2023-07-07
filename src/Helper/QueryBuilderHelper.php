@@ -52,6 +52,30 @@ class QueryBuilderHelper
         }
     }
 
+    public static function countByStatuses(EntityManagerInterface $entityManager,
+                                           string $entity,
+                                           array $statuses = [])
+    {
+        if (!empty($statuses)) {
+            $qb = $entityManager->createQueryBuilder();
+            $statusProperty = property_exists($entity, 'status') ? 'status' : 'statut';
+
+            $qb
+                ->select("COUNT(entity)")
+                ->from($entity, 'entity')
+                ->innerJoin("entity.${statusProperty}", 'status')
+                ->andWhere('status IN (:statuses)')
+                ->setParameter('statuses', $statuses);
+
+            return $qb
+                ->getQuery()
+                ->getSingleScalarResult();
+        }
+        else {
+            return [];
+        }
+    }
+
     public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, string $order = null): QueryBuilder {
         $alias = $qb->getRootAliases()[0];
         $entityToString = $entity === 'statut' || $entity === 'status' ? 'nom' : 'label';

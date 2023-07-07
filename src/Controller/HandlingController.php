@@ -20,7 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
+use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
@@ -164,7 +164,7 @@ class HandlingController extends AbstractController {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $receivers = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_RECEIVERS_HANDLING);
-        $receiversId = $receivers[$typeId];
+        $receiversId = $receivers[$typeId] ?? [];
         $users = [];
         foreach ($receiversId as $receiverId) {
             $users[$receiverId] = $userRepository->find($receiverId)->getUsername();
@@ -182,6 +182,7 @@ class HandlingController extends AbstractController {
                         TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
+                        ExceptionLoggerService $exceptionLoggerService,
                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -221,10 +222,12 @@ class HandlingController extends AbstractController {
             ->setDestination($post->get('destination') ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment(StringHelper::cleanedComment($post->get('comment')))
+            ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
+
+        $exceptionLoggerService->sendLog(new \Exception(mb_detect_encoding($post->get('comment'))), $request);
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
         ]);
@@ -338,7 +341,7 @@ class HandlingController extends AbstractController {
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
-            ->setComment(StringHelper::cleanedComment($post->get('comment')) ?: '')
+            ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)

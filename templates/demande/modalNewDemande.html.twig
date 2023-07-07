@@ -61,6 +61,17 @@
                             </div>
                         </div>
 
+                        {% set fieldCodeReceiver = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE') %}
+                        {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedCreate') %}
+                            {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredCreate') %}
+                            <div class="col-12 col-md-6">
+                                {{ form.select('demandeReceiver', 'Destinataire', fieldRequired, {
+                                    type: 'user',
+                                    multiple: false,
+                                }) }}
+                            </div>
+                        {% endif %}
+
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EXPECTED_AT') %}
                         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
@@ -74,13 +85,13 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT') %}
-                        {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_PROJECT') %}
+                        {% set fieldCodeProject = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+                        {% set fieldLabelProject = constant('App\\Entity\\FieldsParam::FIELD_LABEL_DELIVERY_REQUEST_PROJECT') %}
                         {% if fieldsParam|isFieldRequired(fieldCodeProject, 'displayedCreate') %}
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredCreate') %}
                             <div class="col-12 col-md-6">
                                 <div class="form-group w-100">
-                                    <label class="wii-field-name">{{ fieldLabelProject }}{{ fieldRequired ? '*' }}</label>
+                                    <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}{{ fieldRequired ? '*' }}</label>
                                     <select data-s2="project" name="project" class="form-control data d-block {{fieldRequired ? 'needed'}}">
                                     </select>
                                 </div>

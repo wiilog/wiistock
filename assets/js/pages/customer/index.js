@@ -23,6 +23,7 @@ function initCustomerTable() {
             { "data": 'actions', 'title': '', className: 'noVis', orderable: false },
             { "data": 'customer', 'name': 'Client', 'title': 'Client'},
             { "data": 'address', 'name': 'Adresse', 'title': 'Adresse' },
+            { "data": 'recipient', 'name': 'Destinataire', 'title': 'Destinataire' },
             { "data": 'phoneNumber', 'name': 'Téléphone', 'title': 'Téléphone' },
             { "data": 'email', 'name': 'Email', 'title': 'Email'},
             { "data": 'fax', 'name': 'Fax', 'title': 'Fax'},

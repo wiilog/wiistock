@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -68,10 +70,19 @@ class TrackingMovement {
     private ?Dispatch $dispatch = null;
 
     #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Preparation $preparation;
 
-    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements')]
+    #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'trackingMovements', )]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Livraison $delivery;
+
+    #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'trackingMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?Demande $deliveryRequest;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'trackingMovements')]
+    private ?ShippingRequest $shippingRequest;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -264,6 +275,16 @@ class TrackingMovement {
         $this->delivery = $delivery;
 
         return $this;
+    }
+
+    public function setDeliveryRequest(?Demande $deliveryRequest): self {
+        $this->deliveryRequest = $deliveryRequest;
+
+        return $this;
+    }
+
+    public function getDeliveryRequest(): ?Demande {
+        return $this->deliveryRequest;
     }
 
     public function getReferenceArticle(): ?ReferenceArticle {
@@ -490,6 +511,16 @@ class TrackingMovement {
     public function setMainMovement(?TrackingMovement $movement): self {
         $this->mainMovement = $movement;
         return $this;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
     }
 
 }

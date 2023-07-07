@@ -18,6 +18,9 @@ class ProjectHistoryRecordService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public TranslationService $translation;
+
     public function changeProject(EntityManagerInterface $entityManager,
                                   Article|Pack           $item,
                                   ?Project               $project,
@@ -70,7 +73,7 @@ class ProjectHistoryRecordService {
         return [
             'project' => !empty($this->formatService->project($projectHistoryRecord->getProject()))
                 ? $this->formatService->project($projectHistoryRecord->getProject())
-                : 'Aucun projet',
+                : 'Aucun ' . mb_strtolower($this->translation->translate('Référentiel', 'Projet', 'Projet', false)),
             'createdAt' => $this->formatService->datetime($projectHistoryRecord->getCreatedAt()),
         ];
     }

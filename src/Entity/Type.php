@@ -83,7 +83,10 @@ class Type {
     private Collection $handlingUsers;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private ?bool $sendMail = null;
+    private ?bool $sendMailRequester = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $sendMailReceiver = null;
 
     #[ORM\OneToMany(mappedBy: 'type', targetEntity: Dispatch::class)]
     private Collection $dispatches;
@@ -102,6 +105,12 @@ class Type {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedDropLocations = [];
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedPickLocations = [];
 
     #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
@@ -513,12 +522,22 @@ class Type {
         return $this;
     }
 
-    public function getSendMail(): ?bool {
-        return $this->sendMail;
+    public function getSendMailRequester(): ?bool {
+        return $this->sendMailRequester;
     }
 
-    public function setSendMail(?bool $sendMail): self {
-        $this->sendMail = $sendMail;
+    public function setSendMailRequester(?bool $sendMailRequester): self {
+        $this->sendMailRequester = $sendMailRequester;
+
+        return $this;
+    }
+
+    public function getSendMailReceiver(): ?bool {
+        return $this->sendMailReceiver;
+    }
+
+    public function setSendMailReceiver(?bool $sendMailReceiver): self {
+        $this->sendMailReceiver = $sendMailReceiver;
 
         return $this;
     }
@@ -829,4 +848,31 @@ class Type {
         return $this->tags;
     }
 
+    public function getSuggestedDropLocations(): ?array {
+        return $this->suggestedDropLocations;
+    }
+
+
+    public function setSuggestedDropLocations(?array $suggestedDropLocations): self {
+        $this->suggestedDropLocations = [];
+        foreach($suggestedDropLocations ?? [] as $suggestedDropLocation) {
+            $this->suggestedDropLocations[] = $suggestedDropLocation;
+        }
+
+        return $this;
+    }
+
+    public function getSuggestedPickLocations(): ?array {
+        return $this->suggestedPickLocations;
+    }
+
+
+    public function setSuggestedPickLocations(?array $suggestedPickLocations): self {
+        $this->suggestedPickLocations = [];
+        foreach($suggestedPickLocations ?? [] as $suggestedPickLocation) {
+            $this->suggestedPickLocations[] = $suggestedPickLocation;
+        }
+
+        return $this;
+    }
 }

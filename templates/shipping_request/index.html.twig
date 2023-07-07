@@ -1,0 +1,80 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{{ trans('Demande', 'Général', 'Demande', false) }} | {{ trans('Demande', 'Expédition', 'Expédition', false) }}{% endblock %}
+{% block title_tooltip %}Demande | {{ trans('Demande', 'Expédition', 'Expédition', false) }}{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersDemands.html.twig' with {
+        page: 'PAGE_SHIPPING',
+        tableSelector: '#tableShippings',
+        statuts : statuses,
+    }%}
+{% endblock %}
+
+{% set hasRightToCreate = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE')) and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::EXPORT')) %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto btn-group dispatch-button-container">
+                {% if hasRightToExport %}
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRightToExport,
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                attributes: {
+                                    "onclick" : "saveExportFile('get_shipping_requests_csv', false)",
+                                },
+                            },
+                            {
+                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                icon: "fa fa-cog",
+                                attributes: {
+                                    "data-toggle": "modal",
+                                    "data-target": "#modalColumnVisible",
+                                },
+                            }
+                        ]
+                    } %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableShippings" class="table w-100" data-initial-visible="{{ initial_visible_columns }}"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "utils/modal/empty-modal.html.twig" with {
+        id: "modalNewShippingRequest",
+        size: 'modal-xl',
+        additionalAttributes: {
+            'data-modal-type': 'new',
+        },
+        header: {
+            title: 'Créer une demande d\'expédition'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Valider la demande d\'expédition'), type: 'submit'}
+            ],
+        },
+    } %}
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableShippings',
+        'route': 'save_column_visible_for_shipping_request',
+        'reload': true
+    } %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('shipping-request-index') }}
+{% endblock %}

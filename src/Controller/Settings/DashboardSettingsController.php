@@ -183,9 +183,15 @@ class DashboardSettingsController extends AbstractController {
         $entityTypes = [];
         $entityStatuses = [];
 
-        if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT
-            || $componentType->getMeterKey() === Dashboard\ComponentType::ORDERS_TO_TREAT) {
-            if ($componentType->getMeterKey() === Dashboard\ComponentType::REQUESTS_TO_TREAT) {
+        if (in_array($componentType->getMeterKey(), [
+            Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            Dashboard\ComponentType::ORDERS_TO_TREAT,
+            Dashboard\ComponentType::PENDING_REQUESTS,
+        ])) {
+            if (in_array($componentType->getMeterKey(), [
+                Dashboard\ComponentType::PENDING_REQUESTS,
+                Dashboard\ComponentType::REQUESTS_TO_TREAT,
+            ])) {
                 $entities = [
                     'Service' => [
                         'categoryType' => CategoryType::DEMANDE_HANDLING,
@@ -211,6 +217,11 @@ class DashboardSettingsController extends AbstractController {
                         'categoryType' => CategoryType::TRANSFER_REQUEST,
                         'categoryStatus' => CategorieStatut::TRANSFER_REQUEST,
                         'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER
+                    ],
+                    'Expédition' => [
+                        'categoryType' => CategoryType::SHIPPING_REQUEST,
+                        'categoryStatus' => CategorieStatut::SHIPPING_REQUEST,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING
                     ]
                 ];
             }
@@ -252,7 +263,7 @@ class DashboardSettingsController extends AbstractController {
                 ->toArray());
 
             $entityTypes = $typeRepository->findByCategoryLabels($categoryTypes);
-            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS]);
+            $entityStatuses = $statusRepository->findByCategorieNames($entitiesStatuses, true, [Statut::NOT_TREATED, Statut::TREATED, Statut::PARTIAL, Statut::IN_PROGRESS, Statut::SCHEDULED, Statut::SHIPPED]);
         } else if ($componentType->getMeterKey() === Dashboard\ComponentType::ACTIVE_REFERENCE_ALERTS) {
             $entityTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         }

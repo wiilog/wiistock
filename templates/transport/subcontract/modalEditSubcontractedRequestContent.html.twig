@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <div class="wii-section-title">Livraison</div>
+    <div class="wii-section-title">{{ trans('Demande', 'Livraison', 'Livraison', false) }}</div>
     <div class="row my-3">
         <div class="col-md-6 col-12 form-group">
             {% set statusCode = transportRequest.status.code %}
@@ -39,7 +39,7 @@
     <div class="row my-3">
         <div class="col-md-6 col-12 startDateDiv form-group">
             <label class="w-100 wii-field-name">
-                Date et heure de début de livraison *
+                Date et heure de début de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }} *
                 <input name="delivery-start-date"
                        type="datetime-local"
                        class="form-control w-100 data"
@@ -48,7 +48,7 @@
         </div>
         <div class="col-md-6 col-12 endDateDiv form-group">
             <label class="w-100 wii-field-name">
-                Date et heure de fin de livraison *
+                Date et heure de fin de {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }} *
                 <input name="delivery-end-date"
                        type="datetime-local"
                        class="form-control w-100 data"

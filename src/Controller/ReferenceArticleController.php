@@ -22,12 +22,14 @@ use App\Entity\OrdreCollecte;
 use App\Entity\OrdreCollecteReference;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\FormException;
 use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
@@ -41,6 +43,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -124,10 +127,7 @@ class ReferenceArticleController extends AbstractController
     {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
             && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)) {
-            return $this->json([
-                "success" => false,
-                "msg" => "Accès refusé",
-            ]);
+            throw new FormException("Accès refusé");
         }
 
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
@@ -145,6 +145,13 @@ class ReferenceArticleController extends AbstractController
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
+
+            if(isset($data['security'])
+                && isset($data['fileSheet'])
+                && $data['security'] == "1"
+                && $data['fileSheet'] === "undefined"){
+                throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+            }
 
             if ($refAlreadyExist) {
                 $errorData = [
@@ -164,41 +171,50 @@ class ReferenceArticleController extends AbstractController
 
             $type = $typeRepository->find($data['type']);
 
-            if ($data['emplacement'] !== null) {
+            if ($data['emplacement'] ?? false) {
                 $emplacement = $emplacementRepository->find($data['emplacement']);
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-
-            switch($data['type_quantite']) {
-                case 'article':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
+            switch ($data['type_quantite']) {
                 case 'reference':
-                default:
                     $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
+                    break;
+                default:
+                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
                     break;
             }
 
+            $needsMobileSync = filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if ($needsMobileSync && ($referenceArticleRepository->count(['needsMobileSync' => true]) > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Le nombre maximum de synchronisations nomade a été atteint.'
+                ]);
+            }
             $refArticle = new ReferenceArticle();
             $refArticle
-                ->setNeedsMobileSync(filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setTypeQuantite($typeArticle)
-                ->setPrixUnitaire(max(0, $data['prix']))
+                ->setPrixUnitaire(max(0, $data['prix'] ?? null))
                 ->setType($type)
                 ->setIsUrgent(filter_var($data['urgence'] ?? false, FILTER_VALIDATE_BOOLEAN))
                 ->setEmplacement($emplacement)
 				->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setBuyer(isset($data['buyer']) ? $userRepository->find($data['buyer']) : null)
                 ->setCreatedBy($loggedUser)
-                ->setCreatedAt(new DateTime('now'));
+                ->setCreatedAt(new DateTime('now'))
+                ->setNdpCode($data['ndpCode'] ?? null)
+                ->setDangerousGoods(filter_var($data['security'] ?? false, FILTER_VALIDATE_BOOLEAN))
+                ->setOnuCode($data['onuCode'] ?? null)
+                ->setProductClass($data['productClass'] ?? null);
 
             $refArticleDataService->updateDescriptionField($entityManager, $refArticle, $data);
 
-            $refArticle->setProperties(['visibilityGroup' => $data['visibility-group'] ? $visibilityGroupRepository->find(intval($data['visibility-group'])) : null]);
+            $refArticle->setProperties(['visibilityGroup' => ($data['visibility-group'] ?? null) ? $visibilityGroupRepository->find(intval($data['visibility-group'] ?? null)) : null]);
 
 
             if ($refArticle->getIsUrgent()) {
@@ -342,6 +358,14 @@ class ReferenceArticleController extends AbstractController
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
             }
+            if($request->files->has('fileSheet')) {
+                $file = $request->files->get('fileSheet');
+                $attachments = $attachmentService->createAttachements([$file]);
+                $entityManager->persist($attachments[0]);
+
+                $refArticle->setSheet($attachments[0]);
+                $request->files->remove('fileSheet');
+            }
             $attachmentService->manageAttachments($entityManager, $refArticle, $request->files);
 
             $entityManager->flush();
@@ -444,12 +468,11 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route(path: "/modifier", name: "reference_article_edit",  options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         UserService            $userService): Response {
+                         UserService            $userService,
+                         TranslationService     $translation): Response {
         if (!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
             && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)) {
             return $this->json([
@@ -457,45 +480,32 @@ class ReferenceArticleController extends AbstractController
                 "msg" => "Accès refusé",
             ]);
         }
-
-        if ($data = $request->request->all()) {
-            $refId = intval($data['idRefArticle']);
+        $data = $request->request;
+        if ($data->all()) {
+            $refId = $data->getInt('idRefArticle');
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $refArticle = $referenceArticleRepository->find($refId);
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference'], $refId);
+            $refAlreadyExist = $referenceArticleRepository->countByReference($data->get('reference'), $refId);
             if ($refAlreadyExist) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
-                    'invalidFieldsSelector' => 'input[name="reference"]'
-                ]);
+                throw new FormException("Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.");
             }
             if ($refArticle) {
                 try {
                     /** @var Utilisateur $currentUser */
                     $currentUser = $this->getUser();
-                    $refArticle->removeIfNotIn($data['files'] ?? []);
-                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request);
+                    $refArticle->removeIfNotIn($data->all()['files'] ?? []);
+                    $response = $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $currentUser, $request->files);
                 }
                 catch (ArticleNotAvailableException $exception) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence inactive."
-                    ];
+                    throw new FormException("Vous ne pouvez pas modifier la quantité d'une référence inactive.");
                 }
                 catch (RequestNeedToBeProcessedException $exception) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier la quantité d'une référence qui est dans un ordre de livraison en cours."
-                    ];
+                    throw new FormException("Vous ne pouvez pas modifier la quantité d'une référence qui est dans un " . mb_strtolower($translation->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " en cours.");
                 }
             } else {
-                $response = ['success' => false, 'msg' => "Une erreur s'est produite lors de la modification de la référence."];
-            }
-            if($response['success']){
-                $response['redirect'] = $this->generateUrl('reference_article_show_page', ['id' => $refArticle->getId()]);
+                throw new FormException("Une erreur s'est produite lors de la modification de la référence.");
             }
             return new JsonResponse($response);
         }
@@ -506,10 +516,13 @@ class ReferenceArticleController extends AbstractController
      * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::DELETE}, mode=HasPermission::IN_JSON)
      */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(Request                  $request,
+                           EntityManagerInterface   $entityManager,
+                           TranslationService       $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var ReferenceArticle $refArticle */
             $refArticle = $referenceArticleRepository->find($data['refArticle']);
@@ -529,12 +542,13 @@ class ReferenceArticleController extends AbstractController
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || !($refArticle->getTransferRequests()->isEmpty())
                 || $refArticle->getTrackingPack()
+                || $shippingRequestLineRepository->count(['reference' => $refArticle]) > 0
                 || $refArticle->hasTrackingMovements()) {
                 return new JsonResponse([
                     'success' => false,
                     'msg' => '
                         Cette référence article est lié à une unité logistique, des mouvements, une collecte,
-                        une livraison, une réception ou un article fournisseur et ne peut pas être supprimée.
+                        une ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . ', une réception, une expédition ou un article fournisseur et ne peut pas être supprimée.
                     '
                 ]);
             }
@@ -628,7 +642,7 @@ class ReferenceArticleController extends AbstractController
             $locations = Stream::from($reference->getStorageRules())
                 ->map(function (StorageRule $rule) use ($articleRepository, $reference) {
                     $location = $rule->getLocation();
-                    $quantity = $articleRepository->countForRefOnLocation($reference, $location);
+                    $quantity = $articleRepository->quantityForRefOnLocation($reference, $location);
 
                     return [
                         'location' => [
@@ -895,8 +909,10 @@ class ReferenceArticleController extends AbstractController
                                 RefArticleDataService  $refArticleDataService,
                                 SettingsService        $settingsService) {
         $typeRepository = $entityManager->getRepository(Type::class);
+        $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $inventoryCategories = $inventoryCategoryRepository->findAll();
@@ -914,9 +930,21 @@ class ReferenceArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
+        $shippingSettingsDefaultValues = [];
+        if($request->query->has('shipping')){
+            $shippingSettingsDefaultValues = [
+                'type' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_REFERENCE_DEFAULT_TYPE),
+                'supplier' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE)) : null,
+                'supplierCode' => $settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE) ? $supplierRepository->find($settingRepository->getOneParamByLabel(Setting::SHIPPING_SUPPLIER_REFERENCE_CREATE)) : null,
+                'refArticleSupplierEqualsReference' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE)),
+                'articleSupplierLabelEqualsReferenceLabel' => boolval($settingRepository->getOneParamByLabel(Setting::SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL)),
+            ];
+        }
+
         return $this->render("reference_article/form/new.html.twig", [
             "new_reference" => new ReferenceArticle(),
-            "submit_url" => $this->generateUrl("reference_article_new", [
+            "submit_route" => "reference_article_new",
+            "submit_params" =>  json_encode([
                 "from" => $request->query->get("from"),
                 "reception" => $request->query->get("reception"),
                 "dispatch" => $request->query->get("dispatch"),
@@ -932,6 +960,7 @@ class ReferenceArticleController extends AbstractController
             "freeFieldTypes" => $typeChampLibre,
             "freeFieldsGroupedByTypes" => $freeFieldsGroupedByTypes,
             "descriptionConfig" => $refArticleDataService->getDescriptionConfig($entityManager),
+            "shippingSettingsDefaultValues" => $shippingSettingsDefaultValues,
         ]);
     }
 
@@ -956,7 +985,7 @@ class ReferenceArticleController extends AbstractController
 
         return $this->render("reference_article/form/edit.html.twig", [
             "reference" => $reference,
-            "submit_url" => $this->generateUrl("reference_article_edit"),
+            "submit_route" => "reference_article_edit",
             "types" => $types,
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
@@ -1104,14 +1133,14 @@ class ReferenceArticleController extends AbstractController
 
             if(!$referenceExist){
                 $entityManager->flush();
-                $article = $articleDataService->newArticle([
+                $article = $articleDataService->newArticle($entityManager, [
                     'statut' => Article::STATUT_INACTIF,
                     'refArticle' => $reference->getId(),
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
                     'quantite' => 1,
-                ], $entityManager);
+                ]);
                 $article
                     ->setReference($reference->getReference())
                     ->setInactiveSince($date)
@@ -1153,12 +1182,10 @@ class ReferenceArticleController extends AbstractController
             $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
-        foreach ($barcodesToPrint as $barcode) {
-            $kioskService->printLabel($barcode, $entityManager);
-        }
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",
+                'barcodesToPrint' => json_encode($barcodesToPrint),
                 "referenceExist" => $referenceExist,
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]

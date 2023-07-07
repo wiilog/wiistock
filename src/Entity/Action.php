@@ -63,6 +63,7 @@ class Action {
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
@@ -89,6 +90,18 @@ class Action {
     const DISPLAY_TRANSPORT_SUBCONTRACT = 'afficher sous-traitance';
     const EDIT_TRANSPORT_SUBCONTRACT = 'modifier sous-traitance';
 
+    const DISPLAY_SHIPPING = 'afficher expédition';
+    const CREATE_SHIPPING = 'créer expédition';
+    const DISPLAY_SCHEDULE_BUTTON = 'afficher le bouton Planifier';
+    const DISPLAY_SHIP_BUTTON = 'afficher le bouton Expédier';
+    const EDIT_TO_TREAT_SHIPPING = 'modifier expédition en "A traiter"';
+    const EDIT_PLANIFIED_SHIPPING = 'modifier expédition en "Planifiée"';
+    const EDIT_SHIPPED_SHIPPING = 'modifier expédition en "Expédiée"';
+    const DELETE_TO_TREAT_SHIPPING = 'supprimer expédition en "A traiter"';
+    const DELETE_PLANIFIED_SHIPPING = 'supprimer expédition en "Planifiée"';
+    const DELETE_SHIPPED_SHIPPING = 'supprimer expédition en "Expédiée"';
+    const EDIT_TRANSPORT_SHIPPING_PART = 'modifier partie transport expédition';
+    const GENERATE_PACKING_SLIP = 'générer bordereau de colisage';
 
     // menu ordre
     const DISPLAY_ORDRE_COLL = 'afficher collectes';
@@ -147,6 +160,7 @@ class Action {
     const SETTINGS_DISPLAY_TRUCK_ARRIVALS = 'afficher arrivages camion';
     const SETTINGS_DISPLAY_MOVEMENT = 'afficher mouvements';
     const SETTINGS_DISPLAY_TRACING_HAND = 'afficher services trace';
+    const SETTINGS_DISPLAY_BR_ASSOCIATION = 'afficher association BR';
 
     const SETTINGS_DISPLAY_TRACK_REQUESTS = 'afficher demandes track';
     const SETTINGS_DISPLAY_ROUND = 'afficher tournées';
@@ -160,6 +174,7 @@ class Action {
     const SETTINGS_DISPLAY_PREPA = 'afficher préparations';
     const SETTINGS_DISPLAY_PREPA_DELIV = 'afficher préparations / livraisons';
     const SETTINGS_DISPLAY_MANAGE_VALIDATIONS = 'afficher gestion des validations';
+    const SETTINGS_DISPLAY_DELIVERIES = 'afficher livraisons';
 
     const SETTINGS_DISPLAY_DASHBOARD = 'afficher Dashboard';
 
@@ -179,6 +194,7 @@ class Action {
 
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
+    const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
     // menu nomade
     const MODULE_ACCESS_STOCK = 'Accès Stock';

@@ -1,0 +1,18 @@
+{% set cells = cells is defined and cells ? cells : 0 %}
+
+<thead>
+<tr style="border-bottom: none">
+    <th class="datatable-main-header"></th>
+    <th class="datatable-main-header" colspan="2">
+        <div class="d-flex align-items-center">
+            Tableau d'ajout
+        </div>
+    </th>
+    <th class="datatable-main-header" colspan="3"></th>
+</tr>
+<tr>
+    {% for i in 0..(cells - 1) %}
+        <th></th>
+    {% endfor %}
+</tr>
+</thead>

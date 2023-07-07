@@ -134,9 +134,9 @@ $.fn.dataTable.ext.search.push(
 
         let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
-        return ((dateMin == "" && dateMax == "")
-            || (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+        return ((dateMin === "" && dateMax === "")
+            || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
+            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
             || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)));
     }
 );
@@ -280,6 +280,14 @@ function switchMvtCreationType($input) {
                 $packInput.val('passageavide');
                 $packInput.prop('disabled', true);
             }
+
+            $modal.find(`select[name=pack]`).select2({
+                tags: true,
+                tokenSeparators: [" "],
+                tokenizer: (input, selection, callback) => {
+                    return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
+                },
+            });
         }
     });
 }

@@ -28,5 +28,5 @@
         } %}
     {% endfor %}
 {% else %}
-    <div class="text-center">Il n'y a aucune ligne sur cet ordre de livraison</div>
+    <div class="text-center">Il n'y a aucune ligne sur cet {{ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower }}</div>
 {% endif %}

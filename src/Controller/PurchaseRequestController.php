@@ -235,7 +235,7 @@ class PurchaseRequestController extends AbstractController
                 'requestedQuantity' => $requestLine->getRequestedQuantity(),
                 'stockQuantity' => isset($reference)
                     ? ($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE && $requestLine->getLocation()
-                        ? $articleRepository->countForRefOnLocation($reference, $requestLine->getLocation())
+                        ? $articleRepository->quantityForRefOnLocation($reference, $requestLine->getLocation())
                         : $reference->getQuantiteStock()
                     )
                     : "",
@@ -500,7 +500,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         $purchaseRequest
-            ->setComment(StringHelper::cleanedComment($comment))
+            ->setComment($comment)
             ->setRequester($requester)
             ->setSupplier($supplier ?? null);
 

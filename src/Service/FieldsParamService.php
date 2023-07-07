@@ -38,7 +38,10 @@ class FieldsParamService
         });
     }
 
-    public function checkForErrors(EntityManagerInterface $entityManager, InputBag $inputBag, String $entityCode, Bool $isCreation):InputBag {
+    public function checkForErrors(EntityManagerInterface $entityManager,
+                                   InputBag               $inputBag,
+                                   string                 $entityCode,
+                                   bool                   $isCreation): InputBag {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
 
@@ -52,6 +55,8 @@ class FieldsParamService
                 } else {
                     if ($params[$requiredAction] && !$inputBag->has($fieldName)) {
                         throw new FormException("Une erreur est presente dans le formulaire");
+                    } elseif (!$inputBag->has($fieldName)) {
+                        $inputBag->set($fieldName, null);
                     }
                 }
             });

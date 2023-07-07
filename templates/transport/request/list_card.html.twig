@@ -60,7 +60,7 @@
                         {% if request is instanceof('App\\Entity\\Transport\\TransportDeliveryRequest') %}
                             <span class="transport-category">
                                 <span class="wii-icon wii-icon-cart-delivery wii-icon-25px-primary mr-2"></span>
-                                Livraison
+                                {{ trans('Demande', 'Livraison', 'Livraison', false) }}
                             </span>
                         {% endif %}
 
@@ -177,8 +177,8 @@
                     {% if order and order.isRejected %}
                         <img src="{{ asset('svg/rejected-delivery.svg') }}"
                              class="transport-status-icon"
-                             alt="Livraison rejetée"
-                             title="Livraison rejetée"/>
+                             alt="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"
+                             title="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"/>
                     {% elseif order and order.hasRejectedPacks %}
                         <img src="{{ asset('svg/rejected-pack.svg') }}"
                              class="transport-status-icon"

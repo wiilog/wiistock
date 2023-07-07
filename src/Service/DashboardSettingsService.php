@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
@@ -51,7 +52,7 @@ class DashboardSettingsService {
     public DateService $dateService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public DemandeCollecteService $demandeCollecteService;
@@ -403,9 +404,10 @@ class DashboardSettingsService {
                 }
             }
             if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
+                $typeRepository = $entityManager->getRepository(Type::class);
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, 50, $config["entityTypes"] ?? []))
                         ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
                             return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
                         })
@@ -1105,8 +1107,6 @@ class DashboardSettingsService {
                 'delay' => $meter ? $meter->getDelay() : '-',
                 'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
-
-
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {

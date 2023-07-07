@@ -5,7 +5,7 @@
     {{ encore_entry_link_tags('pack-common') }}
 {% endblock %}
 
-{% block title %}Ordre | Livraison | Détails{% endblock %}
+{% block title %}Ordre | {{ trans('Ordre', 'Livraison', 'Livraison', false) }} | Détails{% endblock %}
 {% block titleLink path('livraison_index') %}
 
 {% block page_content %}
@@ -29,7 +29,8 @@
                     <div class="content">
                         <div class="col-12 logistic-units-container my-3 wii-multiple-loading"
                              data-loader-color="primary"
-                             data-loader-size="normal">
+                             data-loader-size="normal"
+                             data-initial-visible="{{ initialVisibleColumns }}">
                         </div>
                     </div>
                 </div>

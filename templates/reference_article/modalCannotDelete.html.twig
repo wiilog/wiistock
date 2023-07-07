@@ -6,7 +6,7 @@
             } %}
 
             <div class="modal-body">
-                Cet article est lié à une collecte, une livraison, une réception ou un article fournisseur.<br>
+                Cet article est lié à une collecte, une {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}, une réception ou un article fournisseur.<br>
                 Vous ne pouvez donc pas le supprimer.
             </div>
             {% include 'utils/modal/footer.html.twig' with {

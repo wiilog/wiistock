@@ -81,7 +81,7 @@ class InventoryService {
             $mvt
                 ->setUser($user)
                 ->setDate(new DateTime('now'))
-                ->setComment(StringHelper::cleanedComment($comment))
+                ->setComment($comment)
                 ->setQuantity(abs($diff));
 
             $emplacement = $refOrArt->getEmplacement();
@@ -107,7 +107,7 @@ class InventoryService {
                         ->setEmplacementFrom($emplacement)
                         ->setEmplacementTo($emplacement)
                         ->setDate(new DateTime('now'))
-                        ->setComment(StringHelper::cleanedComment($comment))
+                        ->setComment($comment)
                         ->setType(MouvementStock::TYPE_SORTIE)
                         ->setQuantity(abs($diff));
 
@@ -204,6 +204,7 @@ class InventoryService {
 
         $rfidTags = Stream::from($rfidTags)
             ->filter(fn(string $tag) => str_starts_with($tag, $tagRFIDPrefix))
+            ->unique()
             ->toArray();
 
         $locations = $locationRepository->findByMissionAndZone([$zone], $mission);
@@ -241,7 +242,8 @@ class InventoryService {
             $reference = $referenceArticle?->getReference();
 
             $scannedArticles = $scannedArticlesByStorageRule[$storageRuleId] ?? [];
-            $articleCounter = count($scannedArticles);
+
+            $articleCounter = count($scannedArticles); // available and unavailable article counter
             $numScannedObjects += $articleCounter;
 
             $key = "location" . $locationId;

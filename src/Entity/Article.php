@@ -123,6 +123,7 @@ class Article implements PairedEntity {
     private Collection $disputes;
 
     #[ORM\OneToOne(mappedBy: 'article', targetEntity: Pack::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Pack $trackingPack = null;
 
     #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'articles')]
@@ -146,7 +147,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    #[ORM\ManyToOne(targetEntity: Pack::class, cascade: ['persist'], inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -217,11 +218,11 @@ class Article implements PairedEntity {
     }
 
     public function getCommentaire(): ?string {
-        return $this->commentaire;
+        return strip_tags($this->commentaire);
     }
 
     public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+        $this->commentaire = strip_tags($commentaire);  //strip_tags: supprimer les balises HTML en BDD
 
         return $this;
     }
@@ -586,6 +587,7 @@ class Article implements PairedEntity {
             ? $this->trackingPack->getTrackingMovements()
             : new ArrayCollection();
     }
+
 
     /**
      * @return int|null

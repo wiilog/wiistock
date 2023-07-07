@@ -2,7 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Repository\MouvementStockRepository;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
@@ -49,13 +51,21 @@ class MouvementStock {
     #[ORM\JoinColumn(name: 'livraison_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private $livraisonOrder;
 
+    #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'stockMovements')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Demande $deliveryRequest = null;
+
     #[ORM\ManyToOne(targetEntity: OrdreCollecte::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'collecte_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private $collecteOrder;
 
-    #[ORM\ManyToOne(targetEntity: 'App\Entity\PreparationOrder\Preparation', inversedBy: 'mouvements')]
+    #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'preparation_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private $preparationOrder;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'stockMovements')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?ShippingRequest $shippingRequest = null;
 
     #[ORM\ManyToOne(targetEntity: Import::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'import_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
@@ -155,6 +165,16 @@ class MouvementStock {
         return $this;
     }
 
+    public function getDeliveryRequest(): ?Demande {
+        return $this->deliveryRequest;
+    }
+
+    public function setDeliveryRequest(?Demande $deliveryRequest): self {
+        $this->deliveryRequest = $deliveryRequest;
+
+        return $this;
+    }
+
     public function getCollecteOrder(): ?OrdreCollecte {
         return $this->collecteOrder;
     }
@@ -230,6 +250,15 @@ class MouvementStock {
 
     public function setTransferOrder(?TransferOrder $transferOrder): self {
         $this->transferOrder = $transferOrder;
+
+        return $this;
+    }
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
 
         return $this;
     }

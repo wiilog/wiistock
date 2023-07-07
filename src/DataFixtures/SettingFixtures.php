@@ -23,6 +23,8 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         Setting::DEFAULT_DELIVERY_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE,
         Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE,
+        Setting::DEFAULT_DISPATCH_RECAP_TEMPLATE,
+        Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE,
     ];
 
     public function load(ObjectManager $manager) {
@@ -57,6 +59,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
             ],
             Setting::MANAGE_PREPARATIONS_WITH_PLANNING => [
+                'default' => false,
+            ],
+            Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY => [
                 'default' => false,
             ],
             Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST => [
@@ -200,10 +205,14 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [
                 'default' => Setting::DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE
             ],
+            Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE => [
+                'default' => Setting::DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE
+            ],
             Setting::CUSTOM_DELIVERY_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_RECAP_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE => [],
             Setting::CUSTOM_DISPATCH_WAYBILL_TEMPLATE_WITH_RUPTURE => [],
+            Setting::CUSTOM_DELIVERY_SLIP_TEMPLATE => [],
             Setting::DEFAULT_LOCATION_RECEPTION => [],
             Setting::DEFAULT_LOCATION_REFERENCE => [],
             Setting::DEFAULT_LOCATION_LIVRAISON => [
@@ -314,6 +323,24 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::RFID_PREFIX => [],
             Setting::RFID_KPI_MIN => [],
             Setting::RFID_KPI_MAX => [],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL => [
+                'default' => null,
+            ],
+            Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM => [
+                'default' => null,
+            ],
+            Setting::RECEIVER_EQUALS_REQUESTER => [
+                'default' => false,
+            ],
+            Setting::ALLOWED_DROP_ON_FREE_LOCATION => [
+                'default' => false,
+            ],
+            Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE => [
+                'default' => false,
+            ],
+            Setting::DELIVERY_REQUEST_ADD_UL => [
+                'default' => false,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();

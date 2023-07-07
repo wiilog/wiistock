@@ -10,7 +10,7 @@ use App\Repository\DeliveryRequest\DeliveryRequestArticleLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeliveryRequestArticleLineRepository::class)]
-class DeliveryRequestArticleLine {
+class DeliveryRequestArticleLine extends DeliveryRequestLine {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -130,8 +130,8 @@ class DeliveryRequestArticleLine {
             ->setQuantityToPick($this->getQuantityToPick())
             ->setTargetLocationPicking($this->getTargetLocationPicking())
             ->setArticle($this->getArticle())
-            ->setPack($this->getPack());
+            ->setPack($this->getPack())
+            ->setDeliveryRequestArticleLine($this);
         return $preparationLine;
     }
-
 }

@@ -32,6 +32,7 @@ const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const PAGE_TRUCK_ARRIVAL = 'truckArrival';
+const PAGE_SHIPPING = 'shipping_request';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -1229,7 +1230,7 @@ function onTypeChange($select) {
 
         if ($modal.attr('id') === 'modalNewHandling') {
             $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
-                const $select2 = $('.modal-body select[name=receivers]');
+                const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {
                     let option = new Option(value, key, true, true);
@@ -1256,4 +1257,75 @@ function registerEasterEgg() {
     $modalEasterEgg.on('hidden.bs.modal', () => {
         count = 0;
     })
+}
+
+
+function loadAndDisplayLabels($select, name) {
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $codeSelect = $form.find(`[name=${name}]`);
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, code} = selected;
+            const [codeSelectSelected] = $codeSelect.select2('data');
+            const selectCodeFournisseur = () => {
+                let option = new Option(code, id, true, true);
+                $codeSelect.append(option).trigger('change');
+            }
+            if (codeSelectSelected) {
+                const {id: codeSelectId} = codeSelectSelected;
+                if (id !== codeSelectId) {
+                    selectCodeFournisseur();
+                }
+            }
+            else {
+                selectCodeFournisseur();
+            }
+        }
+        else {
+            $codeSelect.val(null).trigger('change');
+        }
+    }
+}
+
+function loadAndDisplayInfos($select, name) {
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $nomSelect = $form.find(`[name=${name}]`);
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, text} = selected;
+            const [nomSelectSelected] = $nomSelect.select2('data');
+            const selectNomFournisseur = () => {
+                let option = new Option(text, id, true, true);
+                $nomSelect.append(option).trigger('change');
+            }
+            if (nomSelectSelected) {
+                const {id: nomSelectId} = nomSelectSelected;
+                if (id !== nomSelectId) {
+                    selectNomFournisseur();
+                }
+            }
+            else {
+                selectNomFournisseur();
+            }
+        }
+    }
+    else {
+        $nomSelect.val(null).trigger('change');
+    }
+    let $modal = $select.closest('.modal');
+
+    $select.parent()
+        .siblings('.newContent')
+        .removeClass('d-none')
+        .addClass('d-block');
+
+    $modal.find('span[role="textbox"]').each(function () {
+        $(this).parent().css('border-color', '');
+    });
+}
+
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
 }

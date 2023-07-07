@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Modifier un projet"
+                title: "Modifier un " ~ (trans('Référentiel', 'Projet', "Projet", false) | lower)
             } %}
 
             <div class="modal-body modal-input"></div>

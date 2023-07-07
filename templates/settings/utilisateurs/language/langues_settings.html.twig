@@ -5,9 +5,14 @@
                 {% if categorieData.menus|length >1 %}
                 <div class="header d-flex p-0 flex-wrap">
                     {% for menu, menuData in menus %}
-                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }}"
+                        {% set isDL = constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] is defined
+                            and menu in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_MENU')[categorie] %}
+                        {% set onChangeCall = isDL
+                            ? "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'), {'hideClass': 'menu-translation', 'hiddenElement': $('.language-choice-menu')})"
+                            : "onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))" %}
+                        <div class="p-3 mx-4 wii-field-text menu pointer {{ loop.first ? 'selected' }} {{ isDL ? "menu-translation" }}"
                              data-menu="{{ menu }}"
-                             onclick="onSettingsItemSelected($(this), $('.menu'), $('.menu-content'))">
+                             onclick="{{ onChangeCall }}">
                             {{ menu }}
                         </div>
                     {% endfor %}
@@ -17,27 +22,29 @@
             {% set menus =  [] %}
         {% endif %}
         {% if categorie not in constant('App\\Entity\\TranslationCategory::NONE_MULTILINGUE_CATEGORY') %}
-            <div class="d-flex justify-content-between p-3">
-                <div class="d-flex ">
-                    <span class="p-1 d-flex align-items-center language-button">
-                        <img src="{{ defaultLanguage.flag }}" class="flag" alt="">
-                        <span class="mr-1">{{  defaultLanguage.label }}</span>
-                    </span>
-                    <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
-                    <span class=" p-1 d-flex align-items-center language-button">
-                        <img src="{{ language.flag }}" class="flag custom-flag-preview" alt="">
-                        <span class="language-to mr-1">{{  language.label }}</span>
-                    </span>
+            <div class="language-choice-menu">
+                <div class="d-flex justify-content-between p-3">
+                    <div class="d-flex ">
+                        <span class="p-1 d-flex align-items-center language-button">
+                            <img src="{{ defaultLanguage.flag }}" class="flag" alt="">
+                            <span class="mr-1">{{  defaultLanguage.label }}</span>
+                        </span>
+                        <img src="{{ asset('svg/lang-arrow.svg') }}" width="20px">
+                        <span class=" p-1 d-flex align-items-center language-button">
+                            <img src="{{ language.flag }}" class="flag custom-flag-preview" alt="">
+                            <span class="language-to mr-1">{{  language.label }}</span>
+                        </span>
+                    </div>
+                    {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
+                        <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
+                    {% endif %}
                 </div>
-                {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') %}
-                    <button class="btn btn-outline-primary" name="deleteLanguage">Suprimer la langue</button>
+                {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') or language.slug == constant('App\\Entity\\Language::NEW_SLUG')%}
+                    <div class="wii-small-text mb-3 mx-4">
+                        Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
+                    </div>
                 {% endif %}
             </div>
-            {% if language.slug not in constant('App\\Entity\\Language::NOT_DELETABLE_LANGUAGES') or language.slug == constant('App\\Entity\\Language::NEW_SLUG')%}
-                <div class="wii-small-text mb-3 mx-4">
-                    Les libellés non traduits apparaîtront dans la langue par défaut que vous avez choisi
-                </div>
-            {% endif %}
         {% endif %}
         {% if categorieData.translations is not empty %}
             <div class="p-3">

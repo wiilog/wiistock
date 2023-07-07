@@ -23,7 +23,6 @@ use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

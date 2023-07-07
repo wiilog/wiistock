@@ -26,11 +26,13 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
+use App\Service\MouvementStockService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\PreparationsManagerService;
 use App\Service\RefArticleDataService;
 use App\Service\TagTemplateService;
+use App\Service\TranslationService;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -83,6 +85,7 @@ class PreparationController extends AbstractController
         $livraison = $livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
+
         $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
 
         $entityManager->flush();
@@ -248,9 +251,10 @@ class PreparationController extends AbstractController
      * @Route("/voir/{id}", name="preparation_show", options={"expose"=true}, methods="GET|POST")
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_PREPA})
      */
-    public function show(Preparation            $preparation,
-                         TagTemplateService $tagTemplateService,
-                         EntityManagerInterface $entityManager): Response
+    public function show(Preparation                $preparation,
+                         TagTemplateService         $tagTemplateService,
+                         EntityManagerInterface     $entityManager,
+                         TranslationService         $translation): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation();
         $sensorWrappers = Stream::from($sensorWrappers)
@@ -292,11 +296,11 @@ class PreparationController extends AbstractController
             'headerConfig' => [
                 ['label' => 'Numéro', 'value' => $preparation->getNumero()],
                 ['label' => 'Statut', 'value' => ucfirst($status)],
-                ['label' => 'Point de livraison', 'value' => $destination ? $destination->getLabel() : ''],
+                ['label' => 'Point de ' . mb_strtolower($translation->translate("Ordre", "Livraison", "Livraison", false)), 'value' => $destination ? $destination->getLabel() : ''],
                 ['label' => 'Opérateur', 'value' => $operator ? $operator->getUsername() : ''],
                 ['label' => 'Demandeur', 'value' => $this->formatService->deliveryRequester($demande)],
                 ...($demande->getExpectedAt() ? [['label' => 'Date attendue', 'value' => $this->formatService->date($demande->getExpectedAt())]] : []),
-                ...($demande->getProject() ? [['label' => 'Projet', 'value' => $demande->getProject()->getCode() ]] : []),
+                ...($demande->getProject() ? [['label' => $translation->translate('Référentiel', 'Projet', 'Projet', false), 'value' => $demande->getProject()->getCode() ]] : []),
                 ...($preparation->getExpectedAt() ? [['label' => 'Date de préparation', 'value' => $this->formatService->date($preparation->getExpectedAt())]] : []),
                 [
                     'label' => 'Commentaire',
@@ -317,10 +321,11 @@ class PreparationController extends AbstractController
     public function delete(Preparation                $preparation,
                            EntityManagerInterface     $entityManager,
                            PreparationsManagerService $preparationsManagerService,
+                           MouvementStockService      $mouvementStockService,
                            RefArticleDataService      $refArticleDataService): Response
     {
 
-        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager);
+        $refToUpdate = $preparationsManagerService->managePreRemovePreparation($preparation, $entityManager, $mouvementStockService);
         $entityManager->flush();
 
         $entityManager->remove($preparation);
@@ -879,15 +884,17 @@ class PreparationController extends AbstractController
 
     #[Route('/lancement-preparations/check-preparation-stock', name: 'planning_preparation_launch_check_stock', options: ['expose' => true], methods: 'POST')]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_PREPA_PLANNING], mode: HasPermission::IN_JSON)]
-    public function checkStock(Request                $request,
-                               EntityManagerInterface $manager,
-                               MailerService          $mailerService,
-                               RefArticleDataService  $refArticleDataService,
-                               NotificationService    $notificationService): JsonResponse {
+    public function checkStock(Request                  $request,
+                               EntityManagerInterface   $manager,
+                               MailerService            $mailerService,
+                               RefArticleDataService    $refArticleDataService,
+                               NotificationService      $notificationService,
+                               TranslationService       $translation): JsonResponse {
         $data = json_decode($request->getContent());
 
         $preparationRepository = $manager->getRepository(Preparation::class);
         $statutRepository = $manager->getRepository(Statut::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
         $launchPreparation = $request->query->get('launchPreparations');
 
@@ -932,8 +939,6 @@ class PreparationController extends AbstractController
         }
 
         if (empty($quantityErrorPreparationId) && $launchPreparation === "1") {
-
-
             foreach ($preparationsToLaunch as $preparation) {
                 $preparation->setStatut($toTreatStatut);
                 $demande = $preparation->getDemande();
@@ -941,21 +946,31 @@ class PreparationController extends AbstractController
                 if ($demande->getType()->isNotificationsEnabled()) {
                     $notificationService->toTreat($preparation);
                 }
-                if ($demande->getType()->getSendMail()) {
+
+                if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                    $to = [];
+                    if ($demande->getType()->getSendMailRequester()) {
+                        $to[] = $demande->getUtilisateur();
+                    }
+                    if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                        $to[] = $demande->getReceiver();
+                    }
+
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
                         'FOLLOW GT // Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
-                            'title' => 'Votre demande de livraison ' . $demande->getNumero() . ' de type '
+                            'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '
                                 . $demande->getType()->getLabel()
                                 . ' a bien été validée le '
                                 . $nowDate->format('d/m/Y \à H:i')
                                 . '.',
                         ]),
-                        $demande->getUtilisateur()
+                        $to
                     );
                 }
+
                 foreach ($refLines as $refLine) {
                     $referenceArticle = $refLine->getReference();
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {

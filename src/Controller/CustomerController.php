@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Customer;
+use App\Entity\Import;
 use App\Entity\Menu;
 use App\Service\CSVExportService;
 use DateTime;
@@ -34,12 +35,12 @@ class CustomerController extends AbstractController
     {
         $customerRepository = $entityManager->getRepository(Customer::class);
         $customers = $customerRepository->findAllSorted();
-
         $rows = [];
         foreach ($customers as $customer) {
             $rows[] = [
                 'customer' => $customer->getName() ?? null,
                 'address' => $customer->getAddress() ?? null,
+                'recipient' => $customer->getRecipient() ?? null,
                 'phoneNumber' => $customer->getPhoneNumber() ?? null,
                 'email' => $customer->getEmail() ?? null,
                 'fax' => $customer->getFax() ?? null,
@@ -69,6 +70,7 @@ class CustomerController extends AbstractController
             $customer = (new Customer())
                 ->setName($data['name'])
                 ->setAddress($data['address'] ?? null)
+                ->setRecipient($data['recipient'] ?? null)
                 ->setPhoneNumber($data['phone-number'] ?? null)
                 ->setEmail($data['email'] ?? null)
                 ->setFax($data['fax'] ?? null);
@@ -90,7 +92,6 @@ class CustomerController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $customer = $manager->find(Customer::class, $data['id']);
-
         $content = $this->renderView('customer/modal/form.html.twig', [
             'customer' => $customer,
         ]);
@@ -119,6 +120,12 @@ class CustomerController extends AbstractController
                 $customer->setAddress($data['address']);
             } elseif ($customer->getAddress() !== null) {
                 $customer->setAddress(null);
+            }
+
+            if (array_key_exists('recipient', $data)) {
+                $customer->setRecipient($data['recipient']);
+            } elseif ($customer->getRecipient() !== null) {
+                $customer->setRecipient(null);
             }
 
             if (array_key_exists('phone-number', $data)) {
@@ -169,6 +176,7 @@ class CustomerController extends AbstractController
         $csvHeader = [
             "Client",
             "Adresse",
+            "Destinataire",
             "Téléphone",
             "Email",
             "Fax",

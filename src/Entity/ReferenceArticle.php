@@ -41,6 +41,7 @@ class ReferenceArticle
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
+    const MAX_NOMADE_SYNC = 4000;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -170,7 +171,7 @@ class ReferenceArticle
     #[ORM\ManyToOne(targetEntity: VisibilityGroup::class, inversedBy: 'articleReferences')]
     private ?VisibilityGroup $visibilityGroup = null;
 
-    #[ORM\OneToOne(inversedBy: 'referenceArticle', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'referenceArticleImage', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
     private ?Attachment $image = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -200,6 +201,21 @@ class ReferenceArticle
     #[ORM\OneToMany(mappedBy: 'referenceArticle', targetEntity: StorageRule::class, orphanRemoval: true)]
     private Collection $storageRules;
 
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $ndpCode = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $onuCode = null;
+
+    #[ORM\Column(type: 'string',length: 255, nullable: true)]
+    private ?string $productClass = null;
+
+    #[ORM\Column(type:'boolean')]
+    private ?bool $dangerousGoods;
+
+    #[ORM\OneToOne(inversedBy: 'referenceArticleSheet', targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
+    private ?Attachment $sheet = null;
+
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -224,6 +240,7 @@ class ReferenceArticle
         $this->quantiteReservee = 0;
         $this->quantiteDisponible = 0;
         $this->upToDateInventory = false;
+        $this->dangerousGoods = false;
     }
 
     public function getId(): ?int {
@@ -1002,14 +1019,14 @@ class ReferenceArticle
     }
 
     public function setImage(?Attachment $image): self {
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
             $oldImage = $this->image;
             $this->image = null;
-            $oldImage->setReferenceArticle(null);
+            $oldImage->setReferenceArticleImage(null);
         }
         $this->image = $image;
-        if($this->image && $this->image->getReferenceArticle() !== $this) {
-            $this->image->setReferenceArticle($this);
+        if($this->image && $this->image->getReferenceArticleImage() !== $this) {
+            $this->image->setReferenceArticleImage($this);
         }
 
         return $this;
@@ -1130,6 +1147,71 @@ class ReferenceArticle
         $this->storageRules = new ArrayCollection();
         foreach($storageRules ?? [] as $storageRule) {
             $this->addStorageRule($storageRule);
+        }
+
+        return $this;
+    }
+
+    public function getNdpCode(): ?string
+    {
+        return $this->ndpCode;
+    }
+
+    public function setNdpCode(?string $ndpCode): self
+    {
+        $this->ndpCode = $ndpCode;
+
+        return $this;
+    }
+
+    public function getOnuCode(): ?string
+    {
+        return $this->onuCode;
+    }
+
+    public function setOnuCode(?string $onuCode): self
+    {
+        $this->onuCode = $onuCode;
+
+        return $this;
+    }
+
+    public function getProductClass(): ?string
+    {
+        return $this->productClass;
+    }
+
+    public function setProductClass(?string $productClass): self
+    {
+        $this->productClass = $productClass;
+
+        return $this;
+    }
+
+    public function isDangerousGoods(): ?bool
+    {
+        return $this->dangerousGoods;
+    }
+
+    public function setDangerousGoods(bool $dangerousGoods): self
+    {
+        $this->dangerousGoods = $dangerousGoods;
+
+        return $this;
+    }
+
+    public function getSheet(): ?Attachment {
+        return $this->sheet;
+    }
+    public function setSheet(?Attachment $image): self {
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $oldImage = $this->sheet;
+            $this->sheet = null;
+            $oldImage->setReferenceArticleSheet(null);
+        }
+        $this->sheet = $image;
+        if($this->sheet && $this->sheet->getReferenceArticleSheet() !== $this) {
+            $this->sheet->setReferenceArticleSheet($this);
         }
 
         return $this;

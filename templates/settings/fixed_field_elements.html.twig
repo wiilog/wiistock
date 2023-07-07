@@ -10,10 +10,10 @@
             {% include 'utils/modal/header.html.twig' with {
                 title: "Modifier le paramétrage d'un champ fixe"
             } %}
+            <input type="hidden" name="field" value="{{ field }}"/>
 
             {% if modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_FREE') %}
                 <div class="modal-body">
-                    <input type="hidden" name="field" value="{{ field }}"/>
                     {{ form.select('elements', 'Valeurs possibles', false, {
                         type: null,
                         editable: true,
@@ -24,7 +24,6 @@
                 </div>
             {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE_USER') %}
                 <div class="modal-body pt-0">
-                    <input type="hidden" name="field" value="{{ field }}"/>
                     <span class="wii-section-title">Destinataire par défaut par type</span>
                     <div class="zone-type">
                         <input type="hidden" name="types" value="{{ types|json_encode() }}"/>
@@ -49,6 +48,95 @@
                         {% include 'settings/fixed_field_elements_row.html.twig' %}
                     </template>
                 </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_RECEIVER') %}
+                <div class="modal-body pt-0">
+                    <div class="wii-section-title">Destinataire par défaut</div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.select('defaultReceiver', 'Utilisateur', false, {
+                                type: 'user',
+                                multiple: false,
+                                value: elements ? elements[0] : null,
+                                items: elements ? elements : null,
+                                disabled: setting_value('RECEIVER_EQUALS_REQUESTER'),
+                            }) }}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.checkbox(setting('RECEIVER_EQUALS_REQUESTER'), 'Le destinataire est égal au demandeur', false, setting_value('RECEIVER_EQUALS_REQUESTER'), {
+                                onChange: 'changeReceiverInput($(this))',
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_TYPE') %}
+                <div class="modal-body pt-0">
+                    <div class="wii-section-title">Type par défaut</div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            {{ form.select('demandeType', 'Type', false, {
+                                multiple: false,
+                                emptyOption: {label: '', value: ''},
+                                value: elements ? elements : null,
+                                items: elements ? elements : null,
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+            {% elseif modalType == constant('App\\Entity\\FieldsParam::MODAL_LOCATION_BY_TYPE') %}
+                <div class="wii-section mt-2">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row setting-type-association">
+                                <input type="hidden" value="{{ elements }}" name="deliveryTypeSettings">
+                                <input type="hidden" value="" name="alreadyDefinedTypes">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="row justify-content-end">
+                                <div class="col-auto">
+                                    <button class="btn btn-sm btn-primary new-type-association-button d-flex align-items-center" {{ not (deliveryTypesCount - elements | json_decode | length) ? 'data-keep-disabled' }} disabled>
+                                        <span class="wii-icon wii-icon-plus mr-1"></span>
+                                        Ajouter un emplacement
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <template id="type-template">
+                    <div class="d-flex col-12 mb-3 type-association-container">
+                        <div class="d-flex align-items-center w-100 delivery-type-container">
+                            {{ form.select('deliveryType', 'Type', true, {
+                                type: 'deliveryType',
+                                inputClass: 'form-control data-array',
+                                includeParams: '[name=alreadyDefinedTypes]',
+                                includeParamsParent: '.setting-type-association',
+                                additionalAttributes :[{
+                                    name: 'data-other-params-all-types-option',
+                                    value: 1
+                                }]
+                            }) }}
+                        </div>
+                        <div class="d-flex align-items-center w-100">
+                            {{ form.select('deliveryRequestLocation', 'Emplacement', true, {
+                                type: 'location',
+                                inputClass: 'form-control data-array',
+                                labelClass: 'w-100 ml-2',
+                                includeParams: 'select[name=deliveryType]',
+                                includeParamsParent: '.type-association-container',
+                            }) }}
+                        </div>
+                        <div class="d-flex align-items-end">
+                            <div class="btn btn-outline-primary delete-association-line d-flex align-items-center ml-2"
+                                 title="Supprimer la ligne" style="max-height: 40px; padding-top: 9px; padding-bottom: 9px;">
+                                <i class="wii-icon wii-icon-trash"></i>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
             {% endif %}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

@@ -26,16 +26,12 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
 use App\Exceptions\FormException;
-use App\Service\ArrivageService;
-use App\Helper\FormatHelper;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -70,7 +66,6 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use WiiCommon\Helper\StringHelper;
-use function PHPUnit\Framework\throwException;
 
 /**
  * @Route("/acheminements")
@@ -296,7 +291,8 @@ class DispatchController extends AbstractController {
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
-        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $currentUser = $this->getUser();
+        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)
@@ -305,12 +301,13 @@ class DispatchController extends AbstractController {
             ->setLocationTo($locationDrop)
             ->setBusinessUnit($businessUnit)
             ->setNumber($dispatchNumber)
-            ->setDestination($destination);
+            ->setDestination($destination)
+            ->setCreatedBy($currentUser);
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
-            $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
+            $dispatch->setCommentaire($comment);
         }
 
         if(!empty($startDate)) {
@@ -398,7 +395,7 @@ class DispatchController extends AbstractController {
         }
 
         if(!empty($receiver)) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, false);
         }
 
         return new JsonResponse([
@@ -484,7 +481,7 @@ class DispatchController extends AbstractController {
         $dispatchNoteAttachment = new Attachment();
         $dispatchNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($dispatchNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($dispatchNoteData['name'] . '.pdf');
 
         $entityManager->persist($dispatchNoteAttachment);
@@ -540,6 +537,8 @@ class DispatchController extends AbstractController {
 
         $post = $request->request;
         $dispatch = $dispatchRepository->find($post->get('id'));
+
+
 
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
             $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
@@ -609,19 +608,21 @@ class DispatchController extends AbstractController {
                 }
             }
         }
+        $emergency = $post->get('emergency');
         $dispatch
             ->setStartDate($startDate)
             ->setEndDate($endDate)
+            ->setUpdatedAt(new DateTime())
             ->setBusinessUnit($businessUnit)
             ->setCarrier($carrier)
             ->setCarrierTrackingNumber($transporterTrackingNumber)
             ->setCommandNumber($commandNumber)
             ->setRequester($requester)
-            ->setEmergency($post->get('emergency') ?? null)
+            ->setEmergency(!empty($emergency) ? $emergency : null)
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
+            ->setCommentaire($post->get('commentaire'))
             ->setDestination($destination)
             ->setEmails($emails);
 
@@ -757,12 +758,12 @@ class DispatchController extends AbstractController {
         $entityManager->flush();
     }
 
-    /**
-     * @Route("/packs/api/{dispatch}", name="dispatch_pack_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
-    public function apiPack(UserService $userService,
-                            DispatchService $service,
-                            Dispatch $dispatch): Response {
+
+    #[Route("/{dispatch}/editable-logistic-units-api", name: "dispatch_editable_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
+    public function apiEditableLogisticUnits(UserService     $userService,
+                                             DispatchService $service,
+                                             Dispatch        $dispatch): Response {
         $dispatchStatus = $dispatch->getStatut();
         $edit = (
             $dispatchStatus->isDraft()
@@ -870,11 +871,11 @@ class DispatchController extends AbstractController {
 
         $nature = $natureRepository->find($natureId);
         $pack->setNature($nature);
-        $pack->setComment(StringHelper::cleanedComment($comment));
+        $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);
-
+        $dispatch->setUpdatedAt(new DateTime());
         $success = true;
         $packCode = $pack->getCode();
         $toTranslate = 'Le colis {1} a bien été ' . ($dispatchPack->getId() ? "modifiée" : "ajoutée");
@@ -900,6 +901,7 @@ class DispatchController extends AbstractController {
 
             if($data['pack'] && $pack = $dispatchPackRepository->find($data['pack'])) {
                 $entityManager->remove($pack);
+                $pack->getDispatch()->setUpdatedAt(new DateTime());
                 $entityManager->flush();
             }
 
@@ -943,7 +945,7 @@ class DispatchController extends AbstractController {
 
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
                     $entityManager->flush();
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                    $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
@@ -1265,7 +1267,7 @@ class DispatchController extends AbstractController {
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($deliveryNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($deliveryNoteData['name'] . '.pdf');
 
         $entityManager->persist($deliveryNoteAttachment);
@@ -1442,7 +1444,7 @@ class DispatchController extends AbstractController {
                 }
 
                 $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
             }
         }
 
@@ -1630,10 +1632,11 @@ class DispatchController extends AbstractController {
         return $this->json($response);
     }
 
-    #[Route("/{dispatch}/dispatch-packs-api", name: "dispatch_packs_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    public function getDispatchPacksApi(EntityManagerInterface  $entityManager,
-                                         Dispatch               $dispatch,
-                                         Request                $request): JsonResponse {
+    #[Route("/{dispatch}/dispatch-reference-in-logistic-units-api", name: "dispatch_reference_in_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
+    public function apiReferenceInLogisticUnits(EntityManagerInterface $entityManager,
+                                                Dispatch               $dispatch,
+                                                Request                $request): JsonResponse {
 
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
 
@@ -1671,7 +1674,7 @@ class DispatchController extends AbstractController {
         $data = $request->request->all();
         $data['files'] = $request->files ?? [];
 
-        return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
+        return $dispatchService->updateDispatchReferenceArticle($entityManager, $data);
     }
 
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
@@ -1680,7 +1683,7 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $dispatchPack = $dispatchReferenceArticle->getDispatchPack();
-
+        $dispatchReferenceArticle->getDispatchPack()->getDispatch()->setUpdatedAt(new DateTime());
         $dispatchPack->removeDispatchReferenceArticles($dispatchReferenceArticle);
         $entityManager->remove($dispatchReferenceArticle);
         $entityManager->flush();
@@ -1698,19 +1701,35 @@ class DispatchController extends AbstractController {
                                     RefArticleDataService $refArticleDataService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
-        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $natureRepository = $entityManager->getRepository(Nature::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+
+        $refDispatchPack = $dispatchReferenceArticle->getDispatchPack();
+        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
-        $packs = [];
-        foreach ($dispatchPacks as $dispatchPack) {
-            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
-        }
+        $packs = Stream::from($dispatchPacks)
+            ->map(fn(DispatchPack $dispatchPack) => [
+                "label" => $dispatchPack->getPack()->getCode(),
+                "value" => $dispatchPack->getPack()->getId()
+            ])
+            ->toArray();
+
+        $natures = $natureRepository->findBy([], ['label' => 'ASC']);
+        $natureItems = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                "label" => $nature->getLabel(),
+                "value" => $nature->getId()
+            ])
+            ->toArray();
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'packs' => $packs,
+            'pack' => $refDispatchPack->getPack(),
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'natures' => $natureItems,
+            'packs' => $packs,
         ]);
 
         return new JsonResponse($html);
@@ -1750,7 +1769,7 @@ class DispatchController extends AbstractController {
                                     EntityManagerInterface $entityManager): JsonResponse
     {
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $defaultNature = $natureRepository->findOneBy(['defaultForDispatch' => true]);
+        $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
 
         $html = $this->renderView('dispatch/modalAddLogisticUnitContent.html.twig', [
             'dispatch' => $dispatch,

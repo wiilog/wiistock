@@ -98,6 +98,8 @@ class FiltreSup {
     const FIELD_DROP_LOCATION = 'dropLocation';
     const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
     const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
+    const PAGE_SHIPPING = 'shipping_request';
+    const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

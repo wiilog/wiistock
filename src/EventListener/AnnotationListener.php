@@ -16,12 +16,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
@@ -55,7 +55,17 @@ class AnnotationListener {
         }
 
         $reader = new AnnotationReader();
+        /** @var AbstractController $controller */
         [$controller, $method] = $event->getController();
+
+        if ($controller instanceof AbstractController) {
+            /** @var Utilisateur $user */
+            $user = $controller->getUser();
+
+            if ($user && !$user->getStatus()) {
+                $event->setController(fn() => new RedirectResponse($this->router->generate("logout")));
+            }
+        }
 
         try {
             $class = new ReflectionClass($controller);

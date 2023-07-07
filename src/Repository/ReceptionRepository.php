@@ -173,13 +173,16 @@ class ReceptionRepository extends EntityRepository
                         ->map(fn($v) => explode(':', $v)[0])
                         ->toArray();
 
-                    $ors = $qb->expr()->orX();
-                    foreach($value as $command) {
-                        $ors->add("(:number{$ors->count()}) IN reception.orderNumber");
-                        $qb->setParameter("number{$ors->count()}", $command);
-                    }
+                    if (!empty($value)) {
+                        $ors = $qb->expr()->orX();
+                        foreach ($value as $command) {
+                            $keyParameter = "search_command_{$ors->count()}";
+                            $ors->add("JSON_CONTAINS(reception.orderNumber, :$keyParameter, '$') = true");
+                            $qb->setParameter($keyParameter, "\"$command\"");
+                        }
 
-                    $qb->andWhere($ors);
+                        $qb->andWhere($ors);
+                    }
                     break;
                 case 'utilisateurs':
                     $values = array_map(function ($value) {
