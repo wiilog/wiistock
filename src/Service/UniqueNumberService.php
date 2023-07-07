@@ -17,6 +17,7 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_RECEPTION = 'ymdCCCC';
     const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
     const DATE_COUNTER_FORMAT_TRUCK_ARRIVAL = 'YmdHis_\{\0\}_CC';
+    const DATE_COUNTER_FORMAT_DISPATCH = 'YmdHis-CCCC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,
@@ -40,7 +41,8 @@ class UniqueNumberService
                            string                 $entity,
                            string                 $format,
                            ?DateTime              $numberDate = null,
-                           array $params = []): string {
+                           array                  $params = []): string
+    {
 
 
         $date = $numberDate ?? new DateTime('now');
@@ -62,9 +64,9 @@ class UniqueNumberService
         $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix);
         $counterLen = strlen($counterFormat);
         $lastCounter = (
-            (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
-                ? (int) substr($lastNumber, -$counterLen, $counterLen)
-                : 0
+        (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
+            ? (int)substr($lastNumber, -$counterLen, $counterLen)
+            : 0
         );
         $currentCounterStr = sprintf("%0{$counterLen}u", $lastCounter + 1);
         $dateStr = !empty($dateFormat) ? $date->format($dateFormat) : '';
@@ -82,8 +84,8 @@ class UniqueNumberService
                                     string                 $entity,
                                     string                 $format,
                                     callable               $flush,
-                                    int                    $maxNbRetry = self::MAX_RETRY): void {
-
+                                    int                    $maxNbRetry = self::MAX_RETRY): void
+    {
         $nbTry = 0;
         do {
             try {
@@ -95,8 +97,7 @@ class UniqueNumberService
             } catch (UniqueConstraintViolationException $e) {
                 $stopTrying = ($nbTry >= $maxNbRetry);
             }
-        }
-        while (!$stopTrying);
+        } while (!$stopTrying);
     }
 
 }

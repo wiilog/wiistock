@@ -19,7 +19,7 @@
         justify-content: center;
         align-items: center;
 
-        .card-title {
+        .card-title:not(.no-color) {
             color: $primary;
         }
     }

@@ -125,7 +125,7 @@ class TransportHistoryService {
             ->setDeliverer($params["deliverer"] ?? null)
             ->setReason($params["reason"] ?? null)
             ->setAttachments($params["attachments"] ?? [])
-            ->setComment(StringHelper::cleanedComment($params["comment"] ?? null))
+            ->setComment($params["comment"] ?? null)
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
 

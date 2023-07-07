@@ -302,7 +302,7 @@ class SubcontractController extends AbstractController
 
         $comment = $data->get('commentaire');
         if (strip_tags($comment)) {
-            $transportOrder->setComment(StringHelper::cleanedComment($comment));
+            $transportOrder->setComment($comment);
         }
 
         $addedAttachments = $attachmentService->manageAttachments($entityManager, $transportOrder, $request->files);

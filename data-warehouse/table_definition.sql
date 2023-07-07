@@ -183,7 +183,11 @@ CREATE TABLE dw_reference_article
     code_fabricant              varchar(255),
     volume                      varchar(255),
     poids                       varchar(255),
-    types_documents_associes    varchar(255)
+    types_documents_associes    varchar(255),
+    marchandise_dangeureuse     varchar(255),
+    code_onu                    varchar(255),
+    classe_produit              varchar(255),
+    code_ndp                    varchar(255)
 );
 
 CREATE TABLE dw_service
@@ -274,7 +278,8 @@ CREATE TABLE dw_arrivage
     utilisateur              varchar(255),
     numero_projet            varchar(255),
     business_unit            varchar(255),
-    reception_id             integer
+    reception_id             integer,
+    no_arrivage_camion       varchar(255)
 );
 
 CREATE TABLE dw_acheminement
@@ -516,6 +521,21 @@ CREATE TABLE dw_projet_article
 
 CREATE TABLE dw_arrivage_camion
 (
+    id                  integer,
+    no_arrivage_camion  varchar(255),
+    date_creation       timestamp(0),
+    transporteur        varchar(255),
+    chauffeur           varchar(255),
+    immatriculation     varchar(255),
+    emplacement         varchar(255),
+    operateur           varchar(255),
+    nb_tracking_total   integer,
+    reserve_general     varchar(255),
+    reserve_quantite    varchar(255)
+);
+
+CREATE TABLE dw_article
+(
     id                   		integer,
     reference 			 		varchar(255),
     libelle				 		varchar(255),
@@ -549,6 +569,52 @@ CREATE TABLE dw_unite_logistique
     arrivage_id             integer,
     nb_articles_contenus    integer,
     code_barre_article      varchar(255)
+);
+
+CREATE TABLE dw_demande_expedition
+(
+    id                                  integer,
+    numero                              varchar(255),
+    statut                              varchar(255),
+    date_creation                       timestamp(0),
+    date_validation                     timestamp(0),
+    date_planification                  timestamp(0),
+    date_enlevement_prevu               timestamp(0),
+    date_expedition                     timestamp(0),
+    date_prise_en_charge_souhaitee      timestamp(0),
+    demandeur                           varchar(255),
+    numero_commande_client               varchar(255),
+    livraison_titre_gracieux            varchar(255),
+    articles_conformes                  varchar(255),
+    client                              varchar(255),
+    destinataire_client                 varchar(255),
+    telephone_client                    varchar(255),
+    adresse_livraison                   varchar(255),
+    code_reference                      varchar(255),
+    quantite_reference                  integer,
+    code_UL                             varchar(255),
+    nature_UL                           varchar(255),
+    code_article                        varchar(255),
+    quantite_article                    varchar(255),
+    prix_unitaire_reference             integer,
+    poids_net_reference                 integer,
+    montant_total_reference             integer,
+    envoi                               varchar(255),
+    port                                varchar(255),
+    poids_net_transport                 integer,
+    dimension_colis                     varchar(255),
+    valeur_total_transport              integer,
+    nombre_colis                        integer,
+    poids_brut_transport                integer
+);
+
+CREATE TABLE dw_numero_tracking
+(
+    no_tracking varchar(255),
+    no_arrivage_camion varchar(255),
+    reserve_qualite varchar(255),
+    retard varchar(255),
+    no_arrivage_UL varchar(255)
 );
 
 CREATE TABLE dw_informations
