@@ -695,13 +695,10 @@ class SettingsService {
                 $suggestedDropLocations = null;
                 if (isset($data["suggestedDropLocations"])) {
                     $dropLocation = isset($data["dropLocation"])
-                        ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getLabel()
-                        : $type->getDropLocation()?->getLabel();
+                        ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
+                        : $type->getDropLocation()?->getId();
 
-                    $suggestedDropLocations = Stream::from(explode(',', $data["suggestedDropLocations"]))
-                            ->filterMap(fn(string $locationId) => $this->manager->find(Emplacement::class, $locationId))
-                            ->map(fn(Emplacement $location) => $location->getLabel())
-                            ->toArray();
+                    $suggestedDropLocations = explode(',', $data["suggestedDropLocations"]);
 
                     if ($dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
                         throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
@@ -711,13 +708,10 @@ class SettingsService {
                 $suggestedPickLocations = null;
                 if (isset($data["suggestedPickLocations"])) {
                     $pickLocation = isset($data["pickLocation"])
-                        ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getLabel()
-                        : $type->getPickLocation()?->getLabel();
+                        ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
+                        : $type->getPickLocation()?->getId();
 
-                    $suggestedPickLocations = Stream::from(explode(',', $data["suggestedPickLocations"]))
-                            ->filterMap(fn(string $locationId) => $this->manager->find(Emplacement::class, $locationId))
-                            ->map(fn(Emplacement $location) => $location->getLabel())
-                            ->toArray();
+                    $suggestedPickLocations = explode(',', $data["suggestedPickLocations"]);
 
                     if ($pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");

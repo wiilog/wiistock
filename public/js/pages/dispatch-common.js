@@ -20,6 +20,8 @@ function onDispatchTypeChange($select) {
     const $selectedOption = $select.find('option:selected');
     const $pickLocationSelect = $modal.find('select[name="prise"]');
     const $dropLocationSelect = $modal.find('select[name="depose"]');
+    const $typeDispatchPickLocation = $modal.find(`input[name=typeDispatchPickLocation]`);
+    const $typeDispatchDropLocation = $modal.find(`input[name=typeDispatchDropLocation]`);
     const dropLocationId = $selectedOption.data('drop-location-id');
     const dropLocationLabel = $selectedOption.data('drop-location-label');
     const pickLocationId = $selectedOption.data('pick-location-id');
@@ -40,4 +42,7 @@ function onDispatchTypeChange($select) {
     if(!$selectStatus.hasClass('d-none')) {
         $selectStatus.prop('disabled', true);
     }
+
+    $typeDispatchPickLocation.val($select.val());
+    $typeDispatchDropLocation.val($select.val());
 }

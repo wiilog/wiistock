@@ -45,9 +45,12 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_PICK') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <input type="hidden" name="typeDispatchPickLocation" value="{{ dispatch.type.id }}">
         <div class="form-group col-md-4 col-12">
             <label class="wii-field-name" for="prise">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise') }}{{ required ? '*' }}</label>
-            <select name="prise" class="form-control data d-block {{ required ? 'needed' }} location-prise" data-s2="location"
+            <select name="prise" class="form-control data d-block {{ required ? 'needed' }} location-prise"
+                    data-s2="location"
+                    data-include-params="input[name=typeDispatchPickLocation]"
                     id="prise">
                 {% if dispatch.locationFrom %}
                     <option value="{{ dispatch.locationFrom.id }}">{{ dispatch.locationFrom.label }}</option>
@@ -59,9 +62,12 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOCATION_DROP') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
+        <input type="hidden" name="typeDispatchDropLocation" value="{{ dispatch.type.id }}">
         <div class="form-group col-md-4 col-12">
             <label class="wii-field-name" for="depose">{{ trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose') }}{{ required ? '*' }}</label>
-            <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose" data-s2="location"
+            <select name="depose" class="form-control data {{ required ? 'needed' }} location-depose"
+                    data-s2="location"
+                    data-include-params="input[name=typeDispatchDropLocation]"
                     id="depose">
                 {% if dispatch.locationTo %}
                     <option value="{{ dispatch.locationTo.id }}">{{ dispatch.locationTo.label }}</option>
