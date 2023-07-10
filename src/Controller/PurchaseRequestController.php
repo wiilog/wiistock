@@ -500,7 +500,7 @@ class PurchaseRequestController extends AbstractController
         }
 
         $purchaseRequest
-            ->setComment(StringHelper::cleanedComment($comment))
+            ->setComment($comment)
             ->setRequester($requester)
             ->setSupplier($supplier ?? null);
 

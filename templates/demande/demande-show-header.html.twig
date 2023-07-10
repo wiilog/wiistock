@@ -4,6 +4,11 @@
 {% block showSubtitle ('n°' ~ demande.numero) %}
 
 {% block showActions %}
+
+    {% set receiver = demande.receiver ? demande.receiver.username %}
+    <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'))|replace({'@Destinataire': receiver}) }}">
+    <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'))|replace({'@Destinataire': receiver}) }}">
+
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [

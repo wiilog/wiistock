@@ -38,6 +38,7 @@ class EmplacementRepository extends EntityRepository
         $idPrefix = $options['idPrefix'] ?? '';
         $deliveryType = $options['deliveryType'] ?? '';
         $collectType = $options['collectType'] ?? '';
+        $restrictedLocations = $options['restrictedLocations'] ?? '';
 
         $query = $this->createQueryBuilder("location")
             ->groupBy('location');
@@ -55,6 +56,11 @@ class EmplacementRepository extends EntityRepository
                 ->setParameter("type", $collectType);
         }
 
+        if($restrictedLocations) {
+            $query->andWhere('location.id IN (:restrictedLocations)')
+                ->setParameter('restrictedLocations', $restrictedLocations);
+        }
+
         return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
             ->andWhere("location.isActive = true")
@@ -69,8 +75,10 @@ class EmplacementRepository extends EntityRepository
             ->select('location.id')
             ->addSelect('location.label')
             ->addSelect("GROUP_CONCAT(join_temperature_ranges.value SEPARATOR ';') AS temperature_ranges")
+            ->addSelect("GROUP_CONCAT(join_signatories.id SEPARATOR ';') AS signatories")
             ->where('location.isActive = true')
             ->leftJoin('location.temperatureRanges', 'join_temperature_ranges')
+            ->leftJoin('location.signatories', 'join_signatories')
             ->groupBy('location.id')
             ->addGroupBy('location.label')
             ->getQuery()

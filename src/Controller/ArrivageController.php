@@ -214,7 +214,7 @@ class ArrivageController extends AbstractController {
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+            ->setCommentaire($data['commentaire'] ?? null)
             ->setType($typeRepository->find($data['type']));
 
         $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
@@ -304,20 +304,6 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
-        if ($useTruckArrivals) {
-            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
-                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
-                    ? $line->getNumber()
-                    : null
-                )
-                ->join(',');
-            if ($linesNeedingConfirmation) {
-                $lastElement = array_pop($alertConfigs);
-                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
-                $alertConfigs[] = $lastElement;
-            }
-        }
-
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
         }
@@ -348,7 +334,22 @@ class ArrivageController extends AbstractController {
             $arrivalService->sendArrivalEmails($entityManager, $arrivage);
         }
 
+        if ($useTruckArrivals) {
+            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
+                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
+                    ? $line->getNumber()
+                    : null
+                )
+                ->join(',');
+            if ($linesNeedingConfirmation) {
+                $lastElement = array_pop($alertConfigs);
+                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $lastElement;
+            }
+        }
+
         $entityManager->flush();
+
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
         return new JsonResponse([
             'success' => true,
@@ -535,7 +536,7 @@ class ArrivageController extends AbstractController {
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
         $arrivage
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')))
+            ->setCommentaire($post->get('commentaire'))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
             ->setDropLocation($dropLocation)

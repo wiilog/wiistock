@@ -1,7 +1,9 @@
 {% import 'form.html.twig' as form %}
 
 <div class="form-group">
-    {{ form.input('name', 'Code Zone', true, zone.name) }}
+    {{ form.input('name', 'Code Zone', true, zone.name, {
+        disabled: zone.name is constant('App\\Entity\\Zone::ACTIVITY_STANDARD_ZONE_NAME'),
+    }) }}
 </div>
 
 <div class="form-group">

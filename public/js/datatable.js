@@ -316,8 +316,10 @@ function initDataTable($table, options) {
             column.name = column.data;
         }
 
-        if(column.required) {
-            column.title += '*';
+
+        const requiredMark = `<span class="required-mark">*</span>`;
+        if (column.required && column.title && !column.title.includes(requiredMark)) {
+            column.title += requiredMark;
         }
 
         if (config.order && Array.isArray(config.order)) {

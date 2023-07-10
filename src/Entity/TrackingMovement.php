@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -79,6 +80,9 @@ class TrackingMovement {
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'trackingMovements')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Demande $deliveryRequest;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'trackingMovements')]
+    private ?ShippingRequest $shippingRequest;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -507,6 +511,16 @@ class TrackingMovement {
     public function setMainMovement(?TrackingMovement $movement): self {
         $this->mainMovement = $movement;
         return $this;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
     }
 
 }

@@ -510,9 +510,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                             ? ` doit être inférieure à ${max}.`
                             : ` doit être comprise entre ${min} et ${max}.`;
                     } else if (!isNaN(max)) {
-                        errorMessage += ` doit être inférieure à ${max}.`;
+                        errorMessage += ` doit être inférieure ou égale à ${max}.`;
                     } else if (!isNaN(min)) {
-                        errorMessage += ` doit être supérieure à ${min}.`;
+                        errorMessage += ` doit être supérieure ou égale à ${min}.`;
                     } else {
                         errorMessage += ` ne peut pas être rempli`;
                     }
@@ -703,7 +703,7 @@ function processFilesForm($modal, data) {
         });
     }
 
-    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
+    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
     const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
     let dropFrame = [];
 
@@ -991,7 +991,7 @@ function saveDroppedFiles(event, $div) {
             let files = Array.from(event.dataTransfer.files);
 
             const $inputFile = $div.find('.fileInput');
-            saveInputFiles($inputFile, files);
+            saveInputFiles($inputFile, {files});
         }
     } else {
         displayWrong($div);
@@ -999,19 +999,21 @@ function saveDroppedFiles(event, $div) {
     return false;
 }
 
-function saveInputFiles($inputFile, singleton) {
-    singleton = singleton ?? false;
-    let filesToSave = $inputFile[0].files;
+function saveInputFiles($inputFile, options) {
+    const {files, singleton} = options || {};
+    let filesToSave = files || $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
-    Array.from(filesToSave).forEach(file => {
-        if (checkSizeFormat(file) && checkFileFormat(file)) {
-            if (!isMultiple && !singleton) {
-                droppedFiles = [];
+    if(!singleton){
+        Array.from(filesToSave).forEach(file => {
+            if (checkSizeFormat(file) && checkFileFormat(file)) {
+                if (!isMultiple && !singleton) {
+                    droppedFiles = [];
+                }
+                droppedFiles.push(file);
             }
-            if (!singleton) droppedFiles.push(file);
-        }
-    });
+        });
+    }
 
     let dropFrame = $inputFile.closest('.dropFrame');
 

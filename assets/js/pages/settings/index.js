@@ -629,7 +629,7 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayed`, title: `Afficher`, width: `70px`},
             {data: `displayedUnderCondition`, title: `Afficher sous condition`, width: `50px`},
             {data: `conditionFixedField`, title: `Champ fixe`,  width: `150px`},
-            {data: `conditionFixedFieldValue`, title: `Valeur`,  width: `220px`},
+            {data: `conditionFixedFieldValue`, title: `Valeur`},
             {data: `required`, title: `Obligatoire`},
         ],
     });
@@ -1289,35 +1289,20 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
-    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
-    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
-    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
-    const $required = $checkbox.closest('tr').find('input[name=required]');
-    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
-    if (!check) {
-        if ($checkbox[0].name === "displayed") {
-            $displayedUnderCondition.attr('disabled', true);
-            $required.attr('disabled', true);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.addClass("d-none");
-                $conditionFixedFieldValueDiv.addClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.addClass("d-none");
-            $conditionFixedFieldValueDiv.addClass("d-none");
+    const $row = $checkbox.closest('tr');
+    const $displayedUnderCondition = $row.find('[name=displayedUnderCondition]');
+    const $conditionFixedField = $row.find('[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $row.find('[name=conditionFixedFieldValue]').parent('label');
+
+    if ($checkbox.attr('name') === 'displayed') {
+        $displayedUnderCondition.attr('disabled', !check);
+        if (!check) {
+            $displayedUnderCondition.prop('checked', false);
+            changeDisplayRefArticleTable($displayedUnderCondition);
         }
     } else {
-        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
-            $displayedUnderCondition.attr('disabled', false);
-            $required.attr('disabled', false);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.removeClass("d-none");
-                $conditionFixedFieldValueDiv.removeClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.removeClass("d-none");
-            $conditionFixedFieldValueDiv.removeClass("d-none");
-        }
+        $conditionFixedField.attr('hidden', !check);
+        $conditionFixedFieldValueDiv.attr('hidden', !check);
     }
 }
 

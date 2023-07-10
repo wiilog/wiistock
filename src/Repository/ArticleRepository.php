@@ -1012,7 +1012,6 @@ class ArticleRepository extends EntityRepository {
             ->andWhere("articleStatus.code IN (:statuses)")
             ->andWhere("article.RFIDtag IS NOT NULL")
             ->setParameter("rfidTags", $rfidTags)
-            ->setParameter("availableStatus", Article::STATUT_ACTIF)
             ->setParameter("locations", $locations)
             ->setParameter("statuses", [Article::STATUT_ACTIF, Article::STATUT_INACTIF]);
 
@@ -1023,12 +1022,11 @@ class ArticleRepository extends EntityRepository {
                         "article.RFIDtag IN (:rfidTags)",
                         "articleStatus.code = :availableStatus"
                     ))
-                    ->setParameter("rfidTags", $rfidTags);
+                    ->setParameter("availableStatus", Article::STATUT_ACTIF);
                 break;
             case self::INVENTORY_MODE_SUMMARY:
                 $queryBuilder
-                    ->andWhere("article.RFIDtag IN (:rfidTags)")
-                    ->andWhere("articleStatus.code = :availableStatus");
+                    ->andWhere("article.RFIDtag IN (:rfidTags)");
                 break;
             default:
                 throw new RuntimeException('Invalid mode');

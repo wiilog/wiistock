@@ -2,13 +2,15 @@ import Form from "@app/form";
 import AJAX, {GET, POST} from "@app/ajax";
 import Modal from "@app/modal";
 import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
-import {ERROR} from "@app/flash";
+import Flash, {ERROR} from "@app/flash";
+import {wrapLoadingOnActionButton} from "@app/loading";
 
 global.validateShippingRequest = validateShippingRequest;
 global.openScheduledShippingRequestModal = openScheduledShippingRequestModal;
 global.generateDeliverySlip = generateDeliverySlip;
 global.treatShippingRequest = treatShippingRequest;
 global.deleteExpectedLine = deleteExpectedLine;
+global.deleteShippingRequest = deleteShippingRequest;
 
 let expectedLines = null;
 let packingData = [];
@@ -25,9 +27,7 @@ $(function() {
         window.location.reload();
     });
 
-    initScheduledShippingRequestForm();
-    initPackingPack($('#modalPacking'))
-    getShippingRequestStatusHistory();
+    getShippingRequestStatusHistory(shippingId);
     updateDetails();
 
     $(document).arrive('.schedule-details', function () {
@@ -40,6 +40,14 @@ $(function() {
 
     $(document).arrive('#expectedLinesTable', function () {
         initDetailsToTreat($(this));
+    });
+
+    $(document).arrive('#modalScheduledShippingRequest', function () {
+        initScheduledShippingRequestForm($(this));
+    });
+
+    $(document).arrive('#modalPacking', function () {
+        initPackingPack($(this));
     });
 });
 
@@ -61,18 +69,46 @@ function validateShippingRequest($button) {
             AJAX.route(GET, `shipping_request_validation`, {shippingRequest: shippingId})
                 .json()
                 .then((res) => {
-                    updatePage();
+                    window.location.reload();
                 })
         ));
     }
 }
 
-function initScheduledShippingRequestForm() {
-    let $modalScheduledShippingRequest = $('#modalScheduledShippingRequest');
-    Form.create($modalScheduledShippingRequest).onSubmit((data, form) => {
-        $modalScheduledShippingRequest.modal('hide');
-        openPackingModal(data, expectedLines, 1);
-    });
+function deleteShippingRequest($event){
+    const shipping_request_id = $event.data('id');
+    wrapLoadingOnActionButton($(".row.wii-column.w-100"), () => (
+        AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
+            .json()
+            .then((res) => {
+                if (res.success) {
+                    window.location.href = Routing.generate('shipping_request_index');
+                }
+            })
+    ));
+}
+
+
+function initScheduledShippingRequestForm($modalScheduledShippingRequest) {
+    const form = Form
+        .create($modalScheduledShippingRequest)
+        // validate without packing
+        .on('click', '#submitEditSchedule', function () {
+            const formData = form.process()
+
+            AJAX
+                .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
+                .json({scheduleData: formData.asObject()})
+                .then((res) => {
+                    if (res.success) {
+                        window.location.reload();
+                    }
+                });
+        })
+        .onSubmit((data, form) => {
+            $modalScheduledShippingRequest.modal('hide');
+            openPackingModal(data, 1);
+        });
 }
 
 function deleteExpectedLine($button, table) {
@@ -101,66 +137,52 @@ function deleteExpectedLine($button, table) {
 }
 
 function initPackingPack($modal) {
-    $modal.find('button.nextStep').on('click', function () {
+    $modal.find('button.nextStep').off().on('click', function () {
         packingNextStep($modal);
     })
 
-    $modal.find('button.previous').on('click', function () {
+    $modal.find('button.previous').off().on('click', function () {
         packingPreviousStep($modal);
     })
 
     $modal
         .on('hidden.bs.modal', function () {
             $modal.find('.modal-body').empty();
+            packingData = [];
         })
         .on('click', 'button[type=submit]', function () {
             if (packingNextStep($modal, true)) {
                 const packing = packingData.map(function (packingPack) {
-                    const lineData = packingPack.lines.map(function (lineFormData) {
-                        let linesData = {}
-                        if (Boolean(Number(lineFormData.get('picked')))) {
-                            lineFormData.forEach(function (value, key) {
-                                linesData[key] = value
-                            })
-                        }
-                        return linesData
-                    }).filter((lineData) => Object.keys(lineData).length)
-                    const packData = {}
-                    packingPack.pack.forEach(function (value, key) {
-                        packData[key] = value
-                    })
+                    const lineData = packingPack.lines
+                        .filter((lineFormData) => Boolean(Number(lineFormData.get('picked'))))
+                        .map((lineFormData) =>  lineFormData.asObject());
+                    const packData = packingPack.pack
+                        ? packingPack.pack.asObject()
+                        : {};
 
                     return {
                         lines: lineData,
                         ...packData
                     }
-                })
-                let scheduleData = {}
-                scheduledShippingRequestFormData.forEach(function (value, key) {
-                    scheduleData[key] = value
                 });
-                wrapLoadingOnActionButton($(this), function () {
+                wrapLoadingOnActionButton($(this), () => (
                     AJAX
                         .route(POST, 'shipping_request_submit_packing', {id: shippingId,})
-                        .json(
-                            {
-                                packing,
-                                scheduleData,
-                            }
-                        )
+                        .json({
+                            packing,
+                            scheduleData: scheduledShippingRequestFormData.asObject(),
+                        })
                         .then((res) => {
-                            updatePage();
                             if (res.success) {
-                                $modal.modal('hide');
-
+                                window.location.reload();
                             }
-                        });
-                })
+                        })
+                ))
             }
         });
 }
 
-function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
+function openPackingModal(dataShippingRequestForm, step = 1) {
     scheduledShippingRequestFormData = dataShippingRequestForm;
     const $modal = $('#modalPacking');
     $modal.modal('show');
@@ -183,12 +205,6 @@ function openPackingModal(dataShippingRequestForm, expectedLines, step = 1) {
 
     $modal.find('[name=packCount]').html(packCount);
     packingAddStep($modal, lines, step);
-
-    $modal.find('.modal-body').on('change', 'input[name=quantity]', function () {
-        const $row = $(this).closest('tr');
-        const lineId = $row.find('[name=lineId]').val();
-        $row.find('span.total-price').html($(this).val() * expectedLines.find(line => Number(line.lineId) === Number(lineId)).price);
-    })
 }
 
 function fillActionTemplate(template, referenceArticleId, lineId, picked = false, disabled = false) {
@@ -219,7 +235,9 @@ function fillQuantityInputTemplate(template, quantity, isLastStep) {
 async function packingAddStep($modal, data, step) {
     const packTemplate = $modal.find('#packTemplate').clone().html();
     const $curentStep = $modal.find('.modal-body').append(packTemplate).find('.packing-step:last')
-    $curentStep.attr('data-step', step);
+    $curentStep
+        .data('step', step)
+        .attr('data-step', step);
     $modal.find('[name=step]').html(step);
     $curentStep.find('[name=modalNumber]').html(step);
 
@@ -246,7 +264,22 @@ async function packingAddStep($modal, data, step) {
     };
     const $table = $curentStep.find('.articles-container table').attr('id', 'packingTable' + step)
     await initDataTable($table, tablePackingConfig);
-    $modal.find('[name=quantity]').trigger('change');
+    const $quantity = $modal.find('[name=quantity]');
+
+    $quantity
+        .off('change.shipping-packing')
+        .on('change.shipping-packing', function () {
+            const $row = $(this).closest('tr');
+            const lineId = $row.find('[name=lineId]').val();
+            const quantity = $(this).val();
+            const expectedLine = expectedLines.find(line => Number(line.lineId) === Number(lineId));
+            if (expectedLine) {
+                $row.find('span.total-price').html(quantity * expectedLine.price);
+            }
+        });
+
+    $quantity
+        .trigger('change');
 
     managePackingModalButtons($modal, step)
 }
@@ -347,15 +380,22 @@ function packingPreviousStep($modal) {
 }
 
 function openScheduledShippingRequestModal($button){
-    const id = $button.data('id')
-    AJAX.route(GET, `check_expected_lines_data`, {id})
+    // doesn't block the process just inform some fields are missing (référence)
+    AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
         .json()
         .then((res) => {
-            if (res.success) {
-                $('#modalScheduledShippingRequest').modal('show');
-                expectedLines = res.expectedLines;
+            if (res.errors || res.success) {
+                showBSAlert(res.errors , "info");
+                AJAX.route(GET, `get_format_expected_lines`, {id: $button.data('id')})
+                    .json()
+                    .then((res) => {
+                        if (res.success) {
+                            expectedLines = res.expectedLines;
+                            $('#modalScheduledShippingRequest').modal('show');
+                        }
+                    });
             }
-        });
+        })
 }
 
 function initShippingRequestExpectedLine($table) {
@@ -637,7 +677,7 @@ function initDetailsScheduled($container) {
             {name: 'label', data: 'label', title: 'Libellé', orderable: true},
             {name: 'quantity', data: 'quantity', title: 'Quantité', orderable: true},
             {name: 'price', data: 'price', title: 'Prix unitaire (€)', orderable: true},
-            {name: 'weight', data: 'weight', title: 'Poid net (kg)', orderable: true},
+            {name: 'weight', data: 'weight', title: 'Poids net (kg)', orderable: true},
             {name: 'totalPrice', data: 'totalPrice', title: 'Montant total', orderable: true},
         ];
 
@@ -689,19 +729,24 @@ function initDetailsToTreat($table) {
 
 
 function treatShippingRequest($button) {
-    wrapLoadingOnActionButton($button, () => (
-        AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
-            .json()
-            .then((res) => {
-                updatePage();
-            })
-    ));
-}
+    //block treatment if some required fields are not filled
+    AJAX.route(GET, `check_expected_lines_data`, {id: $button.data('id')})
+        .json()
+        .then((res) => {
+            if(res.errors){
+                return showBSAlert(res.errors, 'danger');
+            }
+            if (res.success) {
+                wrapLoadingOnActionButton($button, () => (
+                    AJAX.route(POST, `treat_shipping_request`, {shippingRequest: shippingId})
+                        .json()
+                        .then(() => {
+                            window.location.reload();
+                        })
+                ));
+            }
+        });
 
-function updatePage() {
-    getShippingRequestStatusHistory();
-    updateDetails();
-    refreshTransportHeader();
 }
 
 function generateDeliverySlip(shippingRequestId) {

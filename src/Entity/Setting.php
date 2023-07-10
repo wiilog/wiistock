@@ -141,13 +141,6 @@ class Setting {
     const COLLECT_REQUEST_DESTINATION = 'COLLECT_REQUEST_DESTINATION';
     const COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT = 'COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT';
 
-    // borne tactile - imprimante
-    const PRINTER_NAME = 'PRINTER_NAME';
-    const PRINTER_SERIAL_NUMBER = 'PRINTER_SERIAL_NUMBER';
-    const PRINTER_LABEL_WIDTH = 'PRINTER_LABEL_WIDTH';
-    const PRINTER_LABEL_HEIGHT = 'PRINTER_LABEL_HEIGHT';
-    const PRINTER_DPI = 'PRINTER_DPI';
-
     // tableaux de bord
     const MVT_DEPOSE_DESTINATION = "MVT_DEPOSE_DESTINATION";
     const FILE_OVERCONSUMPTION_LOGO = 'OVERCONSUMPTION_LOGO';
@@ -491,7 +484,7 @@ class Setting {
                 "poidsnettotal" => "poids net total des références à expédier sur la demande",
                 "valeurtotal" => "valeur totale des références à expédier sur la demande",
                 "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
-                "specificationtransport" => "spécification du transport",
+                "envoi" => "spécification du transport",
                 "nbcolis" => "nombre de colis à expédier sur la demande",
                 "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
                 "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",

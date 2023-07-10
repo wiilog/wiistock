@@ -44,7 +44,7 @@
                     <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
                            onchange="saveInputFiles($(this))">
                 {% else %}
-                    <input type="file" name="{{ name }}" class="data-file d-none fileInput" id="upload-article-reference-image" onchange="saveInputFiles($(this), singleton=true)">
+                    <input type="file" name="{{ name }}" class="data-file d-none fileInput" id="upload-article-reference-image" onchange="saveInputFiles($(this), {singleton: true})">
                 {% endif %}
             </div>
         </div>

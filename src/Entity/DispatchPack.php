@@ -56,7 +56,11 @@ class DispatchPack {
     }
 
     public function setDispatch(?Dispatch $dispatch): self {
+        if($this->dispatch && $this->dispatch !== $dispatch) {
+            $this->dispatch->removeDispatchPack($this);
+        }
         $this->dispatch = $dispatch;
+        $dispatch?->addDispatchPack($this);
 
         return $this;
     }
@@ -86,6 +90,16 @@ class DispatchPack {
     public function getDispatchReferenceArticles(): Collection
     {
         return $this->dispatchReferenceArticles;
+    }
+
+    public function getDispatchReferenceArticle(ReferenceArticle $referenceArticle): ?DispatchReferenceArticle {
+        /** @var DispatchReferenceArticle $dispatchReferenceArticle */
+        foreach ($this->dispatchReferenceArticles as $dispatchReferenceArticle){
+            if($dispatchReferenceArticle->getReferenceArticle() === $referenceArticle){
+                return $dispatchReferenceArticle;
+            }
+        }
+        return null;
     }
 
     public function addDispatchReferenceArticles(DispatchReferenceArticle $referenceArticle): self
