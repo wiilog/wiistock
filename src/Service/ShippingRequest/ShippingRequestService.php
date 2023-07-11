@@ -8,6 +8,7 @@ use App\Entity\Article;
 use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
 use App\Entity\Menu;
 use App\Entity\Role;
@@ -159,7 +160,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "shippingRequest" => $shipping->getId()
+            "id" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
@@ -471,8 +472,8 @@ class ShippingRequestService {
                         ]);
 
                         return [
-                            'actions' => $actions,
-                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'actions' => '<div class="d-flex align-items-center">' . $actions . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getUnitPrice(),
@@ -503,6 +504,16 @@ class ShippingRequestService {
         // remove track mvt
         Stream::from($shippingRequest->getTrackingMovements())
             ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {
+                foreach ($trackingMovement->getFirstDropsRecords() as $firstDropRecord){
+                    $entityManager->remove($firstDropRecord);
+                    $trackingMovement->removeFirstDropRecord($firstDropRecord);
+                }
+
+                foreach ($trackingMovement->getLastTrackingRecords() as $lastTrackingRecord){
+                    $entityManager->remove($lastTrackingRecord);
+                    $trackingMovement->removeLastTrackingRecord($lastTrackingRecord);
+                }
+
                 $entityManager->remove($trackingMovement);
                 $shippingRequest->removeTrackingMovement($trackingMovement);
             });
@@ -517,7 +528,6 @@ class ShippingRequestService {
 
         /* @var ShippingRequestPack $packLine */
         foreach ($shippingRequest->getPackLines() as $packLine) {
-
             $pack = $packLine->getPack();
 
             /* @var ShippingRequestLine $requestLine */
@@ -526,8 +536,10 @@ class ShippingRequestService {
                 $articleOrReference = $requestLine->getArticleOrReference();
 
                 if ($articleOrReference instanceof Article) {
+                    $trackingPack = $articleOrReference->getTrackingPack();
                     $articleOrReference->setTrackingPack(null);
                     $entityManager->remove($articleOrReference);
+                    $entityManager->remove($trackingPack);
                 }
                 // only on scheduled status (quantities were added)
                 else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
@@ -549,11 +561,11 @@ class ShippingRequestService {
                 $pack->removeTrackingMovement($trackMvt);
             }
 
+            $shippingRequest->removePackLine($packLine);
+
             $entityManager->remove($pack);
             $entityManager->remove($packLine);
         }
-
-
     }
 
     public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,
@@ -641,8 +653,7 @@ class ShippingRequestService {
 
         $now = new DateTime();
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
+        $client = $this->specificService->getAppClientLabel();
         $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
 
         $deliverySlipAttachment = new Attachment();

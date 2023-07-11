@@ -319,13 +319,19 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
         $qb = $this->createQueryBuilder("dispatch");
 
         if($requester) {
             $qb
                 ->andWhere("dispatch.requester = :requester")
                 ->setParameter("requester", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("dispatch.type IN (:types)")
+                ->setParameter("types", $types);
         }
 
         return $qb

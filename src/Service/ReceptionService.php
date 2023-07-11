@@ -233,7 +233,7 @@ class ReceptionService
         }
 
         $reception
-            ->setCommentaire(!empty($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
+            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
         // Date commande provenant des imports de réception
         if ($fromImport && isset($data['orderDate'])) {

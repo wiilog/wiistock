@@ -256,12 +256,12 @@
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                            <span class="wii-field-name">Code ONU*</span>
-                            <input class="form-control data needed" name="onuCode" type="text" value={{ reference.onuCode }}>
+                            <span class="wii-field-name">Code ONU {{ reference.dangerousGoods ? '*' }}</span>
+                            <input class="form-control data {{ reference.dangerousGoods ? 'needed' }}" name="onuCode" type="text" value={{ reference.onuCode }}>
                         </div>
                         <div class="col-12 col-md-6 d-flex flex-column {% if reference.id %}mt-3{% endif %}">
-                            <span class="wii-field-name">Classe produit*</span>
-                            <input class="form-control data needed" name="productClass" type="text" value={{ reference.productClass }}>
+                            <span class="wii-field-name">Classe produit {{ reference.dangerousGoods ? '*' }}</span>
+                            <input class="form-control data {{ reference.dangerousGoods ? 'needed' }}" name="productClass" type="text" value={{ reference.productClass }}>
                         </div>
                     </div>
                 </div>
@@ -517,12 +517,12 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-12 col-md-4 mt-2">
-                                <div class="article {{ not reference.id or reference.typeQuantite != 'article' ? 'd-none' }}">
+                                <div class="article {{ reference.typeQuantite and reference.typeQuantite != 'article' ? 'd-none' }}">
                                     <label class="with-checkbox">
                                         <input type="checkbox"
                                                name="urgence"
                                                class="checkbox data"
-                                               onchange="toggleEmergency($(this))" {{ reference.isUrgent ? 'checked' }}>
+                                               onchange="toggleEmergency($(this))" {{ reference.id and reference.isUrgent ? 'checked' }}>
                                         Urgence
                                     </label>
                                 </div>

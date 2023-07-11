@@ -102,6 +102,7 @@
             {% elseif attributes.type == 'bool' %}
                 <div class="wii-switch w-fit-content" data-title="{{ field }}">
                     <input type="radio"
+                           class="data"
                            name="{{ name }}"
                            value="0"
                            content="Non"
@@ -109,6 +110,7 @@
                            {{ disabled ? 'disabled' }}
                            {{ attributes.persisted and description[name] is defined ? (((description[name] == '0' or description[name] == null)) ? 'checked') : 'checked' }}>
                     <input type="radio"
+                           class="data"
                            name="{{ name }}"
                            value="1"
                            content="Oui"

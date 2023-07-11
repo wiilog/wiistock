@@ -377,7 +377,8 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getDispatchPack(Pack $pack): ?self {
+    public function getDispatchPack(Pack $pack): ?DispatchPack {
+        /** @var DispatchPack $dispatchPack */
         foreach ($this->dispatchPacks as $dispatchPack){
             if($dispatchPack->getPack()->getCode() === $pack->getCode()){
                 return $dispatchPack;

@@ -146,6 +146,13 @@ class ReferenceArticleController extends AbstractController
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
+            if(isset($data['security'])
+                && isset($data['fileSheet'])
+                && $data['security'] == "1"
+                && $data['fileSheet'] === "undefined"){
+                throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+            }
+
             if ($refAlreadyExist) {
                 $errorData = [
                     'success' => false
@@ -190,7 +197,7 @@ class ReferenceArticleController extends AbstractController
                 ->setNeedsMobileSync($needsMobileSync)
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setTypeQuantite($typeArticle)
                 ->setPrixUnitaire(max(0, $data['prix'] ?? null))
                 ->setType($type)
@@ -1175,12 +1182,10 @@ class ReferenceArticleController extends AbstractController
             $message = strip_tags(str_replace('@reference', $data['reference'], $referenceSuccessMessage));
         }
         $refArticleDataService->sendMailEntryStock($reference, $to, $message);
-        foreach ($barcodesToPrint as $barcode) {
-            $kioskService->printLabel($barcode, $entityManager);
-        }
         return new JsonResponse([
                 'success' => true,
                 'msg' => "Validation d'entrée de stock",
+                'barcodesToPrint' => json_encode($barcodesToPrint),
                 "referenceExist" => $referenceExist,
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]

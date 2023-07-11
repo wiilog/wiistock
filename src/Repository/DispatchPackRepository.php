@@ -175,7 +175,11 @@ class DispatchPackRepository extends EntityRepository {
                                     "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
                                     "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
                                     "ADR" => $reference["ADR"] ? 'Oui' : 'Non',
-                                    "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
+                                    "outFormatEquipment" => $reference["description"]
+                                        && isset($reference["description"]["outFormatEquipment"])
+                                        && filter_var($reference["description"]["outFormatEquipment"], FILTER_VALIDATE_BOOLEAN)
+                                            ? 'Oui'
+                                            : 'Non',
                                     "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
                                     "comment" => $reference["comment"],
                                     "attachments" => $attachmentsByReference[$reference["dispatchReferenceArticleId"]] ?? [],

@@ -97,8 +97,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslationService $translation): Response {
-
-        if ($data = $request->request->all()) {
+        if ($request->request) {
+            $data = $request->request->all();
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
@@ -184,7 +184,7 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $reception->removeIfNotIn($data['files'] ?? []);
 
@@ -622,7 +622,7 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire'] ?? null))
+                    ->setCommentaire($contentData['commentaire'] ?? null)
                     ->setReferenceArticle($refArticle)
                     ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
 
@@ -747,7 +747,7 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
@@ -2024,6 +2024,7 @@ class ReceptionController extends AbstractController {
                 ->setIsUrgent(false)
                 ->setUserThatTriggeredEmergency(null)
                 ->setEmergencyComment('');
+            $entityManager->flush();
         }
 
         if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {

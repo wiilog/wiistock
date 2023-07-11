@@ -121,13 +121,15 @@ class IOTService
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false)
     {
         $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
-        $this->linkWithSubEntities($message,
-            $entityManager->getRepository(Pack::class),
-            $entityManager->getRepository(Article::class),
-        );
-        $entityManager->flush();
-        $this->treatTriggers($message, $entityManager);
-        $entityManager->flush();
+        if($message){
+            $this->linkWithSubEntities($message,
+                $entityManager->getRepository(Pack::class),
+                $entityManager->getRepository(Article::class),
+            );
+            $entityManager->flush();
+            $this->treatTriggers($message, $entityManager);
+            $entityManager->flush();
+        }
     }
 
     private function treatTriggers(SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
@@ -264,7 +266,7 @@ class IOTService
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
             ->setStatus($requestTemplate->getRequestStatus())
-            ->setComment(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setComment($requestTemplate->getComment())
             ->setAttachments($requestTemplate->getAttachments())
             ->setSubject($requestTemplate->getSubject())
             ->setDesiredDate($desiredDate);
@@ -284,7 +286,7 @@ class IOTService
         $request
             ->setStatut($statut)
             ->setCreatedAt($date)
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
@@ -320,7 +322,7 @@ class IOTService
             ->setStatut($status)
             ->setPointCollecte($requestTemplate->getCollectPoint())
             ->setObjet($requestTemplate->getSubject())
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setstockOrDestruct($requestTemplate->getDestination());
         $entityManager->persist($request);
         $entityManager->flush();
@@ -384,7 +386,7 @@ class IOTService
         $this->alertService->trigger($template, $message, $entityManager);
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): SensorMessage
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): ?SensorMessage
     {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
@@ -394,7 +396,14 @@ class IOTService
             'code' => $deviceCode,
         ]);
 
-        $newBattery = $this->extractBatteryLevelFromMessage($message, $device->getProfile()->getName());
+        $profile =  $device->getProfile()->getName();
+
+        $frameIsValid = $this->validateFrame($profile, $message);
+        if(!$frameIsValid){
+            return null;
+        }
+
+        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
         $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
@@ -546,7 +555,7 @@ class IOTService
             case IOTService::KOOVEA_HUB:
                 return $config['value'];
             case IOTService::INEO_SENS_ACS_BTN:
-                return $this->extractEventTypeFromMessage($config);
+                return $this->extractEventTypeFromMessage($config, $profile);
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
@@ -586,7 +595,7 @@ class IOTService
             case IOTService::TEMP_HYGRO:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
-            if (isset($config['payload'])) {
+                if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_msg_type'];
                 }
@@ -830,7 +839,9 @@ class IOTService
                 ->map(fn(Emplacement $location) => $location->getId())
                 ->toArray();
 
-            $packs = $packRepository->getCurrentPackOnLocations(
+            /*
+             * TODO WIIS-9988
+             $packs = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 [
                     'isCount' => false,
@@ -840,7 +851,7 @@ class IOTService
             $packs = Stream::from($packs)
                 ->map(fn(Pack $pack) => $pack->getId())
                 ->toArray();
-
+            */
             $linked[] = [
                 'type' => 'vehicle_sensor_message',
                 'values' => [$vehicle->getId()],
@@ -860,6 +871,9 @@ class IOTService
                     'entityColumn' => 'emplacement_id'
                 ];
             }
+
+            /*
+             * TODO WIIS-9988
             if (!empty($packs)) {
                 $linked[] = [
                     'type' => 'pack_sensor_message',
@@ -867,6 +881,7 @@ class IOTService
                     'entityColumn' => 'pack_id'
                 ];
             }
+            */
         }
 
         $sensorMessageRepository->insertRaw([
@@ -918,5 +933,12 @@ class IOTService
                 }
             }
         }
+    }
+
+    public function validateFrame(string $profile, array $frame): bool {
+        return match ($profile) {
+            IOTService::TEMP_HYGRO => str_starts_with($frame['value']['payload'], '6d'),
+            default => true,
+        };
     }
 }
