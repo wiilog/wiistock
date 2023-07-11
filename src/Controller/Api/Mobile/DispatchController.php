@@ -51,6 +51,7 @@ class DispatchController extends AbstractApiController
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
         $localIdsToInsertIds = [];
+        $createdDispatchLocalIds = [];
         $syncedAt = new DateTime();
         $errors = [];
         foreach($dispatchs as $dispatchArray){
@@ -78,6 +79,8 @@ class DispatchController extends AbstractApiController
 
             // Dispatch creation
             if (!$dispatchId && !$dispatch) {
+                $createdDispatchLocalIds[] = $dispatchArray['localId'];
+
                 $type = $typeRepository->find($dispatchArray['typeId']);
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
@@ -165,16 +168,15 @@ class DispatchController extends AbstractApiController
             }
         }
 
-
         // grouped signature
         $groupedSignatureHistory = Stream::from(json_decode($data->get('groupedSignatureHistory'), true))
             ->sort(fn($groupedSignaturePrev, $groupedSignatureNext) => $this->getFormatter()->parseDatetime($groupedSignaturePrev['signatureDate']) <=> $this->getFormatter()->parseDatetime($groupedSignatureNext['signatureDate']))
             ->keymap(fn($groupedSignature) => [$groupedSignature['localDispatchId'], $groupedSignature], true);
 
-        foreach ($groupedSignatureHistory as $dispatchId => $groupedSignatureByDispatch) {
-            $dispatchId = $localIdsToInsertIds[$dispatchId] ?? null;
-            if ($dispatchId) {
-                $dispatch = $dispatchRepository->find($dispatchId);
+        foreach ($groupedSignatureHistory as $localDispatchId => $groupedSignatureByDispatch) {
+            $dispatchId = $localIdsToInsertIds[$localDispatchId] ?? null;
+            $dispatch = $dispatchId ? $dispatchRepository->find($dispatchId) : null;
+            if ($dispatch) {
                 foreach ($groupedSignatureByDispatch as $groupedSignature) {
                     $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
                     $date = $this->getFormatter()->parseDatetime($groupedSignature['signatureDate']);
@@ -200,8 +202,25 @@ class DispatchController extends AbstractApiController
             }
         }
 
-        //GENERATION DES LETTRES DE VOITURE
-//            $dispatchService->generateWayBill()
+        $dispatchWaybillData = json_decode($data->get('waybillData'), true);
+        foreach($dispatchWaybillData as $waybill) {
+            $localId = $waybill['localId'] ?? null;
+            $dispatchId = $localIdsToInsertIds[$localId] ?? null;
+            unset($waybill['localId']);
+            if ($localId && in_array($localId, $createdDispatchLocalIds)) {
+                $dispatch = $dispatchId ? $dispatchRepository->find($dispatchId) : null;
+                if ($dispatch && !($dispatch->getDispatchPacks()->isEmpty())) {
+                    try {
+                        $dispatchService->generateWayBill($dispatch->getCreatedBy(), $dispatch, $entityManager, $waybill);
+                        $entityManager->flush();
+                    } catch (Exception $error) {
+                        $exceptionLoggerService->sendLog($error, $request);
+                        $errors[] = "La génération de la lettre de voiture n°{$dispatch->getNumber()} s'est mal déroulée";
+                        [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
+                    }
+                }
+            }
+        }
 
         return $this->json([
             'success' => empty($errors),
