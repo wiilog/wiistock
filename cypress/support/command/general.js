@@ -18,7 +18,3 @@ Cypress.Commands.add('navigateInNavMenu', (menu, subMenu) => {
                 .click();
         })
 })
-
-Cypress.Commands.add('openModalVerificate', (modalName) => {
-    cy.get(`#${modalName}`).should('be.visible');
-})

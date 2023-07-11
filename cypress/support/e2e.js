@@ -12,8 +12,15 @@
 // You can read more here:
 // https://on.cypress.io/configuration
 // ***********************************************************
+Cypress.on('uncaught:exception', (err, runnable) => {
+    if (err.message.includes('printing error')) {
+        return false
+    }
+});
 
 // Import commands.js using ES2015 syntax:
 import './command/select2'
 import './command/session'
 import './command/general'
+import './command/setting'
+import './command/date'

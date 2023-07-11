@@ -1,14 +1,19 @@
+Cypress.Commands.add('select2Ajax', (selectName, value, requestAlias = '/select/*', shouldWait= true) => {
+    cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
-Cypress.Commands.add('select2Ajax', (selectName, value) => {
-    cy.intercept('GET', '/select/*').as('select2Request');
     cy.get(`[name=${selectName}]`)
         .siblings('.select2')
         .click()
         .parents()
         .get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .type(value)
-        .wait('@select2Request', {timeout: 10000})
-        .its('response.statusCode').should('eq', 200)
+        .then(() => {
+            if (shouldWait) {
+                cy
+                    .wait(`@${requestAlias}Request`, {timeout: 20000})
+                    .its('response.statusCode').should('eq', 200)
+            }
+        })
         .then(() => {
             cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
                 .parents('.select2-dropdown')
@@ -23,6 +28,7 @@ Cypress.Commands.add('select2Ajax', (selectName, value) => {
 
 Cypress.Commands.add('select2AjaxMultiple', (selectName, value) => {
     cy.intercept('GET', '/select/*').as('select2Request');
+
     value.forEach(element => {
         cy.get(`[name=${selectName}]`)
             .siblings('.select2')
@@ -39,15 +45,18 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value) => {
 
 Cypress.Commands.add('select2', (selectName, value) => {
     const select = cy.get(`[name=${selectName}]`);
+
     if (!Array.isArray(value)) {
         value = [value];
     }
+
     value.forEach(element => {
         cy.get(`[name=${selectName}]`)
             .siblings('.select2')
             .click()
             .type(`${element}{enter}`)
     })
+
     cy.get(`[name=${selectName}]`).then(($select) => {
         if ($select.hasOwnProperty('multiple')) {
             select.find('option').should('have.length', value.length)
