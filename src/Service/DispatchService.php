@@ -983,7 +983,7 @@ class DispatchService {
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
                                                 Dispatch               $dispatch,
-                                                Utilisateur $user): Attachment {
+                                                Utilisateur            $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -1614,13 +1614,13 @@ class DispatchService {
         return $emptyOption . $options;
     }
 
-    public function getWayBillDataForUser(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager) {
+    public function getWayBillDataForUser(Utilisateur $user, EntityManagerInterface $entityManager, Dispatch $dispatch = null) {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $dispatchSavedLDV = $settingRepository->getOneParamByLabel(Setting::DISPATCH_SAVE_LDV);
         $userSavedData = $dispatchSavedLDV ? [] : $user->getSavedDispatchWaybillData();
-        $dispatchSavedData = $dispatch->getWaybillData();
+        $dispatchSavedData = $dispatch?->getWaybillData();
 
         $now = new DateTime('now');
 
@@ -1647,7 +1647,7 @@ class DispatchService {
             'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isEmerson ? $user->getUsername() : null,
             'receiverEmail' => $isEmerson ? $user->getEmail() : null,
-            'packsCounter' => $dispatch->getDispatchPacks()->count()
+            'packsCounter' => $dispatch?->getDispatchPacks()->count()
         ];
         return Stream::from(Dispatch::WAYBILL_DATA)
             ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
