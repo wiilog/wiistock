@@ -19,7 +19,6 @@ use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\ShippingRequest\ShippingRequestPack;
-use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Utilisateur;
@@ -36,9 +35,7 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\MakerBundle\Str;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -671,4 +668,15 @@ class ShippingRequestService {
         return $deliverySlipAttachment;
     }
 
+    public function hasEditRightWithStatus(ShippingRequest $shippingRequest): bool {
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING))
+            || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING))
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)));
+    }
+
+    public function hasDeleteRightWithStatus(ShippingRequest $shippingRequest): bool {
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING))
+            || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING))
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING)));
+    }
 }

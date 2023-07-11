@@ -97,8 +97,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslationService $translation): Response {
-
-        if ($data = $request->request->all()) {
+        if ($request->request) {
+            $data = $request->request->all();
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
