@@ -692,11 +692,39 @@ class SettingsService {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
 
+                $suggestedDropLocations = null;
+                if (isset($data["suggestedDropLocations"])) {
+                    $dropLocation = isset($data["dropLocation"])
+                        ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
+                        : $type->getDropLocation()?->getId();
+
+                    $suggestedDropLocations = explode(',', $data["suggestedDropLocations"]);
+
+                    if ($dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                        throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
+                    }
+                }
+
+                $suggestedPickLocations = null;
+                if (isset($data["suggestedPickLocations"])) {
+                    $pickLocation = isset($data["pickLocation"])
+                        ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
+                        : $type->getPickLocation()?->getId();
+
+                    $suggestedPickLocations = explode(',', $data["suggestedPickLocations"]);
+
+                    if ($pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
+                        throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
+                    }
+                }
+
                 $type
                     ->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setSuggestedPickLocations($suggestedPickLocations)
+                    ->setSuggestedDropLocations($suggestedDropLocations)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
