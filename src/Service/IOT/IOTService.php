@@ -549,10 +549,10 @@ class IOTService
 
     public function extractMainDataFromConfig(array $config, string $profile) {
         switch ($profile) {
-            case IOTService::KOOVEA_TAG:
             case IOTService::TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
                 return $this->convertHexToSignedInt($hexTemperature);
+            case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
                 return $config['value'];
             case IOTService::INEO_SENS_ACS_BTN:
