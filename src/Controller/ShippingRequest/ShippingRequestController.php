@@ -532,6 +532,7 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function exportShippingRequests(EntityManagerInterface $entityManager,
                                            CSVExportService       $csvService,
                                            DataExportService      $dataExportService) {
