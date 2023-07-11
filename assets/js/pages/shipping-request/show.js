@@ -75,10 +75,10 @@ function validateShippingRequest($button) {
     }
 }
 
-function deleteShippingRequest($event){
+function deleteShippingRequest($event) {
     const shipping_request_id = $event.data('id');
     wrapLoadingOnActionButton($(".row.wii-column.w-100"), () => (
-        AJAX.route(`DELETE`, `delete_shipping_request`, {id: shipping_request_id})
+        AJAX.route(AJAX.DELETE, `delete_shipping_request`, {id: shipping_request_id})
             .json()
             .then((res) => {
                 if (res.success) {
