@@ -641,6 +641,14 @@ class SettingsService {
                 $tagTemplate->setHeight($tagTemplateData['height']);
                 $tagTemplate->setWidth($tagTemplateData['width']);
                 $tagTemplate->setModule($tagTemplateData['module']);
+
+                foreach ($tagTemplate->getNatures() as $nature) {
+                    $tagTemplate->removeNature($nature);
+                }
+                foreach($tagTemplate->getTypes() as $type) {
+                    $tagTemplate->removeType($type);
+                }
+
                 Stream::explode(',', $tagTemplateData['natureOrType'])
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {

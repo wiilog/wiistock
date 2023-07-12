@@ -210,6 +210,12 @@ $(function() {
             return;
         }
 
+        const selectedNatures = $('input[name=selectedNatures]').val().split(',');
+        if (selectedNatures.length !== Array.from(new Set(selectedNatures)).length) {
+            Flash.add(`danger`, 'Une nature/type ne peut avoir qu\'un seul modèle d\'étiquettes');
+            return;
+        }
+
         if ($saveButton.hasClass(LOADING_CLASS)) {
             Flash.add(INFO, `L'opération est en cours de traitement`);
             return;
@@ -458,7 +464,13 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
-
+    $(document).on('change', '[name=natureOrType]', (select) => {
+        let values = [];
+        $('[name=natureOrType]').each(function () {
+            values.push($(this).val());
+        });
+        $('[name=selectedNatures]').val(values.join(','));
+    });
     const $typeOptions = JSON.parse($(`#type_options`).val());
     const $natureOptions = JSON.parse($(`#nature_options`).val());
 
