@@ -9,9 +9,10 @@ module.exports = defineConfig({
         downloadsFolder: 'cypress/downloads',
         setupNodeEvents(on, config) {
         },
-        user: {
-            email: 'Test@test.fr',
-            password: 'Test123456!',
-        }
     },
+    user: {
+        email: 'cedric.roux@wiilog.fr',
+        password: 'X@x6(si84DY!',
+    }
 });
+//
