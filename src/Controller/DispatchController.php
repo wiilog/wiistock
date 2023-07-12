@@ -506,7 +506,8 @@ class DispatchController extends AbstractController {
      */
     public function printDispatchStateSheet(TranslationService $translationService,
                                             Dispatch $dispatch,
-                                            DispatchService $dispatchService): ?Response {
+                                            DispatchService $dispatchService,
+                                            KernelInterface $kernel): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -516,10 +517,18 @@ class DispatchController extends AbstractController {
 
         $data = $dispatchService->getDispatchNoteData($dispatch);
 
-        return new PdfResponse(
-            $data['file'],
-            "{$data['name']}.pdf"
-        );
+        $dispatchSheet = $dispatch->getAttachments()->last();
+
+        $fileName = $dispatchSheet->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchSheet->getOriginalName());
+
+        return $response;
     }
 
     /**
@@ -1291,18 +1300,31 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return PdfResponse
      */
-    public function printDeliveryNote(Dispatch $dispatch,
-                                      DispatchService $dispatchService): Response {
+    public function printDeliveryNote(TranslationService $translationService,
+                                      Dispatch $dispatch,
+                                      DispatchService $dispatchService,
+                                      KernelInterface $kernel): Response {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => 'Le bon de livraison n\'existe pas pour cet acheminement'
+                "msg" => $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Le bon de livraison n\'existe pas pour cet acheminement', false)
             ]);
         }
 
         $data = $dispatchService->getDeliveryNoteData($dispatch);
 
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $deliveryNote = $dispatch->getAttachments()->last();
+
+        $fileName = $deliveryNote->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $deliveryNote->getOriginalName());
+
+        return $response;
     }
 
     /**
@@ -1459,11 +1481,24 @@ class DispatchController extends AbstractController {
      * @HasPermission({Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL})
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
-                                             DispatchService $dispatchService): Response {
+                                             DispatchService $dispatchService,
+                                             KernelInterface $kernel,
+                                             AttachmentService $attachmentService): Response {
 
         $data = $dispatchService->getOverconsumptionBillData($dispatch);
 
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $overConsumptionBill = $dispatch->getAttachments()->last();
+
+        $fileName = $overConsumptionBill->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overConsumptionBill->getOriginalName());
+
+        return $response;
     }
 
     /**
