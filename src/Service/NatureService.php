@@ -96,7 +96,8 @@ class NatureService
             'id' => $nature->getId(),
             'label' => $this->formatService->nature($nature, "", $user),
             'color' => $nature->getColor(),
-            'hide' => !$nature->getNeedsMobileSync()
+            'hide' => !$nature->getNeedsMobileSync(),
+            'defaultNature' => $nature->getDefaultNature(),
         ];
     }
 }
