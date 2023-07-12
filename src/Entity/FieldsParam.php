@@ -89,7 +89,7 @@ class FieldsParam {
     const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrivals';
-    const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'carrier';
+    const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'truckCarrier';
     const FIELD_CODE_TRUCK_ARRIVAL_DRIVER = 'driver';
     const FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'registrationNumber';
     const FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'unloadingLocation';
@@ -221,6 +221,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_LOCATION_PICK,
         FieldsParam::FIELD_CODE_LOCATION_DROP,
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+        FieldsParam::FIELD_CODE_CARRIER_DISPATCH,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
