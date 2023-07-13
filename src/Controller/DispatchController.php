@@ -1744,6 +1744,14 @@ class DispatchController extends AbstractController {
     {
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+
+        if(count($dispatchPacks) === 0) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Vous devez renseigner au moins une unité logistique pour pouvoir ajouter une référence."
+            ]);
+        }
+
         $packs = [];
         foreach ($dispatchPacks as $dispatchPack) {
             $packs[] = [
@@ -1760,7 +1768,10 @@ class DispatchController extends AbstractController {
             'pack' => $pack,
         ]);
 
-        return new JsonResponse($html);
+        return new JsonResponse([
+            'success' => true,
+            'template' => $html,
+        ]);
     }
 
     #[Route("/add-logistic-unit-api/{dispatch}", name: "dispatch_add_logistic_unit_api", options: ['expose' => true], methods: "GET")]
