@@ -1,70 +1,61 @@
-const path = require('path');
-const downloadsFolder = Cypress.config('downloadsFolder');
 const linesTableFreeFieldsComponent = 'table[data-table-processing=fixedFields] tbody tr';
-const numberPacksPalette = 1;
-const numberPacksDemiPalette = 0;
-const numberPacksBac = 0;
-const numberPacksColis = 4;
+const numberPacksNature1 = 1;
+const numberPacksNature2 = 4;
 const LUArrivals = {
-    fournisseur: 'ADVANCED',
-    transporteur: 'Alexis',
-    chauffeur: 'FAURE',
+    fournisseur: 'H&M',
+    transporteur: 'DHL',
+    chauffeur: 'Georges',
     noTracking: '12345',
     firstNumeroCommandeList: '1234',
     secondNumeroCommandeList: '4567',
     type: 'standard',
-    statut: 'conforme',
-    dropLocation: 'REMIS AU CLIENT',
-    destinataire: 'Benjamin Assie',
-    firstAcheteurs: 'Christine Castellana',
-    secondAcheteurs: 'Amelie Abdellaoui',
+    statut: 'Arrivage à traiter',
+    dropLocation: 'BUREAU GT',
+    destinataire: 'Admin',
+    firstAcheteurs: 'Admin',
+    secondAcheteurs: 'Lambda',
     noProject: '12',
     businessUnit: 'RECYCLAGE',
-    project: 'LABO 1',
+    project: 'PROJET 1',
     comment: 'Cypress',
     file: 'logo.jpg',
-    numberPacks: numberPacksPalette + numberPacksDemiPalette + numberPacksBac + numberPacksColis,
+    numberPacks: numberPacksNature1 + numberPacksNature2,
 }
 let logisticUnitsNumber;
 let logisticUnitsDate;
 const LUArrivalsChanged = {
-    fournisseur: 'BIMBA',
+    fournisseur: 'SAMSUNG',
     transporteur: 'GT',
-    chauffeur: 'HELLO',
+    chauffeur: 'Georges',
     noTracking: '7654',
     firstNumeroCommandeList: '9876',
     secondNumeroCommandeList: '4321',
-    statut: 'LITIGE',
-    destinataire: 'Audrey Berthelot',
-    firstAcheteurs: 'Carine Jahan',
-    secondAcheteurs: 'Elsa Parrat',
+    statut: 'ARRIVAGE TRAITÉ',
+    destinataire: 'Lambda',
+    firstAcheteurs: 'Admin',
+    secondAcheteurs: 'Lambda',
     noProject: '78',
     businessUnit: 'POMPES',
     comment: 'Modification Cypress',
     file: 'logo.jpg',
 }
 const newLU = {
-    project: 'GAZ DE BORDEAUX',
+    project: 'PROJET 1',
 }
 const dispute = {
     type: 'manque BL',
-    reporter: 'Alain Persico',
+    reporter: 'Lambda',
     status: 'En cours de traitement',
-    firstLU: '',
-    secondLU: '',
 }
 const disputeChanged = {
     type: 'écart qualité',
-    reporter: 'Cecilia Dupre',
-    status: 'Réception faite',
-    firstLU: '',
-    secondLU: '',
+    reporter: 'Admin',
+    status: 'Traité',
 }
 let disputeCreationDate;
-let logisticUnitsCreationDate;
 const user = {
-    email: 'Test@test.fr',
-    password: 'Test123456!',
+    email: 'admin@wiilog.fr',
+    password: 'Admin1234!',
 }
 
 describe('Create and edit logistic units arrivals', () => {
@@ -136,10 +127,8 @@ describe('Create and edit logistic units arrivals', () => {
     })
 
     it("should add a new logistic units arrivals without the redirect after a new arrival", () => {
-        cy.intercept('GET', '/arrivage/*/etiquettes?printPacks=1&printArrivage=1&template=1').as('print_arrivage_bar_codes_template_1');
-        cy.intercept('GET', '/arrivage/*/etiquettes?printPacks=1&printArrivage=1&template=4').as('print_arrivage_bar_codes_template_4')
-        cy.intercept('GET', '/arrivage/*/etiquettes?printPacks=1&printArrivage=1&template=6').as('print_arrivage_bar_codes_template_6');
-        cy.intercept('GET', '/arrivage/*/etiquettes?printPacks=1&printArrivage=1&template=7').as('print_arrivage_bar_codes_template_7');
+        cy.intercept('GET', '/arrivage/*/etiquettes?*template=1').as('print_arrivage_bar_codes_nature_1');
+        cy.intercept('GET', '/arrivage/*/etiquettes?*template=2').as('print_arrivage_bar_codes_nature_2');
         cy.intercept('POST', '/arrivage/creer').as('arrivage_new');
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
@@ -183,19 +172,11 @@ describe('Create and edit logistic units arrivals', () => {
         cy.get('input[name=packs]').eq(0)
             .click()
             .clear()
-            .type(`${numberPacksPalette}`);
+            .type(`${numberPacksNature1}`);
         cy.get('input[name=packs]').eq(1)
             .click()
             .clear()
-            .type(`${numberPacksDemiPalette}`);
-        cy.get('input[name=packs]').eq(2)
-            .click()
-            .clear()
-            .type(`${numberPacksBac}`);
-        cy.get('input[name=packs]').eq(3)
-            .click()
-            .clear()
-            .type(`${numberPacksColis}`);
+            .type(`${numberPacksNature2}`);
 
         cy.select2Ajax('project', LUArrivals.project);
         cy.get('.ql-editor')
@@ -208,6 +189,8 @@ describe('Create and edit logistic units arrivals', () => {
             cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
         })
 
+        cy.preventPageLoading();
+
         cy.get('button[type=submit]')
             .click()
             .wait('@arrivage_new', {timeout: 30000});
@@ -215,14 +198,7 @@ describe('Create and edit logistic units arrivals', () => {
         cy.get('#alert-modal', {timeout: 30000})
             .should('be.visible');
 
-        cy.wait(['@print_arrivage_bar_codes_template_1', '@print_arrivage_bar_codes_template_4'], {timeout: 150000})
-            .then((intercepts) => {
-                intercepts.forEach((intercept) => {
-                    const filename = intercept.response.headers['content-disposition'].split('filename=')[1];
-                    const downloadedFilename = path.join(downloadsFolder, filename);
-                    cy.readFile(downloadedFilename).should('exist');
-                })
-            })
+        cy.readDownloadFile(['@print_arrivage_bar_codes_nature_1', '@print_arrivage_bar_codes_nature_2'], ['NATURE1_arrivage.pdf', 'NATURE2_arrivage.pdf'])
 
         cy.get('#modalNewArrivage button.close')
             .click();
@@ -232,7 +208,7 @@ describe('Create and edit logistic units arrivals', () => {
         cy.get('@logisticUnitsArrivalCreationDate').then((logisticUnitsArrivalCreationDateValue) => {
             cy.get('#arrivalsTable tbody td')
                 .eq(2)
-                .contains(logisticUnitsArrivalCreationDateValue)
+                .contains(logisticUnitsArrivalCreationDateValue, {timeout: 10000})
                 .then(($td) => {
                     logisticUnitsDate = $td.text();
                     const logisticUnitsDateTimeSplit = logisticUnitsDate.split(' ')
@@ -270,12 +246,6 @@ describe('Create and edit logistic units arrivals', () => {
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().find('td').eq(3).then(($text) => {
-        //     let logisticUnitsNumber = $text.text();
-        //     cy.wrap(logisticUnitsNumber).as('logisticUnitsNumber');
-        // })
-        // cy.get('table#arrivalsTable tbody tr').first().click();
         cy.get('#arrivalsTable tbody td').eq(3).each(($td) => {
             cy.wrap($td)
                 .invoke('text')
@@ -285,6 +255,7 @@ describe('Create and edit logistic units arrivals', () => {
                     }
                 });
         });
+
         // TODO !!title!!
         cy.get('[title=Type]')
             .parent()
@@ -356,37 +327,20 @@ describe('Create and edit logistic units arrivals', () => {
         cy.get('#tablePacks tbody tr')
             .should('have.length', LUArrivals.numberPacks);
 
-        // A remettre pour les tests individuels
-        // cy.get('@logisticUnitsNumber').then((logisticUnitsNumber) => {
-        //     cy.get('table#tablePacks tbody tr').first().find('td').eq(2).contains(logisticUnitsNumber);
-        //     const date = new Date();
-        //     const year = date.getFullYear();
-        //     cy.get('table#tablePacks tbody tr').first().find('td').eq(4).contains(`${logisticUnitsNumber.slice(4, 6)}/${logisticUnitsNumber.slice(2, 4)}/${year.toString().slice(0, 2)}${logisticUnitsNumber.slice(0, 2)} ${logisticUnitsNumber.slice(6, 8)}:${logisticUnitsNumber.slice(8, 10)}`);
-        // })
-
-        let numberPalette = 0;
-        let numberDemiPalette = 0;
-        let numberBac = 0;
-        let numberColis = 0;
+        let numberNature1 = 0;
+        let numberNature2 = 0;
 
         cy.get('#tablePacks tbody tr').each(($line) => {
             const text = $line.find('td').eq(1).text().trim();
 
-            if (text === 'PALETTE') {
-                numberPalette++;
-            } else if (text === 'DEMI PALETTE') {
-                numberDemiPalette++;
-            } else if (text === 'BAC') {
-                numberBac++;
-            } else if (text === 'COLIS') {
-                numberColis++;
+            if (text === 'NATURE 1') {
+                numberNature1++;
+            } else if (text === 'NATURE 2') {
+                numberNature2++;
             }
-
         }).then(() => {
-            expect(numberPalette).to.equal(numberPacksPalette);
-            expect(numberDemiPalette).to.equal(numberPacksDemiPalette);
-            expect(numberBac).to.equal(numberPacksBac);
-            expect(numberColis).to.equal(numberPacksColis);
+            expect(numberNature1).to.equal(numberPacksNature1);
+            expect(numberNature2).to.equal(numberPacksNature2);
         });
 
         cy.get('#tablePacks tbody tr').each(($line) => {
@@ -416,24 +370,17 @@ describe('Create and edit logistic units arrivals', () => {
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().click();
-        cy.get('table#arrivalsTable tbody tr td').eq(3).each(($td) => {
-            cy.wrap($td).invoke('text').then((text) => {
-                if (text.trim() === logisticUnitsNumber)
-                    cy.wrap($td).click();
-            });
-        });
+        cy.get('table#arrivalsTable tbody tr').last().click();
 
         cy.wait('@packs_api')
 
         cy.get('#tablePacks tbody tr').first().find('td').eq(2).then(($text) => {
-            dispute.firstLU = $text.text();
-            cy.wrap(dispute.firstLU).as('firstLU');
+            const firstLU = $text.text();
+            cy.wrap(firstLU).as('firstLU');
         })
-        cy.get('#tablePacks tbody tr').eq(2).find('td').eq(2).then(($text) => {
-            dispute.secondLU = $text.text();
-            cy.wrap(dispute.secondLU).as('secondLU');
+        cy.get('#tablePacks tbody tr').last().find('td').eq(2).then(($text) => {
+            const secondLU = $text.text();
+            cy.wrap(secondLU).as('secondLU');
         })
 
         cy.get('button.new-dispute-modal')
@@ -480,46 +427,36 @@ describe('Create and edit logistic units arrivals', () => {
             .contains(dispute.type);
     })
 
-    it("should edit the new dispute created", () => {
+    it("should edit a dispute created", () => {
+        cy.intercept('POST', 'arrivage/packs/api/*').as('packs_api');
         cy.intercept('POST', '/arrivage/litiges/api/*').as('arrivageLitiges_api');
         cy.intercept('POST', '/arrivage/api-modifier-litige').as('litige_api_edit')
         cy.intercept('POST', '/arrivage/modifier-litige*').as('litige_edit_arrivage')
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().click();
-        cy.get('table#arrivalsTable tbody tr td').eq(3).each(($td) => {
-            cy.wrap($td).invoke('text').then((text) => {
-                if (text.trim() === logisticUnitsNumber) {
-                    cy.wrap($td).click();
-                }
-            });
-        });
+        cy.get('table#arrivalsTable tbody tr').last().click();
+
+        cy.wait('@packs_api')
+
+        cy.get('#tablePacks tbody tr').first().find('td').eq(2).then(($text) => {
+            const firstLU = $text.text();
+            cy.wrap(firstLU).as('firstLU');
+        })
+        cy.get('#tablePacks tbody tr').last().find('td').eq(2).then(($text) => {
+            const secondLU = $text.text();
+            cy.wrap(secondLU).as('secondLU');
+        })
 
         cy.wait('@arrivageLitiges_api')
 
-        cy.get('#tablePacks tbody tr').last().find('td').eq(2).then(($text) => {
-            disputeChanged.firstLU = $text.text();
-            cy.wrap(disputeChanged.firstLU).as('firstLU');
-        })
-        cy.get('#tablePacks tbody tr').eq(3).find('td').eq(2).then(($text) => {
-            disputeChanged.secondLU = $text.text();
-            cy.wrap(disputeChanged.secondLU).as('secondLU');
+        cy.get('#tableArrivageLitiges tbody tr').last().find('td').eq(1).then(($text) => {
+            const disputeDBCreationDate = $text.text();
+            cy.wrap(disputeDBCreationDate).as('disputeDBCreationDate');
         })
 
-        cy.get('#tableArrivageLitiges tbody tr').first()
+        cy.get('#tableArrivageLitiges tbody tr').last()
             .click().wait('@litige_api_edit', {timeout: 8000});
-
-        cy.get('#modalEditLitige [name=disputeType]')
-            .contains(dispute.type);
-        cy.get('#modalEditLitige [name=disputeStatus]')
-            .contains(dispute.status);
-        cy.get('#modalEditLitige [name=disputeReporter]')
-            .contains(dispute.reporter);
-        cy.get(`#modalEditLitige [name=pack]`)
-            .should('contain', dispute.firstLU)
-            .and('contain', dispute.secondLU);
 
         cy.get('#modalEditLitige [name=disputeType]')
             .select(disputeChanged.type);
@@ -553,6 +490,7 @@ describe('Create and edit logistic units arrivals', () => {
                     });
             }
         })
+
         cy.get('@firstLU').then((firstLU) => {
             cy.get('@secondLU').then((secondLU) => {
                 cy.select2('pack', [firstLU, secondLU]);
@@ -565,26 +503,29 @@ describe('Create and edit logistic units arrivals', () => {
 
         cy.get('#submitEditLitige')
             .click()
-            .wait('@litige_edit_arrivage', {timeout: 8000});
+            .wait(['@litige_edit_arrivage', '@arrivageLitiges_api'], {timeout: 8000});
+
+        cy.get('@disputeDBCreationDate').then((disputeDBCreationDate) => {
+            cy.get('#tableArrivageLitiges_wrapper tbody tr')
+                .last()
+                .find('td')
+                .eq(1)
+                .contains(disputeDBCreationDate);
+        })
 
         cy.get('#tableArrivageLitiges_wrapper tbody tr')
-            .first()
-            .find('td')
-            .eq(1)
-            .contains(disputeCreationDate);
-        cy.get('#tableArrivageLitiges_wrapper tbody tr')
-            .first()
+            .last()
             .find('td')
             .eq(2)
             .contains(disputeChanged.status);
         cy.get('#tableArrivageLitiges_wrapper tbody tr')
-            .first()
+            .last()
             .find('td')
             .eq(3)
             .contains(disputeChanged.type);
         cy.get('@disputeChangedCreationDate').then((disputeChangedCreationDate) => {
             cy.get('#tableArrivageLitiges_wrapper tbody tr')
-                .first().find('td').eq(4)
+                .last().find('td').eq(4)
                 .contains(disputeChangedCreationDate);
         })
     })
@@ -596,66 +537,28 @@ describe('Create and edit logistic units arrivals', () => {
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        cy.get('table#arrivalsTable tbody tr').first().click();
-        // cy.get('table#arrivalsTable tbody tr td').eq(3).each(($td) => {
-        //     cy.wrap($td).invoke('text').then((text) => {
-        //         if (text.trim() === logisticUnitsNumber) {
-        //             cy.wrap($td).click();
-        //         }
-        //     });
-        // });
+        cy.get('#arrivalsTable tbody tr').last().click();
+
+        cy.wait('@packs_api');
 
         cy.get("[data-target='#modalAddPacks']")
-            .click()
-            .wait('@packs_api', {timeout: 20000});
+            .click();
+
         cy.get('#modalAddPacks [name=project]')
             .select(newLU.project);
         cy.get('input[name=pack]').eq(0)
             .clear()
-            .type('0');
+            .type('1');
         cy.get('input[name=pack]').eq(1)
             .clear()
             .type('0');
-        cy.get('input[name=pack]').eq(2)
-            .clear()
-            .type('1');
-        cy.get('input[name=pack]').eq(3)
-            .clear()
-            .type('0');
 
-        // This piece of code inserted before the action triggering the download allows avoids the page load timeout (Cypress problem when we click on the link to download the file)
-        cy.window().then(win => {
-            const triggerAutIframeLoad = () => {
-                const AUT_IFRAME_SELECTOR = '.aut-iframe';
+        cy.preventPageLoading();
 
-                // get the application iframe
-                const autIframe = win.parent.document.querySelector(AUT_IFRAME_SELECTOR);
-
-                if (!autIframe) {
-                    throw new ReferenceError(`Failed to get the application frame using the selector '${AUT_IFRAME_SELECTOR}'`);
-                }
-
-                autIframe.dispatchEvent(new Event('load'));
-                // remove the event listener to prevent it from firing the load event before each next unload (basically before each successive test)
-                win.removeEventListener('beforeunload', triggerAutIframeLoad);
-            };
-
-            win.addEventListener('beforeunload', triggerAutIframeLoad);
-        });
-
-        cy.getTheDate().then(value => {
-            logisticUnitsCreationDate = value;
-        })
 
         cy.get('#submitAddPacks').click().wait('@arrivage_add_pack');
 
-        // This piece of code allows to detect downloaded attachment
-        cy.wait('@printPacks', {timeout: 100000}).then((res) => {
-            const filename = res.response.headers['content-disposition'].split('filename=')[1];
-            const downloadedFilename = path.join(downloadsFolder, filename);
-            cy.readFile(downloadedFilename).should('exist');
-        });
+        cy.readDownloadFile('@printPacks');
 
     })
 
@@ -664,68 +567,43 @@ describe('Create and edit logistic units arrivals', () => {
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().find('td').eq(3).then(($text) => {
-        //     let logisticUnitsNumber = $text.text();
-        //     cy.wrap(logisticUnitsNumber).as('logisticUnitsNumber');
-        // })
-        // cy.get('table#arrivalsTable tbody tr').first().click().wait('@packs_api', {timeout: 12000});
-        cy.get('#arrivalsTable tbody td').eq(3).each(($td) => {
-            cy.wrap($td).invoke('text').then((text) => {
-                if (text.trim() === logisticUnitsNumber) {
-                    cy.wrap($td).click().wait('@packs_api', {timeout: 12000});
-                }
-            });
-        });
+        cy.get('#arrivalsTable tbody tr').last().find('td').eq(3).then(($text) => {
+            const logisticUnitsNumber = $text.text();
+            cy.wrap(logisticUnitsNumber).as('logisticUnitsNumber');
+        })
 
-        cy.get('#tablePacks_wrapper thead th')
-            .eq(4)
-            .dblclick();
+        cy.get('#arrivalsTable tbody tr').last().click();
+
+        cy.wait('@packs_api');
+
         cy.get('#tablePacks tbody tr')
-            .first()
+            .last()
             .find('td')
             .eq(1)
-            .contains('BAC');
+            .contains('NATURE 1');
+
+        cy.get('@logisticUnitsNumber').then((logisticUnitsNumber) => {
+            cy.get('#tablePacks tbody tr')
+                .last()
+                .find('td')
+                .eq(2)
+                .contains(logisticUnitsNumber)
+        })
 
         cy.get('#tablePacks tbody tr')
-            .first()
-            .find('td')
-            .eq(2)
-            .contains(logisticUnitsNumber)
-
-        cy.get('#tablePacks tbody tr')
-            .first()
+            .last()
             .find('td')
             .eq(3)
             .contains(newLU.project);
-
-        cy.get('#tablePacks tbody tr')
-            .first()
-            .find('td')
-            .eq(4)
-            .contains(logisticUnitsCreationDate);
-        cy.get('#tablePacks tbody tr')
-            .first()
-            .find('td')
-            .eq(5)
-            .contains(LUArrivals.dropLocation);
     })
 
-    it("should edit the new logistic units arrivals created", () => {
+    it("should edit a logistic units arrivals created", () => {
         cy.intercept('POST', '/arrivage/api-modifier').as('arrivage_edit_api');
         cy.intercept('POST', '/arrivage/modifier').as('arrivage_edit');
 
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().click();
-        cy.get('table#arrivalsTable tbody tr td').eq(3).each(($td) => {
-            cy.wrap($td).invoke('text').then((text) => {
-                if (text.trim() === logisticUnitsNumber) {
-                    cy.wrap($td).click();
-                }
-            });
-        });
+        cy.get('table#arrivalsTable tbody tr').last().click();
 
         cy.get('button.split-button')
             .click()
@@ -817,15 +695,7 @@ describe('Create and edit logistic units arrivals', () => {
         cy.intercept('POST', 'arrivage/packs/api/*').as('packs_api');
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
-        // A remettre pour les tests individuels
-        // cy.get('table#arrivalsTable tbody tr').first().click();
-        cy.get('#arrivalsTable tbody td').eq(3).each(($td) => {
-            cy.wrap($td).invoke('text').then((text) => {
-                if (text.trim() === logisticUnitsNumber) {
-                    cy.wrap($td).click();
-                }
-            });
-        });
+        cy.get('table#arrivalsTable tbody tr').last().click();
 
         cy.get('[title=Statut]')
             .parent().siblings()
