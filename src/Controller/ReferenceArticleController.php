@@ -230,8 +230,8 @@ class ReferenceArticleController extends AbstractController
             if (!empty($data['emergencyComment'])) {
                 $refArticle->setEmergencyComment($data['emergencyComment']);
             }
-            if (!empty($data['emergencyLimit'])) {
-                $refArticle->setEmergencyLimit($data['emergencyLimit']);
+            if (!empty($data['emergencyQuantity'])) {
+                $refArticle->setEmergencyQuantity($data['emergencyQuantity']);
             }
             if (!empty($data['categorie'])) {
             	$category = $inventoryCategoryRepository->find($data['categorie']);

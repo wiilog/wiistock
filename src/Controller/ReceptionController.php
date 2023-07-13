@@ -1991,13 +1991,13 @@ class ReceptionController extends AbstractController {
         foreach($emergencies as $emergency) {
             $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
-            $newEmergencyLimit = $referenceArticle->getEmergencyLimit() - $emergency[1];
+            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                 'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
-                'newEmergencyLimit' => $newEmergencyLimit,
+                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -2025,20 +2025,20 @@ class ReceptionController extends AbstractController {
                 );
             }
 
-            if (!$referenceArticle->getEmergencyLimit() || $referenceArticle->getEmergencyLimit() === 0) {
+            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
                 $referenceArticle
                     ->setIsUrgent(false)
                     ->setUserThatTriggeredEmergency(null)
                     ->setEmergencyComment('');
             } else {
-                if ($newEmergencyLimit <= 0) {
+                if ($newEmergencyQuantity <= 0) {
                     $referenceArticle
                         ->setIsUrgent(false)
-                        ->setEmergencyLimit(null)
+                        ->setEmergencyQuantity(null)
                         ->setUserThatTriggeredEmergency(null)
                         ->setEmergencyComment('');
                 } else {
-                    $referenceArticle->setEmergencyLimit($newEmergencyLimit);
+                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
                 }
             }
             $entityManager->flush();

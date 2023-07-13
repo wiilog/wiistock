@@ -223,15 +223,15 @@ function updateArticleReferenceImage($div, $image) {
 
 function toggleEmergency($switch) {
     const $emergencyComment = $('.emergency-comment');
-    const $emergencyLimit = $('.emergency-limit');
+    const $emergencyQuantity = $('.emergency-quantity');
     if ($switch.is(':checked')) {
         $emergencyComment.removeClass('d-none');
-        $emergencyLimit.removeClass('d-none');
+        $emergencyQuantity.removeClass('d-none');
     } else {
         $emergencyComment.addClass('d-none');
-        $emergencyLimit.addClass('d-none');
+        $emergencyQuantity.addClass('d-none');
         $emergencyComment.val('');
-        $emergencyLimit.val('');
+        $emergencyQuantity.val('');
     }
 }
 

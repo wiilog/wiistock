@@ -438,7 +438,7 @@ class RefArticleDataService
             ->setIsUrgent($isUrgent)
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
             ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
-            ->setEmergencyLimit($isUrgent ? ($data->getInt('emergencyLimit') >= 0) ? $data->getInt('emergencyLimit') : null : null)
+            ->setEmergencyQuantity($isUrgent ? ($data->getInt('emergencyQuantity') >= 0) ? $data->getInt('emergencyQuantity') : null : null)
             ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
