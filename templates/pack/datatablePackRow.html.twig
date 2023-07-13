@@ -3,7 +3,7 @@
 {% set hasRightPairing = hasPairing
     and hasRight(constant('App\\Entity\\Menu::IOT'), constant('App\\Entity\\Action::DISPLAY_SENSOR')) %}
 
-{% if pack.arrivage or hasRightEditor or hasRightDelete or hasRightPairing %}
+{% if pack.arrivage or hasRightEdit or hasRightDelete or hasRightPairing %}
     <div class="d-flex justify-content-between">
         <div class="dropdown dropright">
             {{ include('datatable/dotsRow.html.twig') }}

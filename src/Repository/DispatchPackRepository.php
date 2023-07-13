@@ -26,6 +26,8 @@ class DispatchPackRepository extends EntityRepository {
             ->select('dispatch_pack.id AS id')
             ->addSelect('pack.code AS code')
             ->addSelect('pack.comment AS comment')
+            ->addSelect('pack.weight AS weight')
+            ->addSelect('pack.volume AS volume')
             ->addSelect('nature.id AS natureId')
             ->addSelect('dispatch_pack.quantity AS quantity')
             ->addSelect('dispatch.id AS dispatchId')
