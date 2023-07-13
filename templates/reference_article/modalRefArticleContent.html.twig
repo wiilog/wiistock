@@ -143,7 +143,7 @@
         </div>
     {% endif %}
 
-    <div class="form-group col-4 mt-4">
+    <div class="form-group col-4 mt-8">
         <div class="article {{ dnone }}">
             <label for="urgence" class="wii-field-text">Urgence</label><br>
             <label class="switch">
@@ -153,11 +153,16 @@
             </label>
         </div>
     </div>
-
-    <div class="form-group col-4 mt-4">
-        <div class="emergency-comment {{ not articleRef.isUrgent ? 'd-none' }}">
+    <div class="form-group col-4 col-md-4 mt-2">
+        {% set display = not articleRef.isUrgent ? 'd-none' : '' %}
+        {{ form.number('emergencyLimit', 'Seuil d\'urgence', false, articleRef.emergencyLimit, {
+            labelClass: 'emergenc-limit ' ~ display,
+        }) }}
+    </div>
+    <div class="form-group col-4 mt-12">
+        <div class="emergency-comment {{ display }}">
             <label for="emergency-comment-input" class="wii-field-name">Commentaire de l'urgence</label>
-            <input class="form-control data w-100" type="text" name="emergency-comment-input" value="{{ articleRef.emergencyComment }}">
+            <input class="form-control data w-100" type="text" name="emergencyComment" value="{{ articleRef.emergencyComment }}">
         </div>
     </div>
 </div>

@@ -132,6 +132,9 @@ class ReferenceArticle
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $emergencyComment = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $emergencyLimit = null;
+
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
     private ?Utilisateur $userThatTriggeredEmergency = null;
 
@@ -722,6 +725,15 @@ class ReferenceArticle
     public function setEmergencyComment(?string $emergencyComment): self {
         $this->emergencyComment = $emergencyComment;
 
+        return $this;
+    }
+
+    public function getEmergencyLimit(): ?int {
+        return $this->emergencyLimit;
+    }
+
+    public function setEmergencyLimit(?int $emergencyLimit): self {
+        $this->emergencyLimit = $emergencyLimit;
         return $this;
     }
 
