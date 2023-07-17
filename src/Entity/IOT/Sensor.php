@@ -15,6 +15,7 @@ class Sensor {
     const TEMPERATURE = 'Température';
     const GPS = 'GPS';
     const ACTION = 'Action';
+    const HYGROMETRY = 'Température & hygrométrie';
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
         self::GPS => 'iot-tracking',
