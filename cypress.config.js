@@ -10,4 +10,8 @@ module.exports = defineConfig({
         setupNodeEvents(on, config) {
         },
     },
+    user: {
+        email: 'admin@wiilog.fr',
+        password: 'Admin1234!',
+    }
 });

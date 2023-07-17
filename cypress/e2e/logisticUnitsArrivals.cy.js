@@ -53,17 +53,13 @@ const disputeChanged = {
     status: 'Traité',
 }
 let disputeCreationDate;
-const user = {
-    email: 'admin@wiilog.fr',
-    password: 'Admin1234!',
-}
-
+const user= Cypress.config('user');
 describe('Create and edit logistic units arrivals', () => {
 
     beforeEach(() => {
         const downloadsFolder = Cypress.config('downloadsFolder');
         cy.exec(`del /q ${downloadsFolder}\\*`, {failOnNonZeroExit: false});
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.visit('/');
     })
 

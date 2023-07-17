@@ -44,11 +44,11 @@ Cypress.Commands.add('addTypeInSettings', (settingsItemName) => {
             }
 
             if ($div.find('select[name=pickLocation]').length) {
-                cy.select2Ajax('pickLocation', 'LOCAL');
+                cy.select2Ajax('pickLocation', 'BUREAU GT');
             }
 
             if ($div.find('select[name=dropLocation]').length) {
-                cy.select2Ajax('dropLocation', 'ZONE');
+                cy.select2Ajax('dropLocation', 'ZONE 41');
             }
 
             if ($div.find('input[name=pushNotifications]').length) {
@@ -56,7 +56,7 @@ Cypress.Commands.add('addTypeInSettings', (settingsItemName) => {
             }
 
             if ($div.find('select[name=notificationEmergencies]').length) {
-                cy.select2('notificationEmergencies', ['24h', '48h']);
+                cy.select2('notificationEmergencies', '24h');
             }
 
             if ($div.find('#upload-logo').length) {
@@ -83,6 +83,7 @@ Cypress.Commands.add('editTypeInSettings', (settingsItemName) => {
     cy
         .get(`[data-menu=${settingsItemName}] button.edit-button`)
         .click().wait('@settings_free_field_api');
+
     cy
         .get('.main-entity-content input[name=label]')
         .clear()
@@ -111,23 +112,25 @@ Cypress.Commands.add('editTypeInSettings', (settingsItemName) => {
             }
 
             if ($div.find('select[name=pickLocation]').length) {
-                cy.select2Ajax('pickLocation', 'DEPOSE');
+                cy.select2Ajax('pickLocation', 'ZONE 41');
             }
 
             if ($div.find('select[name=dropLocation]').length) {
-                cy.select2Ajax('dropLocation', 'BAT');
+                cy.select2Ajax('dropLocation', 'BUREAU GT');
             }
 
             if ($div.find('input[name=pushNotifications]').length) {
-                cy.get('input[name=pushNotifications]').check('2');
+                cy.get('input[name=pushNotifications]').check('2').then(() => {
+                    cy.get('.main-entity-content-item').first().find('select[name=notificationEmergencies]').should(($select) => {
+                        if ($select.is(':visible')) {
+                            cy.select2('notificationEmergencies', ['24h']);
+                        }
+                    });
+                })
             }
 
-            cy.get('.main-entity-content-item').first().find('select[name=notificationEmergencies]').should(($select) => {
-                if ($select.is(':visible')) {
-                    cy.select2('notificationEmergencies', ['24h']);
-                } else {
-                }
-            });
+
+
 
             if ($div.find('input[type=file]').length) {
                 const filePath = 'cypress/fixtures/logo.jpg';
@@ -156,6 +159,7 @@ Cypress.Commands.add('addFreeFieldInSettings', (settingsItemName) => {
             cy.get(linesTableFreeFieldsComponent).find('td').should('have.length.gt', 1);
         }
     });
+
     cy
         .get(`[data-menu=${settingsItemName}]`)
         .then(($item) => {
@@ -168,60 +172,76 @@ Cypress.Commands.add('addFreeFieldInSettings', (settingsItemName) => {
                     .get(linesTableFreeFieldsComponent).last()
                     .click();
             } else {
-                cy
-                    .get(`${linesTableFreeFieldsComponent} td .wii-icon-plus`)
+                cy.get(`${linesTableFreeFieldsComponent}`).first()
                     .click().wait('@settings_free_field_api');
+                cy.get(`${linesTableFreeFieldsComponent} td .wii-icon-plus`)
+                    .click();
             }
         });
 
-    cy
-        .get(linesTableFreeFieldsComponent)
-        .invoke('removeAttr', 'style')
-        .then(() => {
+
+    cy.get('select[name=type]').then(($select) => {
+        const typeLength= $select.find('option').length;
+        for (let i = 1; i < typeLength; i++) {
+            const t = $select.find('option').eq(i).val();
+            if (i>1) {
+                cy.get(`${linesTableFreeFieldsComponent} td .wii-icon-plus`).click()
+            }
 
             cy
                 .get(linesTableFreeFieldsComponent)
-                .then(($elements) => {
-                    const penultimate = $elements.eq(-2);
-                    cy
-                        .wrap(penultimate).find('input[name=label]')
-                        .click()
-                        .type(labelName);
+                .invoke('removeAttr', 'style')
+                .then(() => {
 
                     cy
-                        .wrap(penultimate)
-                        .then(($element) => {
+                        .get(linesTableFreeFieldsComponent)
+                        .then(($elements) => {
+                            const penultimate = $elements.eq(-2);
+                            cy
+                                .wrap(penultimate).find('input[name=label]')
+                                .click()
+                                .type(labelName + i);
 
-                            if ($element.find('select[name=category]').length) {
-                                cy
-                                    .wrap($element).find('select[name=category]')
-                                    .select(1);
+                            cy
+                                .wrap(penultimate)
+                                .then(($element) => {
+
+                                    if ($element.find('select[name=category]').length) {
+                                        cy
+                                            .wrap($element).find('select[name=category]')
+                                            .select(1);
+                                    }
+                                });
+
+                            cy
+                                .wrap(penultimate).find('select[name=type]')
+                                .select(i);
+
+                            const typeArray = ['list', 'list multiple']
+
+                            if (typeArray.includes($select.find('option').eq(i).val(), 0)) {
+                                cy.wrap(penultimate)
+                                    .find('input[name=elements]').click().type('test')
                             }
+                            cy
+                                .wrap(penultimate).find('input[type=checkbox]')
+                                .check();
                         });
-
-                    cy
-                        .wrap(penultimate).find('select[name=type]')
-                        .select(1);
-
-                    cy
-                        .wrap(penultimate).find('input[type=text][name=defaultValue]')
-                        .click()
-                        .type('TEST');
-
-                    cy
-                        .wrap(penultimate).find('input[type=checkbox]')
-                        .check();
                 });
-        });
-    cy.wait(2000);
-    cy
-        .get('button.save-settings')
-        .click().wait('@settings_free_field_api', {timeout: 80000});
 
+            if (i === typeLength - 1) {
+                cy.get('button.save-settings')
+                    .click().wait('@settings_free_field_api', {timeout: 80000});
 
-    cy.get(linesTableFreeFieldsComponent)
-        .contains(labelName, {timeout: 8000})
-        .should('exist');
+                cy.get('.dataTables_length select').select(3, {force: true});
+                for (let i = 1; i < typeLength; i++) {
+                    cy.get(linesTableFreeFieldsComponent)
+                        .contains(labelName + i, {timeout: 8000})
+                        .should('exist');
+                }
+            }
+        }
+    })
 })
 
 Cypress.Commands.add('editFreeFieldInSettings', (settingsItemName) => {
@@ -246,7 +266,7 @@ Cypress.Commands.add('editFreeFieldInSettings', (settingsItemName) => {
                     .click().wait('@settings_free_field_api');
             } else {
                 cy
-                    .get(linesTableFreeFieldsComponent).first().find('td').eq(1)
+                    .get(linesTableFreeFieldsComponent).first().find('td').eq(2)
                     .click();
             }
         });
@@ -269,6 +289,7 @@ Cypress.Commands.add('editFreeFieldInSettings', (settingsItemName) => {
     cy
         .get(linesTableFreeFieldsComponent).first().find('input[type=checkbox]')
         .check({force: true});
+    //TODO wait !!!
     cy.wait(2000);
     cy
         .get('button.save-settings')

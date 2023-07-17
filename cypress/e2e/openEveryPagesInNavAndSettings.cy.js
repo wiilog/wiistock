@@ -1,12 +1,9 @@
 const tableRoleName = 'tableRoles';
-const user = {
-    email: 'Test@test.fr',
-    password: 'Test123456!',
-}
+const user = Cypress.config('user');
 describe('Open every pages in nav and settings', () => {
 
     beforeEach(() => {
-        cy.login(user.email, user.password);
+        cy.login(user);
         cy.visit('/')
     })
 
@@ -21,7 +18,6 @@ describe('Open every pages in nav and settings', () => {
             cy.get('#modalEditUser button.close').click();
             cy.navigateInNavMenu('parametre');
             cy.get('[data-cy-settings-menu=roles]').click().wait('@settings_role_api');
-            cy.get(`input[type=search][aria-controls=${tableRoleName}]`).click().type(`${roleName}{enter}`);
             cy.get(`table#${tableRoleName} tbody tr`).contains(roleName).first().click();
             cy.url().should('include', roleId)
             cy.get('.settings-content input[type=checkbox]').then(($inputs) => {
@@ -32,8 +28,8 @@ describe('Open every pages in nav and settings', () => {
     })
 
     it('should navigate to all nav pages', () => {
-        cy
-            .get('nav')
+        //TODO Check all requests and not only href request
+        cy.get('nav')
             .click()
             .get('.dropdown-menu')
             .should('be.visible')
