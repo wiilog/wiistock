@@ -150,7 +150,7 @@ function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printPacks, printArrivage}) {
+function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) {
     let templates;
     try {
         templates = JSON.parse($('#tagTemplates').val());
@@ -160,9 +160,11 @@ function printArrival({arrivageId, printPacks, printArrivage}) {
     let params = {
         arrivage: arrivageId,
         printPacks: printPacks ? 1 : 0,
-        printArrivage: printArrivage ? 1 : 0
+        printArrivage: printArrivage ? 1 : 0,
+        packs: packs ?? [],
     };
-    if (templates.length > 0) {
+    const printAllPacks = printAll ?? false;
+    if (templates.length > 0 && !printAllPacks) {
         Promise.all(
             [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
                 .concat(templates.map(function(template) {
