@@ -69,26 +69,44 @@ function submitSensor(val = null) {
 }
 
 function onTemplateTypeChange($select){
-    const templatesHigherSelect = $modalNewTriggerAction.find("select[name=templatesForHigher]");
-    const templatesLowerSelect = $modalNewTriggerAction.find("select[name=templatesForLower]");
+    const templatesHigherTempSelect = $modalNewTriggerAction.find("select[name=templatesForHigherTemp]");
+    const templatesLowerTempSelect = $modalNewTriggerAction.find("select[name=templatesForLowerTemp]");
+    const templatesHigherHygroSelect = $modalNewTriggerAction.find("select[name=templatesForHigherHygro]");
+    const templatesLowerHygroSelect = $modalNewTriggerAction.find("select[name=templatesForLowerHygro]");
     const templatesSelect = $modalEditTriggerAction.find("select[name=templates]");
     const route = Routing.generate(`get_templates`, {type: $select.val()});
 
-    if($select.attr('name') === 'templateTypeHigher' && $select.val() !== ''){
+    if($select.attr('name') === 'templateTypeHigherTemp' && $select.val() !== ''){
         $.post(route).then(({results}) => {
-            templatesHigherSelect.empty();
+            templatesHigherTempSelect.empty();
             for(let option of results){
-                templatesHigherSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+                templatesHigherTempSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
             }
-            templatesHigherSelect.attr('disabled', $select.val() === '');
+            templatesHigherTempSelect.attr('disabled', $select.val() === '');
         });
-    } else if($select.attr('name') === 'templateTypeLower' && $select.val() !== ''){
+    } else if($select.attr('name') === 'templateTypeLowerTemp' && $select.val() !== ''){
         $.post(route).then(({results}) => {
-            templatesLowerSelect.empty();
+            templatesLowerTempSelect.empty();
             for(let option of results){
-                templatesLowerSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+                templatesLowerTempSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
             }
-            templatesLowerSelect.attr('disabled', $select.val() === '');
+            templatesLowerTempSelect.attr('disabled', $select.val() === '');
+        });
+    } else if($select.attr('name') === 'templateTypeHigherHygro' && $select.val() !== ''){
+        $.post(route).then(({results}) => {
+            templatesHigherHygroSelect.empty();
+            for(let option of results){
+                templatesHigherHygroSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+            }
+            templatesHigherHygroSelect.attr('disabled', $select.val() === '');
+        });
+    } else if($select.attr('name') === 'templateTypeLowerHygro' && $select.val() !== ''){
+        $.post(route).then(({results}) => {
+            templatesLowerHygroSelect.empty();
+            for(let option of results){
+                templatesLowerHygroSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
+            }
+            templatesLowerHygroSelect.attr('disabled', $select.val() === '');
         });
     } else if($select.attr('name') === 'templateType' && $select.val() !== ''){
         $.post(route).then(({results}) => {
