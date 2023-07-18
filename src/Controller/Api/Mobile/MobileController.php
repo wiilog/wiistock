@@ -3818,7 +3818,7 @@ class MobileController extends AbstractApiController
 
         foreach($truckArrivalReserves as $truckArrivalReserve){
             $reserve = (new Reserve())
-                ->setType($truckArrivalReserve['type'])
+                ->setKind($truckArrivalReserve['type'])
                 ->setComment($truckArrivalReserve['comment'] ?? null)
                 ->setQuantity($truckArrivalReserve['quantity'] ?? null)
                 ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
@@ -3833,7 +3833,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setKind($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['photos']){
