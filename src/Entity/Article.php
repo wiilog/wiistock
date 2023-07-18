@@ -17,13 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-
-/**
- * @UniqueEntity("reference")
- * @UniqueEntity("rfidtag", message="Le RFID Tag {{ value }} est déjà utilisé.")
- */
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article implements PairedEntity {
 
