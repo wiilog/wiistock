@@ -223,11 +223,15 @@ function updateArticleReferenceImage($div, $image) {
 
 function toggleEmergency($switch) {
     const $emergencyComment = $('.emergency-comment');
+    const $emergencyQuantity = $('.emergency-quantity');
     if ($switch.is(':checked')) {
         $emergencyComment.removeClass('d-none');
+        $emergencyQuantity.removeClass('d-none');
     } else {
         $emergencyComment.addClass('d-none');
+        $emergencyQuantity.addClass('d-none');
         $emergencyComment.val('');
+        $emergencyQuantity.val('');
     }
 }
 
