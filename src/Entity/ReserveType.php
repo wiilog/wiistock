@@ -20,9 +20,6 @@ class ReserveType
     #[ORM\Column(type: 'string', unique: true)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $emails = [];
-
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $notifiedUsers;
 
