@@ -90,7 +90,7 @@
                     <div class="p-2 d-flex w-100">
                         <div class="d-flex w-100">
                             <div class="col-4">
-                                {% set generalReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::TYPE_GENERAL')) %}
+                                {% set generalReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::KIND_GENERAL')) %}
                                 <div class="wii-field-name">Réserve général</div>
                                 <div class="wii-body-text">{{ generalReserve ? 'oui' : 'non' }} </div>
                             </div>
@@ -115,7 +115,7 @@
                     <div class="p-2 d-flex w-100">
                         <div class="d-flex w-100">
                             <div class="col-4">
-                                {% set quantityReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::TYPE_QUANTITY')) %}
+                                {% set quantityReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::KIND_QUANTITY')) %}
                                 <div class="wii-field-name">Réserve quantité</div>
                                 <div class="wii-body-text">{{ quantityReserve ? 'oui' : 'non' }} </div>
                             </div>

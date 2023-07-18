@@ -10,7 +10,7 @@
         {{ form.input('generalReserveComment', 'Commentaire', false, reserve is defined and reserve ? reserve.comment : null) }}
     </div>
     {% if reserve is defined  %}
-        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_GENERAL'), {
+        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::KIND_GENERAL'), {
             type: 'hidden',
         }) }}
         {% if reserve and reserve.id  %}
