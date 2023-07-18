@@ -21,14 +21,14 @@ class Reserve
         self::PLUS,
     ];
 
-    const TYPE_QUANTITY = 'quantity';
-    const TYPE_GENERAL = 'general';
-    const TYPE_QUALITY = 'quality';
+    const KIND_QUANTITY = 'quantity';
+    const KIND_GENERAL = 'general';
+    const KIND_QUALITY = 'quality';
 
     const TYPES = [
-        self::TYPE_QUANTITY,
-        self::TYPE_GENERAL,
-        self::TYPE_QUALITY,
+        self::KIND_QUANTITY,
+        self::KIND_GENERAL,
+        self::KIND_QUALITY,
     ];
 
     #[ORM\Id]
@@ -36,8 +36,9 @@ class Reserve
     #[ORM\Column]
     private ?int $id = null;
 
+    /* value : quantity, general and quality */
     #[ORM\Column(length: 255, nullable: false)]
-    private ?string $type = null;
+    private ?string $kind = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -54,6 +55,9 @@ class Reserve
     #[ORM\ManyToOne(targetEntity: TruckArrival::class, inversedBy: 'reserves')]
     private ?TruckArrival $truckArrival = null;
 
+    #[ORM\ManyToOne(targetEntity: ReserveType::class)]
+    private ?ReserveType $reserveType = null;
+
     public function __construct()
     {
         $this->attachments = new ArrayCollection();
@@ -64,14 +68,14 @@ class Reserve
         return $this->id;
     }
 
-    public function getType(): ?string
+    public function getKind(): ?string
     {
-        return $this->type;
+        return $this->kind;
     }
 
-    public function setType(string $type): self
+    public function setKind(string $kind): self
     {
-        $this->type = $type;
+        $this->kind = $kind;
 
         return $this;
     }
@@ -144,6 +148,18 @@ class Reserve
         }
         $this->truckArrival = $truckArrival;
         $truckArrival?->addReserve($this);
+
+        return $this;
+    }
+
+    public function getReserveType(): ?ReserveType
+    {
+        return $this->reserveType;
+    }
+
+    public function setReserveType(?ReserveType $reserveType): self
+    {
+        $this->reserveType = $reserveType;
 
         return $this;
     }
