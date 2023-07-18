@@ -189,15 +189,17 @@ function openAddReferenceModal($button, options = {}) {
         return AJAX
             .route(AJAX.GET, 'dispatch_add_reference_api', {dispatch: dispatchId, pack: pack})
             .json()
-            .then((data)=>{
-                $modalbody.html(data);
-                $modal.modal('show');
-                const selectPack = $modalbody.find('select[name=pack]');
-                selectPack.on('change', function () {
-                    const defaultQuantity = $(this).find('option:selected').data('default-quantity');
-                    $modalbody.find('input[name=quantity]').val(defaultQuantity);
-                })
-                selectPack.trigger('change')
+            .then(({template, success})=>{
+                if(success) {
+                    $modalbody.html(template);
+                    $modal.modal('show');
+                    const selectPack = $modalbody.find('select[name=pack]');
+                    selectPack.on('change', function () {
+                        const defaultQuantity = $(this).find('option:selected').data('default-quantity');
+                        $modalbody.find('input[name=quantity]').val(defaultQuantity);
+                    })
+                    selectPack.trigger('change');
+                }
             })
     })
 }

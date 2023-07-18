@@ -1671,6 +1671,7 @@ class DispatchService {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
+        $packNature = isset($data['natureId']) ? $natureRepository->find($data['natureId']) : null;
 
         $reference = ($createdReferences[$data['reference']] ?? null)
             ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
@@ -1744,7 +1745,7 @@ class DispatchService {
         $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
             ?? $this->packService->createPackWithCode($data['logisticUnit']);
 
-        $logisticUnit->setNature($defaultNature);
+        $logisticUnit->setNature($packNature ?? $defaultNature);
 
         $entityManager->persist($logisticUnit);
 
