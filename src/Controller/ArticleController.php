@@ -39,6 +39,7 @@ use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -352,6 +353,13 @@ class ArticleController extends AbstractController
                         'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
+                /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException $exception) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Le tag RFID :" . $data['rfidTag'] . " est déja utilisé.",
+                ];
+            }
             return new JsonResponse($response);
         }
         throw new BadRequestHttpException();

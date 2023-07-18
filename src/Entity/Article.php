@@ -22,6 +22,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @UniqueEntity("reference")
+ * @UniqueEntity("rfidtag", message="Le RFID Tag {{ value }} est déjà utilisé.")
  */
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article implements PairedEntity {

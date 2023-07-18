@@ -150,7 +150,7 @@
                 <div class="content">
                     <div class="row">
                         <div class="col-6 mt-2">
-                            {{ form.input('rfidTag', 'Tag RFID', false) }}
+                            {{ form.input('rfidTag', 'Tag RFID', false, article.rFIDtag ? article.rFIDtag : null) }}
                         </div>
                         {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
