@@ -161,9 +161,9 @@ function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) 
         arrivage: arrivageId,
         printPacks: printPacks ? 1 : 0,
         printArrivage: printArrivage ? 1 : 0,
-        packs: packs ?? [],
+        packs: packs || [],
     };
-    const printAllPacks = printAll ?? false;
+    const printAllPacks = printAll || false;
     if (templates.length > 0 && !printAllPacks) {
         Promise.all(
             [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
