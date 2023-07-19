@@ -24,6 +24,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
+use App\Service\IOT\IOTService;
 use DateTime;
 use DateTimeInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -344,20 +345,12 @@ class FormatService
     }
 
 
-    public function messageContent(SensorMessage $sensorMessage) {
-        $type = $sensorMessage->getSensor() ? self::type($sensorMessage->getSensor()->getType()) : '';
-        $content = $sensorMessage->getContent();
-        switch ($type) {
-            case Sensor::TEMPERATURE:
-                $measureUnit = '°C';
-                break;
-            case Sensor::GPS:
-            case Sensor::ACTION:
-            default:
-                $measureUnit = '';
-        }
+    public function messageContent(SensorMessage $sensorMessage) :string {
+        return $sensorMessage->getContent() . (IOTService::DATA_TYPE_TO_UNIT[$sensorMessage->getContentType()] ?? '');
+    }
 
-        return $content . $measureUnit;
+    public function messageContentType(SensorMessage $sensorMessage) :string {
+        return IOTService::DATA_TYPE[$sensorMessage->getContentType()] ?? '';
     }
 
     public function sqlString(string $sqlString): string {
