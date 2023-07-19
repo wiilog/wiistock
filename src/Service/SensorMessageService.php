@@ -5,21 +5,17 @@ namespace App\Service;
 
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
-use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SensorMessageService
 {
-    private $entityManager;
+    #[Required]
+    public FormatService $formatService;
 
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
-
-    public function getDataForDatatable(Sensor $sensor, $params = null):array {
-
-        $queryResult = $this->entityManager->getRepository(SensorMessage::class)->findByParamsAndFilters($params, $sensor);
+    public function getDataForDatatable(EntityManagerInterface $entityManager, Sensor $sensor, $params = null):array {
+        $sensorMessageRepository = $entityManager->getRepository(SensorMessage::class);
+        $queryResult = $sensorMessageRepository->findByParamsAndFilters($params, $sensor);
 
         $sensorMessages = $queryResult['data'];
 
@@ -38,8 +34,9 @@ class SensorMessageService
     public function dataRowSensorMessage(SensorMessage $sensorMessage):array {
         return [
             'id' => $sensorMessage->getId(),
-            'date' => FormatHelper::datetime($sensorMessage->getDate()),
-            'content' => FormatHelper::messageContent($sensorMessage),
+            'date' => $this->formatService->datetime($sensorMessage->getDate()),
+            'content' => $this->formatService->messageContent($sensorMessage),
+            'contentType' => $this->formatService->messageContentType($sensorMessage),
             'event' => $sensorMessage->getEvent() ?? ""
         ];
     }
