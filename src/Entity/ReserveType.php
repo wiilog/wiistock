@@ -26,6 +26,13 @@ class ReserveType
     #[ORM\Column(type: "boolean", nullable: true)]
     private ?bool $isDefault = null;
 
+    #[ORM\Column(type: "boolean", nullable: true)]
+    private ?bool $active = null;
+
+    public function __construct() {
+        $this->notifiedUsers = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -87,6 +94,18 @@ class ReserveType
     public function setDefault(?bool $isDefault): self
     {
         $this->isDefault = $isDefault;
+
+        return $this;
+    }
+
+    public function isActive(): ?bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(?bool $active): self
+    {
+        $this->active = $active;
 
         return $this;
     }
