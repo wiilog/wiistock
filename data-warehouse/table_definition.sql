@@ -521,17 +521,18 @@ CREATE TABLE dw_projet_article
 
 CREATE TABLE dw_arrivage_camion
 (
-    id                 integer,
-    no_arrivage_camion varchar(255),
-    date_creation      timestamp(0),
-    transporteur       varchar(255),
-    chauffeur          varchar(255),
-    immatriculation    varchar(255),
-    emplacement        varchar(255),
-    operateur          varchar(255),
-    nb_tracking_total  integer,
-    reserve_general    varchar(255),
-    reserve_quantite   varchar(255)
+    id                  integer,
+    no_arrivage_camion  varchar(255),
+    date_creation       timestamp(0),
+    transporteur        varchar(255),
+    chauffeur           varchar(255),
+    immatriculation     varchar(255),
+    emplacement         varchar(255),
+    operateur           varchar(255),
+    nb_tracking_total   integer,
+    reserve_general     varchar(255),
+    reserve_quantite    varchar(255),
+    reserve_types       varchar(255)
 );
 
 CREATE TABLE dw_article
