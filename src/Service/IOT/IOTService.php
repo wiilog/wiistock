@@ -912,12 +912,14 @@ class IOTService
             */
         }
 
+        $sensorType = $linkedDevice->getType()->getLabel();
         $sensorMessageRepository->insertRaw([
             'date' => str_replace('/', '-', $frame['timestamp']),
             'content' => $frame['value'],
             'event' => $frame['event'],
             'payload' => json_encode($frame),
             'sensor' => $linkedDevice->getId(),
+            'contentType' => $sensorType === Sensor::GPS ? 4 : ($sensorType === Sensor::TEMPERATURE ? 1 : 0),
         ], $linked);
     }
 
