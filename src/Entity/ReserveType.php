@@ -26,7 +26,7 @@ class ReserveType
     #[ORM\Column(type: "boolean", nullable: true)]
     private ?bool $isDefault = null;
 
-    #[ORM\Column(type: "boolean", nullable: true)]
+    #[ORM\Column(type: "boolean", nullable: true, options: ["default" => true])]
     private ?bool $active = null;
 
     public function __construct() {
