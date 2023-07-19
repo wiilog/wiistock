@@ -39,7 +39,7 @@ class ReserveRepository extends EntityRepository
             ->leftJoin('reserve.line', 'truck_arrival_line')
             ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
             ->andWhere('truck_arrival.id = :truckArrivalId')
-            ->andWhere('reserve.type = :reserveType')
+            ->andWhere('reserve.kind = :reserveType')
             ->orderBy("truck_arrival_line.number", "DESC")
             ->setParameter('truckArrivalId', $params->get('truckArrival'))
             ->setParameter('reserveType', $reserveType);
