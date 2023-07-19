@@ -104,6 +104,7 @@ const initializers = {
     modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
+    trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
 };
 
@@ -1220,6 +1221,39 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
         ],
     });
     initializeType();
+}
+
+function initializeTruckArrivalReserves() {
+    const table = EditableDatatable.create(`#TruckArrivalReserves`, {
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        route: Routing.generate('settings_reserves_api', true),
+        deleteRoute: `settings_reserve_type_delete`,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder icon-column', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `emails`, title: `Boites email de notifications`},
+            {data: `isDefault`, title: `Réserve par défaut`},
+            {data: `active`, title: `Actif`, required: true},
+        ],
+        form: {
+            actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
+            label: `<input type='text' name='label' class='form-control data' required/>`,
+            emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
+            isDefault: `<div class='checkbox-container'><input type='checkbox' name='isDefault' class='form-control data'/></div>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+        },
+    });
 }
 
 function initializeArticleNativeCountriesTable() {

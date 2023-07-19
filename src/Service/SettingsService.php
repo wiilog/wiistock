@@ -24,6 +24,7 @@ use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -1091,6 +1092,51 @@ class SettingsService {
                         ->setActive($nativeCountryData['active']);
 
                     $this->manager->persist($nativeCountry);
+                }
+            }
+        }
+
+        if (isset($tables["TruckArrivalReserves"])) {
+            $reserveTypesData = array_filter($tables["TruckArrivalReserves"]);
+            $reserveTypeRepository = $this->manager->getRepository(ReserveType::class);
+            $userRepository = $this->manager->getRepository(Utilisateur::class);
+
+            if (!empty($reserveTypesData)) {
+                $defaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['isDefault'] === '1')->count();
+                if ($defaultReserveTypes > 1) {
+                    throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
+                }
+
+                foreach ($reserveTypesData as $reserveTypeData) {
+                    $persistedReserveTypes = [];
+                    if (isset($reserveTypeData['id'])) {
+                        $reserveType = Stream::from($persistedReserveTypes)
+                            ->filter(fn(ReserveType $reserveType) => $reserveType->getId() == $reserveTypeData['id'])
+                            ->first();
+
+                        if (!$reserveType) {
+                            $reserveType = $reserveTypeRepository->find($reserveTypeData['id']);
+                            $persistedReserveTypes[] = $reserveType;
+                        }
+                    } else {
+                        $reserveType = new ReserveType();
+                        $persistedReserveTypes[] = $reserveType;
+                    }
+
+                    if (isset($reserveTypeData['emails'])) {
+                        $emails = explode(',', $reserveTypeData['emails']);
+                        $notifiedUsers = Stream::from($emails)
+                            ->map(fn($userId) => $userRepository->find($userId))
+                            ->toArray();
+                    }
+
+                    $reserveType
+                        ->setLabel($reserveTypeData['label'])
+                        ->setNotifiedUsers($notifiedUsers ?? null)
+                        ->setDefault($reserveTypeData['isDefault'])
+                        ->setActive($reserveTypeData['active']);
+
+                    $this->manager->persist($reserveType);
                 }
             }
         }
