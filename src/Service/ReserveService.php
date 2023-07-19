@@ -39,7 +39,7 @@ class ReserveService
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request): array {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
-        $queryResult = $reserveRepository->findByParamsAndFilters($request->query, Reserve::TYPE_QUALITY);
+        $queryResult = $reserveRepository->findByParamsAndFilters($request->query, Reserve::KIND_QUALITY);
 
         $reserves = Stream::from($queryResult['data'])
             ->map(function (Reserve $reserve) {
