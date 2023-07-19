@@ -642,7 +642,7 @@ CREATE TABLE dw_capteur_messages
 (
     code_capteur      varchar(255),
     date_message      timestamp(0),
-    type_message      varchar(255),
+    type_donnee       varchar(255),
     donnee_principale text
 );
 
