@@ -21,37 +21,48 @@ final class Version20230718122212 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if(!$schema->hasTable("reserve_type")) {
+            $this->addSql("
+                CREATE TABLE reserve_type (
+                    id INT AUTO_INCREMENT NOT NULL,
+                    label VARCHAR(255) DEFAULT NULL,
+                    default_reserve_type INT DEFAULT NULL,
+                    active INT DEFAULT NULL,
+                    PRIMARY KEY (id)
+                )
+            ");
+        }
+
         $existingId = $this->connection
             ->executeQuery("
-            SELECT reserve_type.id
-            FROM reserve_type
-            WHERE reserve_type.label = :qualitylabel", [
+                SELECT reserve_type.id
+                FROM reserve_type
+                WHERE reserve_type.label = :qualitylabel", [
                 "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
             ])->fetchOne();
 
         if (!$existingId) {
-            $this->addSql("INSERT INTO reserve_type (label, is_default) VALUE (:qualitylabel, true)", [
+            $this->addSql("INSERT INTO reserve_type (label, is_default, active) VALUES ('qualitylabel', 1, 1)", [
                 "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
             ]);
-            $existingId = $this->connection
-                ->executeQuery("
-            SELECT reserve_type.id
-            FROM reserve_type
-            WHERE reserve_type.label = :qualitylabel", [
-                    "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
-                ])->fetchOne();
         }
 
         $reserves = $this->connection->executeQuery("
-            SELECT reserve.id
-            FROM reserve
-            WHERE kind = '" . Reserve::KIND_QUALITY . "'")->fetchAllAssociative();
+                SELECT reserve.id
+                FROM reserve
+                WHERE kind = '" . Reserve::KIND_QUALITY . "'"
+            )->fetchAllAssociative();
 
         foreach ($reserves as $reserve) {
             $this->addSql("
                 UPDATE reserve
-                SET reserve_type_id = " . $existingId . "
-                WHERE id = " . $reserve["id"]);
+                SET reserve_type_id = (
+                    SELECT reserve_type.id
+                        FROM reserve_type
+                        LIMIT 1
+                    )
+                WHERE id = {$reserve["id"]}
+            ");
         }
     }
 

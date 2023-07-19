@@ -378,7 +378,7 @@ class TruckArrivalController extends AbstractController
                 </button>
             ";
             if($edit) {
-                $isDefault = $reserveType->isDefault() ? 'checked' : '';
+                $isDefault = $reserveType->isDefaultReserveType() ? 'checked' : '';
                 $isActive = $reserveType->isActive() ? 'checked' : '';
                 $userOptions = Stream::from($reserveType->getNotifiedUsers())
                     ->map(fn(Utilisateur $user) => "<option value='{$user->getId()}' selected>{$user->getUsername()}</option>")
@@ -402,7 +402,7 @@ class TruckArrivalController extends AbstractController
                     "actions" => $actions,
                     "label" => $reserveType->getLabel(),
                     "emails" => implode(', ', $emails),
-                    "isDefault" => $this->formatService->bool($reserveType->isDefault()),
+                    "isDefault" => $this->formatService->bool($reserveType->isDefaultReserveType()),
                     "active" => $this->formatService->bool($reserveType->isActive()),
                 ];
             }
