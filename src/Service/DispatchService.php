@@ -114,12 +114,16 @@ class DispatchService {
     // cache for default nature
     private ?Nature $defaultNature = null;
 
-    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        if (!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        } else {
+            $filters = $preFilledFilters;
+        }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
