@@ -531,7 +531,8 @@ CREATE TABLE dw_arrivage_camion
     operateur           varchar(255),
     nb_tracking_total   integer,
     reserve_general     varchar(255),
-    reserve_quantite    varchar(255)
+    reserve_quantite    varchar(255),
+    reserve_types       varchar(255)
 );
 
 CREATE TABLE dw_article
