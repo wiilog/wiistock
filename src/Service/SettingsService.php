@@ -1133,7 +1133,7 @@ class SettingsService {
                     $reserveType
                         ->setLabel($reserveTypeData['label'])
                         ->setNotifiedUsers($notifiedUsers ?? null)
-                        ->setDefault($reserveTypeData['isDefault'])
+                        ->setDefaultReserveType($reserveTypeData['isDefault'])
                         ->setActive($reserveTypeData['active']);
 
                     $this->manager->persist($reserveType);
