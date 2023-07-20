@@ -345,11 +345,11 @@ class FormatService
     }
 
 
-    public function messageContent(SensorMessage $sensorMessage) :string {
+    public function messageContent(SensorMessage $sensorMessage): string {
         return $sensorMessage->getContent() . (IOTService::DATA_TYPE_TO_UNIT[$sensorMessage->getContentType()] ?? '');
     }
 
-    public function messageContentType(SensorMessage $sensorMessage) :string {
+    public function messageContentType(SensorMessage $sensorMessage): string {
         return IOTService::DATA_TYPE[$sensorMessage->getContentType()] ?? '';
     }
 
