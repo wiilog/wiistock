@@ -33,19 +33,9 @@ final class Version20230718122212 extends AbstractMigration
             ");
         }
 
-        $existingId = $this->connection
-            ->executeQuery("
-                SELECT reserve_type.id
-                FROM reserve_type
-                WHERE reserve_type.label = :qualitylabel", [
-                "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
-            ])->fetchOne();
-
-        if (!$existingId) {
-            $this->addSql("INSERT INTO reserve_type (label, is_default, active) VALUES ('qualitylabel', 1, 1)", [
-                "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
-            ]);
-        }
+        $this->addSql("INSERT INTO reserve_type (label, is_default, active) VALUES (:qualitylabel, 1, 1)", [
+            "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
+        ]);
 
         $reserves = $this->connection->executeQuery("
                 SELECT reserve.id
