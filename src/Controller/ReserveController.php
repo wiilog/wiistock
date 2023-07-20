@@ -31,10 +31,10 @@ class ReserveController extends AbstractController
         $data = $request->request->all();
 
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
-        if(isset($data['type']) && $data['type'] === Reserve::TYPE_QUALITY){
+        if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
             $reserve
-                ->setType(Reserve::TYPE_QUALITY)
+                ->setKind(Reserve::KIND_QUALITY)
                 ->setLine($truckArrivalLine)
                 ->setComment($data['comment'] ?? '');
 
@@ -50,7 +50,7 @@ class ReserveController extends AbstractController
                     throw new FormException('Une erreur est survenue lors de la validation du formulaire');
                 }
                 $reserve
-                    ->setType($type)
+                    ->setKind($type)
                     ->setComment($data['quantityReserveComment'] ?? $data['generalReserveComment'] ?? null )
                     ->setQuantity($data['reserveQuantity'] ?? null)
                     ->setQuantityType($data['reserveType'] ?? null)
