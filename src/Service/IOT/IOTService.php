@@ -96,16 +96,23 @@ class IOTService
         self::SYMES_ACTION_MULTI => 'à l\'action',
     ];
 
+    const DATA_TYPE_ERROR = 0;
+    const DATA_TYPE_TEMPERATURE = 1;
+    const DATA_TYPE_HYGROMETRY = 2;
+    const DATA_TYPE_ACTION = 3;
+    const DATA_TYPE_GPS = 4;
+
+
     const DATA_TYPE = [
-        1 => 'Température',
-        2 => 'Hygrométrie',
-        3 => 'Action',
-        4 => 'GPS',
+        self::DATA_TYPE_TEMPERATURE => 'Température',
+        self::DATA_TYPE_HYGROMETRY => 'Hygrométrie',
+        self::DATA_TYPE_ACTION => 'Action',
+        self::DATA_TYPE_GPS => 'GPS',
     ];
 
     const DATA_TYPE_TO_UNIT = [
-        1 => '°C',
-        2 => '%',
+        self::DATA_TYPE_TEMPERATURE => '°C',
+        self::DATA_TYPE_HYGROMETRY => '%',
     ];
 
     /** @Required */
@@ -439,7 +446,7 @@ class IOTService
 
         $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
 
-        return Stream::from($mainDatas)
+        $messages = Stream::from($mainDatas)
             ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager) :SensorMessage {
                 $received = new SensorMessage();
                 $received
@@ -451,10 +458,15 @@ class IOTService
                     ->setLinkedSensorLastMessage($device)
                     ->setSensor($device);
 
-                $entityManager->persist($received);
                 return $received;
             })
-            ->toArray() ?? [];
+            ->toArray();
+
+        foreach ($messages as $message) {
+            $entityManager->persist($message);
+        }
+
+        return $messages;
     }
 
     public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
@@ -574,28 +586,28 @@ class IOTService
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
                 $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
                 return [
-                    1 => $temperature,
-                    2 => $hygrometry,
+                    self::DATA_TYPE_TEMPERATURE => $temperature,
+                    self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
             case IOTService::KOOVEA_TAG:
-                return [1 => $config['value']];
+                return [self::DATA_TYPE_TEMPERATURE => $config['value']];
             case IOTService::KOOVEA_HUB:
-                return [4 => $config['value']];
+                return [self::DATA_TYPE_GPS => $config['value']];
             case IOTService::INEO_SENS_ACS_BTN:
-                return [3 => $this->extractEventTypeFromMessage($config, $profile)];
+                return [self::DATA_TYPE_ACTION => $this->extractEventTypeFromMessage($config, $profile)];
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
                     $value = hexdec(substr($config['payload_cleartext'], 0, 2));
                     $event =  $value & ~($value >> 3 << 3);
-                    return [3 => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
+                    return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
                 }
                 break;
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
-                    return [1 => $frame['jcd_temperature']];
+                    return [self::DATA_TYPE_TEMPERATURE => $frame['jcd_temperature']];
                 }
                 break;
             case IOTService::INEO_SENS_GPS:
@@ -606,11 +618,11 @@ class IOTService
                     } else {
                         $data = '-1,-1';
                     }
-                    return [4 => $data];
+                    return [self::DATA_TYPE_GPS => $data];
                 }
                 break;
         }
-        return [0 => 'Donnée principale non trouvée'];
+        return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
 
     public function extractEventTypeFromMessage(array $config, string $profile) {
