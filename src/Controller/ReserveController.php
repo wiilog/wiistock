@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Exceptions\FormException;
@@ -26,9 +27,13 @@ class ReserveController extends AbstractController
     public function index(Request $request, EntityManagerInterface $entityManager, AttachmentService $attachmentService): Response
     {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $data = $request->request->all();
+
+        $reserveTypeId = $data['reserveType'] ?? null;
+        $reserveType = $reserveTypeRepository->find($reserveTypeId) ?? null;
 
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
         if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
@@ -36,6 +41,7 @@ class ReserveController extends AbstractController
             $reserve
                 ->setKind(Reserve::KIND_QUALITY)
                 ->setLine($truckArrivalLine)
+                ->setReserveType($reserveType)
                 ->setComment($data['comment'] ?? '');
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
@@ -51,6 +57,7 @@ class ReserveController extends AbstractController
                 }
                 $reserve
                     ->setKind($type)
+                    ->setReserveType($reserveType)
                     ->setComment($data['quantityReserveComment'] ?? $data['generalReserveComment'] ?? null )
                     ->setQuantity($data['reserveQuantity'] ?? null)
                     ->setQuantityType($data['reserveType'] ?? null)
@@ -74,6 +81,7 @@ class ReserveController extends AbstractController
     public function getModalQualityReserveContent(Request $request,
                                                   EntityManagerInterface $entityManager): JsonResponse {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
+        $reserveTypesRepository = $entityManager->getRepository(ReserveType::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
 
         $reserve = '';
@@ -92,13 +100,21 @@ class ReserveController extends AbstractController
                 ];
             })
             ->toArray();
-
         if(count($availableTrackingNumber) === 0 && $reserve instanceof Reserve){
             $availableTrackingNumber[] = [
                 "label" => $reserve->getLine()->getNumber(),
                 "value" => $reserve->getLine()->getId(),
                 "selected" => true
             ];
+        }
+
+        $reserveTypes = $reserveTypesRepository->findAll();
+        $reserveTypesLabels = [];
+        foreach ($reserveTypes as $reserveType) {
+            $reserveTypesLabels[] = [
+                'label' => $reserveType->getLabel(),
+                'value' => $reserveType->getId()
+                ];
         }
 
         $attachments = $reserve instanceof Reserve
@@ -110,10 +126,12 @@ class ReserveController extends AbstractController
                 'reserve' => $reserve,
                 'attachments' => $attachments ?? [],
                 'availableTrackingNumber' => $availableTrackingNumber,
+                'reserveTypesLabels' => $reserveTypesLabels,
                 'new' => false,
             ]
             : [
                 'availableTrackingNumber' => $availableTrackingNumber,
+                'reserveTypesLabels' => $reserveTypesLabels,
                 'new' => true,
                 ];
 

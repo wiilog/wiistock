@@ -66,7 +66,7 @@
                         <span>Gestion des réserves</span>
                     </div>
                     <div class="wii-section-title my-3 d-flex align-items-center">
-                        Qualité
+                        Réserve sur n° de tracking
                     </div>
                     <div class="content py-0">
                         {% if hasRightEditReserve %}
@@ -90,7 +90,7 @@
                     <div class="p-2 d-flex w-100">
                         <div class="d-flex w-100">
                             <div class="col-4">
-                                {% set generalReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::KIND_GENERAL')) %}
+                                {% set generalReserve = truckArrival.getReserveByKind(constant('App\\Entity\\Reserve::KIND_GENERAL')) %}
                                 <div class="wii-field-name">Réserve général</div>
                                 <div class="wii-body-text">{{ generalReserve ? 'oui' : 'non' }} </div>
                             </div>
@@ -115,7 +115,7 @@
                     <div class="p-2 d-flex w-100">
                         <div class="d-flex w-100">
                             <div class="col-4">
-                                {% set quantityReserve = truckArrival.reserveByType(constant('App\\Entity\\Reserve::KIND_QUANTITY')) %}
+                                {% set quantityReserve = truckArrival.getReserveByKind(constant('App\\Entity\\Reserve::KIND_QUANTITY')) %}
                                 <div class="wii-field-name">Réserve quantité</div>
                                 <div class="wii-body-text">{{ quantityReserve ? 'oui' : 'non' }} </div>
                             </div>

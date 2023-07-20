@@ -50,8 +50,8 @@ $(function () {
 
 function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
     $modalReserveQuality.find('.modal-body').empty();
-    $modalReserveQuality.find('.modal-title').text(reserveId ? 'Modifier réserve qualité' : 'Ajouter réserve qualité');
-    $modalReserveQuality.find('.modal-title').attr('title', reserveId ? 'Modifier réserve qualité' : 'Ajouter réserve qualité');
+    $modalReserveQuality.find('.modal-title').text(reserveId ? 'Modifier une réserve sur n° de tracking' : 'Ajouter une réserve sur n° de tracking');
+    $modalReserveQuality.find('.modal-title').attr('title', reserveId ? 'Modifier une réserve sur n° de tracking' : 'Ajouter une réserve sur n° de tracking');
     Form.create($modalReserveQuality, true)
         .clearOpenListeners()
         .onOpen(() => {
@@ -122,7 +122,8 @@ function initTruckArrivalLineQualityReservesTable() {
         },
         columns: [
             {data: `actions`, title: ``, className: `noVis`, orderable: false},
-            {data: `reserveLineNumber`, title: `N° tracking transporteur`},
+            {data: `reserveLineNumber`, title: `N° de tracking transporteur`},
+            {data: `reserveType`, title: 'Type de réserve'},
             {data: `attachment`, title: `Pièces jointes`, orderable: false},
             {data: `comment`, title: `Commentaire`, orderable: false},
         ],
