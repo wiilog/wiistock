@@ -1102,8 +1102,8 @@ class SettingsService {
             $userRepository = $this->manager->getRepository(Utilisateur::class);
 
             if (!empty($reserveTypesData)) {
-                $defaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['isDefault'] === '1')->count();
-                if ($defaultReserveTypes > 1) {
+                $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
+                if ($isDefaultReserveTypes > 1) {
                     throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
                 }
 
@@ -1133,7 +1133,7 @@ class SettingsService {
                     $reserveType
                         ->setLabel($reserveTypeData['label'])
                         ->setNotifiedUsers($notifiedUsers ?? null)
-                        ->setDefaultReserveType($reserveTypeData['isDefault'])
+                        ->setDefaultReserveType($reserveTypeData['defaultReserveType'])
                         ->setActive($reserveTypeData['active']);
 
                     $this->manager->persist($reserveType);
