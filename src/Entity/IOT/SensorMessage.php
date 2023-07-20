@@ -133,13 +133,11 @@ class SensorMessage {
         return $this->pairings;
     }
 
-    public function getContentType(): ?string
-    {
+    public function getContentType(): ?int {
         return $this->contentType;
     }
 
-    public function setContentType(?string $contentType): self
-    {
+    public function setContentType(?int $contentType): self {
         $this->contentType = $contentType;
 
         return $this;

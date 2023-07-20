@@ -566,7 +566,7 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config, string $profile) :array{
+    public function extractMainDataFromConfig(array $config, string $profile): array {
         switch ($profile) {
             case IOTService::TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
