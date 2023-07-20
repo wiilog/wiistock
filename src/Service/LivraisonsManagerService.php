@@ -336,9 +336,9 @@ class LivraisonsManagerService
             $movementType = MouvementStock::TYPE_TRANSFER;
             $movementsToDelete = $livraison
                 ->getMouvements()
-                ->filter(function(MouvementStock $movement) {
-                    return !$movement->getDate() && $movement->getType() === MouvementStock::TYPE_SORTIE;
-                });
+                ->filter(fn(MouvementStock $movement) => (
+                    !$movement->getDate() && $movement->getType() === MouvementStock::TYPE_SORTIE
+                ));
 
             foreach ($movementsToDelete as $movement) {
                 $entityManager->remove($movement);
