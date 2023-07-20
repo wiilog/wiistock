@@ -378,7 +378,7 @@ class TruckArrivalController extends AbstractController
                 </button>
             ";
             if($edit) {
-                $isDefault = $reserveType->isDefaultReserveType() ? 'checked' : '';
+                $isDefaultReserveType = $reserveType->isDefaultReserveType() ? 'checked' : '';
                 $isActive = $reserveType->isActive() ? 'checked' : '';
                 $userOptions = Stream::from($reserveType->getNotifiedUsers())
                     ->map(fn(Utilisateur $user) => "<option value='{$user->getId()}' selected>{$user->getUsername()}</option>")
@@ -389,7 +389,7 @@ class TruckArrivalController extends AbstractController
                     "actions" => $actions,
                     "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required/>",
                     "emails" => "<select class='form-control data select2' name='emails' multiple data-s2='user'>$userOptions</select>",
-                    "isDefault" => "<div class='checkbox-container'><input type='checkbox' name='isDefault' class='form-control data' {$isDefault}/></div>",
+                    "defaultReserveType" => "<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data' {$isDefaultReserveType}/></div>",
                     "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>"
                 ];
             } else {
@@ -402,7 +402,7 @@ class TruckArrivalController extends AbstractController
                     "actions" => $actions,
                     "label" => $reserveType->getLabel(),
                     "emails" => implode(', ', $emails),
-                    "isDefault" => $this->formatService->bool($reserveType->isDefaultReserveType()),
+                    "defaultReserveType" => $this->formatService->bool($reserveType->isDefaultReserveType()),
                     "active" => $this->formatService->bool($reserveType->isActive()),
                 ];
             }
@@ -412,7 +412,7 @@ class TruckArrivalController extends AbstractController
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
             "label" => "",
             "emails" => "",
-            "isDefault" => "",
+            "defaultReserveType" => "",
             "active" => "",
         ];
 
