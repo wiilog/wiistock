@@ -228,7 +228,12 @@ function runDispatchPrint($button) {
                         .then(({success, headerDetailsConfig}) => {
                             if (success) {
                                 $(`.zone-entete`).html(headerDetailsConfig);
-                                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+                                AJAX.route(`GET`, `print_dispatch_state_sheet`, {dispatch: dispatchId})
+                                    .file({
+                                        success: "Votre bon d'acheminement a bien été imprimé.",
+                                        error: "Erreur lors de l'impression du bon d'acheminement."
+                                    })
+                                    .then(() => window.location.reload());
                             }
                         });
                 }
