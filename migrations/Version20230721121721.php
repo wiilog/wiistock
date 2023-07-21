@@ -27,7 +27,6 @@ final class Version20230721121721 extends AbstractMigration
         $this->addSql('ALTER TABLE reserve ADD reserve_type_id INT DEFAULT NULL, CHANGE type kind VARCHAR(255) NOT NULL');
         $this->addSql('ALTER TABLE reserve ADD CONSTRAINT FK_1FE0EA225973EA4D FOREIGN KEY (reserve_type_id) REFERENCES reserve_type (id)');
         $this->addSql('CREATE INDEX IDX_1FE0EA225973EA4D ON reserve (reserve_type_id)');
-        $this->addSql('ALTER TABLE sensor_message ADD content_type INT NOT NULL');
     }
 
     public function down(Schema $schema): void
