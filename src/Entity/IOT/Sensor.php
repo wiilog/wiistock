@@ -63,14 +63,14 @@ class Sensor {
     /**
      * @var null|SensorMessage
      */
-    #[ORM\OneToOne(inversedBy: 'linkedSensorLastMessage', targetEntity: SensorMessage::class)]
+    #[ORM\OneToOne(targetEntity: SensorMessage::class, inversedBy: 'linkedSensorLastMessage')]
     #[ORM\JoinColumn(nullable: true)]
     private ?SensorMessage $lastMessage = null;
 
-    #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorMessage::class)]
+    #[ORM\OneToMany(targetEntity: SensorMessage::class, mappedBy: 'sensor')]
     private Collection $sensorMessages;
 
-    #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorWrapper::class)]
+    #[ORM\OneToMany(targetEntity: SensorWrapper::class, mappedBy: 'sensor')]
     private Collection $sensorWrappers;
 
     public function __construct() {

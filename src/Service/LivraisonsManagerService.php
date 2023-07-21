@@ -324,7 +324,6 @@ class LivraisonsManagerService
         foreach ($movements as $movement) {
             $movement->setLivraisonOrder(null);
         }
-        $livraison->getMouvements()->clear();
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -333,10 +332,22 @@ class LivraisonsManagerService
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();
         $livraisonStatusCode = $livraisonStatus?->getCode();
-        $movementType = ($livraisonStatusCode === Livraison::STATUT_A_TRAITER)
-            ? MouvementStock::TYPE_TRANSFER
-            : MouvementStock::TYPE_ENTREE;
+        if($livraisonStatusCode === Livraison::STATUT_A_TRAITER) {
+            $movementType = MouvementStock::TYPE_TRANSFER;
+            $movementsToDelete = $livraison
+                ->getMouvements()
+                ->filter(fn(MouvementStock $movement) => (
+                    !$movement->getDate() && $movement->getType() === MouvementStock::TYPE_SORTIE
+                ));
 
+            foreach ($movementsToDelete as $movement) {
+                $entityManager->remove($movement);
+            }
+        } else {
+            $movementType = MouvementStock::TYPE_ENTREE;
+        }
+
+        $livraison->getMouvements()->clear();
         $articleLines = $preparation->getArticleLines();
 
         /** @var PreparationOrderArticleLine $articleLine */
