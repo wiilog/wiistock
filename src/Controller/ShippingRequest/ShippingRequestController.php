@@ -433,12 +433,12 @@ class ShippingRequestController extends AbstractController {
                 }
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
-                // remove ShippingRequesExpectedtLine
-                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+        // remove ShippingRequesExpectedtLine
+        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
 
-                    $entityManager->remove($expectedLine);
-                    $shippingRequest->removeExpectedLine($expectedLine);
-                }
+            $entityManager->remove($expectedLine);
+            $shippingRequest->removeExpectedLine($expectedLine);
+        }
 
                 foreach ($shippingRequest->getAttachments() as $attachment) {
                     $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
