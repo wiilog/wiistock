@@ -96,11 +96,14 @@ class PackController extends AbstractController
                 function ($output) use ($CSVExportService, $translation, $entityManager, $dateTimeMin, $dateTimeMax, $trackingMovementService) {
                     $packRepository = $entityManager->getRepository(Pack::class);
                     $packs = $packRepository->getPacksByDates($dateTimeMin, $dateTimeMax);
-                    $trackingMouvementRepository = $entityManager->getRepository(TrackingMovement::class);
 
                     foreach ($packs as $pack) {
-                        $trackingMouvment = $trackingMouvementRepository->find($pack['fromTo']);
-                        $mvtData = $trackingMovementService->getFromColumnData($trackingMouvment);
+                        $trackingMovement = [
+                            'entity' => $pack['entity'],
+                            'entityId' => $pack['entityId'],
+                            'entityNumber' => $pack['entityNumber'],
+                        ];
+                        $mvtData = $trackingMovementService->getFromColumnData($trackingMovement);
                         $pack['fromLabel'] = $mvtData['fromLabel'];
                         $pack['fromTo'] = $mvtData['from'];
                         $this->putPackLine($output, $CSVExportService, $pack);
