@@ -1244,11 +1244,11 @@ function initializeTruckArrivalReserves() {
             {data: `label`, title: `Libellé`, required: true},
             {data: `emails`, title: `Boites email de notifications`},
             {data: `defaultReserveType`, title: `Réserve par défaut`},
-            {data: `active`, title: `Actif`, required: true},
+            {data: `active`, title: `Actif`},
         ],
         form: {
             actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
-            label: `<input type='text' name='label' class='form-control data' required/>`,
+            label: `<input type='text' name='label' class='form-control data' required data-global-error="Libellé"/>`,
             emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
             defaultReserveType: `<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data'/></div>`,
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
