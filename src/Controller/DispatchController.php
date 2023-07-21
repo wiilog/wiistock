@@ -26,16 +26,12 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
 use App\Exceptions\FormException;
-use App\Service\ArrivageService;
-use App\Helper\FormatHelper;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\VisibleColumnService;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
@@ -70,28 +66,42 @@ use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use WiiCommon\Helper\StringHelper;
-use function PHPUnit\Framework\throwException;
 
-/**
- * @Route("/acheminements")
- */
+#[Route("/acheminements")]
 class DispatchController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required  */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /**
-     * @Route("/", name="dispatch_index")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
-     */
-    public function index(EntityManagerInterface $entityManager, DispatchService $service) {
+    #[Route("/", name: "dispatch_index")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
+    public function index(Request                   $request,
+                          EntityManagerInterface    $entityManager,
+                          DispatchService           $service) {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+
+        $query = $request->query;
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
+
+        if (!empty($statusesFilter)) {
+            $statusesFilter = Stream::from($statusesFilter)
+                ->map(fn($statusId) => $statutRepository->find($statusId)->getNom())
+                ->toArray();
+        }
+
+        if (!empty($typesFilter)) {
+            $typesFilter = Stream::from($typesFilter)
+                ->map(fn($typeId) => $typeRepository->find($typeId)->getLabel())
+                ->toArray();
+        }
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -113,14 +123,15 @@ class DispatchController extends AbstractController {
                 ->toArray(),
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types)
+            'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
+            'statusFilter' => $statusesFilter,
+            'typesFilter' => $typesFilter,
+            'fromDashboard' => $fromDashboard,
         ]);
     }
 
-    /**
-     * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "dispatch_api_columns", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -131,10 +142,8 @@ class DispatchController extends AbstractController {
             return $this->json(array_values($columns));
     }
 
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/colonne-visible", name: "save_column_visible_for_dispatch", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request                $request,
                                       TranslationService     $translationService,
                                       EntityManagerInterface $entityManager,
@@ -156,9 +165,7 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete", name: "get_dispatch_numbers", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     public function getDispatchAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
@@ -169,14 +176,27 @@ class DispatchController extends AbstractController {
         return $this->json(['results' => $results]);
     }
 
-    /**
-     * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "dispatch_api", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
-        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode);
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+        $preFilledStatuses = $request->query->has('preFilledStatuses') ? implode(",", $request->query->all('preFilledStatuses')) : [];
+        $preFilledTypes = $request->query->has('preFilledTypes') ? implode(",", $request->query->all('preFilledTypes')) : [];
+
+        $preFilledFilters = [
+            [
+                'field' => 'statut',
+                'value' => $preFilledStatuses,
+            ],
+            [
+                'field' => 'multipleTypes',
+                'value' => $preFilledTypes,
+            ]
+        ];
+
+        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters);
 
         return new JsonResponse($data);
     }
@@ -297,7 +317,7 @@ class DispatchController extends AbstractController {
         $requester = $requester ?? $this->getUser();
 
         $currentUser = $this->getUser();
-        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)
@@ -312,7 +332,7 @@ class DispatchController extends AbstractController {
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
-            $dispatch->setCommentaire(StringHelper::cleanedComment($comment));
+            $dispatch->setCommentaire($comment);
         }
 
         if(!empty($startDate)) {
@@ -400,7 +420,7 @@ class DispatchController extends AbstractController {
         }
 
         if(!empty($receiver)) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false);
+            $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, false);
         }
 
         return new JsonResponse([
@@ -486,7 +506,7 @@ class DispatchController extends AbstractController {
         $dispatchNoteAttachment = new Attachment();
         $dispatchNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($dispatchNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($dispatchNoteData['name'] . '.pdf');
 
         $entityManager->persist($dispatchNoteAttachment);
@@ -627,7 +647,7 @@ class DispatchController extends AbstractController {
             ->setLocationFrom($locationTake)
             ->setLocationTo($locationDrop)
             ->setProjectNumber($projectNumber)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')) ?: '')
+            ->setCommentaire($post->get('commentaire'))
             ->setDestination($destination)
             ->setEmails($emails);
 
@@ -876,7 +896,7 @@ class DispatchController extends AbstractController {
 
         $nature = $natureRepository->find($natureId);
         $pack->setNature($nature);
-        $pack->setComment(StringHelper::cleanedComment($comment));
+        $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
         $pack->setVolume($volume ? round($volume, 3) : null);
@@ -950,7 +970,7 @@ class DispatchController extends AbstractController {
 
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
                     $entityManager->flush();
-                    $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                    $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
                 } catch (Exception $e) {
                     return new JsonResponse([
                         'success' => false,
@@ -1272,7 +1292,7 @@ class DispatchController extends AbstractController {
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDispatch($dispatch)
-            ->setFileName($deliveryNoteData['file'])
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($deliveryNoteData['name'] . '.pdf');
 
         $entityManager->persist($deliveryNoteAttachment);
@@ -1355,7 +1375,7 @@ class DispatchController extends AbstractController {
                                DispatchService $dispatchService,
                                Dispatch $dispatch): JsonResponse {
 
-        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $entityManager);
+        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $entityManager, $dispatch);
 
         $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', $dispatchData);
 
@@ -1449,7 +1469,7 @@ class DispatchController extends AbstractController {
                 }
 
                 $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($dispatch, true);
+                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
             }
         }
 
@@ -1679,7 +1699,7 @@ class DispatchController extends AbstractController {
         $data = $request->request->all();
         $data['files'] = $request->files ?? [];
 
-        return $dispatchService->createDispatchReferenceArticle($entityManager, $data);
+        return $dispatchService->updateDispatchReferenceArticle($entityManager, $data);
     }
 
     #[Route("/delete-reference/{dispatchReferenceArticle}", name:"dispatch_delete_reference", options: ['expose' => true], methods: "DELETE")]
@@ -1706,19 +1726,35 @@ class DispatchController extends AbstractController {
                                     RefArticleDataService $refArticleDataService,
                                     EntityManagerInterface $entityManager): JsonResponse
     {
-        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+        $natureRepository = $entityManager->getRepository(Nature::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+
+        $refDispatchPack = $dispatchReferenceArticle->getDispatchPack();
+        $dispatch = $dispatchReferenceArticle->getDispatchPack()->getDispatch();
+
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
-        $packs = [];
-        foreach ($dispatchPacks as $dispatchPack) {
-            $packs[$dispatchPack->getPack()->getId()] = $dispatchPack->getPack()->getCode();
-        }
+        $packs = Stream::from($dispatchPacks)
+            ->map(fn(DispatchPack $dispatchPack) => [
+                "label" => $dispatchPack->getPack()->getCode(),
+                "value" => $dispatchPack->getPack()->getId()
+            ])
+            ->toArray();
+
+        $natures = $natureRepository->findBy([], ['label' => 'ASC']);
+        $natureItems = Stream::from($natures)
+            ->map(fn(Nature $nature) => [
+                "label" => $nature->getLabel(),
+                "value" => $nature->getId()
+            ])
+            ->toArray();
 
         $html = $this->renderView('dispatch/modalFormReferenceContent.html.twig', [
             'dispatch' => $dispatch,
             'dispatchReferenceArticle' => $dispatchReferenceArticle,
-            'packs' => $packs,
+            'pack' => $refDispatchPack->getPack(),
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager, true),
+            'natures' => $natureItems,
+            'packs' => $packs,
         ]);
 
         return new JsonResponse($html);
@@ -1733,6 +1769,14 @@ class DispatchController extends AbstractController {
     {
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+
+        if(count($dispatchPacks) === 0) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Vous devez renseigner au moins une unité logistique pour pouvoir ajouter une référence."
+            ]);
+        }
+
         $packs = [];
         foreach ($dispatchPacks as $dispatchPack) {
             $packs[] = [
@@ -1749,7 +1793,10 @@ class DispatchController extends AbstractController {
             'pack' => $pack,
         ]);
 
-        return new JsonResponse($html);
+        return new JsonResponse([
+            'success' => true,
+            'template' => $html,
+        ]);
     }
 
     #[Route("/add-logistic-unit-api/{dispatch}", name: "dispatch_add_logistic_unit_api", options: ['expose' => true], methods: "GET")]

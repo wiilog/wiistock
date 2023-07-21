@@ -222,7 +222,7 @@ class ArticleDataService
                     ->setPrixUnitaire((float)$price)
                     ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate($expiryDate ?: null)
-                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                    ->setCommentaire($data['commentaire'] ?? null);
 
                 if (isset($data['conform'])) {
                     $article->setConform($data['conform'] == 1);
@@ -301,7 +301,7 @@ class ArticleDataService
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setConform($data['conform'] ?? true)
                 ->setBatch($data['batch'] ?? null);
         } else {
@@ -309,7 +309,7 @@ class ArticleDataService
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
                 ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
@@ -487,7 +487,7 @@ class ArticleDataService
 		return $generatedBarcode;
 	}
 
-    public function getBarcodeConfig(Article $article, Reception $reception = null): array {
+    public function getBarcodeConfig(Article $article, Reception $reception = null, bool $fromKiosk = false): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
@@ -574,28 +574,29 @@ class ArticleDataService
             "L/R : $labelRefArticle",
             "C/R : $refRefArticle",
             "L/A : $labelArticle",
-            !empty($this->typeCLOnLabel) && !empty($champLibreValue) ? $champLibreValue : '',
+            !empty($this->typeCLOnLabel) && !empty($champLibreValue) && !$fromKiosk ? $champLibreValue : '',
         ];
 
-        $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
-        $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-        $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
-        $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+        if(!$fromKiosk){
+            $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
+            $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+            if ($includeBatch && $batchArticle) {
+                $labels[] = "N° lot : $batchArticle";
+            }
 
-        if ($includeBatch && $batchArticle) {
-            $labels[] = "N° lot : $batchArticle";
-        }
+            if ($includeExpirationDate && $expirationDateArticle) {
+                $labels[] = "Date péremption : $expirationDateArticle";
+            }
 
-        if ($includeExpirationDate && $expirationDateArticle) {
-            $labels[] = "Date péremption : $expirationDateArticle";
-        }
+            if ($includeStockEntryDate && $stockEntryDateArticle) {
+                $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
+            }
 
-        if ($includeStockEntryDate && $stockEntryDateArticle) {
-            $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
-        }
-
-        if ($includeQuantity) {
-            $labels[] = "Qte : $quantityArticle";
+            if ($includeQuantity) {
+                $labels[] = "Qte : $quantityArticle";
+            }
         }
 
         return [

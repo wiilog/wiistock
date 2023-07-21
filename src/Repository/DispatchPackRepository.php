@@ -26,6 +26,8 @@ class DispatchPackRepository extends EntityRepository {
             ->select('dispatch_pack.id AS id')
             ->addSelect('pack.code AS code')
             ->addSelect('pack.comment AS comment')
+            ->addSelect('pack.weight AS weight')
+            ->addSelect('pack.volume AS volume')
             ->addSelect('nature.id AS natureId')
             ->addSelect('dispatch_pack.quantity AS quantity')
             ->addSelect('dispatch.id AS dispatchId')
@@ -175,7 +177,11 @@ class DispatchPackRepository extends EntityRepository {
                                     "volume" => $reference["description"] ? $reference["description"]["volume"] ?? '' : '',
                                     "weight" => $reference["description"] ? $reference["description"]["weight"] ?? '' : '',
                                     "ADR" => $reference["ADR"] ? 'Oui' : 'Non',
-                                    "outFormatEquipment" => $reference["description"] && isset($reference["description"]["outFormatEquipment"]) ? 'Oui' : 'Non',
+                                    "outFormatEquipment" => $reference["description"]
+                                        && isset($reference["description"]["outFormatEquipment"])
+                                        && filter_var($reference["description"]["outFormatEquipment"], FILTER_VALIDATE_BOOLEAN)
+                                            ? 'Oui'
+                                            : 'Non',
                                     "associatedDocumentTypes" => $reference["description"] ? $reference["description"]["associatedDocumentTypes"] ?? '' : '',
                                     "comment" => $reference["comment"],
                                     "attachments" => $attachmentsByReference[$reference["dispatchReferenceArticleId"]] ?? [],

@@ -320,7 +320,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                 <div class="wii-card-body">
                     <div class="row">
                         <div class="col-12">
-                            <p class="card-title text-center">${request.requestBodyTitle}</p>
+                            ${applyStyle(data, redefinedNumberingConfig, 5, `<p class="card-title no-color text-center">${request.requestBodyTitle}</p>`, {}, firstIteration)}
                         </div>
                         <div class="col-12">
                             <p class="w-100 d-inline-flex justify-content-center">

@@ -174,12 +174,9 @@ class InventoryLocationMissionRepository extends EntityRepository {
             ->andWhere('inventoryLocationMission.id = :inventoryLocationMission')
             ->orderBy('join_referenceArticle.reference')
             ->addOrderBy('join_article.id')
-            ->setParameter('inventoryLocationMission', $inventoryLocationMission)
-            ->getQuery()
-            ->getArrayResult();
+            ->setParameter('inventoryLocationMission', $inventoryLocationMission);
 
-        $queryBuilder->setFirstResult($start);
-        $queryBuilder->setMaxResults($length);
+
 
         // count before searching
         $total = QueryBuilderHelper::count($queryBuilder, "join_article");
@@ -197,6 +194,9 @@ class InventoryLocationMissionRepository extends EntityRepository {
         }
 
         $countQuery = QueryBuilderHelper::count($queryBuilder, "join_article");
+
+        $queryBuilder->setFirstResult($start);
+        $queryBuilder->setMaxResults($length);
 
         return [
             "data" => $queryBuilder->getQuery()->getResult(),

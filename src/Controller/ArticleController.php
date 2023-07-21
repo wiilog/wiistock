@@ -39,6 +39,7 @@ use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -339,20 +340,28 @@ class ArticleController extends AbstractController
                     $entityManager->flush();
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(ArticleNotAvailableException $exception) {
+                catch(ArticleNotAvailableException) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
                     ];
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(RequestNeedToBeProcessedException $exception) {
+                catch(RequestNeedToBeProcessedException) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
-            return new JsonResponse($response);
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Le tag RFID {$data['rfidTag']} est déja utilisé.",
+                    ];
+                }
+
+                return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }

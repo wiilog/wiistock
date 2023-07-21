@@ -1,7 +1,7 @@
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select class="form-control data filter-select2" name="carriers" multiple="multiple">
+            <select class="form-control data filter-select2" name="carriers" multiple="multiple" {{ disabled }}>
                 {% for carrier in carriers |sort((a, b) => a.label <=> b.label) %}
                     <option class="d-none" value="{{ carrier.id }}">{{ carrier.label }}</option>
                 {% endfor %}

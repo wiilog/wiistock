@@ -223,11 +223,15 @@ function updateArticleReferenceImage($div, $image) {
 
 function toggleEmergency($switch) {
     const $emergencyComment = $('.emergency-comment');
+    const $emergencyQuantity = $('.emergency-quantity');
     if ($switch.is(':checked')) {
         $emergencyComment.removeClass('d-none');
+        $emergencyQuantity.removeClass('d-none');
     } else {
         $emergencyComment.addClass('d-none');
+        $emergencyQuantity.addClass('d-none');
         $emergencyComment.val('');
+        $emergencyQuantity.val('');
     }
 }
 
@@ -287,7 +291,30 @@ function changeNewReferenceStatus($select) {
 function onTypeSecurityChange($input) {
     changeNewReferenceStatus($input);
     handleNeededFileSheet();
+    handleNeededInputs($input);
 }
+function handleNeededInputs($input){
+    const requiredFields = $input.val() === '1' && $input.is(':checked');
+
+    const $onuCodeInput = $('input[name=onuCode]');
+    const $productClassInput = $('input[name=productClass]');
+    $onuCodeInput.toggleClass('needed', requiredFields);
+    $productClassInput.toggleClass('needed', requiredFields);
+
+    const $onuCodeLabel = $onuCodeInput.parent().find('span');
+    const $productClassLabel = $productClassInput.parent().find('span');
+    const onuCodeLabelText = $onuCodeLabel.text().split("*")[0];
+    const productClassLabelText = $productClassLabel.text().split("*")[0];
+
+    if(requiredFields){
+        $onuCodeLabel.text(onuCodeLabelText+'*');
+        $productClassLabel.text(productClassLabelText+'*');
+    } else {
+        $onuCodeLabel.text(onuCodeLabelText.split('*')[0]);
+        $productClassLabel.text(productClassLabelText.split('*')[0]);
+    }
+}
+
 function handleNeededFileSheet(){
     //if radio yes is checked, sheet is needed
     const radioYesChecked = $('input[name=security]:checked').val();

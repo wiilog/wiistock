@@ -245,7 +245,7 @@ class TruckArrivalController extends AbstractController
             $generalReserve
                 ->setComment($data['generalReserveComment'] ?? null)
                 ->setTruckArrival($truckArrival)
-                ->setType(Reserve::TYPE_GENERAL);
+                ->setKind(Reserve::KIND_GENERAL);
             $entityManager->persist($generalReserve);
         }
 
@@ -254,7 +254,7 @@ class TruckArrivalController extends AbstractController
             $quantityReserve
                 ->setComment($data['quantityReserveComment'] ?? null)
                 ->setTruckArrival($truckArrival)
-                ->setType(Reserve::TYPE_QUANTITY)
+                ->setKind(Reserve::KIND_QUANTITY)
                 ->setQuantity($data['reserveQuantity'] ?? null)
                 ->setQuantityType($data['reserveType'] ?? null);
             $entityManager->persist($quantityReserve);

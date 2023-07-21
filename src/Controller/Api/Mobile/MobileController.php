@@ -117,9 +117,10 @@ class MobileController extends AbstractApiController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function postApiKey(Request $request,
-                               EntityManagerInterface $entityManager,
-                               UserService $userService)
+    public function postApiKey(Request                  $request,
+                               EntityManagerInterface   $entityManager,
+                               UserService              $userService,
+                               DispatchService          $dispatchService)
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -170,6 +171,9 @@ class MobileController extends AbstractApiController
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
+            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+            $wayBillData['dispatch_id'] = null;
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -179,6 +183,7 @@ class MobileController extends AbstractApiController
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
                 'fieldsParam' => $fieldsParam ?? [],
+                'dispatchDefaultWaybill' => $wayBillData ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -1065,7 +1070,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        $commentaire = $request->request->get('commentaire');
+        $commentaire = $request->request->get('comment');
         $id = $request->request->get('id');
         /** @var Handling $handling */
         $handling = $handlingRepository->find($id);
@@ -1083,7 +1088,6 @@ class MobileController extends AbstractApiController
                 $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
                 $dateStr = (new DateTime())->format('d/m/y H:i:s');
                 $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
-                $commentaire = StringHelper::cleanedComment($commentaire);
                 $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
@@ -2082,7 +2086,7 @@ class MobileController extends AbstractApiController
             ->setLabel($labelStr)
             ->setConform(true)
             ->setStatut($statut)
-            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setCommentaire(!empty($commentStr) ? $commentStr : null)
             ->setPrixUnitaire(floatval($priceStr))
             ->setReference($ref)
             ->setQuantite($quantityStr)
@@ -2217,7 +2221,9 @@ class MobileController extends AbstractApiController
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
-                'category' => $type->getCategory()->getLabel()
+                'category' => $type->getCategory()->getLabel(),
+                'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
+                'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
             ])->toArray();
 
         if ($rights['inventoryManager']) {
@@ -2381,11 +2387,13 @@ class MobileController extends AbstractApiController
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $type = ($type === 'svg' ? 'svg+xml' : $type);
-                        $data = file_get_contents($path);
+                        if (file_exists($path)) {
+                            $type = pathinfo($path, PATHINFO_EXTENSION);
+                            $type = ($type === 'svg' ? 'svg+xml' : $type);
+                            $data = file_get_contents($path);
 
-                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                            $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
                     }
 
                     return [
@@ -2686,7 +2694,8 @@ class MobileController extends AbstractApiController
                     ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
-            } else {
+            }
+            else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $correctionMovement = new MouvementStock();
@@ -3491,7 +3500,7 @@ class MobileController extends AbstractApiController
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
@@ -3536,7 +3545,7 @@ class MobileController extends AbstractApiController
         $manager->flush();
 
         if($request->request->get('emergency') && $receiver) {
-            $dispatchService->sendEmailsAccordingToStatus($dispatch, false, false, $receiver, true);
+            $dispatchService->sendEmailsAccordingToStatus($manager, $dispatch, false, false, $receiver, true);
         }
 
         $serializedDispatches = $dispatchRepository->getMobileDispatches(null, $dispatch);
@@ -3609,8 +3618,9 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $createdReferences = [];
             foreach ($references as $data) {
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences,[
                     'loggedUser' => $user,
                     'now' => $now
                 ]);
@@ -3732,7 +3742,7 @@ class MobileController extends AbstractApiController
     {
         return $this->json([
             'success' => true,
-            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $manager, $dispatch)
         ]);
     }
 
@@ -3808,7 +3818,7 @@ class MobileController extends AbstractApiController
 
         foreach($truckArrivalReserves as $truckArrivalReserve){
             $reserve = (new Reserve())
-                ->setType($truckArrivalReserve['type'])
+                ->setKind($truckArrivalReserve['type'])
                 ->setComment($truckArrivalReserve['comment'] ?? null)
                 ->setQuantity($truckArrivalReserve['quantity'] ?? null)
                 ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
@@ -3823,7 +3833,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setKind($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['photos']){

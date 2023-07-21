@@ -994,7 +994,7 @@ class ImportService
             $refArt->setBuyer($userRepository->findOneBy(['username' => $data['buyer']]));
         }
         if (isset($data['commentaire'])) {
-            $refArt->setCommentaire(StringHelper::cleanedComment($data['commentaire']));
+            $refArt->setCommentaire($data['commentaire']);
         }
         if (isset($data['emergencyComment'])) {
             $refArt->setEmergencyComment($data['emergencyComment']);
@@ -1734,7 +1734,7 @@ class ImportService
         }
 
         if (!$request->getCommentaire()) {
-            $request->setCommentaire(StringHelper::cleanedComment($commentaire));
+            $request->setCommentaire($commentaire);
         }
 
         $number = $this->uniqueNumberService->create(

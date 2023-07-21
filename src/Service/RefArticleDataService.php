@@ -297,6 +297,14 @@ class RefArticleDataService
             }
         }
 
+        if($data->has('security')
+            && $data->has('deletedSheetFile')
+            && ((!$fileBag->has('fileSheet') && $data->get('deletedSheetFile') === "1")
+                || ($data->has('fileSheet') && $data->has('savedSheetFile') && $data->get('deletedSheetFile') === "1" && $data->get('fileSheet') === 'undefined' )
+                || ($data->has('files') && $data->has('fileSheet') && $data->get('fileSheet') === 'undefined'))
+            && $data->get('security') === "1"){
+            throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+        }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);
@@ -429,9 +437,10 @@ class RefArticleDataService
             ->setReference($data->get('reference'))
             ->setIsUrgent($isUrgent)
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-            ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
+            ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
+            ->setEmergencyQuantity($isUrgent ? ($data->getInt('emergencyQuantity') >= 0) ? $data->getInt('emergencyQuantity') : null : null)
             ->setPrixUnitaire(max(0, $data->get('prix')))
-            ->setCommentaire(StringHelper::cleanedComment($data->get('commentaire')))
+            ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
             ->setBuyer($buyer)
             ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
@@ -685,7 +694,7 @@ class RefArticleDataService
             $projectRepository = $entityManager->getRepository(Project::class);
             $project = ($data['project'] ?? null) ? $projectRepository->find($data['project']) : null;
             $line
-                ->setComment($data['comment'] ?? null)
+                ->setNotes($data['notes'] ?? null)
                 ->setProject($project);
 
             $resp['line'] = $line;
