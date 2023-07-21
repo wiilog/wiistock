@@ -1107,6 +1107,12 @@ class SettingsService {
                     throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
                 }
 
+                $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
+                $nbLabelsWithoutDoubles = count(array_unique($labelReserveTypes));
+                if ($nbLabelsWithoutDoubles != count($reserveTypesData)) {
+                    throw new RuntimeException("Il ne peut pas y avoir plusieurs fois le même libellé de type de réserve.");
+                }
+
                 foreach ($reserveTypesData as $reserveTypeData) {
                     $persistedReserveTypes = [];
                     if (isset($reserveTypeData['id'])) {
@@ -1123,16 +1129,18 @@ class SettingsService {
                         $persistedReserveTypes[] = $reserveType;
                     }
 
-                    if (isset($reserveTypeData['emails'])) {
+                    if (isset($reserveTypeData['emails']) && $reserveTypeData['emails'] != "") {
                         $emails = explode(',', $reserveTypeData['emails']);
                         $notifiedUsers = Stream::from($emails)
                             ->map(fn($userId) => $userRepository->find($userId))
                             ->toArray();
+                    } else {
+                        $notifiedUsers = [];
                     }
 
                     $reserveType
                         ->setLabel($reserveTypeData['label'])
-                        ->setNotifiedUsers($notifiedUsers ?? null)
+                        ->setNotifiedUsers(!empty($notifiedUsers) ? $notifiedUsers : null)
                         ->setDefaultReserveType($reserveTypeData['defaultReserveType'])
                         ->setActive($reserveTypeData['active']);
 

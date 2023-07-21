@@ -387,7 +387,7 @@ class TruckArrivalController extends AbstractController
                 $rows[] = [
                     "id" => $reserveType->getId(),
                     "actions" => $actions,
-                    "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required/>",
+                    "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required data-global-error='Libellé'/>",
                     "emails" => "<select class='form-control data select2' name='emails' multiple data-s2='user'>$userOptions</select>",
                     "defaultReserveType" => "<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data' {$isDefaultReserveType}/></div>",
                     "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>"

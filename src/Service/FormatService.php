@@ -96,9 +96,9 @@ class FormatService
 
     public function user(?Utilisateur $user, $else = "", $email = false) {
         return $user
-            ? $email
+            ? ($email
                 ? $user->getEmail()
-                : $user->getUsername()
+                : $user->getUsername())
             : $else;
     }
 
