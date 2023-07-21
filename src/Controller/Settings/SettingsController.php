@@ -330,6 +330,10 @@ class SettingsController extends AbstractController {
                             "label" => "Champs fixes",
                             "save" => true,
                         ],
+                        self::MENU_RESERVES => [
+                            "label" => "Réserves",
+                            "save" => false,
+                        ],
                     ],
                 ],
                 self::MENU_BR_ASSOCIATION => [
@@ -626,6 +630,7 @@ class SettingsController extends AbstractController {
     public const MENU_DISPATCHES = "acheminements";
     public const MENU_STATUSES = "statuts";
     public const MENU_FIXED_FIELDS = "champs_fixes";
+    public const MENU_RESERVES = "reserves";
     public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
     public const MENU_MOVEMENTS = "mouvements";

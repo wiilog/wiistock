@@ -94,8 +94,12 @@ class FormatService
         return $user ?? $this->userService->getUser();
     }
 
-    public function user(?Utilisateur $user, $else = "") {
-        return $user ? $user->getUsername() : $else;
+    public function user(?Utilisateur $user, $else = "", $email = false) {
+        return $user
+            ? ($email
+                ? $user->getEmail()
+                : $user->getUsername())
+            : $else;
     }
 
     public function supplier(?Fournisseur $supplier, string $else = ""): string {
