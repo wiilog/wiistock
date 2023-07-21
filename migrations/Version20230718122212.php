@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 
 use App\Entity\Reserve;
-use App\Entity\ReserveType;
+use App\Entity\ReserveTypeTOTO;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -21,27 +21,21 @@ final class Version20230718122212 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        if(!$schema->hasTable("reserve_type")) {
-            $this->addSql("
-                CREATE TABLE reserve_type (
-                    id INT AUTO_INCREMENT NOT NULL,
-                    label VARCHAR(255) DEFAULT NULL,
-                    default_reserve_type INT DEFAULT NULL,
-                    active INT DEFAULT NULL,
-                    PRIMARY KEY (id)
-                )
-            ");
+        if (!$schema->hasTable("reserve_type")) {
+            $this->addSql('CREATE TABLE reserve_type (id INT NOT NULL, label VARCHAR(255) NOT NULL, default_reserve_type TINYINT(1) DEFAULT NULL, active TINYINT(1) DEFAULT 1)');
+            $this->addSql('CREATE TABLE reserve_type_utilisateur (reserve_type_id INT NOT NULL, utilisateur_id INT NOT NULL)');
+            $this->addSql('ALTER TABLE reserve ADD reserve_type_id INT NOT NULL');
         }
 
-        $this->addSql("INSERT INTO reserve_type (label, is_default, active) VALUES (:qualitylabel, 1, 1)", [
-            "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
+        $this->addSql("INSERT INTO reserve_type (label, default_reserve_type, active) VALUES (:qualitylabel, 1, 1)", [
+            "qualitylabel" => ReserveTypeTOTO::DEFAULT_QUALITY_TYPE,
         ]);
 
         $reserves = $this->connection->executeQuery("
                 SELECT reserve.id
                 FROM reserve
-                WHERE kind = '" . Reserve::KIND_QUALITY . "'"
-            )->fetchAllAssociative();
+                WHERE type = '" . Reserve::KIND_QUALITY . "'"
+        )->fetchAllAssociative();
 
         foreach ($reserves as $reserve) {
             $this->addSql("
