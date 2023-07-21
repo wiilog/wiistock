@@ -22,6 +22,7 @@ use App\Service\IOT\PairingService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use App\Service\IOT\DataMonitoringService;
 use DateTime;
 use App\Controller\AbstractController;
@@ -78,7 +79,7 @@ class PairingController extends AbstractController
         foreach ($pairings as $pairing) {
             /** @var Sensor $sensor */
             $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
-            $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
+            $type = $sensor ? $this->formatService->type($sensor->getType()) : '';
 
             $elementIcon = $IOTService->getEntityCodeFromEntity($pairing->getEntity()) ?? '';
 
@@ -89,7 +90,7 @@ class PairingController extends AbstractController
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity() ? $pairing->getEntity()->__toString() : '',
                 "elementIcon" => $elementIcon,
-                "temperature" => ($sensor && (FormatHelper::type($sensor->getType()) === Sensor::TEMPERATURE) && $sensor->getLastMessage())
+                "temperature" => ($sensor && ($this->formatService->type($sensor->getType()) === Sensor::TEMPERATURE) && $sensor->getLastMessage())
                     ? $sensor->getLastMessage()->getContent()
                     : '',
                 "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
@@ -269,7 +270,7 @@ class PairingController extends AbstractController
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
-            Sensor::TEMPERATURE
+            $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
         );
 
         $data = ["colors" => []];
@@ -278,6 +279,7 @@ class PairingController extends AbstractController
             $sensor = $message->getSensor();
             $wrapper = $sensor->getAvailableSensorWrapper();
             $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
+            $contentType = $message->getContentType();
 
             if (!isset($data['colors'][$sensorCode])) {
                 srand($sensor->getId());
@@ -292,6 +294,8 @@ class PairingController extends AbstractController
         }
 
         srand();
+
+        dump($data);
 
         return new JsonResponse($data);
     }

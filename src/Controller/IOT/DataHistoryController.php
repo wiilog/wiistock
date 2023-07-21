@@ -73,6 +73,7 @@ class DataHistoryController extends AbstractController {
                                         DataMonitoringService $dataMonitoringService,
                                         PairingService $pairingService): JsonResponse
     {
+        dump($request);
         $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
@@ -85,6 +86,10 @@ class DataHistoryController extends AbstractController {
             $filters["start"],
             $filters["end"],
             Sensor::TEMPERATURE
+        ) ?: $entity->getSensorMessagesBetween(
+            $filters["start"],
+            $filters["end"],
+            Sensor::TEMPERATURE_HYGROMETRY
         );
 
         $data = $pairingService->buildChartDataFromMessages($associatedMessages);

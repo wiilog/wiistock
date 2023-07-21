@@ -7,9 +7,10 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class PairingService
@@ -19,6 +20,9 @@ class PairingService
 
     /** @Required */
     public Twig_Environment $twigEnvironment;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(SensorWrapper $wrapper, $params = null)
     {
@@ -51,8 +55,8 @@ class PairingService
             ]),
             'id' => $pairing->getId(),
             'element' => (string) $element,
-            'start' => FormatHelper::datetime($pairing->getStart()),
-            'end' => FormatHelper::datetime($pairing->getEnd()),
+            'start' => $this->formatService->datetime($pairing->getStart()),
+            'end' => $this->formatService->datetime($pairing->getEnd()),
         ];
     }
 
