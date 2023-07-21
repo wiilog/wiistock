@@ -297,10 +297,10 @@ class RefArticleDataService
             }
         }
 
-        $isDangerousGood = $data->get('security') === "1";
+        $isDangerousGood = $data->getBoolean('security');
         $fileSheetSubmitted = $fileBag->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
         $fileSheetPreviouslySaved = $data->has('savedSheetFile');
-        $fileSheetDeleted = $data->get('deletedSheetFile') === "1";
+        $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
 
         if ($isDangerousGood && (!$fileSheetSubmitted && (!$fileSheetPreviouslySaved || $fileSheetDeleted))) {
             throw new FormException("La fiche sécurité est obligatoire pour les Marchandises dangereuses.");
