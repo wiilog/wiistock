@@ -24,7 +24,7 @@ class ReserveType
     private Collection $notifiedUsers;
 
     #[ORM\Column(type: "boolean", nullable: true)]
-    private ?bool $isDefault = null;
+    private ?bool $defaultReserveType = null;
 
     #[ORM\Column(type: "boolean", nullable: true, options: ["default" => true])]
     private ?bool $active = null;
@@ -86,14 +86,14 @@ class ReserveType
         return $this;
     }
 
-    public function isDefault(): ?bool
+    public function isDefaultReserveType(): ?bool
     {
-        return $this->isDefault;
+        return $this->defaultReserveType;
     }
 
-    public function setDefault(?bool $isDefault): self
+    public function setDefaultReserveType(?bool $defaultReserveType): self
     {
-        $this->isDefault = $isDefault;
+        $this->defaultReserveType = $defaultReserveType;
 
         return $this;
     }
