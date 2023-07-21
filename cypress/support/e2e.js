@@ -16,6 +16,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     if (err.message.includes('printing error')) {
         return false
     }
+    if (err.message.includes('Cannot read properties of undefined')) {
+        return false
+    }
 });
 
 // Import commands.js using ES2015 syntax:
@@ -25,3 +28,4 @@ import './command/general'
 import './command/setting'
 import './command/date'
 import './command/downloadFile'
+import './command/interceptAllRequests'

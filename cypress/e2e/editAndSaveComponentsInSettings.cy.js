@@ -19,7 +19,7 @@ describe('Edit and save components in Stock > Articles settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Stock > Articles settings', () => {
+    it('should edit a free field in Stock > Articles settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 
@@ -44,7 +44,7 @@ describe('Edit and save components in Stock > Réceptions settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Stock > Réceptions settings', () => {
+    it('should edit a free field in Stock > Réceptions settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 
@@ -77,7 +77,7 @@ describe('Edit and save components in Trace > Acheminements settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Trace > Acheminements settings', () => {
+    it('should edit a free field in Trace > Acheminements settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 
@@ -110,7 +110,7 @@ describe('Edit and save components in Trace > Arrivages UL settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Trace > Arrivages UL settings', () => {
+    it('should edit a free field in Trace > Arrivages UL settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 
@@ -150,7 +150,7 @@ describe('Edit and save components in Trace > Mouvements settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Trace > Mouvements settings', () => {
+    it('should edit a free field in Trace > Mouvements settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 })
@@ -175,7 +175,7 @@ describe('Edit and save components in Trace > Services settings', () => {
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in Trace > Services settings', () => {
+    it('should edit a free field in Trace > Services settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 
@@ -224,7 +224,7 @@ describe('Edit and save components in Track > Demandes settings', () => {
         cy.addFreeFieldInSettings(settingsItemNameForLivraisons);
     })
 
-    it('should edit the created free field in Track > Demandes > Livraisons settings', () => {
+    it('should edit a free field in Track > Demandes > Livraisons settings', () => {
         cy.editFreeFieldInSettings(settingsItemNameForLivraisons);
     })
 
@@ -239,7 +239,7 @@ describe('Edit and save components in Track > Demandes settings', () => {
         cy.addFreeFieldInSettings(settingsItemNameForCollectes);
     })
 
-    it('should edit the created free field in Track > Demandes > Collectes settings', () => {
+    it('should edit a free field in Track > Demandes > Collectes settings', () => {
         cy.editFreeFieldInSettings(settingsItemNameForCollectes);
     })
 })
@@ -255,7 +255,7 @@ describe('Edit and save components in IoT > Types et champs libres settings', ()
         cy.addFreeFieldInSettings(settingsItemName);
     })
 
-    it('should edit the created free field in IoT > Types et champs libres settings', () => {
+    it('should edit a free field in IoT > Types et champs libres settings', () => {
         cy.editFreeFieldInSettings(settingsItemName);
     })
 })

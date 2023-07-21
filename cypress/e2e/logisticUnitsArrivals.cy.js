@@ -144,7 +144,7 @@ describe('Create and edit logistic units arrivals', () => {
             .select(LUArrivals.type);
         cy.get('#modalNewArrivage select[name=status]')
             .select(LUArrivals.statut);
-        cy.select2Ajax('dropLocation', LUArrivals.dropLocation, '/emplacement/autocomplete*');
+        cy.select2Ajax('dropLocation', LUArrivals.dropLocation, '', true, '/emplacement/autocomplete*');
         cy.select2('destinataire', LUArrivals.destinataire);
         cy.select2('acheteurs', [LUArrivals.firstAcheteurs, LUArrivals.secondAcheteurs]);
         cy.get(`input[name=noProject]`)
@@ -423,7 +423,7 @@ describe('Create and edit logistic units arrivals', () => {
             .contains(dispute.type);
     })
 
-    it("should edit a dispute created", () => {
+    it("should edit a disputeEdit a ", () => {
         cy.intercept('POST', 'arrivage/packs/api/*').as('packs_api');
         cy.intercept('POST', '/arrivage/litiges/api/*').as('arrivageLitiges_api');
         cy.intercept('POST', '/arrivage/api-modifier-litige').as('litige_api_edit')
@@ -593,7 +593,7 @@ describe('Create and edit logistic units arrivals', () => {
             .contains(newLU.project);
     })
 
-    it("should edit a logistic units arrivals created", () => {
+    it("should edit a logistic units arrivals", () => {
         cy.intercept('POST', '/arrivage/api-modifier').as('arrivage_edit_api');
         cy.intercept('POST', '/arrivage/modifier').as('arrivage_edit');
 
@@ -605,9 +605,9 @@ describe('Create and edit logistic units arrivals', () => {
             .click()
             .wait('@arrivage_edit_api');
 
-        cy.select2Ajax('fournisseur', LUArrivalsChanged.fournisseur, '', false);
-        cy.select2Ajax('transporteur', LUArrivalsChanged.transporteur, '', false);
-        cy.select2Ajax('chauffeur', LUArrivalsChanged.chauffeur, '', false);
+        cy.select2Ajax('fournisseur', LUArrivalsChanged.fournisseur, '', true, '', false);
+        cy.select2Ajax('transporteur', LUArrivalsChanged.transporteur, '', true, '', false);
+        cy.select2Ajax('chauffeur', LUArrivalsChanged.chauffeur, '', true, '', false);
         cy.get(`input[name=noTracking]`)
             .click()
             .clear()
@@ -687,7 +687,7 @@ describe('Create and edit logistic units arrivals', () => {
             .wait('@arrivage_edit');
     })
 
-    it("should check the modification made on the logistic units arrivals created", () => {
+    it("should check the modification made on the logistic units arrivals", () => {
         cy.intercept('POST', 'arrivage/packs/api/*').as('packs_api');
         cy.navigateInNavMenu('traca', 'arrivage_index');
 
