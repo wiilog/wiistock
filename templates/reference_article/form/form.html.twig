@@ -516,7 +516,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="form-group col-12 col-md-4 mt-2">
+                            <div class="form-group col-8 col-md-8 mt-2">
                                 <div class="article {{ reference.typeQuantite and reference.typeQuantite != 'article' ? 'd-none' }}">
                                     <label class="with-checkbox">
                                         <input type="checkbox"
@@ -527,10 +527,17 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="form-group col-12 col-md-8 mt-4">
-                                <label class="emergency-comment {{ not reference.isUrgent ? 'd-none' }}">
+                            <div class="form-group col-4 col-md-4 mt-2">
+                                {% set display = not reference.isUrgent ? 'd-none' : '' %}
+                                {{ form.number('emergencyQuantity', 'Quantité d\'urgence', false, reference.emergencyQuantity, {
+                                    labelClass: 'emergency-quantity ' ~ display,
+                                    max: 999,
+                                }) }}
+                            </div>
+                            <div class="form-group col-12 col-md-12 mt-12">
+                                <label class="emergency-comment {{ display }}">
                                     <span class="wii-field-name">Commentaire de l'urgence</span>
-                                    <input class="form-control data" type="text" name="emergency-comment-input"
+                                    <input class="form-control data" type="text" name="emergencyComment"
                                            value="{{ reference.emergencyComment }}">
                                 </label>
                             </div>

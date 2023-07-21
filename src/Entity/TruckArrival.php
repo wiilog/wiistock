@@ -218,10 +218,10 @@ class TruckArrival
         return $this;
     }
 
-    public function getReserveByType(string $type): ?Reserve {
+    public function getReserveByKind(string $kind): ?Reserve {
         return $this
             ->getReserves()
-            ->filter(fn(Reserve $reserve) => $reserve->getType() === $type)
+            ->filter(fn(Reserve $reserve) => $reserve->getKind() === $kind)
             ->first() ?: null;
     }
 

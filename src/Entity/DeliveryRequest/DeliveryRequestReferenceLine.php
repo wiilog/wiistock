@@ -3,6 +3,7 @@
 namespace App\Entity\DeliveryRequest;
 
 use App\Entity\Emplacement;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Repository\DeliveryRequest\DeliveryRequestReferenceLineRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -107,5 +108,16 @@ class DeliveryRequestReferenceLine extends DeliveryRequestLine {
         }
 
         return $this;
+    }
+
+    public function createPreparationOrderLine(): PreparationOrderReferenceLine {
+        $line = new PreparationOrderReferenceLine();
+        $line
+            ->setPickedQuantity($this->getPickedQuantity())
+            ->setQuantityToPick($this->getQuantityToPick())
+            ->setTargetLocationPicking($this->getTargetLocationPicking())
+            ->setReference($this->getReference())
+            ->setDeliveryRequestReferenceLine($this);
+        return $line;
     }
 }

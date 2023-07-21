@@ -10,7 +10,7 @@ SELECT truck_arrival.id,
        IF(COUNT(reserve.id) > 0 , 'Oui', 'Non') as reserve_general,
        MAX(
            IF(
-                   reserve.type = 'quantity',
+                   reserve.kind = 'quantity',
                    IF(
                            reserve.quantity_type = 'MINUS',
                            CONCAT('-', reserve.quantity),
@@ -18,7 +18,8 @@ SELECT truck_arrival.id,
                        ),
                    'Non'
                )
-           ) as reserve_quantite
+           ) as reserve_quantite,
+       GROUP_CONCAT(DISTINCT reserve_type.label) as reserve_types
 
 FROM truck_arrival_line
 
@@ -28,5 +29,6 @@ FROM truck_arrival_line
          LEFT JOIN emplacement on emplacement.id = truck_arrival.unloading_location_id
          INNER JOIN utilisateur on utilisateur.id = truck_arrival.operator_id
          LEFT JOIN reserve on truck_arrival.id = reserve.truck_arrival_id
+         LEFT JOIN reserve_type on reserve.reserve_type_id = reserve_type.id
 
 GROUP BY truck_arrival.id

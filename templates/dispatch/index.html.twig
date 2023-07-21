@@ -8,7 +8,10 @@
         page: 'PAGE_DISPATCHES',
         tableSelector: '#tableDispatches',
         needsDateFormatting: true,
-        types: types
+        types: types,
+        statusFilter: statusFilter,
+        typesFilter: typesFilter,
+        disabled: fromDashboard ? 'disabled',
     } %}
 {% endblock %}
 
@@ -79,6 +82,8 @@
             </div>
         </div>
     </div>
+
+    <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
 
     {% include "dispatch/modalNewDispatch.html.twig" with modalNewConfig %}
     {% include "utils/visible_columns.html.twig" with {
