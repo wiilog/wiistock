@@ -297,13 +297,13 @@ class RefArticleDataService
             }
         }
 
-        if($data->has('security')
-            && $data->has('deletedSheetFile')
-            && ((!$fileBag->has('fileSheet') && $data->get('deletedSheetFile') === "1")
-                || ($data->has('fileSheet') && $data->has('savedSheetFile') && $data->get('deletedSheetFile') === "1" && $data->get('fileSheet') === 'undefined' )
-                || ($data->has('files') && $data->has('fileSheet') && $data->get('fileSheet') === 'undefined'))
-            && $data->get('security') === "1"){
-            throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+        $isDangerousGood = $data->get('security') === "1";
+        $fileSheetSubmitted = $fileBag->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetPreviouslySaved = $data->has('savedSheetFile');
+        $fileSheetDeleted = $data->get('deletedSheetFile') === "1";
+
+        if ($isDangerousGood && (!$fileSheetSubmitted && (!$fileSheetPreviouslySaved || $fileSheetDeleted))) {
+            throw new FormException("La fiche sécurité est obligatoire pour les Marchandises dangereuses.");
         }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
