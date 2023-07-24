@@ -36,7 +36,7 @@ class ReserveController extends AbstractController
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
         if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
-            if ($data['reserveType']) {
+            if (isset($data['reserveType'])) {
                 $reserveTypeId = $data['reserveType'];
                 $reserveType = $reserveTypeRepository->find($reserveTypeId);
                 $reserve
@@ -46,7 +46,7 @@ class ReserveController extends AbstractController
                     ->setComment($data['comment'] ?? '');
             }
             else {
-                throw FormException('Le type de réserve est obligatoire');
+                throw new FormException('Le type de réserve est obligatoire');
             }
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
