@@ -16,19 +16,32 @@ class Reserve
     const MINUS = 'moins';
     const PLUS = 'plus';
 
+    const QUANTITY_TYPES = [
+        self::MINUS,
+        self::PLUS,
+    ];
+
+    const KIND_QUANTITY = 'quantity';
+    const KIND_GENERAL = 'general';
+    const KIND_QUALITY = 'quality';
+
+    const TYPES = [
+        self::KIND_QUANTITY,
+        self::KIND_GENERAL,
+        self::KIND_QUALITY,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    private string $type;
+    /* value : quantity, general and quality */
+    #[ORM\Column(length: 255, nullable: false)]
+    private ?string $kind = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
-
-    #[ORM\OneToOne(inversedBy: 'reserve', cascade: ['persist', 'remove'])]
-    private ?TruckArrivalLine $line = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $quantity = null;
@@ -36,9 +49,14 @@ class Reserve
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $quantityType = null;
 
-    #[ORM\ManyToOne(inversedBy: 'reserves')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\OneToOne(inversedBy: 'reserve', targetEntity: TruckArrivalLine::class)]
+    private ?TruckArrivalLine $line = null;
+
+    #[ORM\ManyToOne(targetEntity: TruckArrival::class, inversedBy: 'reserves')]
     private ?TruckArrival $truckArrival = null;
+
+    #[ORM\ManyToOne(targetEntity: ReserveType::class)]
+    private ?ReserveType $reserveType = null;
 
     public function __construct()
     {
@@ -50,14 +68,14 @@ class Reserve
         return $this->id;
     }
 
-    public function getType(): ?string
+    public function getKind(): ?string
     {
-        return $this->type;
+        return $this->kind;
     }
 
-    public function setType(string $type): self
+    public function setKind(string $kind): self
     {
-        $this->type = $type;
+        $this->kind = $kind;
 
         return $this;
     }
@@ -130,6 +148,18 @@ class Reserve
         }
         $this->truckArrival = $truckArrival;
         $truckArrival?->addReserve($this);
+
+        return $this;
+    }
+
+    public function getReserveType(): ?ReserveType
+    {
+        return $this->reserveType;
+    }
+
+    public function setReserveType(?ReserveType $reserveType): self
+    {
+        $this->reserveType = $reserveType;
 
         return $this;
     }

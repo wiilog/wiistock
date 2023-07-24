@@ -1,0 +1,11 @@
+{% extends 'dashboard/component_type/content/base_form.html.twig' %}
+
+{% import 'form.html.twig' as form %}
+
+{% block content %}
+    <div class="row">
+        <div class="form-group col-12">
+            {{ form.checkbox('redirect', 'Rediriger vers la page traçabilité urgences au clic', false, values.redirect is defined ? values.redirect : false) }}
+        </div>
+    </div>
+{% endblock %}

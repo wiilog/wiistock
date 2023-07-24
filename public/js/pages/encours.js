@@ -1,7 +1,6 @@
 fromDashboard = $('input[name=fromDashboard]').val();
 
 $(function () {
-    $('.filters-container').find('.submit-button').prop('disabled', fromDashboard);
     Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Encours', 'Emplacements', false), 1);
     Select2Old.init($('.filter-select2[name="natures"]'), Translation.of('Traçabilité', 'Encours', 'Natures', false));
 

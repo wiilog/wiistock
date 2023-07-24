@@ -77,7 +77,12 @@ class ScheduleRuleService
 
         $goToNextWeek = false;
         if ($now->format("W") != $nextOccurrence->format("W")) {
+            $nextOccurrence = max($now, $nextOccurrence);
             $day = $rule->getWeekDays()[0];
+            if (intval($day) < intval($nextOccurrence->format('N'))
+                || (intval($day) === intval($nextOccurrence->format('N')) && $this->isTimeBefore($rule->getIntervalTime(), $nextOccurrence))) {
+                $nextOccurrence->modify('+1 week');
+            }
         } else {
             $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
             $isTimeEqual = $this->isTimeEqual($rule->getIntervalTime(), $now);
@@ -211,6 +216,11 @@ class ScheduleRuleService
     private function isTimeEqualOrBefore(string $time, DateTime $date) {
         [$hour, $minute] = explode(":", $time);
         return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
+    }
+
+    private function isTimeBefore(string $time, DateTime $date) {
+        [$hour, $minute] = explode(":", $time);
+        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') > $minute);
     }
 
     private function isTimeEqual(string $time, DateTime $date) {

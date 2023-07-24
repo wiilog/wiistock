@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Pack;
 use App\Entity\ReceiptAssociation;
+use App\Entity\Setting;
 use App\Service\CSVExportService;
 use App\Service\ReceiptAssociationService;
 use App\Service\TranslationService;
@@ -17,34 +18,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/association_br")
- */
+#[Route("/association_br")]
 class ReceiptAssociationController extends AbstractController
 {
 
-    /** @required */
+    #[Required]
     public UserService $userService;
 
-    /** @required */
+    #[Required]
     public ReceiptAssociationService $receiptAssociationService;
 
-    /**
-     * @Route("/", name="receipt_association_index", methods={"GET"})
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ASSO})
-     */
+    #[Route("/", name: "receipt_association_index", methods: ["GET"])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ASSO])]
     public function index(): Response
     {
         return $this->render('receipt_association/index.html.twig');
     }
 
-    /**
-     * @Route("/api", name="receipt_association_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ASSO})
-     */
+    #[Route("/api", name: "receipt_association_api", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ASSO])]
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -55,10 +51,8 @@ class ReceiptAssociationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="receipt_association_delete", options={"expose"=true}, methods={"GET","POST"})
-     * @HasPermission({Menu::TRACA, Action::DELETE})
-     */
+    #[Route("/supprimer", name: "receipt_association_delete", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::TRACA, Action::DELETE])]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager,
                            TranslationService $translation): Response
@@ -78,14 +72,14 @@ class ReceiptAssociationController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/creer", name="receipt_association_new", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::CREATE})
-     */
+    #[Route("/creer", name: "receipt_association_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function new(Request $request,
                         EntityManagerInterface $manager,
                         TranslationService $translation): Response
     {
+        $settingRepository = $manager->getRepository(Setting::class);
+
         $data = json_decode($request->getContent(), true);
         $packs = $data['packCode'] ?? null;
         $receptions = $data['receptionNumber'] ?? null;
@@ -97,6 +91,7 @@ class ReceiptAssociationController extends AbstractController
         $receptions = Stream::explode(",", $receptionsStr)->toArray();
 
         $existingPacks = $manager->getRepository(Pack::class)->findBy(['code' => $packs]);
+        $packsForMovements = $existingPacks;
         $existingPacks = Stream::from($existingPacks)->map(fn(Pack $pack) => $pack->getCode())->toArray();
         $invalidPacks = Stream::diff($existingPacks, $packs)->toArray();
         if(!empty($invalidPacks)) {
@@ -141,6 +136,11 @@ class ReceiptAssociationController extends AbstractController
             $manager->persist($receiptAssociation);
         }
 
+        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
+            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            $this->receiptAssociationService->createMovements($receptions, $packsForMovements);
+        }
+
         $manager->flush();
         return $this->json([
             "success" => true,
@@ -148,10 +148,8 @@ class ReceiptAssociationController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/export", name="get_receipt_associations_csv", options={"expose"=true}, methods="GET")
-     * @HasPermission({Menu::TRACA, Action::EXPORT})
-     */
+    #[Route("/export", name: "get_receipt_associations_csv", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function export(EntityManagerInterface $manager,
                            Request $request,
                            CSVExportService $csvService): Response

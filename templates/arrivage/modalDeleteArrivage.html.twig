@@ -2,12 +2,12 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Supprimer l'arrivage"
+                title: "Supprimer l'arrivage UL"
             } %}
 
             <div class="modal-body">
-                {{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Voulez-vous réellement supprimer cet arrivage ?') }}
-                <span class="d-none hasLitige red">{{ trans('Traçabilité', 'Flux - Arrivages', 'Divers', '(attention, un litige a été créé sur cet arrivage : il sera également supprimé)') }}</span>
+                {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Voulez-vous réellement supprimer cet arrivage UL ?') }}
+                <span class="d-none hasLitige red">{{ trans('Traçabilité', 'Arrivages UL', 'Divers', '(attention, un litige a été créé sur cet arrivage UL : il sera également supprimé)') }}</span>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

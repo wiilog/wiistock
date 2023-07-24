@@ -1,0 +1,56 @@
+{% import 'form.html.twig' as form %}
+
+{% set settingLocationUL = setting_value('BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL', 'App\\Entity\\Emplacement') %}
+{% set settingLocationReceptionNum = setting_value('BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM', 'App\\Entity\\Emplacement') %}
+{% set hasDefaultLocations = settingLocationUL is not null and settingLocationReceptionNum is not null %}
+
+<div class="wii-section">
+    {{ form.checkbox('createMvt',
+        'Créer des mouvements de dépose à la création d’une association BR',
+        false,
+        hasDefaultLocations,
+        {
+            attributes: {
+                onchange: 'changeSettingsAssoBR($(this))',
+            },
+    }) }}
+
+    <div class="location-choice row mt-4 {{ hasDefaultLocations ? '' : 'd-none' }}">
+        <div class="col-6">
+            {{ form.select(setting('BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL'), 'Emplacement de dépose des unités logistiques', false, {
+                type: 'location',
+                placeholder: 'Sélectionnez un emplacement',
+                search: true,
+                noEmptyOption: true,
+                editable: true,
+                value: settingLocationUL ? settingLocationUL.id : null,
+                items: settingLocationUL ? {
+                    0: {
+                        'value': settingLocationUL.id,
+                        'label':  settingLocationUL.label,
+                        'selected': true
+                    }
+                } : null,
+                labelClass: 'w-75',
+            }) }}
+        </div>
+        <div class="col-6">
+            {{ form.select(setting('BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM'), 'Emplacement de dépose des numéros de réception', false, {
+                type: 'location',
+                placeholder: 'Sélectionnez un emplacement',
+                search: true,
+                noEmptyOption: true,
+                editable: true,
+                value: settingLocationReceptionNum ? settingLocationReceptionNum.id : null,
+                items: settingLocationReceptionNum ? {
+                    0: {
+                        'value': settingLocationReceptionNum.id,
+                        'label':  settingLocationReceptionNum.label,
+                        'selected': true
+                    }
+                } : null,
+                labelClass: 'w-75',
+            }) }}
+        </div>
+    </div>
+</div>

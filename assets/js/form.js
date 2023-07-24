@@ -114,7 +114,11 @@ export default class Form {
                             }
 
                             if(options.table) {
-                                options.table.ajax.reload();
+                                if (options.table instanceof Function) {
+                                    options.table().ajax.reload();
+                                } else {
+                                    options.table.ajax.reload();
+                                }
                             }
                         }
                     })
@@ -154,6 +158,10 @@ export default class Form {
         return this;
     }
 
+    process(config = {}) {
+        return Form.process(this, config);
+    }
+
     /**
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait
@@ -191,7 +199,7 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-            if (value !== null) {
+            if (value !== null && value !== "") {
                 if($input.is('[data-intl-tel-input]')){
                     $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
                 }
@@ -312,7 +320,9 @@ export default class Form {
             : $field;
 
         if($field.is(`[data-global-error]`)) {
-            let label = $field.data(`global-error`) || $parent.find(`.field-label`).text();
+            let label = $field.data(`global-error`)
+                || $parent.find(`.field-label`).text()
+                || $field.data('field-label');
             label = label
                 .trim()
                 .replace(/\*$/, '');

@@ -14,7 +14,7 @@ $(function () {
         columns: [
             {data: 'Actions', title: '', className: 'noVis', orderable: false},
             {data: 'name', title: 'Nom'},
-            {data: 'code', title: 'Code de référence'},
+            {data: 'code', title: 'Code fournisseur'},
             {data: 'possibleCustoms', title: 'Possible douane'},
             {data: 'urgent', title: 'Urgent'},
         ],
@@ -30,7 +30,7 @@ $(function () {
     let modalNewSupplier = $("#modalNewFournisseur");
     let submitNewSupplier = $("#submitNewFournisseur");
     let urlNewSupplier = Routing.generate('supplier_new', true);
-    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable]});
+    InitModal(modalNewSupplier, submitNewSupplier, urlNewSupplier, {tables: [supplierTable], formData: true});
 
     let modalDeleteSupplier = $("#modalDeleteFournisseur");
     let submitDeleteSupplier = $("#submitDeleteFournisseur");

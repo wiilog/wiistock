@@ -127,9 +127,9 @@
                                         <img src="{{ asset('svg/rejected-delivery.svg') }}"
                                              class="transport-status-icon mr-1"
                                              width="15"
-                                             alt="Livraison rejetée"
-                                             title="Livraison rejetée"/>
-                                        {{ nbRejectedOrders ?? 0 }} livraison{{ s }} rejetée{{ s }}
+                                             alt="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"
+                                             title="{{ trans('Demande', 'Livraison', 'Livraison', false) }} rejetée"/>
+                                        {{ nbRejectedOrders ?? 0 }} {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}{{ s }} rejetée{{ s }}
                                     </span>
                                 </div>
                             </div>

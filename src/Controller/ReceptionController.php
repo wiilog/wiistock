@@ -40,7 +40,7 @@ use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -97,8 +97,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslationService $translation): Response {
-
-        if ($data = $request->request->all()) {
+        if ($request->request) {
+            $data = $request->request->all();
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
@@ -184,7 +184,7 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $reception->removeIfNotIn($data['files'] ?? []);
 
@@ -622,7 +622,7 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire'] ?? null))
+                    ->setCommentaire($contentData['commentaire'] ?? null)
                     ->setReferenceArticle($refArticle)
                     ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
 
@@ -747,7 +747,7 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
@@ -849,11 +849,12 @@ class ReceptionController extends AbstractController {
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
      */
-    public function show(EntityManagerInterface $entityManager,
-                         SettingsService $settingsService,
-                         ReceptionService $receptionService,
-                         TagTemplateService $tagTemplateService,
-                         Reception $reception): Response {
+    public function show(EntityManagerInterface     $entityManager,
+                         SettingsService            $settingsService,
+                         ReceptionService           $receptionService,
+                         TagTemplateService         $tagTemplateService,
+                         Reception                  $reception,
+                         TranslationService         $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -884,9 +885,9 @@ class ReceptionController extends AbstractController {
         ])?->getLabel();
 
         $deliverySwitchLabel = match ($deliveryRequestBehaviorSettingLabel) {
-            Setting::CREATE_DELIVERY_ONLY => 'Demande de livraison seule',
-            Setting::DIRECT_DELIVERY => 'Ordre de livraison',
-            default => 'Livraison',
+            Setting::CREATE_DELIVERY_ONLY => $translation->translate("Demande", "Livraison", "Demande de livraison", false) . ' seule',
+            Setting::DIRECT_DELIVERY => $translation->translate("Ordre", "Livraison", "Ordre de livraison", false),
+            default => $translation->translate("Demande", "Livraison", "Livraison", false),
         };
 
         return $this->render("reception/show/index.html.twig", [
@@ -1505,7 +1506,9 @@ class ReceptionController extends AbstractController {
         if($receptionId = json_decode($request->getContent(), true)) {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $reception = $receptionRepository->find($receptionId);
-            if($reception?->getLines()?->count() === 0) {
+            $receptionReferenceArticles = $reception?->getReceptionReferenceArticles();
+
+            if(empty($receptionReferenceArticles)) {
                 $delete = true;
                 $html = "
                     <p>{$translationService->translate('Ordre', 'Réceptions', 'Voulez-vous réellement supprimer cette réception')}</p>
@@ -1521,7 +1524,10 @@ class ReceptionController extends AbstractController {
                 ";
             }
 
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+            return new JsonResponse([
+                'delete' => $delete,
+                'html' => $html,
+            ]);
         }
         throw new BadRequestHttpException();
     }
@@ -1651,7 +1657,7 @@ class ReceptionController extends AbstractController {
                                    MailerService              $mailerService,
                                    TransferRequestService     $transferRequestService,
                                    TransferOrderService       $transferOrderService,
-                                   DemandeLivraisonService    $demandeLivraisonService,
+                                   DeliveryRequestService     $demandeLivraisonService,
                                    TranslationService         $translation,
                                    EntityManagerInterface     $entityManager,
                                    Reception                  $reception,
@@ -1660,8 +1666,8 @@ class ReceptionController extends AbstractController {
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
-                                   LivraisonsManagerService $livraisonsManagerService,
-                                   ReceptionService $receptionService): Response {
+                                   LivraisonsManagerService   $livraisonsManagerService,
+                                   ReceptionService           $receptionService): Response {
         $now = new DateTime('now');
 
         /** @var Utilisateur $currentUser */
@@ -1675,14 +1681,6 @@ class ReceptionController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $packRepository = $entityManager->getRepository(Pack::class);
-
-        $location = isset($data['pack']) ? $packRepository->find($data['pack'])?->getLastDrop()?->getEmplacement() : null;
-        if (isset($location) && !$location->ableToBeDropOff(new Pack())) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel(),
-            ]);
-        }
         $createDirectDelivery = $settingRepository->getOneParamByLabel(Setting::DIRECT_DELIVERY);
         $paramCreatePrepa = $settingRepository->findOneBy(['label' => Setting::CREATE_PREPA_AFTER_DL]);
 
@@ -1706,6 +1704,7 @@ class ReceptionController extends AbstractController {
 
             $articleArray['receptionReferenceArticle'] = $receptionReferenceArticle;
             $articleArray['refArticle'] = $receptionReferenceArticle->getReferenceArticle();
+            $articleArray['conform'] = !$receptionReferenceArticle->getAnomalie();
 
             if(!isset($totalQuantities[$receptionReferenceArticle->getId()])) {
                 $totalQuantities[$receptionReferenceArticle->getId()] = [
@@ -1713,6 +1712,8 @@ class ReceptionController extends AbstractController {
                     "count" => $receptionReferenceArticle->getQuantite() ?? 0,
                 ];
             }
+
+            $articleArray['quantityReceived'] = max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
             $totalQuantities[$receptionReferenceArticle->getId()]["count"] += max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
         }
 
@@ -1781,7 +1782,7 @@ class ReceptionController extends AbstractController {
                                 catch (UniqueConstraintViolationException $e) {
                                     return new JsonResponse([
                                         'success' => false,
-                                        'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.'
+                                        'msg' => 'Une autre ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' est en cours de création, veuillez réessayer.'
                                     ]);
                                 }
                                 foreach ($mouvements as $mouvement) {
@@ -1810,7 +1811,7 @@ class ReceptionController extends AbstractController {
                     else {
                         return new JsonResponse([
                             'success' => false,
-                            'msg' => 'Erreur lors de la création de la demande de livraison.',
+                            'msg' => 'Erreur lors de la création de la ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . '.',
                         ]);
                     }
                 }
@@ -1865,6 +1866,11 @@ class ReceptionController extends AbstractController {
             /** @var ReferenceArticle $referenceArticle */
             $referenceArticle = $articleArray['refArticle'];
 
+            $location = isset($data['pack']) ? $pack?->getLastDrop()?->getEmplacement() : null;
+            if (isset($location) && !$location->ableToBeDropOff($pack)) {
+                throw new FormException("Les objets ne disposent pas des natures requises pour être déposés sur l'emplacement " . $location->getLabel());
+            }
+
             if(isset($receptionLocationId)) {
                 $articleArray['emplacement'] = $receptionLocationId;
             }
@@ -1878,7 +1884,7 @@ class ReceptionController extends AbstractController {
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
-                $article = $articleDataService->newArticle($articleArray, $entityManager);
+                $article = $articleDataService->newArticle($entityManager, $articleArray);
 
                 if ($demande ?? false) {
                     $deliveryArticleLine = $demandeLivraisonService->createArticleLine($article, $demande, [
@@ -1906,7 +1912,7 @@ class ReceptionController extends AbstractController {
                 $article->setReceptionReferenceArticle($receptionReferenceArticle);
 
                 if($referenceArticle->getIsUrgent()) {
-                    $emergencies[] = $article;
+                    $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
                 }
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
@@ -1982,13 +1988,16 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        foreach($emergencies as $article) {
+        foreach($emergencies as $emergency) {
+            $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
+            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                 'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
+                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -2016,13 +2025,34 @@ class ReceptionController extends AbstractController {
                 );
             }
 
-            $referenceArticle
-                ->setIsUrgent(false)
-                ->setUserThatTriggeredEmergency(null)
-                ->setEmergencyComment('');
+            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setUserThatTriggeredEmergency(null)
+                    ->setEmergencyComment('');
+            } else {
+                if ($newEmergencyQuantity <= 0) {
+                    $referenceArticle
+                        ->setIsUrgent(false)
+                        ->setEmergencyQuantity(null)
+                        ->setUserThatTriggeredEmergency(null)
+                        ->setEmergencyComment('');
+                } else {
+                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
+                }
+            }
+            $entityManager->flush();
         }
 
-        if(isset($demande) && $demande->getType()->getSendMail()) {
+        if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
+            $to = [];
+            if ($demande->getType()->getSendMailRequester()) {
+                $to[] = $demande->getUtilisateur();
+            }
+            if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                $to[] = $demande->getReceiver();
+            }
+
             $nowDate = new DateTime('now');
             $mailerService->sendMail(
                 'FOLLOW GT // Réception d\'une unité logistique ' . 'de type «' . $demande->getType()->getLabel() . '».',
@@ -2040,7 +2070,7 @@ class ReceptionController extends AbstractController {
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
                 ]),
-                $demande->getUtilisateur()
+                $to
             );
         }
         $reception->setStatut($receptionService->getNewStatus($reception));

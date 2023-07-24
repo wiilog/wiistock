@@ -131,6 +131,7 @@ class Import {
             'articleFournisseur' => 'article fournisseur',
             'needsMobileSync' => 'Synchronisation nomade',
             'prixUnitaire' => 'prix unitaire',
+            'rfidTag' => 'tag RFID',
             'limitSecurity' => 'seuil de sécurité',
             'limitWarning' => "seuil d'alerte",
             'quantiteStock' => 'quantité en stock',
@@ -185,6 +186,7 @@ class Import {
             'articleReference' => 'Référence',
             'requester' => 'Demandeur',
             'signatoryCode' => 'Code Signataire',
+            'recipient' => 'Destinataire',
 
             'targetLocationPicking' => 'Emplacement cible picking',
             'name' => 'Nom',
@@ -215,6 +217,12 @@ class Import {
 
         self::ENTITY_CUSTOMER => [
             'name' =>  'Client',
+        ],
+
+        self::ENTITY_REF => [
+            'dangerousGoods' =>  'Marchandise dangereuse',
+            'onuCode' =>  'Code ONU',
+            'productClass' =>  'Classe produit',
         ],
     ];
 
@@ -273,6 +281,9 @@ class Import {
 
     #[ORM\Column(type: 'boolean', nullable: false)]
     private ?bool $eraseData = false;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $recipient = null;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();
@@ -469,6 +480,15 @@ class Import {
 
     public function setEraseData(bool $eraseData): self {
         $this->eraseData = $eraseData;
+        return $this;
+    }
+
+    public function getRecipient(): ?string {
+        return $this->recipient;
+    }
+
+    public function setRecipient(?string $recipient): self {
+        $this->recipient = $recipient;
         return $this;
     }
 

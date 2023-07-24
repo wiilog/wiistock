@@ -5,14 +5,17 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ARRIVAL_TYPE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterType.html.twig' with {
-            placeholder : trans('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false)
+            placeholder : trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false)
         } %}
     {% endif %}
     {% include 'filters/filter_item/filterStatus.html.twig' with {
-        placeholder : trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Statuts', false)
+        placeholder : trans('Traçabilité', 'Arrivages UL', 'Divers', 'Statuts', false)
     } %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
-        title: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'N° d\'arrivage', false)
+        title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL', false)
+    } %}
+    {% include 'filters/filter_item/filterNumTruckArrival.html.twig' with {
+        title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage camion', false)
     } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
@@ -32,7 +35,7 @@
         {% include 'filters/filter_item/filterCarrier.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: trans('Traçabilité', 'Flux - Arrivages', 'Divers', 'Destinataires', false)
+        placeholder: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Destinataires', false)
     } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
@@ -49,5 +52,12 @@
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_PROJECT_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterProjectNumber.html.twig' %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterTrackingCarrierNumber.html.twig' with {
+            title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Numéro de tracking', false)
+        } %}
     {% endif %}
 {% endblock %}

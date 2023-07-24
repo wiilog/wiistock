@@ -49,6 +49,7 @@ const ROUTES = {
     nativeCountries: 'ajax_select_native_countries',
     supplierArticles: 'ajax_select_supplier_articles',
     driver: 'ajax_select_driver',
+    truckArrivalLine: 'ajax_select_truck_arrival_line',
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -103,7 +104,6 @@ export default class Select2 {
                         data: params => Select2.includeParams($element, params),
                         processResults: (data) => {
                             const $search = $element.parent().find(`.select2-search__field`);
-
                             if (data.error) {
                                 $search.addClass(`is-invalid`);
 
@@ -121,6 +121,13 @@ export default class Select2 {
                                     $element.attr("data-length", data.availableResults);
                                 }
 
+                                if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
+                                    setTimeout(() => {
+                                        if (data.results[0].text === $search.val()) {
+                                            $element.parent().find('.select2-results__option').mouseup();
+                                        }
+                                    }, 10);
+                                }
                                 return data;
                             }
                         }
@@ -162,8 +169,18 @@ export default class Select2 {
                 });
 
                 $element.on(`change`, () => {
-                    if ($element.val() === `new-item` && search && search.length) {
-                        $element.append(new Option(search, search, true, true)).trigger('change');
+                    const [selected] = $element.select2('data');
+                    if (selected) {
+                        if (selected.id === `new-item` && search && search.length) {
+                            $element
+                                .append(new Option(search, search, true, true))
+                                .trigger('change');
+                        } else if (selected.id === `redirect-url` && selected.url) {
+                            location.href = selected.url;
+                            $element
+                                .val(null)
+                                .trigger('change');
+                        }
                     }
                 })
 
@@ -329,6 +346,22 @@ export default class Select2 {
     static reload($element) {
         Select2.destroy($element);
         Select2.init($element);
+    }
+
+    static tokenizer(input, selection, callback, delimiter) {
+        let term = input.term;
+        if (term.indexOf(delimiter) < 0)
+            return input;
+
+        let parts = term.split(delimiter);
+        for (let i = 0; i < parts.length; i++) {
+            let part = parts[i].trim();
+            callback({
+                id: part,
+                text: part
+            });
+        }
+        return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
 }
 

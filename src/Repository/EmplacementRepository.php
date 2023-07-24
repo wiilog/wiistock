@@ -38,6 +38,7 @@ class EmplacementRepository extends EntityRepository
         $idPrefix = $options['idPrefix'] ?? '';
         $deliveryType = $options['deliveryType'] ?? '';
         $collectType = $options['collectType'] ?? '';
+        $restrictedLocations = $options['restrictedLocations'] ?? '';
 
         $query = $this->createQueryBuilder("location")
             ->groupBy('location');
@@ -55,6 +56,11 @@ class EmplacementRepository extends EntityRepository
                 ->setParameter("type", $collectType);
         }
 
+        if($restrictedLocations) {
+            $query->andWhere('location.id IN (:restrictedLocations)')
+                ->setParameter('restrictedLocations', $restrictedLocations);
+        }
+
         return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")
             ->andWhere("location.label LIKE :term")
             ->andWhere("location.isActive = true")
@@ -69,8 +75,10 @@ class EmplacementRepository extends EntityRepository
             ->select('location.id')
             ->addSelect('location.label')
             ->addSelect("GROUP_CONCAT(join_temperature_ranges.value SEPARATOR ';') AS temperature_ranges")
+            ->addSelect("GROUP_CONCAT(join_signatories.id SEPARATOR ';') AS signatories")
             ->where('location.isActive = true')
             ->leftJoin('location.temperatureRanges', 'join_temperature_ranges')
+            ->leftJoin('location.signatories', 'join_signatories')
             ->groupBy('location.id')
             ->addGroupBy('location.label')
             ->getQuery()
@@ -255,17 +263,6 @@ class EmplacementRepository extends EntityRepository
                 'zones' => $zones,
                 'mission' => $mission,
             ])
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findWithActivePairing(){
-        $qb = $this->createQueryBuilder('location');
-        $qb
-            ->leftJoin('location.pairings', 'pairings')
-            ->where('pairings.active = 1');
-
-        return $qb
             ->getQuery()
             ->getResult();
     }
@@ -515,15 +512,26 @@ class EmplacementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByUser(Utilisateur $user) {
-        $queryBuilder = $this->getEntityManager()->createQueryBuilder();
-        return $queryBuilder
-            ->from(Emplacement::class, 'location')
+    public function isLocationInZoneInventoryMissionRule(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
             ->select('COUNT(location)')
-            ->andWhere('user = :user')
-            ->join('location.signatories', 'user')
-            ->setParameter('user', $user)
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryMissionRules IS NOT EMPTY')
+            ->setParameter('zone', $zone)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult() > 0;
+    }
+
+    public function isLocationInNotDoneInventoryMission(Zone $zone): bool {
+        return $this->createQueryBuilder('location')
+            ->select('COUNT(location)')
+            ->andWhere('location.zone = :zone')
+            ->andWhere('location.inventoryLocationMissions IS NOT EMPTY')
+            ->andWhere('inventoryMission.done = false OR inventoryMission.done IS NULL')
+            ->innerJoin('location.inventoryLocationMissions', 'inventoryLocationMission')
+            ->innerJoin('inventoryLocationMission.inventoryMission', 'inventoryMission')
+            ->setParameter('zone', $zone)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
     }
 }

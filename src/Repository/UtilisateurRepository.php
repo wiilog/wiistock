@@ -52,6 +52,10 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->andWhere("user.deliverer = true");
         }
 
+        if(isset($options['withPhoneNumber']) && $options['withPhoneNumber']) {
+            $qb->addSelect("user.phone AS phone");
+        }
+
         return $qb
             ->andWhere("user.username LIKE :term")
             ->andWhere('user.status = 1')
@@ -152,6 +156,8 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
         if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
 
+        $qb->groupBy('user');
+
         return [
             'data' => $qb->getQuery()->getResult(),
             'total' => $this->count([]),
@@ -240,6 +246,7 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $this->createQueryBuilder("user")
             ->select("user.id AS id")
             ->addSelect("user.username AS username")
+            ->addSelect("user.signatoryPassword AS signatoryPassword")
             ->andWhere("user.status = 1")
             ->getQuery()
             ->getResult();

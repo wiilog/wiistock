@@ -25,9 +25,12 @@ use App\Entity\Nature;
 use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
+use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
@@ -58,6 +61,9 @@ class DashboardService {
 
     #[Required]
     public EnCoursService $enCoursService;
+
+    #[Required]
+    public TruckArrivalLineService $truckArrivalLineService;
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -374,6 +380,32 @@ class DashboardService {
             ->setSubCounts([$secondCount, $thirdCount]);
     }
 
+    public function persistCarriers(EntityManagerInterface $entityManager, Dashboard\Component $component) {
+        $config = $component->getConfig();
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $lineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers'] ?? []);
+
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Indicator::class);
+        $meter->setSubtitle(FormatHelper::carriers($carriers) ?: '-');
+        $meter->setCount(0);
+        if (isset($config['displayUnassociatedLines']) && $config['displayUnassociatedLines']) {
+            $unassociatedLines = $lineRepository->getUnassociatedLines();
+            $meter->setCount(count($unassociatedLines));
+
+            if (isset($config['displayLateLines']) && $config['displayLateLines']) {
+                $lateLines = Stream::from($unassociatedLines)
+                    ->filter((fn(TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager)))
+                    ->count();
+                $meter
+                    ->setSubCounts([
+                        '<span>Numéros de tracking transporteur non associés</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="font-">' . $lateLines . '</span> <span class="text-wii-black">en retard</span>'
+                    ]);
+            }
+        }
+    }
+
     /**
      * @param EntityManagerInterface $entityManager
      * @param Dashboard\Component $component
@@ -669,7 +701,9 @@ class DashboardService {
                                 ($countDownHours < 0 && $beginSpan === -1) // count late pack
                                 || ($countDownHours >= 0 && $countDownHours >= $beginSpan && $countDownHours < $endSpan)
                             )) {
-
+                            if (empty($countByNature[$pack['natureLabel']])) {
+                                $countByNature[$pack['natureLabel']] = 0;
+                            }
                             $countByNature[$pack['natureLabel']]++;
 
                             $currentLocationLabel = $pack['currentLocationLabel'];
@@ -1012,6 +1046,7 @@ class DashboardService {
             Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH => Dispatch::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT => Collecte::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER => TransferRequest::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING => ShippingRequest::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT => OrdreCollecte::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY => Livraison::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_PREPARATION => Preparation::class,
@@ -1028,6 +1063,10 @@ class DashboardService {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
                     $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    break;
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING:
+                    $result = QueryBuilderHelper::countByStatuses($entityManager, $entityToClass[$config['entity']], $entityStatuses);
+                    $count = $result[0]['count'] ?? $result;
                     break;
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY:
@@ -1377,8 +1416,8 @@ class DashboardService {
         }
     }
 
-    public function persistDailyDeliveryOrders(EntityManagerInterface $entityManager,
-                                               Dashboard\Component $component): void {
+    public function persistDailyDeliveryOrders(EntityManagerInterface   $entityManager,
+                                               Dashboard\Component      $component): void {
         $config = $component->getConfig();
         $deliveryOrderStatusesFilter = $config['deliveryOrderStatuses'] ?? [];
         $deliveryOrderTypesFilter = $config['deliveryOrderTypes'] ?? [];
@@ -1397,7 +1436,7 @@ class DashboardService {
             'treatmentDate'   => "de traitement",
             default           => "date attendue",
         };
-        $hint = "Nombre d'ordres de livraison ayant leur $type sur les jours présentés";
+        $hint = "Nombre d'" . mb_strtolower($this->translationService->translate("Ordre", "Livraison", "Ordre de livraison", false)) . " ayant leur $type sur les jours présentés";
 
         $chartData = $this->{$getDailyObjectsStatisticsCallable}(
             $entityManager,

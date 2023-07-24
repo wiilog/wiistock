@@ -7,7 +7,7 @@ const PAGE_HAND = 'handling';
 const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
-const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_LU_ARRIVAL = 'LUArrival';
 const PAGE_IMPORT = 'import';
 const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
@@ -32,6 +32,7 @@ const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
 const PAGE_URGENCES = 'urgences';
 const PAGE_NOTIFICATIONS = 'notifications';
 const PAGE_TRUCK_ARRIVAL = 'truckArrival';
+const PAGE_SHIPPING = 'shipping_request';
 const STATUT_ACTIF = 'disponible';
 const STATUT_INACTIF = 'consommé';
 const STATUT_EN_TRANSIT = 'en transit';
@@ -710,7 +711,7 @@ function onFlyFormSubmit(path, button, toHide, buttonAdd, $select = null) {
         params[$(this).attr('name')] = $(this).val();
     });
     if (formIsValid) {
-        $.post(path, JSON.stringify(params), function (response) {
+        $.post(path, params, function (response) {
             if (response && response.success) {
                 if ($select) {
                     let option = new Option(response.text, response.id, true, true);
@@ -1006,8 +1007,9 @@ function displayAlertModal(title, $body, buttonConfig, iconType = undefined, aut
     if (buttonConfig && buttonConfig.length > 0) {
         $modalFooter.removeClass('d-none');
         const $wrapper = $('<div/>', {class: 'row justify-content-center'}).prepend(
-            ...buttonConfig.map(({action, ...config}) => {
-                return $('<div/>', {class: 'col-auto'}).append($('<button/>', {
+            ...buttonConfig.map(({action, ...config}, index) => {
+                const classes = 'col-auto ' + (index === 0 ? 'pr-0' : 'pl-2');
+                return $('<div/>', {class: classes}).append($('<button/>', {
                     ...config,
                     ...(action
                         ? {
@@ -1228,7 +1230,7 @@ function onTypeChange($select) {
 
         if ($modal.attr('id') === 'modalNewHandling') {
             $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
-                const $select2 = $('.modal-body select[name=receivers]');
+                const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {
                     let option = new Option(value, key, true, true);
@@ -1255,4 +1257,75 @@ function registerEasterEgg() {
     $modalEasterEgg.on('hidden.bs.modal', () => {
         count = 0;
     })
+}
+
+
+function loadAndDisplayLabels($select, name) {
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $codeSelect = $form.find(`[name=${name}]`);
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, code} = selected;
+            const [codeSelectSelected] = $codeSelect.select2('data');
+            const selectCodeFournisseur = () => {
+                let option = new Option(code, id, true, true);
+                $codeSelect.append(option).trigger('change');
+            }
+            if (codeSelectSelected) {
+                const {id: codeSelectId} = codeSelectSelected;
+                if (id !== codeSelectId) {
+                    selectCodeFournisseur();
+                }
+            }
+            else {
+                selectCodeFournisseur();
+            }
+        }
+        else {
+            $codeSelect.val(null).trigger('change');
+        }
+    }
+}
+
+function loadAndDisplayInfos($select, name) {
+    const $form = $select.closest('.ligneFournisseurArticle');
+    const $nomSelect = $form.find(`[name=${name}]`);
+    if($select.val()) {
+        const [selected] = $select.select2('data');
+        if (selected) {
+            const {id, text} = selected;
+            const [nomSelectSelected] = $nomSelect.select2('data');
+            const selectNomFournisseur = () => {
+                let option = new Option(text, id, true, true);
+                $nomSelect.append(option).trigger('change');
+            }
+            if (nomSelectSelected) {
+                const {id: nomSelectId} = nomSelectSelected;
+                if (id !== nomSelectId) {
+                    selectNomFournisseur();
+                }
+            }
+            else {
+                selectNomFournisseur();
+            }
+        }
+    }
+    else {
+        $nomSelect.val(null).trigger('change');
+    }
+    let $modal = $select.closest('.modal');
+
+    $select.parent()
+        .siblings('.newContent')
+        .removeClass('d-none')
+        .addClass('d-block');
+
+    $modal.find('span[role="textbox"]').each(function () {
+        $(this).parent().css('border-color', '');
+    });
+}
+
+function scrollToBottom() {
+    window.scrollTo(0, document.body.scrollHeight);
 }

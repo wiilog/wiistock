@@ -2,9 +2,12 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\DispatchReferenceArticle;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Translation;
@@ -13,16 +16,22 @@ use App\Repository\SettingRepository;
 use Composer\Semver\Semver;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 class MobileApiService {
 
-    /** @Required */
+    #[Required]
     public NatureService $natureService;
+
+    #[Required]
+    public UserService $userService;
 
     const MOBILE_TRANSLATIONS = [
         "Acheminements",
+        "Champs fixes",
+        "Général",
         "Objet",
         "Nombre d'opération(s) réalisée(s)",
         "Nature",
@@ -35,6 +44,7 @@ class MobileApiService {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
 
         $dispatchExpectedDateColors = [
             'after' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_AFTER),
@@ -42,7 +52,8 @@ class MobileApiService {
             'before' => $settingRepository->getOneParamByLabel(Setting::DISPATCH_EXPECTED_DATE_COLOR_BEFORE)
         ];
 
-        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser);
+        $dispatchOfflineMode = $this->userService->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $loggedUser);
+        $dispatches = $dispatchRepository->getMobileDispatches($loggedUser, null, $dispatchOfflineMode);
         $dispatches = Stream::from(
             Stream::from($dispatches)
                 ->reduce(function (array $accumulator, array $dispatch) {
@@ -52,21 +63,37 @@ class MobileApiService {
                 $dispatch['color'] = $this->expectedDateColor($dispatch['endDate'] ?? null, $dispatchExpectedDateColors);
                 $dispatch['startDate'] = $dispatch['startDate'] ? $dispatch['startDate']->format('d/m/Y') : null;
                 $dispatch['endDate'] = $dispatch['endDate'] ? $dispatch['endDate']->format('d/m/Y') : null;
-                $dispatch['comment'] = StringHelper::cleanedComment($dispatch['comment']);
+                $dispatch['comment'] = strip_tags($dispatch['comment']);
                 return $dispatch;
             })
             ->values();
 
-        $dispatchPacks = array_map(function($dispatchPack) {
-            if(!empty($dispatchPack['comment'])) {
-                $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
-            }
-            return $dispatchPack;
-        }, $dispatchPackRepository->getMobilePacksFromDispatches(array_map(fn($dispatch) => $dispatch['id'], $dispatches)));
+        $dispatchIds = Stream::from($dispatches)
+            ->map(fn(array $dispatch) => $dispatch['id'])
+            ->toArray();
+
+        $dispatchPacks = Stream::from($dispatchPackRepository->getMobilePacksFromDispatches($dispatchIds))
+            ->map(function($dispatchPack) {
+                if(!empty($dispatchPack['comment'])) {
+                    $dispatchPack['comment'] = substr(strip_tags($dispatchPack['comment']), 0, 200);
+                }
+                return $dispatchPack;
+            })
+            ->toArray();
+
+        $dispatchReferences = Stream::from($dispatchReferenceArticleRepository->getForMobile($dispatchIds))
+            ->map(function ($dispatchReference) {
+                if (!empty($dispatchReference['comment'])) {
+                    $dispatchReference['comment'] = substr(strip_tags($dispatchReference['comment']), 0, 200);
+                }
+                return $dispatchReference;
+            })
+            ->toArray();
 
         return [
             'dispatches' => $dispatches,
-            'dispatchPacks' => $dispatchPacks
+            'dispatchPacks' => $dispatchPacks,
+            'dispatchReferences' => $dispatchReferences,
         ];
     }
 
@@ -88,8 +115,12 @@ class MobileApiService {
         // Set reference quantity fields, format : REF1 (1),REF2 (4),...
         if (!isset($accumulator[$dispatch['id']]['quantities']) && $dispatch['lineQuantity'] && $dispatch['packReferences']) {
             $accumulator[$dispatch['id']]['quantities'] = $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')';
-        } else if ($dispatch['lineQuantity'] && $dispatch['packReferences']) {
+        }
+        else if ($dispatch['lineQuantity'] && $dispatch['packReferences']) {
             $accumulator[$dispatch['id']]['quantities'] .= (',' . $dispatch['packReferences'] . ' (' . $dispatch['lineQuantity'] . ')');
+        }
+        else {
+            $accumulator[$dispatch['id']]['quantities'] = null;
         }
 
         if (array_key_exists('lineQuantity', $accumulator[$dispatch['id']])) {
@@ -99,7 +130,8 @@ class MobileApiService {
         // Set packs fields, format : PACK1,PACK2,...
         if (!$first && $accumulator[$dispatch['id']]['packs'] && $dispatch['packs']) {
             $accumulator[$dispatch['id']]['packs'] .= (',' . $dispatch['packs']);
-        } else if ($dispatch['packs']) {
+        }
+        else if ($dispatch['packs']) {
             $accumulator[$dispatch['id']]['packs'] = $dispatch['packs'];
         }
         return $accumulator;
@@ -167,6 +199,8 @@ class MobileApiService {
             "manualDeliveryDisableValidations" => $globalsParameters->getOneParamByLabel(Setting::MANUAL_DELIVERY_DISABLE_VALIDATIONS) == 1,
             "rfidPrefix" => $globalsParameters->getOneParamByLabel(Setting::RFID_PREFIX) ?: null,
             "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
+            "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
+            "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
         ])
             ->toArray();
     }

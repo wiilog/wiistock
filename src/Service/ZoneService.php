@@ -28,6 +28,9 @@ class ZoneService {
     #[Required]
     public Security $security;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function getDataForDatatable($params = null) {
         $zoneRepository = $this->manager->getRepository(Zone::class);
         $queryResult = $zoneRepository->findByParamsAndFilters($params);
@@ -46,13 +49,14 @@ class ZoneService {
         ];
     }
 
-    public function dataRowZone(Zone $zone) {
+    public function dataRowZone(Zone $zone): array {
         return [
             "actions" => $this->template->render('zone/actions.html.twig', [
                 "zone" => $zone,
             ]),
             "name" => $zone->getName(),
             "description" => $zone->getDescription(),
+            "active" => $this->formatService->bool($zone->isActive()),
         ];
     }
 }

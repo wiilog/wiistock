@@ -11,6 +11,7 @@ use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 
@@ -27,6 +28,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\PDFGeneratorService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 
@@ -47,6 +49,9 @@ class LocationController extends AbstractController {
 
     /** @Required */
     public UserService $userService;
+
+    /** @Required */
+    public TranslationService $translation;
 
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
@@ -76,15 +81,10 @@ class LocationController extends AbstractController {
      * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request, EntityManagerInterface $entityManager): Response {
+    public function new(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $naturesRepository = $entityManager->getRepository(Nature::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $userRepository = $entityManager->getRepository(Utilisateur::class);
-            $zoneRepository = $entityManager->getRepository(Zone::class);
-            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -94,17 +94,7 @@ class LocationController extends AbstractController {
             if ($errorResponse) {
                 return $errorResponse;
             }
-            $zone = $data['zone'] ? $zoneRepository->find($data['zone']) : null;
 
-            $signatoryIds = is_array($data['signatories'])
-                ? $data['signatories']
-                : Stream::explode(',', $data['signatories'])
-                    ->filter()
-                    ->map(fn(string $id) => trim($id))
-                    ->toArray();
-            $signatories = !empty($signatoryIds)
-                ? $userRepository->findBy(['id' => $signatoryIds])
-                : [];
             $email = $data['email'] ?? null;
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return $this->json([
@@ -112,35 +102,8 @@ class LocationController extends AbstractController {
                     "msg" => "L'adresse email renseignée est invalide.",
                 ]);
             }
-            $emplacement = new Emplacement();
-            $emplacement
-                ->setLabel($data["Label"])
-                ->setDescription($data["Description"])
-                ->setIsActive(true)
-                ->setDateMaxTime($dateMaxTime)
-                ->setIsDeliveryPoint($data["isDeliveryPoint"])
-                ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"])
-                ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
-                ->setSignatories($signatories ?? [])
-                ->setEmail($email)
-                ->setZone($zone);
 
-            if (!empty($data['allowed-natures'])) {
-                foreach ($data['allowed-natures'] as $allowedNatureId) {
-                    $emplacement
-                        ->addAllowedNature($naturesRepository->find($allowedNatureId));
-                }
-            }
-
-            if (!empty($data['allowedTemperatures'])) {
-                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
-                    $emplacement
-                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
-                }
-            }
-
-            $entityManager->persist($emplacement);
+            $emplacement = $emplacementDataService->persistLocation($data, $entityManager);
             $entityManager->flush();
 
             $label = $emplacement->getLabel();
@@ -205,11 +168,6 @@ class LocationController extends AbstractController {
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
                 "temperatures" => $temperatures,
-                "locationZone" =>  $emplacement->getZone() ? [
-                        "label" => $emplacement->getZone()->getName(),
-                        "value" => $emplacement->getZone()->getId(),
-                        "selected" => true
-                    ] : [],
                 "selectZone" => count($zones) === 1 ? $zones[0] : null
             ]));
         }
@@ -230,7 +188,7 @@ class LocationController extends AbstractController {
             $zoneRepository = $entityManager->getRepository(Zone::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["Label"] ?? null, $data['id']);
+            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null, $data['id']);
             if ($errorResponse) {
                 return $errorResponse;
             }
@@ -259,8 +217,8 @@ class LocationController extends AbstractController {
             }
             $emplacement = $emplacementRepository->find($data['id']);
             $emplacement
-                ->setLabel($data["Label"])
-                ->setDescription($data["Description"])
+                ->setLabel($data["label"])
+                ->setDescription($data["description"])
                 ->setIsDeliveryPoint($data["isDeliveryPoint"])
                 ->setIsOngoingVisibleOnMobile($data["isOngoingVisibleOnMobile"])
                 ->setDateMaxTime($dateMaxTime)
@@ -323,7 +281,8 @@ class LocationController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function isEmplacementUsed(EntityManagerInterface $entityManager, int $emplacementId): array {
+    private function isEmplacementUsed(EntityManagerInterface $entityManager,
+                                       int                    $emplacementId): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
@@ -334,6 +293,9 @@ class LocationController extends AbstractController {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+
+        $location = $locationRepository->find($emplacementId);
 
         $usedBy = [];
 
@@ -344,7 +306,7 @@ class LocationController extends AbstractController {
         if ($dispatches > 0) $usedBy[] = 'acheminements';
 
         $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
-        if ($livraisons > 0) $usedBy[] = 'livraisons';
+        if ($livraisons > 0) $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
 
         $collectes = $collecteRepository->countByEmplacement($emplacementId);
         if ($collectes > 0) $usedBy[] = 'collectes';
@@ -367,6 +329,9 @@ class LocationController extends AbstractController {
 
         $round = $locationRepository->countRound($emplacementId);
         if ($round > 0) $usedBy[] = 'tournées';
+
+        $inventoryLocationMissions = $inventoryLocationMissionRepository->count(['location' => $location]);
+        if ($inventoryLocationMissions > 0) $usedBy[] = "missions d'inventaire";
 
         return $usedBy;
     }

@@ -3,15 +3,10 @@
 
 namespace App\Service;
 
-use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
-use App\Entity\PurchaseRequest;
-use App\Entity\PurchaseRequestLine;
 use App\Entity\PurchaseRequestScheduleRule;
-use App\Entity\Setting;
 use App\Entity\StorageRule;
-use App\Entity\Zone;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -37,65 +32,54 @@ class PurchaseRequestRuleService
     #[Required]
     public MailerService $mailerService;
 
-    public function treatRequestRule(PurchaseRequestScheduleRule $rule): void
+    public function treatRequestRule(PurchaseRequestScheduleRule $purchaseRequestRule): void
     {
         $storageRuleRepository = $this->em->getRepository(StorageRule::class);
-        $purchaseRequestLineRepository = $this->em->getRepository(PurchaseRequestLine::class);
 
         // getting storage rules by the purchase rule, quantity rule applied here
-        $storageRules = $storageRuleRepository->getByPuchaseRequestRuleWithStockQuantity($rule);
-
-        $rulesWithSeveralSuppliers = [];
-        $refAdded = [];
+        $storageRules = $storageRuleRepository->findByPurchaseRequestRuleWithStockQuantity($purchaseRequestRule);
         $purchaseRequests = [];
+        $suppliersByRefArticle = [];
+
         /** @var StorageRule $storageRule */
         foreach ($storageRules as $storageRule) {
             $refArticle = $storageRule->getReferenceArticle();
-            $supplier = $refArticle->getArticlesFournisseur()[0]->getFournisseur();
+            $refArticleId = $refArticle->getId();
 
-            if ($refArticle->getArticlesFournisseur()->count() > 1) {
-                $rulesWithSeveralSuppliers[] = $storageRule;
-            } else {
-                // one purchase request per supplier
-                if (isset($purchaseRequests[$supplier->getId()])) {
-                    $purchaseRequest = $purchaseRequests[$supplier->getId()];
+            if(!isset($suppliersByRefArticle[$refArticleId])){
+                $suppliersByRefArticle[$refArticleId] = Stream::from($refArticle->getArticlesFournisseur())
+                        ->map(fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur())
+                        ->unique()
+                        ->filter(fn(Fournisseur $supplier) => $purchaseRequestRule->getSuppliers()->contains($supplier))
+                        ->toArray();
+            }
+
+            /** @var Fournisseur $supplier */
+            foreach($suppliersByRefArticle[$refArticleId] as $supplier){
+                $supplierId = $supplier->getId();
+                $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($refArticle, $storageRule->getConditioningQuantity(), [
+                    "supplier" => $supplier,
+                    "location" => $storageRule->getLocation(),
+                ]);
+                if (isset($purchaseRequests[$supplierId])) {
+                    $purchaseRequest = $purchaseRequests[$supplierId];
                 } else {
-                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($rule->getStatus(), $rule->getRequester(), ["supplier" => $supplier]);
-                    $purchaseRequests[$supplier->getId()] = $purchaseRequest;
+                    $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($purchaseRequestRule->getStatus(), $purchaseRequestRule->getRequester(), ["supplier" => $supplier]);
+                    $purchaseRequests[$supplierId] = $purchaseRequest;
                 }
 
-                // one purchase request line per reference art
-                if (!in_array($refArticle->getId(), $refAdded)) {
-                    $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($refArticle, $storageRule->getSecurityQuantity(), ["supplier" => $supplier]);
-                    $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
-                    $refAdded[] = $refArticle->getId();
-                } else { // if one ref is on several locations, requestedQuantity = sum of each storage rule's security quantity
-                    $purchaseRequestLine = $purchaseRequestLineRepository->findOneBy(["purchaseRequest" => $purchaseRequest, "reference" => $refArticle]);
-                    $purchaseRequestLine->setRequestedQuantity($purchaseRequestLine->getRequestedQuantity() + $storageRule->getSecurityQuantity());
-                }
-
-                $this->em->persist($purchaseRequestLine);
-                $this->em->persist($purchaseRequest);
-                $this->em->flush();
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
-            }
-        }
-
-        // storage rules with multiple supplier all in the same purchase request
-        if (!empty($rulesWithSeveralSuppliers)) {
-            foreach ($rulesWithSeveralSuppliers as $severalSuppliersRule) {
-                $purchaseRequestLine = $this->purchaseRequestService->createPurchaseRequestLine($severalSuppliersRule->getReferenceArticle(), $severalSuppliersRule->getConditioningQuantity());
-                $purchaseRequest = $this->purchaseRequestService->createPurchaseRequest($rule->getStatus(), $rule->getRequester());
                 $purchaseRequest->addPurchaseRequestLine($purchaseRequestLine);
-
                 $this->em->persist($purchaseRequestLine);
                 $this->em->persist($purchaseRequest);
-
-                $this->purchaseRequestService->sendMailsAccordingToStatus($purchaseRequest);
             }
+
+            $this->em->flush();
         }
 
-        $this->em->flush();
+
+        foreach ($purchaseRequests as $purchaseRequest) {
+            $this->purchaseRequestService->sendMailsAccordingToStatus($this->em, $purchaseRequest, ["customSubject" => $purchaseRequestRule->getEmailSubject()]);
+        }
     }
 }
 

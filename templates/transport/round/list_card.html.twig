@@ -8,7 +8,7 @@
                              width="18px"
                              height="18px"
                              class="has-tooltip"
-                             title="Une ou plusieurs livraisons ont été rejetées">
+                             title="Une ou plusieurs {{ trans('Demande', 'Livraison', 'Livraison', false) | lower }}s ont été rejetées">
                     {% endif %}
                     {% if hasExceededThreshold is defined and hasExceededThreshold %}
                         <img src="{{ asset('svg/temperature.svg') }}" width="18px" height="18px"

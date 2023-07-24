@@ -1,6 +1,6 @@
 {% set modalTitle = (
     type == 'validate-preparation' ? 'Valider la préparation' :
-    (type == 'delete-delivery' ? 'Supprimer la livraison')
+    (type == 'delete-delivery' ? 'Supprimer la ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower)
 ) %}
 {% set selectLabel = (
     type == 'validate-preparation' ? 'Emplacement de préparation' :

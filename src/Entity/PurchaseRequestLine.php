@@ -33,6 +33,10 @@ class PurchaseRequestLine {
     #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $reference = null;
 
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Emplacement $location = null;
+
     #[ORM\ManyToOne(targetEntity: PurchaseRequest::class, inversedBy: 'purchaseRequestLines')]
     #[ORM\JoinColumn(nullable: false)]
     private ?PurchaseRequest $purchaseRequest = null;
@@ -60,6 +64,16 @@ class PurchaseRequestLine {
         if($reference) {
             $reference->addPurchaseRequestLine($this);
         }
+
+        return $this;
+    }
+
+    public function getLocation(): ?Emplacement {
+        return $this->location;
+    }
+
+    public function setLocation(?Emplacement $location): self {
+        $this->location = $location;
 
         return $this;
     }

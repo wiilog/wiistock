@@ -1,7 +1,9 @@
 import IncreaseDecreaseField from "@app/increase-decrease-field";
-import Planning from "@app/planning";
+import Select2 from "@app/select2";
 
 export default class Wiistock {
+    static Select2 = Select2;
+
     static download(url) {
         let isFirefox = navigator.userAgent.includes("Firefox");
 

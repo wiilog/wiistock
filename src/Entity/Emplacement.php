@@ -146,7 +146,7 @@ class Emplacement implements PairedEntity {
     private Collection $inventoryLocationMissions;
 
     #[ORM\ManyToOne(targetEntity: Zone::class, inversedBy: 'locations')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Zone $zone = null;
 
     #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
@@ -970,6 +970,17 @@ class Emplacement implements PairedEntity {
             $temperatureRange->removeLocation($this);
         }
 
+        return $this;
+    }
+
+    public function setTemperatureRanges(?array $temperatureRanges): self {
+        foreach ($this->getTemperatureRanges()->toArray() as $temperature) {
+            $this->removeTemperatureRange($temperature);
+        }
+        $this->temperatureRanges = new ArrayCollection();
+        foreach ($temperatureRanges as $temperatureRange) {
+            $this->addTemperatureRange($temperatureRange);
+        }
         return $this;
     }
 

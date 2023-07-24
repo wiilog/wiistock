@@ -17,12 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-
-/**
- * @UniqueEntity("reference")
- */
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article implements PairedEntity {
 
@@ -110,6 +105,12 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $dateLastInventory = null;
 
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $lastAvailableDate = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?DateTime $firstUnavailableDate = null;
+
     #[ORM\ManyToMany(targetEntity: OrdreCollecte::class, inversedBy: 'articles')]
     private Collection $ordreCollecte;
 
@@ -117,6 +118,7 @@ class Article implements PairedEntity {
     private Collection $disputes;
 
     #[ORM\OneToOne(mappedBy: 'article', targetEntity: Pack::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Pack $trackingPack = null;
 
     #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'articles')]
@@ -140,7 +142,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    #[ORM\ManyToOne(targetEntity: Pack::class, cascade: ['persist'], inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -211,11 +213,11 @@ class Article implements PairedEntity {
     }
 
     public function getCommentaire(): ?string {
-        return $this->commentaire;
+        return strip_tags($this->commentaire);
     }
 
     public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+        $this->commentaire = strip_tags($commentaire);  //strip_tags: supprimer les balises HTML en BDD
 
         return $this;
     }
@@ -453,12 +455,32 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getDateLastInventory(): ?\DateTimeInterface {
+    public function getDateLastInventory(): ?\DateTime {
         return $this->dateLastInventory;
     }
 
-    public function setDateLastInventory(?\DateTimeInterface $dateLastInventory): self {
+    public function setDateLastInventory(?\DateTime $dateLastInventory): self {
         $this->dateLastInventory = $dateLastInventory;
+
+        return $this;
+    }
+
+    public function getLastAvailableDate(): ?\DateTime {
+        return $this->lastAvailableDate;
+    }
+
+    public function setLastAvailableDate(?\DateTime $lastAvailableDate): self {
+        $this->lastAvailableDate = $lastAvailableDate;
+
+        return $this;
+    }
+
+    public function getFirstUnavailableDate(): ?\DateTime {
+        return $this->firstUnavailableDate;
+    }
+
+    public function setFirstUnavailableDate(?\DateTime $firstUnavailableDate): self {
+        $this->firstUnavailableDate = $firstUnavailableDate;
 
         return $this;
     }
@@ -560,6 +582,7 @@ class Article implements PairedEntity {
             ? $this->trackingPack->getTrackingMovements()
             : new ArrayCollection();
     }
+
 
     /**
      * @return int|null

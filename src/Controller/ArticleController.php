@@ -12,12 +12,12 @@ use App\Entity\FieldsParam;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
@@ -25,22 +25,21 @@ use App\Entity\CategorieCL;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\RequestNeedToBeProcessedException;
-use App\Service\DemandeLivraisonService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
 use App\Service\ArticleDataService;
-use App\Service\PreparationsManagerService;
-use App\Service\RefArticleDataService;
-use App\Service\SettingsService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -225,7 +224,7 @@ class ArticleController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
 
-        $barcode = $articleDataService->generateBarCode();
+        $barcode = $articleDataService->generateBarcode();
 
         return $this->render("article/form/new.html.twig", [
             "new_article" => new Article(),
@@ -260,7 +259,15 @@ class ArticleController extends AbstractController
                     'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
                 ]);
             }
-            $article = $this->articleDataService->newArticle($data, $entityManager);
+
+            $article = $this->articleDataService->newArticle($entityManager, $data);
+            $refArticleId = $data["refArticle"];
+            $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
+
+            if ($refArticleId != $refArticleFournisseurId) {
+                throw new FormException("La référence article fournisseur ne correspond pas à la référence article");
+            }
+
             $entityManager->flush();
 
             $quantity = $article->getQuantite();
@@ -306,7 +313,7 @@ class ArticleController extends AbstractController
             return $this->json([
                 'success' => false,
                 'msg' => "Le code barre de l'article a été actualisé, veuillez valider de nouveau le formulaire.",
-                'barcode' => $articleDataService->generateBarCode()
+                'barcode' => $articleDataService->generateBarcode()
             ]);
         }
     }
@@ -315,12 +322,16 @@ class ArticleController extends AbstractController
      * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::STOCK, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function edit(Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(Request                $request,
+                         EntityManagerInterface $entityManager,
+                         TranslationService     $translation): Response
     {
         if ($data = $request->request->all()) {
             $article = $entityManager->getRepository(Article::class)->find($data['id']);
                 try {
-                    $article = $this->articleDataService->newArticle($data, $entityManager, $article);
+                    $article = $this->articleDataService->newArticle($entityManager, $data, [
+                        "existing" => $article,
+                    ]);
                     $response = [
                         'success' => true,
                         'articleId' => $data['id'],
@@ -329,20 +340,28 @@ class ArticleController extends AbstractController
                     $entityManager->flush();
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(ArticleNotAvailableException $exception) {
+                catch(ArticleNotAvailableException) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
                     ];
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(RequestNeedToBeProcessedException $exception) {
+                catch(RequestNeedToBeProcessedException) {
                     $response = [
                         'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une demande de livraison."
+                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
-            return new JsonResponse($response);
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Le tag RFID {$data['rfidTag']} est déja utilisé.",
+                    ];
+                }
+
+                return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }
@@ -353,17 +372,18 @@ class ArticleController extends AbstractController
      */
     public function delete(Request $request,
                            MouvementStockService $mouvementStockService,
-                           PreparationsManagerService $preparationsManagerService,
-                           DemandeLivraisonService $demandeLivraisonService,
-                           RefArticleDataService $refArticleDataService,
                            EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
+
+            $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+            $shippingRequestLineCounter = $shippingRequestLineRepository->count(['article' => $article]);
 
             $trackingPack = $article->getTrackingPack();
 
@@ -372,7 +392,9 @@ class ArticleController extends AbstractController
                 && $article->getOrdreCollecte()->isEmpty()
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
-                && $article->getInventoryEntries()->isEmpty()) {
+                && $article->getInventoryEntries()->isEmpty()
+                && $locationMissionCounter === 0
+                && $shippingRequestLineCounter === 0) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);
@@ -457,6 +479,13 @@ class ArticleController extends AbstractController
 
             $articleAssociations = $article->getUsedAssociation();
 
+            if (!$articleAssociations) {
+                $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+                if ($locationMissionCounter > 0) {
+                    $articleAssociations = Article::USED_ASSOC_INVENTORY_ENTRY;
+                }
+            }
+
             if ($articleAssociations !== null) {
                 return new JsonResponse([
                     'delete' => false,
@@ -494,11 +523,11 @@ class ArticleController extends AbstractController
                     return new JsonResponse([
                         'delete' => ($isFromReception || $isNotUsedInAssoc),
                         'html' => $this->renderView('article/modalDeleteArticleRight.html.twig', [
-                            'prepa' => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
-                            'request' => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
-                            'mvtStockIsEmpty' => $articlesMvtStockIsEmpty,
-                            'mvtTracaIsEmpty' => $articlesMvtTracaIsEmpty,
-                            'askQuestion' => $isFromReception
+                            "prepa" => $lastPreparationOrderLine ? $lastPreparationOrderLine->getPreparation()->getNumero() : null,
+                            "request" => $lastDeliveryRequestLine ? $lastDeliveryRequestLine->getRequest()->getNumero() : null,
+                            "mvtStockIsEmpty" => $articlesMvtStockIsEmpty,
+                            "mvtTracaIsEmpty" => $articlesMvtTracaIsEmpty,
+                            "askQuestion" => $isFromReception,
                         ])
                     ]);
                 } else {

@@ -66,6 +66,9 @@ class InventoryMissionRule extends ScheduleRule
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $requester = null;
 
+    #[ORM\Column(type: "boolean", nullable: false, options: ["default" => true])]
+    private ?bool $active = true;
+
     public function __construct() {
         $this->categories = new ArrayCollection();
         $this->createdMissions = new ArrayCollection();
@@ -299,6 +302,16 @@ class InventoryMissionRule extends ScheduleRule
 
         return $this;
 
+    }
+
+    public function isActive(): ?bool {
+        return $this->active;
+    }
+
+    public function setActive(?bool $active): self {
+        $this->active = $active;
+
+        return $this;
     }
 
 }

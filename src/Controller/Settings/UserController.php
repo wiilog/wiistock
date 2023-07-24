@@ -16,6 +16,7 @@ use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\LanguageService;
 use App\Service\PasswordService;
+use App\Service\TranslationService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
@@ -381,9 +382,10 @@ class UserController extends AbstractController {
     /**
      * @Route("/export", name="export_csv_user", methods="GET")
      */
-    public function exportCSV(CSVExportService $CSVExportService,
-                              UserService $userService,
-                              EntityManagerInterface $entityManager): StreamedResponse {
+    public function exportCSV(CSVExportService          $CSVExportService,
+                              UserService               $userService,
+                              EntityManagerInterface    $entityManager,
+                              TranslationService        $translation): StreamedResponse {
         $csvHeader = [
             'Rôle',
             "Nom d'utilisateur",
@@ -394,7 +396,7 @@ class UserController extends AbstractController {
             'Adresse',
             'Dernière connexion',
             'Clé de connexion mobile',
-            'Types de livraison',
+            'Types de ' . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
             "Types de d'acheminement",
             'Types de service',
             'Dropzone',

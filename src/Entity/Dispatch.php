@@ -9,6 +9,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -177,6 +178,13 @@ class Dispatch extends StatusHistoryContainer {
     // old handling request without timeline
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private ?bool $withoutHistory = false;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $createdBy = null;
 
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
@@ -367,6 +375,17 @@ class Dispatch extends StatusHistoryContainer {
         }
 
         return $this;
+    }
+
+    public function getDispatchPack(Pack $pack): ?DispatchPack {
+        /** @var DispatchPack $dispatchPack */
+        foreach ($this->dispatchPacks as $dispatchPack){
+            if($dispatchPack->getPack()->getCode() === $pack->getCode()){
+                return $dispatchPack;
+            }
+        }
+
+        return null;
     }
 
     public function getType(): ?Type {
@@ -574,8 +593,8 @@ class Dispatch extends StatusHistoryContainer {
     {
         if ($this->statusHistory->removeElement($statusHistory)) {
             // set the owning side to null (unless already changed)
-            if ($statusHistory->getHandling() === $this) {
-                $statusHistory->setHandling(null);
+            if ($statusHistory->getDispatch() === $this) {
+                $statusHistory->setDispatch(null);
             }
         }
 
@@ -607,6 +626,28 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
 
+    public function setCreatedBy(?Utilisateur $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
 
 }

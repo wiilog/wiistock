@@ -1,0 +1,14 @@
+<div class="header wii-title justify-content-between align-items-center row no-gutters py-3">
+    Produits à expédier
+</div>
+<div class="px-3 pb-3 schedule-details">
+    <table id="expectedLinesTable" class="table"  data-initial-data="{{ {data: expectedLines}|json_encode }}" ></table>
+</div>
+
+{% include "shipping_request/modals/scheduled-modal.html.twig" with {
+    shipping: shippingRequest,
+} %}
+
+{% include "shipping_request/modals/packing.html.twig" with {
+    shipping: shippingRequest,
+} %}

@@ -6,7 +6,8 @@
     {% set zones = mission.inventoryLocationMissions
         | map((inventoryLocation) => inventoryLocation.location)
         | map((location) => location.zone ? location.zone.name : null)
-        | filter((zone) => zone) %}
+        | filter((zone) => zone)
+        | unique %}
     {% set sZones = zones | length > 1 ? 's' %}
 
     <p>Une mission d’inventaire de type <b>{{ typesLabel[missionType] ?? "<type introuvable>" }}</b> a été validée.</p>

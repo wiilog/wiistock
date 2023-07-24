@@ -18,13 +18,14 @@
                     content: [
                         {label: 'Unité logistique', value: pack.code, bold: 'value'},
                         {label: 'Emplacement', value: pack.location, bold: 'label', icon: 'reference-article-location'},
-                    ] | merge(pack.project ? [{label: 'Projet', value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
+                    ] | merge(pack.project ? [{label: trans('Référentiel', 'Projet', "Projet", false), value: pack.project, bold: 'label', icon: 'reference-article-stock'}] : [])
                 },
             content: references|map((reference) => reference|merge({
                 actions: include(
                     'reception/datatableLigneRefArticleRow.html.twig',
                     {
                         ligneId: reference.id,
+                        referenceBarcode: reference.barCode,
                         ligneArticleQuantity: reference.receivedQuantity,
                         receptionId: reception.id,
                         isReferenceTypeLinked: reference.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE'),

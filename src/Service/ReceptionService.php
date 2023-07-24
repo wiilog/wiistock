@@ -233,7 +233,7 @@ class ReceptionService
         }
 
         $reception
-            ->setCommentaire(!empty($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null);
+            ->setCommentaire(!empty($data['commentaire']) ? $data['commentaire'] : null);
 
         // Date commande provenant des imports de réception
         if ($fromImport && isset($data['orderDate'])) {
@@ -320,7 +320,7 @@ class ReceptionService
             ["title" => "Statut", "name" => "Statut", 'searchable' => true],
             ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
             ["title" => "Commentaire", "name" => "Commentaire", 'searchable' => true],
-            ["title" => "Type(s) de demande(s) de livraison liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
+            ["title" => "Type(s) de " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
             ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
         ];
 

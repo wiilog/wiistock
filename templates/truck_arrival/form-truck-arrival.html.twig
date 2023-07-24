@@ -1,0 +1,176 @@
+{% import 'form.html.twig' as form %}
+
+{% set displayAction = truckArrival.id ? 'displayedEdit' : 'displayedCreate' %}
+{% set requiredAction = truckArrival.id ? 'requiredEdit' : 'requiredCreate' %}
+
+<div class="row fly-form">
+    {% set carrierFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(carrierFieldCode, displayAction) %}
+    {% if displayOnform %}
+        {% set requiredOnform = fieldsParam|isFieldRequired(carrierFieldCode, requiredAction) %}
+        <div class="form-group col w-100">
+            {{ form.select('carrier', 'Transporteur', requiredOnform, {
+                type: 'carrier',
+                items: truckArrival.carrier
+                    ? {(truckArrival.carrier.id) : (truckArrival.carrier.label)}
+                    : {},
+                disabled: truckArrival.id,
+            }) }}
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) and not truckArrival.id %}
+            <div class="form-group col-auto toggle-button-container">
+                <span class="btn btn-primary d-flex align-items-center p-2"
+                      onclick="onFlyFormToggle('transporteurDisplay', 'addTransporteur')">
+                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                    Créer
+                </span>
+            </div>
+        {% endif %}
+    {% endif %}
+    {% set driverFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(driverFieldCode, displayAction) %}
+    {% if displayOnform %}
+        {% set requiredOnform = fieldsParam|isFieldRequired(driverFieldCode, requiredAction) %}
+        <div class="form-group col w-100">
+            {{ form.select('driver', 'Chauffeur', requiredOnform, {
+                type: 'driver',
+                items: truckArrival.driver
+                    ? {(truckArrival.driver.id) : (truckArrival.driver.prenom ~ ' ' ~ truckArrival.driver.nom)}
+                    : {},
+            }) }}
+        </div>
+        {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) and not truckArrival.id %}
+            <div class="form-group col-auto toggle-button-container">
+                <span class="btn btn-primary d-flex align-items-center p-2"
+                      onclick="onFlyFormToggle('chauffeurDisplay', 'addChauffeur')">
+                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                    Créer
+                </span>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) and not truckArrival.id %}
+    <div class="row align-items-start">
+        {% if fieldsParam|isFieldRequired(carrierFieldCode, 'displayedCreate') %}
+            <div class="col fly-form" style="height: 0">
+                <div class="row">
+                    <div class="form-group col invisible" id="transporteurDisplay">
+                        {{ form.input('label', 'Nom*', false, null, {
+                            inputClass: 'neededNew newFormulaire',
+                        }) }}
+                        {{ form.input('code', 'Code*', false, null, {
+                            inputClass: 'neededNew newFormulaire',
+                        }) }}
+                    </div>
+                    <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
+                        <span class="btn btn-primary"
+                              onclick="onFlyFormSubmit(Routing.generate('transporteur_save', true), $(this), 'transporteurDisplay', 'addTransporteur', $('[name=transporteur]'))">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% if fieldsParam|isFieldRequired(driverFieldCode, 'displayedCreate') %}
+            <div class="col fly-form" style="height: 0">
+                <div class="row">
+                    <div class="form-group col-10 invisible" id="chauffeurDisplay">
+                        {{ form.input('nom', 'Nom*', false, null, {
+                            inputClass: 'neededNew newFormulaire',
+                        }) }}
+                        {{ form.input('prenom', 'Prénom*', false, null, {
+                            inputClass: 'neededNew newFormulaire',
+                        }) }}
+                        {{ form.input('documentID', 'DocumentID*', false, null, {
+                            inputClass: 'neededNew newFormulaire',
+                        }) }}
+                    </div>
+                    <div class="form-group col-2 invisible submit-button-container" id="addChauffeur">
+                        <span class="btn btn-primary"
+                              onclick="onFlyFormSubmit(Routing.generate('chauffeur_new', true), $(this), 'chauffeurDisplay', 'addChauffeur', $('[name=chauffeur]'))">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+
+<div class="row">
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div class="col-6">
+            {{ form.input('registrationNumber', 'Immatriculation', requiredOnform, truckArrival.registrationNumber) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div class="col-6">
+            {{ form.select('unloadingLocation', 'Emplacement de déchargement', requiredOnform, {
+                type: 'location',
+                items: defaultLocation is defined and defaultLocation
+                    ? {(defaultLocation.id) : (defaultLocation.label)}
+                    : truckArrival.unloadingLocation
+                        ? {(truckArrival.unloadingLocation.id) : (truckArrival.unloadingLocation.label)}
+                        : {},
+                disabled: truckArrival.id,
+                additionalAttributes : [{
+                    name: 'data-init',
+                    value: defaultLocation is defined and defaultLocation ? defaultLocation.id : ''
+                }],
+                inputClass: 'needs-default w-100'
+            }) }}
+        </div>
+    {% endif %}
+</div>
+
+{% if truckArrival.id %}
+    {{ form.input('truckArrivalId', null, false, truckArrival.id, {
+        type: 'hidden',
+    }) }}
+    <div class="row">
+        <div class="col-6 mt-2">
+            {% include 'attachment/attachment.html.twig' with {
+                isNew: false,
+                attachments: truckArrival.attachments,
+            } %}
+        </div>
+    </div>
+{% else %}
+    <div class="wii-section-title my-3 d-flex align-items-center justify-content-between">
+        <span>Numéros de tracking transporteur</span>
+        <span>Total : <span id="totalTrackingNumbers">0</span></span>
+    </div>
+    <div class="row">
+        <div class="col-12 form-group">
+            {{ form.select('trackingNumbers', null, true, {
+                type: null,
+                multiple: true,
+                editable: true,
+            }) }}
+            <div class="warning-message wii-warning-text d-none mt-2">
+                Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
+            </div>
+        </div>
+    </div>
+
+
+    <div class="wii-section-title my-3 d-flex align-items-center">
+        Réserve sur l’arrivage camion
+    </div>
+
+    {% include 'truck_arrival/reserve/generalReserveForm.html.twig' with {
+        truckArrival,
+    } %}
+    {% include 'truck_arrival/reserve/quantityReserveForm.html.twig' with {
+        truckArrival,
+    } %}
+{% endif %}

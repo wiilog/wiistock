@@ -77,6 +77,9 @@ class DashboardFeedCommand extends Command {
                 case Dashboard\ComponentType::DROP_OFF_DISTRIBUTED_PACKS:
                     $this->dashboardService->persistDroppedPacks($entityManager, $component);
                     break;
+                case Dashboard\ComponentType::CARRIER_TRACKING:
+                    $this->dashboardService->persistCarriers($entityManager, $component);
+                    break;
                 case Dashboard\ComponentType::DAILY_ARRIVALS_AND_PACKS:
                 case Dashboard\ComponentType::WEEKLY_ARRIVALS_AND_PACKS:
                     $this->dashboardService->persistArrivalsAndPacksMeter($entityManager, $component);

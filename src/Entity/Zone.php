@@ -30,8 +30,10 @@ class Zone
     #[ORM\OneToMany(mappedBy: 'zone', targetEntity: Emplacement::class)]
     private Collection $locations;
 
-    public function __construct()
-    {
+    #[ORM\Column(type: "boolean", options: ["default" => true])]
+    private ?bool $active = true;
+
+    public function __construct() {
         $this->locations = new ArrayCollection();
     }
 
@@ -72,6 +74,16 @@ class Zone
     public function setInventoryIndicator(?float $inventoryIndicator): self
     {
         $this->inventoryIndicator = $inventoryIndicator;
+
+        return $this;
+    }
+
+    public function isActive(): ?bool {
+        return $this->active;
+    }
+
+    public function setActive(?bool $active): self {
+        $this->active = $active;
 
         return $this;
     }

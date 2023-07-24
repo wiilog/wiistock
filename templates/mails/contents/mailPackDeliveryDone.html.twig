@@ -1,9 +1,9 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-    <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Fournisseur') }} : {{ fournisseur }}</div>
+    <div>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }} : {{ fournisseur }}</div>
     {% if orderNumber is defined and orderNumber %}
-        <div>{{ translateIn(language, 'Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL') }} : {{ orderNumber }}</div>
+        <div>{{ translateIn(language, 'Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }} : {{ orderNumber }}</div>
     {% endif %}
     <div>{{ translateIn(language, 'Traçabilité', 'Général', 'Unité logistique') }} : {{ pack }}</div>
     <div>{{ translateIn(language, 'Traçabilité', 'Encours', 'Date de dépose') }} :

@@ -17,6 +17,7 @@ use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\FieldsParamService;
 use App\Service\FreeFieldService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use App\Controller\AbstractController;
@@ -40,12 +41,13 @@ class RequestTemplateController extends AbstractController {
     /**
      * @Route("/modele-demande/{category}/header/{template}", name="settings_request_template_header", options={"expose"=true})
      */
-    public function requestTemplateHeader(Request $request,
-                                          string $category,
-                                          Environment $twig,
-                                          EntityManagerInterface $entityManager,
-                                          FreeFieldService $freeFieldService,
-                                          ?RequestTemplate $template = null): Response {
+    public function requestTemplateHeader(Request                   $request,
+                                          string                    $category,
+                                          Environment               $twig,
+                                          EntityManagerInterface    $entityManager,
+                                          FreeFieldService          $freeFieldService,
+                                          ?RequestTemplate          $template = null,
+                                          TranslationService        $translation): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
@@ -92,7 +94,7 @@ class RequestTemplateController extends AbstractController {
                 }
                 $comment = $template?->getComment();
                 $data[] = [
-                    "label" => "Type de livraison*",
+                    "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)) . "*",
                     "value" => "<select name='deliveryType' class='data form-control' required>$typeOptions</select>",
                 ];
 
@@ -284,7 +286,7 @@ class RequestTemplateController extends AbstractController {
             $data = [];
             if ($template instanceof DeliveryRequestTemplate) {
                 $data[] = [
-                    "label" => "Type de livraison",
+                    "label" => "Type de " . mb_strtolower($translation->translate("Demande", "Livraison", "Livraison", false)),
                     "value" => FormatHelper::type($template->getRequestType()),
                 ];
                 $data[] = [

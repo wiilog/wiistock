@@ -10,7 +10,7 @@ export function initializePurchaseRequestPlanner($container) {
             "url": Routing.generate('purchase_request_schedule_rule_api', true),
             "type": GET
         },
-        order: [[1, "asc"]],
+        order: [['createdAt', "desc"]],
         columns: [
             {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
             {data: `zone`, title: `Zone`},

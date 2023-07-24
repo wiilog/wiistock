@@ -57,6 +57,7 @@ function initPageDataTable() {
         drawConfig: {
             needsSearchOverride: true,
         },
+        order: [['creationDate', 'desc']],
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false},
             {"data": 'number', 'name': 'Numéro', 'title': 'Numéro'},

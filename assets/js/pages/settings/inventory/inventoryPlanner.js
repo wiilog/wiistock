@@ -1,4 +1,4 @@
-import AJAX, {GET} from "@app/ajax";
+import AJAX, {DELETE, GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
 import {toggleFrequencyInput} from '@app/pages/settings/utils';
@@ -6,6 +6,8 @@ import {toggleFrequencyInput} from '@app/pages/settings/utils';
 let tableInventoryPanning;
 
 global.editMissionRule = editMissionRule;
+global.deleteInventoryMission = deleteInventoryMission;
+global.cancelInventoryMission = cancelInventoryMission;
 
 export function initializeInventoryPlanificatorTable($container) {
     const $missionRulesTable = $container.find('table#missionRulesTable');
@@ -24,23 +26,13 @@ export function initializeInventoryPlanificatorTable($container) {
             {data: `duration`, title: `Durée`},
             {data: `requester`, title: `Demandeur`},
             {data: `lastExecution`, title: `Dernière exécution`},
+            {data: `active`, title: `Actif`},
         ],
         rowConfig: {
             needsRowClickAction: true,
         },
     };
     tableInventoryPanning = initDataTable($missionRulesTable, tableInventoryPannerConfig);
-
-    $missionRulesTable.on('click', 'button.delete-row', function () {
-        AJAX
-            .route(AJAX.DELETE, 'mission_rules_delete', {id: $(this).data('id')})
-            .json()
-            .then((data) => {
-                if (data.success) {
-                    tableInventoryPanning.ajax.reload();
-                }
-            })
-    });
 
     const $modalFormInventoryPlanner = $('#modalFormInventoryPlanner');
     Form
@@ -129,5 +121,39 @@ function initModalContent($modal) {
             $articleTypeForm.removeClass('d-none');
             $locationTypeForm.addClass('d-none');
         }
+    });
+}
+
+function cancelInventoryMission($button) {
+    const mission = $button.data('id');
+    Modal.confirm({
+        title: 'Annuler la planification',
+        message: "Confirmez-vous l'annulation cette planification de missions d'inventaire ?",
+        table: tableInventoryPanning,
+        ajax: {
+            method: DELETE,
+            route: 'mission_rules_cancel',
+            params: { mission },
+        },
+        validateButton: {
+            color: 'danger',
+        },
+    });
+}
+
+function deleteInventoryMission($button) {
+    const mission = $button.data('id');
+    Modal.confirm({
+        title: 'Supprimer la planification',
+        message: "Confirmez-vous la suppression cette planification de missions d'inventaire ?",
+        table: tableInventoryPanning,
+        ajax: {
+            method: DELETE,
+            route: 'mission_rules_delete',
+            params: { mission },
+        },
+        validateButton: {
+            color: 'danger',
+        },
     });
 }

@@ -29,6 +29,7 @@ use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -50,15 +51,26 @@ class SelectController extends AbstractController {
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
+        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? null;
+        $typeDispatchPickLocation = $request->query->get("typeDispatchPickLocation") ?? null;
         $term = $request->query->get("term");
         $addGroup = $request->query->getBoolean("add-group");
 
+        $restrictedLocations = [];
+        if($typeDispatchDropLocation) {
+            $type = $manager->getRepository(Type::class)->find($typeDispatchDropLocation);
+            $restrictedLocations = $type->getSuggestedDropLocations();
+        } elseif($typeDispatchPickLocation) {
+            $type = $manager->getRepository(Type::class)->find($typeDispatchPickLocation);
+            $restrictedLocations = $type->getSuggestedPickLocations();
+        }
         $locations = $manager->getRepository(Emplacement::class)->getForSelect(
             $term,
             [
                 'deliveryType' => $deliveryType,
                 'collectType' => $collectType,
-                'idPrefix' => $addGroup ? 'location:' : ''
+                'idPrefix' => $addGroup ? 'location:' : '',
+                'restrictedLocations' => $restrictedLocations,
             ]
         );
 
@@ -240,12 +252,34 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        $needsOnlyMobileSyncReference = $request->query->getBoolean('needs-mobile-sync');
+        $options = [
+            'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
+            'type-quantity' => $request->query->get('type-quantity'),
+            'status' => $request->query->get('status'),
+            'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
+            'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
+            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+        ];
 
-        $results = $referenceArticleRepository->getForSelect($request->query->get("term"), $user, $needsOnlyMobileSyncReference);
+        $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));
+
+        $redirectRoute = $request->query->get('redirect-route');
+        $redirectParams = $request->query->get('redirect-route-params');
+        if ($redirectRoute) {
+            $results
+                ->unshift([
+                    "id" => "redirect-url",
+                    "url" => $this->generateUrl('reference_article_new_page', [
+                        "shipping" => 1,
+                        'redirect-route' => $redirectRoute,
+                        'redirect-route-params' => $redirectParams
+                    ]),
+                    "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouvelle Référence</b></div>",
+                ]);
+        }
 
         return $this->json([
-            "results" => $results,
+            "results" => $results->toArray(),
         ]);
     }
 
@@ -297,12 +331,14 @@ class SelectController extends AbstractController {
     public function user(Request $request, EntityManagerInterface $manager): Response {
         $addDropzone = $request->query->getBoolean("add-dropzone") ?? false;
         $delivererOnly = $request->query->getBoolean("deliverer-only") ?? false;
+        $withPhoneNumber = $request->query->getBoolean("with-phone-numbers") ?? false;
 
         $results = $manager->getRepository(Utilisateur::class)->getForSelect(
             $request->query->get("term"),
             [
                 "addDropzone" => $addDropzone,
-                "delivererOnly" => $delivererOnly
+                "delivererOnly" => $delivererOnly,
+                "withPhoneNumber" => $withPhoneNumber,
             ]
         );
         return $this->json([
@@ -681,7 +717,7 @@ class SelectController extends AbstractController {
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_PROJECT);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),
@@ -712,7 +748,6 @@ class SelectController extends AbstractController {
     public function customers(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get("term");
         $customers = $entityManager->getRepository(Customer::class)->getForSelect($search);
-
         array_unshift($customers, [
             "id" => "new-item",
             "html" => "<div class='new-item-container'><span class='wii-icon wii-icon-plus'></span> <b>Nouveau client</b></div>",
@@ -772,8 +807,12 @@ class SelectController extends AbstractController {
     public function supplierArticles(Request $request, EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
         $supplier = $request->query->get('fournisseur');
+        $referenceArticle = $request->query->get('refArticle');
 
-        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, $supplier);
+        $supplierArticles = $entityManager->getRepository(ArticleFournisseur::class)->getForSelect($search, [
+            'supplier' => $supplier,
+            'referenceArticle' => $referenceArticle
+        ]);
 
         return $this->json([
             "results" => $supplierArticles
@@ -788,6 +827,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             "results" => $drivers,
+        ]);
+    }
+
+    #[Route('/select/truck-arrival-line-number', name: 'ajax_select_truck_arrival_line', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function truckArrivalLineNumber(Request $request, EntityManagerInterface $manager): Response {
+        $term = $request->query->get("term");
+        $carrierId = $request->query->get("carrier-id") ?? $request->query->get("transporteur");
+        $truckArrivalId = $request->query->get("truck-arrival-id");
+
+        $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
+        return $this->json([
+            "results" => $lines,
         ]);
     }
 }

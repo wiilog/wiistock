@@ -6,7 +6,9 @@
             <div class="col">
                 {{ label }}
             </div>
-            <input class="ml-2 mr-0 checkbox filter-checkbox" type="checkbox" name="{{ name }}" id="{{ name }}-filter">
+            <input class="ml-2 mr-0 checkbox filter-checkbox"
+                   type="checkbox" name="{{ name }}" id="{{ name }}-filter"
+                {{ checked is defined and checked ? 'checked' }}>
         </div>
     </div>
 </div>

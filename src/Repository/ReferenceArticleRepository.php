@@ -13,6 +13,7 @@ use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
+use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -47,6 +48,7 @@ class ReferenceArticleRepository extends EntityRepository {
         'mobileSync' => 'needsMobileSync',
         'lastInventory' => 'dateLastInventory',
         'comment' => 'commentaire',
+        'managers' => 'managers',
     ];
 
     private const FIELDS_TYPE_DATE = [
@@ -62,7 +64,7 @@ class ReferenceArticleRepository extends EntityRepository {
         "availableQuantity" => "quantiteDisponible",
     ];
 
-    public function getForSelect(?string $term, Utilisateur $user, ?bool $needsOnlyMobileSyncReference = false) {
+    public function getForSelect(?string $term, Utilisateur $user, array $options = []): array {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
@@ -75,18 +77,71 @@ class ReferenceArticleRepository extends EntityRepository {
                 )->map(fn(VisibilityGroup $visibilityGroup) => $visibilityGroup->getId())->toArray());
         }
 
-        if($needsOnlyMobileSyncReference){
+        if($options['needsOnlyMobileSyncReference'] ?? false) {
             $queryBuilder->andWhere('reference.needsMobileSync = 1');
         }
 
+        if($options['type-quantity'] ?? false) {
+            $queryBuilder->andWhere('reference.typeQuantite = :typeQuantity')
+                ->setParameter('typeQuantity', $options['type-quantity']);
+        }
+
+        if($options['status'] ?? false) {
+            $queryBuilder
+                ->andWhere('status.code = :status')
+                ->setParameter('status', $options['status']);
+        }
+
+        if($options['ignoredDeliveryRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_delivery_request")
+                ->select('COUNT(reference_has_delivery_request)')
+                ->join("reference_has_delivery_request.deliveryRequestLines", "lines")
+                ->join("lines.request", "deliveryRequest")
+                ->andWhere("deliveryRequest.id = :deliveryRequestId")
+                ->andWhere("reference_has_delivery_request.id = reference.id")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('deliveryRequestId', $options['ignoredDeliveryRequest']);
+        }
+
+        if($options['ignoredShippingRequest'] ?? false) {
+            $queryHasResult = $this->createQueryBuilder("reference_has_shipping_request")
+                ->select('COUNT(reference_has_shipping_request)')
+                ->join(ShippingRequestExpectedLine::class, "shippingRequestExpectedLine", Join::WITH, 'shippingRequestExpectedLine.referenceArticle = reference')
+                ->join("shippingRequestExpectedLine.request", "shippingRequest")
+                ->andWhere("shippingRequest.id = :shippingRequestId")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getDQL();
+
+            $queryBuilder
+                ->andWhere("($queryHasResult) = 0")
+                ->setParameter('shippingRequestId', $options['ignoredShippingRequest']);
+        }
+
         return $queryBuilder
-            ->select("reference.id AS id, reference.reference AS text, reference.libelle AS label, emplacement.label AS location, reference.description AS description")
+            ->distinct()
+            ->select("reference.id AS id")
+            ->addSelect('reference.reference AS text')
+            ->addSelect('reference.libelle AS label')
+            ->addSelect('emplacement.label AS location')
+            ->addSelect('reference.description AS description')
+            ->addSelect('reference.typeQuantite as typeQuantite')
+            ->addSelect('reference.barCode as barCode')
+            ->addSelect('type.id as typeId')
+            ->addSelect('reference.dangerousGoods as dangerous')
             ->andWhere("reference.reference LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
+            ->leftJoin("reference.type", "type")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
+            ->setMaxResults(100)
             ->getQuery()
             ->getArrayResult();
     }
@@ -95,7 +150,31 @@ class ReferenceArticleRepository extends EntityRepository {
         $qb = $this->createQueryBuilder('referenceArticle');
 
         $qb->select('referenceArticle.id AS id')
-            ->addSelect('referenceArticle.reference AS label')
+            ->addSelect('referenceArticle.reference AS reference')
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"'))) AS outFormatEquipment")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"manufacturerCode\"'))) AS manufacturerCode")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"length\"'))) AS length")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"width\"'))) AS width")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"height\"'))) AS height")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"volume\"'))) AS volume")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"weight\"'))) AS weight")
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"')) = 'null',
+                                null,
+                                JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"'))) AS associatedDocumentTypes")
             ->andWhere('referenceArticle.needsMobileSync = true');
 
         return $qb->getQuery()->getResult();
@@ -521,10 +600,10 @@ class ReferenceArticleRepository extends EntityRepository {
                     $searchField = self::DtToDbLabels[$searchField] ?? $searchField;
                     switch ($searchField) {
                         case "supplierLabel":
-                            $subqb = $em->createQueryBuilder()
-                                ->select('ra.id')
-                                ->from('App\Entity\ReferenceArticle', 'ra')
-                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
+                                ->select('referenceArticle.id')
+                                ->leftJoin('referenceArticle.articlesFournisseur', 'afra')
                                 ->leftJoin('afra.fournisseur', 'fra')
                                 ->andWhere('fra.nom LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
@@ -533,11 +612,10 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "supplierCode":
-                            $subqb = $em->createQueryBuilder()
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
                                 ->select('referenceArticle.id')
-                                ->from('App\Entity\ReferenceArticle', 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
                                 ->innerJoin('articleFournisseur.fournisseur', 'fournisseur')
                                 ->andWhere('fournisseur.codeReference LIKE :valueSearch')
@@ -549,11 +627,10 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $ids[] = $idArray['id'];
                             }
                             break;
-
                         case "referenceSupplierArticle":
-                            $subqb = $em->createQueryBuilder()
+                            $subqb = $this->createQueryBuilder('referenceArticle');
+                            $subqb
                                 ->select('referenceArticle.id')
-                                ->from(ReferenceArticle::class, 'referenceArticle')
                                 ->innerJoin('referenceArticle.articlesFournisseur', 'articleFournisseur')
                                 ->andWhere('articleFournisseur.reference LIKE :valueSearch')
                                 ->setParameter('valueSearch', $search);
@@ -568,9 +645,9 @@ class ReferenceArticleRepository extends EntityRepository {
                             $subqb = $this->createQueryBuilder('referenceArticle');
                             $subqb
                                 ->select('referenceArticle.id')
-                                ->leftJoin('referenceArticle.managers', 'managers')
-                                ->andWhere('managers.username LIKE :username')
-                                ->setParameter('username', $search);
+                                ->join('referenceArticle.managers', 'managers')
+                                ->andWhere('managers.username LIKE :valueSearch')
+                                ->setParameter('valueSearch', $search);
 
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
@@ -816,7 +893,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_preparationLine.pickedQuantity AS quantity')
             ->addSelect('1 AS is_ref')
             ->addSelect('join_delivery.id AS id_livraison')
-            ->addSelect('referenceArticle.barCode AS barCode')
+            ->addSelect('referenceArticle.barCode AS barcode')
             ->leftJoin('referenceArticle.emplacement', 'join_location')
             ->join('referenceArticle.preparationOrderReferenceLines', 'join_preparationLine')
             ->join('join_preparationLine.preparation', 'join_preparation')

@@ -3,11 +3,11 @@
         {% include 'datatable/dotsRow.html.twig' %}
         <div class="dropdown-menu dropdown-follow-gt pointer">
             <div>
-                <div class="btn btn-col-action d-none action-on-click" data-id='{{ urgence.id }}' data-target='#modalEditUrgence' data-toggle='modal'
+                <div class="btn btn-col-action d-none action-on-click" data-id='{{ urgence.id }}' data-target='#modalEditEmergency' data-toggle='modal'
                      onclick="editRow(
                          $(this),
-                         Routing.generate('urgence_edit_api', true),
-                         $('#modalEditUrgence'),
+                         Routing.generate('emergency_edit_api', true),
+                         $('#modalEditEmergency'),
                          $('#submitEditUrgence'),
                          false,
                          ($modal) => callbackEditFormLoading($modal, {{ urgence.buyer ? urgence.buyer.id : 'undefined' }}, {{ urgence.buyer ? ("'" ~ urgence.buyer.username ~ "'") : 'undefined' }}))">
@@ -17,7 +17,7 @@
             </div>
             <div class="dropdown-item d-flex align-items-center" data-id='{{ urgence.id }}' data-target='#modalDeleteUrgence'
                  data-toggle='modal'
-                 onclick="checkAndDeleteRow($(this), '#modalDeleteUrgence', 'urgence_check_delete', '#submitDeleteUrgence')">
+                 onclick="checkAndDeleteRow($(this), '#modalDeleteUrgence', 'emergency_check_delete', '#submitDeleteUrgence')">
                 <span class="wii-icon wii-icon-trash-black mr-2"></span>{{ trans('Général', null, 'Modale', 'Supprimer') }}
             </div>
         </div>

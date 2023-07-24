@@ -234,10 +234,11 @@ class TrackingMovementController extends AbstractController
                 }
             }
             else {
-                $packArray = explode(',', $packCode);
+                $packArrayFiltered = Stream::explode(',', $packCode)
+                    ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
                 $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
-                foreach ($packArray as $pack) {
+                foreach ($packArrayFiltered as $pack) {
                     $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
                         $codeToPack[$pack] ?? $pack,
@@ -485,7 +486,7 @@ class TrackingMovementController extends AbstractController
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')));
+            ->setCommentaire($post->get('commentaire'));
 
         $entityManager->flush();
 
@@ -560,13 +561,13 @@ class TrackingMovementController extends AbstractController
                     $translationService->translate('Traçabilité', 'Général', 'Unité logistique', false),
                     $translationService->translate('Traçabilité', 'Général', 'Emplacement', false),
                     $translationService->translate('Traçabilité', 'Général', 'Quantité', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'Type', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false),
                     $translationService->translate('Traçabilité', 'Général', 'Opérateur', false),
                     $translationService->translate('Général', null, 'Modale', 'Commentaire', false),
                     $translationService->translate('Général', null, 'Modale', 'Pièces jointes', false),
                     $translationService->translate('Traçabilité', 'Général', 'Issu de', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Champs fixes', 'N° commande / BL', false),
-                    $translationService->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Urgence', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
+                    $translationService->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Urgence', false),
                     $translationService->translate('Traçabilité', 'Unités logistiques', "Onglet \"Groupes\"", 'Groupe', false),
                 ], $freeFieldsConfig['freeFieldsHeader']);
 

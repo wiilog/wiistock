@@ -86,7 +86,7 @@ class TransporteurController extends AbstractController
 		$label = $data['label'];
         $minTrackingNumber = $data['min-char-number'] ?? null;
         $maxTrackingNumber = $data['max-char-number'] ?? null;
-        $isRecurrent = $data['is-recurrent'];
+        $isRecurrent = $data['is-recurrent'] ?? false;
         /** @var Attachment $logo */
         $logo = $request->files->get('logo')
             ? $attachmentService->createAttachements([$request->files->get('logo')])[0]
@@ -132,10 +132,15 @@ class TransporteurController extends AbstractController
                 $entityManager->remove($attachmentToRemove);
             }
             $transporteur->addAttachment($logo);
-        } else if ($carrierId && !$transporteur->getAttachments()->isEmpty()) {
+        } else if ($carrierId && !$transporteur->getAttachments()->isEmpty() && !$data['keep-logo']) {
             $attachmentToRemove = $transporteur->getAttachments()[0];
             $transporteur->removeAttachment($attachmentToRemove);
             $entityManager->remove($attachmentToRemove);
+        } else if($isRecurrent && !$logo && $transporteur->getAttachments()->isEmpty()){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Veuillez renseigner un logo',
+            ]);
         }
 
 		$entityManager->persist($transporteur);

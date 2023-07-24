@@ -1103,7 +1103,7 @@ function initSecondStep(html, component) {
 
     $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
 
-    const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
+    const $entitySelect = $modalComponentTypeSecondStepContent.find('.init-entity-change');
     if ($entitySelect.length > 0) {
         onEntityChange($entitySelect, true);
     }
@@ -1444,18 +1444,15 @@ function onEntityChange($select, onInit = false) {
     const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
     const $toHide = $modal.find(`.toToggle:not(.${categoryStatus})`);
     const $toShow = $modal.find(`.toToggle.${categoryStatus}`);
+    const $redirectDispatch = $modal.find(`.redirect-dispatch`)
 
-    const disabledSelect = (
-        !categoryType
-        || !categoryStatus
-        || $correspondingTypes.length === 0
-        || $correspondingStatuses.length === 0
-    );
+    const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
+    const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
 
-    $selectType.prop('disabled', disabledSelect);
-    $selectStatus.prop('disabled', disabledSelect);
-    $selectAllAvailableTypes.prop('disabled', disabledSelect);
-    $selectAllAvailableStatuses.prop('disabled', disabledSelect);
+    $selectType.prop('disabled', disabledTypeSelect);
+    $selectStatus.prop('disabled', disabledStatusSelect);
+    $selectAllAvailableTypes.prop('disabled', disabledTypeSelect);
+    $selectAllAvailableStatuses.prop('disabled', disabledStatusSelect);
     $otherTypes.prop('disabled', true);
     $otherStatuses.prop('disabled', true);
     $toHide.addClass('d-none');
@@ -1464,17 +1461,24 @@ function onEntityChange($select, onInit = false) {
         $selectType.val(null);
         $selectStatus.val(null);
 
-        if (!disabledSelect) {
+        if(!disabledTypeSelect){
             $correspondingTypes.prop('disabled', false);
-            $correspondingStatuses.prop('disabled', false);
-
             if ($correspondingTypes.length === 1) {
                 $selectType.val($correspondingTypes[0].value);
             }
+        }
+        if(!disabledStatusSelect){
+            $correspondingStatuses.prop('disabled', false);
             if ($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
             }
         }
+    }
+
+    if ($selectedOption.val() === 'requests_to_treat_dispatch') {
+        $redirectDispatch.removeClass('d-none');
+    } else if (!$redirectDispatch.hasClass('d-none')) {
+        $redirectDispatch.addClass('d-none');
     }
 
     $selectType.trigger('change');

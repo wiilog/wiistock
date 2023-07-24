@@ -19,7 +19,10 @@
                 },
             },
             {
-                hasRight: transfer.order is not null,
+                hasRight: (
+                    transfer.order is not null
+                    and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_TRANS'))
+                ),
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers l'ordre de transfert",
                 dropdownOnly: true,

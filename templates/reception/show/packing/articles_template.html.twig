@@ -69,7 +69,7 @@
                             <div class="col-3">
                                 {% if pack %}
                                     <div class="d-flex flex-column">
-                                        <label class="wii-field-name">Projet</label>
+                                        <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</label>
                                         <span class="wii-body-text">{{ pack.project ? pack.project.code : '-' }}</span>
                                     </div>
                                 {% endif %}

@@ -4,7 +4,9 @@ $(function() {
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
-    loadDispatchReferenceArticle();
+    if(!$('#packTable').exists()) {
+        loadDispatchReferenceArticle();
+    }
     getStatusHistory(dispatchId);
     packsTable = initializePacksTable(dispatchId, isEdit);
 
@@ -187,15 +189,17 @@ function openAddReferenceModal($button, options = {}) {
         return AJAX
             .route(AJAX.GET, 'dispatch_add_reference_api', {dispatch: dispatchId, pack: pack})
             .json()
-            .then((data)=>{
-                $modalbody.html(data);
-                $modal.modal('show');
-                const selectPack = $modalbody.find('select[name=pack]');
-                selectPack.on('change', function () {
-                    const defaultQuantity = $(this).find('option:selected').data('default-quantity');
-                    $modalbody.find('input[name=quantity]').val(defaultQuantity);
-                })
-                selectPack.trigger('change')
+            .then(({template, success})=>{
+                if(success) {
+                    $modalbody.html(template);
+                    $modal.modal('show');
+                    const selectPack = $modalbody.find('select[name=pack]');
+                    selectPack.on('change', function () {
+                        const defaultQuantity = $(this).find('option:selected').data('default-quantity');
+                        $modalbody.find('input[name=quantity]').val(defaultQuantity);
+                    })
+                    selectPack.trigger('change');
+                }
             })
     })
 }
@@ -224,7 +228,12 @@ function runDispatchPrint($button) {
                         .then(({success, headerDetailsConfig}) => {
                             if (success) {
                                 $(`.zone-entete`).html(headerDetailsConfig);
-                                window.location.href = Routing.generate('print_dispatch_state_sheet', {dispatch: dispatchId});
+                                AJAX.route(`GET`, `print_dispatch_state_sheet`, {dispatch: dispatchId})
+                                    .file({
+                                        success: "Votre bon d'acheminement a bien été imprimé.",
+                                        error: "Erreur lors de l'impression du bon d'acheminement."
+                                    })
+                                    .then(() => window.location.reload());
                             }
                         });
                 }
@@ -365,7 +374,7 @@ function initializePacksTable(dispatchId, isEdit) {
         serverSide: false,
         ajax: {
             type: "GET",
-            url: Routing.generate('dispatch_pack_api', {dispatch: dispatchId}, true),
+            url: Routing.generate('dispatch_editable_logistic_units_api', {dispatch: dispatchId}, true),
         },
         rowConfig: {
             needsRowClickAction: true,
@@ -606,10 +615,6 @@ function addPackRow(table, $button) {
     }
 }
 
-function scrollToBottom() {
-    window.scrollTo(0, document.body.scrollHeight);
-}
-
 function getStatusHistory(dispatch) {
     return $.get(Routing.generate(`dispatch_status_history_api`, {dispatch}, true))
         .then(({template}) => {
@@ -634,7 +639,7 @@ function loadDispatchReferenceArticle({start, search} = {}) {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('GET', 'dispatch_packs_api', params)
+            AJAX.route('GET', 'dispatch_reference_in_logistic_units_api', params)
                 .json()
                 .then(data => {
                     $logisticUnitsContainer.html(data.html);

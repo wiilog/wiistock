@@ -441,7 +441,7 @@ function initializeProjectHistoryTable(packId) {
             "type": "POST"
         },
         columns: [
-            {data: 'project', name: 'group', title: 'Projet'},
+            {data: 'project', name: 'group', title: Translation.of('Référentiel', 'Projet', 'Projet', false)},
             {data: 'createdAt', name: 'type', title: 'Assigné le'},
         ],
         domConfig: {

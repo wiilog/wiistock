@@ -1,0 +1,30 @@
+{% import 'form.html.twig' as form %}
+
+{% if reserve is defined and reserve and reserve.id %}
+    {{ form.input('reserveId', null, false , reserve.id, {
+        type: 'hidden',
+    }) }}
+{% endif %}
+{{ form.input('type', null, false , 'quality', {
+    type: 'hidden',
+}) }}
+<div class="row">
+    <div class="col-md-6 col-12 form-group">
+        {{ form.select('truckArrivalLineNumber', "N° tracking transporteur", true, {
+            emptyOption: new is defined and new ? {text: '', value: ''} : {},
+            items: availableTrackingNumber,
+        }) }}
+    </div>
+    <div class="col-md-6 col-12 form-group">
+        {{ form.input('comment', 'Commentaire', false, reserve is defined and reserve.comment ? reserve.comment : '') }}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-12 form-group">
+        {% include 'attachment/attachment.html.twig' with {
+            'isNew': new is defined and new,
+            'attachments': attachments is defined ? attachments : [],
+        } %}
+    </div>
+
+</div>

@@ -8,6 +8,7 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Service\FormatService;
 use App\Service\RefArticleDataService;
+use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\Console\Command\Command;
@@ -25,6 +26,9 @@ class UpdateRefQuantitiesCommand extends Command
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translation;
 
     public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService)
     {
@@ -114,12 +118,12 @@ class UpdateRefQuantitiesCommand extends Command
             });
         if ($refLivraisonEnCours->count() > 0) {
             $output
-                ->writeln('Livraisons en cours pour la référence ' . $refToUpdate);
+                ->writeln($this->translation->translate("Ordre", "Livraison", "Livraison", false) . 's en cours pour la référence ' . $refToUpdate);
             $output
                 ->writeln($refLivraisonEnCours);
         } else {
             $output
-                ->writeln('Aucune livraison en cours pour la référence ' . $refToUpdate);
+                ->writeln('Aucune ' . mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . ' en cours pour la référence ' . $refToUpdate);
         }
         $output
             ->writeln('');

@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
@@ -15,6 +16,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
 use App\Entity\Transporteur;
+use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -44,10 +46,13 @@ class DashboardSettingsService {
     public DashboardService $dashboardService;
 
     #[Required]
+    public TruckArrivalLineService $truckArrivalLineService;
+
+    #[Required]
     public DateService $dateService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public DemandeCollecteService $demandeCollecteService;
@@ -209,7 +214,7 @@ class DashboardSettingsService {
                 $values += $this->serializeDailyHandlingIndicator($componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
-                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example);
+                $values += $this->serializeCarrierIndicator($entityManager, $componentType, $config, $example, $meter);
                 break;
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
                 $values += $this->serializeEntriesToHandle($entityManager, $componentType, $config, $example, $meter);
@@ -332,7 +337,6 @@ class DashboardSettingsService {
                                             ->map(fn($trad) => $this->translationService->translate('Dashboard', $trad, false))
                                             ->toArray();
         }
-
         return $values;
     }
 
@@ -400,9 +404,10 @@ class DashboardSettingsService {
                 }
             }
             if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
+                $typeRepository = $entityManager->getRepository(Type::class);
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, 50, $config["entityTypes"] ?? []))
                         ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
                             return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
                         })
@@ -655,23 +660,36 @@ class DashboardSettingsService {
     private function serializeCarrierIndicator(EntityManagerInterface $manager,
                                                Dashboard\ComponentType $componentType,
                                                array $config,
-                                               bool $example = false): array {
-        $values = [];
-        $carrierRepository = $manager->getRepository(Transporteur::class);
-        if (!empty($config["carriers"])) {
-
-            if ($example) {
-                $carriers = $carrierRepository->findBy(['id' => $config['carriers']]);
+                                               bool $example = false,
+                                               DashboardMeter\Indicator $meter = null): array {
+        if (!$example) {
+            if ($meter) {
+                $values = [
+                    'subCounts' => $meter->getSubCounts(),
+                    'subtitle' => $meter->getSubtitle(),
+                    'count' => $meter->getCount(),
+                ];
             } else {
-                $carriers = $carrierRepository->getDailyArrivalCarriersLabel($config['carriers']);
+                $values = [
+                    'subtitle' => '-',
+                    'subCounts' => [
+                        '<span>Numéros de tracking transporteur non associés</span>',
+                        '<span class="text-wii-black">Dont</span> <span class="font-">-</span> <span class="text-wii-black">en retard</span>'
+                    ],
+                    'count' => '-',
+                ];
             }
-
-            $values["carriers"] = FormatHelper::carriers($carriers);
-        } else if ($example) {
-            $values = $componentType->getExampleValues();
         } else {
-            $carriers = $carrierRepository->getDailyArrivalCarriersLabel();
-            $values["carriers"] = FormatHelper::carriers($carriers);
+            $values = $componentType->getExampleValues();
+        }
+
+        if (!isset($config['displayUnassociatedLines']) || !$config['displayUnassociatedLines']) {
+            unset($values['count']);
+            unset($values['subCounts']);
+        }
+
+        if (!isset($config['displayLateLines']) || !$config['displayLateLines']) {
+            unset($values['subCounts']);
         }
 
         return $values;
@@ -1089,8 +1107,6 @@ class DashboardSettingsService {
                 'delay' => $meter ? $meter->getDelay() : '-',
                 'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
-
-
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
@@ -1280,6 +1296,20 @@ class DashboardSettingsService {
                 $link = !empty($locations) && $redirect
                     ? $this->router->generate('en_cours', ['locations' => implode(',', $locations), 'fromDashboard' => true ])
                     : null;
+                break;
+            case Dashboard\ComponentType::CARRIER_TRACKING:
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('truck_arrival_index', ['unassociated' => true]) : null;
+                break;
+            case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                break;
+            case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                $statuses = $config['entityStatuses'];
+                $types = $config['entityTypes'];
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('dispatch_index', ['statuses' => $statuses, 'types' => $types, 'fromDashboard' => true]) : null;
                 break;
             default:
                 $link = null;

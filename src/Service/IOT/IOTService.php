@@ -36,7 +36,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\IOT\SensorMessageRepository;
 use App\Repository\PackRepository;
 use App\Repository\StatutRepository;
-use App\Service\DemandeLivraisonService;
+use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
@@ -62,6 +62,7 @@ class IOTService
     const KOOVEA_HUB = 'Hub GPS Koovea';
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
+    const TEMP_HYGRO = 'ACS-Switch-TEMP-HYGRO';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
@@ -95,8 +96,27 @@ class IOTService
         self::SYMES_ACTION_MULTI => 'à l\'action',
     ];
 
+    const DATA_TYPE_ERROR = 0;
+    const DATA_TYPE_TEMPERATURE = 1;
+    const DATA_TYPE_HYGROMETRY = 2;
+    const DATA_TYPE_ACTION = 3;
+    const DATA_TYPE_GPS = 4;
+
+
+    const DATA_TYPE = [
+        self::DATA_TYPE_TEMPERATURE => 'Température',
+        self::DATA_TYPE_HYGROMETRY => 'Hygrométrie',
+        self::DATA_TYPE_ACTION => 'Action',
+        self::DATA_TYPE_GPS => 'GPS',
+    ];
+
+    const DATA_TYPE_TO_UNIT = [
+        self::DATA_TYPE_TEMPERATURE => '°C',
+        self::DATA_TYPE_HYGROMETRY => '%',
+    ];
+
     /** @Required */
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     /** @Required */
     public UniqueNumberService $uniqueNumberService;
@@ -116,16 +136,19 @@ class IOTService
     /** @Required */
     public HttpService $client;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false) {
-        if (isset(self::PROFILE_TO_TYPE[$frame['profile']])) {
-            $message = $this->parseAndCreateMessage($frame, $entityManager, $local);
-            $this->linkWithSubEntities($message,
-                $entityManager->getRepository(Pack::class),
-                $entityManager->getRepository(Article::class),
-            );
-            $entityManager->flush();
-            $this->treatTriggers($message, $entityManager);
-            $entityManager->flush();
+    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false)
+    {
+        $messages = $this->parseAndCreateMessage($frame, $entityManager, $local);
+        foreach ($messages as $message) {
+            if($message){
+                $this->linkWithSubEntities($message,
+                    $entityManager->getRepository(Pack::class),
+                    $entityManager->getRepository(Article::class),
+                );
+                $entityManager->flush();
+                $this->treatTriggers($message, $entityManager);
+                $entityManager->flush();
+            }
         }
     }
 
@@ -263,7 +286,7 @@ class IOTService
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
             ->setStatus($requestTemplate->getRequestStatus())
-            ->setComment(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setComment($requestTemplate->getComment())
             ->setAttachments($requestTemplate->getAttachments())
             ->setSubject($requestTemplate->getSubject())
             ->setDesiredDate($desiredDate);
@@ -283,7 +306,7 @@ class IOTService
         $request
             ->setStatut($statut)
             ->setCreatedAt($date)
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setTriggeringSensorWrapper($wrapper)
             ->setType($requestTemplate->getRequestType())
             ->setDestination($requestTemplate->getDestination())
@@ -319,7 +342,7 @@ class IOTService
             ->setStatut($status)
             ->setPointCollecte($requestTemplate->getCollectPoint())
             ->setObjet($requestTemplate->getSubject())
-            ->setCommentaire(StringHelper::cleanedComment($requestTemplate->getComment()))
+            ->setCommentaire($requestTemplate->getComment())
             ->setstockOrDestruct($requestTemplate->getDestination());
         $entityManager->persist($request);
         $entityManager->flush();
@@ -383,47 +406,23 @@ class IOTService
         $this->alertService->trigger($template, $message, $entityManager);
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): SensorMessage
-    {
-        $profileRepository = $entityManager->getRepository(SensorProfile::class);
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $profileName = $message['profile'];
-
-        $profile = $profileRepository->findOneBy([
-            'name' => $profileName,
-        ]);
-
-        if (!isset($profile)) {
-            $profile = new SensorProfile();
-            $profile
-                ->setName($profileName)
-                ->setMaxTriggers(self::PROFILE_TO_MAX_TRIGGERS[$profileName] ?? 1);
-            $entityManager->persist($profile);
-        }
-        $entityManager->flush();
-        $deviceCode = $message['device_id'];
+        $deviceCode = $message['metadata']["network"]["lora"]["devEUI"];
 
         $device = $deviceRepository->findOneBy([
             'code' => $deviceCode,
         ]);
 
-        if (!isset($device)) {
-            $typeLabel = self::PROFILE_TO_TYPE[$profileName] ?? 'Type non détecté';
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $type = $typeRepository->findOneBy(['label' => $typeLabel]);
+        $profile =  $device->getProfile()->getName();
 
-            $device = new Sensor();
-            $device
-                ->setCode($deviceCode)
-                ->setProfile($profile)
-                ->setBattery(-1)
-                ->setFrequency(self::PROFILE_TO_FREQUENCY[$profileName] ?? 'jamais')
-                ->setType($type);
-            $entityManager->persist($device);
+        $frameIsValid = $this->validateFrame($profile, $message);
+        if(!$frameIsValid){
+            return [];
         }
 
-        $newBattery = $this->extractBatteryLevelFromMessage($message);
+        $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
         $wrapper = $device->getAvailableSensorWrapper();
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
@@ -445,17 +444,29 @@ class IOTService
             $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
         }
 
-        $received = new SensorMessage();
-        $received
-            ->setPayload($message)
-            ->setDate($messageDate)
-            ->setContent($this->extractMainDataFromConfig($message))
-            ->setEvent($this->extractEventTypeFromMessage($message))
-            ->setLinkedSensorLastMessage($device)
-            ->setSensor($device);
+        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
 
-        $entityManager->persist($received);
-        return $received;
+        $messages = Stream::from($mainDatas)
+            ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager) :SensorMessage {
+                $received = new SensorMessage();
+                $received
+                    ->setPayload($message)
+                    ->setDate($messageDate)
+                    ->setContent($mainData)
+                    ->setContentType($type)
+                    ->setEvent($this->extractEventTypeFromMessage($message, $device->getProfile()->getName()))
+                    ->setLinkedSensorLastMessage($device)
+                    ->setSensor($device);
+
+                return $received;
+            })
+            ->toArray();
+
+        foreach ($messages as $message) {
+            $entityManager->persist($message);
+        }
+
+        return $messages;
     }
 
     public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
@@ -567,51 +578,64 @@ class IOTService
         }
     }
 
-    public function extractMainDataFromConfig(array $config) {
-        switch ($config['profile']) {
+    public function extractMainDataFromConfig(array $config, string $profile): array {
+        switch ($profile) {
+            case IOTService::TEMP_HYGRO:
+                $hexTemperature = substr($config['value']['payload'], 6, 2);
+                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                $hexHygrometry = substr($config['value']['payload'], 66, 2);
+                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                return [
+                    self::DATA_TYPE_TEMPERATURE => $temperature,
+                    self::DATA_TYPE_HYGROMETRY => $hygrometry,
+                ];
             case IOTService::KOOVEA_TAG:
+                return [self::DATA_TYPE_TEMPERATURE => $config['value']];
             case IOTService::KOOVEA_HUB:
-                return $config['value'];
+                return [self::DATA_TYPE_GPS => $config['value']];
             case IOTService::INEO_SENS_ACS_BTN:
-                return $this->extractEventTypeFromMessage($config);
+                return [self::DATA_TYPE_ACTION => $this->extractEventTypeFromMessage($config, $profile)];
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
                 if (isset($config['payload_cleartext'])) {
                     $value = hexdec(substr($config['payload_cleartext'], 0, 2));
                     $event =  $value & ~($value >> 3 << 3);
-                    return $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")");
+                    return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
                 }
                 break;
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
-                    return $frame['jcd_temperature'];
+                    return [self::DATA_TYPE_TEMPERATURE => $frame['jcd_temperature']];
                 }
                 break;
             case IOTService::INEO_SENS_GPS:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     if (isset($frame['LATITUDE']) && isset($frame['LONGITUDE'])) {
-                        return $frame['LATITUDE'] . ',' . $frame['LONGITUDE'];
+                        $data = $frame['LATITUDE'] . ',' . $frame['LONGITUDE'];
                     } else {
-                        return '-1,-1';
+                        $data = '-1,-1';
                     }
+                    return [self::DATA_TYPE_GPS => $data];
                 }
                 break;
         }
-        return 'Donnée principale non trouvée';
+        return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
 
-    public function extractEventTypeFromMessage(array $config) {
-        switch ($config['profile']) {
+    public function extractEventTypeFromMessage(array $config, string $profile) {
+        switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
                 return $config['event'];
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
+            case IOTService::TEMP_HYGRO:
+                return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
-            if (isset($config['payload'])) {
+                if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
                     return $frame['jcd_msg_type'];
                 }
@@ -638,11 +662,13 @@ class IOTService
         return 'Évenement non trouvé';
     }
 
-    public function extractBatteryLevelFromMessage(array $config) {
-        switch ($config['profile']) {
+    public function extractBatteryLevelFromMessage(array $config, string $profile) {
+        switch ($profile) {
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
                 return -1;
+            case IOTService::TEMP_HYGRO:
+                return 100 - hexdec(substr($config['value']['payload'], 10, 2));
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::DEMO_TEMPERATURE:
@@ -853,7 +879,9 @@ class IOTService
                 ->map(fn(Emplacement $location) => $location->getId())
                 ->toArray();
 
-            $packs = $packRepository->getCurrentPackOnLocations(
+            /*
+             * TODO WIIS-9988
+             $packs = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 [
                     'isCount' => false,
@@ -863,7 +891,7 @@ class IOTService
             $packs = Stream::from($packs)
                 ->map(fn(Pack $pack) => $pack->getId())
                 ->toArray();
-
+            */
             $linked[] = [
                 'type' => 'vehicle_sensor_message',
                 'values' => [$vehicle->getId()],
@@ -883,6 +911,9 @@ class IOTService
                     'entityColumn' => 'emplacement_id'
                 ];
             }
+
+            /*
+             * TODO WIIS-9988
             if (!empty($packs)) {
                 $linked[] = [
                     'type' => 'pack_sensor_message',
@@ -890,14 +921,17 @@ class IOTService
                     'entityColumn' => 'pack_id'
                 ];
             }
+            */
         }
 
+        $sensorType = $linkedDevice->getType()->getLabel();
         $sensorMessageRepository->insertRaw([
             'date' => str_replace('/', '-', $frame['timestamp']),
             'content' => $frame['value'],
             'event' => $frame['event'],
             'payload' => json_encode($frame),
             'sensor' => $linkedDevice->getId(),
+            'contentType' => $sensorType === Sensor::GPS ? 4 : ($sensorType === Sensor::TEMPERATURE ? 1 : 0),
         ], $linked);
     }
 
@@ -909,9 +943,14 @@ class IOTService
         $vehicleRepository = $entityManager->getRepository(Vehicle::class);
 
         $activePairing = $wrapper->getActivePairing();
+
+        if (!$activePairing) {
+            return;
+        }
+
         $order = $activePairing->getPack()
-            ->getTransportDeliveryOrderPack()
-            ->getOrder();
+            ?->getTransportDeliveryOrderPack()
+            ?->getOrder();
 
         if ($order) {
             if ($temperatureThresholdType === TriggerAction::LOWER) {
@@ -941,5 +980,20 @@ class IOTService
                 }
             }
         }
+    }
+
+    public function validateFrame(string $profile, array $frame): bool {
+        return match ($profile) {
+            IOTService::TEMP_HYGRO => str_starts_with($frame['value']['payload'], '6d'),
+            default => true,
+        };
+    }
+
+    private function convertHexToSignedInt(string $hexStr): string {
+        $dec = hexdec($hexStr);
+        $isNegative = $dec & pow(16, strlen($hexStr)) / 2;
+        return $isNegative
+            ? $dec - pow(16, strlen($hexStr))
+            : $dec;
     }
 }

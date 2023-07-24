@@ -44,7 +44,7 @@ class CartService {
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public DemandeLivraisonService $demandeLivraisonService;
+    public DeliveryRequestService $demandeLivraisonService;
 
     #[Required]
     public PurchaseRequestService $purchaseRequestService;
@@ -54,6 +54,9 @@ class CartService {
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public TranslationService $translation;
 
     private function emptyCart(Cart $cart, ?array $referencesToRemove = null): void {
         if ($referencesToRemove) {
@@ -156,7 +159,9 @@ class CartService {
         ];
     }
 
-    public function manageDeliveryRequest(array $data, Utilisateur $user, EntityManagerInterface $manager): array {
+    public function manageDeliveryRequest(array                     $data,
+                                          Utilisateur               $user,
+                                          EntityManagerInterface    $manager): array {
         $cartContent = json_decode($data['cart'] ?? '[]', true);
 
         $userCart = $user->getCart();
@@ -200,7 +205,7 @@ class CartService {
                 ->setExpectedAt($expectedAt)
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
+                ->setCommentaire($data['comment'] ?? null)
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
@@ -228,12 +233,12 @@ class CartService {
             catch (UniqueConstraintViolationException) {
                 return [
                     'success' => false,
-                    'msg' => 'Une autre demande de livraison est en cours de création, veuillez réessayer.',
+                    'msg' => 'Une autre demande de ' . mb_strtolower($this->translation->translate("Demande", "Livraison", "Livraison", false)) . ' est en cours de création, veuillez réessayer.',
                 ];
             }
 
             $link = $this->router->generate('demande_show', ['id' => $deliveryRequest->getId()]);
-            $msg = "Les references ont bien été ajoutées dans une nouvelle demande de livraison";
+            $msg = "Les references ont bien été ajoutées dans une nouvelle " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false));
         } else {
             throw new \RuntimeException("Unknown parameter");
         }
@@ -281,7 +286,7 @@ class CartService {
                 ->setObjet($data['object'])
                 ->setStockOrDestruct($data['destination'] === 'destruction' ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE)
                 ->setPointCollecte($collectLocation)
-                ->setCommentaire(StringHelper::cleanedComment($data['comment'] ?? null))
+                ->setCommentaire($data['comment'] ?? null)
                 ->setDemandeur($user);
 
             $this->freeFieldService->manageFreeFields($collectRequest, $data, $manager);

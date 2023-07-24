@@ -21,6 +21,8 @@ class ProjectService {
     #[Required]
     public FormatService $formatService;
 
+
+
     public function getDataForDatatable(InputBag $params): array {
         $queryResult = $this->manager->getRepository(Project::class)->findByParams($params);
 

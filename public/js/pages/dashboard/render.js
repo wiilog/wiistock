@@ -64,7 +64,7 @@ const creators = {
         callback: createIndicatorElement
     },
     [CARRIER_TRACKING]: {
-        callback: createCarrierTrackingElement
+        callback: createIndicatorElement
     },
     [DAILY_ARRIVALS]: {
         callback: createChart,
@@ -320,7 +320,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
                 <div class="wii-card-body">
                     <div class="row">
                         <div class="col-12">
-                            <p class="card-title text-center">${request.requestBodyTitle}</p>
+                            ${applyStyle(data, redefinedNumberingConfig, 5, `<p class="card-title no-color text-center">${request.requestBodyTitle}</p>`, {}, firstIteration)}
                         </div>
                         <div class="col-12">
                             <p class="w-100 d-inline-flex justify-content-center">
@@ -569,7 +569,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     delete remainingConfig.meterKey;
     delete remainingConfig.customContainerClass;
 
-    if(!data || data.count === undefined) {
+    if(!data) {
         console.error('Invalid data for ' + (meterKey || '-').replaceAll('_', ' ') + ' element.');
         return false;
     }
@@ -589,7 +589,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig;
     const randomId = guidGenerator();
-
+    console.log(isObject(title),title[USER_SLUG],title, USER_SLUG);
     const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,
@@ -642,7 +642,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
                         data,
                         smartNumberingConfig,
                         4,
-                        delay < 0 ? Translation.of('Dashboard', 'Retard') + ' : ' : Translation.of('Dashboard', 'A traiter sous :') + ' : ',
+                        delay < 0 ? Translation.of('Dashboard', 'Retard') + ' : ' : Translation.of('Dashboard', 'A traiter sous :'),
                         delay < 0 ? OVERRIDE_FONT_RED : {}
                     ),
                 })

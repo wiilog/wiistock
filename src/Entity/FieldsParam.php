@@ -10,6 +10,9 @@ class FieldsParam {
 
     const MODAL_TYPE_FREE = 'FREE';
     const MODAL_TYPE_USER = 'USER_BY_TYPE';
+    const MODAL_RECEIVER = 'RECEIVER';
+    const MODAL_TYPE = 'TYPE';
+    const MODAL_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
 
     const ENTITY_CODE_RECEPTION = 'réception';
 
@@ -86,7 +89,7 @@ class FieldsParam {
     const FIELD_LABEL_PROJECT = 'Projet';
 
     const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrivals';
-    const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'carrier';
+    const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'truckCarrier';
     const FIELD_CODE_TRUCK_ARRIVAL_DRIVER = 'driver';
     const FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'registrationNumber';
     const FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'unloadingLocation';
@@ -159,6 +162,31 @@ class FieldsParam {
     const ENTITY_CODE_DEMANDE = 'demande';
     const FIELD_CODE_EXPECTED_AT = 'expectedAt';
     const FIELD_LABEL_EXPECTED_AT = 'date attendue';
+    const FIELD_CODE_RECEIVER_DEMANDE = 'receivers';
+    const FIELD_LABEL_RECEIVER_DEMANDE = 'destinataire';
+    const FIELD_CODE_TYPE_DEMANDE = 'type';
+    const FIELD_LABEL_TYPE_DEMANDE = 'type';
+    const FIELD_CODE_DESTINATION_DEMANDE = 'destinationDemande';
+    const FIELD_LABEL_DESTINATION_DEMANDE = 'destination';
+    const FIELD_CODE_DELIVERY_REQUEST_PROJECT = 'deliveryRequestProject';
+    const FIELD_LABEL_DELIVERY_REQUEST_PROJECT = 'projet';
+
+    const ENTITY_CODE_EMERGENCY = "urgence";
+    const FIELD_CODE_EMERGENCY_BUYER = "buyer";
+    const FIELD_CODE_EMERGENCY_PROVIDER = "provider";
+    const FIELD_CODE_EMERGENCY_COMMAND_NUMBER = "commandNumber";
+    const FIELD_CODE_EMERGENCY_POST_NUMBER= "postNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
+    const FIELD_CODE_EMERGENCY_CARRIER = "emergencyCarrier";
+    const FIELD_CODE_EMERGENCY_TYPE = "emergencyType";
+
+    const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
+    const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";
+    const FIELD_LABEL_EMERGENCY_COMMAND_NUMBER = "numéro de commande";
+    const FIELD_LABEL_EMERGENCY_POST_NUMBER= "numéro de poste";
+    const FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER = "numéro de tracking transporteur";
+    const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
+    const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
@@ -168,6 +196,8 @@ class FieldsParam {
     public const FILTER_ONLY_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     public const FILTERED_FIELDS = [
@@ -181,6 +211,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
         FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
+        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
 
         // Acheminements
         FieldsParam::FIELD_CODE_EMERGENCY,
@@ -190,6 +221,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_LOCATION_PICK,
         FieldsParam::FIELD_CODE_LOCATION_DROP,
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+        FieldsParam::FIELD_CODE_CARRIER_DISPATCH,
 
         // Services
         FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
@@ -199,6 +231,9 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
         FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+
+        // Livraison
+        FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT
     ];
 
     public const NOT_EDITABLE_FIELDS = [
@@ -209,6 +244,8 @@ class FieldsParam {
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     #[ORM\Id]
@@ -367,9 +404,10 @@ class FieldsParam {
         return $this->modalType;
     }
 
-    public function setModalType(?string $modalType): void
+    public function setModalType(?string $modalType): self
     {
         $this->modalType = $modalType;
-    }
 
+        return $this;
+    }
 }

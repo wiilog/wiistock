@@ -11,14 +11,14 @@
             } %}
             <div class='modal-body'>
                 <div class="wii-small-text">
-                    Cette livraison contient des articles non demandés. Enlevez des unités logistiques pour finaliser la livraison.
+                    Cette {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }} contient des articles non demandés. Enlevez des unités logistiques pour finaliser la {{ trans('Ordre', 'Livraison', 'Livraison', false) | lower }}.
                     <div class="ul-container"></div>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success', dismiss: false, text: 'Finir la livraison', id: 'submitFinishDelivery', event: 'treatArticlesNotRequested($(this))'}
+                    {classes: 'btn btn-success', dismiss: false, text: 'Finir la ' ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower, id: 'submitFinishDelivery', event: 'treatArticlesNotRequested($(this))'}
                 ],
                 renderErrorContainer: false
             } %}

@@ -6,5 +6,5 @@
            title="Démarrer le"
            placeholder="jj/mm/aaaa HH:MM"
            min="now"
-           value="{{ begin|date('Y-m-d\\TH:i') }}"/>
+           value="{{ begin ? begin|date('Y-m-d\\TH:i') }}"/>
 </div>

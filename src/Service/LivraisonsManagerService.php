@@ -36,6 +36,7 @@ class LivraisonsManagerService
 
     public const MOUVEMENT_DOES_NOT_EXIST_EXCEPTION = 'mouvement-does-not-exist';
     public const LIVRAISON_ALREADY_BEGAN = 'livraison-already-began';
+    public const NATURE_NOT_ALLOWED = 1;
 
     #[Required]
     public NotificationService $notificationService;
@@ -45,6 +46,9 @@ class LivraisonsManagerService
 
     #[Required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public TranslationService $translation;
 
     private $entityManager;
     private $mailerService;
@@ -193,6 +197,11 @@ class LivraisonsManagerService
                     false,
                     ['delivery' => $livraison]
                 );
+
+                if(!$dropMovement['success']){
+                    throw new Exception($dropMovement['msg'], self::NATURE_NOT_ALLOWED);
+                }
+
                 $pack
                     ->setLastDrop($dropMovement['movement'])
                     ->setLastTracking($dropMovement['movement']);
@@ -209,7 +218,7 @@ class LivraisonsManagerService
                 $article = $articleLine->getArticle();
                 $article
                     ->setStatut($inactiveArticleStatus)
-                    ->setEmplacement($demande->getDestination());
+                    ->setEmplacement($nextLocation);
             }
 
             $referenceLines = $preparation->getReferenceLines();
@@ -244,18 +253,29 @@ class LivraisonsManagerService
                 }
             }
 
-            $title = $demandeIsPartial ? 'FOLLOW GT // Livraison effectuée partiellement' : 'FOLLOW GT // Livraison effectuée';
-            $bodyTitle = $demandeIsPartial ? 'Votre demande a été livrée partiellement.' : 'Votre demande a bien été livrée.';
+            $title = $demandeIsPartial
+                ? 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
+                : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
+            $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
-            if ($livraison->getDemande()->getType()->getSendMail()) {
+            if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                $to = [];
+                if ($demande->getType()->getSendMailRequester()) {
+                    $to[] = $demande->getUtilisateur();
+                }
+                if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                    $to[] = $demande->getReceiver();
+                }
+
                 $this->mailerService->sendMail(
                     $title,
                     $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
                         'request' => $demande,
                         'preparation' => $preparation,
                         'title' => $bodyTitle,
+                        'dropLocation' => $nextLocation
                     ]),
-                    $demande->getUtilisateur()
+                    $to
                 );
             }
         }
@@ -282,7 +302,6 @@ class LivraisonsManagerService
         foreach ($movements as $movement) {
             $movement->setLivraisonOrder(null);
         }
-        $livraison->getMouvements()->clear();
 
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -291,10 +310,22 @@ class LivraisonsManagerService
         $preparation = $livraison->getpreparation();
         $livraisonStatus = $livraison->getStatut();
         $livraisonStatusCode = $livraisonStatus?->getCode();
-        $movementType = ($livraisonStatusCode === Livraison::STATUT_A_TRAITER)
-            ? MouvementStock::TYPE_TRANSFER
-            : MouvementStock::TYPE_ENTREE;
+        if($livraisonStatusCode === Livraison::STATUT_A_TRAITER) {
+            $movementType = MouvementStock::TYPE_TRANSFER;
+            $movementsToDelete = $livraison
+                ->getMouvements()
+                ->filter(fn(MouvementStock $movement) => (
+                    !$movement->getDate() && $movement->getType() === MouvementStock::TYPE_SORTIE
+                ));
 
+            foreach ($movementsToDelete as $movement) {
+                $entityManager->remove($movement);
+            }
+        } else {
+            $movementType = MouvementStock::TYPE_ENTREE;
+        }
+
+        $livraison->getMouvements()->clear();
         $articleLines = $preparation->getArticleLines();
 
         /** @var PreparationOrderArticleLine $articleLine */

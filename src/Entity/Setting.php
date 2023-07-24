@@ -19,6 +19,7 @@ class Setting {
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/dispatch_template.dotx';
     const DEFAULT_DISPATCH_RECAP_TEMPLATE_VALUE = 'modele/recap/dispatch_template.dotx';
     const DEFAULT_DISPATCH_WAYBILL_TEMPLATE_VALUE_WITH_RUPTURE = 'modele/waybill/dispatch_arrival_template.dotx';
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE_VALUE = 'modele/slip/delivery_slip_template.dotx';
 
     //temporary settings
     const APP_CLIENT = "APP_CLIENT";
@@ -40,6 +41,10 @@ class Setting {
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_START";
     const TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END = "TRUCK_ARRIVALS_PROCESSING_HOUR_CREATE_AFTER_END";
 
+    // association BR
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL";
+    const BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM = "BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM";
+
     // mvt traca
     const CLOSE_AND_CLEAR_AFTER_NEW_MVT = 'CLOSE_AND_CLEAR_AFTER_NEW_MVT';
     const SEND_PACK_DELIVERY_REMIND = 'SEND_PACK_DELIVERY_REMIND';
@@ -55,12 +60,34 @@ class Setting {
     const CREATE_DELIVERY_ONLY = 'CREATE_DELIVERY_ONLY';
     const REQUESTER_IN_DELIVERY = 'REQUESTER_IN_DELIVERY';
     const DISPLAY_PICKING_LOCATION = 'DISPLAY_PICKING_LOCATION';
+    const DELIVERY_REQUEST_ADD_UL = 'DELIVERY_REQUEST_ADD_UL';
+    const DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT = 'DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT';
+    const DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT = 'DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT';
     const MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST = "MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST";
     const SET_PREPARED_UPON_DELIVERY_VALIDATION = "SET_PREPARED_UPON_DELIVERY_VALIDATION";
     const MANAGE_PREPARATIONS_WITH_PLANNING = "MANAGE_PREPARATIONS_WITH_PLANNING";
+    const RECEIVER_EQUALS_REQUESTER = "RECEIVER_EQUALS_REQUESTER";
+    const MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY = "MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY";
 
     // collectes
     const MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST = 'MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST';
+
+    // expeditions
+    const SHIPPING_REFERENCE_DEFAULT_TYPE = 'SHIPPING_REFERENCE_DEFAULT_TYPE';
+    const SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_LABEL_REFERENCE_CREATE';
+    const SHIPPING_SUPPLIER_REFERENCE_CREATE = 'SHIPPING_SUPPLIER_REFERENCE_CREATE';
+    const SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE = 'SHIPPING_REF_ARTICLE_SUPPLIER_EQUALS_REFERENCE';
+    const SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL = 'SHIPPING_ARTICLE_SUPPLIER_LABEL_EQUALS_REFERENCE_LABEL';
+
+    const SHIPPING_LOCATION_FROM = 'SHIPPING_LOCATION_FROM';
+    const SHIPPING_LOCATION_TO = 'SHIPPING_LOCATION_TO';
+
+    const SHIPPING_TO_TREAT_SEND_TO_REQUESTER = 'SHIPPING_TO_TREAT_SEND_TO_REQUESTER';
+    const SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_TO_TREAT_SEND_TO_ROLES = 'SHIPPING_TO_TREAT_SEND_TO_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_REQUESTER = 'SHIPPING_SHIPPED_SEND_TO_REQUESTER';
+    const SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES = 'SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES';
+    const SHIPPING_SHIPPED_SEND_TO_ROLES = 'SHIPPING_SHIPPED_SEND_TO_ROLES';
 
     // services
     const REMOVE_HOURS_DATETIME = 'REMOVE_HOURS_DATETIME';
@@ -113,13 +140,6 @@ class Setting {
     const COLLECT_REQUEST_POINT_COLLECT = 'COLLECT_REQUEST_POINT_COLLECT';
     const COLLECT_REQUEST_DESTINATION = 'COLLECT_REQUEST_DESTINATION';
     const COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT = 'COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT';
-
-    // borne tactile - imprimante
-    const PRINTER_NAME = 'PRINTER_NAME';
-    const PRINTER_SERIAL_NUMBER = 'PRINTER_SERIAL_NUMBER';
-    const PRINTER_LABEL_WIDTH = 'PRINTER_LABEL_WIDTH';
-    const PRINTER_LABEL_HEIGHT = 'PRINTER_LABEL_HEIGHT';
-    const PRINTER_DPI = 'PRINTER_DPI';
 
     // tableaux de bord
     const MVT_DEPOSE_DESTINATION = "MVT_DEPOSE_DESTINATION";
@@ -176,6 +196,7 @@ class Setting {
     const DISPATCH_NEW_REFERENCE_TYPE = 'DISPATCH_NEW_REFERENCE_TYPE';
     const DISPATCH_NEW_REFERENCE_STATUS = 'DISPATCH_NEW_REFERENCE_STATUS';
     const DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT = 'DISPATCH_NEW_REFERENCE_QUANTITY_MANAGEMENT';
+    const DISPATCH_SAVE_LDV = 'DISPATCH_SAVE_LDV';
 
     // mobile configuration
     const TRANSFER_TO_TREAT_SKIP_VALIDATIONS = 'TRANSFER_TO_TREAT_SKIP_VALIDATIONS';
@@ -191,6 +212,8 @@ class Setting {
     const DELIVERY_EXPECTED_DATE_COLOR_AFTER = 'DELIVERY_EXPECTED_DATE_COLOR_AFTER';
     const DELIVERY_EXPECTED_DATE_COLOR_D_DAY = 'DELIVERY_EXPECTED_DATE_COLOR_D_DAY';
     const DELIVERY_EXPECTED_DATE_COLOR_BEFORE = 'DELIVERY_EXPECTED_DATE_COLOR_BEFORE';
+    const ALLOWED_DROP_ON_FREE_LOCATION = "ALLOWED_DROP_ON_FREE_LOCATION";
+    const DISPLAY_REFERENCE_CODE_AND_SCANNABLE = "DISPLAY_REFERENCE_CODE_AND_SCANNABLE";
 
     // document
     const DELIVERY_NOTE_LOGO = 'DELIVERY_NOTE_LOGO';
@@ -245,6 +268,10 @@ class Setting {
     const DEFAULT_DISPATCH_RECAP_TEMPLATE = "DEFAULT_DISPATCH_RECAP_TEMPLATE";
     const CUSTOM_DISPATCH_RECAP_TEMPLATE = "CUSTOM_DISPATCH_RECAP_TEMPLATE";
     const CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME = "CUSTOM_DISPATCH_RECAP_TEMPLATE_FILE_NAME";
+
+    const DEFAULT_DELIVERY_SLIP_TEMPLATE = "DEFAULT_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE = "CUSTOM_DELIVERY_SLIP_TEMPLATE";
+    const CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME = "CUSTOM_DELIVERY_SLIP_TEMPLATE_FILE_NAME";
 
     const QR_CODE = [
         "value" => false,
@@ -421,6 +448,47 @@ class Setting {
                     "commentaireref" => "commentaire d'une référence contenue dans l'UL",
                     "photoref" => "photo d'une référence contenue dans l'UL",
                 ],
+            ],
+        ],
+    ];
+
+    const SLIP_VARIABLES = [
+        "shipping" => [
+            "Champs bordereau de livraison" => [
+                "QRCodeexpe" => "QR Code du numéro de la demande d'expédition",
+                "numexpedition" => "numéro de la demande d'expédition",
+                "demandeurs" => "demandeur(s) de la demande d'expédition",
+                "teldemandeur" => "téléphone(s) du/des demandeurs de la demande d'expédition",
+                "numcommandeclient" => "numéro de commande client sur la demande d'expédition",
+                "livraisongracieux" => 'valeur du champ "Livraison à titre gracieux" - Oui/Non',
+                "articlesconformes" => 'valeur du champ "Article(s) conforme(s)" - Oui/Non',
+                "client" => "client de la demande d'expédition",
+                "destinataire" => "destinataire chez le client de la demande d'expédition",
+                "teldestinataire" => "téléphone du destinataire chez le client de la demande d'expédition",
+                "adressedestinataire" => "adresse de livraison de la demande d'expédition",
+                "datecreation" => "date de création de la demande d'expédition",
+                "datepriseenchargesouhaitee" => "date de prise en charge souhaitée pour la demande d'expédition",
+                "port" => "valeur du champ Port - Payé/Dû",
+                "dateenlevement" => "date d'enlèvement planifiée des produits de la demande d'expédition",
+                "dateexpedition" => "date de confirmation de l'expédition des produits",
+                "reference" => "référence à expédier",
+                "quantite" => "quantité de la référence à expédier",
+                "prixunitaire" => "prix unitaire de la référence à expédier",
+                "poidsnet" => "poids net de la référence à expédier",
+                "montantotal" => "montant total de la référence à expédier",
+                "matieredangereuse" => "valeur du champ matière dangereuse de la référence à expédier - oui/non",
+                "FDS" => "nom de la ou des fiches de données de sécurité de la référence à expédier",
+                "CodeONU" => "code ONU de la référence à expédier",
+                "CodeNDP" => "code NDP de la référence à expédier",
+                "classeproduit" => "classe produit de la référence à expédier",
+                "poidsnettotal" => "poids net total des références à expédier sur la demande",
+                "valeurtotal" => "valeur totale des références à expédier sur la demande",
+                "dimensioncolis" => "dimension d'un colis à expédier sur la demande", // TODO
+                "envoi" => "spécification du transport",
+                "nbcolis" => "nombre de colis à expédier sur la demande",
+                "poidsbruttotal" => "poids brut total des colis à expédier sur la demande",
+                "nomtransporteur" => "nom du transporteur choisit pour la demande d'expédition",
+                "numtracking" => "numéro de tracking communiqué par le transporteur pour la demande d'expédition",
             ],
         ],
     ];

@@ -57,8 +57,6 @@ class NotificationService {
         NotificationTemplate::HANDLING => VariableService::HANDLING_DICTIONARY,
     ];
 
-    private const FCM_PLUGIN_ACTIVITY = 'FCM_PLUGIN_ACTIVITY';
-
     /** @Required */
     public EntityManagerInterface $manager;
 
@@ -97,8 +95,7 @@ class NotificationService {
                 "type" => $type,
                 "id" => strval($entity->getId()),
                 'image' => $imageURI,
-            ],
-            $imageURI
+            ]
         );
     }
 
@@ -172,7 +169,6 @@ class NotificationService {
                          string $title,
                          ?string $content = null,
                          ?array $data = null,
-                         ?string $imageURI = null,
                          bool $onlyData = false): void {
         try {
             $client = $this->configureClient();
@@ -183,12 +179,16 @@ class NotificationService {
                     'topic' => $_SERVER["APP_INSTANCE"] . "-" . $channel,
                     'android' => [
                         "notification" => [
-                            "click_action" => self::FCM_PLUGIN_ACTIVITY,
+                            // if application is in background, we launch application on notification click
+                            // see app/src/main/AndroidManifest.xml
+                            "click_action" => 'com.wiilog.wiistock.fcm_launch',
                         ],
                     ],
-                    'data' => $data ? Stream::from($data)
-                        ->keymap(fn(mixed $value, string $key) => [$key, strval($value)])
-                        ->toArray() : null,
+                    'data' => $data
+                        ? Stream::from($data)
+                            ->keymap(fn(mixed $value, string $key) => [$key, strval($value)])
+                            ->toArray()
+                        : null,
                 ],
                 'validate_only' => false,
             ];
@@ -196,7 +196,6 @@ class NotificationService {
                 $json['message']['notification'] = [
                     'title' => $title,
                     'body' => $content,
-                    'image' => $imageURI,
                 ];
             }
 

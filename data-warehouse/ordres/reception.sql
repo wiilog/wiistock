@@ -49,7 +49,7 @@ FROM reception
          LEFT JOIN reception_reference_article ON reception_line.id = reception_reference_article.reception_line_id
          LEFT JOIN reference_article ON reception_reference_article.reference_article_id = reference_article.id
          LEFT JOIN article ON reception_reference_article.id = article.reception_reference_article_id
-         LEFT JOIN pack ON article.current_logistic_unit_id = pack.id
+         LEFT JOIN pack ON reception_line.pack_id = pack.id
          LEFT JOIN article_fournisseur ON article.article_fournisseur_id = article_fournisseur.id
          LEFT JOIN reference_article AS article_reference_article
                    ON article_reference_article.id = article_fournisseur.reference_article_id

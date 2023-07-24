@@ -2,11 +2,11 @@
 {% set preparation = livraison.preparation %}
 {% set demande = preparation.demande %}
 {% set titleLogo = preparation.pairings|length >= 1 ? 'pairing' : null %}
-{% set titleLogoTooltip = "Cette livraison est liée à un capteur" %}
+{% set titleLogoTooltip = "Cette " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower ~ " est liée à un capteur" %}
 
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Ordre de livraison') %}
+{% block showTitle (trans('Ordre', 'Livraison', 'Ordre de livraison', false)) %}
 {% block showSubtitle ('n°' ~ livraison.numero) %}
 
 {% block showActions %}
@@ -22,7 +22,7 @@
                     and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT'))
                 ),
                 icon: "wii-icon wii-icon-check-white",
-                title: "Finir la livraison",
+                title: "Finir la " ~ trans('Ordre', 'Livraison', 'Livraison', false) | lower,
                 attributes: {
                     "onclick": "endLivraison($(this))"
                 }
@@ -48,7 +48,7 @@
             {
                 hasRight: not demande.manual,
                 icon: "fas fa-external-link-alt",
-                title: "Retourner à la demande de livraison",
+                title: "Retourner à la " ~ trans('Demande', 'Livraison', 'Demande de livraison', false) | lower,
                 dropdownOnly: true,
                 href: path('demande_show', {'id': demande.id}),
             },

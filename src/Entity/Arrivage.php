@@ -94,7 +94,7 @@ class Arrivage {
     #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
     private ?Reception $reception = null;
 
-    #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrival')]
+    #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
     private Collection $truckArrivalLines;
 
     public function __construct() {
@@ -207,7 +207,8 @@ class Arrivage {
         $emergencyBuyer = $this->urgences
             ->map(function(Urgence $urgence) {
                 return $urgence->getBuyer();
-            });
+            })
+            ->filter(fn($buyer) => $buyer !== null);
 
         return new ArrayCollection(array_unique($emergencyBuyer->toArray()));
     }

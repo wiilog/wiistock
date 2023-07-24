@@ -2,5 +2,9 @@
 
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
-    {% include 'filters/filter_item/filterCommand.html.twig' %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterCommand.html.twig' %}
+    {% endif %}
 {% endblock %}

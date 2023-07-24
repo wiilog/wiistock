@@ -1,9 +1,14 @@
 {% extends 'utils/show-header.html.twig' %}
 
-{% block showTitle ('Demande de livraison') %}
+{% block showTitle (trans('Demande', 'Livraison', 'Demande de livraison', false)) %}
 {% block showSubtitle ('n°' ~ demande.numero) %}
 
 {% block showActions %}
+
+    {% set receiver = demande.receiver ? demande.receiver.username %}
+    <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'))|replace({'@Destinataire': receiver}) }}">
+    <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'))|replace({'@Destinataire': receiver}) }}">
+
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
@@ -45,7 +50,7 @@
                 hasRight: demande.livraisons|length > 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')),
                 buttonClass: "btn btn-primary",
                 icon: "fas fa-external-link-alt",
-                title: "Aller vers les ordres de livraison",
+                title: "Aller vers les " ~ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower,
                 dropdownOnly: true,
                 href: path('livraison_index', {'demandId': demande.id }),
             },
@@ -53,7 +58,7 @@
                 hasRight: demande.livraisons|length == 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_ORDRE_LIVR')),
                 buttonClass: "btn btn-primary",
                 icon: "fas fa-external-link-alt",
-                title: "Aller vers l'ordre de livraison",
+                title: "Aller vers l'" ~ trans('Ordre', 'Livraison', 'Ordre de livraison', false) | lower,
                 dropdownOnly: true,
                 href: demande.livraisons is not empty ? path('livraison_show', {'id': demande.livraisons[0].id }),
             },
