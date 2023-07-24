@@ -392,4 +392,8 @@ class FormatService
     public function truckArrivalLines($truckArrivalLines, $separator = ', '): string {
         return $this->entity($truckArrivalLines, 'number', $separator);
     }
+
+    public function reserveType($reserveType, string $else = ''): string {
+        return $reserveType ? $reserveType->getLabel() : $else;
+    }
 }
