@@ -54,7 +54,7 @@ const disputeChanged = {
 }
 let disputeCreationDate;
 const user= Cypress.config('user');
-describe('Create and edit logistic units arrivals', () => {
+describe('Add and edit logistic units arrivals', () => {
 
     beforeEach(() => {
         const downloadsFolder = Cypress.config('downloadsFolder');
@@ -111,8 +111,7 @@ describe('Create and edit logistic units arrivals', () => {
         const columnsToCheck = [1, 2, 4, 5];
         cy.get(linesTableFreeFieldsComponent).each((tr) => {
             columnsToCheck.forEach((columnIndex) => {
-                cy
-                    .wrap(tr).find(`td:eq(${columnIndex}) input[type=checkbox]`)
+                cy.wrap(tr).find(`td:eq(${columnIndex}) input[type=checkbox]`)
                     .check({force: true});
             });
         });

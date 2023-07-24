@@ -1,5 +1,5 @@
 const user= Cypress.config('user');
-describe('Edit and save components in Referentiel > Fournisseur', () => {
+describe('Add and edit components in Referentiel > Fournisseur', () => {
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
         cy.login(user);
@@ -46,7 +46,7 @@ describe('Edit and save components in Referentiel > Fournisseur', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Emplacements', () => {
+describe('Add and edit components in Referentiel > Emplacements', () => {
     beforeEach(() => {
         cy.intercept('POST', 'emplacement/api').as('emplacement_api');
         cy.intercept('POST', 'emplacements/groupes/api').as('emplacements_groupes_api');
@@ -168,7 +168,7 @@ describe('Edit and save components in Referentiel > Emplacements', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Chauffeurs', () => {
+describe('Add and edit components in Referentiel > Chauffeurs', () => {
     beforeEach(() => {
         cy.login(user);
         cy.visit('/');
@@ -216,7 +216,7 @@ describe('Edit and save components in Referentiel > Chauffeurs', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Transporteurs', () => {
+describe('Add and edit components in Referentiel > Transporteurs', () => {
     beforeEach(() => {
         cy.intercept('POST', 'transporteur/api').as('transporteur_api');
         cy.login(user);
@@ -255,7 +255,7 @@ describe('Edit and save components in Referentiel > Transporteurs', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Nature', () => {
+describe('Add and edit components in Referentiel > Nature', () => {
     beforeEach(() => {
         cy.intercept('POST', 'nature-unite-logistique/api').as('nature_api');
         cy.login(user);
@@ -296,7 +296,7 @@ describe('Edit and save components in Referentiel > Nature', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Véhicules', () => {
+describe('Add and edit components in Referentiel > Véhicules', () => {
     beforeEach(() => {
         cy.intercept('POST', 'vehicule/api').as('vehicule_api');
         cy.login(user);
@@ -331,7 +331,7 @@ describe('Edit and save components in Referentiel > Véhicules', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Projet', () => {
+describe('Add and edit components in Referentiel > Projet', () => {
     beforeEach(() => {
         cy.intercept('POST', 'project/api').as('project_api');
         cy.login(user);
@@ -376,7 +376,7 @@ describe('Edit and save components in Referentiel > Projet', () => {
     })
 })
 
-describe('Edit and save components in Referentiel > Clients', () => {
+describe('Add and edit components in Referentiel > Clients', () => {
     beforeEach(() => {
         cy.intercept('POST', 'clients/api').as('customer_api');
         cy.login(user);

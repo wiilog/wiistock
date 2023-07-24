@@ -52,68 +52,11 @@ describe('Open every pages in nav and settings', () => {
             });
     });
 
-    let numeroOfSettingsItemStopped = 0;
-    let alreadyBrowsed = false;
-
     it.only('should navigate to all settings pages', () => {
         cy.navigateInNavMenu('parametre')
             .get('[data-cy-settings-menu]')
             .each(($settingLink) => {
-                const href = $settingLink.prop('href');
-                if (!href.includes('/global')) {
-                    cy.visit($settingLink.prop('href'))
-                        .then(() => {
-                            alreadyBrowsed = false;
-                            numeroOfSettingsItemStopped = 0;
-                            let firstSettingsItemName;
-                            // To get the data-menu of the first settings item to check if we have been redirected to another page
-                            cy.get('.settings-item').eq(0).invoke('attr', 'data-menu').then((name) => {
-                                firstSettingsItemName = name;
-                            })
-                            // To browse each settings item
-                            cy.get('.settings-item').then((settingsItem) => {
-                                for (let i = numeroOfSettingsItemStopped; i < settingsItem.length; i++) {
-                                    // To detect if we have been redirected to another page
-                                    cy.get('.settings-item').eq(0).invoke('attr', 'data-menu').then((name) => {
-                                        // If we have been redirected to another page, we browse each settings item of the new page loaded
-                                        if (!alreadyBrowsed) {
-                                            if (firstSettingsItemName !== name) {
-                                                alreadyBrowsed = true;
-                                                // We memorise the settings item that loaded a new page
-                                                numeroOfSettingsItemStopped = i;
-                                                cy.get('.settings-item').then((settingsItemClick) => {
-                                                    for (let j = 0; j < settingsItemClick.length; j++) {
-                                                        cy.get('.settings-item').eq(j).click({force: true});
-                                                        cy.interceptAllRequets();
-                                                    }
-                                                })
-                                                //cy.returnToTheCorrectPage($settingLink.prop('href'), numeroOfSettingsItemStopped);
-                                            } else {
-                                                cy.get('.settings-item').eq(i).click({force: true});
-                                                cy.interceptAllRequets();
-                                            }
-                                        }
-                                    })
-                                }
-                            })
-                        })
-                }
-
+                cy.navigateToAllItemsInSettingsPages($settingLink.prop('href'));
             })
     })
-
-
-    // it('should navigate to all settings pages', () => {
-    //     cy.navigateInNavMenu('parametre')
-    //         .get('[data-cy-settings-menu]')
-    //         .each(($settingLink) => {
-    //             cy.request({
-    //                 url: $settingLink.prop('href'),
-    //                 failOnStatusCode: false
-    //             })
-    //                 .should((response) => {
-    //                     expect(response.status).to.eq(200);
-    //                 })
-    //         })
-    // })
 })
