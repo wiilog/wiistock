@@ -114,12 +114,16 @@ class DispatchService {
     // cache for default nature
     private ?Nature $defaultNature = null;
 
-    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        if (!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        } else {
+            $filters = $preFilledFilters;
+        }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
@@ -946,11 +950,22 @@ class DispatchService {
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();
 
-        $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+        $originalName = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}.pdf";
+        $fileName = uniqid().'.pdf';
+
+        $pdfContent = $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField);
+
+        $attachment = new Attachment();
+        $attachment->setFileName($fileName);
+        $attachment->setOriginalName($originalName);
+        $attachment->setDispatch($dispatch);
+
+        $this->entityManager->persist($attachment);
+        $this->entityManager->flush();
 
         return [
-            'file' => $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField),
-            'name' => $name
+            'file' => $pdfContent,
+            'name' => $originalName
         ];
     }
 
@@ -963,8 +978,10 @@ class DispatchService {
 
         $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }
@@ -975,8 +992,10 @@ class DispatchService {
 
         $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDispatchNote($dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDispatchNote($dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }

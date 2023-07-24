@@ -10,13 +10,14 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
+use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
-use App\Service\FormatService;
 use App\Service\ReserveService;
 use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
@@ -26,7 +27,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -359,4 +359,93 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
+    #[Route('/reserves/api', name: 'settings_reserves_api', options: ['expose' => true])]
+    public function reservesApi(Request                 $request,
+                                EntityManagerInterface  $entityManager): Response {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+
+        $class = "form-control data";
+
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
+        $reserveTypes = $reserveTypeRepository->findAll();
+
+        $rows = [];
+        foreach($reserveTypes ?? [] as $reserveType) {
+            $actions = "
+                <input type='hidden' class='$class' name='id' value='{$reserveType->getId()}'>
+                <button class='btn btn-silent delete-row' data-id='{$reserveType->getId()}'>
+                    <i class='wii-icon wii-icon-trash text-primary'></i>
+                </button>
+            ";
+            if($edit) {
+                $isDefaultReserveType = $reserveType->isDefaultReserveType() ? 'checked' : '';
+                $isActive = $reserveType->isActive() ? 'checked' : '';
+                $userOptions = Stream::from($reserveType->getNotifiedUsers())
+                    ->map(fn(Utilisateur $user) => "<option value='{$user->getId()}' selected>{$user->getUsername()}</option>")
+                    ->join("");
+
+                $rows[] = [
+                    "id" => $reserveType->getId(),
+                    "actions" => $actions,
+                    "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required data-global-error='Libellé'/>",
+                    "emails" => "<select class='form-control data select2' name='emails' multiple data-s2='user'>$userOptions</select>",
+                    "defaultReserveType" => "<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data' {$isDefaultReserveType}/></div>",
+                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>"
+                ];
+            } else {
+                $emails = Stream::from($reserveType->getNotifiedUsers())
+                    ->map(fn(Utilisateur $user) => $this->formatService->user($user, '', true))
+                    ->toArray();
+
+                $rows[] = [
+                    "id" => $reserveType->getId(),
+                    "actions" => $actions,
+                    "label" => $reserveType->getLabel(),
+                    "emails" => implode(', ', $emails),
+                    "defaultReserveType" => $this->formatService->bool($reserveType->isDefaultReserveType()),
+                    "active" => $this->formatService->bool($reserveType->isActive()),
+                ];
+            }
+        }
+
+        $rows[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "label" => "",
+            "emails" => "",
+            "defaultReserveType" => "",
+            "active" => "",
+        ];
+
+        return $this->json([
+            "data" => $rows,
+        ]);
+    }
+
+    #[Route('/reserves/supprimer/{entity}', name: 'settings_reserve_type_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
+    public function deleteReserveType(EntityManagerInterface $manager, ReserveType $entity) {
+        $reserveTypeRepository = $manager->getRepository(ReserveType::class);
+        if (count($reserveTypeRepository->findAll()) === 1) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Vous ne pouvez pas supprimer tous les types de réserve."
+            ]);
+        }
+
+        $reserveRepository = $manager->getRepository(Reserve::class);
+        if (count($reserveRepository->findBy(['reserveType' => $entity->getId()])) > 0) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Une ou plusieurs réserve(s) utilise ce type de réserve."
+            ]);
+        }
+
+        $manager->remove($entity);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Un type de réserve a bien été supprimé",
+        ]);
+    }
 }

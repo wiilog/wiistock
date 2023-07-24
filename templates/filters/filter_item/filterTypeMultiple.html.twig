@@ -3,7 +3,8 @@
         <div class="input-group w-100 cursor-default">
             <select class="form-control data select2 filter-select2" name="multipleTypes" multiple="multiple" {{ disabled }}>
                 {% for type in types|sort((a, b) => a.label <=> b.label) %}
-                    <option class="d-none" value="{{ type.id }}">{{ type.label }}</option>
+                    {% set selected = (filterTypes is defined and type.label in filterTypes) ? 'selected' %}
+                    <option class="d-none" value="{{ type.id }}" {{ selected }}>{{ type.label }}</option>
                 {% endfor %}
             </select>
         </div>

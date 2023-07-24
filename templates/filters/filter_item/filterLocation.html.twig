@@ -7,8 +7,7 @@
                     name="{{ name ?? 'emplacement' }}"
                     {% if not removeId %}id="emplacement"{% endif %}
                     {{ multiple is defined ? 'multiple' }}
-                    {{ disabled }}
-                    {{ isPreFilled ? 'disabled' }}>
+                    {{ disabled }}>
                 {% if isPreFilled %}
                     {% for location in locationsFilter|sort((a, b) => a.label <=> b.label) %}
                         <option selected value="{{ location.id }}">{{ location.label }}</option>
