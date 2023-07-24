@@ -53,7 +53,7 @@ class ReserveController extends AbstractController
         } else {
             if (!empty($data['hasGeneralReserve']) || !empty($data['hasQuantityReserve'])) {
                 $type = $data['type'] ?? null;
-                if (!in_array($type, Reserve::TYPES)) {
+                if (!in_array($type, Reserve::KINDS)) {
                     throw new FormException('Une erreur est survenue lors de la validation du formulaire');
                 }
                 $truckArrival = $truckArrivalRepository->find($data['truckArrivalId']);
