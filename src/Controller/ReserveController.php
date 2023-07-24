@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Exceptions\FormException;
@@ -26,17 +27,27 @@ class ReserveController extends AbstractController
     public function index(Request $request, EntityManagerInterface $entityManager, AttachmentService $attachmentService): Response
     {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $data = $request->request->all();
 
+
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
         if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
-            $reserve
-                ->setKind(Reserve::KIND_QUALITY)
-                ->setLine($truckArrivalLine)
-                ->setComment($data['comment'] ?? '');
+            if (isset($data['reserveType'])) {
+                $reserveTypeId = $data['reserveType'];
+                $reserveType = $reserveTypeRepository->find($reserveTypeId);
+                $reserve
+                    ->setKind(Reserve::KIND_QUALITY)
+                    ->setLine($truckArrivalLine)
+                    ->setReserveType($reserveType)
+                    ->setComment($data['comment'] ?? '');
+            }
+            else {
+                throw new FormException('Le type de réserve est obligatoire');
+            }
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
         } else {
@@ -51,6 +62,7 @@ class ReserveController extends AbstractController
                 }
                 $reserve
                     ->setKind($type)
+                    ->setReserveType(null)
                     ->setComment($data['quantityReserveComment'] ?? $data['generalReserveComment'] ?? null )
                     ->setQuantity($data['reserveQuantity'] ?? null)
                     ->setQuantityType($data['reserveType'] ?? null)
@@ -74,6 +86,7 @@ class ReserveController extends AbstractController
     public function getModalQualityReserveContent(Request $request,
                                                   EntityManagerInterface $entityManager): JsonResponse {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
+        $reserveTypesRepository = $entityManager->getRepository(ReserveType::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
 
         $reserve = '';
@@ -92,7 +105,6 @@ class ReserveController extends AbstractController
                 ];
             })
             ->toArray();
-
         if(count($availableTrackingNumber) === 0 && $reserve instanceof Reserve){
             $availableTrackingNumber[] = [
                 "label" => $reserve->getLine()->getNumber(),
@@ -100,6 +112,14 @@ class ReserveController extends AbstractController
                 "selected" => true
             ];
         }
+
+        $reserveTypes = $reserveTypesRepository->findAll();
+        $reserveTypesLabels = Stream::from($reserveTypes)
+            ->map(fn(ReserveType $reserveType) => [
+                'label' => $reserveType->getLabel(),
+                'value' => $reserveType->getId()
+            ])
+            ->toArray();
 
         $attachments = $reserve instanceof Reserve
             ? array_merge($reserve->getAttachments()->toArray(), $reserve->getLine()->getAttachments()->toArray())
@@ -110,10 +130,12 @@ class ReserveController extends AbstractController
                 'reserve' => $reserve,
                 'attachments' => $attachments ?? [],
                 'availableTrackingNumber' => $availableTrackingNumber,
+                'reserveTypesLabels' => $reserveTypesLabels,
                 'new' => false,
             ]
             : [
                 'availableTrackingNumber' => $availableTrackingNumber,
+                'reserveTypesLabels' => $reserveTypesLabels,
                 'new' => true,
                 ];
 

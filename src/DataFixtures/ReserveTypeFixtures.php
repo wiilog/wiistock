@@ -17,7 +17,7 @@ class ReserveTypeFixtures extends Fixture implements FixtureGroupInterface
             $reserveType = new ReserveType();
             $reserveType
                 ->setLabel(ReserveType::DEFAULT_QUALITY_TYPE)
-                ->setDefault(true);
+                ->setDefaultReserveType(true);
             $manager->persist($reserveType);
         }
 
