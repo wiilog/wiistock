@@ -123,7 +123,7 @@ class TrackingMovementService extends AbstractController
     }
 
 
-    public function getFromColumnData(?TrackingMovement $movement): array
+    public function getFromColumnData(TrackingMovement|array|null $movement): array
     {
         $data = [
             'entityPath' => null,
@@ -132,46 +132,42 @@ class TrackingMovementService extends AbstractController
             'from' => '-',
         ];
         if (isset($movement)) {
-            if ($movement->getDispatch()) {
+            if (($movement instanceof TrackingMovement && $movement->getDispatch()) || (is_array($movement) && $movement['entity'] === 'dispatch')) {
                 $data ['entityPath'] = 'dispatch_show';
                 $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
-                $data ['entityId'] = $movement->getDispatch()->getId();
-                $data ['from'] = $movement->getDispatch()->getNumber();
-            } else if ($movement->getArrivage()) {
+                $data ['entityId'] =  is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDispatch()->getId();
+                $data ['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDispatch()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getArrivage()) || (is_array($movement) && $movement['entity'] === 'arrival')) {
                 $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivage UL', false);
-                $data ['entityId'] = $movement->getArrivage()->getId();
-                $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
-            } else if ($movement->getReception()) {
+                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
+                $data ['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getArrivage()->getId();
+                $data ['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getArrivage()->getNumeroArrivage();
+            } else if (($movement instanceof TrackingMovement && $movement->getReception()) || (is_array($movement) && $movement['entity'] === 'reception')) {
                 $data ['entityPath'] = 'reception_show';
                 $data ['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
-                $data ['entityId'] = $movement->getReception()->getId();
-                $data ['from'] = $movement->getReception()->getNumber();
-            } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
+                $data ['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getReception()->getId();
+                $data ['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getReception()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getMouvementStock()?->getTransferOrder()) || (is_array($movement) && $movement['entity'] === 'transferOrder')) {
                 $data ['entityPath'] = 'transfer_order_show';
                 $data ['fromLabel'] = 'Transfert de stock';
-                $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
-                $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
-            } else if ($movement->getPreparation()) {
-                $data ['entityPath'] = 'preparation_show';
-                $data ['fromLabel'] = 'Preparation';
-                $data ['entityId'] = $movement->getPreparation()->getId();
-                $data ['from'] = $movement->getPreparation()->getNumero();
-            } else if ($movement->getDelivery()) {
-                $data ['entityPath'] = 'livraison_show';
-                $data ['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
-                $data ['entityId'] = $movement->getDelivery()->getId();
-                $data ['from'] = $movement->getDelivery()->getNumero();
-            } else if ($movement->getDeliveryRequest()) {
-                $data ['entityPath'] = 'demande_show';
-                $data ['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
-                $data ['entityId'] = $movement->getDeliveryRequest()->getId();
-                $data ['from'] = $movement->getDeliveryRequest()->getNumero();
-            } else if ($movement->getShippingRequest()) {
-                $data ['entityPath'] = 'shipping_request_show';
-                $data ['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
-                $data ['entityId'] = $movement->getShippingRequest()->getId();
-                $data ['from'] = $movement->getShippingRequest()->getNumber();
+                $data ['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getMouvementStock()->getTransferOrder()->getId();
+                $data ['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getMouvementStock()->getTransferOrder()->getNumber();
             }
         }
         return $data;
