@@ -38,9 +38,10 @@ class SensorMessageController extends AbstractController
      */
     public function api(Sensor $sensor,
                         Request $request,
-                        SensorMessageService $sensorMessageService): Response
+                        SensorMessageService $sensorMessageService,
+                        EntityManagerInterface $entityManager): Response
     {
-        $data = $sensorMessageService->getDataForDatatable($sensor, $request->request);
+        $data = $sensorMessageService->getDataForDatatable($entityManager, $sensor, $request->request);
         return new JsonResponse($data);
     }
 }
