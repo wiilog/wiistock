@@ -1320,11 +1320,6 @@ function initializeEntryTimeIntervals(segments) {
 function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
     const current = $button.data(`current`);
 
-    if ($('.segment-container').length === 5) {
-        showBSAlert('Il n\'est pas possible d\'ajouter plus de 5 segments à ce composant', 'danger');
-        return false;
-    }
-
     if (notEmptySegment) {
         const lastSegmentHourEndValue = $('.segment-hour').last().val();
         const lastSegmentLabel = $('.segment-container label').last().text();
