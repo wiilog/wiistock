@@ -32,17 +32,22 @@ class ReserveController extends AbstractController
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $data = $request->request->all();
 
-        $reserveTypeId = $data['reserveType'] ?? null;
-        $reserveType = $reserveTypeRepository->find($reserveTypeId) ?? null;
 
         $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
         if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
-            $reserve
-                ->setKind(Reserve::KIND_QUALITY)
-                ->setLine($truckArrivalLine)
-                ->setReserveType($reserveType)
-                ->setComment($data['comment'] ?? '');
+            if ($data['reserveType']) {
+                $reserveTypeId = $data['reserveType'];
+                $reserveType = $reserveTypeRepository->find($reserveTypeId);
+                $reserve
+                    ->setKind(Reserve::KIND_QUALITY)
+                    ->setLine($truckArrivalLine)
+                    ->setReserveType($reserveType)
+                    ->setComment($data['comment'] ?? '');
+            }
+            else {
+                throw FormException('Le type de réserve est obligatoire');
+            }
 
             $this->persistAttachmentsForEntity($reserve, $attachmentService, $request, $entityManager);
         } else {
@@ -57,7 +62,7 @@ class ReserveController extends AbstractController
                 }
                 $reserve
                     ->setKind($type)
-                    ->setReserveType($reserveType)
+                    ->setReserveType(null)
                     ->setComment($data['quantityReserveComment'] ?? $data['generalReserveComment'] ?? null )
                     ->setQuantity($data['reserveQuantity'] ?? null)
                     ->setQuantityType($data['reserveType'] ?? null)
@@ -109,13 +114,12 @@ class ReserveController extends AbstractController
         }
 
         $reserveTypes = $reserveTypesRepository->findAll();
-        $reserveTypesLabels = [];
-        foreach ($reserveTypes as $reserveType) {
-            $reserveTypesLabels[] = [
+        $reserveTypesLabels = Stream::from($reserveTypes)
+            ->map(fn(ReserveType $reserveType) => [
                 'label' => $reserveType->getLabel(),
                 'value' => $reserveType->getId()
-                ];
-        }
+            ])
+            ->toArray();
 
         $attachments = $reserve instanceof Reserve
             ? array_merge($reserve->getAttachments()->toArray(), $reserve->getLine()->getAttachments()->toArray())
