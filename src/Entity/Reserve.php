@@ -25,7 +25,7 @@ class Reserve
     const KIND_GENERAL = 'general';
     const KIND_QUALITY = 'quality';
 
-    const TYPES = [
+    const KINDS = [
         self::KIND_QUANTITY,
         self::KIND_GENERAL,
         self::KIND_QUALITY,
