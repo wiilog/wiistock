@@ -12,8 +12,242 @@ describe('Get the right permissions for next tests', () => {
     })
 })
 
-describe('Edit different types movements', () => {
+describe('Test the filters', () => {
+    beforeEach(() => {
+        cy.intercept('POST', '/mouvement-traca/api').as('tracking_movement_api');
+        cy.login(user);
+        cy.visit('/');
+        cy.navigateInNavMenu('traca', 'mvt_traca_index');
+        cy.get('select[name=tableMvts_length]').select(3).wait('@tracking_movement_api');
+        cy.deleteAllFilters();
+    })
 
+    it('should sort array elements by a minimum date', () => {
+        cy.get('#dateMin').click().clear().type('20/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 11);
+
+        cy.get('#dateMin').click().clear().type('24/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 9);
+
+        cy.get('#dateMin').click().clear().type('25/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty')
+    })
+
+    it('should sort array elements by a maximum date', () => {
+        cy.get('#dateMax').click().clear().type('18/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
+
+        cy.get('#dateMax').click().clear().type('22/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
+
+        cy.get('#dateMax').click().clear().type('25/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 11);
+    })
+
+    it('should sort array elements by a logistic unit', () => {
+        cy.get('#ul').click().clear().type('123456789');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+
+        cy.get('#ul').click().clear().type('00000000000');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
+    })
+
+    it('should sort array elements by an article', () => {
+        cy.select2Ajax('article', 'ART230700000001');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
+    })
+
+    it('should sort array elements by a location', () => {
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/*');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 8);
+
+        cy.get('select[name=emplacement]')
+            .siblings('.select2')
+            .find('.select2-selection__clear')
+            .click();
+
+        cy.select2Ajax('emplacement', 'ZONE 41', '', true, '/emplacement/*');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
+    })
+
+    it('should sort array elements by types', () => {
+        cy.select2('statut', 'depose');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '5');
+
+        cy.get(`[name=statut]`)
+            .siblings('.select2')
+            .find('li .select2-selection__choice__remove')
+            .click();
+
+        cy.select2('statut', ['depose', 'passage à vide']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '6');
+    })
+
+    it('should sort array elements by an operator', () => {
+        cy.select2AjaxMultiple('utilisateurs', ['Admin']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '10');
+
+        cy.get(`[name=utilisateurs]`)
+            .siblings('.select2')
+            .find('li .select2-selection__choice__remove')
+            .click();
+
+        cy.select2AjaxMultiple('utilisateurs', ['Admin', 'Lambda']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '11');
+    })
+
+    it('should sort array elements by a minimum date and a maximum date', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('22/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '2');
+
+        cy.get('#dateMin').click().clear().type('20/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('24/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '11');
+
+        cy.get('#dateMin').click().clear().type('24/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('28/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', '9');
+
+        cy.get('#dateMin').click().clear().type('16/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('18/07/2023{enter}');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
+    })
+
+    it('should sort array elements by a minimum date, a maximum date and a logistic unit', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.get('#ul').click().clear().type('9999-8888');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+    })
+
+    it('should sort array elements by a minimum date, a maximum date and an article', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.select2Ajax('article', 'ART230700000002');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+    })
+
+    it('should sort array elements by a minimum date, a maximum date and a location', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.select2Ajax('emplacement', 'LABO 11', '', true, '/emplacement/*');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+    })
+
+    it('should sort array elements by a minimum date, a maximum date and a type', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.select2('statut', 'prise');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
+    })
+
+    it('should sort array elements by a minimum date, a maximum date and an operator', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.select2AjaxMultiple('utilisateurs', ['Admin']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 10);
+    })
+
+    it('should sort array elements by a minimum date, a maximum date, a logistic unit, a location, a type and an operator', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.get('#ul').click().clear().type('12345');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 6);
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/*');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 4);
+        cy.select2('statut', 'passage à vide');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+        cy.select2AjaxMultiple('utilisateurs', ['Lambda']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
+    })
+
+    it('should sort array elements by a minimum date, a maximum date, an article, a location, a type and an operator', () => {
+        cy.get('#dateMin').click().clear().type('18/07/2023{enter}');
+        cy.get('#dateMax').click().clear().type('26/07/2023{enter}');
+        cy.select2Ajax('article', 'ART230700000001');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
+        cy.select2Ajax('emplacement', 'BUREAU GT', '', true, '/emplacement/*');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 2);
+        cy.select2('statut', 'dépose dans UL');
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+        cy.select2AjaxMultiple('utilisateurs', ['Admin']);
+        cy.get('button.filters-submit').click().wait('@tracking_movement_api');
+        cy.get('#tableMvts tbody').find('tr').should('have.length', 1);
+    })
+
+    it(`shouldn't sort array elements`, () => {
+        cy.deleteAllFilters();
+    })
+})
+
+describe('Edit different types movements', () => {
+    beforeEach(() => {
+        cy.intercept('POST', '/mouvement-traca/modifier').as('mvt_traca_edit');
+        cy.intercept('POST', '/mouvement-traca/api').as('tracking_movement_api');
+        cy.login(user);
+        cy.visit('/');
+        cy.navigateInNavMenu('traca', 'mvt_traca_index');
+        cy.get('select[name=tableMvts_length]').select(3).wait('@tracking_movement_api');
+    })
+
+    it(`should edit a movement and check it with 'prise' type`, () => {
+        cy.editMovement('00', 'prise');
+    })
+
+    it(`should edit a movement and check it with 'depose' type`, () => {
+        cy.editMovement('01', 'depose');
+    })
+
+    it(`should edit a movement and check it with 'prises et deposes' type`, () => {
+        cy.editMovement('02', 'depose');
+        cy.editMovement('02', 'prise');
+    })
+
+    it(`should edit a movement and check it with 'groupage' type`, () => {
+        cy.editMovement('03', 'groupage');
+        cy.editMovement('03', 'groupage');
+    })
+
+    it(`should edit a movement and check it with 'passage à vide' type`, () => {
+        cy.editMovement('04', 'passage à vide');
+    })
+
+    it(`should edit a movement and check it with 'dépose dans UL' type`, () => {
+        cy.editMovement('05', 'dépose dans UL');
+        cy.editMovement('05', 'depose');
+    })
 })
 describe('Create movements with different type', () => {
     beforeEach(() => {
@@ -22,180 +256,29 @@ describe('Create movements with different type', () => {
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('traca', 'mvt_traca_index');
-        cy.get(`button[data-target='#modalNewMvtTraca']`).click();
-        cy.get(`#modalNewMvtTraca`)
-            .should('be.visible');
-        cy.get('input[name=datetime]').click().clear().type('21/07/2023 19:00{enter}');
-        cy.get('select[name=operator]')
-            .siblings('.select2')
-            .find('.select2-selection__clear')
-            .click();
-        cy.select2Ajax('operator', 'Lambda', 'modalNewMvtTraca', false);
     })
 
     it(`should add a new movement and check it with 'prise' type`, () => {
-        cy.get('select[name=type]').select(1);
-        cy.get('input[name=pack]').type('230714636-1055');
-        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*')
-        cy.get('#modalNewMvtTraca input[name=quantity]').clear().type('5');
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('input[name=pack]').should('have.value', '');
-        cy.get('select[name=emplacement]').siblings('.select2').should('have.value', '');
-        cy.get('#modalNewMvtTraca input[name=quantity]').should('have.value', '1');
-        cy.get('select[name=type]').invoke('val').should('be.null');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(2).contains('21/07/2023 19:00');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(6).contains('5');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(7).contains('BUREAU GT');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(8).contains('prise');
+        cy.addMovement(1, 'prise');
     })
 
     it(`should add a new movement and check it with 'depose' type`, () => {
-        cy.get('select[name=type]').select(2);
-        cy.get('input[name=pack]').type('230714636-1055');
-        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*')
-        cy.get('#modalNewMvtTraca input[name=quantity]').clear().type('5');
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('input[name=pack]').should('have.value', '');
-        cy.get('select[name=emplacement]').siblings('.select2').should('have.value', '');
-        cy.get('#modalNewMvtTraca input[name=quantity]').should('have.value', '1');
-        cy.get('select[name=type]').invoke('val').should('be.null');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(2).contains('21/07/2023 19:00');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(6).contains('5');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(7).contains('BUREAU GT');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(8).contains('depose');
+        cy.addMovement(2, 'depose');
     })
 
     it(`should add a new movement and check it with 'prises et deposes' type`, () => {
-        cy.get('select[name=type]').select(3);
-        cy.select2Ajax('emplacement-prise', 'ZONE 41', 'modalNewMvtTraca', true, '/emplacement/*');
-        cy.select2('pack', '123456789-09876');
-        cy.select2Ajax('emplacement-depose', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*');
-        cy.get('#modalNewMvtTraca input[name=quantity]').clear().type('5');
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('select[name=emplacement-prise]').siblings('.select2').should('have.value', '');
-        cy.get('select[name=pack]').siblings('.select2').should('have.value', '');
-        cy.get('select[name=emplacement-depose]').siblings('.select2').should('have.value', '');
-        cy.get('#modalNewMvtTraca input[name=quantity]').should('have.value', '1');
-        cy.get('select[name=type]').invoke('val').should('be.null');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        for (let i = 0; i < 2; i++) {
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(2).contains('21/07/2023 19:00');
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(6).contains('5');
-        }
-
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(7).contains('BUREAU GT');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(8).contains('depose');
-        cy.get('#tableMvts tbody tr').eq(1).find('td').eq(7).contains('ZONE 41');
-        cy.get('#tableMvts tbody tr').eq(1).find('td').eq(8).contains('prise');
+        cy.addMovement(3, 'prises et deposes');
     })
 
     it(`should add a new movement and check it with 'groupage' type`, () => {
-        cy.get('select[name=type]').select(4);
-        cy.get('input[name=parent]').type('55555-990');
-        cy.select2('pack', '123456789-09876');
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('select[name=pack]').siblings('.select2').should('have.value', '');
-        cy.get('input[name=parent]').should('have.value', '');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        for (let i = 0; i < 2; i++) {
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(2).contains('21/07/2023 19:00');
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(5).contains('55555-990');
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(8).contains('groupage');
-        }
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(6).contains('5');
-        cy.get('#tableMvts tbody tr').eq(1).find('td').eq(6).contains('1');
+        cy.addMovement(4, 'groupage');
     })
 
     it(`should add a new movement and check it with 'passage à vide' type`, () => {
-        cy.get('select[name=type]').select(5);
-        cy.get('input[name=pack]').type('230714636-1055');
-        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*')
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('input[name=pack]').should('have.value', '');
-        cy.get('select[name=emplacement]').siblings('.select2').should('have.value', '');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(2).contains('21/07/2023 19:00');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(6).contains('5');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(7).contains('BUREAU GT');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(8).contains('passage à vide');
+        cy.addMovement(5, 'passage à vide');
     })
 
     it(`should add a new movement and check it with 'dépose dans UL' type`, () => {
-        cy.get('select[name=type]').select(6);
-        cy.get('input[name=pack]').type('230714636-2000');
-        cy.select2AjaxMultiple('articles', ['ART230700000002'], 'modalNewMvtTraca')
-        cy.select2Ajax('emplacement', 'BUREAU GT', 'modalNewMvtTraca', true, '/emplacement/*')
-        cy.get('#submitNewMvtTraca').click().wait(['@mvt_traca_new', '@tracking_movement_api']);
-
-        cy.get('#alert-modal').should('be.visible').then(() => {
-            cy.get('#alert-modal button').click();
-            cy.get(`#modalNewMvtTraca`)
-                .should('be.visible');
-        });
-        cy.get('input[name=pack]').should('have.value', '');
-        cy.get('select[name=articles]').siblings('.select2').should('have.value', '');
-        cy.get('select[name=emplacement]').siblings('.select2').should('have.value', '');
-
-        cy.get('#modalNewMvtTraca button.close').click();
-        for (let i = 0; i < 4; i++) {
-            if (i !== 3) {
-                //TODO To check when the bug will be fixed (for the moment, the time displayed is the current time and not the recorded time)
-                //cy.get('#tableMvts tbody tr').eq(i).find('td').eq(2).contains('21/07/2023 19:00');
-                cy.get('#tableMvts tbody tr').eq(i).find('td').eq(3).contains('CHIMIE_REF');
-                cy.get('#tableMvts tbody tr').eq(i).find('td').eq(4).contains('STOCK RIVES SILICIUM');
-            }
-            if (i !== 2) {
-                cy.get('#tableMvts tbody tr').eq(i).find('td').eq(7).contains('BUREAU GT');
-            }
-            if (i === 1 || i === 3) {
-                cy.get('#tableMvts tbody tr').eq(i).find('td').eq(8).contains('depose')
-            }
-            cy.get('#tableMvts tbody tr').eq(i).find('td').eq(6).contains('25');
-        }
-
-        cy.get('#tableMvts tbody tr').eq(2).find('td').eq(7).contains('LABO 11');
-        cy.get('#tableMvts tbody tr').eq(0).find('td').eq(8).contains('dépose dans UL');
-        cy.get('#tableMvts tbody tr').eq(2).find('td').eq(8).contains('prise')
-        cy.get('#tableMvts tbody tr').eq(3).find('td').eq(3).should('have.value', '');
-        cy.get('#tableMvts tbody tr').eq(3).find('td').eq(4).should('have.value', '');
-        cy.get('#tableMvts tbody tr').eq(3).find('td').eq(8).contains('depose')
+        cy.addMovement(6, 'dépose dans UL');
     })
-
 })

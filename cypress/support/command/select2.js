@@ -40,7 +40,7 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
         .parents('.select2-dropdown')
         .find('.select2-results__option')
         .first()
-        .click({waitForAnimations: false, multiple: true})
+        .click({waitForAnimations: false, multiple: true, timeout: 6000})
         .then(() => {
             cy.get(getName).find('option:selected').should('have.length', 1);
         });
