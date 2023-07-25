@@ -89,19 +89,32 @@ class PackRepository extends EntityRepository
             : $query->getSingleScalarResult();
     }
 
-    public function getPacksByDates(DateTime $dateMin, DateTime $dateMax)
+    public function getPacksByDates(DateTime $dateMin, DateTime $dateMax): iterable
     {
         return $this->createQueryBuilder('pack')
-            ->select('pack.code as code')
-            ->addSelect('n.label as nature')
-            ->addSelect('m.datetime as lastMvtDate')
-            ->addSelect('m.id as fromTo')
-            ->addSelect('emplacement.label as location')
-            ->leftJoin('pack.lastTracking', 'm')
-            ->leftJoin('m.emplacement','emplacement')
-            ->leftJoin('pack.nature','n')
-            ->leftJoin('pack.arrivage', 'arrivage')
-            ->where('m.datetime BETWEEN :dateMin AND :dateMax')
+            ->select('pack.code AS code')
+            ->addSelect('join_nature.label AS nature')
+            ->addSelect('join_tracking_movement.datetime AS lastMvtDate')
+            ->addSelect('join_tracking_movement.id AS fromTo')
+            ->addSelect('join_location.label AS location')
+            ->addSelect("IF(join_reception.id IS NOT NULL, 'reception', 
+                                    IF(join_dispatch.id IS NOT NULL, 'dispatch', 
+                                        IF(join_arrival.id IS NOT NULL, 'arrival',
+                                            IF(join_transfer_order.id IS NOT NULL, 'transferOrder', NULL)
+                                        )
+                                    )
+                                ) AS entity")
+            ->addSelect("COALESCE(join_reception.id, join_dispatch.id, join_arrival.id, join_transfer_order.id) AS entityId")
+            ->addSelect("COALESCE(join_reception.number, join_dispatch.number, join_arrival.numeroArrivage, join_transfer_order.number) AS entityNumber")
+            ->leftJoin('pack.lastTracking', 'join_tracking_movement')
+            ->leftJoin('join_tracking_movement.emplacement','join_location')
+            ->leftJoin('join_tracking_movement.reception','join_reception')
+            ->leftJoin('join_tracking_movement.dispatch','join_dispatch')
+            ->leftJoin('pack.nature','join_nature')
+            ->leftJoin('pack.arrivage', 'join_arrival')
+            ->leftJoin('join_tracking_movement.mouvementStock', 'join_stock_movement')
+            ->leftJoin('join_stock_movement.transferOrder', 'join_transfer_order')
+            ->where('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
             ->andWhere('pack.groupIteration IS NULL')
             ->setParameters([
                 'dateMin' => $dateMin,
