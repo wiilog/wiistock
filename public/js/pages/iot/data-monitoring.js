@@ -232,7 +232,7 @@ function initLineChart(element, callback) {
         };
         let sensorDates = Object.keys(response).filter((key) => key !== 'colors');
         const sensors = Object.keys(response['colors']);
-        let datasets = {};
+        let datasets = [];
 
         // hide the chart if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
@@ -244,22 +244,27 @@ function initLineChart(element, callback) {
         sensorDates.forEach((date) => {
             data.labels.push(date);
             sensors.forEach((sensor) => {
-                const value = response[date][sensor] || null;
-                let dataset = datasets[sensor] || {
-                    label: sensor,
-                    fill: false,
-                    data: [],
-                    borderColor: response.colors[sensor],
-                    tension: 0.1
-                };
-                dataset.data.push(value);
-                if (value && value > maxValue) {
-                    maxValue = value;
-                }
-                if (value && value < minvalue) {
-                    minvalue = value;
-                }
-                datasets[sensor] = dataset;
+                const contentTypes = Object.keys(response[date][sensor]);
+                contentTypes.forEach((contentType) => {
+                    const value = response[date][sensor][contentType] || null;
+                    let dataset = datasets[contentType] || {
+                        label: contentType,
+                        yAxisID: contentType,
+                        fill: false,
+                        data: [],
+                        borderColor: response.colors[sensor],
+                        tension: 0.1
+                    };
+                    dataset.data.push(value);
+                    if (value && value > maxValue) {
+                        maxValue = value;
+                    }
+                    if (value && value < minvalue) {
+                        minvalue = value;
+                    }
+                    datasets[contentType] = dataset;
+                })
+
             });
             if ($element.data('needsline')) {
                 if ($element.data('mintemp') && $element.data('maxtemp')) {
@@ -326,10 +331,34 @@ function initLineChart(element, callback) {
                                 max
                             }
                         }]
-                    } : {})
+                    } : {
+                        yAxes: [
+                            {
+                                id: 'Température',
+                                position: 'left',
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'coucou',
+                                },
+                            },
+                            {
+                                id: 'Hygrométrie',
+                                position: 'right',
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: 'Humidité',
+                                },
+                                ticks: {
+                                    min: 0,
+                                    max: 100,
+                                },
+                            }
+                        ]
+                    })
                 }
             }
         }
+        console.log(config);
         let chart = new Chart($element, config);
         $element.closest('.wii-page-card:not(.always-visible)').toggle(sensors.length > 0);
         if (sensors.length === 0) {

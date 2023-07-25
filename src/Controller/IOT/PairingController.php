@@ -272,25 +272,26 @@ class PairingController extends AbstractController
             $filters["end"],
             $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
         );
+        dump($associatedMessages);
 
         $data = ["colors" => []];
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
             $wrapper = $sensor->getAvailableSensorWrapper();
-            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
             $contentType = $message->getContentType();
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
 
-            if (!isset($data['colors'][$sensorCode])) {
-                srand($sensor->getId());
-                $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+            if (!isset($data['colors'][$sensorCode][$contentType])) {
+                srand($sensor->getId().$contentType);
+                $data['colors'][$sensorCode][$contentType] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
 
             $dateStr = $date->format('d/m/Y H:i:s');
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];
             }
-            $data[$dateStr][$sensorCode] = floatval($message->getContent());
+            $data[$dateStr][$sensorCode][$this->formatService->messageContentType($message)] = floatval($message->getContent());
         }
 
         srand();

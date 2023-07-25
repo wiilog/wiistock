@@ -73,7 +73,6 @@ class DataHistoryController extends AbstractController {
                                         DataMonitoringService $dataMonitoringService,
                                         PairingService $pairingService): JsonResponse
     {
-        dump($request);
         $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
