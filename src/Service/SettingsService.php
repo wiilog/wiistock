@@ -1103,8 +1103,8 @@ class SettingsService {
 
             if (!empty($reserveTypesData)) {
                 $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
-                if ($isDefaultReserveTypes > 1) {
-                    throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
+                if ($isDefaultReserveTypes !== 1) {
+                    throw new RuntimeException("Il doit y avoir un seul type de réserve par défaut.");
                 }
 
                 $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
@@ -1136,6 +1136,10 @@ class SettingsService {
                             ->toArray();
                     } else {
                         $notifiedUsers = [];
+                    }
+
+                    if($reserveTypeData['defaultReserveType'] && !$reserveTypeData['active']){
+                        throw new RuntimeException("Impossible de rendre inactif le type de réserve par défaut.");
                     }
 
                     $reserveType
