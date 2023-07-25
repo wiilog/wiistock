@@ -79,6 +79,7 @@ class ReserveService
             ]),
             'id' => $reserve->getId(),
             'reserveLineNumber' => $reserve->getLine()->getNumber(),
+            'reserveType' => $this->formatService->reserveType($reserve->getReserveType()),
             'attachment' => $this->templating->render('attachment/attachment.html.twig', [
                 'isNew' => false,
                 'editAttachments'=> false,
