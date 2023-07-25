@@ -144,7 +144,7 @@ class PackRepository extends EntityRepository
             ->leftJoin('join_stock_movement.transferOrder', 'join_transfer_order')
             ->leftJoin('join_tracking_movement.deliveryRequest', 'join_delivery_request')
             ->leftJoin('join_tracking_movement.shippingRequest', 'join_shipping_request')
-            ->where('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
+            ->andWhere('join_tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
             ->andWhere('pack.groupIteration IS NULL')
             ->setParameters([
                 'dateMin' => $dateMin,
