@@ -6,6 +6,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Reserve;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
@@ -70,6 +71,7 @@ class TruckArrivalService
         $lineHasReserve = !$truckArrival->getTrackingLines()->isEmpty() &&
             Stream::from($truckArrival->getTrackingLines())
                 ->some(fn(TruckArrivalLine $line) => $line->getReserve());
+        $reserves = $truckArrival->getReserves();
 
         return [
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
@@ -107,10 +109,15 @@ class TruckArrivalService
                 . '/'
                 . $truckArrival->getTrackingLines()->count(),
             'operator' => $formatService->user($truckArrival->getOperator()),
-            'reserves' => $truckArrival->getReserves()->isEmpty() && !$lineHasReserve ? 'non' : 'oui',
+            'reserves' => $reserves->isEmpty() && !$lineHasReserve ? 'non' : 'oui',
+            'trackingLinesReserves' =>  Stream::from($truckArrival->getTrackingLines())
+                ->map(fn(TruckArrivalLine $line) =>  $formatService->reserveType($line->getReserve()?->getReserveType()))
+                ->unique()
+                ->filter()
+                ->join(', '),
             'carrier' => $formatService->carrier($truckArrival->getCarrier()),
             'late' => Stream::from($truckArrival->getTrackingLines())
-                ->some(fn (TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager))
+                ->some(fn (TruckArrivalLine $line) => $this->truckArrivalLineService->lineIsLate($line, $entityManager)),
         ];
     }
 
@@ -126,6 +133,7 @@ class TruckArrivalService
             ['title' => 'Nombre de n° de tracking associé', 'name' => 'countTrackingLines', 'orderable' => false,],
             ['title' => 'Opérateur', 'name' => 'operator'],
             ['title' => 'Réserve(s)', 'name' => 'reserves'],
+            ['title' => 'Réserve sur n°tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
