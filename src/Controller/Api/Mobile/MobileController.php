@@ -35,6 +35,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
@@ -2202,11 +2203,11 @@ class MobileController extends AbstractApiController
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2375,11 +2376,12 @@ class MobileController extends AbstractApiController
                 ])->toArray();
 
             $users = $userRepository->getAll();
+
+            $reserveTypes = $reserveTypeRepository->getActiveReserveType();
         }
 
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
-
 
             $carriers = Stream::from($carrierRepository->findAll())
                 ->map(function (Transporteur $transporteur) use ($kernel) {
@@ -2499,6 +2501,7 @@ class MobileController extends AbstractApiController
             'carriers' => $carriers ?? [],
             'dispatchEmergencies' => $dispatchEmergencies ?? [],
             'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
+            'reserveTypes' => $reserveTypes ?? [],
         ];
     }
 
@@ -3784,6 +3787,7 @@ class MobileController extends AbstractApiController
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $registrationNumber = $data->get('registrationNumber');
         $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
@@ -3835,6 +3839,11 @@ class MobileController extends AbstractApiController
                 $lineReserve = (new Reserve())
                     ->setKind($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
+
+                if($truckArrivalLine['reserve']['numberReserveType']){
+                    $reserveType = $reserveTypeRepository->find($truckArrivalLine['reserve']['numberReserveType']);
+                    $lineReserve->setReserveType($reserveType);
+                }
 
                 if($truckArrivalLine['reserve']['photos']){
                     foreach($truckArrivalLine['reserve']['photos'] as $photo){
