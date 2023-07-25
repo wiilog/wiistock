@@ -221,6 +221,8 @@ function smartDisplayCoordinates(markers, map) {
 }
 
 function initLineChart(element, callback) {
+    const DEFAULT_DATATYPE = 'DEFAULT_DATATYPE';
+
     const $element = $(element);
     $errorContainer.addClass('d-none');
 
@@ -231,8 +233,7 @@ function initLineChart(element, callback) {
             labels: []
         };
         let sensorDates = Object.keys(response).filter((key) => key !== 'colors');
-        const sensors = Object.keys(response['colors']);
-        let datasets = [];
+        const sensors = response.colors;
 
         // hide the chart if there are no sensors
         $element.closest('.wii-page-card').toggle(true);
@@ -241,64 +242,95 @@ function initLineChart(element, callback) {
         let lineDataMin = [];
         let maxValue = Number.MIN_VALUE;
         let minvalue = Number.MAX_VALUE;
+
+        let sensorMessagesDatasets = [];
         sensorDates.forEach((date) => {
             data.labels.push(date);
-            sensors.forEach((sensor) => {
-                const contentTypes = Object.keys(response[date][sensor]);
-                contentTypes.forEach((contentType) => {
-                    const value = response[date][sensor][contentType] || null;
-                    let dataset = datasets[contentType] || {
-                        label: contentType,
-                        yAxisID: contentType,
-                        fill: false,
-                        data: [],
-                        borderColor: response.colors[sensor],
-                        tension: 0.1
-                    };
-                    dataset.data.push(value);
-                    if (value && value > maxValue) {
-                        maxValue = value;
-                    }
-                    if (value && value < minvalue) {
-                        minvalue = value;
-                    }
-                    datasets[contentType] = dataset;
-                })
+            const sensorDataBySensor = response[date];
+            Object.keys(sensorDataBySensor).forEach((sensor) => {
+                const sensorData = sensorDataBySensor[sensor];
+                const dataByType = sensorData instanceof Object ? sensorData : {DEFAULT_DATATYPE: sensorData};
+                Object.keys(dataByType).forEach((type) => {
+                    const value = dataByType[type];
+                    if (!(sensorMessagesDatasets[type] || {})?.data) {
+                        sensorMessagesDatasets[type] = {
+                            label: type === DEFAULT_DATATYPE ? sensor : `${sensor} - ${type}`,
+                            yAxisID: type,
+                            fill: false,
+                            data: [value],
+                            borderColor: (sensors[sensor]) instanceof Object ? sensors[sensor][type] : sensors[sensor],
+                            tension: 0.1,
+                        };
 
+                    } else {
+                        sensorMessagesDatasets[type].data.push(value);
+                    }
+                });
             });
-            if ($element.data('needsline')) {
-                if ($element.data('mintemp') && $element.data('maxtemp')) {
-                    lineDataMax.push($element.data('maxtemp'));
-                    lineDataMin.push($element.data('mintemp'));
-                }
-            }
         });
+
+        data.datasets = data.datasets.concat(sensorMessagesDatasets);
+        const needsline = $element.data('needsline');
+        if (needsline) {
+            if ($element.data('mintemp') && $element.data('maxtemp')) {
+                lineDataMax.push($element.data('maxtemp'));
+                lineDataMin.push($element.data('mintemp'));
+            }
+        }
+
         if (lineDataMax.length === 1 && lineDataMin.length === 1) {
             lineDataMin = [lineDataMin[0], lineDataMin[0]];
             lineDataMax = [lineDataMax[0], lineDataMax[0]];
         }
-        if ($element.data('needsline')) {
-            datasets['lineDataMax'] = {
-                data: lineDataMax[0] > lineDataMin[0] ? lineDataMax : lineDataMin,
-                pointRadius: 0,
-                pointHitRadius: 0,
-                borderColor: '#F00',
-                fill: false,
-            };
-
-            datasets['lineDataMin'] = {
-                data: lineDataMax[0] < lineDataMin[0] ? lineDataMax : lineDataMin,
-                pointRadius: 0,
-                pointHitRadius: 0,
-                borderColor: '#00F',
-                fill: false,
-            };
-        }
-        data.datasets = Object.values(datasets);
 
         const max = Math.max((lineDataMax.length ? lineDataMax[0] : Number.MIN_VALUE), (lineDataMin.length ? lineDataMin[0] + 5 : Number.MIN_VALUE), maxValue, 1);
         const min = Math.min((lineDataMin.length ? lineDataMin[0] : Number.MAX_VALUE), (lineDataMax.length ? lineDataMax[0] - 5 : Number.MAX_VALUE), minvalue, 0);
 
+        const yAxes = []
+
+        Object.values(sensorMessagesDatasets).forEach((dataset, index) => {
+            const ticks = {};
+            if (dataset.yAxisID === 'Hygrométrie') {
+                ticks.min = 0;
+                ticks.max = 100;
+            } else if (index === 1 && needsline) {
+                ticks.min = min;
+                ticks.max = max;
+            }
+
+            yAxes.push({
+                id: dataset.yAxisID,
+                position: index % 2 === 0 ? 'left' : 'right',
+                scaleLabel: {
+                    display: dataset.yAxisID !== DEFAULT_DATATYPE,
+                    labelString: dataset.yAxisID,
+                },
+                ... {ticks}
+            });
+        });
+
+        if (needsline) {
+            sensorMessagesDatasets['lineDataMax'] = {
+                data: lineDataMax[0] > lineDataMin[0] ? lineDataMax : lineDataMin,
+                pointRadius: 0,
+                pointHitRadius: 0,
+                yAxisID: yAxes[0].id,
+                borderColor: '#F00',
+                fill: false,
+                hiddenLegend: true,
+            };
+
+            sensorMessagesDatasets['lineDataMin'] = {
+                data: lineDataMax[0] < lineDataMin[0] ? lineDataMax : lineDataMin,
+                pointRadius: 0,
+                pointHitRadius: 0,
+                yAxisID: yAxes[0].id,
+                borderColor: '#00F',
+                fill: false,
+                hiddenLegend: true,
+            };
+        }
+        data.datasets = Object.values(sensorMessagesDatasets);
         const config = {
             type: 'line',
             data,
@@ -306,7 +338,7 @@ function initLineChart(element, callback) {
                 legend: {
                     labels: {
                         filter: function (item, chart) {
-                            return item.datasetIndex < data.datasets.length - 2;
+                            return data.datasets.length > 1 && !data.datasets[item.datasetIndex].hiddenLegend
                         }
                     }
                 },
@@ -324,44 +356,14 @@ function initLineChart(element, callback) {
                             }
                         }
                     }],
-                    ...($element.data('needsline') ? {
-                        yAxes: [{
-                            ticks: {
-                                min,
-                                max
-                            }
-                        }]
-                    } : {
-                        yAxes: [
-                            {
-                                id: 'Température',
-                                position: 'left',
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'coucou',
-                                },
-                            },
-                            {
-                                id: 'Hygrométrie',
-                                position: 'right',
-                                scaleLabel: {
-                                    display: true,
-                                    labelString: 'Humidité',
-                                },
-                                ticks: {
-                                    min: 0,
-                                    max: 100,
-                                },
-                            }
-                        ]
-                    })
+                    yAxes: yAxes,
                 }
             }
         }
-        console.log(config);
+
         let chart = new Chart($element, config);
-        $element.closest('.wii-page-card:not(.always-visible)').toggle(sensors.length > 0);
-        if (sensors.length === 0) {
+        $element.closest('.wii-page-card:not(.always-visible)').toggle(Object.values(sensors).length > 0);
+        if (Object.values(sensors).length === 0) {
             noChartData = true;
             callback();
         }

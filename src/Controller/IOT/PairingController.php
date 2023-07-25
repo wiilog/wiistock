@@ -264,7 +264,7 @@ class PairingController extends AbstractController
     /**
      * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()", options={"expose"=true}, methods="GET|POST")
      */
-    public function getChartData(Request $request, Pairing $pairing): JsonResponse
+    public function getChartData(Request $request, Pairing $pairing, PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
@@ -272,33 +272,8 @@ class PairingController extends AbstractController
             $filters["end"],
             $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
         );
-        dump($associatedMessages);
 
-        $data = ["colors" => []];
-        foreach ($associatedMessages as $message) {
-            $date = $message->getDate();
-            $sensor = $message->getSensor();
-            $wrapper = $sensor->getAvailableSensorWrapper();
-            $contentType = $message->getContentType();
-            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
-
-            if (!isset($data['colors'][$sensorCode][$contentType])) {
-                srand($sensor->getId().$contentType);
-                $data['colors'][$sensorCode][$contentType] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
-            }
-
-            $dateStr = $date->format('d/m/Y H:i:s');
-            if (!isset($data[$dateStr])) {
-                $data[$dateStr] = [];
-            }
-            $data[$dateStr][$sensorCode][$this->formatService->messageContentType($message)] = floatval($message->getContent());
-        }
-
-        srand();
-
-        dump($data);
-
-        return new JsonResponse($data);
+        return new JsonResponse($pairingService->buildChartDataFromMessages($associatedMessages));
     }
 
 }
