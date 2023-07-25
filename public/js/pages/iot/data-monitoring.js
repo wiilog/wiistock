@@ -244,6 +244,7 @@ function initLineChart(element, callback) {
         let minvalue = Number.MAX_VALUE;
 
         let sensorMessagesDatasets = [];
+        let dataTypes = [];
         sensorDates.forEach((date) => {
             data.labels.push(date);
             const sensorDataBySensor = response[date];
@@ -252,8 +253,8 @@ function initLineChart(element, callback) {
                 const dataByType = sensorData instanceof Object ? sensorData : {DEFAULT_DATATYPE: sensorData};
                 Object.keys(dataByType).forEach((type) => {
                     const value = dataByType[type];
-                    if (!(sensorMessagesDatasets[type] || {})?.data) {
-                        sensorMessagesDatasets[type] = {
+                    if (!(sensorMessagesDatasets[type+sensor] || {})?.data) {
+                        sensorMessagesDatasets[type+sensor] = {
                             label: type === DEFAULT_DATATYPE ? sensor : `${sensor} - ${type}`,
                             yAxisID: type,
                             fill: false,
@@ -261,10 +262,10 @@ function initLineChart(element, callback) {
                             borderColor: (sensors[sensor]) instanceof Object ? sensors[sensor][type] : sensors[sensor],
                             tension: 0.1,
                         };
-
                     } else {
-                        sensorMessagesDatasets[type].data.push(value);
+                        sensorMessagesDatasets[type+sensor].data.push(value);
                     }
+                    dataTypes.push(type);
                 });
             });
         });
@@ -286,11 +287,11 @@ function initLineChart(element, callback) {
         const max = Math.max((lineDataMax.length ? lineDataMax[0] : Number.MIN_VALUE), (lineDataMin.length ? lineDataMin[0] + 5 : Number.MIN_VALUE), maxValue, 1);
         const min = Math.min((lineDataMin.length ? lineDataMin[0] : Number.MAX_VALUE), (lineDataMax.length ? lineDataMax[0] - 5 : Number.MAX_VALUE), minvalue, 0);
 
-        const yAxes = []
-
-        Object.values(sensorMessagesDatasets).forEach((dataset, index) => {
+        const yAxes = dataTypes
+            .filter((value, index, array) => array.indexOf(value) === index)
+            .map((type, index) => {
             const ticks = {};
-            if (dataset.yAxisID === 'Hygrométrie') {
+            if (type === 'Hygrométrie') {
                 ticks.min = 0;
                 ticks.max = 100;
             } else if (index === 1 && needsline) {
@@ -298,16 +299,18 @@ function initLineChart(element, callback) {
                 ticks.max = max;
             }
 
-            yAxes.push({
-                id: dataset.yAxisID,
+            return {
+                id: type,
                 position: index % 2 === 0 ? 'left' : 'right',
                 scaleLabel: {
-                    display: dataset.yAxisID !== DEFAULT_DATATYPE,
-                    labelString: dataset.yAxisID,
+                    display: type !== DEFAULT_DATATYPE,
+                    labelString: type,
                 },
                 ... {ticks}
-            });
+            };
         });
+
+        console.log(yAxes);
 
         if (needsline) {
             sensorMessagesDatasets['lineDataMax'] = {
