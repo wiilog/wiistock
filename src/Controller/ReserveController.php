@@ -112,12 +112,14 @@ class ReserveController extends AbstractController
                 "selected" => true
             ];
         }
-
-        $reserveTypes = $reserveTypesRepository->findAll();
+        $isNew = !($reserve instanceof Reserve);
+        /** @var ReserveType[] $reserveTypes */
+        $reserveTypes = $reserveTypesRepository->getActiveReserveType();
         $reserveTypesLabels = Stream::from($reserveTypes)
-            ->map(fn(ReserveType $reserveType) => [
-                'label' => $reserveType->getLabel(),
-                'value' => $reserveType->getId()
+            ->map(fn(array $reserveType) => [
+                'label' => $reserveType['label'],
+                'value' => $reserveType['id'],
+                'selected' => ($isNew && $reserveType['defaultReserve']) || (!$isNew && $reserve->getReserveType()->getId() === $reserveType['id']),
             ])
             ->toArray();
 
@@ -131,12 +133,12 @@ class ReserveController extends AbstractController
                 'attachments' => $attachments ?? [],
                 'availableTrackingNumber' => $availableTrackingNumber,
                 'reserveTypesLabels' => $reserveTypesLabels,
-                'new' => false,
+                'new' => $isNew,
             ]
             : [
                 'availableTrackingNumber' => $availableTrackingNumber,
                 'reserveTypesLabels' => $reserveTypesLabels,
-                'new' => true,
+                'new' => $isNew,
                 ];
 
         return $this->json([
