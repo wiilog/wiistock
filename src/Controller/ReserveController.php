@@ -113,7 +113,7 @@ class ReserveController extends AbstractController
             ];
         }
         $isNew = !($reserve instanceof Reserve);
-        /** @var ReserveType[] $reserveTypes */
+
         $reserveTypes = $reserveTypesRepository->getActiveReserveType();
         $reserveTypesLabels = Stream::from($reserveTypes)
             ->map(fn(array $reserveType) => [
