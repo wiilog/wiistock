@@ -2004,21 +2004,25 @@ class SettingsController extends AbstractController {
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
                         ->map(fn(Emplacement $location) => [
                             "value" => $location->getId(),
                             "label" => $location->getLabel(),
                             "selected" => true,
                         ])
-                        ->toArray();
+                        ->toArray()
+                    : [];
 
-                    $suggestedDropLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
-                        ->map(fn(Emplacement $location) => [
-                            "value" => $location->getId(),
-                            "label" => $location->getLabel(),
-                            "selected" => true,
-                        ])
-                        ->toArray();
+                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                            ->map(fn(Emplacement $location) => [
+                                "value" => $location->getId(),
+                                "label" => $location->getLabel(),
+                                "selected" => true,
+                            ])
+                            ->toArray()
+                        : [];
 
                     $data = array_merge($data, [
                         [
