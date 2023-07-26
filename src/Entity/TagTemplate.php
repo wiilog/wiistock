@@ -126,9 +126,18 @@ class TagTemplate
         return $this;
     }
 
+    public function setNatures(Collection $natures): self
+    {
+        $this->natures = $natures;
+
+        return $this;
+    }
+
     public function removeNature(Nature $nature): self
     {
-        $this->natures->removeElement($nature);
+        if ($this->natures->contains($nature)) {
+            $this->natures->removeElement($nature);
+        }
 
         return $this;
     }
@@ -150,9 +159,18 @@ class TagTemplate
         return $this;
     }
 
+    public function setTypes(Collection $types): self
+    {
+        $this->types = $types;
+
+        return $this;
+    }
+
     public function removeType(Type $type): self
     {
-        $this->types->removeElement($type);
+        if ($this->types->contains($type)) {
+            $this->types->removeElement($type);
+        }
 
         return $this;
     }
