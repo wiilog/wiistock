@@ -53,7 +53,9 @@ class IOTService
     const ACS_EVENT = 'EVENT';
     const ACS_PRESENCE = 'PRESENCE';
 
-    const INEO_SENS_ACS_TEMP = 'ineo-sens-acs';
+    const INEO_SENS_ACS_TEMP_HYGRO = 'ACS-Switch-TEMP-HYGRO';
+    const INEO_SENS_ACS_TEMP = 'ACS-Switch-TEMP';
+    const INEO_SENS_ACS_HYGRO = 'ACS-Switch-HYGRO';
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
     const SYMES_ACTION_SINGLE = 'symes-action-single';
@@ -62,7 +64,6 @@ class IOTService
     const KOOVEA_HUB = 'Hub GPS Koovea';
     const DEMO_TEMPERATURE = 'demo-temperature';
     const DEMO_ACTION = 'demo-action';
-    const TEMP_HYGRO = 'ACS-Switch-TEMP-HYGRO';
 
     const PROFILE_TO_MAX_TRIGGERS = [
         self::INEO_SENS_ACS_TEMP => 1,
@@ -580,7 +581,7 @@ class IOTService
 
     public function extractMainDataFromConfig(array $config, string $profile): array {
         switch ($profile) {
-            case IOTService::TEMP_HYGRO:
+            case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 $hexTemperature = substr($config['value']['payload'], 6, 2);
                 $temperature = $this->convertHexToSignedInt($hexTemperature);
                 $hexHygrometry = substr($config['value']['payload'], 66, 2);
@@ -589,6 +590,14 @@ class IOTService
                     self::DATA_TYPE_TEMPERATURE => $temperature,
                     self::DATA_TYPE_HYGROMETRY => $hygrometry,
                 ];
+            case IOTService::INEO_SENS_ACS_TEMP:
+                $hexTemperature = substr($config['value']['payload'], 6, 2);
+                $temperature = $this->convertHexToSignedInt($hexTemperature);
+                return [self::DATA_TYPE_TEMPERATURE => $temperature,];
+            case IOTService::INEO_SENS_ACS_HYGRO:
+                $hexHygrometry = substr($config['value']['payload'], 66, 2);
+                $hygrometry = $this->convertHexToSignedInt($hexHygrometry);
+                return [self::DATA_TYPE_HYGROMETRY => $hygrometry,];
             case IOTService::KOOVEA_TAG:
                 return [self::DATA_TYPE_TEMPERATURE => $config['value']];
             case IOTService::KOOVEA_HUB:
@@ -603,7 +612,6 @@ class IOTService
                     return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
                 }
                 break;
-            case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -632,7 +640,8 @@ class IOTService
                 return $config['event'];
             case IOTService::INEO_SENS_ACS_BTN:
             case IOTService::INEO_SENS_ACS_TEMP:
-            case IOTService::TEMP_HYGRO:
+            case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
+            case IOTService::INEO_SENS_ACS_HYGRO:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
@@ -667,10 +676,11 @@ class IOTService
             case IOTService::KOOVEA_TAG:
             case IOTService::KOOVEA_HUB:
                 return -1;
-            case IOTService::TEMP_HYGRO:
+            case IOTService::INEO_SENS_ACS_HYGRO:
+            case IOTService::INEO_SENS_ACS_TEMP:
+            case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
                 return 100 - hexdec(substr($config['value']['payload'], 10, 2));
             case IOTService::INEO_SENS_ACS_BTN:
-            case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
                     $frame = $config['payload'][0]['data'];
@@ -984,7 +994,7 @@ class IOTService
 
     public function validateFrame(string $profile, array $frame): bool {
         return match ($profile) {
-            IOTService::TEMP_HYGRO => str_starts_with($frame['value']['payload'], '6d'),
+            IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($frame['value']['payload'], '6d'),
             default => true,
         };
     }
