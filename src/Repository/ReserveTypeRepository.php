@@ -17,8 +17,8 @@ class ReserveTypeRepository extends EntityRepository
         return $this->createQueryBuilder("reserve_type")
             ->select("reserve_type.id AS id")
             ->addSelect("reserve_type.label AS label")
-            ->addSelect("reserve_type.defaultReserveType AS defaultReserve")
-            ->andWhere("reserve_type.active = true")
+            ->addSelect("reserve_type.defaultReserveType AS defaultReserveType")
+            ->andWhere("reserve_type.active = 1")
             ->getQuery()
             ->getArrayResult();
     }
