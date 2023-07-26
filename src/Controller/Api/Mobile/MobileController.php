@@ -3831,6 +3831,8 @@ class MobileController extends AbstractApiController
             $entityManager->persist($reserve);
         }
 
+        dump($truckArrivalLines);
+
         foreach($truckArrivalLines as $truckArrivalLine){
             $line = (new TruckArrivalLine())
                 ->setNumber($truckArrivalLine['number']);
@@ -3840,8 +3842,8 @@ class MobileController extends AbstractApiController
                     ->setKind($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
-                if($truckArrivalLine['reserve']['numberReserveType']){
-                    $reserveType = $reserveTypeRepository->find($truckArrivalLine['reserve']['numberReserveType']);
+                if($truckArrivalLine['reserve']['reserveTypeId']){
+                    $reserveType = $reserveTypeRepository->find($truckArrivalLine['reserve']['reserveTypeId']);
                     $lineReserve->setReserveType($reserveType);
                 }
 
