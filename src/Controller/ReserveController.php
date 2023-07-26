@@ -10,8 +10,8 @@ use App\Entity\ReserveType;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Exceptions\FormException;
-use App\Repository\ReserveRepository;
 use App\Service\AttachmentService;
+use App\Service\ReserveService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +24,10 @@ class ReserveController extends AbstractController
 {
     #[Route('/form', name: 'form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::EDIT_RESERVES])]
-    public function index(Request $request, EntityManagerInterface $entityManager, AttachmentService $attachmentService): Response
+    public function index(Request                $request,
+                          EntityManagerInterface $entityManager,
+                          AttachmentService      $attachmentService,
+                          ReserveService         $reserveService): Response
     {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
@@ -33,7 +36,7 @@ class ReserveController extends AbstractController
         $data = $request->request->all();
 
 
-        $reserve = $data['reserveId'] ?? null ? $reserveRepository->find($data['reserveId']) : new Reserve();
+        $reserve = ($data['reserveId'] ?? null) ? $reserveRepository->find($data['reserveId']) : new Reserve();
         if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
             if (isset($data['reserveType'])) {
@@ -75,6 +78,15 @@ class ReserveController extends AbstractController
         }
 
         $entityManager->flush();
+
+        if(isset($reserveType) && isset($truckArrivalLine)) {
+            $truckArrival = $truckArrivalLine->getTruckArrival();
+            $reserves = $entityManager->getRepository(Reserve::class)->findReservesByLines($truckArrival->getTrackingLines());
+            $attachments = Stream::from($reserves)
+                ->flatMap(fn(Reserve $reserve) => $reserve->getAttachments())
+                ->toArray();
+            $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+        }
 
         return new JsonResponse([
             'success' => true,
@@ -119,7 +131,7 @@ class ReserveController extends AbstractController
             ->map(fn(array $reserveType) => [
                 'label' => $reserveType['label'],
                 'value' => $reserveType['id'],
-                'selected' => ($isNew && $reserveType['defaultReserve']) || (!$isNew && $reserve->getReserveType()->getId() === $reserveType['id']),
+                'selected' => ($isNew && $reserveType['defaultReserveType']) || (!$isNew && $reserve->getReserveType()->getId() === $reserveType['id']),
             ])
             ->toArray();
 
