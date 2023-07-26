@@ -74,7 +74,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
-use App\Service\RefArticleDataService;
+use App\Service\ReserveService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -97,7 +97,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 use Twig\Environment as Twig_Environment;
 
 
@@ -3781,7 +3780,8 @@ class MobileController extends AbstractApiController
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,
                                        UniqueNumberService    $uniqueNumberService,
-                                       KernelInterface        $kernel): Response {
+                                       KernelInterface        $kernel,
+                                       ReserveService         $reserveService): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -3831,8 +3831,7 @@ class MobileController extends AbstractApiController
             $entityManager->persist($reserve);
         }
 
-        dump($truckArrivalLines);
-
+        $reserves = [];
         foreach($truckArrivalLines as $truckArrivalLine){
             $line = (new TruckArrivalLine())
                 ->setNumber($truckArrivalLine['number']);
@@ -3865,6 +3864,8 @@ class MobileController extends AbstractApiController
 
                 $line->setReserve($lineReserve);
                 $entityManager->persist($lineReserve);
+
+                $reserves[] = $lineReserve;
             }
 
 
@@ -3886,9 +3887,17 @@ class MobileController extends AbstractApiController
             $entityManager->persist($attachment);
         }
 
-
         $entityManager->persist($truckArrival);
         $entityManager->flush();
+
+        $alreadyTreatedTypes = [];
+        foreach ($reserves as $reserve) {
+            $reserveType = $reserve->getReserveType();
+            if(!in_array($reserveType->getId(), $alreadyTreatedTypes)) {
+                $reserveService->sendTruckArrivalMail($truckArrival, $reserve->getReserveType(), $reserves, $reserve->getAttachments()->toArray());
+                $alreadyTreatedTypes[] = $reserveType->getId();
+            }
+        }
 
         return $this->json([
             'success' => true,

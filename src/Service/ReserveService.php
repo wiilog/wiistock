@@ -3,14 +3,9 @@
 namespace App\Service;
 
 
-use App\Entity\Action;
-use App\Entity\Arrivage;
-use App\Entity\FiltreSup;
-use App\Entity\Menu;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\TruckArrival;
-use App\Entity\TruckArrivalLine;
-use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
@@ -35,6 +30,9 @@ class ReserveService
 
     #[Required]
     public RouterInterface $router;
+
+    #[Required]
+    public MailerService $mailerService;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request): array {
@@ -88,5 +86,17 @@ class ReserveService
             ]),
             'comment' => $reserve->getComment(),
         ];
+    }
+
+    public function sendTruckArrivalMail(TruckArrival $truckArrival, ReserveType $reserveType, array $reserves, array $attachments): void {
+        $this->mailerService->sendMail(
+            'FOLLOW GT // Réserve arrivage camion',
+            $this->templating->render('mails/contents/mailTruckArrival.html.twig', [
+                'truckArrival' => $truckArrival,
+                'reserves' => $reserves,
+            ]),
+            $reserveType->getNotifiedUsers()->toArray(),
+            $attachments
+        );
     }
 }
