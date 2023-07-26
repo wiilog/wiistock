@@ -310,16 +310,13 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/edit", name: "shipping_request_edit", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::DEM, Action::CREATE_SHIPPING], mode: HasPermission::IN_JSON)]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
                          ShippingRequestService $shippingRequestService,
-                         UserService            $userService,
                          TranslationService     $translationService): JsonResponse
     {
         $data = $request->request;
-        $success = null;
-        $user = $this->getUser();
 
         $shippingRequestId = $request->get('shippingRequestId');
         if ($shippingRequestId) {
@@ -329,32 +326,10 @@ class ShippingRequestController extends AbstractController {
             throw new FormException('La demande d\'expédition n\'a pas été trouvée.');
         }
 
-
-        // right & status to treat
-        if ($shippingRequest->isToTreat()) {
-            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING, $user)) {
-                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
-            } else {
-                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
-            }
-
-        // right & status scheduled
-        } else if ($shippingRequest->isScheduled()) {
-            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING)) {
-                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
-            } else {
-                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
-            }
-
-        // right & status shipped
-        } else if ($shippingRequest->isShipped()) {
-            if ($userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)) {
-                $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
-            } else {
-                throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
-            }
-        } else if ($shippingRequest->isDraft()) {
+        if ($shippingRequestService->hasEditRightWithStatus($shippingRequest)) {
             $success = $shippingRequestService->updateShippingRequest($entityManager, $shippingRequest, $data);
+        } else {
+            throw new FormException("Vous n'avez pas la permission de modifier cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " avec le statut " . $shippingRequest->getStatus()->getCode() . " ");
         }
 
         if ($success) {
@@ -439,27 +414,13 @@ class ShippingRequestController extends AbstractController {
                                           ShippingRequestService $shippingRequestService,
                                           TranslationService     $translationService): Response
     {
-
-        $user = $this->getUser();
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
 
-        // status
-        $isDraft = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_DRAFT;
-        $isToTreat = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_TO_TREAT;
-        $isScheduled = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SCHEDULED;
-        $isShipped = $shippingRequest->getStatus()->getCode() === ShippingRequest::STATUS_SHIPPED;
-
-        // right
-        $hasRightDeleteDraft = $userService->hasRightFunction(Menu::DEM, Action::DELETE, $user);
-        $hasRightDeleteTreat = $userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING, $user);
-        $hasRightDeleteScheduled = $userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING, $user);
-        $hasRightDeleteShipped = $userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING);
-
-        if (($isDraft && !$hasRightDeleteDraft)
-            || ($isToTreat && !$hasRightDeleteTreat)
-            || ($isScheduled && !$hasRightDeleteScheduled)
-            || ($isShipped && !$hasRightDeleteShipped)) {
-            throw new FormException("Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " au statut " . $this->getFormatter()->status($shippingRequest->getStatus()));
+        if (!$shippingRequestService->hasDeleteRightWithStatus($shippingRequest)) {
+            return $this->json([
+                "success" => false,
+                "message" => "Vous n'avez pas la permission de supprimer cette " . mb_strtolower($translationService->translate("Demande", "Expédition", "Demande d'expédition", false)) . " au statut " . $this->getFormatter()->status($shippingRequest->getStatus()),
+            ]);
         }
 
         // remove status_history
@@ -472,12 +433,12 @@ class ShippingRequestController extends AbstractController {
                 }
                 $shippingRequestService->deletePacking($entityManager, $shippingRequest);
 
-                // remove ShippingRequesExpectedtLine
-                foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
+        // remove ShippingRequesExpectedtLine
+        foreach ($shippingRequest->getExpectedLines() as $expectedLine) {
 
-                    $entityManager->remove($expectedLine);
-                    $shippingRequest->removeExpectedLine($expectedLine);
-                }
+            $entityManager->remove($expectedLine);
+            $shippingRequest->removeExpectedLine($expectedLine);
+        }
 
                 foreach ($shippingRequest->getAttachments() as $attachment) {
                     $attachmentService->removeAndDeleteAttachment($attachment, $shippingRequest);
@@ -571,6 +532,7 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/csv", name: "get_shipping_requests_csv", options: ["expose" => true], methods: ['GET'])]
+    #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function exportShippingRequests(EntityManagerInterface $entityManager,
                                            CSVExportService       $csvService,
                                            DataExportService      $dataExportService) {
@@ -588,6 +550,7 @@ class ShippingRequestController extends AbstractController {
     }
 
     #[Route("/{shippingRequest}/status-history-api", name: "shipping_request_status_history_api", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_SHIPPING])]
     public function statusHistoryApi(ShippingRequest $shippingRequest,
                                      LanguageService $languageService): JsonResponse {
         $user = $this->getUser();

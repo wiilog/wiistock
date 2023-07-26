@@ -117,9 +117,10 @@ class MobileController extends AbstractApiController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function postApiKey(Request $request,
-                               EntityManagerInterface $entityManager,
-                               UserService $userService)
+    public function postApiKey(Request                  $request,
+                               EntityManagerInterface   $entityManager,
+                               UserService              $userService,
+                               DispatchService          $dispatchService)
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -170,6 +171,9 @@ class MobileController extends AbstractApiController
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
+            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+            $wayBillData['dispatch_id'] = null;
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -179,6 +183,7 @@ class MobileController extends AbstractApiController
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
                 'fieldsParam' => $fieldsParam ?? [],
+                'dispatchDefaultWaybill' => $wayBillData ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -3737,7 +3742,7 @@ class MobileController extends AbstractApiController
     {
         return $this->json([
             'success' => true,
-            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $manager, $dispatch)
         ]);
     }
 
@@ -3813,7 +3818,7 @@ class MobileController extends AbstractApiController
 
         foreach($truckArrivalReserves as $truckArrivalReserve){
             $reserve = (new Reserve())
-                ->setType($truckArrivalReserve['type'])
+                ->setKind($truckArrivalReserve['type'])
                 ->setComment($truckArrivalReserve['comment'] ?? null)
                 ->setQuantity($truckArrivalReserve['quantity'] ?? null)
                 ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
@@ -3828,7 +3833,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setKind($truckArrivalLine['reserve']['type'])
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['photos']){

@@ -6,6 +6,8 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Service\DispatchService;
@@ -184,9 +186,12 @@ class StatusController extends AbstractController
         if($entity->isDefaultForCategory()) {
             return $this->json([
                 "success" => false,
-                "msg" => "Impossible de supprimer le statut car il est un statut par défaut",
+                "msg" => "Impossible de supprimer le statut car c'est un statut par défaut",
             ]);
         } else {
+            $shippingRequestRepository = $manager->getRepository(ShippingRequest::class);
+            $statusHistoryRepository = $manager->getRepository(StatusHistory::class);
+
             $constraints = [
                 "un litige" => $entity->getDisputes(),
                 "une demande d'achat" => $entity->getPurchaseRequests(),
@@ -202,10 +207,12 @@ class StatusController extends AbstractController
                 "une demande d'acheminement" => $entity->getDispatches(),
                 "une demande de transfert" => $entity->getTransferRequests(),
                 "un ordre de transfert" => $entity->getTransferOrders(),
+                "un historique de statut" => $statusHistoryRepository->findBy(['status' => $entity]),
+                "une demande d'expédition" => $shippingRequestRepository->findBy(['status' => $entity]),
             ];
 
             $constraints = Stream::from($constraints)
-                ->filter(fn($collection) => !$collection->isEmpty())
+                ->filter(fn($collection) => count($collection) > 0)
                 ->takeKeys()
                 ->map(fn(string $item) => "au moins $item")
                 ->join(", ");

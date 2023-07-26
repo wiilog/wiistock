@@ -67,26 +67,41 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @Route("/acheminements")
- */
+#[Route("/acheminements")]
 class DispatchController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required  */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /**
-     * @Route("/", name="dispatch_index")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE})
-     */
-    public function index(EntityManagerInterface $entityManager, DispatchService $service) {
+    #[Route("/", name: "dispatch_index")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
+    public function index(Request                   $request,
+                          EntityManagerInterface    $entityManager,
+                          DispatchService           $service) {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+
+        $query = $request->query;
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
+
+        if (!empty($statusesFilter)) {
+            $statusesFilter = Stream::from($statusesFilter)
+                ->map(fn($statusId) => $statutRepository->find($statusId)->getNom())
+                ->toArray();
+        }
+
+        if (!empty($typesFilter)) {
+            $typesFilter = Stream::from($typesFilter)
+                ->map(fn($typeId) => $typeRepository->find($typeId)->getLabel())
+                ->toArray();
+        }
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -108,14 +123,15 @@ class DispatchController extends AbstractController {
                 ->toArray(),
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types)
+            'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
+            'statusFilter' => $statusesFilter,
+            'typesFilter' => $typesFilter,
+            'fromDashboard' => $fromDashboard,
         ]);
     }
 
-    /**
-     * @Route("/api-columns", name="dispatch_api_columns", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "dispatch_api_columns", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function apiColumns(Request $request, EntityManagerInterface $entityManager, DispatchService $service): Response {
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
@@ -126,10 +142,8 @@ class DispatchController extends AbstractController {
             return $this->json(array_values($columns));
     }
 
-    /**
-     * @Route("/colonne-visible", name="save_column_visible_for_dispatch", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/colonne-visible", name: "save_column_visible_for_dispatch", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request                $request,
                                       TranslationService     $translationService,
                                       EntityManagerInterface $entityManager,
@@ -151,9 +165,7 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/autocomplete", name="get_dispatch_numbers", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/autocomplete", name: "get_dispatch_numbers", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
     public function getDispatchAutoComplete(Request $request,
                                             EntityManagerInterface $entityManager): Response {
         $search = $request->query->get('term');
@@ -164,14 +176,27 @@ class DispatchController extends AbstractController {
         return $this->json(['results' => $results]);
     }
 
-    /**
-     * @Route("/api", name="dispatch_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_ACHE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "dispatch_api", options: ["expose" => true], methods: ["GET","POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         DispatchService $dispatchService): Response {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
-        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode);
+        $fromDashboard = $request->query->getBoolean('fromDashboard');
+        $preFilledStatuses = $request->query->has('preFilledStatuses') ? implode(",", $request->query->all('preFilledStatuses')) : [];
+        $preFilledTypes = $request->query->has('preFilledTypes') ? implode(",", $request->query->all('preFilledTypes')) : [];
+
+        $preFilledFilters = [
+            [
+                'field' => 'statut',
+                'value' => $preFilledStatuses,
+            ],
+            [
+                'field' => 'multipleTypes',
+                'value' => $preFilledTypes,
+            ]
+        ];
+
+        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters);
 
         return new JsonResponse($data);
     }
@@ -506,7 +531,8 @@ class DispatchController extends AbstractController {
      */
     public function printDispatchStateSheet(TranslationService $translationService,
                                             Dispatch $dispatch,
-                                            DispatchService $dispatchService): ?Response {
+                                            DispatchService $dispatchService,
+                                            KernelInterface $kernel): ?Response {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
                 "success" => false,
@@ -516,10 +542,18 @@ class DispatchController extends AbstractController {
 
         $data = $dispatchService->getDispatchNoteData($dispatch);
 
-        return new PdfResponse(
-            $data['file'],
-            "{$data['name']}.pdf"
-        );
+        $dispatchSheet = $dispatch->getAttachments()->last();
+
+        $fileName = $dispatchSheet->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchSheet->getOriginalName());
+
+        return $response;
     }
 
     /**
@@ -1291,18 +1325,31 @@ class DispatchController extends AbstractController {
      * @param Dispatch $dispatch
      * @return PdfResponse
      */
-    public function printDeliveryNote(Dispatch $dispatch,
-                                      DispatchService $dispatchService): Response {
+    public function printDeliveryNote(TranslationService $translationService,
+                                      Dispatch $dispatch,
+                                      DispatchService $dispatchService,
+                                      KernelInterface $kernel): Response {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
-                "msg" => 'Le bon de livraison n\'existe pas pour cet acheminement'
+                "msg" => $translationService->translate('Demande', 'Acheminements', 'Bon de livraison', 'Le bon de livraison n\'existe pas pour cet acheminement', false)
             ]);
         }
 
         $data = $dispatchService->getDeliveryNoteData($dispatch);
 
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $deliveryNote = $dispatch->getAttachments()->last();
+
+        $fileName = $deliveryNote->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $deliveryNote->getOriginalName());
+
+        return $response;
     }
 
     /**
@@ -1350,7 +1397,7 @@ class DispatchController extends AbstractController {
                                DispatchService $dispatchService,
                                Dispatch $dispatch): JsonResponse {
 
-        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $entityManager);
+        $dispatchData = $dispatchService->getWayBillDataForUser($this->getUser(), $entityManager, $dispatch);
 
         $html = $this->renderView('dispatch/modalPrintWayBillContent.html.twig', $dispatchData);
 
@@ -1459,11 +1506,24 @@ class DispatchController extends AbstractController {
      * @HasPermission({Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL})
      */
     public function printOverconsumptionBill(Dispatch $dispatch,
-                                             DispatchService $dispatchService): Response {
+                                             DispatchService $dispatchService,
+                                             KernelInterface $kernel,
+                                             AttachmentService $attachmentService): Response {
 
         $data = $dispatchService->getOverconsumptionBillData($dispatch);
 
-        return new PdfResponse($data['file'], "{$data['name']}.pdf");
+        $overConsumptionBill = $dispatch->getAttachments()->last();
+
+        $fileName = $overConsumptionBill->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overConsumptionBill->getOriginalName());
+
+        return $response;
     }
 
     /**
@@ -1744,6 +1804,14 @@ class DispatchController extends AbstractController {
     {
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
         $dispatchPacks = $dispatchPackRepository->findBy(['dispatch' => $dispatch]);
+
+        if(count($dispatchPacks) === 0) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Vous devez renseigner au moins une unité logistique pour pouvoir ajouter une référence."
+            ]);
+        }
+
         $packs = [];
         foreach ($dispatchPacks as $dispatchPack) {
             $packs[] = [
@@ -1760,7 +1828,10 @@ class DispatchController extends AbstractController {
             'pack' => $pack,
         ]);
 
-        return new JsonResponse($html);
+        return new JsonResponse([
+            'success' => true,
+            'template' => $html,
+        ]);
     }
 
     #[Route("/add-logistic-unit-api/{dispatch}", name: "dispatch_add_logistic_unit_api", options: ['expose' => true], methods: "GET")]

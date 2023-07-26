@@ -34,15 +34,15 @@ class ReserveRepository extends EntityRepository
         }
     }
 
-    public function findByParamsAndFilters(InputBag $params, $reserveType){
+    public function findByParamsAndFilters(InputBag $params, $reserveKind){
         $qb = $this->createQueryBuilder("reserve")
             ->leftJoin('reserve.line', 'truck_arrival_line')
             ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
             ->andWhere('truck_arrival.id = :truckArrivalId')
-            ->andWhere('reserve.type = :reserveType')
+            ->andWhere('reserve.kind = :reserveKind')
             ->orderBy("truck_arrival_line.number", "DESC")
             ->setParameter('truckArrivalId', $params->get('truckArrival'))
-            ->setParameter('reserveType', $reserveType);
+            ->setParameter('reserveKind', $reserveKind);
 
         $countTotal = QueryBuilderHelper::count($qb, "reserve");
 

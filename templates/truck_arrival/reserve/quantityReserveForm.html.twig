@@ -23,7 +23,7 @@
         </div>
     </div>
     {% if reserve is defined  %}
-        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::TYPE_QUANTITY'), {
+        {{ form.input('type', null, false , constant('App\\Entity\\Reserve::KIND_QUANTITY'), {
             type: 'hidden',
         }) }}
         {% if reserve and reserve.id  %}

@@ -40,7 +40,7 @@ class DispatchReferenceArticleRepository extends EntityRepository
             ->select('reference_article.reference AS reference')
             ->addSelect('dispatch_reference_article.quantity AS quantity')
             ->addSelect('dispatch_pack.id AS dispatchPackId')
-            ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."outFormatEquipment"\')) AS outFormatEquipment')
+            ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$.outFormatEquipment')) IN ('null', '0'), 0, 1) AS outFormatEquipment")
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."manufacturerCode"\')) AS manufacturerCode')
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."width"\')) AS width')
             ->addSelect('JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, \'$."height"\')) AS height')

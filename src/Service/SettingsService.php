@@ -24,6 +24,7 @@ use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -1099,6 +1100,63 @@ class SettingsService {
                         ->setActive($nativeCountryData['active']);
 
                     $this->manager->persist($nativeCountry);
+                }
+            }
+        }
+
+        if (isset($tables["TruckArrivalReserves"])) {
+            $reserveTypesData = array_filter($tables["TruckArrivalReserves"]);
+            $reserveTypeRepository = $this->manager->getRepository(ReserveType::class);
+            $userRepository = $this->manager->getRepository(Utilisateur::class);
+
+            if (!empty($reserveTypesData)) {
+                $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
+                if ($isDefaultReserveTypes !== 1) {
+                    throw new RuntimeException("Il doit y avoir un seul type de réserve par défaut.");
+                }
+
+                $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
+                $nbLabelsWithoutDoubles = count(array_unique($labelReserveTypes));
+                if ($nbLabelsWithoutDoubles != count($reserveTypesData)) {
+                    throw new RuntimeException("Il ne peut pas y avoir plusieurs fois le même libellé de type de réserve.");
+                }
+
+                foreach ($reserveTypesData as $reserveTypeData) {
+                    $persistedReserveTypes = [];
+                    if (isset($reserveTypeData['id'])) {
+                        $reserveType = Stream::from($persistedReserveTypes)
+                            ->filter(fn(ReserveType $reserveType) => $reserveType->getId() == $reserveTypeData['id'])
+                            ->first();
+
+                        if (!$reserveType) {
+                            $reserveType = $reserveTypeRepository->find($reserveTypeData['id']);
+                            $persistedReserveTypes[] = $reserveType;
+                        }
+                    } else {
+                        $reserveType = new ReserveType();
+                        $persistedReserveTypes[] = $reserveType;
+                    }
+
+                    if (isset($reserveTypeData['emails']) && $reserveTypeData['emails'] != "") {
+                        $emails = explode(',', $reserveTypeData['emails']);
+                        $notifiedUsers = Stream::from($emails)
+                            ->map(fn($userId) => $userRepository->find($userId))
+                            ->toArray();
+                    } else {
+                        $notifiedUsers = [];
+                    }
+
+                    if($reserveTypeData['defaultReserveType'] && !$reserveTypeData['active']){
+                        throw new RuntimeException("Impossible de rendre inactif le type de réserve par défaut.");
+                    }
+
+                    $reserveType
+                        ->setLabel($reserveTypeData['label'])
+                        ->setNotifiedUsers(!empty($notifiedUsers) ? $notifiedUsers : null)
+                        ->setDefaultReserveType($reserveTypeData['defaultReserveType'])
+                        ->setActive($reserveTypeData['active']);
+
+                    $this->manager->persist($reserveType);
                 }
             }
         }

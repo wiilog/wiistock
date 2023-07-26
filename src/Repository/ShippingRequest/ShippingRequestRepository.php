@@ -281,4 +281,14 @@ class ShippingRequestRepository extends EntityRepository {
             return null;
         }
     }
+
+    public function countByRequesters($user) {
+        $qb = $this->createQueryBuilder('shipping_request');
+        return $qb
+            ->select("COUNT(shipping_request)")
+            ->andWhere(':user MEMBER OF shipping_request.requesters')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
