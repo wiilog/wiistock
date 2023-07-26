@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Service\DispatchService;
@@ -189,6 +190,7 @@ class StatusController extends AbstractController
             ]);
         } else {
             $shippingRequestRepository = $manager->getRepository(ShippingRequest::class);
+            $statusHistoryRepository = $manager->getRepository(StatusHistory::class);
 
             $constraints = [
                 "un litige" => $entity->getDisputes(),
@@ -205,6 +207,7 @@ class StatusController extends AbstractController
                 "une demande d'acheminement" => $entity->getDispatches(),
                 "une demande de transfert" => $entity->getTransferRequests(),
                 "un ordre de transfert" => $entity->getTransferOrders(),
+                "un historique de statut" => $statusHistoryRepository->findBy(['status' => $entity]),
                 "une demande d'expédition" => $shippingRequestRepository->findBy(['status' => $entity]),
             ];
 
