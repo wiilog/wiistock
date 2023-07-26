@@ -507,6 +507,7 @@ class DashboardSettingsService {
 
         $values['linesCountTooltip'] = $config['linesCountTooltip'] ?? '';
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
+        $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
 
         return $values;
     }
