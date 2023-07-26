@@ -2009,7 +2009,7 @@ class SettingsController extends AbstractController {
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                    $suggestedPickLocationOptions = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedPickLocations()]) ?? [])
                         ->map(fn(Emplacement $location) => [
                             "value" => $location->getId(),
                             "label" => $location->getLabel(),
@@ -2017,7 +2017,7 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray();
 
-                    $suggestedDropLocationOptions = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                    $suggestedDropLocationOptions = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedDropLocations()]) ?? [])
                         ->map(fn(Emplacement $location) => [
                             "value" => $location->getId(),
                             "label" => $location->getLabel(),

@@ -42,6 +42,7 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
@@ -642,16 +643,23 @@ class SettingsService {
                 $tagTemplate->setHeight($tagTemplateData['height']);
                 $tagTemplate->setWidth($tagTemplateData['width']);
                 $tagTemplate->setModule($tagTemplateData['module']);
+
+                $natures = [];
+                $types = [];
+
                 Stream::explode(',', $tagTemplateData['natureOrType'])
-                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
-                            $tagTemplate->addNature($nature);
+                            $natures[] = $nature;
                         } else {
                             $type = $typeRepository->find($id);
-                            $tagTemplate->addType($type);
+                            $types[] = $type;
                         }
                     } );
+
+                $tagTemplate->setNatures(new ArrayCollection($natures));
+                $tagTemplate->setTypes(new ArrayCollection($types));
 
                 $this->manager->persist($tagTemplate);
             }
@@ -1103,8 +1111,8 @@ class SettingsService {
 
             if (!empty($reserveTypesData)) {
                 $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
-                if ($isDefaultReserveTypes > 1) {
-                    throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
+                if ($isDefaultReserveTypes !== 1) {
+                    throw new RuntimeException("Il doit y avoir un seul type de réserve par défaut.");
                 }
 
                 $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
@@ -1136,6 +1144,10 @@ class SettingsService {
                             ->toArray();
                     } else {
                         $notifiedUsers = [];
+                    }
+
+                    if($reserveTypeData['defaultReserveType'] && !$reserveTypeData['active']){
+                        throw new RuntimeException("Impossible de rendre inactif le type de réserve par défaut.");
                     }
 
                     $reserveType

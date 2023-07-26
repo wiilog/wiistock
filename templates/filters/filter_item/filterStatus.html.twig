@@ -39,6 +39,6 @@
                 {% endif %}
             </select>
         </div>
-        <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus|json_encode : '' }}">
+        <input hidden id="filterStatus" value="{{ filterStatus is defined ? (filterStatus is iterable ? filterStatus|json_encode : filterStatus) : '' }}">
     </div>
 </div>

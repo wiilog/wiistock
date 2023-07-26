@@ -17,6 +17,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
+use App\Entity\ReserveType;
 use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -393,7 +394,7 @@ class FormatService
         return $this->entity($truckArrivalLines, 'number', $separator);
     }
 
-    public function reserveType($reserveType, string $else = ''): string {
+    public function reserveType(?ReserveType $reserveType, string $else = ''): string {
         return $reserveType ? $reserveType->getLabel() : $else;
     }
 }
