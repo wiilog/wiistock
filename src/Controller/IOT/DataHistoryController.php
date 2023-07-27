@@ -83,8 +83,7 @@ class DataHistoryController extends AbstractController {
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
-            $filters["end"],
-            Sensor::TEMPERATURE
+            $filters["end"]
         );
 
         $data = $pairingService->buildChartDataFromMessages($associatedMessages);
