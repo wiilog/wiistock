@@ -398,7 +398,7 @@ class PackService {
         $now = new DateTime('now');
         $createdPacks = [];
 
-        if (!empty($arrivage->getTruckArrivalLines())) {
+        if (!$arrivage->getTruckArrivalLines()->isEmpty()) {
             $truckArrivalCreationDate = $arrivage->getTruckArrivalLines()->first()->getTruckArrival()->getCreationDate();
 
             //en millisecondes
