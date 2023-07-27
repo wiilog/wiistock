@@ -822,8 +822,11 @@ class SelectController extends AbstractController {
     #[Route('/select/driver', name: 'ajax_select_driver', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function driver(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
+        $carrierId = $request->query->get("carrier");
 
-        $drivers = $manager->getRepository(Chauffeur::class)->getForSelect($term);
+        $drivers = $manager->getRepository(Chauffeur::class)->getForSelect($term, [
+            'carrierId' => $carrierId
+        ]);
 
         return $this->json([
             "results" => $drivers,
