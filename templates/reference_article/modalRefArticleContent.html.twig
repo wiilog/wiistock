@@ -2,6 +2,7 @@
 {% set disabled = editable ? '' : 'disabled' %}
 {% set editAttachments = editAttachments is defined and editAttachments %}
 {% set showAttachments = showAttachments is not defined or showAttachments %}
+{% import 'form.html.twig' as form %}
 
 <div class="row">
     <div class="form-group col-6">
