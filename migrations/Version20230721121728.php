@@ -28,7 +28,7 @@ final class Version20230721121728 extends AbstractMigration
         $reserves = $this->connection->executeQuery("
                 SELECT reserve.id
                 FROM reserve
-                WHERE type = '" . Reserve::KIND_QUALITY . "'"
+                WHERE type = 'quality'"
         )->fetchAllAssociative();
 
         foreach ($reserves as $reserve) {
