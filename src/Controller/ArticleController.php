@@ -615,7 +615,7 @@ class ArticleController extends AbstractController
             if ($refArticle && $deliveryRequest) {
                 /** @var Utilisateur $currentUser */
                 $currentUser = $this->getUser();
-                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser, $needsQuantitiesCheck);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle, $deliveryRequest, $currentUser, $needsQuantitiesCheck, $entityManager);
             } else {
                 $json = false; //TODO gérer erreur retour
             }

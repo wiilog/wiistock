@@ -3,10 +3,13 @@
     <input class="form-control data needed"
            type="number"
            min=1
-           {% if not setting_value('MANAGE_PREPARATIONS_WITH_PLANNING') %}max="{{ maximum }}"{% endif %}
-           id="quantity-to-deliver-with-choice"
+           {# Si le paramétrage "Ne pas gérer les quantités en stock" est coché, on ne prend pas en compte la quantité disponible #}
+           {% if not setting_value('MANAGE_PREPARATIONS_WITH_PLANNING') and  needStockQuantityManaging %}
+                max="{{ maximum }}"
+           {% endif %}
+           id={{ needStockQuantityManaging ? "needStockQuantityManaging" : "noNeedStockQuantityManaging" }}
            name="quantity-to-pick"
-           value="0">
+           value="1">
 </div>
 
 {% if showTargetLocationPicking is defined and showTargetLocationPicking %}
@@ -15,7 +18,11 @@
         <select data-s2="location" class="form-control data" name="target-location-picking"></select>
     </div>
 {% endif %}
-<div class="form-group mt-2">
-    <label class="wii-field-name">Quantité disponible</label>
-    <input class="form-control" value="{{ maximum }}" disabled>
-</div>
+{% if needStockQuantityManaging %}
+    <div class="form-group mt-2">
+        <label class="wii-field-name">Quantité disponible</label>
+        <input class="form-control" value="{{ maximum }}" disabled>
+    </div>
+{% else %}
+    <input type="hidden" class="form-control" value="{{ maximum }}">
+{% endif %}

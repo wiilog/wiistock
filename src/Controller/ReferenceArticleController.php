@@ -609,9 +609,11 @@ class ReferenceArticleController extends AbstractController
     {
         $search = $request->query->get('term');
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $needStockQuantityManaging = !$settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         $activeOnly = $request->query->getBoolean('activeOnly', false);
-        $minQuantity = $request->query->get('minQuantity');
+        $minQuantity = $needStockQuantityManaging ? $request->query->get('minQuantity') : null; //Pas de minimum si paramétrage "Ne pas gérer les quantités en stock"
         $typeQuantity = $request->query->get('typeQuantity');
         $field = $request->query->get('field', 'reference');
         $locationFilter = $request->query->get('locationFilter');

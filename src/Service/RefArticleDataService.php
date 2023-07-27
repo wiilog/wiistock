@@ -834,9 +834,27 @@ class RefArticleDataService
                                                ReferenceArticle       $referenceArticle,
                                                bool                   $fromCommand = false)
     {
-        $this->updateStockQuantity($entityManager, $referenceArticle);
-        $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
-        $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $needStockQuantityManaging = !$settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+
+        // On vérifie si le paramètre "Ne pas gérer les quantités en Stock" est coché ou non
+        if ($needStockQuantityManaging) {
+
+            $this->updateStockQuantity($entityManager, $referenceArticle);
+            $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
+            $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
+        }
+        else {
+            $refArticleStockQuantity = $referenceArticle->getQuantiteStock();
+            $oldReservedQuantity = $referenceArticle->getQuantiteReservee();
+
+            $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
+            $newReservedQuantity = $referenceArticle->getQuantiteReservee();
+
+            $reservedQuantity = $newReservedQuantity - $oldReservedQuantity;
+
+            $referenceArticle->setQuantiteStock($refArticleStockQuantity + $reservedQuantity);
+        }
     }
 
     public function updateInventoryStatus(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle)

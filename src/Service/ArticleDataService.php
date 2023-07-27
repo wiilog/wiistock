@@ -103,7 +103,7 @@ class ArticleDataService
         return $data;
     }
 
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user, $needsQuantitiesCheck)
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user, $needsQuantitiesCheck, EntityManagerInterface $entityManager)
     {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $data = [
@@ -118,10 +118,13 @@ class ArticleDataService
 
             $availableQuantity = $refArticle->getQuantiteDisponible();
             if ($role->getQuantityType() == ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
+                $settingRepository = $entityManager->getRepository(Setting::class);
+                $needStockQuantityManaging = !$settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
                 $data = [
                     'selection' => $this->templating->render('demande/choiceContent.html.twig', [
                         'maximum' => $availableQuantity,
-                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION)
+                        'showTargetLocationPicking' => $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
+                        'needStockQuantityManaging' => $needStockQuantityManaging,
                     ])];
             } else {
                 $management = $refArticle->getStockManagement();

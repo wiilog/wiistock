@@ -494,35 +494,42 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         // validation valeur des inputs de type number
         else if ($input.attr('type') === 'number') {
-            if (val
-                && !$input.is(':disabled')) {
-                let val = Number($input.val());
-                let min = Number($input.attr('min'));
-                let max = Number($input.attr('max'));
-                if (!isNaN(val)
-                    && (
-                        val > max
-                        || val < min
-                    )) {
-                    let errorMessage = 'La valeur du champ ' + label;
-                    if (!isNaN(min) && !isNaN(max)) {
-                        errorMessage += min > max
-                            ? ` doit être inférieure à ${max}.`
-                            : ` doit être comprise entre ${min} et ${max}.`;
-                    } else if (!isNaN(max)) {
-                        errorMessage += ` doit être inférieure ou égale à ${max}.`;
-                    } else if (!isNaN(min)) {
-                        errorMessage += ` doit être supérieure ou égale à ${min}.`;
+            const noNeedStockQuantityManaging = $input.attr('id') === 'noNeedStockQuantityManaging';
+            // Si paramètrage "Ne pas gérer les quantités en Stock": On ne prend pas en compte min et max
+            if (noNeedStockQuantityManaging) {
+                saveData($input, data, name, val, isAttachmentForm);
+            }
+            else {
+                if (val
+                    && !$input.is(':disabled')) {
+                    let val = Number($input.val());
+                    let min = Number($input.attr('min'));
+                    let max = Number($input.attr('max'));
+                    if (!isNaN(val)
+                        && (
+                            val > max
+                            || val < min
+                        )) {
+                        let errorMessage = 'La valeur du champ ' + label;
+                        if (!isNaN(min) && !isNaN(max)) {
+                            errorMessage += min > max
+                                ? ` doit être inférieure à ${max}.`
+                                : ` doit être comprise entre ${min} et ${max}.`;
+                        } else if (!isNaN(max)) {
+                            errorMessage += ` doit être inférieure ou égale à ${max}.`;
+                        } else if (!isNaN(min)) {
+                            errorMessage += ` doit être supérieure ou égale à ${min}.`;
+                        } else {
+                            errorMessage += ` ne peut pas être rempli`;
+                        }
+                        errorMessages.push(errorMessage)
+                        $isInvalidElements.push($input);
                     } else {
-                        errorMessage += ` ne peut pas être rempli`;
+                        saveData($input, data, name, val, isAttachmentForm);
                     }
-                    errorMessages.push(errorMessage)
-                    $isInvalidElements.push($input);
                 } else {
                     saveData($input, data, name, val, isAttachmentForm);
                 }
-            } else {
-                saveData($input, data, name, val, isAttachmentForm);
             }
         } else if ($input.attr('type') === 'checkbox') {
             saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
