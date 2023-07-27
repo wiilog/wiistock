@@ -310,6 +310,7 @@ class ArrivageController extends AbstractController {
 
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
+        // packs tracking movement are create at the end of the creation of the arrival, after truckArrivalLine reserve modal
         $packService->persistMultiPacks(
             $entityManager,
             $arrivage,

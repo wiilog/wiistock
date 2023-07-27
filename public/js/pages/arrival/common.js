@@ -81,10 +81,16 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
 }
 
 function redirectWithReserve(newArrivalId) {
-    window.location.href = Routing.generate('arrivage_show', {
-        id: newArrivalId,
-        reserve: true
-    }, true)
+    $.post(Routing.generate('post_arrival_tracking_movements', {arrival: newArrivalId}))
+        .then(() => {
+            window.location.href = Routing.generate('arrivage_show', {
+                id: newArrivalId,
+                reserve: true
+            }, true)
+        })
+        .catch(() => {
+            showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
+        });
 }
 
 function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
