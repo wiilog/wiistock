@@ -66,7 +66,9 @@ class IOTService
     const DEMO_ACTION = 'demo-action';
 
     const PROFILE_TO_MAX_TRIGGERS = [
-        self::INEO_SENS_ACS_TEMP => 1,
+        self::INEO_SENS_ACS_TEMP => 2,
+        self::INEO_SENS_ACS_HYGRO => 2,
+        self::INEO_SENS_ACS_TEMP_HYGRO => 4,
         self::INEO_SENS_GPS => 1,
         self::INEO_SENS_ACS_BTN => 1,
         self::SYMES_ACTION_MULTI => 4,
@@ -77,6 +79,8 @@ class IOTService
 
     const PROFILE_TO_TYPE = [
         self::INEO_SENS_ACS_TEMP => Sensor::TEMPERATURE,
+        self::INEO_SENS_ACS_TEMP_HYGRO => Sensor::TEMPERATURE_HYGROMETRY,
+        self::INEO_SENS_ACS_HYGRO => Sensor::HYGROMETRY,
         self::KOOVEA_TAG => Sensor::TEMPERATURE,
         self::KOOVEA_HUB => Sensor::GPS,
         self::INEO_SENS_GPS => Sensor::GPS,
@@ -89,6 +93,8 @@ class IOTService
 
     const PROFILE_TO_FREQUENCY = [
         self::INEO_SENS_ACS_TEMP => 'x minutes',
+        self::INEO_SENS_ACS_TEMP_HYGRO =>  'x minutes',
+        self::INEO_SENS_ACS_HYGRO =>  'x minutes',
         self::INEO_SENS_GPS => 'x minutes',
         self::KOOVEA_TAG => 'x minutes',
         self::KOOVEA_HUB => 'x minutes',
@@ -158,13 +164,16 @@ class IOTService
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
             foreach ($wrapper->getTriggerActions() as $triggerAction) {
-                $type = FormatHelper::type($sensor->getType());
+                $type = $sensorMessage->getContentType();
                 switch ($type) {
-                    case Sensor::ACTION:
+                    case IOTService::DATA_TYPE_ACTION:
                         $this->treatActionTrigger($wrapper, $triggerAction, $sensorMessage, $entityManager);
                         break;
-                    case Sensor::TEMPERATURE:
-                        $this->treatTemperatureTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper);
+                    case IOTService::DATA_TYPE_TEMPERATURE:
+                        $this->treatDataTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper, 'temperature');
+                        break;
+                    case IOTService::DATA_TYPE_HYGROMETRY:
+                        $this->treatDataTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper, 'hygrometry');
                         break;
                     default:
                         break;
@@ -174,22 +183,25 @@ class IOTService
         $entityManager->flush();
     }
 
-    private function treatTemperatureTrigger(TriggerAction $triggerAction,
-                                             SensorMessage $sensorMessage,
-                                             EntityManagerInterface $entityManager,
-                                             SensorWrapper $wrapper): void {
+    private function treatDataTrigger(TriggerAction          $triggerAction,
+                                      SensorMessage          $sensorMessage,
+                                      EntityManagerInterface $entityManager,
+                                      SensorWrapper          $wrapper,
+                                      string                 $dataType): void {
 
         $config = $triggerAction->getConfig();
 
-
-        $temperatureThreshold = floatval($config['temperature']);
-        $messageTemperature = floatval($sensorMessage->getContent());
+        if(!isset($config[$dataType])){
+            return;
+        }
+        $dataThreshold = floatval($config[$dataType] );
+        $message = floatval($sensorMessage->getContent());
 
         $temperatureThresholdType = $config['limit'];
 
         $needsTrigger = $temperatureThresholdType === TriggerAction::LOWER
-            ? $temperatureThreshold >= $messageTemperature
-            : $temperatureThreshold <= $messageTemperature;
+            ? $dataThreshold >= $message
+            : $dataThreshold <= $message;
         $triggerAction->setLastTrigger(new DateTime('now'));
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
