@@ -65,12 +65,21 @@ class ChauffeurRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getForSelect(?string $term): array {
-        return $this->createQueryBuilder('driver')
+    public function getForSelect(?string $term, array $options = []): array {
+        $carrierId = $options['carrierId'] ?? null;
+        $qb = $this->createQueryBuilder('driver')
             ->select("driver.id AS id")
             ->addSelect("CONCAT(driver.prenom, ' ', driver.nom) AS text")
             ->andWhere('driver.nom LIKE :term OR driver.prenom LIKE :term')
-            ->setParameter("term", "%$term%")
+            ->setParameter("term", "%$term%");
+
+        if($carrierId){
+            $qb->leftJoin('driver.transporteur', 'carrier')
+                ->andWhere('carrier.id = :carrierId')
+                ->setParameter("carrierId", $carrierId);
+        }
+
+        return $qb
             ->getQuery()
             ->getResult();
     }
