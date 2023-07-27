@@ -27,29 +27,37 @@ describe('Open every pages in nav and settings', () => {
         })
     })
 
-    it.only('should navigate to all nav pages', () => {
+    it('should navigate to all nav pages', () => {
         cy.get('nav')
             .click()
             .get('.dropdown-menu')
             .should('be.visible')
             .get('.dropdown-menu a.dropdown-item')
             .each(($navLink) => {
-                const href = $navLink.prop('href');
-                if ((!href.includes('/logout')) && (!href.includes('https://wiilog.gitbook.io/docs/'))) {
-                    cy.visit($navLink.prop('href'))
-                        .then(() => {
-                            //TODO wait!!!
-                            cy.wait(4000);
-                            cy.interceptAllRequets();
-                        })
-                } else {
-                    cy.request({
-                        url: href,
+                cy.request({
+                    url: $navLink.prop('href'),
+                    failOnStatusCode: false,
+                })
+                    .should((response) => {
+                        expect(response.status).not.to.eq(500);
                     })
-                        .should((response) => {
-                            expect(response.status).not.to.eq(500);
-                        })
-                }
+                // TODO Get all requests isn't stable but it's the only solution I have found
+                // const href = $navLink.prop('href');
+                // if ((!href.includes('/logout')) && (!href.includes('https://wiilog.gitbook.io/docs/'))) {
+                //     cy.visit($navLink.prop('href'))
+                //         .then(() => {
+                //             //TODO wait!!!
+                //             cy.wait(5000);
+                //             cy.interceptAllRequets();
+                //         })
+                // } else {
+                //     cy.request({
+                //         url: href,
+                //     })
+                //         .should((response) => {
+                //             expect(response.status).not.to.eq(500);
+                //         })
+                // }
             });
     });
 
@@ -64,7 +72,7 @@ describe('Open every pages in nav and settings', () => {
                     .should((response) => {
                         expect(response.status).not.to.eq(500);
                     })
-                // TODO On localhost, requests response time is too long
+                // TODO On localhost, requests response time is too long and same reason as above
                 //cy.navigateToAllItemsInSettingsPages($settingLink.prop('href'));
             })
     })

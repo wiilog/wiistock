@@ -37,10 +37,12 @@ Cypress.Commands.add('addTypeInSettings', (settingsItemName) => {
 
             if ($div.find('select[name=pickLocation]').length) {
                 cy.select2Ajax('pickLocation', 'BUREAU GT');
+                cy.select2AjaxMultiple('suggestedPickLocations', ['BUREAU GT']);
             }
 
             if ($div.find('select[name=dropLocation]').length) {
                 cy.select2Ajax('dropLocation', 'ZONE 41');
+                cy.select2AjaxMultiple('suggestedDropLocations', ['ZONE 41']);
             }
 
             if ($div.find('input[name=pushNotifications]').length) {
@@ -97,10 +99,12 @@ Cypress.Commands.add('editTypeInSettings', (settingsItemName) => {
 
             if ($div.find('select[name=pickLocation]').length) {
                 cy.select2Ajax('pickLocation', 'ZONE 41');
+                cy.select2AjaxMultiple('suggestedPickLocations', ['ZONE 41']);
             }
 
             if ($div.find('select[name=dropLocation]').length) {
                 cy.select2Ajax('dropLocation', 'BUREAU GT');
+                cy.select2AjaxMultiple('suggestedDropLocations', ['BUREAU GT']);
             }
 
             if ($div.find('input[name=pushNotifications]').length) {
@@ -140,24 +144,21 @@ Cypress.Commands.add('addFreeFieldInSettings', (settingsItemName) => {
         } else {
             cy.get(linesTableFreeFieldsComponent).find('td').should('have.length.gt', 1);
         }
-    });
+    }).then(() => {
+        cy.get(`[data-menu=${settingsItemName}]`)
+            .then(($item) => {
 
-    cy.get(`[data-menu=${settingsItemName}]`)
-        .then(($item) => {
-
-            if ($item.find('button.edit-button').length) {
-                cy.get(`[data-menu=${settingsItemName}] button.edit-button`)
-                    .click().wait('@settings_free_field_api');
-                cy.get(linesTableFreeFieldsComponent).last()
-                    .click();
-            } else {
-                cy.get(`${linesTableFreeFieldsComponent}`).first()
-                    .click().wait('@settings_free_field_api');
-                cy.get(`${linesTableFreeFieldsComponent} td .wii-icon-plus`)
-                    .click();
-            }
-        });
-
+                if ($item.find('button.edit-button').length) {
+                    cy.get(`[data-menu=${settingsItemName}] button.edit-button`)
+                        .click().wait('@settings_free_field_api');
+                    cy.get(linesTableFreeFieldsComponent).last()
+                        .click();
+                } else {
+                    cy.get(`${linesTableFreeFieldsComponent} td .wii-icon-plus`)
+                        .click().wait('@settings_free_field_api');
+                }
+            });
+    })
 
     cy.get('select[name=type]').then(($select) => {
         const typeLength= $select.find('option').length;
@@ -238,11 +239,11 @@ Cypress.Commands.add('editFreeFieldInSettings', (settingsItemName) => {
                 cy.get(linesTableFreeFieldsComponent).first().find('td').eq(2)
                     .click();
             }
-        });
-
-    cy.get(`${linesTableFreeFieldsComponent} input[name=label]`).first()
-        .click()
-        .clear().type(labelName);
+        }).then(() => {
+            cy.get(`${linesTableFreeFieldsComponent} input[name=label]`).first()
+                .click()
+                .clear().type(labelName);
+    })
 
     cy.get(linesTableFreeFieldsComponent)
         .then(($element) => {
