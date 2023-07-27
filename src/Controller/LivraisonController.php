@@ -572,7 +572,8 @@ class LivraisonController extends AbstractController {
                                       Livraison                 $deliveryOrder,
                                       PDFGeneratorService       $pdfService,
                                       SpecificService           $specificService,
-                                      TranslationService        $translation): Response {
+                                      TranslationService        $translation,
+                                      KernelInterface           $kernel): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -587,6 +588,13 @@ class LivraisonController extends AbstractController {
         $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$nowDate->format('dmYHis')}";
+
+        $attachments = $deliveryOrder->getAttachments();
+        $fileName = $attachments->last()->getFilename();
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        $content = $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
+        file_put_contents($filePath, $content);
 
         return new PdfResponse(
             $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder),
