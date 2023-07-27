@@ -298,7 +298,7 @@ class RefArticleDataService
         }
 
         $isDangerousGood = $data->getBoolean('security');
-        $fileSheetSubmitted = $fileBag->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetSubmitted = $fileBag->has('fileSheet') && $data->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
         $fileSheetPreviouslySaved = $data->has('savedSheetFile');
         $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
 
@@ -494,7 +494,7 @@ class RefArticleDataService
                 }
             }
 
-            if ($fileBag->has('fileSheet')) {
+            if ($data->has('filesheet') && $fileBag->has('fileSheet')) {
                 $file = $fileBag->get('fileSheet');
                 $attachments = $this->attachmentService->createAttachements([$file]);
                 $entityManager->persist($attachments[0]);
