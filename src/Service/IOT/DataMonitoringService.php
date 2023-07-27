@@ -14,13 +14,14 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Transport\Vehicle;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -38,6 +39,9 @@ class DataMonitoringService
 
     /** @Required */
     public IOTService $IOTService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function render($config): Response
     {
@@ -73,8 +77,8 @@ class DataMonitoringService
 
     public function fillPairingConfig(array &$config, Pairing $pairing)
     {
-        $start = FormatHelper::datetime($pairing->getStart(), null, true);
-        $end = FormatHelper::datetime($pairing->getEnd(), null, true);
+        $start = $this->formatService->datetime($pairing->getStart(), null, true);
+        $end = $this->formatService->datetime($pairing->getEnd(), null, true);
 
         $config["start"] = (new DateTime())->modify('-1 day');
         $config["end"] = new DateTime();
@@ -93,8 +97,8 @@ class DataMonitoringService
             "end" => $end
         ];
 
-        $type = FormatHelper::type($pairing->getSensorWrapper()->getSensor()->getType());
-        if ($type === Sensor::TEMPERATURE) {
+        $type = $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType());
+        if ($type === Sensor::TEMPERATURE || $type === Sensor::TEMPERATURE_HYGROMETRY) {
             $config["center_pane"][] = [
                 "type" => "chart",
                 "fetch_url" => $this->router->generate("pairing_chart_data", [
