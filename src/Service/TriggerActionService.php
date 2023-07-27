@@ -3,6 +3,8 @@
 
 namespace App\Service;
 
+use App\Entity\IOT\AlertTemplate;
+use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\TriggerAction;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
@@ -50,6 +52,23 @@ class TriggerActionService
                 'triggerId' => $triggerAction->getId(),
             ]),
         ];
+    }
+
+    public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager, $triggerActionType, $name): TriggerAction {
+        $triggerAction = new TriggerAction();
+
+        $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+        $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
+
+        if ($triggerActionType === TriggerAction::REQUEST) {
+            $requestTemplate = $requestTemplateRepository->findOneBy(['id' => $name]);
+            $triggerAction->setRequestTemplate($requestTemplate);
+        } elseif ($triggerActionType === TriggerAction::ALERT) {
+            $alertTemplate = $alertTemplateRepository->findOneBy(['id' => $name]);
+            $triggerAction->setAlertTemplate($alertTemplate);
+        }
+
+        return $triggerAction;
     }
 
 }

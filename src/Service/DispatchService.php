@@ -950,11 +950,22 @@ class DispatchService {
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();
 
-        $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+        $originalName = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}.pdf";
+        $fileName = uniqid().'.pdf';
+
+        $pdfContent = $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField);
+
+        $attachment = new Attachment();
+        $attachment->setFileName($fileName);
+        $attachment->setOriginalName($originalName);
+        $attachment->setDispatch($dispatch);
+
+        $this->entityManager->persist($attachment);
+        $this->entityManager->flush();
 
         return [
-            'file' => $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField),
-            'name' => $name
+            'file' => $pdfContent,
+            'name' => $originalName
         ];
     }
 
@@ -967,8 +978,10 @@ class DispatchService {
 
         $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }
@@ -979,8 +992,10 @@ class DispatchService {
 
         $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDispatchNote($dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDispatchNote($dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }
@@ -1675,6 +1690,7 @@ class DispatchService {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
+        $packNature = isset($data['natureId']) ? $natureRepository->find($data['natureId']) : null;
 
         $reference = ($createdReferences[$data['reference']] ?? null)
             ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
@@ -1748,7 +1764,7 @@ class DispatchService {
         $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
             ?? $this->packService->createPackWithCode($data['logisticUnit']);
 
-        $logisticUnit->setNature($defaultNature);
+        $logisticUnit->setNature($packNature ?? $defaultNature);
 
         $entityManager->persist($logisticUnit);
 

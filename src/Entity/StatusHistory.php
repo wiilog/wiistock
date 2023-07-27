@@ -21,7 +21,6 @@ class StatusHistory {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    // TODO WIIS-9630 rajouter des on cascade delete pour supprimer les statusHistory
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'statusHistory')]
     private ?TransportOrder $transportOrder = null;
 

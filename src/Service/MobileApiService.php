@@ -81,10 +81,19 @@ class MobileApiService {
             })
             ->toArray();
 
+        $dispatchReferences = Stream::from($dispatchReferenceArticleRepository->getForMobile($dispatchIds))
+            ->map(function ($dispatchReference) {
+                if (!empty($dispatchReference['comment'])) {
+                    $dispatchReference['comment'] = substr(strip_tags($dispatchReference['comment']), 0, 200);
+                }
+                return $dispatchReference;
+            })
+            ->toArray();
+
         return [
             'dispatches' => $dispatches,
             'dispatchPacks' => $dispatchPacks,
-            'dispatchReferences' => $dispatchReferenceArticleRepository->getForMobile($dispatchIds),
+            'dispatchReferences' => $dispatchReferences,
         ];
     }
 

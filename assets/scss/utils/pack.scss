@@ -83,6 +83,12 @@
         tr.articles-container {
             font-size: 1.2rem;
 
+            &.no-header {
+                td {
+                    max-width: 0;
+                }
+            }
+
             &:not(.no-header) {
                 td:nth-child(2) {
                     max-width: 0
