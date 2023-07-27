@@ -3890,17 +3890,24 @@ class MobileController extends AbstractApiController
         $entityManager->persist($truckArrival);
         $entityManager->flush();
 
-        $values = Stream::from($reserves)
+        $allAttachments = Stream::from($reserves)
             ->keymap(fn(Reserve $reserve) => [
                 $reserve->getReserveType()->getId(),
                 $reserve->getAttachments()->toArray()
             ], true)
             ->toArray();
 
-        foreach ($values as $reserveTypeId => $attachments) {
+        $reserveTypeIdToReserveTypeArray = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [$reserve->getReserveType()?->getId(), $reserve->getReserveType()])
+            ->toArray();
+
+        foreach ($allAttachments as $reserveTypeId => $attachments) {
             $attachments = Stream::from($attachments)->flatten()->toArray();
-            $reserveType = $reserveTypeRepository->find($reserveTypeId);
-            $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+            $reserveType = $reserveTypeIdToReserveTypeArray[$reserveTypeId] ?? null;
+
+            if($reserveType) {
+                $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+            }
         }
 
         return $this->json([
