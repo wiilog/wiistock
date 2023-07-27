@@ -1,10 +1,11 @@
 Cypress.Commands.add('editMovement', (minute, type) => {
+    cy.intercept('POST', '/mouvement-traca/api-modifier').as('tracking_movement_api_edit');
     cy.get('#tableMvts tbody td').contains(`24/07/2023 12:${minute}`).then((td) => {
-        cy.wrap(td).eq(0).click();
+        cy.wrap(td).eq(0).click().wait('@tracking_movement_api_edit');
     })
     cy.get(`#modalEditMvtTraca`)
         .should('be.visible');
-    cy.get('input[name=date]').click().clear().type(`24/07/2023 13:${minute}{enter}`);
+    cy.get('#modalEditMvtTraca input[name=date]').click().clear().type(`24/07/2023 13:${minute}{enter}`);
     cy.get('input[name=pack]').click().clear().type(`000${minute}`);
     if (type !== 'groupage') {
         cy.get('select[name=location]')
@@ -13,7 +14,7 @@ Cypress.Commands.add('editMovement', (minute, type) => {
             .click();
         cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca', false);
     } else {
-        cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca');;
+        cy.select2Ajax('location', 'LABO 11', 'modalEditMvtTraca');
     }
     cy.get('select[name=operator]')
         .siblings('.select2')

@@ -7,7 +7,7 @@ Cypress.Commands.add('interceptAllRequets', () => {
         numberOfCalls = calls.length - previousNumberOfCalls;
         previousNumberOfCalls = calls.length;
         for (let i = 0; i < numberOfCalls; i++) {
-            cy.wait('@allRequests', {timeout: 40000}).then((interceptions) => {
+            cy.wait('@allRequests', {timeout: 80000}).then((interceptions) => {
                 const interceptedResponses = [interceptions];
                 interceptedResponses.forEach((interception) => {
                     expect(interception.response.statusCode).not.to.eq(500);

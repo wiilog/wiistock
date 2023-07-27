@@ -10,12 +10,14 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
     it('should add a new supplier', () => {
         cy.intercept('POST', 'fournisseur/creer').as('supplier_new');
         cy.get(`button[data-target='#modalNewFournisseur']`).click();
-        cy.get('#modalNewFournisseur').should('be.visible');
-        cy.get('#modalNewFournisseur input[name=name]').type('RENAULT');
-        cy.get('#modalNewFournisseur input[name=code]').type('RENAULT');
-        cy.get('#modalNewFournisseur input[name=possibleCustoms]').check();
-        cy.get('#modalNewFournisseur input[name=urgent]').check();
-        cy.get('button#submitNewFournisseur').click().wait('@supplier_new');
+        cy.get('#modalNewFournisseur').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewFournisseur input[name=name]').should('be.visible');
+            cy.get('#modalNewFournisseur input[name=name]').click().type('RENAULT');
+            cy.get('#modalNewFournisseur input[name=code]').type('RENAULT');
+            cy.get('#modalNewFournisseur input[name=possibleCustoms]').check();
+            cy.get('#modalNewFournisseur input[name=urgent]').check();
+            cy.get('button#submitNewFournisseur').click().wait(['@supplier_new', '@supplier_api']);
+        })
         cy.get('#modalNewFournisseur').should('not.be.visible');
         cy.wait('@supplier_api');
         cy.get('#supplierTable_id tbody td').contains('RENAULT').then((td) => {
@@ -28,6 +30,7 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
 
     it ('should edit a supplier', () => {
         cy.intercept('POST', 'fournisseur/modifier').as('supplier_edit');
+        cy.wait('@supplier_api');
         cy.get('#supplierTable_id tbody td').contains('FOURNISSEUR').click();
         cy.get('#modalEditFournisseur').should('be.visible');
         cy.get('#modalEditFournisseur input[name=name]').click().clear().type('IKEA');
@@ -59,11 +62,13 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     it('should add a new location', () => {
         cy.intercept('POST', 'emplacement/creer').as('emplacement_new');
         cy.get(`button[data-toggle='modal']`).filter(':visible').click();
-        cy.get('#modalNewEmplacement').should('be.visible');
-        cy.get('#modalNewEmplacement input[name=label]').type('STOCK');
-        cy.get('#modalNewEmplacement input[name=description]').type('Non défini');
-        cy.select2Ajax('zone', 'Activité Standard')
-        cy.get('button#submitNewEmplacement').click().wait('@emplacement_new');
+        cy.get('#modalNewEmplacement').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewEmplacement input[name=label]').should('be.visible');
+            cy.get('#modalNewEmplacement input[name=label]').click().type('STOCK');
+            cy.get('#modalNewEmplacement input[name=description]').type('Non défini');
+            cy.select2Ajax('zone', 'Activité Standard')
+            cy.get('button#submitNewEmplacement').click().wait(['@emplacement_new', '@emplacement_api']);
+        })
         cy.get('#modalNewEmplacement').should('not.be.visible');
         cy.wait('@emplacement_api');
         cy.get('#locationsTable tbody td').contains('STOCK').then((td) => {
@@ -74,6 +79,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
 
     it ('should edit a location', () => {
         cy.intercept('POST', 'emplacement/edit').as('emplacement_edit');
+        cy.wait('@emplacement_api');
         cy.get('#locationsTable tbody td').contains('EMPLACEMENT').click();
         cy.get('#modalEditEmplacement').should('be.visible');
         cy.get('#modalEditEmplacement input[name=label]').click().clear().type('ACCUEIL');
@@ -91,12 +97,14 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.intercept('POST', 'emplacements/groupes/creer').as('location_group_new');
         cy.get('.nav-item').eq(1).click();
         cy.get(`button[data-toggle='modal']`).filter(':visible').click();
-        cy.get('#modalNewLocationGroup').should('be.visible');
-        cy.get('#modalNewLocationGroup input[name=label]').type('SITE A');
-        cy.get('#modalNewLocationGroup [name=description]').type('Non défini');
-        cy.get(`#modalNewLocationGroup [data-title='Statut'] input`).eq(0).click();
-        cy.select2AjaxMultiple('locations', ['LABO 11', 'ZONE 41']);
-        cy.get('button#submitNewLocationGroup').click().wait('@location_group_new');
+        cy.get('#modalNewLocationGroup').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewLocationGroup input[name=label]').should('be.visible');
+            cy.get('#modalNewLocationGroup input[name=label]').click().type('SITE A');
+            cy.get('#modalNewLocationGroup [name=description]').type('Non défini');
+            cy.get(`#modalNewLocationGroup [data-title='Statut'] input`).eq(0).click();
+            cy.select2AjaxMultiple('locations', ['LABO 11', 'ZONE 41']);
+            cy.get('button#submitNewLocationGroup').click().wait(['@location_group_new', '@emplacements_groupes_api']);
+        })
         cy.get('#modalNewLocationGroup').should('not.be.visible');
         cy.wait('@emplacements_groupes_api');
         cy.get('#groupsTable tbody td').contains('SITE A').then((td) => {
@@ -110,6 +118,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     it ('should edit a group', () => {
         cy.intercept('POST', 'emplacements/groupes/modifier').as('location_group_edit');
         cy.get('.nav-item').eq(1).click();
+        cy.wait('@emplacements_groupes_api');
         cy.get('#groupsTable tbody td').contains('GROUPE').click();
         cy.get('#modalEditLocationGroup').should('be.visible');
         cy.get('#modalEditLocationGroup input[name=label]').click().clear().type('TERRAIN A');
@@ -135,11 +144,13 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.intercept('POST', 'zones/creer').as('zone_new');
         cy.get('.nav-item').eq(2).click();
         cy.get(`button[data-toggle='modal']`).filter(':visible').click();
-        cy.get('#modalNewZone').should('be.visible');
-        cy.get('#modalNewZone input[name=name]').type('COMMODE');
-        cy.get('#modalNewZone [name=description]').type('Non défini');
-        cy.get(`#modalNewZone [data-title='Statut*'] input`).eq(1).click({force: true});
-        cy.get(`#modalNewZone button[type='submit']`).click().wait('@zone_new');
+        cy.get('#modalNewZone').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewZone input[name=name]').should('be.visible');
+            cy.get('#modalNewZone input[name=name]').click().type('COMMODE');
+            cy.get('#modalNewZone [name=description]').type('Non défini');
+            cy.get(`#modalNewZone [data-title='Statut*'] input`).eq(1).click({force: true});
+            cy.get(`#modalNewZone button[type='submit']`).click().wait(['@zone_new', '@zones_api']);
+        })
         cy.get('#modalNewZone').should('not.be.visible');
         cy.wait('@zones_api');
         cy.get('#zonesTable tbody td').contains('COMMODE').then((td) => {
@@ -152,6 +163,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     it ('should edit an area', () => {
         cy.intercept('POST', 'zones/modifier').as('zone_edit');
         cy.get('.nav-item').eq(2).click();
+        cy.wait('@zones_api');
         cy.get('#zonesTable tbody td').contains('ZONE').click();
         cy.get('#modalEditZone').should('be.visible');
         cy.get('#modalEditZone input[name=name]').click().clear().type('BAT 123');
@@ -178,12 +190,14 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
     it('should add a new driver', () => {
         cy.intercept('POST', 'chauffeur/creer').as('chauffeur_new');
         cy.get(`a[data-target='#modalNewChauffeur']`).click();
-        cy.get('#modalNewChauffeur').should('be.visible');
-        cy.get('#modalNewChauffeur input[name=nom]').type('Troijours');
-        cy.get('#modalNewChauffeur input[name=prenom]').type(' Adam');
-        cy.get('#modalNewChauffeur input[name=documentID]').type('2');
-        cy.select2Ajax('transporteur', 'DHL', '', true, '/chauffeur/autocomplete*')
-        cy.get('button#submitNewChauffeur').click().wait('@chauffeur_new');
+        cy.get('#modalNewChauffeur').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewChauffeur input[name=nom]').should('be.visible');
+            cy.get('#modalNewChauffeur input[name=nom]').click().type('Troijours');
+            cy.get('#modalNewChauffeur input[name=prenom]').type(' Adam');
+            cy.get('#modalNewChauffeur input[name=documentID]').type('2');
+            cy.select2Ajax('transporteur', 'DHL', '', true, '/chauffeur/autocomplete*')
+            cy.get('button#submitNewChauffeur').click().wait('@chauffeur_new');
+        })
         cy.get('#modalNewChauffeur').should('not.be.visible');
         cy.get('#tableChauffeur_id tbody td').contains('Troijours').then((td) => {
             cy.wrap(td).parent('tr').find('td').eq(1).contains('Troijours');
@@ -227,10 +241,12 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
     it('should add a new transporter', () => {
         cy.intercept('POST', 'transporteur/save').as('transporteur_save');
         cy.get(`.btn-group`).click();
-        cy.get('#modalTransporteur').should('be.visible');
-        cy.get('#modalTransporteur input[name=label]').type('WIILOG');
-        cy.get('#modalTransporteur input[name=code]').type(' WIILOG');
-        cy.get(`button[type='submit']`).click().wait('@transporteur_save');
+        cy.get('#modalTransporteur').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalTransporteur input[name=label]').should('be.visible');
+            cy.get('#modalTransporteur input[name=label]').click().type('WIILOG');
+            cy.get('#modalTransporteur input[name=code]').type(' WIILOG');
+            cy.get(`button[type='submit']`).click().wait(['@transporteur_save', '@transporteur_api']);
+        })
         cy.get('#modalTransporteur').should('not.be.visible');
         cy.wait('@transporteur_api');
         cy.get('#tableTransporteur_id tbody td').contains('WIILOG').then((td) => {
@@ -241,6 +257,7 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
 
     it ('should edit a transporter', () => {
         cy.intercept('POST', 'transporteur/save?*').as('transporteur_save_edit');
+        cy.wait('@transporteur_api');
         cy.get('#tableTransporteur_id tbody td').contains('TRANSPORTEUR').click();
         cy.get('#modalTransporteur').should('be.visible');
         cy.get('#modalTransporteur input[name=label]').click().clear().type('LA POSTE');
@@ -266,11 +283,13 @@ describe('Add and edit components in Referentiel > Nature', () => {
     it('should add a new nature', () => {
         cy.intercept('POST', 'nature-unite-logistique/creer').as('nature_new');
         cy.get(`button[data-target='#modalNewNature']`).click();
-        cy.get('#modalNewNature').should('be.visible');
-        cy.get('#modalNewNature input[name=label]').eq(0).type('BAC');
-        cy.get('#modalNewNature input[name=code]').type(' BAC');
-        cy.get('#modalNewNature input[name=quantity]').type('0');
-        cy.get(`button#submitNewNature`).click().wait('@nature_new');
+        cy.get('#modalNewNature').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewNature input[name=label]').should('be.visible');
+            cy.get('#modalNewNature input[name=label]').eq(0).click().type('BAC');
+            cy.get('#modalNewNature input[name=code]').type(' BAC');
+            cy.get('#modalNewNature input[name=quantity]').type('0');
+            cy.get(`button#submitNewNature`).click().wait(['@nature_new', '@nature_api']);
+        })
         cy.get('#modalNewNature').should('not.be.visible');
         cy.wait('@nature_api');
         cy.get('#tableNatures tbody td').contains('BAC').then((td) => {
@@ -281,6 +300,7 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
     it ('should edit a nature', () => {
         cy.intercept('POST', 'nature-unite-logistique/modifier').as('nature_edit');
+        cy.wait('@nature_api');
         cy.get('#tableNatures tbody td').contains('NATURE').click();
         cy.get('#modalEditNature').should('be.visible');
         cy.get('#modalEditNature input[name=label]').eq(0).click().clear().type('COLIS');
@@ -307,9 +327,11 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
     it('should add a new vehicle', () => {
         cy.intercept('POST', 'vehicule/new').as('vehicule_new');
         cy.get(`a[data-target='#modalNewVehicle']`).click();
-        cy.get('#modalNewVehicle').should('be.visible');
-        cy.get('#modalNewVehicle input[name=registrationNumber]').type('CL-010-RA');
-        cy.get(`.modal-footer button`).eq(1).click().wait('@vehicule_new');
+        cy.get('#modalNewVehicle').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewVehicle input[name=registrationNumber]').should('be.visible');
+            cy.get('#modalNewVehicle input[name=registrationNumber]').click().type('CL-010-RA');
+            cy.get(`.modal-footer button`).eq(1).click().wait(['@vehicule_new', '@vehicule_api']);
+        })
         cy.get('#modalNewVehicle').should('not.be.visible');
         cy.wait('@vehicule_api');
         cy.get('#vehicleTable_id tbody td').contains('CL-010-RA').then((td) => {
@@ -319,14 +341,15 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
 
     it ('should edit a vehicle', () => {
         cy.intercept('POST', 'vehicule/edit').as('vehicle_edit');
+        cy.wait('@vehicule_api');
         cy.get('#vehicleTable_id tbody td').contains('VEHICULE').click();
         cy.get('#modalEditVehicle').should('be.visible');
         cy.get('#modalEditVehicle input[name=registrationNumber]').click().clear().type('AA-000-AA');
         cy.get(`button#submitEditVehicle`).click().wait('@vehicle_edit');
         cy.get('#modalEditVehicle').should('not.be.visible');
         cy.wait('@vehicule_api');
-        cy.get('#vehicleTable_id tbody td').contains('VEHICULE').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('VEHICULE');
+        cy.get('#vehicleTable_id tbody td').contains('AA-000-AA').then((td) => {
+            cy.wrap(td).parent('tr').find('td').eq(1).contains('AA-000-AA');
         });
     })
 })
@@ -342,10 +365,12 @@ describe('Add and edit components in Referentiel > Projet', () => {
     it('should add a new project', () => {
         cy.intercept('POST', 'project/new').as('project_new');
         cy.get(`button[data-toggle='modal']`).click();
-        cy.get('#modalNewProject').should('be.visible');
-        cy.get('#modalNewProject input[name=code]').type('GAZ');
-        cy.select2Ajax('projectManager', 'Admin');
-        cy.get(`#modalNewProject button[type=submit]`).click().wait('@project_new');
+        cy.get('#modalNewProject').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewProject input[name=code]').should('be.visible');
+            cy.get('#modalNewProject input[name=code]').click().type('GAZ');
+            cy.select2Ajax('projectManager', 'Admin');
+            cy.get(`#modalNewProject button[type=submit]`).click().wait(['@project_new', '@project_api']);
+        })
         cy.get('#modalNewProject').should('not.be.visible');
         cy.wait('@project_api');
         cy.get('#projectTable_id tbody td').contains('GAZ').then((td) => {
@@ -357,6 +382,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
 
     it ('should edit a project', () => {
         cy.intercept('POST', 'project/edit').as('project_edit');
+        cy.wait('@project_api');
         cy.get('#projectTable_id tbody td').contains('PROJET').click();
         cy.get('#modalEditProject').should('be.visible');
         cy.get('#modalEditProject input[name=code]').click().clear().type('RACLETTE');
@@ -387,14 +413,16 @@ describe('Add and edit components in Referentiel > Clients', () => {
     it('should add a new customer', () => {
         cy.intercept('POST', 'clients/new').as('customer_new');
         cy.get(`button[data-toggle='modal']`).click();
-        cy.get('#modalNewCustomer').should('be.visible');
-        cy.get('#modalNewCustomer input[name=name]').type('LAPEL');
-        cy.get('#modalNewCustomer [name=address]').type('Bègles');
-        cy.get('#modalNewCustomer [name=recipient]').type('PAS');
-        cy.get('#modalNewCustomer [name=phone-number]').type('0218923090');
-        cy.get('#modalNewCustomer [name=email]').type('cypress@wiilog.fr');
-        cy.get('#modalNewCustomer [name=fax]').type('0218923091');
-        cy.get(`#modalNewCustomer button[type=submit]`).click().wait('@customer_new');
+        cy.get('#modalNewCustomer').should('be.visible', {timeout: 8000}).then(() => {
+            cy.get('#modalNewCustomer input[name=name]').should('be.visible');
+            cy.get('#modalNewCustomer [name=name]').click().type('LAPEL');
+            cy.get('#modalNewCustomer [name=address]').type('Bègles');
+            cy.get('#modalNewCustomer [name=recipient]').type('PAS');
+            cy.get('#modalNewCustomer [name=phone-number]').type('0218923090');
+            cy.get('#modalNewCustomer [name=email]').type('cypress@wiilog.fr');
+            cy.get('#modalNewCustomer [name=fax]').type('0218923091');
+            cy.get(`#modalNewCustomer button[type=submit]`).click().wait(['@customer_new', '@customer_api']);
+        })
         cy.get('#modalNewCustomer').should('not.be.visible');
         cy.wait('@customer_api');
         cy.get('#customerTable tbody td').contains('LAPEL').then((td) => {
@@ -409,6 +437,7 @@ describe('Add and edit components in Referentiel > Clients', () => {
 
     it ('should edit a customer', () => {
         cy.intercept('POST', 'clients/edit').as('customer_edit');
+        cy.wait('@customer_api');
         cy.get('#customerTable tbody td').contains('Client').click();
         cy.get('#modalEditCustomer').should('be.visible');
         cy.get('#modalEditCustomer input[name=name]').clear().click().type('RE');

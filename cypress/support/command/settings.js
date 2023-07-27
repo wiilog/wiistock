@@ -217,11 +217,11 @@ Cypress.Commands.add('addFreeFieldInSettings', (settingsItemName) => {
 
 Cypress.Commands.add('editFreeFieldInSettings', (settingsItemName) => {
     const labelName = Date.now().toString(36);
-    cy.intercept('GET', 'parametrage/champs-libres/api/*').as('settings_free_field_api');
-
+    cy.intercept('GET', '/parametrage/champs-libres/api/*').as('settings_free_field_api');
+    cy.intercept('POST', '/filtre-sup/api').as('filter_get_by_page');
     cy.get('div.settings-item').its('length').then((count) => {
         if (count !== 1) {
-            cy.get(`[data-menu=${settingsItemName}]`).eq(0).click().wait('@settings_free_field_api');
+            cy.get(`[data-menu=${settingsItemName}]`).eq(0).click();
         } else {
             cy.get(`${linesTableFreeFieldsComponent} td.dataTables_empty`, {timeout: 5000})
                 .should('not.exist');
