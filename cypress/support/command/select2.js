@@ -39,8 +39,9 @@ Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldCl
     cy.get(`input[type=search][aria-controls^=select2-${selectName}-][aria-controls$=-results]`)
         .parents('.select2-dropdown')
         .find('.select2-results__option')
+        .should('be.visible')
         .first()
-        .click({waitForAnimations: false, multiple: true, timeout: 6000})
+        .click({waitForAnimations: false, force: true})
         .then(() => {
             cy.get(getName).find('option:selected').should('have.length', 1);
         });

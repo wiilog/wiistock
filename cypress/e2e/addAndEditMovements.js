@@ -1,5 +1,5 @@
 const user = Cypress.config('user');
-describe('Get the right permissions for next tests', () => {
+describe('Get the right permissions for movements added', () => {
     beforeEach(() => {
         cy.login(user);
         cy.visit('/');
@@ -81,7 +81,7 @@ describe('Test the filters', () => {
         cy.get('#tableMvts tbody').find('td').should('have.class', 'dataTables_empty');
     })
 
-    it('should sort array elements by types', () => {
+    it('should sort array elements by a type', () => {
         cy.select2('statut', 'depose');
         cy.get('button.filters-submit').click().wait('@tracking_movement_api');
         cy.get('#tableMvts tbody').find('tr').should('have.length', '5');

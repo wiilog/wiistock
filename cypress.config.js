@@ -10,6 +10,7 @@ module.exports = defineConfig({
         baseUrl: 'http://localhost/',
         downloadsFolder: 'cypress/downloads',
         setupNodeEvents(on, config) {
+            require('cypress-failed-log/on')(on)
         },
     },
     user: {
