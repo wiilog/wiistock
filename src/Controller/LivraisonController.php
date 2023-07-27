@@ -542,12 +542,10 @@ class LivraisonController extends AbstractController {
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
 
-        $fileName = $PDFGeneratorService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
-
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDeliveryOrder($deliveryOrder)
-            ->setFileName($fileName)
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($title . '.pdf');
 
         $entityManager->persist($deliveryNoteAttachment);
