@@ -21,9 +21,14 @@ final class Version20230721121728 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql("INSERT INTO reserve_type (label, default_reserve_type, active) VALUES (:qualitylabel, 1, 1)", [
-            "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
-        ]);
+        if (count($this->connection->executeQuery("
+                SELECT label
+                FROM reserve_type
+                WHERE label = '" . ReserveType::DEFAULT_QUALITY_TYPE . "'")->fetchAllAssociative()) == 0) {
+            $this->addSql("INSERT INTO reserve_type (label, default_reserve_type, active) VALUES (:qualitylabel, 1, 1)", [
+                "qualitylabel" => ReserveType::DEFAULT_QUALITY_TYPE,
+            ]);
+        }
 
         $reserves = $this->connection->executeQuery("
                 SELECT reserve.id
@@ -42,7 +47,9 @@ final class Version20230721121728 extends AbstractMigration
                 WHERE id = {$reserve["id"]}
             ");
         }
-        $this->addSql("ALTER TABLE reserve RENAME COLUMN type TO kind");
+        if ($schema->getTable('reserve')->hasColumn('type')) {
+            $this->addSql("ALTER TABLE reserve RENAME COLUMN type TO kind");
+        }
     }
 
     public function down(Schema $schema): void
