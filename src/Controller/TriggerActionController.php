@@ -334,6 +334,10 @@ class TriggerActionController extends AbstractController
                 "templateTypes" => TriggerAction::TEMPLATE_TYPES,
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE_HYGROMETRY) {
+            $html = $this->renderView('trigger_action/modalTemperatureHygrometry.html.twig', [
+                "templateTypes" => TriggerAction::TEMPLATE_TYPES,
+            ]);
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::HYGROMETRY) {
             $html = $this->renderView('trigger_action/modalHygrometry.html.twig', [
                 "templateTypes" => TriggerAction::TEMPLATE_TYPES,
             ]);
