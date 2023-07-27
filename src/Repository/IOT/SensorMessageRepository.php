@@ -78,7 +78,8 @@ class SensorMessageRepository extends EntityRepository
         $date = $message['date'];
         $content = $message['content'];
         $event = $message['event'];
-        $queryRaw = "INSERT INTO sensor_message (sensor_id, payload, date, content, event) VALUES ($sensor, '$payload', '$date', '$content', '$event')";
+        $content_type = $message['contentType'];
+        $queryRaw = "INSERT INTO sensor_message (sensor_id, payload, date, content, event, content_type) VALUES ($sensor, '$payload', '$date', '$content', '$event', '$content_type')";
 
         $connection = $this
             ->getEntityManager()

@@ -97,8 +97,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslationService $translation): Response {
-
-        if ($data = $request->request->all()) {
+        if ($request->request) {
+            $data = $request->request->all();
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
@@ -1712,6 +1712,8 @@ class ReceptionController extends AbstractController {
                     "count" => $receptionReferenceArticle->getQuantite() ?? 0,
                 ];
             }
+
+            $articleArray['quantityReceived'] = max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
             $totalQuantities[$receptionReferenceArticle->getId()]["count"] += max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
         }
 
@@ -1910,7 +1912,7 @@ class ReceptionController extends AbstractController {
                 $article->setReceptionReferenceArticle($receptionReferenceArticle);
 
                 if($referenceArticle->getIsUrgent()) {
-                    $emergencies[] = $article;
+                    $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
                 }
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
@@ -1986,13 +1988,16 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        foreach($emergencies as $article) {
+        foreach($emergencies as $emergency) {
+            $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
+            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                 'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
+                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -2020,10 +2025,22 @@ class ReceptionController extends AbstractController {
                 );
             }
 
-            $referenceArticle
-                ->setIsUrgent(false)
-                ->setUserThatTriggeredEmergency(null)
-                ->setEmergencyComment('');
+            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setUserThatTriggeredEmergency(null)
+                    ->setEmergencyComment('');
+            } else {
+                if ($newEmergencyQuantity <= 0) {
+                    $referenceArticle
+                        ->setIsUrgent(false)
+                        ->setEmergencyQuantity(null)
+                        ->setUserThatTriggeredEmergency(null)
+                        ->setEmergencyComment('');
+                } else {
+                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
+                }
+            }
             $entityManager->flush();
         }
 

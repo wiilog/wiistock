@@ -297,13 +297,13 @@ class RefArticleDataService
             }
         }
 
-        if($data->has('security')
-            && $data->has('deletedSheetFile')
-            && ((!$fileBag->has('fileSheet') && $data->get('deletedSheetFile') === "1")
-                || ($data->has('fileSheet') && $data->has('savedSheetFile') && $data->get('deletedSheetFile') === "1" && $data->get('fileSheet') === 'undefined' )
-                || ($data->has('files') && $data->has('fileSheet') && $data->get('fileSheet') === 'undefined'))
-            && $data->get('security') === "1"){
-            throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
+        $isDangerousGood = $data->getBoolean('security');
+        $fileSheetSubmitted = $fileBag->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetPreviouslySaved = $data->has('savedSheetFile');
+        $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
+
+        if ($isDangerousGood && (!$fileSheetSubmitted && (!$fileSheetPreviouslySaved || $fileSheetDeleted))) {
+            throw new FormException("La fiche sécurité est obligatoire pour les Marchandises dangereuses.");
         }
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
@@ -437,7 +437,8 @@ class RefArticleDataService
             ->setReference($data->get('reference'))
             ->setIsUrgent($isUrgent)
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-            ->setEmergencyComment($isUrgent ? $data->get('emergency-comment-input') : '')
+            ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
+            ->setEmergencyQuantity($isUrgent ? ($data->getInt('emergencyQuantity') >= 0) ? $data->getInt('emergencyQuantity') : null : null)
             ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)

@@ -507,6 +507,7 @@ class DashboardSettingsService {
 
         $values['linesCountTooltip'] = $config['linesCountTooltip'] ?? '';
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
+        $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
 
         return $values;
     }
@@ -1304,6 +1305,12 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
                 $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                break;
+            case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                $statuses = $config['entityStatuses'];
+                $types = $config['entityTypes'];
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('dispatch_index', ['statuses' => $statuses, 'types' => $types, 'fromDashboard' => true]) : null;
                 break;
             default:
                 $link = null;
