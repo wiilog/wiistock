@@ -259,6 +259,14 @@ class IOTService
             if ($valid) {
                 $this->demandeLivraisonService->validateDLAfterCheck($entityManager, $request, false, true);
             }
+
+            if (!$entityManager->isOpen()) {
+                $entityManager = $entityManager->create(
+                    $entityManager->getConnection(),
+                    $entityManager->getConfiguration()
+                );
+            }
+
             $entityManager->flush();
         } else if ($requestTemplate instanceof CollectRequestTemplate) {
             $request = $this->cleanCreateCollectRequest($statutRepository, $entityManager, $wrapper, $requestTemplate);
