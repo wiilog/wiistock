@@ -30,7 +30,13 @@
 
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {{ form.input('MAILER_PROTOCOL', "Protocole", true, mailer_server.protocol) }}
+            {{ form.select('MAILER_PROTOCOL', "Protocole", true, {
+                items: constant('App\\Service\\MailerService::PROTOCOLS')|map((value) => {
+                    value: value,
+                    label: value,
+                    selected: value == mailer_server.protocol,
+                }
+            )}) }}
         </div>
     </div>
 

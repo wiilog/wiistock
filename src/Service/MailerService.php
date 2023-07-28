@@ -8,6 +8,10 @@ use App\Entity\MailerServer;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -16,6 +20,13 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
+
+    private const PROTOCOL_TLS = 'TLS';
+    private const PROTOCOL_SSL = 'SSL';
+    public const PROTOCOLS = [
+        self::PROTOCOL_SSL,
+        self::PROTOCOL_TLS,
+    ];
 
     #[Required]
     public Environment $templating;
@@ -74,39 +85,47 @@ class MailerService
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
 
-        $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
+        $transport = (new EsmtpTransport($host, $port, $protocole === self::PROTOCOL_TLS))
             ->setUsername($user)
             ->setPassword($password);
 
         foreach ($contents as $content) {
-            $message = (new \Swift_Message());
+            $message = new Email();
+
             $body = $content['content'];
             if ($redirectToTest) {
                 $body .= $this->getRecipientsLabel($content['to']);
             }
 
             $message
-                ->setFrom($senderMail, $senderName)
-                ->setTo($redirectToTest ? [self::TEST_EMAIL] : $content['to'])
-                ->setSubject($content['subject'])
-                ->setBody($body)
-                ->setContentType('text/html');
+                ->from(new Address($senderMail, $senderName))
+                ->subject($content['subject'])
+                ->html($body);
 
-            foreach ($attachments as $attachment) {
-                $swiftAttachment = \Swift_Attachment::fromPath(is_string($attachment)
-                    ? $attachment
-                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"
-                );
-                if ($attachment instanceof Attachment) {
-                    $attachmentOriginalName = $attachment->getOriginalName();
-                    if ($attachmentOriginalName) {
-                        $swiftAttachment->setFilename($attachmentOriginalName);
-                    }
+            $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
+            // if $to is iterable
+            if(is_array($to) || $to instanceof \Traversable) {
+                foreach ($to as $email) {
+                    $message->addTo($email);
                 }
-                $message->attach($swiftAttachment);
+            }
+            else {
+                $message->addTo($to);
             }
 
-            $mailer = (new \Swift_Mailer($transport));
+            foreach ($attachments as $attachment) {
+                $file = fopen(is_string($attachment)
+                    ? $attachment
+                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}",
+                    'r');
+
+                $message->attach(
+                    $file,
+                    $attachment instanceof Attachment ? $attachment->getOriginalName() : null,
+                );
+            }
+
+            $mailer = (new Mailer($transport));
             $mailer->send($message);
         }
 
