@@ -116,8 +116,6 @@ describe('Get the right permissions for logistic units arrivals', () => {
 
         cy.get('button.save-settings')
             .click().wait('@settings_save');
-        //TODO wait!!!
-        cy.wait(200);
     })
 
 })
@@ -145,7 +143,7 @@ describe('Add and edit logistic units arrivals', () => {
         cy.select2Ajax('fournisseur', LUArrivals.fournisseur);
         cy.select2('transporteur', LUArrivals.transporteur);
         cy.select2('chauffeur', LUArrivals.chauffeur);
-        cy.get(`input[name=noTracking]`)
+        cy.get(`#modalNewArrivage input[name=noTracking]`)
             .click()
             .type(LUArrivals.noTracking);
         cy.select2('numeroCommandeList', [LUArrivals.firstNumeroCommandeList, LUArrivals.secondNumeroCommandeList]);
@@ -258,73 +256,73 @@ describe('Add and edit logistic units arrivals', () => {
                         cy.wrap($td).click();
                     }
                 });
-        });
-
-        // TODO !!title!!
-        cy.get('[title=Type]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.type);
-        cy.get('[title=Statut]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.statut, {matchCase: false});
-        cy.get('[title=Fournisseur]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.fournisseur);
-        cy.get("[title='Emplacement de dépose']")
-            .parent()
-            .siblings()
-            .contains(LUArrivals.dropLocation);
-        cy.get('[title=Transporteur]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.transporteur);
-        cy.get('[title=Chauffeur]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.chauffeur);
-        cy.get("[title='N° tracking transporteur']")
-            .parent()
-            .siblings()
-            .contains(LUArrivals.noTracking);
-        cy.get("[title='N° commande / BL']")
-            .parent()
-            .siblings()
-            .should('contain', LUArrivals.firstNumeroCommandeList)
-            .and('contain', LUArrivals.secondNumeroCommandeList);
-        cy.get('[title=Destinataire]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.destinataire);
-        cy.get("[title='Acheteur(s)']")
-            .parent()
-            .siblings()
-            .should('contain', LUArrivals.firstAcheteurs)
-            .and('contain', LUArrivals.secondAcheteurs);
-        cy.get("[title='Numéro de projet']")
-            .parent()
-            .siblings()
-            .contains(LUArrivals.noProject);
-        cy.get("[title='Business unit']")
-            .parent()
-            .siblings()
-            .contains(LUArrivals.businessUnit);
-        cy.get('[title=Douane]')
-            .parent()
-            .siblings()
-            .contains('Non');
-        cy.get('[title=Congelé]')
-            .parent()
-            .siblings()
-            .contains('Non');
-        cy.get('[title=Commentaire]')
-            .parent()
-            .siblings()
-            .contains(LUArrivals.comment);
-        cy.get('a[download]')
-            .contains(LUArrivals.file);
+        }).then(() => {
+            // TODO !!title!!
+            cy.get('[title=Type]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.type);
+            cy.get('[title=Statut]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.statut, {matchCase: false});
+            cy.get('[title=Fournisseur]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.fournisseur);
+            cy.get("[title='Emplacement de dépose']")
+                .parent()
+                .siblings()
+                .contains(LUArrivals.dropLocation);
+            cy.get('[title=Transporteur]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.transporteur);
+            cy.get('[title=Chauffeur]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.chauffeur);
+            cy.get("[title='N° tracking transporteur']")
+                .parent()
+                .siblings()
+                .contains(LUArrivals.noTracking);
+            cy.get("[title='N° commande / BL']")
+                .parent()
+                .siblings()
+                .should('contain', LUArrivals.firstNumeroCommandeList)
+                .and('contain', LUArrivals.secondNumeroCommandeList);
+            cy.get('[title=Destinataire]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.destinataire);
+            cy.get("[title='Acheteur(s)']")
+                .parent()
+                .siblings()
+                .should('contain', LUArrivals.firstAcheteurs)
+                .and('contain', LUArrivals.secondAcheteurs);
+            cy.get("[title='Numéro de projet']")
+                .parent()
+                .siblings()
+                .contains(LUArrivals.noProject);
+            cy.get("[title='Business unit']")
+                .parent()
+                .siblings()
+                .contains(LUArrivals.businessUnit);
+            cy.get('[title=Douane]')
+                .parent()
+                .siblings()
+                .contains('Non');
+            cy.get('[title=Congelé]')
+                .parent()
+                .siblings()
+                .contains('Non');
+            cy.get('[title=Commentaire]')
+                .parent()
+                .siblings()
+                .contains(LUArrivals.comment);
+            cy.get('a[download]')
+                .contains(LUArrivals.file);
+        })
 
         cy.wait('@packs_api', {timeout: 20000});
 

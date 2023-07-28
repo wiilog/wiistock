@@ -21,7 +21,7 @@ Cypress.Commands.add('getTheDate', () => {
             dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} (${dateHours}:59|${parseInt(dateHours) + 1}:00)`);
         }
     } else {
-        if (dateUnitsMinutes === 0) {
+        if (dateTensMinutes === 0) {
             dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} ${dateHours}:(${dateMinutes}|0${parseInt(dateMinutes) + 1})`);
         } else {
             dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} ${dateHours}:(${dateMinutes}|${parseInt(dateMinutes) + 1})`);
