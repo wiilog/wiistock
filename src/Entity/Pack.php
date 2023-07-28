@@ -121,6 +121,9 @@ class Pack implements PairedEntity {
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -762,6 +765,16 @@ class Pack implements PairedEntity {
         if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
             $this->shippingRequestPack->setPack($this);
         }
+
+        return $this;
+    }
+
+    public function getTruckArrivalDelay(): ?int {
+        return $this->truckArrivalDelay;
+    }
+
+    public function setTruckArrivalDelay(?int $truckArrivalDelay): self {
+        $this->truckArrivalDelay = $truckArrivalDelay;
 
         return $this;
     }

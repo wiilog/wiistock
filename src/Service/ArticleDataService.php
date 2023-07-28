@@ -306,7 +306,15 @@ class ArticleDataService
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
                 ->setCommentaire($data['commentaire'] ?? null)
                 ->setConform($data['conform'] ?? true)
+                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
+                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
+                ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setBatch($data['batch'] ?? null);
+
+            if(isset($data['nativeCountry'])) {
+                $existing->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
+            }
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
@@ -335,12 +343,6 @@ class ArticleDataService
 
             if (isset($data['expiry'])) {
                 $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
-            }
-            if (isset($data['productionDate'])) {
-                $article->setProductionDate($data['productionDate'] ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null);
-            }
-            if (isset($data['manufactureDate'])) {
-                $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
             }
 
             $entityManager->persist($article);
