@@ -180,6 +180,13 @@ class IOTService
                 }
             }
         }
+
+        if (!$entityManager->isOpen()) {
+            $entityManager = $entityManager->create(
+                $entityManager->getConnection(),
+                $entityManager->getConfiguration()
+            );
+        }
         $entityManager->flush();
     }
 
