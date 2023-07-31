@@ -68,8 +68,8 @@ function submitSensor(val = null) {
     }
 }
 
-function generateGetTemplatesRoute($select, selectName, route) {
-    const templatesSelect = $modalNewTriggerAction.find(`select[name=${selectName}]`);
+function generateGetTemplatesRoute($select, selectName, route, $modal) {
+    const templatesSelect = $modal.find(`select[name=${selectName}]`);
     $.post(route).then(({results}) => {
         templatesSelect.empty();
         for(let option of results) {
@@ -83,15 +83,15 @@ function onTemplateTypeChange($select){
     const route = Routing.generate(`get_templates`, {type: $select.val()});
 
     if($select.attr('name') === 'templateTypeHigherTemp' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForHigherTemp', route);
+        generateGetTemplatesRoute($select, 'templatesForHigherTemp', route, $modalNewTriggerAction);
     } else if($select.attr('name') === 'templateTypeLowerTemp' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForLowerTemp', route);
+        generateGetTemplatesRoute($select, 'templatesForLowerTemp', route, $modalNewTriggerAction);
     } else if($select.attr('name') === 'templateTypeHigherHygro' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForHigherHygro', route);
+        generateGetTemplatesRoute($select, 'templatesForHigherHygro', route, $modalNewTriggerAction);
     } else if($select.attr('name') === 'templateTypeLowerHygro' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForLowerHygro', route);
+        generateGetTemplatesRoute($select, 'templatesForLowerHygro', route, $modalNewTriggerAction);
     } else if($select.attr('name') === 'templateType' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templates', route)
+        generateGetTemplatesRoute($select, 'templates', route, $modalEditTriggerAction);
     }
 }
 
