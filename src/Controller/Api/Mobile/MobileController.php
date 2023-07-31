@@ -3838,7 +3838,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setKind($truckArrivalLine['reserve']['type'])
+                    ->setKind(Reserve::KIND_LINE)
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['reserveTypeId']){
