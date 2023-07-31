@@ -397,4 +397,8 @@ class FormatService
     public function reserveType(?ReserveType $reserveType, string $else = ''): string {
         return $reserveType ? $reserveType->getLabel() : $else;
     }
+
+    public function referenceArticle(?ReferenceArticle $referenceArticle, string $else = ''): string {
+        return $referenceArticle?->getLibelle() ?: $else;
+    }
 }

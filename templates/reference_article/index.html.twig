@@ -112,7 +112,14 @@
     {% include "reference_article/modalDeleteRefArticle.html.twig" %}
     {% include "reference_article/modalNewFilter.html.twig" with {fields: fields} %}
 
-    {% include "reference_article/modalShowMouvements.html.twig" %}
+    {% include "reference_article/modalShowItems.html.twig" with {
+        modalId : "modalShowMouvements"
+    } %}
+
+    {% include "reference_article/modalShowItems.html.twig" with {
+        modalId : "modalShowPurchaseRequests"
+    } %}
+
     {% include "reference_article/modalCannotDelete.html.twig" %}
 
     {% include "utils/rapid_search.html.twig" with {
