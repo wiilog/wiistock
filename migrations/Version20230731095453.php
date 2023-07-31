@@ -67,9 +67,9 @@ final class Version20230731095453 extends AbstractMigration
                     "value" => $value[0] ?? null,
                 ]);
             }
-
-            $this->addSql("DELETE FROM setting WHERE setting.label = ':deliveryWaybillSetting'");
         }
+
+        $this->addSql("DELETE FROM setting WHERE setting.label = ':deliveryWaybillSetting'");
     }
 
     public function down(Schema $schema): void
