@@ -359,7 +359,7 @@ class DeliveryRequestService
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settings = $entityManager->getRepository(Setting::class);
         $settingNeedPlanningValidation = $settings->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING);
-        $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+        $settingManageDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
             $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
@@ -432,7 +432,7 @@ class DeliveryRequestService
             foreach ($demande->getReferenceLines() as $line) {
                 $articleRef = $line->getReference();
                 //verification des quantités dispo si ref est gérée par reference OU le paramétrage "ne pas gérer les quantités en stock" n'est pas coché
-                $checkQuantity = !$settingMangeDeliveriesWithoutStockQuantity;
+                $checkQuantity = !$settingManageDeliveriesWithoutStockQuantity;
 
                 if ($checkQuantity && $line->getQuantityToPick() > $articleRef->getQuantiteDisponible()) {
                     $response['success'] = false;

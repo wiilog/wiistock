@@ -24,6 +24,7 @@ use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Entity\MouvementStock;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
 use App\Service\FormService;
@@ -61,13 +62,40 @@ class DemandeController extends AbstractController
                                  FreeFieldService       $champLibreService,
                                  EntityManagerInterface $entityManager): Response
     {
-        if ($data = json_decode($request->getContent(), true)) {
+        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $manageDeliveriesWithoutStockQuantity = $settingRepository->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
+        $data = json_decode($request->getContent(), true);
+
+        if ($data) {
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
                 $data,
                 false,
                 $champLibreService
             );
+            if ($manageDeliveriesWithoutStockQuantity) {
+                $demandeId = $data["demande"];
+                $demande = $demandeRepository->find($demandeId);
+                $user = $demande->getUtilisateur();
+                $now = new DateTime();
+                $refLines = $demande->getReferenceLines();
+
+                foreach ($refLines as $ref) {
+                    $inputMovement = (new MouvementStock())
+                        ->setUser($user)
+                        ->setRefArticle($ref->getReference())
+                        ->setQuantity($ref->getQuantityToPick())
+                        ->setEmplacementTo($demande->getDestination())  //On set uniquement la destination
+                        ->setType(MouvementStock::TYPE_ENTREE)
+                        ->setDate($now)
+                        ->setDeliveryRequest($demande);
+                    $entityManager->persist($inputMovement);
+                }
+                $entityManager->flush();
+            }
+
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
         throw new BadRequestHttpException();
