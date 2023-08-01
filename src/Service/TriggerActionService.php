@@ -5,14 +5,19 @@ namespace App\Service;
 
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
+use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class TriggerActionService
 {
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $em;
+
+    #[Required]
+    public FormatService $formatService;
 
     /**
      * @var Twig_Environment
@@ -51,22 +56,27 @@ class TriggerActionService
             'actions' => $this->templating->render('trigger_action/actions.html.twig', [
                 'triggerId' => $triggerAction->getId(),
             ]),
+            'templateType' => $this->formatService->triggerActionTemplateType($triggerAction),
+            'threshold' => $this->formatService->triggerActionThreshold($triggerAction),
+            'lastTrigger' => $this->formatService->datetime($triggerAction->getLastTrigger()),
         ];
     }
 
-    public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager, $triggerActionType, $name): TriggerAction {
+    public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager, string $triggerActionType, string $requestTemplateId, SensorWrapper $sensorWrapper): TriggerAction {
         $triggerAction = new TriggerAction();
 
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
 
         if ($triggerActionType === TriggerAction::REQUEST) {
-            $requestTemplate = $requestTemplateRepository->findOneBy(['id' => $name]);
+            $requestTemplate = $requestTemplateRepository->findOneBy(['id' => $requestTemplateId]);
             $triggerAction->setRequestTemplate($requestTemplate);
         } elseif ($triggerActionType === TriggerAction::ALERT) {
-            $alertTemplate = $alertTemplateRepository->findOneBy(['id' => $name]);
+            $alertTemplate = $alertTemplateRepository->findOneBy(['id' => $requestTemplateId]);
             $triggerAction->setAlertTemplate($alertTemplate);
         }
+
+        $triggerAction->setSensorWrapper($sensorWrapper);
 
         return $triggerAction;
     }

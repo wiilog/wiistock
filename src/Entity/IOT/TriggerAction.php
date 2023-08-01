@@ -3,6 +3,7 @@
 namespace App\Entity\IOT;
 
 use App\Repository\IOT\TriggerActionRepository;
+use App\Service\IOT\IOTService;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -13,14 +14,22 @@ class TriggerAction {
     const REQUEST = "request";
     const ALERT = "alert";
     const TEMPLATE_TYPES = [
-        "Demande" => self::REQUEST,
-        "Alerte" => self::ALERT,
+        self::REQUEST => "Demande",
+        self::ALERT => "Alerte",
     ];
     const LOWER = "lower";
     const HIGHER = "higher";
-    const TEMPLATE_TEMPERATURE = [
-        "Inférieure" => self::LOWER,
-        "Supérieure" => self::HIGHER,
+    const COMPARATORS = [
+        self::LOWER => "Inférieure",
+        self::HIGHER => "Supérieure",
+    ];
+
+    const ACTION_TYPE_TEMPERATURE = "temperature";
+    const ACTION_TYPE_HYGROMETRY = "hygrometry";
+    const ACTION_TYPE_ACTION = "action";
+    const ACTION_DATA_TYPES = [
+        self::ACTION_TYPE_TEMPERATURE => IOTService::DATA_TYPE_TEMPERATURE,
+        self::ACTION_TYPE_HYGROMETRY => IOTService::DATA_TYPE_HYGROMETRY,
     ];
 
     #[ORM\Id]
@@ -123,4 +132,13 @@ class TriggerAction {
         return $this;
     }
 
+    public function getActionType(): ?string {
+        foreach ($this->getConfig() as $key => $value) {
+            if(isset(self::ACTION_DATA_TYPES[$key])) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
 }
