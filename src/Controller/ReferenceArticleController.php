@@ -894,7 +894,7 @@ class ReferenceArticleController extends AbstractController
                     ->filter(fn(PurchaseRequestLine $purchaseRequestLine) => $purchaseRequestLine->getReference()->getId() === $referenceArticle->getId())
                     ->Map(fn(PurchaseRequestLine $purchaseRequestLine) => [
                         "creationDate" => $formatService->datetime($purchaseRequest->getCreationDate()),
-                        "from" => "<div class='wii-icon wii-icon-export mr-2' data-purchase-request-id='".$purchaseRequest->getId()."'></div>demande achat",
+                        "from" => "<div class='pointer' data-purchase-request-id='" . $purchaseRequest->getId() . "'><div class='wii-icon wii-icon-export mr-2'></div>" . $purchaseRequest->getNumber() . "</div>",
                         "requester" => $formatService->user($purchaseRequest->getRequester()),
                         "status" => $formatService->status($purchaseRequest->getStatus()),
                         "requestedQuantity" => $purchaseRequestLine->getRequestedQuantity(),

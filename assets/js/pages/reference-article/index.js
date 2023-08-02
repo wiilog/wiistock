@@ -35,7 +35,6 @@ $(function () {
     });
 
 
-    // on modal close
     $('#modalShowMouvements, #modalShowPurchaseRequests')
         .on('hide.bs.modal', function () {
             $(this).find('table.tableItems').DataTable().destroy();
@@ -298,7 +297,7 @@ function initDatatablePurchaseRequests(referenceArticleId, $modal) {
         },
         columns: [
             {"data": 'creationDate', 'title': 'Date de création', 'type': 'customDate'},
-            {"data": 'from', 'title': 'Lien demandes', sortable: false},
+            {"data": 'from', 'title': 'Numéro', sortable: false},
             {"data": 'requester', 'title': 'Demandeur'},
             {"data": 'status', 'title': 'Statut'},
             {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
