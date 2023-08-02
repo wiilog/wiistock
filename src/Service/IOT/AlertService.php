@@ -18,6 +18,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Ovh\Api;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
 class AlertService
