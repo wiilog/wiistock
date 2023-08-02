@@ -10,7 +10,7 @@
 <div class="form-group col-12">
     <label class="wii-field-name">{{ label }}</label>
     <div class="d-flex align-items-center">
-        <label class="wii-field-name mr-2" style="white-space: nowrap">Si {{ label|lower}}</label>
+        <label class="wii-field-name mr-2" style="white-space: nowrap">Si {{ label|lower }}</label>
             {{ form.select('comparators', null, true, {
                 labelClass: '',
                 items: constant('App\\Entity\\IOT\\TriggerAction::COMPARATORS')|map((value, key) => {
@@ -20,7 +20,7 @@
                 }),
             }) }}
         <label class="mx-3">à</label>
-        {{ form.input('sensorDataLimit', '', false, config[actionType], {
+        {{ form.input('sensorDataLimit', '', false, config[actionType] ?? null, {
             labelWidth: '',
             type: 'number',
         }) }}

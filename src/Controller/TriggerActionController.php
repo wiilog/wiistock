@@ -96,17 +96,25 @@ class TriggerActionController extends AbstractController
                     ],
                 ];
 
+                $triggerActionHaveBeenCreated = false;
                 foreach ($triggerActionConfig as $key => $config) {
                     $limitValue = $data[$key] ?? false;
                     if ($limitValue) {
                         $triggerAction = $triggerActionService->createTriggerActionByTemplateType($entityManager, $data[$config["templateType"]],  $data[$config["template"]], $sensorWrapper);
-                        $json = [
+                        $triggerAction->setConfig([
                             'limit' => $config["limit"],
-                            ($config["type"]) => $limitValue,
-                        ];
-                        $triggerAction->setConfig($json);
+                            $config["type"] => $limitValue,
+                        ]);
+                        $triggerActionHaveBeenCreated = true;
                         $entityManager->persist($triggerAction);
                     }
+                }
+
+                if (!$triggerActionHaveBeenCreated) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "Aucun actionneur n'a été créé, veuillez remplir les champs"
+                    ]);
                 }
 
                 try {
@@ -186,8 +194,8 @@ class TriggerActionController extends AbstractController
                 'triggerAction' => $triggerAction,
                 'templateTypes' => TriggerAction::TEMPLATE_TYPES,
                 'profile' => $sensor ? $sensor->getProfile()->getName() : "",
-                'templates' => $templates,
-                'templateId' => $templateId,
+                'templates' => $templates ?? [],
+                'templateId' => $templateId ?? null,
             ]);
 
             return new JsonResponse($json);
@@ -240,8 +248,10 @@ class TriggerActionController extends AbstractController
             }
 
             if(isset($data['sensorDataLimit'])){
-                $json = ['limit' => $data['comparators'], $data['actionType'] => $data['sensorDataLimit']];
-                $triggerAction->setConfig($json);
+                $triggerAction->setConfig([
+                    'limit' => $data['comparators'],
+                    $data['actionType'] => $data['sensorDataLimit'],
+                ]);
             }
 
             $entityManager->flush();

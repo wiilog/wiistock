@@ -400,11 +400,11 @@ class FormatService
     }
 
     public function triggerActionThreshold(TriggerAction $triggerAction): string {
-        $triggerActionConfig = $triggerAction?->getConfig();
+        $triggerActionConfig = $triggerAction->getConfig() ?? [];
 
         $actionType = $triggerAction->getActionType();
         $actionDataType =  $triggerAction::ACTION_DATA_TYPES[$actionType] ?? "";
-        $thresholdValue = $triggerActionConfig[$actionType];
+        $thresholdValue = $triggerActionConfig[$actionType] ?? "";
 
         return (IOTService::DATA_TYPE[$actionDataType] ?? "")
             ." "

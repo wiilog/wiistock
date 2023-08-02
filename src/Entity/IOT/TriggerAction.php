@@ -6,6 +6,7 @@ use App\Repository\IOT\TriggerActionRepository;
 use App\Service\IOT\IOTService;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: TriggerActionRepository::class)]
 #[ORM\Table(name: '`trigger_action`')]
@@ -133,12 +134,7 @@ class TriggerAction {
     }
 
     public function getActionType(): ?string {
-        foreach ($this->getConfig() as $key => $value) {
-            if(isset(self::ACTION_DATA_TYPES[$key])) {
-                return $key;
-            }
-        }
-
-        return null;
+        return Stream::from($this->getConfig())
+            ->findKey(static fn($value, $key) => isset(self::ACTION_DATA_TYPES[$key]));
     }
 }
