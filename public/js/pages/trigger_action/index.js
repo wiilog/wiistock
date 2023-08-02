@@ -25,8 +25,11 @@ $(function() {
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false, width: '10px'},
-            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur', width: '50%'},
-            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle', width: '50%'},
+            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur'},
+            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle'},
+            {"data": 'templateType', 'name': 'Type de modèle', 'title': 'Type de modèle', orderable: false},
+            {"data": 'threshold', 'name': 'Type de seuil', 'title': 'Type de seuil', orderable: false},
+            {"data": 'lastTrigger', 'name': 'Date du dernier déclenchement', 'title': 'Date du dernier déclenchement'},
         ]
     };
 
@@ -35,6 +38,15 @@ $(function() {
     let $submitNewTriggerAction = $modalNewTriggerAction.find('.submit-button');
     let urlNewTriggerAction = Routing.generate('trigger_action_new', true);
     InitModal($modalNewTriggerAction, $submitNewTriggerAction, urlNewTriggerAction, {tables: [table]});
+    $modalNewTriggerAction.on('change', '.trigger-action-data [name^=sensor]' , function () {
+        const $dataInput = $(this);
+        const $templateType = $dataInput.parents('.trigger-action-data').find('[name^=templateType]');
+        $templateType.attr('disabled', !$dataInput.val());
+        if (!$dataInput.val()) {
+            $templateType.val(null).trigger('change');
+        }
+    });
+
 
     let $modalDeleteTriggerAction = $('#modalDeleteTriggerAction');
     let $submitDeleteTriggerAction = $('#submitDeleteTriggerAction');
@@ -68,39 +80,28 @@ function submitSensor(val = null) {
     }
 }
 
-function generateGetTemplatesRoute($select, selectName, route, $modal) {
-    const templatesSelect = $modal.find(`select[name=${selectName}]`);
-    $.post(route).then(({results}) => {
-        templatesSelect.empty();
-        for(let option of results) {
-            templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
-        }
-        templatesSelect.attr('disabled', $select.val() === '');
-    });
-}
+function onTemplateTypeChange($select) {
+    const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templatesFor]');
 
-function onTemplateTypeChange($select){
-    const route = Routing.generate(`get_templates`, {type: $select.val()});
-
-    if($select.attr('name') === 'templateTypeHigherTemp' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForHigherTemp', route, $modalNewTriggerAction);
-    } else if($select.attr('name') === 'templateTypeLowerTemp' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForLowerTemp', route, $modalNewTriggerAction);
-    } else if($select.attr('name') === 'templateTypeHigherHygro' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForHigherHygro', route, $modalNewTriggerAction);
-    } else if($select.attr('name') === 'templateTypeLowerHygro' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templatesForLowerHygro', route, $modalNewTriggerAction);
-    } else if($select.attr('name') === 'templateType' && $select.val() !== ''){
-        generateGetTemplatesRoute($select, 'templates', route, $modalEditTriggerAction);
+    if ($select.val()) {
+        AJAX
+            .route(AJAX.GET, 'get_templates', {type: $select.val()})
+            .json()
+            .then(({results}) => {
+                $templatesSelect.empty();
+                for (let option of results) {
+                    $templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
+                }
+            });
+    } else {
+        $templatesSelect.empty();
     }
+
+    $templatesSelect.attr('disabled', !$select.val());
 }
 
 function clearNewModal(clearReferenceInput = false){
     clearModal($modalNewTriggerAction);
     $modalNewTriggerAction.find('.sensor-details-container').addClass('d-none');
-}
-
-function initEditTriggerActionForm(){
-    onTemplateTypeChange($modalEditTriggerAction.find('[name=templateType]'), true);
 }
 

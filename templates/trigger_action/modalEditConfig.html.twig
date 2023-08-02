@@ -1,0 +1,29 @@
+{% import 'form.html.twig' as form %}
+
+{% set config = triggerAction is defined and triggerAction ? triggerAction.config : [] %}
+{% set actionDataType = constant('App\\Entity\\IOT\\TriggerAction::ACTION_DATA_TYPES')[actionType] %}
+{% set label = constant('App\\Service\\IOT\\IOTService::DATA_TYPE')[actionDataType] %}
+{% set actionUnit = constant('App\\Service\\IOT\\IOTService::DATA_TYPE_TO_UNIT')[actionDataType] ?? "" %}
+
+{{ form.hidden('actionType', actionType) }}
+
+<div class="form-group col-12">
+    <label class="wii-field-name">{{ label }}</label>
+    <div class="d-flex align-items-center">
+        <label class="wii-field-name mr-2" style="white-space: nowrap">Si {{ label|lower}}</label>
+            {{ form.select('comparators', null, true, {
+                labelClass: '',
+                items: constant('App\\Entity\\IOT\\TriggerAction::COMPARATORS')|map((value, key) => {
+                    label: value,
+                    value: key,
+                    selected: triggerAction is defined and config['limit'] == key
+                }),
+            }) }}
+        <label class="mx-3">à</label>
+        {{ form.input('sensorDataLimit', '', false, config[actionType], {
+            labelWidth: '',
+            type: 'number',
+        }) }}
+        <label>{{ actionUnit }}</label>
+    </div>
+</div>
