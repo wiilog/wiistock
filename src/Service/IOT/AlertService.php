@@ -10,6 +10,7 @@ use App\Entity\IOT\SensorMessage;
 use App\Entity\Notification;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\VariableService;
@@ -22,17 +23,20 @@ use Symfony\Component\HttpKernel\KernelInterface;
 class AlertService
 {
 
-    /** @Required */
+    #[Required]
     public VariableService $variableService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required  */
+    #[Required]
     public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function trigger(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager)
     {
@@ -44,8 +48,8 @@ class AlertService
         $values = [
             VariableService::SENSOR_NAME => $sensorWrapper->getName(),
             VariableService::SENSOR_CODE => $sensor->getCode(),
-            VariableService::ALERT_DATE => FormatHelper::datetime($message->getDate()),
-            VariableService::DATA => FormatHelper::type($sensor->getType()) === Sensor::TEMPERATURE ? "{$message->getContent()}°C" : null,
+            VariableService::ALERT_DATE => $this->formatService->datetime($message->getDate()),
+            VariableService::DATA => $this->formatService->messageContent($message),
         ];
 
         $content = $this->variableService->replaceVariables($config["content"], $values);

@@ -67,7 +67,7 @@ class VariableService
         self::SENSOR_NAME => "Nom du capteur qui a déclenché l'alerte",
         self::SENSOR_CODE => "Code du capteur qui a déclenché l'alerte",
         self::ALERT_DATE => "Date et heure du déclenchement de l'alerte",
-        self::DATA => "Fonctionne seulement pour un capteur de type température. La température ayant déclenché l'alerte sera alors la donnée remontée",
+        self::DATA => "Donnée du capteur ayant déclenché l'alerte",
     ];
 
     public const KIOSK_DICTIONARY = [

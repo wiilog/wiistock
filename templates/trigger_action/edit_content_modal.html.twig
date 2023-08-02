@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <form>
     <div class="row align-items-center">
         <div class="form-group col-12 col-md-4">
@@ -14,11 +16,14 @@
             <input disabled class="form-control" value="{{ triggerAction.sensorWrapper.sensor.code }}">
         </div>
     </div>
-    <div class="row sensor-details-container flex-column">
+    <div class="row sensor-details-container flex-column trigger-action-data">
         <div class="sensor-type">
-            {% if (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type.label : "") == constant('App\\Entity\\IOT\\Sensor::TEMPERATURE') %}
-                {% include ('trigger_action/modalTemperature.html.twig') %}
-            {% elseif (triggerAction.sensorWrapper ? triggerAction.sensorWrapper.sensor.type.label : "") == constant('App\\Entity\\IOT\\Sensor::ACTION') %}
+            {% set actionType = triggerAction.actionType %}
+            {% if actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_TEMPERATURE') or actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_HYGROMETRY') %}
+                {% include 'trigger_action/modalEditConfig.html.twig' with {
+                    actionType
+                } %}
+            {% elseif actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ACTION') %}
                 {% include ('trigger_action/modalButton.html.twig') %}
             {% endif %}
         </div>
@@ -27,26 +32,24 @@
             <div class="w-100">
                 <select class="form-control data needed" name="templateType" onchange="onTemplateTypeChange($(this))">
                     <option value=""></option>
-                    {% for templateType, index in templateTypes %}
+                    {% for value, label in templateTypes %}
                         {% set selected = (
-                            (index == constant('App\\Entity\\IOT\\TriggerAction::ALERT') and triggerAction.alert)
-                            or (index == constant('App\\Entity\\IOT\\TriggerAction::REQUEST') and triggerAction.request)
+                            (value == constant('App\\Entity\\IOT\\TriggerAction::ALERT') and triggerAction.alert)
+                            or (value == constant('App\\Entity\\IOT\\TriggerAction::REQUEST') and triggerAction.request)
                         ) %}
-                        <option {{ selected ? 'selected' }} value="{{ index }}">{{ templateType }}</option>
+                        <option {{ selected ? 'selected' }} value="{{ value }}">{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
         </div>
         <div class="form-group col-12 col-md-6">
-            <label class="wii-field-name">Modèle*</label>
-            <div class="w-100">
-                <select class="form-control data needed" name="templates">
-                    <option selected
-                            value="{{ triggerAction.requestTemplate ? triggerAction.requestTemplate.id : triggerAction.alertTemplate.id}}">
-                        {{ triggerAction.requestTemplate ? triggerAction.requestTemplate.name : triggerAction.alertTemplate.name }}
-                    </option>
-                </select>
-            </div>
+            {{ form.select('templatesForAction', 'Modèle', true, {
+                items: templates|map(template => {
+                    value: template.id,
+                    label: template.name,
+                    selected: template.id is same as(templateId),
+                }),
+            }) }}
         </div>
     </div>
 </form>
