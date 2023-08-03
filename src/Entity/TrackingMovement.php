@@ -26,6 +26,15 @@ class TrackingMovement {
     const TYPE_DROP_LU = 'dépose dans UL';
     const TYPE_PICK_LU = 'prise dans UL';
 
+    const DISPATCH_ENTITY = 'dispatch';
+    const ARRIVAL_ENTITY = 'arrival';
+    const RECEPTION_ENTITY = 'reception';
+    const TRANSFER_ORDER_ENTITY = 'transferOrder';
+    const PREPARATION_ENTITY = 'preparation';
+    const DELIVERY_ORDER_ENTITY = 'deliveryOrder';
+    const DELIVERY_REQUEST_ENTITY = 'deliveryRequest';
+    const SHIPPING_REQUEST_ENTITY = 'shippingRequest';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

@@ -16,10 +16,12 @@ class Sensor {
     const GPS = 'GPS';
     const ACTION = 'Action';
     const TEMPERATURE_HYGROMETRY = 'Température & Hygrométrie';
+    const HYGROMETRY = 'Hygrométrie';
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
         self::TEMPERATURE_HYGROMETRY => 'iot-temperature-hygrometry',
         self::GPS => 'iot-tracking',
+        self::HYGROMETRY => 'iot-hygrometry',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';

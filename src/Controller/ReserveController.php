@@ -37,13 +37,13 @@ class ReserveController extends AbstractController
 
 
         $reserve = ($data['reserveId'] ?? null) ? $reserveRepository->find($data['reserveId']) : new Reserve();
-        if(isset($data['type']) && $data['type'] === Reserve::KIND_QUALITY){
+        if(isset($data['type']) && $data['type'] === Reserve::KIND_LINE){
             $truckArrivalLine = $truckArrivalLineRepository->find($data['truckArrivalLineNumber']);
             if (isset($data['reserveType'])) {
                 $reserveTypeId = $data['reserveType'];
                 $reserveType = $reserveTypeRepository->find($reserveTypeId);
                 $reserve
-                    ->setKind(Reserve::KIND_QUALITY)
+                    ->setKind(Reserve::KIND_LINE)
                     ->setLine($truckArrivalLine)
                     ->setReserveType($reserveType)
                     ->setComment($data['comment'] ?? '');

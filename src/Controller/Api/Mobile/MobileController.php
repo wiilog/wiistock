@@ -3838,7 +3838,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setKind($truckArrivalLine['reserve']['type'])
+                    ->setKind(Reserve::KIND_LINE)
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['reserveTypeId']){
@@ -3890,12 +3890,23 @@ class MobileController extends AbstractApiController
         $entityManager->persist($truckArrival);
         $entityManager->flush();
 
-        $alreadyTreatedTypes = [];
-        foreach ($reserves as $reserve) {
-            $reserveType = $reserve->getReserveType();
-            if(!in_array($reserveType->getId(), $alreadyTreatedTypes)) {
-                $reserveService->sendTruckArrivalMail($truckArrival, $reserve->getReserveType(), $reserves, $reserve->getAttachments()->toArray());
-                $alreadyTreatedTypes[] = $reserveType->getId();
+        $allAttachments = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [
+                $reserve->getReserveType()->getId(),
+                $reserve->getAttachments()->toArray()
+            ], true)
+            ->toArray();
+
+        $reserveTypeIdToReserveTypeArray = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [$reserve->getReserveType()?->getId(), $reserve->getReserveType()])
+            ->toArray();
+
+        foreach ($allAttachments as $reserveTypeId => $attachments) {
+            $attachments = Stream::from($attachments)->flatten()->toArray();
+            $reserveType = $reserveTypeIdToReserveTypeArray[$reserveTypeId] ?? null;
+
+            if($reserveType) {
+                $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
             }
         }
 

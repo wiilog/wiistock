@@ -98,7 +98,7 @@ class DataMonitoringService
         ];
 
         $type = $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType());
-        if ($type === Sensor::TEMPERATURE || $type === Sensor::TEMPERATURE_HYGROMETRY) {
+        if ($type === Sensor::TEMPERATURE || $type === Sensor::TEMPERATURE_HYGROMETRY || $type === Sensor::HYGROMETRY) {
             $config["center_pane"][] = [
                 "type" => "chart",
                 "fetch_url" => $this->router->generate("pairing_chart_data", [

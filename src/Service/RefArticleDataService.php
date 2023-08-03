@@ -298,7 +298,7 @@ class RefArticleDataService
         }
 
         $isDangerousGood = $data->getBoolean('security');
-        $fileSheetSubmitted = $fileBag->has('fileSheet') && $data->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetSubmitted = $fileBag?->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
         $fileSheetPreviouslySaved = $data->has('savedSheetFile');
         $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
 

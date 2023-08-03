@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 {% set editAttachments = editAttachments is defined and editAttachments %}
