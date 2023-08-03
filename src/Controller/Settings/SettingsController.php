@@ -515,6 +515,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_USERS,
                     "save" => false,
                 ],
+                self::MENU_SESSIONS => [
+                    "label" => "Licences",
+                    "right" => Action::SETTINGS_DISPLAY_SESSIONS,
+                    "save" => false,
+                ],
             ],
         ],
         self::CATEGORY_DATA => [
@@ -669,6 +674,7 @@ class SettingsController extends AbstractController {
     public const MENU_LANGUAGES = "langues";
     public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
+    public const MENU_SESSIONS = "licences";
 
     public const MENU_EXPORTS_ENCODING = "exports_encodage";
     public const MENU_CSV_EXPORTS = "exports_csv";

@@ -345,7 +345,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_USERS => [
                 Action::SETTINGS_DISPLAY_LABELS_PERSO,
                 Action::SETTINGS_DISPLAY_ROLES,
-                Action::SETTINGS_DISPLAY_USERS
+                Action::SETTINGS_DISPLAY_USERS,
+                Action::SETTINGS_DISPLAY_SESSIONS,
             ],
             self::SUB_MENU_DATA => [
                 Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
