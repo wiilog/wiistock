@@ -1,7 +1,6 @@
 let noMapData = true;
 let noChartData = true;
 const $errorContainer = $('.no-monitoring-data');
-const charts = {};
 $(document).ready(() => {
     initData();
 
@@ -223,10 +222,6 @@ function smartDisplayCoordinates(markers, map) {
 
 function initLineChart(element, callback) {
     const DEFAULT_DATATYPE = 'DEFAULT_DATATYPE';
-    const oldChart = charts[element]
-    if (oldChart){
-        oldChart.destroy();
-    }
 
     const $element = $(element);
     $errorContainer.addClass('d-none');
@@ -263,20 +258,15 @@ function initLineChart(element, callback) {
                             label: type === DEFAULT_DATATYPE ? sensor : `${sensor} - ${type}`,
                             yAxisID: type,
                             fill: false,
-                            data: new Array( data.labels.length - 1).fill(null),
+                            data: [value],
                             borderColor: (sensors[sensor]) instanceof Object ? sensors[sensor][type] : sensors[sensor],
                             tension: 0.1,
                         };
+                    } else {
+                        sensorMessagesDatasets[type+sensor].data.push(value);
                     }
-                    sensorMessagesDatasets[type+sensor].data.push(value);
                     dataTypes.push(type);
                 });
-            });
-            Object.keys(sensorMessagesDatasets).forEach((key) => {
-                const dataset = sensorMessagesDatasets[key];
-                while (dataset.data.length < data.labels.length) {
-                    dataset.data.push(null);
-                }
             });
         });
 
@@ -319,6 +309,8 @@ function initLineChart(element, callback) {
                 ... {ticks}
             };
         });
+
+        console.log(yAxes);
 
         if (needsline) {
             sensorMessagesDatasets['lineDataMax'] = {
@@ -378,8 +370,6 @@ function initLineChart(element, callback) {
             noChartData = true;
             callback();
         }
-
-        charts[element] = chart;
     });
 }
 
