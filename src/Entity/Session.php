@@ -10,83 +10,57 @@ use Doctrine\ORM\Mapping as ORM;
 class Session
 {
 
-    const MOBILE = 0;
-    const WEB = 1;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne()]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Utilisateur $user = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $openedAt = null;
+    private ?\DateTime $openedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $closedAt = null;
-
-    #[ORM\Column(type: 'integer')]
-    private ?int $type = null;
+    private ?\DateTime $closedAt = null;
 
     /*
      * Correspond à l'ancien api_key de l’utilisateur si session nomade
-     * ou au session_id de symfony pour le session web
+     * ou au session_id de symfony pour la session web
      * */
     #[ORM\Column(type: Types::TEXT)]
     private ?string $sessionKey = null;
+
+    #[ORM\ManyToOne(inversedBy: 'sessions')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Utilisateur $user = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Type $type = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getUser(): ?Utilisateur
-    {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): self
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getOpenedAt(): ?\DateTimeInterface
+    public function getOpenedAt(): ?\DateTime
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(\DateTimeInterface $openedAt): self
+    public function setOpenedAt(\DateTime $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?\DateTimeInterface
+    public function getClosedAt(): ?\DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?\DateTimeInterface $closedAt): self
+    public function setClosedAt(?\DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
-
-        return $this;
-    }
-
-    public function getType(): ?int
-    {
-        return $this->type;
-    }
-
-    public function setType(int $type): self
-    {
-        $this->type = $type;
 
         return $this;
     }
@@ -99,6 +73,34 @@ class Session
     public function setSessionKey(string $sessionKey): self
     {
         $this->sessionKey = $sessionKey;
+
+        return $this;
+    }
+
+    public function getUser(): ?Utilisateur
+    {
+        return $this->user;
+    }
+
+    public function setUser(?Utilisateur $user): self
+    {
+        if($this->user && $this->user !== $user) {
+            $this->user->removeSession($this);
+        }
+        $this->user = $user;
+        $user?->addSession($this);
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

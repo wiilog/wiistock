@@ -26,6 +26,7 @@ class CategoryType {
     const COLLECT_TRANSPORT = 'demande transport collecte';
     const EXPORT = 'export';
     const SHIPPING_REQUEST = 'demande expédition';
+    const SESSION = 'session';
 
     public const ALL = [
         self::RECEPTION,
