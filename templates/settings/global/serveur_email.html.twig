@@ -8,21 +8,23 @@
     </div>
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {% set value = mailer_server.smtp is defined ? mailer_server.smtp %}
-            {{ form.input('MAILER_URL', 'Serveur SMTP', true, value) }}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_URL') %}
+            {{ form.input(setting, 'Serveur SMTP', true, setting_value(setting)) }}
         </div>
         <div class="form-group col-md-6 col-12">
-            {{ form.input('MAILER_PORT', "Port", true, mailer_server.port) }}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_PORT') %}
+            {{ form.input(setting, "Port", true, setting_value(setting)) }}
         </div>
     </div>
 
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {% set value = mailer_server.user is defined ? mailer_server.user %}
-            {{ form.input('MAILER_USER', "Nom d'utilisateur", true, value) }}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_USER') %}
+            {{ form.input(setting, "Nom d'utilisateur", true, setting_value(setting)) }}
         </div>
         <div class="form-group col-md-6 col-12">
-            {{ form.input('MAILER_PASSWORD', "Mot de passe", true, mailer_server.password, {
+            {% set setting = constant('App\\Entity\\Setting::MAILER_PASSWORD') %}
+            {{ form.input(setting, "Mot de passe", true, setting_value(setting), {
                 type: 'password'
             }) }}
         </div>
@@ -30,11 +32,13 @@
 
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {{ form.select('MAILER_PROTOCOL', "Protocole", true, {
+            {% set setting = constant('App\\Entity\\Setting::MAILER_PROTOCOL') %}
+            {% set settingValue = setting_value(setting) %}
+            {{ form.select(setting, "Protocole", true, {
                 items: constant('App\\Service\\MailerService::PROTOCOLS')|map((value) => {
                     value: value,
                     label: value,
-                    selected: value == mailer_server.protocol,
+                    selected: value == settingValue,
                 }
             )}) }}
         </div>
@@ -42,10 +46,12 @@
 
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {{ form.input('MAILER_SENDER_NAME', "Nom expéditeur", true, mailer_server.senderName) }}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_SENDER_NAME') %}
+            {{ form.input(setting, "Nom expéditeur", true, setting_value(setting)) }}
         </div>
         <div class="form-group col-md-6 col-12">
-            {{ form.input('MAILER_SENDER_MAIL', "Adresse email expéditeur", true, mailer_server.senderMail) }}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_SENDER_MAIL') %}
+            {{ form.input(setting, "Adresse email expéditeur", true, setting_value(setting)) }}
         </div>
     </div>
 </div>

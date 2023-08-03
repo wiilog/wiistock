@@ -4,15 +4,18 @@ namespace App\Service;
 
 
 use App\Entity\Attachment;
-use App\Entity\MailerServer;
+use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Service\Attribute\Required;
+use Traversable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -20,9 +23,9 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
-
     private const PROTOCOL_TLS = 'TLS';
     private const PROTOCOL_SSL = 'SSL';
+
     public const PROTOCOLS = [
         self::PROTOCOL_SSL,
         self::PROTOCOL_TLS,
@@ -42,6 +45,9 @@ class MailerService
 
     #[Required]
     public ?EntityManagerInterface $entityManager = null;
+
+    #[Required]
+    public ExceptionLoggerService $exceptionLoggerService;
 
     /**
      * @param string|array $template string|['path' => string, 'options' => array]
@@ -63,20 +69,24 @@ class MailerService
             return false;
         }
 
-        $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
-        $mailerServer = $mailerServerRepository->findOneBy([]);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $mailerServerSettings = $settingRepository->findByLabel([
+            Setting::MAILER_URL,
+            Setting::MAILER_PORT,
+            Setting::MAILER_USER,
+            Setting::MAILER_PASSWORD,
+            Setting::MAILER_PROTOCOL,
+            Setting::MAILER_SENDER_NAME,
+            Setting::MAILER_SENDER_MAIL,
+        ]);
 
-        if ($mailerServer) {
-            $user = $mailerServer->getUser() ?? '';
-            $password = $mailerServer->getPassword() ?? '';
-            $host = $mailerServer->getSmtp() ?? '';
-            $port = $mailerServer->getPort() ?? '';
-            $protocole = $mailerServer->getProtocol() ?? '';
-            $senderName = $mailerServer->getSenderName() ?? '';
-            $senderMail = $mailerServer->getSenderMail() ?? '';
-        } else {
-            return false;
-        }
+        $user = ($mailerServerSettings[Setting::MAILER_USER] ?? null)?->getValue();
+        $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
+        $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
+        $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
+        $protocole = ($mailerServerSettings[Setting::MAILER_PROTOCOL] ?? null)?->getValue();
+        $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
+        $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
 
         if (empty($user) || empty($password) || empty($host) || empty($port)) {
             return false;
@@ -93,9 +103,7 @@ class MailerService
             $message = new Email();
 
             $body = $content['content'];
-            if ($redirectToTest) {
-                $body .= $this->getRecipientsLabel($content['to']);
-            }
+            $body .= $redirectToTest ? $this->getRecipientsLabel($content['to']) : "";
 
             $message
                 ->from(new Address($senderMail, $senderName))
@@ -103,14 +111,11 @@ class MailerService
                 ->html($body);
 
             $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
-            // if $to is iterable
-            if(is_array($to) || $to instanceof \Traversable) {
-                foreach ($to as $email) {
-                    $message->addTo($email);
-                }
-            }
-            else {
-                $message->addTo($to);
+
+
+            $to = (is_array($to) || $to instanceof Traversable) ? $to : [$to];
+            foreach ($to as $email) {
+                $message->addTo($email);
             }
 
             foreach ($attachments as $attachment) {
@@ -126,7 +131,12 @@ class MailerService
             }
 
             $mailer = (new Mailer($transport));
-            $mailer->send($message);
+            try {
+                $mailer->send($message);
+            } catch (TransportExceptionInterface $e) {
+                $this->exceptionLoggerService->sendLog($e);
+                throw $e;
+            }
         }
 
         return true;
