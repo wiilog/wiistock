@@ -3096,7 +3096,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 } else if($french->getTranslation() != $translation["fr"]) {
-                    $english->setTranslation($translation["fr"]);
+                    $french->setTranslation($translation["fr"]);
 
                     $this->console->writeln("Updated default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
@@ -3201,7 +3201,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
     private function updateUsers()
     {
-        $users = $this->manager->getRepository(Utilisateur::class)->findAll();
+        $users = $this->manager->getRepository(Utilisateur::class)->iterateUserWithNullLanguageOrDateFormat();
         $french = $this->manager->getRepository(Language::class)->findOneBy(["slug" => "french"]);
 
         foreach ($users as $user) {

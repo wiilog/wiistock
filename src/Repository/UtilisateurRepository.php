@@ -251,4 +251,17 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
             ->getQuery()
             ->getResult();
     }
+
+    public function iterateUserWithNullLanguageOrDateFormat()
+    {
+        $qb = $this->createQueryBuilder("user");
+
+        return $qb
+                ->andWhere($qb->expr()->orX(
+                    'user.dateFormat IS NULL',
+                    'user.language IS NULL',
+                ))
+                ->getQuery()
+                ->toIterable();
+    }
 }
