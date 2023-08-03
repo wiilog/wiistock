@@ -301,10 +301,7 @@ function initLineChart(element, callback) {
             .filter((value, index, array) => array.indexOf(value) === index)
             .map((type, index) => {
             const ticks = {};
-            if (type === 'Hygrométrie') {
-                ticks.min = 0;
-                ticks.max = 100;
-            } else if (index === 1 && needsline) {
+            if (index === 1 && needsline) {
                 ticks.min = min;
                 ticks.max = max;
             }
