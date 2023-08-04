@@ -182,8 +182,12 @@ class DispatchController extends AbstractController {
                         DispatchService $dispatchService): Response {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
         $fromDashboard = $request->query->getBoolean('fromDashboard');
-        $preFilledStatuses = $request->query->has('preFilledStatuses') ? implode(",", $request->query->all('preFilledStatuses')) : [];
-        $preFilledTypes = $request->query->has('preFilledTypes') ? implode(",", $request->query->all('preFilledTypes')) : [];
+        $preFilledStatuses = $request->query->has('preFilledStatuses')
+            ? implode(",", $request->query->all('preFilledStatuses'))
+            : "";
+        $preFilledTypes = $request->query->has('preFilledTypes')
+            ? implode(",", $request->query->all('preFilledTypes'))
+            : "";
 
         $preFilledFilters = [
             [
