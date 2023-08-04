@@ -27,7 +27,7 @@ use function Doctrine\ORM\QueryBuilder;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
+    public function findByParamAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
