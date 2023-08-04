@@ -146,10 +146,7 @@ class ReferenceArticleController extends AbstractController
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
-            if(isset($data['security'])
-                && isset($data['fileSheet'])
-                && $data['security'] == "1"
-                && $data['fileSheet'] === "undefined"){
+            if(isset($data['security']) && $data['security'] == "1" && isset($data['fileSheet']) && $data['fileSheet'] === "undefined") {
                 throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
             }
 
@@ -176,14 +173,11 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-            switch ($data['type_quantite']) {
-                case 'reference':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
-                    break;
-                default:
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
-            }
+
+            $typeArticle = match ($data['type_quantite']) {
+                'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                default => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+            };
 
             $needsMobileSync = filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if ($needsMobileSync && ($referenceArticleRepository->count(['needsMobileSync' => true]) > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
@@ -353,17 +347,17 @@ class ReferenceArticleController extends AbstractController
 
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
-            if($request->files->has('image')) {
-                $file = $request->files->get('image');
-                $attachments = $attachmentService->createAttachements([$file]);
+            $files = $request->files;
+            if($files->has('image')) {
+                $attachments = $attachmentService->createAttachements([$files->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
             }
-            if($request->files->has('fileSheet')) {
-                $file = $request->files->get('fileSheet');
-                $attachments = $attachmentService->createAttachements([$file]);
+
+            if($files->has('fileSheet')) {
+                $attachments = $attachmentService->createAttachements([$files->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);

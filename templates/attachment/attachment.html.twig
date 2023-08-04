@@ -40,11 +40,28 @@
                         {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
                     {% endif %}
                 </button>
+                {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
                 {% if not name %}
                     <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
-                           onchange="saveInputFiles($(this))">
+                           onchange="saveInputFiles(
+                                        $(this),
+                                        {
+                                            lineClass: '{{ lineClass }}'
+                                        }
+                                    )"
+                    >
                 {% else %}
-                    <input type="file" name="{{ name }}" class="data-file d-none fileInput" id="upload-article-reference-image" onchange="saveInputFiles($(this), {singleton: true})">
+                    <input type="file"
+                           name="{{ name }}"
+                           class="data-file d-none fileInput"
+                           onchange="saveInputFiles(
+                                        $(this),
+                                        {
+                                            singleton: true,
+                                            lineClass: '{{ lineClass }}'
+                                        }
+                                    )"
+                    >
                 {% endif %}
             </div>
         </div>
