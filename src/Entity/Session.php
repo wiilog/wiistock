@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\SessionRepository;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -16,10 +17,10 @@ class Session
     private ?int $id = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTime $openedAt = null;
+    private ?DateTime $openedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTime $closedAt = null;
+    private ?DateTime $closedAt = null;
 
     /*
      * Correspond à l'ancien api_key de l’utilisateur si session nomade
@@ -41,24 +42,24 @@ class Session
         return $this->id;
     }
 
-    public function getOpenedAt(): ?\DateTime
+    public function getOpenedAt(): ?DateTime
     {
         return $this->openedAt;
     }
 
-    public function setOpenedAt(\DateTime $openedAt): self
+    public function setOpenedAt(DateTime $openedAt): self
     {
         $this->openedAt = $openedAt;
 
         return $this;
     }
 
-    public function getClosedAt(): ?\DateTime
+    public function getClosedAt(): ?DateTime
     {
         return $this->closedAt;
     }
 
-    public function setClosedAt(?\DateTime $closedAt): self
+    public function setClosedAt(?DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
 

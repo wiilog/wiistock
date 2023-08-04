@@ -346,13 +346,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
+        $this->keptFieldValues = new ArrayCollection();
+        $this->sessions = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
-        $this->keptFieldValues = new ArrayCollection();
-        $this->sessions = new ArrayCollection();
     }
 
     public function getId() {
