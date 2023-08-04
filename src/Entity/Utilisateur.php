@@ -303,6 +303,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Session::class)]
+    private Collection $sessions;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -343,12 +346,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
+        $this->keptFieldValues = new ArrayCollection();
+        $this->sessions = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
-        $this->keptFieldValues = new ArrayCollection();
     }
 
     public function getId() {
@@ -1987,4 +1991,46 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
+    /**
+     * @return Collection<int, Session>
+     */
+    public function getSessions(): Collection
+    {
+        return $this->sessions;
+    }
+
+    public function addSession(Session $session): self
+    {
+        if (!$this->sessions->contains($session)) {
+            $this->sessions[] = $session;
+            $session->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSession(Session $session): self
+    {
+        if ($this->sessions->removeElement($session)) {
+            // set the owning side to null (unless already changed)
+            if ($session->getUser() === $this) {
+                $session->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSessions(?iterable $sessions): self {
+        foreach($this->getSessions()->toArray() as $session) {
+            $this->removeSession($session);
+        }
+
+        $this->sessions = new ArrayCollection();
+        foreach($sessions ?? [] as $session) {
+            $this->addSession($session);
+        }
+
+        return $this;
+    }
 }
