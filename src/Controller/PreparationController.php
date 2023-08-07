@@ -73,7 +73,7 @@ class PreparationController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager, $locationEndPrepa);
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
         } catch (NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
             return new JsonResponse([
