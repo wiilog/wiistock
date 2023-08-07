@@ -133,58 +133,65 @@ class MobileController extends AbstractApiController
         $data = [];
 
         if (!empty($loggedUser)) {
-            $apiKey = $this->apiKeyGenerator();
-            $loggedUser->setApiKey($apiKey);
-            $entityManager->flush();
+            if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
+                $apiKey = $this->apiKeyGenerator();
+                $loggedUser->setApiKey($apiKey);
+                $entityManager->flush();
 
-            $rights = $userService->getMobileRights($loggedUser);
-            $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+                $rights = $userService->getMobileRights($loggedUser);
+                $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
 
-            $channels = Stream::from($rights)
-                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
-                ->takeKeys()
-                ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
-                ->toArray();
+                $channels = Stream::from($rights)
+                    ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                    ->takeKeys()
+                    ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                    ->toArray();
 
-            if (in_array($_SERVER["APP_INSTANCE"] . "-stock" , $channels)) {
-                Stream::from($loggedUser->getDeliveryTypes())
-                    ->each(function(Type $deliveryType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
-                    });
+                if (in_array($_SERVER["APP_INSTANCE"] . "-stock", $channels)) {
+                    Stream::from($loggedUser->getDeliveryTypes())
+                        ->each(function (Type $deliveryType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                        });
+                }
+                if (in_array($_SERVER["APP_INSTANCE"] . "-tracking", $channels)) {
+                    Stream::from($loggedUser->getDispatchTypes())
+                        ->each(function (Type $dispatchType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
+                        });
+                }
+                if (in_array($_SERVER["APP_INSTANCE"] . "-demande", $channels)) {
+                    Stream::from($loggedUser->getHandlingTypes())
+                        ->each(function (Type $handlingType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
+                        });
+                }
+
+                $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+
+                $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
+                    ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                    ->toArray();
+
+                $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+                $wayBillData['dispatch_id'] = null;
+
+                $data['success'] = true;
+                $data['data'] = [
+                    'apiKey' => $apiKey,
+                    'notificationChannels' => $channels,
+                    'rights' => $rights,
+                    'parameters' => $parameters,
+                    'username' => $loggedUser->getUsername(),
+                    'userId' => $loggedUser->getId(),
+                    'fieldsParam' => $fieldsParam ?? [],
+                    'dispatchDefaultWaybill' => $wayBillData ?? [],
+                ];
+            } else {
+                $data = [
+                    'success' => false,
+                    'msg' => "Cet utilisateur ne dispose pas des droits pour accéder à l'application mobile."
+                ];
             }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-tracking" , $channels)) {
-                Stream::from($loggedUser->getDispatchTypes())
-                    ->each(function(Type $dispatchType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
-                    });
-            }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-demande" , $channels)) {
-                Stream::from($loggedUser->getHandlingTypes())
-                    ->each(function(Type $handlingType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
-                    });
-            }
-
-            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
-
-            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
-                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
-                ->toArray();
-
-            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
-            $wayBillData['dispatch_id'] = null;
-
-            $data['success'] = true;
-            $data['data'] = [
-                'apiKey' => $apiKey,
-                'notificationChannels' => $channels,
-                'rights' => $rights,
-                'parameters' => $parameters,
-                'username' => $loggedUser->getUsername(),
-                'userId' => $loggedUser->getId(),
-                'fieldsParam' => $fieldsParam ?? [],
-                'dispatchDefaultWaybill' => $wayBillData ?? [],
-            ];
         } else {
             $data['success'] = false;
         }
