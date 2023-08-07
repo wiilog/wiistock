@@ -192,16 +192,16 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $createdBy = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerName = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerPhone = null;
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $customerRecipient = null;
 
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $customerAddress = null;
 
     public function __construct() {
