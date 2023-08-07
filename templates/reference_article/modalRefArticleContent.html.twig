@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 {% set editAttachments = editAttachments is defined and editAttachments %}
@@ -156,7 +158,7 @@
     <div class="form-group col-4 col-md-4 mt-2">
         {% set display = not articleRef.isUrgent ? 'd-none' : '' %}
         {{ form.number('emergencyQuantity', 'Quantité d\'urgence', false, articleRef.emergencyQuantity, {
-            labelClass: 'emergenc-quantity ' ~ display,
+            labelClass: 'emergency-quantity ' ~ display,
         }) }}
     </div>
     <div class="form-group col-4 mt-12">

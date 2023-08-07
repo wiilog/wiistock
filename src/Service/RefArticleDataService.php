@@ -298,7 +298,7 @@ class RefArticleDataService
         }
 
         $isDangerousGood = $data->getBoolean('security');
-        $fileSheetSubmitted = $fileBag->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetSubmitted = !!$fileBag?->has('fileSheet');
         $fileSheetPreviouslySaved = $data->has('savedSheetFile');
         $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
 
@@ -477,10 +477,10 @@ class RefArticleDataService
         $entityManager->persist($refArticle);
         //modification ou création des champsLibres
         $this->freeFieldService->manageFreeFields($refArticle, $data->all(), $entityManager);
+
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $file = $fileBag->get('image');
-                $attachments = $this->attachmentService->createAttachements([$file]);
+                $attachments = $this->attachmentService->createAttachements([$fileBag->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -495,14 +495,12 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $file = $fileBag->get('fileSheet');
-                $attachments = $this->attachmentService->createAttachements([$file]);
+                $attachments = $this->attachmentService->createAttachements([$fileBag->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
-                $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
-            } elseif ($data->getBoolean('deletedSheetFile')) {
+            } else {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);

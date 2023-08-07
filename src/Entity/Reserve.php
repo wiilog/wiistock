@@ -23,12 +23,12 @@ class Reserve
 
     const KIND_QUANTITY = 'quantity';
     const KIND_GENERAL = 'general';
-    const KIND_QUALITY = 'quality';
+    const KIND_LINE = 'line';
 
-    const TYPES = [
+    const KINDS = [
         self::KIND_QUANTITY,
         self::KIND_GENERAL,
-        self::KIND_QUALITY,
+        self::KIND_LINE,
     ];
 
     #[ORM\Id]

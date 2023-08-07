@@ -25,8 +25,11 @@ $(function() {
         },
         columns: [
             {"data": 'actions', 'name': 'Actions', 'title': '', className: 'noVis', orderable: false, width: '10px'},
-            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur', width: '50%'},
-            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle', width: '50%'},
+            {"data": 'sensorWrapper', 'name': 'Nom', 'title': 'Nom du capteur'},
+            {"data": 'template', 'name': 'Modèle', 'title': 'Modèle'},
+            {"data": 'templateType', 'name': 'Type de modèle', 'title': 'Type de modèle', orderable: false},
+            {"data": 'threshold', 'name': 'Type de seuil', 'title': 'Type de seuil', orderable: false},
+            {"data": 'lastTrigger', 'name': 'Date du dernier déclenchement', 'title': 'Date du dernier déclenchement'},
         ]
     };
 
@@ -35,6 +38,15 @@ $(function() {
     let $submitNewTriggerAction = $modalNewTriggerAction.find('.submit-button');
     let urlNewTriggerAction = Routing.generate('trigger_action_new', true);
     InitModal($modalNewTriggerAction, $submitNewTriggerAction, urlNewTriggerAction, {tables: [table]});
+    $modalNewTriggerAction.on('change', '.trigger-action-data [name^=sensor]' , function () {
+        const $dataInput = $(this);
+        const $templateType = $dataInput.parents('.trigger-action-data').find('[name^=templateType]');
+        $templateType.attr('disabled', !$dataInput.val());
+        if (!$dataInput.val()) {
+            $templateType.val(null).trigger('change');
+        }
+    });
+
 
     let $modalDeleteTriggerAction = $('#modalDeleteTriggerAction');
     let $submitDeleteTriggerAction = $('#submitDeleteTriggerAction');
@@ -68,45 +80,28 @@ function submitSensor(val = null) {
     }
 }
 
-function onTemplateTypeChange($select){
-    const templatesHigherSelect = $modalNewTriggerAction.find("select[name=templatesForHigher]");
-    const templatesLowerSelect = $modalNewTriggerAction.find("select[name=templatesForLower]");
-    const templatesSelect = $modalEditTriggerAction.find("select[name=templates]");
-    const route = Routing.generate(`get_templates`, {type: $select.val()});
+function onTemplateTypeChange($select) {
+    const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templatesFor]');
 
-    if($select.attr('name') === 'templateTypeHigher' && $select.val() !== ''){
-        $.post(route).then(({results}) => {
-            templatesHigherSelect.empty();
-            for(let option of results){
-                templatesHigherSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
-            }
-            templatesHigherSelect.attr('disabled', $select.val() === '');
-        });
-    } else if($select.attr('name') === 'templateTypeLower' && $select.val() !== ''){
-        $.post(route).then(({results}) => {
-            templatesLowerSelect.empty();
-            for(let option of results){
-                templatesLowerSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
-            }
-            templatesLowerSelect.attr('disabled', $select.val() === '');
-        });
-    } else if($select.attr('name') === 'templateType' && $select.val() !== ''){
-        $.post(route).then(({results}) => {
-            templatesSelect.empty();
-            for(let option of results){
-                templatesSelect.append('<option value="'+option['id']+'">'+option['text']+'</option>')
-            }
-            templatesSelect.attr('disabled', $select.val() === '');
-        });
+    if ($select.val()) {
+        AJAX
+            .route(AJAX.GET, 'get_templates', {type: $select.val()})
+            .json()
+            .then(({results}) => {
+                $templatesSelect.empty();
+                for (let option of results) {
+                    $templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
+                }
+            });
+    } else {
+        $templatesSelect.empty();
     }
+
+    $templatesSelect.attr('disabled', !$select.val());
 }
 
 function clearNewModal(clearReferenceInput = false){
     clearModal($modalNewTriggerAction);
     $modalNewTriggerAction.find('.sensor-details-container').addClass('d-none');
-}
-
-function initEditTriggerActionForm(){
-    onTemplateTypeChange($modalEditTriggerAction.find('[name=templateType]'), true);
 }
 

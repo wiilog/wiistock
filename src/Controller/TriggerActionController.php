@@ -55,19 +55,12 @@ class TriggerActionController extends AbstractController
      * @Route("/creer", name="trigger_action_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(EntityManagerInterface $entityManager, Request $request): Response
+    public function new(EntityManagerInterface $entityManager,
+                        Request $request,
+                        TriggerActionService $triggerActionService): Response
     {
         if($data = json_decode($request->getContent(), true)){
             $sensorWrapperRepository= $entityManager->getRepository(SensorWrapper::class);
-            $sensorRepository= $entityManager->getRepository(Sensor::class);
-            $requestTemplateRepository= $entityManager->getRepository(RequestTemplate::class);
-            $alertTemplateRepository= $entityManager->getRepository(AlertTemplate::class);
-            $triggerActionRepository = $entityManager->getRepository(TriggerAction::class);
-
-            $triggerActionHigher = new TriggerAction();
-            $triggerActionLower = new TriggerAction();
-            $triggerAction = new TriggerAction();
-
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
                 $sensorWrapper = $sensorWrapperRepository->findOneBy(["id" => $name, 'deleted' => false]);
@@ -75,58 +68,53 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper = null;
             }
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-                if ($data['templateTypeHigher'] === TriggerAction::REQUEST) {
-                    $name = $data['templatesForHigher'];
-                    $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);
-                    $triggerActionHigher->setRequestTemplate($requestTemplate);
-                } else if ($data['templateTypeHigher'] === TriggerAction::ALERT) {
-                    $name = $data['templatesForHigher'];
-                    $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $name]);
-                    $triggerActionHigher->setAlertTemplate($alertTemplate);
-                }
+                $triggerActionConfig = [
+                    "sensorHygrometryLimitLower" => [
+                        "limit" => TriggerAction::LOWER,
+                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                        "templateType" => "templateTypeLowerHygro",
+                        "template" => "templatesForLowerHygro",
+                    ],
+                    "sensorHygrometryLimitHigher" => [
+                        "limit" => TriggerAction::HIGHER,
+                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                        "templateType" => "templateTypeHigherHygro",
+                        "template" => "templatesForHigherHygro",
+                    ],
+                    "sensorTemperatureLimitLower" => [
+                        "limit" => TriggerAction::LOWER,
+                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                        "data" => "sensorTemperatureLimitLower",
+                        "templateType" => "templateTypeLowerTemp",
+                        "template" => "templatesForLowerTemp",
+                    ],
+                    "sensorTemperatureLimitHigher" => [
+                        "limit" => TriggerAction::HIGHER,
+                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                        "templateType" => "templateTypeHigherTemp",
+                        "template" => "templatesForHigherTemp",
+                    ],
+                ];
 
-                if ($data['templateTypeLower'] === TriggerAction::REQUEST) {
-                    $name = $data['templatesForLower'];
-                    $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $name]);
-                    $triggerActionLower->setRequestTemplate($requestTemplate);
-                } else if ($data['templateTypeLower'] === TriggerAction::ALERT) {
-                    $name = $data['templatesForLower'];
-                    $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $name]);
-                    $triggerActionLower->setAlertTemplate($alertTemplate);
-                }
-
-                if(isset($data['zone'])){
-                    $json = ['zone' => $data['zone']];
-                    if(isset($data['buttonIndex'])){
-                        $valid = $sensorWrapper->getTriggerActions()->filter(
-                            function(TriggerAction $trigger) use ($data) {
-                                $buttonIndex = $trigger->getConfig()['buttonIndex'] ?? null;
-                                return intval($buttonIndex) === intval($data['buttonIndex']);
-                            }
-                        )->isEmpty();
-                        if (!$valid) {
-                            return $this->json([
-                                'success' => false,
-                                'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
-                            ]);
-                        }
-                        $json['buttonIndex'] = $data['buttonIndex'];
+                $triggerActionHaveBeenCreated = false;
+                foreach ($triggerActionConfig as $key => $config) {
+                    $limitValue = $data[$key] ?? false;
+                    if ($limitValue) {
+                        $triggerAction = $triggerActionService->createTriggerActionByTemplateType($entityManager, $data[$config["templateType"]],  $data[$config["template"]], $sensorWrapper);
+                        $triggerAction->setConfig([
+                            'limit' => $config["limit"],
+                            $config["type"] => $limitValue,
+                        ]);
+                        $triggerActionHaveBeenCreated = true;
+                        $entityManager->persist($triggerAction);
                     }
-                    $triggerAction->setConfig($json);
-                    $triggerAction->setSensorWrapper($sensorWrapper);
-                    $entityManager->persist($triggerAction);
                 }
 
-                if (isset($data['sensorTemperatureLimitHigher']) && isset($data['sensorTemperatureLimitLower'])) {
-                    $jsonHigher = ['limit' => 'higher', 'temperature' => $data['sensorTemperatureLimitHigher']];
-                    $jsonLower = ['limit' => 'lower', 'temperature' => $data['sensorTemperatureLimitLower']];
-                    $triggerActionHigher->setConfig($jsonHigher);
-                    $triggerActionLower->setConfig($jsonLower);
-
-                    $triggerActionHigher->setSensorWrapper($sensorWrapper);
-                    $triggerActionLower->setSensorWrapper($sensorWrapper);
-                    $entityManager->persist($triggerActionHigher);
-                    $entityManager->persist($triggerActionLower);
+                if (!$triggerActionHaveBeenCreated) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "Aucun actionneur n'a été créé, veuillez remplir les champs"
+                    ]);
                 }
 
                 try {
@@ -169,7 +157,6 @@ class TriggerActionController extends AbstractController
 
             return new JsonResponse([
                 'success' => true,
-                'redirect' => $this->generateUrl('trigger_action_index'),
                 'msg' => "L'actionneur a bien été supprimé"
             ]);
 
@@ -191,11 +178,24 @@ class TriggerActionController extends AbstractController
 
             $sensor = $triggerAction->getSensorWrapper()->getSensor();
 
+            $alertTemplate = $triggerAction->getAlertTemplate();
+            $requestTemplate = $triggerAction->getRequestTemplate();
+            if ($alertTemplate) {
+                $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
+                $templates = $alertTemplateRepository->findAll();
+                $templateId = $alertTemplate->getId();
+            } else if ($requestTemplate) {
+                $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+                $templates = $requestTemplateRepository->findAll();
+                $templateId = $requestTemplate->getId();
+            }
+
             $json = $this->renderView('trigger_action/edit_content_modal.html.twig', [
                 'triggerAction' => $triggerAction,
                 'templateTypes' => TriggerAction::TEMPLATE_TYPES,
-                "templateTemperatures" => TriggerAction::TEMPLATE_TEMPERATURE,
-                'profile' => $sensor ? $sensor->getProfile()->getName() : ""
+                'profile' => $sensor ? $sensor->getProfile()->getName() : "",
+                'templates' => $templates ?? [],
+                'templateId' => $templateId ?? null,
             ]);
 
             return new JsonResponse($json);
@@ -220,10 +220,10 @@ class TriggerActionController extends AbstractController
 
             $type = $data['templateType'];
             if($type === TriggerAction::ALERT){
-                $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $data['templates']]);
+                $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
                 $triggerAction->setAlertTemplate($alertTemplate);
             } else {
-                $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $data['templates']]);
+                $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
                 $triggerAction->setRequestTemplate($requestTemplate);
             }
 
@@ -247,9 +247,11 @@ class TriggerActionController extends AbstractController
                 $triggerAction->setConfig($json);
             }
 
-            if(isset($data['sensorTemperatureLimit'])){
-                $json = ['limit' => $data['borneTemperature'], 'temperature' => $data['sensorTemperatureLimit']];
-                $triggerAction->setConfig($json);
+            if(isset($data['sensorDataLimit'])){
+                $triggerAction->setConfig([
+                    'limit' => $data['comparators'],
+                    $data['actionType'] => $data['sensorDataLimit'],
+                ]);
             }
 
             $entityManager->flush();
@@ -264,9 +266,7 @@ class TriggerActionController extends AbstractController
 
     }
 
-    /**
-     * @Route("/get-templates", name="get_templates", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/get-templates', name: 'get_templates', options: ['expose' => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
     public function getTemplates(EntityManagerInterface $entityManager,
                                  Request $request): Response {
 
@@ -322,6 +322,14 @@ class TriggerActionController extends AbstractController
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE){
             $html = $this->renderView('trigger_action/modalMultipleTemperatures.html.twig', [
+                "templateTypes" => TriggerAction::TEMPLATE_TYPES,
+            ]);
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE_HYGROMETRY) {
+            $html = $this->renderView('trigger_action/modalTemperatureHygrometry.html.twig', [
+                "templateTypes" => TriggerAction::TEMPLATE_TYPES,
+            ]);
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::HYGROMETRY) {
+            $html = $this->renderView('trigger_action/modalMultipleHygrometry.html.twig', [
                 "templateTypes" => TriggerAction::TEMPLATE_TYPES,
             ]);
         }

@@ -22,6 +22,7 @@ use App\Service\IOT\PairingService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use App\Service\IOT\DataMonitoringService;
 use DateTime;
 use App\Controller\AbstractController;
@@ -78,7 +79,7 @@ class PairingController extends AbstractController
         foreach ($pairings as $pairing) {
             /** @var Sensor $sensor */
             $sensor = $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getSensor() : null;
-            $type = $sensor ? FormatHelper::type($sensor->getType()) : '';
+            $type = $sensor ? $this->formatService->type($sensor->getType()) : '';
 
             $elementIcon = $IOTService->getEntityCodeFromEntity($pairing->getEntity()) ?? '';
 
@@ -89,7 +90,7 @@ class PairingController extends AbstractController
                 "name" => $pairing->getSensorWrapper() ? $pairing->getSensorWrapper()->getName() : '',
                 "element" => $pairing->getEntity() ? $pairing->getEntity()->__toString() : '',
                 "elementIcon" => $elementIcon,
-                "temperature" => ($sensor && (FormatHelper::type($sensor->getType()) === Sensor::TEMPERATURE) && $sensor->getLastMessage())
+                "temperature" => ($sensor && ($this->formatService->type($sensor->getType()) === Sensor::TEMPERATURE) && $sensor->getLastMessage())
                     ? $sensor->getLastMessage()->getContent()
                     : '',
                 "lowTemperatureThreshold" => SensorMessage::LOW_TEMPERATURE_THRESHOLD,
@@ -263,37 +264,16 @@ class PairingController extends AbstractController
     /**
      * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()", options={"expose"=true}, methods="GET|POST")
      */
-    public function getChartData(Request $request, Pairing $pairing): JsonResponse
+    public function getChartData(Request $request, Pairing $pairing, PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
-            Sensor::TEMPERATURE
+            $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
         );
 
-        $data = ["colors" => []];
-        foreach ($associatedMessages as $message) {
-            $date = $message->getDate();
-            $sensor = $message->getSensor();
-            $wrapper = $sensor->getAvailableSensorWrapper();
-            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
-
-            if (!isset($data['colors'][$sensorCode])) {
-                srand($sensor->getId());
-                $data['colors'][$sensorCode] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
-            }
-
-            $dateStr = $date->format('d/m/Y H:i:s');
-            if (!isset($data[$dateStr])) {
-                $data[$dateStr] = [];
-            }
-            $data[$dateStr][$sensorCode] = floatval($message->getContent());
-        }
-
-        srand();
-
-        return new JsonResponse($data);
+        return new JsonResponse($pairingService->buildChartDataFromMessages($associatedMessages));
     }
 
 }

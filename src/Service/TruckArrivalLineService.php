@@ -66,7 +66,6 @@ class TruckArrivalLineService
                         'title' => 'Supprimer',
                         'icon' => 'wii-icon wii-icon-trash',
                         'class' => 'truck-arrival-lines-delete',
-                        "actionOnClick" => true,
                         'attributes' => [
                             "data-id" => $truckArrivalLine->getId(),
                             "onclick" => "deleteTruckArrivalLine($(this))"

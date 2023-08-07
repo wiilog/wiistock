@@ -20,7 +20,6 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -42,6 +41,7 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
@@ -217,22 +217,6 @@ class SettingsService {
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
             $updated[] = Setting::APP_CLIENT;
-        }
-
-        if ($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
-            $mailer
-                ->setSmtp($data->get("MAILER_URL"))
-                ->setUser($data->get("MAILER_USER"))
-                ->setPassword($data->get("MAILER_PASSWORD"))
-                ->setPort($data->get("MAILER_PORT"))
-                ->setProtocol($data->get("MAILER_PROTOCOL"))
-                ->setSenderName($data->get("MAILER_SENDER_NAME"))
-                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-
-            if (!$mailer->getId()) {
-                $this->manager->persist($mailer);
-            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -642,16 +626,23 @@ class SettingsService {
                 $tagTemplate->setHeight($tagTemplateData['height']);
                 $tagTemplate->setWidth($tagTemplateData['width']);
                 $tagTemplate->setModule($tagTemplateData['module']);
+
+                $natures = [];
+                $types = [];
+
                 Stream::explode(',', $tagTemplateData['natureOrType'])
-                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
-                            $tagTemplate->addNature($nature);
+                            $natures[] = $nature;
                         } else {
                             $type = $typeRepository->find($id);
-                            $tagTemplate->addType($type);
+                            $types[] = $type;
                         }
                     } );
+
+                $tagTemplate->setNatures(new ArrayCollection($natures));
+                $tagTemplate->setTypes(new ArrayCollection($types));
 
                 $this->manager->persist($tagTemplate);
             }
@@ -1103,8 +1094,8 @@ class SettingsService {
 
             if (!empty($reserveTypesData)) {
                 $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
-                if ($isDefaultReserveTypes > 1) {
-                    throw new RuntimeException("Il ne peut pas y avoir plus d'un type de réserve par défaut.");
+                if ($isDefaultReserveTypes !== 1) {
+                    throw new RuntimeException("Il doit y avoir un seul type de réserve par défaut.");
                 }
 
                 $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
@@ -1136,6 +1127,10 @@ class SettingsService {
                             ->toArray();
                     } else {
                         $notifiedUsers = [];
+                    }
+
+                    if($reserveTypeData['defaultReserveType'] && !$reserveTypeData['active']){
+                        throw new RuntimeException("Impossible de rendre inactif le type de réserve par défaut.");
                     }
 
                     $reserveType

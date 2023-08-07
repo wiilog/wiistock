@@ -11,12 +11,14 @@ use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
+use App\Entity\ReserveType;
 use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -393,7 +395,26 @@ class FormatService
         return $this->entity($truckArrivalLines, 'number', $separator);
     }
 
-    public function reserveType($reserveType, string $else = ''): string {
+    public function reserveType(?ReserveType $reserveType, string $else = ''): string {
         return $reserveType ? $reserveType->getLabel() : $else;
+    }
+
+    public function triggerActionThreshold(TriggerAction $triggerAction): string {
+        $triggerActionConfig = $triggerAction->getConfig() ?? [];
+
+        $actionType = $triggerAction->getActionType();
+        $actionDataType =  $triggerAction::ACTION_DATA_TYPES[$actionType] ?? "";
+        $thresholdValue = $triggerActionConfig[$actionType] ?? "";
+
+        return (IOTService::DATA_TYPE[$actionDataType] ?? "")
+            ." "
+            .lcfirst((TriggerAction::COMPARATORS[$triggerActionConfig['limit'] ?? ""] ?? ""))
+            ." à "
+            .$thresholdValue
+            .(IOTService::DATA_TYPE_TO_UNIT[$actionDataType] ?? "");
+    }
+
+    public function triggerActionTemplateType(?TriggerAction $triggerAction,string $else = ""): string {
+        return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
     }
 }

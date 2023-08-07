@@ -31,7 +31,7 @@ class SensorMessage {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $content = null;
 
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: 'integer', nullable: false)]
     private ?int $contentType = null;
 
     #[ORM\Column(type: 'string', length: 255)]

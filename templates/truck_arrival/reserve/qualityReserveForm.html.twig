@@ -5,7 +5,7 @@
         type: 'hidden',
     }) }}
 {% endif %}
-{{ form.input('type', null, false , 'quality', {
+{{ form.input('type', null, false , constant('App\\Entity\\Reserve::KIND_LINE'), {
     type: 'hidden',
 }) }}
 <div class="row">
