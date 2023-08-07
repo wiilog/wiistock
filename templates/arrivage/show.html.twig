@@ -56,12 +56,11 @@
                                             title: trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer unités logistiques'),
                                             icon: "wii-icon wii-icon-printer-black",
                                             attributes: {
-                                            "data-toggle": "modal",
-                                            "data-target": "#modalColumnVisible",
                                             "onclick": "printArrival({
                                                     'arrivageId': " ~ arrivage.id ~ ",
                                                     'printPacks' : true,
-                                                    'printArrivage' : true
+                                                    'printArrivage' : true,
+                                                    'printAll': true,
                                                 })"
                                         },
                                         }
