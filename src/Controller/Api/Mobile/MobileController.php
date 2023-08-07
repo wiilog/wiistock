@@ -3501,8 +3501,13 @@ class MobileController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array( $numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+        }
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat::DATE_COUNTER_FORMAT_DISPATCH_LONG);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;

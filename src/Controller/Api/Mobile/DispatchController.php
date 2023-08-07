@@ -7,6 +7,7 @@ use App\Controller\Api\AbstractApiController;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -47,6 +48,7 @@ class DispatchController extends AbstractApiController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchs = json_decode($data->get('dispatches'), true);
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
@@ -89,7 +91,12 @@ class DispatchController extends AbstractApiController
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
                 $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
                 $wasDraft = true;
-                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH, $createdAt);
+
+                $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+                if(!in_array( $numberFormat, Dispatch::NUMBER_FORMATS)) {
+                    throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+                }
+                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat, $createdAt);
 
                 $dispatch = (new Dispatch())
                     ->setNumber($dispatchNumber)

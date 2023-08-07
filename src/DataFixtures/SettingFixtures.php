@@ -7,6 +7,7 @@ use App\Entity\Setting;
 
 use App\Service\SpecificService;
 
+use App\Service\UniqueNumberService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 
@@ -340,6 +341,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DELIVERY_REQUEST_ADD_UL => [
                 'default' => false,
+            ],
+            Setting::DISPATCH_NUMBER_FORMAT => [
+                'default' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
             ],
         ];
 
