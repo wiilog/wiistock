@@ -184,10 +184,10 @@ class DispatchController extends AbstractController {
         $fromDashboard = $request->query->getBoolean('fromDashboard');
         $preFilledStatuses = $request->query->has('preFilledStatuses')
             ? implode(",", $request->query->all('preFilledStatuses'))
-            : "";
+            : [];
         $preFilledTypes = $request->query->has('preFilledTypes')
             ? implode(",", $request->query->all('preFilledTypes'))
-            : "";
+            : [];
 
         $preFilledFilters = [
             [
