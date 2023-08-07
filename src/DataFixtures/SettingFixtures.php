@@ -4,13 +4,10 @@ namespace App\DataFixtures;
 
 use App\Entity\FreeField;
 use App\Entity\Setting;
-
 use App\Service\SpecificService;
-
 use App\Service\UniqueNumberService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Contracts\Service\Attribute\Required;

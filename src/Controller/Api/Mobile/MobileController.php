@@ -3504,7 +3504,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $manager->getRepository(Setting::class);
 
         $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
-        if(!in_array( $numberFormat, Dispatch::NUMBER_FORMATS)) {
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }
         $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat::DATE_COUNTER_FORMAT_DISPATCH_LONG);

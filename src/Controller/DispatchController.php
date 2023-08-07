@@ -322,7 +322,7 @@ class DispatchController extends AbstractController {
 
         $currentUser = $this->getUser();
         $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
-        if(!in_array( $numberFormat, Dispatch::NUMBER_FORMATS)) {
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }
         $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat);

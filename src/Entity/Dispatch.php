@@ -27,8 +27,8 @@ class Dispatch extends StatusHistoryContainer {
     const GROUPED_SIGNATURE_TYPES = [Dispatch::TAKING, Dispatch::DROP];
 
     const NUMBER_FORMATS = [
-        'aaaammddxxxx'=> UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
-        'aaaammddhhmmss-xxxx'=> UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
+        'aaaammjjxxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
+        'aaaammjjhhmmss-xxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
     ];
 
     /**
