@@ -192,6 +192,18 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $createdBy = null;
 
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $customerName = null;
+
+    #[ORM\Column(type: Types::STRING)]
+    private ?string $customerPhone = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $customerRecipient = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private ?string $customerAddress = null;
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -656,4 +668,51 @@ class Dispatch extends StatusHistoryContainer {
         return $this;
     }
 
+    public function getCustomerName(): ?string
+    {
+        return $this->customerName;
+    }
+
+    public function setCustomerName(?string $customerName): self
+    {
+        $this->customerName = $customerName;
+
+        return $this;
+    }
+
+    public function getCustomerPhone(): ?string
+    {
+        return $this->customerPhone;
+    }
+
+    public function setCustomerPhone(?string $customerPhone): self
+    {
+        $this->customerPhone = $customerPhone;
+
+        return $this;
+    }
+
+    public function getCustomerRecipient(): ?string
+    {
+        return $this->customerRecipient;
+    }
+
+    public function setCustomerRecipient(?string $customerRecipient): self
+    {
+        $this->customerRecipient = $customerRecipient;
+
+        return $this;
+    }
+
+    public function getCustomerAddress(): ?string
+    {
+        return $this->customerAddress;
+    }
+
+    public function setCustomerAddress(?string $customerAddress): self
+    {
+        $this->customerAddress = $customerAddress;
+
+        return $this;
+    }
 }
