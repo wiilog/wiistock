@@ -31,6 +31,9 @@ class SensorMessage {
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $content = null;
 
+    #[ORM\Column(type: 'integer', nullable: false)]
+    private ?int $contentType = null;
+
     #[ORM\Column(type: 'string', length: 255)]
     private ?string $event = null;
 
@@ -128,6 +131,16 @@ class SensorMessage {
 
     public function getPairings(): Collection {
         return $this->pairings;
+    }
+
+    public function getContentType(): ?int {
+        return $this->contentType;
+    }
+
+    public function setContentType(?int $contentType): self {
+        $this->contentType = $contentType;
+
+        return $this;
     }
 
 }

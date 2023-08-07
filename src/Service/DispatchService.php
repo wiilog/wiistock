@@ -28,10 +28,8 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\AdMob\Date;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -116,12 +114,16 @@ class DispatchService {
     // cache for default nature
     private ?Nature $defaultNature = null;
 
-    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false) {
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        if (!$fromDashboard) {
+            $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_DISPATCH, $this->userService->getUser());
+        } else {
+            $filters = $preFilledFilters;
+        }
 
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
@@ -244,7 +246,9 @@ class DispatchService {
                     'dropLocation' => [
                         "id" => $type->getDropLocation() ? $type->getDropLocation()->getId() : null,
                         "label" => $type->getDropLocation() ? $type->getDropLocation()->getLabel() : null,
-                    ]
+                    ],
+                    'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
+                    'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
                 ];
             }, $types),
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
@@ -814,7 +818,7 @@ class DispatchService {
             $data = [
                 "actions" => $actions,
                 "code" => $code,
-                "nature" => $nature->getLabel(),
+                "nature" => $nature?->getLabel(),
                 "quantity" => $quantity,
                 "weight" => $weight,
                 "volume" => $volume,
@@ -839,7 +843,7 @@ class DispatchService {
             $packQuantity = (int)$pack['packQuantity'];
             $pack = $packRepository->find($packId);
             $pack
-                ->setComment(StringHelper::cleanedComment($comment));
+                ->setComment($comment);
             $packDispatch = new DispatchPack();
             $packDispatch
                 ->setPack($pack)
@@ -944,13 +948,24 @@ class DispatchService {
         }
 
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
-        $name = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+        $originalName = "BS - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}.pdf";
+        $fileName = uniqid().'.pdf';
+
+        $pdfContent = $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField);
+
+        $attachment = new Attachment();
+        $attachment->setFileName($fileName);
+        $attachment->setOriginalName($originalName);
+        $attachment->setDispatch($dispatch);
+
+        $this->entityManager->persist($attachment);
+        $this->entityManager->flush();
 
         return [
-            'file' => $this->PDFGeneratorService->generatePDFOverconsumption($dispatch, $appLogo, $overConsumptionLogo, $additionalField),
-            'name' => $name
+            'file' => $pdfContent,
+            'name' => $originalName
         ];
     }
 
@@ -959,31 +974,35 @@ class DispatchService {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BL - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDeliveryNote($name, $logo, $dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }
 
     public function getDispatchNoteData(Dispatch $dispatch): array {
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $name = "BA - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
 
+        $pdfContent = $this->PDFGeneratorService->generatePDFDispatchNote($dispatch);
+
         return [
-            'file' => $this->PDFGeneratorService->generatePDFDispatchNote($dispatch),
+            'file' => $pdfContent,
             'name' => $name
         ];
     }
 
     public function persistNewWaybillAttachment(EntityManagerInterface $entityManager,
                                                 Dispatch               $dispatch,
-                                                Utilisateur $user): Attachment {
+                                                Utilisateur            $user): Attachment {
 
         $projectDir = $this->kernel->getProjectDir();
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -1177,7 +1196,7 @@ class DispatchService {
 
         $nowDate = new DateTime('now');
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
+        $client = $this->specificService->getAppClientLabel();
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
 
@@ -1326,7 +1345,7 @@ class DispatchService {
         return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
-    public function createDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
+    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
     {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
@@ -1344,6 +1363,8 @@ class DispatchService {
         }
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
+
         $referenceArticle = $referenceRepository->find($referenceArticleId);
         $dispatchPack = $dispatchPackRepository->findOneBy(['dispatch' => $dispatchId, 'pack' => $packId]);
 
@@ -1355,6 +1376,23 @@ class DispatchService {
         if ($dispatchReferenceArticleId) {
             $dispatchReferenceArticleRepository = $entityManager->getRepository(DispatchReferenceArticle::class);
             $dispatchReferenceArticle = $dispatchReferenceArticleRepository->find($dispatchReferenceArticleId);
+
+            if (isset($data['ULWeight']) && intval($data['ULWeight']) < 0) {
+                throw new FormException('Le poids doit être supérieur à 0');
+            } else if (isset($data['ULVolume']) && intval($data['ULVolume']) < 0) {
+                throw new FormException('Le volume doit être supérieur à 0');
+            }
+
+            $nature = $data['nature'] ? $natureRepository->find($data['nature']) : null;
+            if (!$nature) {
+                throw new FormException("La nature de l'UL est incorrecte");
+            }
+
+            $dispatchPack->getPack()
+                ->setNature($nature)
+                ->setWeight($data['ULWeight'] ?? null)
+                ->setVolume($data['ULVolume'] ?? null)
+                ->setComment($data['ULComment'] ?? null);
         } else {
             $dispatchReferenceArticle = new DispatchReferenceArticle();
         }
@@ -1393,7 +1431,7 @@ class DispatchService {
 
         return new JsonResponse([
             'success' => true,
-            'msg' => 'Référence ajoutée'
+            'msg' => $dispatchReferenceArticleId ? 'Référence et UL modifiées' : 'Référence ajoutée'
         ]);
     }
 
@@ -1523,13 +1561,17 @@ class DispatchService {
         }
 
         $newCommentDispatch = $dispatch->getCommentaire()
-            ? ($dispatch->getCommentaire() . "<br/>")
+            ? ($dispatch->getCommentaire() . "<br>")
             : "";
 
         $dispatch
             ->setTreatmentDate($signatureDate)
-            ->setTreatedBy($operator)
-            ->setCommentaire($newCommentDispatch . $comment);
+            ->setTreatedBy($operator);
+
+        if($comment){
+            $dispatch->setCommentaire($newCommentDispatch . $comment);
+        }
+
 
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
@@ -1591,13 +1633,13 @@ class DispatchService {
         return $emptyOption . $options;
     }
 
-    public function getWayBillDataForUser(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager) {
+    public function getWayBillDataForUser(Utilisateur $user, EntityManagerInterface $entityManager, Dispatch $dispatch = null) {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $dispatchSavedLDV = $settingRepository->getOneParamByLabel(Setting::DISPATCH_SAVE_LDV);
         $userSavedData = $dispatchSavedLDV ? [] : $user->getSavedDispatchWaybillData();
-        $dispatchSavedData = $dispatch->getWaybillData();
+        $dispatchSavedData = $dispatch?->getWaybillData();
 
         $now = new DateTime('now');
 
@@ -1624,7 +1666,7 @@ class DispatchService {
             'consignorEmail' => $consignorEmail,
             'receiverUsername' => $isEmerson ? $user->getUsername() : null,
             'receiverEmail' => $isEmerson ? $user->getEmail() : null,
-            'packsCounter' => $dispatch->getDispatchPacks()->count()
+            'packsCounter' => $dispatch?->getDispatchPacks()->count()
         ];
         return Stream::from(Dispatch::WAYBILL_DATA)
             ->keymap(fn(bool $data, string $key) => [$key, $dispatchSavedData[$key] ?? $userSavedData[$key] ?? $defaultData[$key] ?? null])
@@ -1635,6 +1677,7 @@ class DispatchService {
     public function treatMobileDispatchReference(EntityManagerInterface $entityManager,
                                                  Dispatch $dispatch,
                                                  array $data,
+                                                 array &$createdReferences,
                                                  array $options){
         if(!isset($data['logisticUnit']) || !isset($data['reference'])){
             throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
@@ -1647,8 +1690,10 @@ class DispatchService {
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $defaultNature = $natureRepository->findOneBy(['defaultNature' => true]);
+        $packNature = isset($data['natureId']) ? $natureRepository->find($data['natureId']) : null;
 
-        $reference = $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
+        $reference = ($createdReferences[$data['reference']] ?? null)
+            ?: $referenceArticleRepository->findOneBy(['reference' => $data['reference']]);
         if(!$reference) {
             $dispatchNewReferenceType = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_TYPE);
             $dispatchNewReferenceStatus = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NEW_REFERENCE_STATUS);
@@ -1665,8 +1710,6 @@ class DispatchService {
             $type = $typeRepository->find($dispatchNewReferenceType);
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $dispatchNewReferenceStatus);
 
-
-
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['reference'])
@@ -1681,6 +1724,8 @@ class DispatchService {
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setQuantiteStock(0)
                 ->setQuantiteDisponible(0);
+
+            $createdReferences[$data['reference']] = $reference;
 
             $entityManager->persist($reference);
         }
@@ -1719,7 +1764,7 @@ class DispatchService {
         $logisticUnit = $packRepository->findOneBy(['code' => $data['logisticUnit']])
             ?? $this->packService->createPackWithCode($data['logisticUnit']);
 
-        $logisticUnit->setNature($defaultNature);
+        $logisticUnit->setNature($packNature ?? $defaultNature);
 
         $entityManager->persist($logisticUnit);
 

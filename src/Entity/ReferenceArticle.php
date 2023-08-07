@@ -36,8 +36,6 @@ class ReferenceArticle
     const DRAFT_STATUS = 'brouillon';
     const QUANTITY_TYPE_REFERENCE = 'reference';
     const QUANTITY_TYPE_ARTICLE = 'article';
-    const DATA_SECURITY_YES = 1;
-    const DATA_SECURITY_NO = 0;
     const BARCODE_PREFIX = 'REF';
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
@@ -133,6 +131,9 @@ class ReferenceArticle
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $emergencyComment = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $emergencyQuantity = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'referencesEmergenciesTriggered')]
     private ?Utilisateur $userThatTriggeredEmergency = null;
@@ -724,6 +725,15 @@ class ReferenceArticle
     public function setEmergencyComment(?string $emergencyComment): self {
         $this->emergencyComment = $emergencyComment;
 
+        return $this;
+    }
+
+    public function getEmergencyQuantity(): ?int {
+        return $this->emergencyQuantity;
+    }
+
+    public function setEmergencyQuantity(?int $emergencyQuantity): self {
+        $this->emergencyQuantity = $emergencyQuantity;
         return $this;
     }
 

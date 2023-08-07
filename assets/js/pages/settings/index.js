@@ -104,6 +104,7 @@ const initializers = {
     modeles_expedition_bordereau_de_livraison: initializeDeliveryWaybillTemplate,
     stock_articles_pays_d_origine: initializeArticleNativeCountriesTable,
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
+    trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
 };
 
@@ -458,7 +459,26 @@ function initializeSiteAppearance() {
 
 function initializeGlobalLabels() {
     $('#upload-label-logo').on('change', () => updateImagePreview('#preview-label-logo', '#upload-label-logo'));
+    $(`#tagTemplateTable`).on('change', '[name=natureOrType]',($event) => {
+        let selectedNaturesAndTypes = {};
+        const $select = $($event.currentTarget);
+        $('[name=natureOrType]').each(function () {
+            let module = $(this).parent().siblings().find(`option:selected`).text();
+            $(this).find('option:selected').each(function () {
+                if (selectedNaturesAndTypes[module] !== undefined && selectedNaturesAndTypes[module].includes($(this).val())) {
+                    let label = $(this).text();
+                    Flash.add(`danger`, `La nature ou type ${label} est déjà dans un autre modèle d\'étiquette`);
+                    $select.find(`option:selected[value=${$(this).val()}]`).remove();
+                } else {
+                    if (selectedNaturesAndTypes[module] === undefined) {
+                        selectedNaturesAndTypes[module] = [];
+                    }
+                    selectedNaturesAndTypes[module].push($(this).val());
+                }
 
+            });
+        });
+    });
     const $typeOptions = JSON.parse($(`#type_options`).val());
     const $natureOptions = JSON.parse($(`#nature_options`).val());
 
@@ -629,7 +649,7 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `displayed`, title: `Afficher`, width: `70px`},
             {data: `displayedUnderCondition`, title: `Afficher sous condition`, width: `50px`},
             {data: `conditionFixedField`, title: `Champ fixe`,  width: `150px`},
-            {data: `conditionFixedFieldValue`, title: `Valeur`,  width: `220px`},
+            {data: `conditionFixedFieldValue`, title: `Valeur`},
             {data: `required`, title: `Obligatoire`},
         ],
     });
@@ -1222,6 +1242,39 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
     initializeType();
 }
 
+function initializeTruckArrivalReserves() {
+    const table = EditableDatatable.create(`#TruckArrivalReserves`, {
+        mode: MODE_CLICK_EDIT_AND_ADD,
+        route: Routing.generate('settings_reserves_api', true),
+        deleteRoute: `settings_reserve_type_delete`,
+        save: SAVE_MANUALLY,
+        search: false,
+        paging: false,
+        scrollY: false,
+        scrollX: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder icon-column', orderable: false},
+            {data: `label`, title: `Libellé`, required: true},
+            {data: `emails`, title: `Boites email de notifications`},
+            {data: `defaultReserveType`, title: `Réserve par défaut`},
+            {data: `active`, title: `Actif`},
+        ],
+        form: {
+            actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
+            label: `<input type='text' name='label' class='form-control data' required data-global-error="Libellé"/>`,
+            emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
+            defaultReserveType: `<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data'/></div>`,
+            active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+        },
+    });
+}
+
 function initializeArticleNativeCountriesTable() {
     const table = EditableDatatable.create(`#nativeCountriesTable`, {
         route: Routing.generate('settings_native_countries_api', true),
@@ -1289,35 +1342,20 @@ function initializeEmergenciesFixedFields($container, canEdit) {
 
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
-    const $displayedUnderCondition = $checkbox.closest('tr').find('input[name=displayedUnderCondition]');
-    const $conditionFixedField = $checkbox.closest('tr').find('select[name=conditionFixedField]');
-    const $conditionFixedFieldValueDiv = $checkbox.closest('tr').find('.conditionFixedFieldValueDiv');
-    const $required = $checkbox.closest('tr').find('input[name=required]');
-    const alwaysDisabledDisplayedUnderConditionFields = JSON.parse($('[name=disabledDisplayedUnderConditionFields]').val());
-    if (!check) {
-        if ($checkbox[0].name === "displayed") {
-            $displayedUnderCondition.attr('disabled', true);
-            $required.attr('disabled', true);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.addClass("d-none");
-                $conditionFixedFieldValueDiv.addClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.addClass("d-none");
-            $conditionFixedFieldValueDiv.addClass("d-none");
+    const $row = $checkbox.closest('tr');
+    const $displayedUnderCondition = $row.find('[name=displayedUnderCondition]');
+    const $conditionFixedField = $row.find('[name=conditionFixedField]');
+    const $conditionFixedFieldValueDiv = $row.find('[name=conditionFixedFieldValue]').parent('label');
+
+    if ($checkbox.attr('name') === 'displayed') {
+        $displayedUnderCondition.attr('disabled', !check);
+        if (!check) {
+            $displayedUnderCondition.prop('checked', false);
+            changeDisplayRefArticleTable($displayedUnderCondition);
         }
     } else {
-        if ($checkbox[0].name === "displayed" && !alwaysDisabledDisplayedUnderConditionFields.includes($checkbox.attr('id'))) {
-            $displayedUnderCondition.attr('disabled', false);
-            $required.attr('disabled', false);
-            if ($displayedUnderCondition.is(':checked')) {
-                $conditionFixedField.removeClass("d-none");
-                $conditionFixedFieldValueDiv.removeClass("d-none");
-            }
-        } else if ($checkbox[0].name === "displayedUnderCondition") {
-            $conditionFixedField.removeClass("d-none");
-            $conditionFixedFieldValueDiv.removeClass("d-none");
-        }
+        $conditionFixedField.attr('hidden', !check);
+        $conditionFixedFieldValueDiv.attr('hidden', !check);
     }
 }
 

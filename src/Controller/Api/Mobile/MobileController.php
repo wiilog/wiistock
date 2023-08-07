@@ -35,6 +35,7 @@ use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
@@ -73,7 +74,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
-use App\Service\RefArticleDataService;
+use App\Service\ReserveService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -96,7 +97,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 use Twig\Environment as Twig_Environment;
 
 
@@ -117,9 +117,10 @@ class MobileController extends AbstractApiController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function postApiKey(Request $request,
-                               EntityManagerInterface $entityManager,
-                               UserService $userService)
+    public function postApiKey(Request                  $request,
+                               EntityManagerInterface   $entityManager,
+                               UserService              $userService,
+                               DispatchService          $dispatchService)
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -170,6 +171,9 @@ class MobileController extends AbstractApiController
                 ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                 ->toArray();
 
+            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+            $wayBillData['dispatch_id'] = null;
+
             $data['success'] = true;
             $data['data'] = [
                 'apiKey' => $apiKey,
@@ -179,6 +183,7 @@ class MobileController extends AbstractApiController
                 'username' => $loggedUser->getUsername(),
                 'userId' => $loggedUser->getId(),
                 'fieldsParam' => $fieldsParam ?? [],
+                'dispatchDefaultWaybill' => $wayBillData ?? [],
             ];
         } else {
             $data['success'] = false;
@@ -1065,7 +1070,7 @@ class MobileController extends AbstractApiController
 
         $data = [];
 
-        $commentaire = $request->request->get('commentaire');
+        $commentaire = $request->request->get('comment');
         $id = $request->request->get('id');
         /** @var Handling $handling */
         $handling = $handlingRepository->find($id);
@@ -1083,7 +1088,6 @@ class MobileController extends AbstractApiController
                 $previousComments = $handling->getComment() !== '<p><br></p>' ? "{$handling->getComment()}\n" : "";
                 $dateStr = (new DateTime())->format('d/m/y H:i:s');
                 $dateAndUser = "<strong>$dateStr - {$nomadUser->getUsername()} :</strong>";
-                $commentaire = StringHelper::cleanedComment($commentaire);
                 $handling->setComment("$previousComments $dateAndUser $commentaire");
             }
 
@@ -2082,7 +2086,7 @@ class MobileController extends AbstractApiController
             ->setLabel($labelStr)
             ->setConform(true)
             ->setStatut($statut)
-            ->setCommentaire(!empty($commentStr) ? StringHelper::cleanedComment($commentStr) : null)
+            ->setCommentaire(!empty($commentStr) ? $commentStr : null)
             ->setPrixUnitaire(floatval($priceStr))
             ->setReference($ref)
             ->setQuantite($quantityStr)
@@ -2198,11 +2202,11 @@ class MobileController extends AbstractApiController
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2217,7 +2221,9 @@ class MobileController extends AbstractApiController
             ->map(fn(Type $type) => [
                 'id' => $type->getId(),
                 'label' => $type->getLabel(),
-                'category' => $type->getCategory()->getLabel()
+                'category' => $type->getCategory()->getLabel(),
+                'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
+                'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
             ])->toArray();
 
         if ($rights['inventoryManager']) {
@@ -2369,11 +2375,12 @@ class MobileController extends AbstractApiController
                 ])->toArray();
 
             $users = $userRepository->getAll();
+
+            $reserveTypes = $reserveTypeRepository->getActiveReserveType();
         }
 
         if ($rights['tracking']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
-
 
             $carriers = Stream::from($carrierRepository->findAll())
                 ->map(function (Transporteur $transporteur) use ($kernel) {
@@ -2381,10 +2388,11 @@ class MobileController extends AbstractApiController
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
                         $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
-                        $type = pathinfo($path, PATHINFO_EXTENSION);
-                        $type = ($type === 'svg' ? 'svg+xml' : $type);
                         if (file_exists($path)) {
+                            $type = pathinfo($path, PATHINFO_EXTENSION);
+                            $type = ($type === 'svg' ? 'svg+xml' : $type);
                             $data = file_get_contents($path);
+
                             $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
                         }
                     }
@@ -2492,6 +2500,7 @@ class MobileController extends AbstractApiController
             'carriers' => $carriers ?? [],
             'dispatchEmergencies' => $dispatchEmergencies ?? [],
             'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
+            'reserveTypes' => $reserveTypes ?? [],
         ];
     }
 
@@ -2687,7 +2696,8 @@ class MobileController extends AbstractApiController
                     ->setLastAvailableDate($now)
                     ->setStatut($activeStatus)
                     ->setDateLastInventory($now);
-            } else {
+            }
+            else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $correctionMovement = new MouvementStock();
@@ -3491,8 +3501,13 @@ class MobileController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+        }
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat::DATE_COUNTER_FORMAT_DISPATCH_LONG);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
@@ -3610,8 +3625,9 @@ class MobileController extends AbstractApiController
         $toTreatStatus = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])[0] ?? null;
 
         if($toTreatStatus) {
+            $createdReferences = [];
             foreach ($references as $data) {
-                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, [
+                $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences,[
                     'loggedUser' => $user,
                     'now' => $now
                 ]);
@@ -3733,7 +3749,7 @@ class MobileController extends AbstractApiController
     {
         return $this->json([
             'success' => true,
-            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $dispatch, $manager)
+            'data' => $dispatchService->getWayBillDataForUser($this->getUser(), $manager, $dispatch)
         ]);
     }
 
@@ -3769,12 +3785,14 @@ class MobileController extends AbstractApiController
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,
                                        UniqueNumberService    $uniqueNumberService,
-                                       KernelInterface        $kernel): Response {
+                                       KernelInterface        $kernel,
+                                       ReserveService         $reserveService): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
 
         $registrationNumber = $data->get('registrationNumber');
         $truckArrivalReserves = json_decode($data->get('truckArrivalReserves'), true);
@@ -3809,7 +3827,7 @@ class MobileController extends AbstractApiController
 
         foreach($truckArrivalReserves as $truckArrivalReserve){
             $reserve = (new Reserve())
-                ->setType($truckArrivalReserve['type'])
+                ->setKind($truckArrivalReserve['type'])
                 ->setComment($truckArrivalReserve['comment'] ?? null)
                 ->setQuantity($truckArrivalReserve['quantity'] ?? null)
                 ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
@@ -3818,14 +3836,20 @@ class MobileController extends AbstractApiController
             $entityManager->persist($reserve);
         }
 
+        $reserves = [];
         foreach($truckArrivalLines as $truckArrivalLine){
             $line = (new TruckArrivalLine())
                 ->setNumber($truckArrivalLine['number']);
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setType($truckArrivalLine['reserve']['type'])
+                    ->setKind(Reserve::KIND_LINE)
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
+
+                if($truckArrivalLine['reserve']['reserveTypeId']){
+                    $reserveType = $reserveTypeRepository->find($truckArrivalLine['reserve']['reserveTypeId']);
+                    $lineReserve->setReserveType($reserveType);
+                }
 
                 if($truckArrivalLine['reserve']['photos']){
                     foreach($truckArrivalLine['reserve']['photos'] as $photo){
@@ -3845,6 +3869,8 @@ class MobileController extends AbstractApiController
 
                 $line->setReserve($lineReserve);
                 $entityManager->persist($lineReserve);
+
+                $reserves[] = $lineReserve;
             }
 
 
@@ -3866,9 +3892,28 @@ class MobileController extends AbstractApiController
             $entityManager->persist($attachment);
         }
 
-
         $entityManager->persist($truckArrival);
         $entityManager->flush();
+
+        $allAttachments = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [
+                $reserve->getReserveType()->getId(),
+                $reserve->getAttachments()->toArray()
+            ], true)
+            ->toArray();
+
+        $reserveTypeIdToReserveTypeArray = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [$reserve->getReserveType()?->getId(), $reserve->getReserveType()])
+            ->toArray();
+
+        foreach ($allAttachments as $reserveTypeId => $attachments) {
+            $attachments = Stream::from($attachments)->flatten()->toArray();
+            $reserveType = $reserveTypeIdToReserveTypeArray[$reserveTypeId] ?? null;
+
+            if($reserveType) {
+                $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+            }
+        }
 
         return $this->json([
             'success' => true,

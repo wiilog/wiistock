@@ -21,7 +21,7 @@
                     {% endfor %}
                 {% else %}
                     {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
-                        {% set selected = (filterStatus is defined and status.nom == filterStatus) ? 'selected' %}
+                        {% set selected = (filterStatus is defined and status.nom in filterStatus) ? 'selected' %}
                         <option class="d-none" value="{{ status.id }}"
                                 {% if status.isDraft or status.isNotTreated or status.isPartial %}
                                     data-allowed-state="1"
@@ -31,14 +31,14 @@
                                 {{ trans('Traçabilité', 'Mouvements', status.nom, false) }}
                             {% else %}
                                 {{ (capitalize ?? false)
-                                    ? (status|format_helper('status')|capitalize)
-                                    : (status|format_helper('status')) }}
+                                    ? status.nom|capitalize
+                                    : status.nom }}
                             {% endif %}
                         </option>
                     {% endfor %}
                 {% endif %}
             </select>
         </div>
-        <input hidden id="filterStatus" value="{{ filterStatus is defined ? filterStatus : '' }}">
+        <input hidden id="filterStatus" value="{{ filterStatus is defined ? (filterStatus is iterable ? filterStatus|json_encode : filterStatus) : '' }}">
     </div>
 </div>

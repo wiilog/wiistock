@@ -223,7 +223,7 @@ class CollecteController extends AbstractController
                 ->setStatut($status)
                 ->setPointCollecte($emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setstockOrDestruct($destination);
 
             $entityManager->persist($collecte);
@@ -289,7 +289,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $this->getUser());
+                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $request->request, $this->getUser());
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
@@ -453,7 +453,7 @@ class CollecteController extends AbstractController
 
 				$collecte
 					->setDate(new DateTime($data['date-collecte']))
-					->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+					->setCommentaire($data['commentaire'] ?? null)
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)
 					->setType($type)

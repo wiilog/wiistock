@@ -7,6 +7,7 @@ $(function() {
     });
 
     const filtersContainer = $('.filters-container');
+    const fromDashboard = $('.filters-container [name="fromDashboard"]').val() === '1';
 
     Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Transporteurs', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
@@ -26,7 +27,9 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_DISPATCHES);
     $.post(path, params, function(data) {
-        displayFiltersSup(data, true);
+        if (!fromDashboard) {
+            displayFiltersSup(data, true);
+        }
     }, 'json');
 
     const $modalNewDispatch = $('#modalNewDispatch');
@@ -117,8 +120,6 @@ $(function() {
                                         .then(({success, msg}) => {
                                             if(success){
                                                 window.location.reload();
-                                            } else if (msg) {
-                                                Flash.add(msg, 'danger');
                                             }
                                         })
                                 ), false)
@@ -144,7 +145,12 @@ $(function() {
 });
 
 function initTableDispatch(groupedSignatureMode = false) {
-    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode}, true);
+    const $filtersContainer = $(".filters-container");
+    const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
+    const $statutFilter = $filtersContainer.find(`select[name=statut]`);
+    const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+
+    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, preFilledStatuses: $statutFilter.val(), preFilledTypes: $typeFilter.val()}, true);
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
     if(groupedSignatureMode || !initialVisible) {
         return $.post(Routing.generate('dispatch_api_columns', {groupedSignatureMode}))

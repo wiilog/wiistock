@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <div class="wii-box">
-                    <div class="header wii-title">Données Sécurité</div>
+                    <div class="header wii-title">Données sécurité</div>
                     <div class="content">
                         <div class="d-flex flex-column mb-3">
                             <label class="wii-field-name w-100">
@@ -300,6 +300,12 @@
                                     <div class="d-flex flex-column ml-3">
                                         <span class="wii-field-name">Référence urgente</span>
                                         <div class="wii-body-text">{{ referenceArticle.emergencyComment | raw }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 d-flex align-items-center">
+                                    <div class="d-flex flex-column ml-3">
+                                        <span class="wii-field-name">Quantité d'urgence</span>
+                                        <div class="wii-body-text">{{ referenceArticle.emergencyQuantity ?? '-' }}</div>
                                     </div>
                                 </div>
                             </div>

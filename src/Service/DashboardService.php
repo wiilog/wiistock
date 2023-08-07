@@ -77,6 +77,9 @@ class DashboardService {
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public TimeService $timeService;
+
     private $cacheDaysWorked;
 
     public function refreshDate(EntityManagerInterface $entityManager): string {
@@ -226,7 +229,7 @@ class DashboardService {
                 if (!empty($lastEnCours[0]) && $lastEnCours[0]['dateMaxTime']) {
                     $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
                     $lastEnCoursDateTime = $lastEnCours[0]['datetime'];
-                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastEnCoursDateTime, $workFreeDays);
+                    $date = $this->timeService->getIntervalFromDate($daysWorked, $lastEnCoursDateTime, $workFreeDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $lastEnCours[0]['dateMaxTime']);
                     $response['delay'] = $timeInformation['countDownLateTimespan'];
                 }
@@ -673,6 +676,8 @@ class DashboardService {
             $lastSegment = $segments[$lastSegmentKey - 1];
             $adminDelay = "$lastSegment:00";
 
+            $truckArrivalTime = $config['truckArrivalTime'] ?? null;
+
             $graphData = $this->getObjectForTimeSpan($segments, function (int $beginSpan, int $endSpan)
                                                                 use (
                                                                     $workFreeDays,
@@ -685,16 +690,21 @@ class DashboardService {
                                                                     $packsOnClusterVerif,
                                                                     &$locationCounters,
                                                                     &$olderPackLocation,
-                                                                    &$globalCounter) {
+                                                                    &$globalCounter,
+                                                                    $truckArrivalTime) {
                 $countByNature = array_merge($countByNatureBase);
                 $packUntreated = [];
                 foreach ($packsOnCluster as $pack) {
                     if (isset($packsOnClusterVerif[$pack['currentLocationLabel']]) && in_array(intval($pack['packId']), $packsOnClusterVerif[$pack['currentLocationLabel']])) {
-                        $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
-                        $timeInformation = $this->enCoursService->getTimeInformation($date, $adminDelay);
+                        $interval = $this->timeService->getIntervalFromDate($daysWorked, $pack['firstTrackingDateTime'], $workFreeDays);
+                        $timeInformation = $this->enCoursService->getTimeInformation($interval, $adminDelay);
                         $countDownHours = isset($timeInformation['countDownLateTimespan'])
                             ? ($timeInformation['countDownLateTimespan'] / 1000 / 60 / 60)
                             : null;
+
+                        $countDownHours -= $truckArrivalTime && $pack['truckArrivalDelay']
+                            ? intval($pack['truckArrivalDelay']) / 1000 / 60 / 60
+                            : 0;
 
                         if (isset($countDownHours)
                             && (
@@ -1098,7 +1108,7 @@ class DashboardService {
             if(preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $treatmentDelay)) {
                 $lastDate = $repository->getOlderDateToTreat($entityTypes, $entityStatuses);
                 if (isset($lastDate)) {
-                    $date = $this->enCoursService->getTrackingMovementAge($daysWorked, $lastDate, $freeWorkDays);
+                    $date = $this->timeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $treatmentDelay);
                 }
                 $meter->setDelay($timeInformation['countDownLateTimespan'] ?? null);
@@ -1181,7 +1191,7 @@ class DashboardService {
                 $operator = $period === self::DAILY_PERIOD_PREVIOUS_DAYS ? '-' : '+';
                 $dateToCheck = new DateTime("now " . $operator . " $dayIndex days");
 
-                if (!$this->enCoursService->isDayInArray($dateToCheck, $workFreeDays)) {
+                if (!$this->timeService->isDayInArray($dateToCheck, $workFreeDays)) {
                     $dateDayLabel = strtolower($dateToCheck->format('l'));
 
                     if (in_array($dateDayLabel, $workedDaysLabels)) {

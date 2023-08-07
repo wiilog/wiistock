@@ -227,7 +227,9 @@ $(function () {
                     follower: $('select[name=follower] option:selected').val(),
                     comment: $('input[name=reference-comment]').val(),
                     freeField: freeFieldId && freeFieldValue ? [freeFieldId, freeFieldValue] : [],
-                }).json().then(({success, msg, referenceExist, successMessage}) => {
+                }).json().then(({success, msg, barcodesToPrint, referenceExist, successMessage}) => {
+                    printLabelWithOptions(barcodesToPrint, false);
+
                     $modalWaiting.modal('hide');
                     if (success) {
                         const $successPage = $('.success-page-container');
@@ -271,23 +273,26 @@ $(function () {
 
     $('.print-article').on('click', function () {
         const {token} = GetRequestQuery();
-        wrapLoadingOnActionButton($(this), () => (
-            AJAX.route(GET, `print_article`, {
-                token,
-                article: $(this).data('article'),
-            }).json()));
+        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(null, true, $(this).data('article')));
     });
 
     $('.print-again-button').on('click', function () {
         const {token} = GetRequestQuery();
-        wrapLoadingOnActionButton($(this), () => (
-            AJAX.route(GET, `print_article`, {
-                token,
-                reprint: true
-            }).json()));
+        wrapLoadingOnActionButton($(this), () => printLabelWithOptions(null, true))
     });
 
     if( $('input[name=reference-article-input]').val()){
         $('.button-next').trigger('click');
     }
 });
+
+function printLabelWithOptions(barcodesToPrint, reprint = false, article = null){
+    return AJAX.route(POST, 'kiosk_print', {
+        barcodesToPrint,
+        reprint,
+        article,
+    }).file({
+        success: "Vos étiquettes ont bien été téléchargées",
+        error: "Erreur lors de l'impression des étiquettes"
+    });
+}

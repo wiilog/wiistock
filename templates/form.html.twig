@@ -79,7 +79,10 @@
                    value="{{ switch.value ?? '' }}"
                 {{ disabled ? 'disabled' }}
                 {{ required ? 'required' }}
-                {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
+                {{ switch.checked ?? false ? 'data-init="checked" checked' }}
+                {% for attribute in switch.additionalAttributes ?? [] %}
+                    {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                {% endfor %}/>
 
             <label for="{{ name }}-{{ id }}"
                 {{ _self.custom_attributes(switch.attributes ?? []) }}>
@@ -112,6 +115,9 @@
            id="{{ id }}"
            class="checkbox data {{ options.inputClass ?? '' }}"
         {{ required ? 'required' }}
+        {% for attribute in options.additionalAttributes ?? [] %}
+            {{ attribute.name }}="{{ attribute.value ?? '' }}"
+        {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}
         {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
@@ -169,7 +175,13 @@
         ? (value is iterable ? value : [value])
         : [] %}
 
-    <label class="{{ options.labelClass ?? 'w-100' }} {{ not options.search ?? true ? 'no-search' }}">
+    <label
+        class="{{ options.labelClass ?? 'w-100' }}
+        {{ not options.search ?? true ? 'no-search' }}"
+        {% if options.hidden ?? false %}
+            hidden
+        {% endif %}>
+
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
