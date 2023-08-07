@@ -37,6 +37,7 @@
                 items: truckArrival.driver
                     ? {(truckArrival.driver.id) : (truckArrival.driver.prenom ~ ' ' ~ truckArrival.driver.nom)}
                     : {},
+                includeParams: '[name=carrier]',
             }) }}
         </div>
         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) and not truckArrival.id %}

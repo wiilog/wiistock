@@ -442,7 +442,15 @@ class DeliveryRequestService
             }
             if ($response['success'] || ($settingNeedPlanningValidation && !$fromNomade)) {
                 $entityManager->persist($demande);
-                $response = $this->validateDLAfterCheck($entityManager, $demande, $fromNomade, $simple, $flush, $settingNeedPlanningValidation);
+                $response = $this->validateDLAfterCheck(
+                    $entityManager,
+                    $demande,
+                    $fromNomade,
+                    $simple,
+                    $flush,
+                    $settingNeedPlanningValidation,
+                    ['requester' => $demandeArray['demandeur']]
+                );
             }
         } else {
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
@@ -545,6 +553,7 @@ class DeliveryRequestService
                         . ' a bien été validée le '
                         . $nowDate->format('d/m/Y \à H:i')
                         . '.',
+                    'requester' => $options['requester'] ?? null,
                 ]),
                 $to
             );
