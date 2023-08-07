@@ -877,28 +877,28 @@ class ReferenceArticleController extends AbstractController
         $params = $request->request;
         $filters = [[
             "field" => "referenceArticle",
-            "value" =>  $referenceArticle->getId(),
+            "value" => $referenceArticle->getId(),
         ]];
         $data = $purchaseRequestRepository->findByParamsAndFilters($params, $filters);
-
-
+        $data ["recordsTotal"] = $data ["count"];
+        $data["recordsFiltered"] = 0;
         $data['data'] = Stream::from($data['data'])
-            ->flatMap(static function (PurchaseRequest $purchaseRequest) use ($referenceArticle, $formatService) {
-                return Stream::from($purchaseRequest->getPurchaseRequestLines())
+            ->flatMap(static function (PurchaseRequest $purchaseRequest) use ($referenceArticle, $formatService, &$data) {
+                $lines = Stream::from($purchaseRequest->getPurchaseRequestLines())
                     ->filter(fn(PurchaseRequestLine $purchaseRequestLine) => $purchaseRequestLine->getReference()->getId() === $referenceArticle->getId())
-                    ->Map(fn(PurchaseRequestLine $purchaseRequestLine) => [
+                    ->map(fn(PurchaseRequestLine $purchaseRequestLine) => [
                         "creationDate" => $formatService->datetime($purchaseRequest->getCreationDate()),
                         "from" => "<div class='pointer' data-purchase-request-id='" . $purchaseRequest->getId() . "'><div class='wii-icon wii-icon-export mr-2'></div>" . $purchaseRequest->getNumber() . "</div>",
                         "requester" => $formatService->user($purchaseRequest->getRequester()),
                         "status" => $formatService->status($purchaseRequest->getStatus()),
                         "requestedQuantity" => $purchaseRequestLine->getRequestedQuantity(),
                         "orderedQuantity" => $purchaseRequestLine->getOrderedQuantity(),
-
                     ])
                     ->toArray();
+                $data["recordsFiltered"] += count($lines);
+                return $lines;
             })
             ->toArray();
-
         return new JsonResponse($data);
     }
 

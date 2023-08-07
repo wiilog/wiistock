@@ -399,8 +399,8 @@ class FormatService
         return $reserveType ? $reserveType->getLabel() : $else;
     }
 
-    public function referenceArticle(?ReferenceArticle $referenceArticle, string $else = ''): string {
-        return $referenceArticle?->getLibelle() ?: $else;
+    public function referenceArticle(?ReferenceArticle $referenceArticle, string $else = '', bool $label = false): string {
+        return ($label ? $referenceArticle?->getLibelle() : $referenceArticle->getReference()) ?: $else;
     }
 
     public function triggerActionThreshold(TriggerAction $triggerAction): string {

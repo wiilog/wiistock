@@ -559,7 +559,7 @@ class RefArticleDataService
             "image" => $this->templating->render('datatable/image.html.twig', [
                 "image" => $refArticle->getImage()
             ]),
-            "label" => $formatService->referenceArticle($refArticle,  "Non défini"),
+            "label" => $formatService->referenceArticle($refArticle,  "Non défini", true),
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
             "type" => "<div class='d-flex align-items-center'><span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>"
@@ -605,7 +605,7 @@ class RefArticleDataService
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
-                "reference_label" => $formatService->referenceArticle($refArticle),
+                "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
             "colorClass" => (

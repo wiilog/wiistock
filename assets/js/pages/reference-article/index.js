@@ -40,7 +40,7 @@ $(function () {
             $(this).find('table.tableItems').DataTable().destroy();
         })
         .on('click', '[data-purchase-request-id]', function () {
-            window.location.href = Routing.generate('purchase_request_show', {id: $(this).data('purchase-request-id')});
+            window.open(Routing.generate('purchase_request_show', {id: $(this).data('purchase-request-id')}), '_blank');
         });
 });
 
@@ -306,7 +306,6 @@ function initDatatablePurchaseRequests(referenceArticleId, $modal) {
     };
     initDataTable($modal.find('.tableItems'), tableRefPurchaseRequestsOptions);
 }
-
 
 function showItems(button, $modal, initDatatable) {
     const refId = button.data('id');

@@ -113,11 +113,13 @@
     {% include "reference_article/modalNewFilter.html.twig" with {fields: fields} %}
 
     {% include "reference_article/modalShowItems.html.twig" with {
-        modalId : "modalShowMouvements"
+        modalId: "modalShowMouvements",
+        title: "Mouvements de stock",
     } %}
 
     {% include "reference_article/modalShowItems.html.twig" with {
-        modalId : "modalShowPurchaseRequests"
+        modalId: "modalShowPurchaseRequests",
+        title: "Demandes d'achat",
     } %}
 
     {% include "reference_article/modalCannotDelete.html.twig" %}
