@@ -60,7 +60,7 @@ class TrackingMovement {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $finished = null;
 
-    #[ORM\Column(type: 'integer', unique: true, nullable: false, options: ['default' => 1])]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['default' => 1])]
     private ?int $quantity = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
