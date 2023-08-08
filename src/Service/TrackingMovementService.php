@@ -262,7 +262,7 @@ class TrackingMovementService extends AbstractController
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
-            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity(),
+            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity() ?: null,
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
@@ -735,7 +735,10 @@ class TrackingMovementService extends AbstractController
             false,
             true,
             TrackingMovement::TYPE_DEPOSE,
-            ['from' => $arrivage]
+            [
+                'from' => $arrivage,
+                'quantity' => $pack->getQuantity()
+            ]
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
@@ -891,7 +894,10 @@ class TrackingMovementService extends AbstractController
 
                 $entityManager->persist($stockMovement);
 
-                $currentArticleOptions["mouvementStock"] = $stockMovement;
+                $currentArticleOptions = [
+                    "mouvementStock" => $stockMovement,
+                    "quantity" => $stockMovement->getQuantity()
+                ];
             }
 
             $createdMvt = $this->createTrackingMovement(
