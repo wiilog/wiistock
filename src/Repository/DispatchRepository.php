@@ -17,7 +17,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,7 +26,11 @@ use function Doctrine\ORM\QueryBuilder;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
+    public function findByParamAndFilters(InputBag $params,
+                                          array $filters,
+                                          Utilisateur $user,
+                                          VisibleColumnService $visibleColumnService,
+                                          array $options = []): array {
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
@@ -118,6 +121,14 @@ class DispatchRepository extends EntityRepository
                         ->join('dispatch.locationTo', 'filter_drop_location')
                         ->andWhere("filter_drop_location.id in (:dropLocationId)")
                         ->setParameter('dropLocationId', $value);
+                    break;
+                case 'logisticUnits':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->innerJoin('dispatch.dispatchPacks', 'filter_dispatch_packs')
+                        ->innerJoin('filter_dispatch_packs.pack', 'filter_dispatch_packs_pack')
+                        ->andWhere("filter_dispatch_packs_pack.id IN (:logisticUnitIds)")
+                        ->setParameter('logisticUnitIds', $value);
                     break;
             }
         }

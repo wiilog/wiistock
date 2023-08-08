@@ -849,6 +849,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'managers':
                 case 'deliverers':
                 case 'drivers':
+                case 'logisticUnits':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);

@@ -78,6 +78,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Unité logistique",
                             "en" => "Logistic unit",
                         ],
+                        [
+                            "fr" => "Unité(s) logistique(s)",
+                            "en" => "Logistic unit(s)",
+                        ],
                     ],
                 ],
                 "Zone liste" => [
