@@ -2052,6 +2052,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Drop location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
+                        [
+                            "fr" => "Client",
+                            "en" => "Customer",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
+                        [
+                            "fr" => "Téléphone client",
+                            "en" => "Customer phone",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
+                        ],
+                        [
+                            "fr" => "À l'attention de",
+                            "en" => "Customer recipient",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
+                        [
+                            "fr" => "Adresse de livraison",
+                            "en" => "Customer address",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
                     ],
                 ],
                 "Zone liste - Noms de colonnes" => [
