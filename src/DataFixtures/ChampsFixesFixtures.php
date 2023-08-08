@@ -77,6 +77,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_DESTINATION, 'label' => FieldsParam::FIELD_LABEL_DESTINATION, 'displayedCreate' => false,'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_REQUESTER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_REQUESTER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CUSTOMER_NAME_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CUSTOMER_PHONE_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_CUSTOMER_ADDRESS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
             ],
 
             FieldsParam::ENTITY_CODE_HANDLING => [
