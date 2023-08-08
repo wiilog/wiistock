@@ -149,6 +149,10 @@ class DispatchRepository extends EntityRepository
                         "locationTo" => "search_locationTo.label LIKE :search_value",
                         "status" => "search_statut.nom LIKE :search_value",
                         "destination" => "dispatch.destination LIKE :search_value",
+                        "customerName" => "dispatch.customerName LIKE :search_value",
+                        "customerPhone" => "dispatch.customerPhone LIKE :search_value",
+                        "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
+                        "customerAddress" => "dispatch.customerAddress LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
