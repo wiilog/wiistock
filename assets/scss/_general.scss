@@ -1612,3 +1612,8 @@ label.required:after {
 .treated-line {
     background-color: #c5eee7 !important;
 }
+
+.copyable {
+    text-decoration: underline;
+    cursor: pointer;
+}

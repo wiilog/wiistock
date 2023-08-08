@@ -1,6 +1,7 @@
 let packsTable;
 
 $(function() {
+    registerCopyToClipboard($(`.dispatch-number`), `Le numéro a bien été copié dans le presse-papiers.`);
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
