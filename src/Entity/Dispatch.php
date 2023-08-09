@@ -31,6 +31,8 @@ class Dispatch extends StatusHistoryContainer {
         'aaaammjjhhmmss-xxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
     ];
 
+    public const LOGISTIC_UNIT_FILTER_MAX_RESULTS = 30;
+
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity
      */

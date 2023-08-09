@@ -114,11 +114,6 @@ class FieldsParam {
     const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
-    const FIELD_CODE_CUSTOMER_NAME_DISPATCH = 'customerName';
-    const FIELD_CODE_CUSTOMER_PHONE_DISPATCH = 'customerPhone';
-    const FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH = 'customerRecipient';
-    const FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH = 'customerAddress';
-
     const FIELD_CODE_LOCATION_PICK = 'pickLocation';
     const FIELD_CODE_LOCATION_DROP = 'dropLocation';
     const FIELD_CODE_DESTINATION = 'destination';
@@ -132,6 +127,10 @@ class FieldsParam {
     const FIELD_LABEL_COMMAND_NUMBER_DISPATCH = 'numéro de commande';
     const FIELD_LABEL_COMMENT_DISPATCH = 'commentaire';
     const FIELD_LABEL_ATTACHMENTS_DISPATCH = 'pièces jointes';
+    const FIELD_LABEL_CUSTOMER_NAME_DISPATCH = 'Client';
+    const FIELD_LABEL_CUSTOMER_PHONE_DISPATCH = 'Téléphone client';
+    const FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH = "À l'attention de";
+    const FIELD_LABEL_CUSTOMER_ADDRESS_DISPATCH = "Adresse de livraison";
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
     const FIELD_LABEL_DESTINATION = 'destination';

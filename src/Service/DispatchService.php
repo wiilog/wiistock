@@ -187,6 +187,10 @@ class DispatchService {
             'emergency' => $dispatch->getEmergency() ?? 'Non',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
             'treatmentDate' => $this->formatService->datetime($dispatch->getTreatmentDate()),
+            'customerName' => $dispatch->getCustomerName(),
+            'customerPhone' => $dispatch->getCustomerPhone(),
+            'customerRecipient' => $dispatch->getCustomerRecipient(),
+            'customerAddress' => $dispatch->getCustomerAddress(),
         ];
 
         if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
@@ -660,6 +664,10 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Général', 'Statut', false), 'name' => 'status'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Urgence', false), 'name' => 'emergency'],
             ['title' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false), 'name' => 'treatedBy'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false), 'name' => 'customerName'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false), 'name' => 'customerPhone'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false), 'name' => 'customerRecipient'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false), 'name' => 'customerAddress'],
         ];
 
         if($groupedSignatureMode) {
