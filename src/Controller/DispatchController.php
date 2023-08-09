@@ -1857,4 +1857,15 @@ class DispatchController extends AbstractController {
 
         return new JsonResponse($html);
     }
+
+    #[Route("/etiquette/{dispatch}", name: "print_dispatch_label", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
+    public function printDispatchLabel(Dispatch          $dispatch,
+                                       DispatchService   $dispatchService,
+                                       KernelInterface   $kernel,
+                                       AttachmentService $attachmentService): Response
+    {
+
+
+    }
 }

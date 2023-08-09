@@ -29,6 +29,7 @@
 {% set hasRightToGenerateDeliveryNote = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_NOTE')) %}
 {% set hasRightToGenerateOverconsumptionBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_OVERCONSUMPTION_BILL')) %}
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
+{% set hasRightToGenerateLabel = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_LABEL')) and dispatch.statut.state in [constant('App\\Entity\\Statut::PARTIAL'), constant('App\\Entity\\Statut::TREATED')] %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 {% set hasRightToAddReferenceInLu = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
 
@@ -90,6 +91,15 @@
                                            class="dropdown-item d-flex align-items-center">
                                             <span class="wii-icon wii-icon-printer-black mr-2"></span>
                                             {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une lettre de voiture', false) }}
+                                        </a>
+                                    {% endif %}
+                                    {% if hasRightToGenerateLabel %}
+                                        <a type="button"
+                                           onclick="generateDispatchLabel($(this), {{ dispatch.id }})"
+                                           title="Générer une étiquette"
+                                           class="dropdown-item d-flex align-items-center">
+                                            <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                            {{ trans('Demande', 'Acheminements', 'Détails acheminement - Entête', 'Générer une étiquette', false) }}
                                         </a>
                                     {% endif %}
                                     {% if hasRightToGenerateDispatchBill %}
