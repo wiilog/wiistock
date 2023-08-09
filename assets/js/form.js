@@ -222,7 +222,7 @@ export default class Form {
         const $form = getFormElement(form);
         Form.addDataArray($form, data, config.classes);
 
-        processFiles($form, data);
+        processFiles($form, data, errors);
         if(config.button && config.button.attr(`name`)) {
             data.append(config.button.attr(`name`), config.button.val());
         }
@@ -525,7 +525,7 @@ function getFormElement(form) {
     return form instanceof Form ? form.element : form;
 }
 
-function processFiles($form, data) {
+function processFiles($form, data, errors) {
     $.each(droppedFiles, function(index, file) {
         data.set(`file${index}`, file);
     });
@@ -535,6 +535,16 @@ function processFiles($form, data) {
         $savedFiles.each(function (index, field) {
             data.set(`files[${index}]`, $(field).val());
         });
+    } else {
+        const $requiredFileField = $form.find('input[name="isFileNeeded"][type="hidden"]');
+        const required = $requiredFileField.val() === '1';
+        if(required && droppedFiles.length === 0) {
+            console.log($requiredFileField.siblings('.dropFrame'), $requiredFileField);
+            errors.push({
+                elements: [$requiredFileField.siblings('.dropFrame')],
+                message: `Vous devez ajouter au moins un fichier`,
+            });
+        }
     }
 
     const $dataFiles = $form.find('.data-file');

@@ -30,6 +30,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -370,6 +371,26 @@ class DispatchService {
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
                 'value' => $dispatch->getDestination() ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
+                'value' => $dispatch->getCustomerName() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
+                'value' => $dispatch->getCustomerPhone() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de', false),
+                'value' => $dispatch->getCustomerRecipient() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
+                'value' => $dispatch->getCustomerAddress() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
         ];
 
@@ -1817,5 +1838,31 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+    }
+
+
+    public function checkFormForErrors(EntityManagerInterface $entityManager,
+                                       InputBag               $form,
+                                       Dispatch               $dispatch,
+                                       bool                   $isCreation):InputBag {
+        if ($form->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)){
+            $form->add([
+                FieldsParam::FIELD_CODE_DEADLINE_DISPATCH => true,
+            ]);
+        }
+        if ($dispatch->getAttachments()->count()){
+            $form->add([
+                FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
+            ]);
+        }
+        return $this->fieldsParamService->checkForErrors(
+            $entityManager,
+            $form,
+            FieldsParam::ENTITY_CODE_DISPATCH,
+            $isCreation,
+            New ParameterBag([
+                FieldsParam::FIELD_CODE_EMERGENCY => true,
+            ])
+        );
     }
 }
