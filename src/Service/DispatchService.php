@@ -1846,4 +1846,26 @@ class DispatchService {
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
     }
+
+    public function getDispatchLabelData(Dispatch $dispatch): array {
+        $now = new DateTime();
+        $client = $this->specificService->getAppClientLabel();
+
+        $originalName = "ETQ - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
+        $fileName = uniqid().'.pdf';
+
+        $pdfContent = $this->PDFGeneratorService->generateDispatchLabel($dispatch, $originalName);
+
+        $attachment = new Attachment();
+        $attachment->setFileName($fileName);
+        $attachment->setOriginalName($originalName);
+        $attachment->setDispatch($dispatch);
+
+        $this->entityManager->persist($attachment);
+//        $this->entityManager->flush();
+        return [
+            'file' => $pdfContent,
+            'name' => $originalName
+        ];
+    }
 }

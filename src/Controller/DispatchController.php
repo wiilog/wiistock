@@ -1862,10 +1862,21 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
     public function printDispatchLabel(Dispatch          $dispatch,
                                        DispatchService   $dispatchService,
-                                       KernelInterface   $kernel,
-                                       AttachmentService $attachmentService): Response
+                                       KernelInterface   $kernel): Response
     {
+        $data = $dispatchService->getDispatchLabelData($dispatch);
 
+        $dispatchLabel = $dispatch->getAttachments()->last();
 
+        $fileName = $dispatchLabel->getFileName();
+
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        file_put_contents($filePath, $data['file']);
+
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());
+
+        return $response;
     }
 }

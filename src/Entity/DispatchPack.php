@@ -134,30 +134,30 @@ class DispatchPack {
         return $this;
     }
 
-    public function setWidth(float $width): self {
+    public function setWidth(?float $width): self {
         $this->width = $width;
         return $this;
     }
 
-    public function getWidth(): float {
+    public function getWidth(): ?float {
         return $this->width;
     }
 
-    public function setHeight(float $height): self {
+    public function setHeight(?float $height): self {
         $this->height = $height;
         return $this;
     }
 
-    public function getHeight(): float {
+    public function getHeight(): ?float {
         return $this->height;
     }
 
-    public function setLength(float $length): self {
+    public function setLength(?float $length): self {
         $this->length = $length;
         return $this;
     }
 
-    public function getLength(): float {
+    public function getLength(): ?float {
         return $this->length;
     }
 }

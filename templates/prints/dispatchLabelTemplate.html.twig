@@ -1,0 +1,142 @@
+<html lang="fr">
+<head>
+    <style>
+        body {
+            width: 100mm;
+            height: 75mm;
+        }
+
+        .dispatch-label-container{
+            padding: 0.5rem;
+        }
+
+        .entete-container {
+            margin-right: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .barcode-container {
+            position: relative;
+            float: right;
+            height: 25mm;
+        }
+
+        .container {
+             display: block;
+             width: 24cm;
+        }
+
+        svg {
+            max-width: 100%;
+            height: 100%;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-breaker {
+            page-break-before: always;
+            height: 0;
+        }
+
+        span.small-text {
+            font-size: small;
+            padding: 0.3rem
+        }
+
+        div.small-text {
+            font-size: small;
+            padding-left: 0.3rem
+        }
+
+        th {
+            font-size: small;
+        }
+
+        * {
+            color: black !important;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+    <title>{{ title }}</title>
+</head>
+<body>
+{% for config in barcodeConfigs %}
+    {% if not loop.first %}
+        <div class="page-breaker"></div>
+    {% endif %}
+
+    <div class="barcode-container">
+        <div class="barcode-wrapper"
+             style="height: 69% !important;">
+            {{ printBarcode({
+                code: config.barcode.code,
+                type: config.barcode.type,
+                format: 'svg',
+                height: config.barcode.height,
+                width: config.barcode.width
+            })|raw }}
+        </div>
+
+        <div class="barcode-code">
+            <svg viewBox="0 0.2 3 3"
+                 xmlns="http://www.w3.org/2000/svg">
+                <text y="1"
+                      x="50%"
+                      text-anchor="middle"
+                      font-size="0.8">
+                    {{ config.barcode.code }}
+                </text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="dispatch-label-container">
+        <div class="entete-container">
+            <div style="font-weight: bold;">EXP N°{{ config.dispatch.number }}</div>
+            <div>
+                <span class="small-text">Mode d'acheminement</span>
+                <span>{{ config.dispatch.businessUnit }}</span>
+            </div>
+            <div>
+                <span class="small-text">N° BL/AIA</span>
+                <span>{{ config.dispatch.orderNumber }}</span>
+            </div>
+        </div>
+        <div>
+            <div class="small-text">Destinataire : {{ config.dispatch.customerRecipient }}</div>
+            <div class="small-text">Adresse de livraison : {{ config.dispatch.customerAddress }}</div>
+            <div class="small-text">N° téléphone : {{ config.dispatch.customerPhone }}</div>
+        </div>
+        <div>
+            <div class="container">
+                <table>
+                    <tr>
+                        <th>Contenant</th>
+                        <th>Long(M)</th>
+                        <th>Larg(M)</th>
+                        <th>Haut(M)</th>
+                        <th>Vol(M²)</th>
+                        <th>Masse(Kg)</th>
+                    </tr>
+                    <tr>
+                        <td>{{ config.dispatch.dispatchPack.nature }}</td>
+                        <td>{{ config.dispatch.dispatchPack.length }}</td>
+                        <td>{{ config.dispatch.dispatchPack.width }}</td>
+                        <td>{{ config.dispatch.dispatchPack.height }}</td>
+                        <td>{{ config.dispatch.dispatchPack.volume }}</td>
+                        <td>{{ config.dispatch.dispatchPack.weight }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</body>
+</html>
