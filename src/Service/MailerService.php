@@ -7,6 +7,7 @@ use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Resource;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -119,14 +120,17 @@ class MailerService
             }
 
             foreach ($attachments as $attachment) {
-                $file = fopen(is_string($attachment)
-                    ? $attachment
-                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}",
-                    'r');
-
+                if ($attachment instanceof Attachment) {
+                    $path = "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}";
+                    $fileName = $attachment->getOriginalName() ?? basename($path);
+                } else {
+                    $path = $attachment;
+                    $fileName = basename($path);
+                }
+                $file = fopen($path, 'r');
                 $message->attach(
                     $file,
-                    $attachment instanceof Attachment ? $attachment->getOriginalName() : null,
+                    $fileName,
                 );
             }
 
