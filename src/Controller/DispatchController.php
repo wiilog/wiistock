@@ -184,10 +184,10 @@ class DispatchController extends AbstractController {
         $fromDashboard = $request->query->getBoolean('fromDashboard');
         $preFilledStatuses = $request->query->has('preFilledStatuses')
             ? implode(",", $request->query->all('preFilledStatuses'))
-            : "";
+            : [];
         $preFilledTypes = $request->query->has('preFilledTypes')
             ? implode(",", $request->query->all('preFilledTypes'))
-            : "";
+            : [];
 
         $preFilledFilters = [
             [
@@ -321,7 +321,11 @@ class DispatchController extends AbstractController {
         $requester = $requester ?? $this->getUser();
 
         $currentUser = $this->getUser();
-        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+        }
+        $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat);
         $dispatch
             ->setCreationDate($date)
             ->setType($type)

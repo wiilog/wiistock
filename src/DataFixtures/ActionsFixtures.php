@@ -361,6 +361,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         ],
         Menu::NOMADE => [
             self::SUB_MENU_GENERAL => [
+                Action::ACCESS_NOMADE_LOGIN,
                 Action::MODULE_ACCESS_STOCK,
                 Action::MODULE_ACCESS_TRACA,
                 Action::MODULE_ACCESS_HAND,

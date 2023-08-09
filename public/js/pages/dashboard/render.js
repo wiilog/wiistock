@@ -589,7 +589,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig;
     const randomId = guidGenerator();
-    console.log(isObject(title),title[USER_SLUG],title, USER_SLUG);
+
     const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
         style: `${backgroundColor ? 'background-color:' + backgroundColor : ''}`,

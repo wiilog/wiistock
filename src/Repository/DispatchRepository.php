@@ -44,11 +44,13 @@ class DispatchRepository extends EntityRepository
 						->setParameter('statut', $value);
 					break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('dispatch.type', 'filter_type')
-                        ->andWhere('filter_type.id in (:filter_type_value)')
-                        ->setParameter('filter_type_value', $value);
+                    if(!empty($filter['value'])){
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('dispatch.type', 'filter_type')
+                            ->andWhere('filter_type.id in (:filter_type_value)')
+                            ->setParameter('filter_type_value', $value);
+                    }
                     break;
                 case FiltreSup::FIELD_REQUESTERS:
                     $value = explode(',', $filter['value']);

@@ -71,14 +71,12 @@ $(function () {
             waitDatatable: true,
             success: (data) => {
                 if (data.packs && data.packs.length > 0) {
-                    window.location.href = Routing.generate(
-                        'print_arrivage_bar_codes',
-                        {
-                            packs: data.packs.map(({id}) => id),
-                            arrivage: data.arrivageId,
-                            printPacks: 1
-                        },
-                        true);
+                    printArrival({
+                        arrivageId: data.arrivageId,
+                        printPacks: true,
+                        printArrivage: false,
+                        packs: data.packs.map(({id}) => id)
+                    });
                 }
             }
         });
