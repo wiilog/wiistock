@@ -449,7 +449,7 @@ class DeliveryRequestService
                     $simple,
                     $flush,
                     $settingNeedPlanningValidation,
-                    ['requester' => $demandeArray['demandeur']]
+                    ['requester' => $demandeArray['demandeur'] ?? null]
                 );
             }
         } else {
