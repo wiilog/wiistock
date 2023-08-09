@@ -907,6 +907,10 @@ class DispatchService {
             $nbPacksByDispatch[$number] ?? '',
             $this->formatService->status($dispatch->getStatut()),
             $dispatch->getEmergency(),
+            $dispatch->getCustomerName(),
+            $dispatch->getCustomerPhone(),
+            $dispatch->getCustomerRecipient(),
+            $dispatch->getCustomerAddress(),
         ];
 
         $freeFieldValues = $dispatch->getFreeFields();
