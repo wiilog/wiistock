@@ -131,43 +131,88 @@ class TrackingMovementService extends AbstractController
             'fromLabel' => null,
             'from' => '-',
         ];
+
         if (isset($movement)) {
-            if (($movement instanceof TrackingMovement && $movement->getDispatch()) || (is_array($movement) && $movement['entity'] === 'dispatch')) {
-                $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
-                $data ['entityId'] =  is_array($movement)
+            if (($movement instanceof TrackingMovement && $movement->getDispatch())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DISPATCH_ENTITY)) {
+                $data['entityPath'] = 'dispatch_show';
+                $data['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
+                $data['entityId'] =  is_array($movement)
                     ? $movement['entityId']
                     : $movement->getDispatch()->getId();
-                $data ['from'] = is_array($movement)
+                $data['from'] = is_array($movement)
                     ? $movement['entityNumber']
                     : $movement->getDispatch()->getNumber();
-            } else if (($movement instanceof TrackingMovement && $movement->getArrivage()) || (is_array($movement) && $movement['entity'] === 'arrival')) {
-                $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
-                $data ['entityId'] = is_array($movement)
+            } else if (($movement instanceof TrackingMovement && $movement->getArrivage())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::ARRIVAL_ENTITY)) {
+                $data['entityPath'] = 'arrivage_show';
+                $data['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
+                $data['entityId'] = is_array($movement)
                     ? $movement['entityId']
                     : $movement->getArrivage()->getId();
-                $data ['from'] = is_array($movement)
+                $data['from'] = is_array($movement)
                     ? $movement['entityNumber']
                     : $movement->getArrivage()->getNumeroArrivage();
-            } else if (($movement instanceof TrackingMovement && $movement->getReception()) || (is_array($movement) && $movement['entity'] === 'reception')) {
-                $data ['entityPath'] = 'reception_show';
-                $data ['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
-                $data ['entityId'] = is_array($movement)
+            } else if (($movement instanceof TrackingMovement && $movement->getReception())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::RECEPTION_ENTITY)) {
+                $data['entityPath'] = 'reception_show';
+                $data['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
+                $data['entityId'] = is_array($movement)
                     ? $movement['entityId']
                     : $movement->getReception()->getId();
-                $data ['from'] = is_array($movement)
+                $data['from'] = is_array($movement)
                     ? $movement['entityNumber']
                     : $movement->getReception()->getNumber();
-            } else if (($movement instanceof TrackingMovement && $movement->getMouvementStock()?->getTransferOrder()) || (is_array($movement) && $movement['entity'] === 'transferOrder')) {
-                $data ['entityPath'] = 'transfer_order_show';
-                $data ['fromLabel'] = 'Transfert de stock';
-                $data ['entityId'] = is_array($movement)
+            } else if (($movement instanceof TrackingMovement && $movement->getMouvementStock()?->getTransferOrder())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::TRANSFER_ORDER_ENTITY)) {
+                $data['entityPath'] = 'transfer_order_show';
+                $data['fromLabel'] = 'Transfert de stock';
+                $data['entityId'] = is_array($movement)
                     ? $movement['entityId']
                     : $movement->getMouvementStock()->getTransferOrder()->getId();
-                $data ['from'] = is_array($movement)
+                $data['from'] = is_array($movement)
                     ? $movement['entityNumber']
                     : $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getPreparation())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::PREPARATION_ENTITY)) {
+                $data['entityPath'] = 'preparation_show';
+                $data['fromLabel'] = 'Preparation';
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getPreparation()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getPreparation()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getDelivery())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_ORDER_ENTITY)) {
+                $data['entityPath'] = 'livraison_show';
+                $data['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDelivery()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDelivery()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getDeliveryRequest())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_REQUEST_ENTITY)) {
+                $data['entityPath'] = 'demande_show';
+                $data['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDeliveryRequest()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDeliveryRequest()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getShippingRequest())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::SHIPPING_REQUEST_ENTITY)) {
+                $data['entityPath'] = 'shipping_request_show';
+                $data['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getShippingRequest()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getShippingRequest()->getNumber();
             }
         }
         return $data;
@@ -190,18 +235,18 @@ class TrackingMovementService extends AbstractController
 
         if ($movement->getLogisticUnitParent()) {
             if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $pack = "";
+                $packCode = "";
             } else {
-                $pack = $movement->getLogisticUnitParent()->getCode();
+                $packCode = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPackArticle()?->getBarCode() ?? $movement->getPack()->getCode();
+            $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => $pack,
+            'packCode' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))

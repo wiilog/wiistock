@@ -683,6 +683,7 @@ function onReferenceToReceiveChange() {
     const $referenceToReceive = $firstStepForm.find('[name="referenceToReceive"]');
     const [referenceToReceive] = $referenceToReceive.select2('data');
 
+    $referenceToReceive.select2();
     const $selectArticleFournisseur = $firstStepForm.find('[name=articleFournisseurDefault]');
     const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.closest('.form-group');
 
@@ -690,6 +691,7 @@ function onReferenceToReceiveChange() {
     const $selectPackFormGroup = $selectPack.closest('.form-group');
 
     if (referenceToReceive) {
+        $modal.find('input[name=reference][type=hidden]').val(JSON.stringify(referenceToReceive));
         let {reference, orderNumber, pack, defaultArticleFournisseur} = referenceToReceive;
 
         $selectPack
@@ -744,8 +746,8 @@ function onReferenceToReceiveChange() {
         $modal
             .find('.packing-container')
             .empty();
-    }
-    else {
+    } else {
+        $modal.find('input[name=reference][type=hidden]').val('');
         $selectArticleFournisseurFormGroup.addClass('d-none');
         $selectPackFormGroup.addClass('d-none');
 
@@ -880,7 +882,8 @@ function loadPackingArticleForm($modal) {
     const $supplierArticleDefault = $referenceContainer.find(`[name=articleFournisseurDefault]`);
     const $reception = $referenceContainer.find(`[name=reception]`);
 
-    const [referenceToReceive] = $referenceToReceive.hasClass("select2-hidden-accessible") ? $referenceToReceive.select2(`data`) : [];
+    const referenceToReceiveObject = $modal.find('input[name=reference][type=hidden]').val() ? JSON.parse($modal.find('input[name=reference][type=hidden]').val()) : '';
+    const referenceToReceive = $referenceToReceive.hasClass("select2-hidden-accessible") ? referenceToReceiveObject : [];
 
     if (referenceToReceive && $supplierArticleDefault.select2(`data`).length > 0) {
         const $packingContainer = $modal.find(`.packing-container`);

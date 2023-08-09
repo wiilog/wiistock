@@ -22,7 +22,6 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\KioskToken;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
@@ -1053,7 +1052,6 @@ class SettingsController extends AbstractController {
 
     ])]
     public function customValues(EntityManagerInterface $entityManager): array {
-        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationsRepository = $entityManager->getRepository(Emplacement::class);
@@ -1075,9 +1073,6 @@ class SettingsController extends AbstractController {
             self::CATEGORY_GLOBAL => [
                 self::MENU_CLIENT => fn() => [
                     "current_client" => $this->specificService->getAppClient(),
-                ],
-                self::MENU_MAIL_SERVER => fn() => [
-                    "mailer_server" => $mailerServerRepository->findOneBy([]) ?? new MailerServer(),
                 ],
                 self::MENU_LABELS => fn() => [
                     "typeOptions" => Stream::from($typeRepository->findBy(['category' => $categoryTypeArrivage]))
@@ -2009,21 +2004,25 @@ class SettingsController extends AbstractController {
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
-                    $suggestedPickLocationOptions = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedPickLocations()]) ?? [])
+                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
                         ->map(fn(Emplacement $location) => [
                             "value" => $location->getId(),
                             "label" => $location->getLabel(),
                             "selected" => true,
                         ])
-                        ->toArray();
+                        ->toArray()
+                    : [];
 
-                    $suggestedDropLocationOptions = Stream::from($locationRepository->findBy(['id' => $type?->getSuggestedDropLocations()]) ?? [])
-                        ->map(fn(Emplacement $location) => [
-                            "value" => $location->getId(),
-                            "label" => $location->getLabel(),
-                            "selected" => true,
-                        ])
-                        ->toArray();
+                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                            ->map(fn(Emplacement $location) => [
+                                "value" => $location->getId(),
+                                "label" => $location->getLabel(),
+                                "selected" => true,
+                            ])
+                            ->toArray()
+                        : [];
 
                     $data = array_merge($data, [
                         [

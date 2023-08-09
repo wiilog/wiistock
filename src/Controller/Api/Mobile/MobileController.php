@@ -74,7 +74,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
-use App\Service\RefArticleDataService;
+use App\Service\ReserveService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -97,7 +97,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 use Twig\Environment as Twig_Environment;
 
 
@@ -134,58 +133,65 @@ class MobileController extends AbstractApiController
         $data = [];
 
         if (!empty($loggedUser)) {
-            $apiKey = $this->apiKeyGenerator();
-            $loggedUser->setApiKey($apiKey);
-            $entityManager->flush();
+            if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
+                $apiKey = $this->apiKeyGenerator();
+                $loggedUser->setApiKey($apiKey);
+                $entityManager->flush();
 
-            $rights = $userService->getMobileRights($loggedUser);
-            $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+                $rights = $userService->getMobileRights($loggedUser);
+                $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
 
-            $channels = Stream::from($rights)
-                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
-                ->takeKeys()
-                ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
-                ->toArray();
+                $channels = Stream::from($rights)
+                    ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                    ->takeKeys()
+                    ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                    ->toArray();
 
-            if (in_array($_SERVER["APP_INSTANCE"] . "-stock" , $channels)) {
-                Stream::from($loggedUser->getDeliveryTypes())
-                    ->each(function(Type $deliveryType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
-                    });
+                if (in_array($_SERVER["APP_INSTANCE"] . "-stock", $channels)) {
+                    Stream::from($loggedUser->getDeliveryTypes())
+                        ->each(function (Type $deliveryType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                        });
+                }
+                if (in_array($_SERVER["APP_INSTANCE"] . "-tracking", $channels)) {
+                    Stream::from($loggedUser->getDispatchTypes())
+                        ->each(function (Type $dispatchType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
+                        });
+                }
+                if (in_array($_SERVER["APP_INSTANCE"] . "-demande", $channels)) {
+                    Stream::from($loggedUser->getHandlingTypes())
+                        ->each(function (Type $handlingType) use (&$channels) {
+                            $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
+                        });
+                }
+
+                $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+
+                $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
+                    ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                    ->toArray();
+
+                $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+                $wayBillData['dispatch_id'] = null;
+
+                $data['success'] = true;
+                $data['data'] = [
+                    'apiKey' => $apiKey,
+                    'notificationChannels' => $channels,
+                    'rights' => $rights,
+                    'parameters' => $parameters,
+                    'username' => $loggedUser->getUsername(),
+                    'userId' => $loggedUser->getId(),
+                    'fieldsParam' => $fieldsParam ?? [],
+                    'dispatchDefaultWaybill' => $wayBillData ?? [],
+                ];
+            } else {
+                $data = [
+                    'success' => false,
+                    'msg' => "Cet utilisateur ne dispose pas des droits pour accéder à l'application mobile."
+                ];
             }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-tracking" , $channels)) {
-                Stream::from($loggedUser->getDispatchTypes())
-                    ->each(function(Type $dispatchType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
-                    });
-            }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-demande" , $channels)) {
-                Stream::from($loggedUser->getHandlingTypes())
-                    ->each(function(Type $handlingType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
-                    });
-            }
-
-            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
-
-            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
-                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
-                ->toArray();
-
-            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
-            $wayBillData['dispatch_id'] = null;
-
-            $data['success'] = true;
-            $data['data'] = [
-                'apiKey' => $apiKey,
-                'notificationChannels' => $channels,
-                'rights' => $rights,
-                'parameters' => $parameters,
-                'username' => $loggedUser->getUsername(),
-                'userId' => $loggedUser->getId(),
-                'fieldsParam' => $fieldsParam ?? [],
-                'dispatchDefaultWaybill' => $wayBillData ?? [],
-            ];
         } else {
             $data['success'] = false;
         }
@@ -3502,8 +3508,13 @@ class MobileController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+        }
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat::DATE_COUNTER_FORMAT_DISPATCH_LONG);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
@@ -3781,7 +3792,8 @@ class MobileController extends AbstractApiController
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,
                                        UniqueNumberService    $uniqueNumberService,
-                                       KernelInterface        $kernel): Response {
+                                       KernelInterface        $kernel,
+                                       ReserveService         $reserveService): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -3831,15 +3843,14 @@ class MobileController extends AbstractApiController
             $entityManager->persist($reserve);
         }
 
-        dump($truckArrivalLines);
-
+        $reserves = [];
         foreach($truckArrivalLines as $truckArrivalLine){
             $line = (new TruckArrivalLine())
                 ->setNumber($truckArrivalLine['number']);
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setKind($truckArrivalLine['reserve']['type'])
+                    ->setKind(Reserve::KIND_LINE)
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['reserveTypeId']){
@@ -3865,6 +3876,8 @@ class MobileController extends AbstractApiController
 
                 $line->setReserve($lineReserve);
                 $entityManager->persist($lineReserve);
+
+                $reserves[] = $lineReserve;
             }
 
 
@@ -3886,9 +3899,28 @@ class MobileController extends AbstractApiController
             $entityManager->persist($attachment);
         }
 
-
         $entityManager->persist($truckArrival);
         $entityManager->flush();
+
+        $allAttachments = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [
+                $reserve->getReserveType()->getId(),
+                $reserve->getAttachments()->toArray()
+            ], true)
+            ->toArray();
+
+        $reserveTypeIdToReserveTypeArray = Stream::from($reserves)
+            ->keymap(fn(Reserve $reserve) => [$reserve->getReserveType()?->getId(), $reserve->getReserveType()])
+            ->toArray();
+
+        foreach ($allAttachments as $reserveTypeId => $attachments) {
+            $attachments = Stream::from($attachments)->flatten()->toArray();
+            $reserveType = $reserveTypeIdToReserveTypeArray[$reserveTypeId] ?? null;
+
+            if($reserveType) {
+                $reserveService->sendTruckArrivalMail($truckArrival, $reserveType, $reserves, $attachments);
+            }
+        }
 
         return $this->json([
             'success' => true,
