@@ -73,7 +73,7 @@ class PreparationController extends AbstractController
         $user = $this->getUser();
 
         try {
-            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager, $locationEndPrepa);
+            $articlesNotPicked = $preparationsManager->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
         } catch (NegativeQuantityException $exception) {
             $barcode = $exception->getArticle()->getBarCode();
             return new JsonResponse([
@@ -149,7 +149,9 @@ class PreparationController extends AbstractController
         $preparationStatut = $preparationOrder->getStatut()->getCode();
         $isPrepaEditable =
             $preparationStatut === Preparation::STATUT_A_TRAITER
-            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION && $preparationOrder->getUtilisateur() == $this->getUser());
+            || ($preparationStatut == Preparation::STATUT_EN_COURS_DE_PREPARATION
+            && $preparationOrder->getUtilisateur()->getId() === $this->getUser()->getId());
+
         $lines = Stream::from($preparationOrder->getArticleLines())
             ->map(fn(PreparationOrderArticleLine $articleLine) => $articleLine->getPack())
             ->unique()
@@ -433,6 +435,15 @@ class PreparationController extends AbstractController
             if (!empty($data['articles'])) {
                 $preparation = $preparationRepository->find($data['preparation']);
 
+                if ($preparation) {
+                    $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION,Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                    $preparation
+                        ->setStatut($statusInProgress)
+                        ->setUtilisateur($this->getUser());
+                    $entityManager->flush();
+                    $needReload = true;
+                }
+
                 $articles = [];
                 $pickedQuantities = 0;
                 foreach ($data['articles'] as $idArticle => $pickedQuantity) {
@@ -484,7 +495,8 @@ class PreparationController extends AbstractController
             } else {
                 $resp = [
                     'success' => false,
-                    'msg' => 'Vous devez sélectionner au moins un article.'
+                    'msg' => 'Vous devez sélectionner au moins un article.',
+                    'needReload' => $needReload ?? false,
                 ];
             }
             return new JsonResponse($resp);
@@ -501,6 +513,7 @@ class PreparationController extends AbstractController
     {
         $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
         $preparationOrderReferenceLineRepository = $entityManager->getRepository(PreparationOrderReferenceLine::class);
+        $statutRepository = $entityManager->getRepository(Statut::class);
 
         $values = $request->getContent() ?: $request->query->get("values");
         $data = json_decode($values, true);
@@ -528,12 +541,19 @@ class PreparationController extends AbstractController
             if (isset($data['quantite'])) {
                 $line->setPickedQuantity(max($data['quantite'], 0));
             }
+            $preparation = $line->getPreparation();
+            $onGoingStatut = $statutRepository->findOneBy(['nom' => Preparation::STATUT_EN_COURS_DE_PREPARATION]);
+            if ($preparation->getStatut() != $onGoingStatut) {
+                $preparation->setStatut($onGoingStatut);
+                $preparation->setUtilisateur($this->getUser());
+                $needReload = true;
+            }
         }
 
         $entityManager->flush();
-
         return $this->json([
-            'success' => true
+            'success' => true,
+            'needReload' => $needReload ?? false
         ]);
     }
 
@@ -568,32 +588,6 @@ class PreparationController extends AbstractController
             );
 
             return new JsonResponse($json);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/commencer-preparation", name="prepa_begin", options={"expose"=true}, methods={"GET","POST"}, condition="request.isXmlHttpRequest()")
-     */
-    public function beginPrepa(EntityManagerInterface $entityManager,
-                               Request                $request): Response
-    {
-        if ($prepaId = json_decode($request->getContent(), true)) {
-
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $preparationRepository = $entityManager->getRepository(Preparation::class);
-
-            $preparation = $preparationRepository->find($prepaId);
-
-            if ($preparation) {
-                $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-                $preparation
-                    ->setStatut($statusInProgress)
-                    ->setUtilisateur($this->getUser());
-                $entityManager->flush();
-            }
-
-            return new JsonResponse();
         }
         throw new BadRequestHttpException();
     }

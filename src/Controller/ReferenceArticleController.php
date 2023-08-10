@@ -19,7 +19,8 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\OrdreCollecte;
-use App\Entity\OrdreCollecteReference;
+use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -35,6 +36,7 @@ use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\ArticleFournisseurService;
 use App\Service\AttachmentService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\Kiosk\KioskService;
 use App\Service\MouvementStockService;
@@ -146,10 +148,7 @@ class ReferenceArticleController extends AbstractController
             $refAlreadyExist = $referenceArticleRepository->countByReference($data['reference']);
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(ReferenceArticle::CATEGORIE, $data['statut']);
 
-            if(isset($data['security'])
-                && isset($data['fileSheet'])
-                && $data['security'] == "1"
-                && $data['fileSheet'] === "undefined"){
+            if(isset($data['security']) && $data['security'] == "1" && isset($data['fileSheet']) && $data['fileSheet'] === "undefined") {
                 throw new FormException("La fiche sécurité est obligatoire pour les références notées en Marchandise dangereuse.");
             }
 
@@ -176,14 +175,11 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             }
-            switch ($data['type_quantite']) {
-                case 'reference':
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_REFERENCE;
-                    break;
-                default:
-                    $typeArticle = ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-                    break;
-            }
+
+            $typeArticle = match ($data['type_quantite']) {
+                'reference' => ReferenceArticle::QUANTITY_TYPE_REFERENCE,
+                default => ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+            };
 
             $needsMobileSync = filter_var($data['mobileSync'] ?? false, FILTER_VALIDATE_BOOLEAN);
             if ($needsMobileSync && ($referenceArticleRepository->count(['needsMobileSync' => true]) > ReferenceArticle::MAX_NOMADE_SYNC && $data['mobileSync'])) {
@@ -353,17 +349,17 @@ class ReferenceArticleController extends AbstractController
 
             $champLibreService->manageFreeFields($refArticle, $data, $entityManager);
 
-            if($request->files->has('image')) {
-                $file = $request->files->get('image');
-                $attachments = $attachmentService->createAttachements([$file]);
+            $files = $request->files;
+            if($files->has('image')) {
+                $attachments = $attachmentService->createAttachements([$files->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
                 $request->files->remove('image');
             }
-            if($request->files->has('fileSheet')) {
-                $file = $request->files->get('fileSheet');
-                $attachments = $attachmentService->createAttachements([$file]);
+
+            if($files->has('fileSheet')) {
+                $attachments = $attachmentService->createAttachements([$files->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
@@ -833,25 +829,6 @@ class ReferenceArticleController extends AbstractController
     }
 
     /**
-     * @Route("/mouvements/lister", name="ref_mouvements_list", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            if ($ref = $referenceArticleRepository->find($data)) {
-                $name = $ref->getLibelle();
-            }
-
-           return new JsonResponse($this->renderView('reference_article/modalShowMouvementsContent.html.twig', [
-               'refLabel' => $name?? ''
-           ]));
-        }
-        throw new BadRequestHttpException();
-    }
-
-    /**
      * @Route("/mouvements/api/{referenceArticle}", name="ref_mouvements_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiMouvements(EntityManagerInterface $entityManager,
@@ -886,6 +863,42 @@ class ReferenceArticleController extends AbstractController
             },
             $mouvements
         );
+        return new JsonResponse($data);
+    }
+
+    #[Route("/purchaseRequests/api/{referenceArticle}", name: "ref_purchase_requests_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
+    public function apiPurchaseRequests(EntityManagerInterface $entityManager,
+                                        ReferenceArticle       $referenceArticle,
+                                        Request                $request,
+                                        FormatService          $formatService): Response {
+
+        $purchaseRequestRepository = $entityManager->getRepository(PurchaseRequest::class);
+        $params = $request->request;
+        $filters = [[
+            "field" => "referenceArticle",
+            "value" => $referenceArticle->getId(),
+        ]];
+        $data = $purchaseRequestRepository->findByParamsAndFilters($params, $filters);
+        $data ["recordsTotal"] = $data ["count"];
+        $data["recordsFiltered"] = 0;
+        $data['data'] = Stream::from($data['data'])
+            ->flatMap(static function (PurchaseRequest $purchaseRequest) use ($referenceArticle, $formatService, &$data) {
+                $lines = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                    ->filter(fn(PurchaseRequestLine $purchaseRequestLine) => $purchaseRequestLine->getReference()->getId() === $referenceArticle->getId())
+                    ->map(fn(PurchaseRequestLine $purchaseRequestLine) => [
+                        "creationDate" => $formatService->datetime($purchaseRequest->getCreationDate()),
+                        "from" => "<div class='pointer' data-purchase-request-id='" . $purchaseRequest->getId() . "'><div class='wii-icon wii-icon-export mr-2'></div>" . $purchaseRequest->getNumber() . "</div>",
+                        "requester" => $formatService->user($purchaseRequest->getRequester()),
+                        "status" => $formatService->status($purchaseRequest->getStatus()),
+                        "requestedQuantity" => $purchaseRequestLine->getRequestedQuantity(),
+                        "orderedQuantity" => $purchaseRequestLine->getOrderedQuantity(),
+                    ])
+                    ->toArray();
+                $data["recordsFiltered"] += count($lines);
+                return $lines;
+            })
+            ->toArray();
         return new JsonResponse($data);
     }
 

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\DispatchRepository;
+use App\Service\UniqueNumberService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,6 +25,11 @@ class Dispatch extends StatusHistoryContainer {
     const TAKING = 'Enlèvement';
     const DROP = 'Livraison';
     const GROUPED_SIGNATURE_TYPES = [Dispatch::TAKING, Dispatch::DROP];
+
+    const NUMBER_FORMATS = [
+        'aaaammjjxxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
+        'aaaammjjhhmmss-xxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
+    ];
 
     /**
      * @var [string => bool] Associate field name to bool, if TRUE we saved it in user entity

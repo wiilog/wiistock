@@ -198,6 +198,7 @@ class Action {
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
     // menu nomade
+    const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
     const MODULE_ACCESS_GROUP = 'Accès Groupage';

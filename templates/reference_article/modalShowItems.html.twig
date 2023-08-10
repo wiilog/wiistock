@@ -1,13 +1,20 @@
-<div class="modal fade" id="modalShowMouvements" role="dialog" aria-hidden="true">
+<div class="modal fade" id="{{ modalId }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Mouvements de stock"
+                title
             } %}
 
             <div class="modal-body">
-
+                <div class="mr-3">
+                    <div>
+                        <h2 class="ref-label"></h2>
+                    </div>
+                    <table class="table nowrap w-100 mr-3 tableItems">
+                    </table>
+                </div>
             </div>
+
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
