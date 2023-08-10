@@ -332,14 +332,6 @@ class PDFGeneratorService {
             })
             ->toArray();
 
-
-//        return $this->templating->render('prints/dispatchLabelTemplate.html.twig', [
-//            'title' => $title,
-//            'height' => $height,
-//            'width' => $width,
-//            'barcodeConfigs' => $barcodeConfigsToTwig,
-//        ]);
-
         return $this->PDFGenerator->getOutputFromHtml(
             $this->templating->render('prints/dispatchLabelTemplate.html.twig', [
                 'title' => $title,

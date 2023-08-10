@@ -1862,7 +1862,8 @@ class DispatchService {
         $attachment->setDispatch($dispatch);
 
         $this->entityManager->persist($attachment);
-//        $this->entityManager->flush();
+        $this->entityManager->flush();
+
         return [
             'file' => $pdfContent,
             'name' => $originalName

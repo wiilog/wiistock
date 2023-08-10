@@ -12,18 +12,29 @@
 
         .entete-container {
             margin-right: 3rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .client-container {
+            margin-bottom: 0.3rem;
         }
 
         .barcode-container {
+            margin-top: 0.5rem;
             position: relative;
             float: right;
             height: 25mm;
+            width: 30mm;
         }
 
-        .container {
+        .table-container {
              display: block;
              width: 24cm;
+        }
+
+        .visa-container {
+            padding: 0.2rem;
+            border: black 2px solid;
         }
 
         svg {
@@ -55,6 +66,11 @@
             padding-left: 0.3rem
         }
 
+        .left-align {
+            padding-left: 0.3rem;
+            font-size: large;
+        }
+
         th {
             font-size: small;
         }
@@ -74,7 +90,7 @@
 
     <div class="barcode-container">
         <div class="barcode-wrapper"
-             style="height: 69% !important;">
+             style="height: 50% !important;">
             {{ printBarcode({
                 code: config.barcode.code,
                 type: config.barcode.type,
@@ -85,12 +101,12 @@
         </div>
 
         <div class="barcode-code">
-            <svg viewBox="0 0.2 3 3"
+            <svg viewBox="{{ config.barcode.type == 'qrcode' ? '0.1 0.5 3 3' : '-0.1 0.7 3 3' }}"
                  xmlns="http://www.w3.org/2000/svg">
                 <text y="1"
                       x="50%"
                       text-anchor="middle"
-                      font-size="0.8">
+                      font-size="0.3">
                     {{ config.barcode.code }}
                 </text>
             </svg>
@@ -100,40 +116,45 @@
     <div class="dispatch-label-container">
         <div class="entete-container">
             <div style="font-weight: bold;">EXP N°{{ config.dispatch.number }}</div>
-            <div>
-                <span class="small-text">Mode d'acheminement</span>
-                <span>{{ config.dispatch.businessUnit }}</span>
+            <div style="margin-bottom: 0.2rem;">
+                <div class="small-text">Mode d'acheminement</div>
+                <div class="left-align">{{ config.dispatch.businessUnit }}</div>
             </div>
-            <div>
-                <span class="small-text">N° BL/AIA</span>
-                <span>{{ config.dispatch.orderNumber }}</span>
+            <div style="margin-bottom: 0.2rem;">
+                <div class="small-text">N° BL/AIA</div>
+                <div class="left-align">{{ config.dispatch.orderNumber }}</div>
             </div>
         </div>
-        <div>
-            <div class="small-text">Destinataire : {{ config.dispatch.customerRecipient }}</div>
-            <div class="small-text">Adresse de livraison : {{ config.dispatch.customerAddress }}</div>
-            <div class="small-text">N° téléphone : {{ config.dispatch.customerPhone }}</div>
+        <div class="client-container">
+            <div class="small-text">Destinataire : <span style="font-size: large">{{ config.dispatch.customerRecipient }}</span></div>
+            <div class="small-text">Adresse de livraison : <span style="font-size: large">{{ config.dispatch.customerAddress }}</span></div>
+            <div class="small-text">N° téléphone : <span style="font-size: large">{{ config.dispatch.customerPhone }}</span></div>
         </div>
-        <div>
-            <div class="container">
-                <table>
-                    <tr>
-                        <th>Contenant</th>
-                        <th>Long(M)</th>
-                        <th>Larg(M)</th>
-                        <th>Haut(M)</th>
-                        <th>Vol(M²)</th>
-                        <th>Masse(Kg)</th>
-                    </tr>
-                    <tr>
-                        <td>{{ config.dispatch.dispatchPack.nature }}</td>
-                        <td>{{ config.dispatch.dispatchPack.length }}</td>
-                        <td>{{ config.dispatch.dispatchPack.width }}</td>
-                        <td>{{ config.dispatch.dispatchPack.height }}</td>
-                        <td>{{ config.dispatch.dispatchPack.volume }}</td>
-                        <td>{{ config.dispatch.dispatchPack.weight }}</td>
-                    </tr>
-                </table>
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th>Contenant</th>
+                    <th>Long(M)</th>
+                    <th>Larg(M)</th>
+                    <th>Haut(M)</th>
+                    <th>Vol(M²)</th>
+                    <th>Masse(Kg)</th>
+                </tr>
+                <tr>
+                    <td>{{ config.dispatch.dispatchPack.nature }}</td>
+                    <td>{{ config.dispatch.dispatchPack.length }}</td>
+                    <td>{{ config.dispatch.dispatchPack.width }}</td>
+                    <td>{{ config.dispatch.dispatchPack.height }}</td>
+                    <td>{{ config.dispatch.dispatchPack.volume }}</td>
+                    <td>{{ config.dispatch.dispatchPack.weight }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="visa-container">
+            <div style="font-weight: bold">Visa</div>
+            <div>
+                <span>Matricule : {{ config.requester }}</span>
+                <span style="margin-left: 5rem; font-weight: bold">Date : {{ "now"|date("m/d/Y") }}</span>
             </div>
         </div>
     </div>
