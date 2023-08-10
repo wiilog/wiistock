@@ -34,8 +34,9 @@ class Type {
     const LABEL_COLLECT = 'collecte';
     const LABEL_SCHEDULED_EXPORT = 'Export planifié';
     const LABEL_UNIQUE_EXPORT = 'Export unique';
-    const LABEL_NOMADE_SESSION = 'session mobile';
-    const LABEL_WEB_SESSION = 'session web';
+    const LABEL_NOMADE_SESSION_HISTORY = 'session mobile';
+    const LABEL_WEB_SESSION_HISTORY = 'session web';
+
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

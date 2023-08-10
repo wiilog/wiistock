@@ -303,7 +303,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Session::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistory::class)]
     private Collection $sessions;
 
 
@@ -1992,14 +1992,14 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection<int, Session>
+     * @return Collection<int, SessionHistory>
      */
     public function getSessions(): Collection
     {
         return $this->sessions;
     }
 
-    public function addSession(Session $session): self
+    public function addSession(SessionHistory $session): self
     {
         if (!$this->sessions->contains($session)) {
             $this->sessions[] = $session;
@@ -2009,7 +2009,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function removeSession(Session $session): self
+    public function removeSession(SessionHistory $session): self
     {
         if ($this->sessions->removeElement($session)) {
             // set the owning side to null (unless already changed)

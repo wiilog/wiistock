@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Role;
+use App\Security\UserChecker;
 use App\Service\MailerService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -55,13 +56,13 @@ class SecuriteController extends AbstractController {
 
 
     /**
-     * @Route("/login/{success}", name="login", options={"expose"=true})
+     * @Route("/login/{success}", name="login", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur && $loggedUser->getStatus()) {
+        if($loggedUser && $loggedUser instanceof Utilisateur) {
             $loggedUser->setLastLogin(new DateTime('now'));
             $entityManager->flush();
             return $this->redirectToRoute('app_index');
@@ -70,12 +71,14 @@ class SecuriteController extends AbstractController {
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
 
+        dump($loggedUser);
+
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
-        if($user && $user->getStatus() === false) {
-            return $this->redirectToRoute('logout');
+        if( in_array($error?->getCode(), [UserChecker::ACCOUNT_DISABLED_CODE, UserChecker::NO_MORE_SESSION_AVAILABLE])  ) {
+            $errorToDisplay = $error->getMessage();
         } else if($error) {
             $errorToDisplay = 'Les identifiants renseignés sont incorrects';
         }

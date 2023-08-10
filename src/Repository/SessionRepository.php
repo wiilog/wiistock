@@ -2,16 +2,16 @@
 
 namespace App\Repository;
 
-use App\Entity\Session;
+use App\Entity\SessionHistory;
 use Doctrine\ORM\EntityRepository;
 
 /**
- * @extends EntityRepository<Session>
+ * @extends EntityRepository<SessionHistory>
  *
- * @method Session|null find($id, $lockMode = null, $lockVersion = null)
- * @method Session|null findOneBy(array $criteria, array $orderBy = null)
- * @method Session[]    findAll()
- * @method Session[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method SessionHistory|null find($id, $lockMode = null, $lockVersion = null)
+ * @method SessionHistory|null findOneBy(array $criteria, array $orderBy = null)
+ * @method SessionHistory[]    findAll()
+ * @method SessionHistory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SessionRepository extends EntityRepository
 {

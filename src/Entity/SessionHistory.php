@@ -8,7 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SessionRepository::class)]
-class Session
+class SessionHistory
 {
 
     #[ORM\Id]
@@ -16,7 +16,7 @@ class Session
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $openedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -26,16 +26,19 @@ class Session
      * Correspond à l'ancien api_key de l’utilisateur si session nomade
      * ou au session_id de symfony pour la session web
      * */
-    #[ORM\Column(type: Types::TEXT)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $sessionKey = null;
 
-    #[ORM\ManyToOne(inversedBy: 'sessions')]
+    #[ORM\ManyToOne(inversedBy: 'sessionHistory')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
+
+    #[ORM\Column(length: 128)]
+    private ?string $sessionId = null;
 
     public function getId(): ?int
     {
@@ -102,6 +105,18 @@ class Session
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getSessionId(): ?string
+    {
+        return $this->sessionId;
+    }
+
+    public function setSessionId(string $sessionId): self
+    {
+        $this->sessionId = $sessionId;
 
         return $this;
     }

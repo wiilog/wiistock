@@ -32,6 +32,7 @@ security:
             lazy: true
             provider: db_provider
             pattern: ^/
+            user_checker: App\Security\UserChecker
 
             saml:
                 check_path: saml_acs
