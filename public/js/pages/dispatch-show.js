@@ -127,6 +127,8 @@ $(function() {
         SetRequestQuery(queryParams);
         $('#generateDeliveryNoteButton').click();
     }
+
+    registerVolumeCompute();
 });
 
 function generateOverconsumptionBill($button, dispatchId) {
@@ -472,6 +474,9 @@ function initializePacksTable(dispatchId, isEdit) {
             {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Général`, `Dernier emplacement`)},
             {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Général`, `Opérateur`)},
             {data: 'status', name: 'status', title: Translation.of('Demande', `Général`, `Statut`)},
+            {data: 'height', name: 'status', title: 'Hauteur'},
+            {data: 'width', name: 'status', title: 'Largeur'},
+            {data: 'length', name: 'status', title: 'Longueur'},
         ],
     });
 
@@ -525,6 +530,9 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
+            $row.find(`.height`).text(value.height);
+            $row.find(`.width`).text(value.width);
+            $row.find(`.length`).text(value.length);
 
             if (defaultQuantity !== undefined) {
                 $quantity.val(defaultQuantity);
@@ -815,4 +823,21 @@ function selectUlChanged($select){
         }
         $modal.find('[name=packID]').val(ulData.exists ? ulData.id : null);
     }
+}
+
+function registerVolumeCompute() {
+    $(document).arrive(`[name=height], [name=width], [name=length]`, function() {
+        $(this).on(`change`, function() {
+            const $line = $(this).closest(`tr`);
+            const $fields = $line.find(`[name=height], [name=width], [name=length]`);
+            const $volume = $line.find(`[name=volume]`);
+            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null)) {
+                $volume.val(null);
+                $(this).prop(`required`, true);
+                $(this).addClass(`is-invalid`);
+            } else {
+                $line.find(`[name=volume]`).val(Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1));
+            }
+        });
+    });
 }

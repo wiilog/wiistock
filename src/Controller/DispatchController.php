@@ -833,6 +833,9 @@ class DispatchController extends AbstractController {
                 "lastLocation" => null,
                 "operator" => null,
                 "status" => null,
+                "height" => null,
+                "width" => null,
+                "length" => null,
             ];
         }
         return $this->json([
@@ -849,6 +852,7 @@ class DispatchController extends AbstractController {
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
+        dump($data);
         $noPrefixPackCode = trim($data["pack"]);
         $natureId = $data["nature"];
         $quantity = $data["quantity"];
@@ -856,6 +860,9 @@ class DispatchController extends AbstractController {
         $comment = $data["comment"] ?? "";
         $weight = (floatval(str_replace(',', '.', $data["weight"] ?? "")) ?: null);
         $volume = (floatval(str_replace(',', '.', $data["volume"] ?? "")) ?: null);
+        $height = $data["height"] ?? null;
+        $width = $data["width"] ?? null;
+        $length = $data["length"] ?? null;
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -908,7 +915,10 @@ class DispatchController extends AbstractController {
         $dispatchPack
             ->setPack($pack)
             ->setTreated(false)
-            ->setDispatch($dispatch);
+            ->setDispatch($dispatch)
+            ->setHeight($height !== null ? floatval($height) : $dispatchPack->getHeight())
+            ->setWidth($width !== null ? floatval($width) : $dispatchPack->getWidth())
+            ->setLength($length !== null ? floatval($length) : $dispatchPack->getLength());
         $entityManager->persist($dispatchPack);
 
         $nature = $natureRepository->find($natureId);
@@ -978,7 +988,7 @@ class DispatchController extends AbstractController {
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
-                    if( $dispatch->getType() &&
+                    if($dispatch->getType() &&
                         ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
                         $notificationService->toTreat($dispatch);
                     }

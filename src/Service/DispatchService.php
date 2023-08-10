@@ -19,6 +19,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -108,6 +109,9 @@ class DispatchService {
 
     #[Required]
     public PackService $packService;
+
+    #[Required]
+    public FormService $formService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -738,7 +742,6 @@ class DispatchService {
         if($dispatchPack) {
             $pack = $dispatchPack->getPack();
             $lastTracking = $pack->getLastTracking();
-
             $code = $pack->getCode();
             $quantity = $dispatchPack->getQuantity();
             $nature = $pack->getNature();
@@ -751,6 +754,9 @@ class DispatchService {
             $status = $dispatchPack->isTreated()
                 ? $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Traité')
                 : $this->translationService->translate('Demande', 'Acheminements', 'Général', 'À traiter');
+            $height = $dispatchPack->getHeight();
+            $width = $dispatchPack->getWidth();
+            $length = $dispatchPack->getLength();
         } else {
             $quantity = $this->defaultNature?->getDefaultQuantityForDispatch() ?: null;
             $nature = $this->defaultNature;
@@ -761,6 +767,9 @@ class DispatchService {
             $lastLocation = null;
             $operator = null;
             $status = null;
+            $height = null;
+            $width = null;
+            $length = null;
         }
 
         $actions = $this->templating->render("dispatch/datatablePackRow.html.twig", [
@@ -779,7 +788,6 @@ class DispatchService {
 
             $labelNatureSelection = $this->translationService->translate('Traçabilité', 'Général', 'Sélectionner une nature', false);
 
-
             $natureOptions = Stream::from($this->natures)
                 ->map(fn(Nature $current) => [
                     "id" => $current->getId(),
@@ -790,6 +798,34 @@ class DispatchService {
                 ->map(fn(array $n) => "<option value='{$n["id"]}' {$n["selected"]}>{$n["label"]}</option>")
                 ->prepend(!$nature ? "<option disabled selected>$labelNatureSelection</option>" : null)
                 ->join("");
+
+            $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFieldsParam::class);
+            $elements = [
+                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => Stream::from($subLineFieldsParamRepository->findOneBy([
+                    'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                    'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT
+                ])->getElements() ?? [])
+                    ->map(static fn(string $element) => [
+                        'label' => $element,
+                        'value' => $element,
+                    ])->toArray(),
+                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => Stream::from($subLineFieldsParamRepository->findOneBy([
+                    'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                    'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH
+                ])->getElements() ?? [])
+                    ->map(static fn(string $element) => [
+                        'label' => $element,
+                        'value' => $element,
+                    ])->toArray(),
+                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => Stream::from($subLineFieldsParamRepository->findOneBy([
+                    'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                    'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH
+                ])->getElements() ?? [])
+                    ->map(static fn(string $element) => [
+                        'label' => $element,
+                        'value' => $element,
+                    ])->toArray(),
+            ];
 
             $data = [
                 "actions" => $actions,
@@ -813,6 +849,24 @@ class DispatchService {
                 "lastLocation" => $lastLocation ?? "<span class='lastLocation'></span>",
                 "operator" => $operator ?? "<span class='operator'></span>",
                 "status" => $status ?? "<span class='status'></span>",
+                "height" => $this->formService->macro('select', 'height', null, false, [
+                        'items' => $elements[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT],
+                        'type' => '',
+                        'editable' => true,
+                        'value' => $height,
+                    ]),
+                "width" => $this->formService->macro('select', 'width', null, false, [
+                        'items' => $elements[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH],
+                        'type' => '',
+                        'editable' => true,
+                        'value' => $width,
+                    ]),
+                "length" => $this->formService->macro('select', 'length', null, false, [
+                        'items' => $elements[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH],
+                        'type' => '',
+                        'editable' => true,
+                        'value' => $length,
+                    ]),
             ];
         } else if($dispatchPack) {
             $data = [
@@ -827,6 +881,9 @@ class DispatchService {
                 "lastLocation" => $lastLocation,
                 "operator" => $operator,
                 "status" => $status,
+                "height" => $height,
+                "width" => $width,
+                "length" => $length,
             ];
         }
 

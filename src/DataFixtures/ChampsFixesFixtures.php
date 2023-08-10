@@ -34,10 +34,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FieldsParam::ENTITY_CODE_DEMANDE => [
-                ['code' => FieldsParam::FIELD_CODE_TYPE_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_TYPE_DEMANDE, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE],
-                ['code' => FieldsParam::FIELD_CODE_RECEIVER_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DEMANDE, 'values' => [], 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false, 'modalType' => FieldsParam::MODAL_RECEIVER],
+                ['code' => FieldsParam::FIELD_CODE_TYPE_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_TYPE_DEMANDE, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_TYPE],
+                ['code' => FieldsParam::FIELD_CODE_RECEIVER_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DEMANDE, 'values' => [], 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false, 'elementsType' => FieldsParam::ELEMENTS_RECEIVER],
                 ['code' => FieldsParam::FIELD_CODE_EXPECTED_AT, 'label' => FieldsParam::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_DESTINATION_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,  'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_LOCATION_BY_TYPE],
+                ['code' => FieldsParam::FIELD_CODE_DESTINATION_DEMANDE, 'label' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,  'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_LOCATION_BY_TYPE],
                 ['code' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT, 'label' => FieldsParam::FIELD_LABEL_DELIVERY_REQUEST_PROJECT . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Va chercher dans le référentiel projet">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
 
@@ -56,7 +56,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_CUSTOMS_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_FROZEN_ARRIVAGE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'hidden' => true],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
-                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FieldsParam::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT, 'label' => FieldsParam::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
             ],
@@ -67,11 +67,11 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_RECEIVER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_EMAILS, 'label' => FieldsParam::FIELD_LABEL_EMAILS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_COMMENT_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_COMMENT_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FieldsParam::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
+                ['code' => FieldsParam::FIELD_CODE_BUSINESS_UNIT, 'label' => FieldsParam::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_PROJECT_NUMBER, 'label' => FieldsParam::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_PICK, 'label' => FieldsParam::FIELD_LABEL_LOCATION_PICK, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
                 ['code' => FieldsParam::FIELD_CODE_LOCATION_DROP, 'label' => FieldsParam::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
@@ -82,9 +82,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             FieldsParam::ENTITY_CODE_HANDLING => [
                 ['code' => FieldsParam::FIELD_CODE_LOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_LOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FieldsParam::FIELD_CODE_UNLOADING_ZONE, 'label' => FieldsParam::FIELD_LABEL_UNLOADING_ZONE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_FREE],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE],
                 ['code' => FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, 'label' => FieldsParam::FIELD_LABEL_CARRIED_OUT_OPERATION_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'modalType' => FieldsParam::MODAL_TYPE_USER]
+                ['code' => FieldsParam::FIELD_CODE_RECEIVERS_HANDLING, 'label' => FieldsParam::FIELD_LABEL_RECEIVERS_HANDLING, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => true, 'elementsType' => FieldsParam::ELEMENTS_TYPE_USER]
             ],
 
             FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL => [
@@ -114,7 +114,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_POST_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false, 'default' => true],
-                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'modalType' => FieldsParam::MODAL_TYPE_FREE, 'values' => []],
+                ['code' => FieldsParam::FIELD_CODE_EMERGENCY_TYPE, 'label' => FieldsParam::FIELD_LABEL_EMERGENCY_TYPE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE, 'values' => []],
             ],
         ];
 
@@ -123,6 +123,20 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE, 'conditionFixedFieldValue' => [], 'required' => false],
                 ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
                 ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' =>  null, 'conditionFixedFieldValue' => [], 'required' => false],
+            ],
+            SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_QUANTITY, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_QUANTITY, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_VOLUME, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_STATUS, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_NATURE, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_NATURE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
             ],
         ];
 
@@ -202,7 +216,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 $field
                     ->setFieldLabel($fieldCode['label'])
                     ->setFieldRequiredHidden($fieldCode['hidden'] ?? null)
-                    ->setModalType($fieldCode['modalType'] ?? null);
+                    ->setElementsType($fieldCode['elementsType'] ?? null);
 
                 $manager->flush();
             }

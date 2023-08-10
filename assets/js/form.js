@@ -103,7 +103,7 @@ export default class Form {
     submitTo(method, route, options) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method,route)
+                () => AJAX.route(method, route, options.params || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {
