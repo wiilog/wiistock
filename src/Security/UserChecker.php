@@ -3,7 +3,7 @@
 namespace App\Security;
 
 use App\Entity\Utilisateur as AppUser;
-use App\Service\SessionHistoryService;
+use App\Service\SessionHistoryRecordService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
@@ -16,7 +16,7 @@ class UserChecker implements UserCheckerInterface
     public const NO_MORE_SESSION_AVAILABLE = 667;
 
     #[Required]
-    public SessionHistoryService $sessionService;
+    public SessionHistoryRecordService $sessionService;
 
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -30,7 +30,8 @@ class UserChecker implements UserCheckerInterface
         if (!$user->getStatus()) {
             throw new CustomUserMessageAccountStatusException('Votre compte est désactivé. Veuillez contacter votre administrateur.', [], self::ACCOUNT_DISABLED_CODE);
         }
-        if (!$this->sessionService->isLogginPossible($this->entityManager, $user)) {
+        $this->sessionService->closeInactiveSessions($this->entityManager);
+        if (!$this->sessionService->isLoginPossible($this->entityManager, $user)) {
             throw new CustomUserMessageAccountStatusException('Connexion impossible, Il y a trop d\'utilisateurs connectés.', [], self::NO_MORE_SESSION_AVAILABLE);
         }
     }

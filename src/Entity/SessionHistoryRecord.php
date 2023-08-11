@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\SessionRepository;
+use App\Repository\SessionHistoryRecordRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SessionRepository::class)]
-class SessionHistory
+#[ORM\Entity(repositoryClass: SessionHistoryRecordRepository::class)]
+class SessionHistoryRecord
 {
 
     #[ORM\Id]

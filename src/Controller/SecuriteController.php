@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
 use App\Entity\Role;
+use App\Entity\Type;
 use App\Security\UserChecker;
 use App\Service\MailerService;
+use App\Service\SessionHistoryRecordService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -60,18 +63,20 @@ class SecuriteController extends AbstractController {
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
+                          SessionHistoryRecordService $sessionHistoryRecordService,
+                          Request $request,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
-            $loggedUser->setLastLogin(new DateTime('now'));
-            $entityManager->flush();
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
+            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, $request, new DateTime('now'), $type);
+
             return $this->redirectToRoute('app_index');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
-
-        dump($loggedUser);
 
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
