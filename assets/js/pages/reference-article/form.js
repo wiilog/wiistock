@@ -85,10 +85,6 @@ $(document).ready(() => {
         })
         .submitTo(POST, submitRoute, {
             success: (data) => {
-
-                console.log(data);
-
-
                 window.location.href = redirectRoute
                     ? Routing.generate(redirectRoute, redirectRouteParams)
                     : data.id

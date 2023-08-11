@@ -20,7 +20,6 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -218,22 +217,6 @@ class SettingsService {
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
             $updated[] = Setting::APP_CLIENT;
-        }
-
-        if ($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
-            $mailer
-                ->setSmtp($data->get("MAILER_URL"))
-                ->setUser($data->get("MAILER_USER"))
-                ->setPassword($data->get("MAILER_PASSWORD"))
-                ->setPort($data->get("MAILER_PORT"))
-                ->setProtocol($data->get("MAILER_PROTOCOL"))
-                ->setSenderName($data->get("MAILER_SENDER_NAME"))
-                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-
-            if (!$mailer->getId()) {
-                $this->manager->persist($mailer);
-            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {

@@ -85,6 +85,11 @@ class PurchaseRequestRepository extends EntityRepository
                     $qb->andWhere('purchase_request.creationDate <= :dateMax')
                         ->setParameter('dateMax', $filter['value'] . " 23:59:59");
                     break;
+                case 'referenceArticle':
+                    $qb
+                        ->join('purchase_request.purchaseRequestLines', 'filter_purchase_request_line', 'WITH', 'filter_purchase_request_line.reference = :referenceArticleId')
+                        ->setParameter('referenceArticleId', $filter['value']);
+                    break;
             }
         }
 
@@ -141,6 +146,14 @@ class PurchaseRequestRepository extends EntityRepository
                             $qb
                                 ->leftJoin('purchase_request.supplier', 'order_supplier')
                                 ->orderBy('order_provider.nom', $order);
+                            break;
+                        case 'requestedQuantity':
+                            $qb
+                                ->orderBy('filter_purchase_request_line.requestedQuantity', $order);
+                            break;
+                        case 'orderedQuantity':
+                            $qb
+                                ->orderBy('filter_purchase_request_line.orderedQuantity', $order);
                             break;
                         default:
                             if (property_exists(PurchaseRequest::class, $column)) {

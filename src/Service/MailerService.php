@@ -4,11 +4,19 @@ namespace App\Service;
 
 
 use App\Entity\Attachment;
-use App\Entity\MailerServer;
+use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Resource;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mime\Address;
+use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Service\Attribute\Required;
+use Traversable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
@@ -16,6 +24,13 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
+    private const PROTOCOL_TLS = 'TLS';
+    private const PROTOCOL_SSL = 'SSL';
+
+    public const PROTOCOLS = [
+        self::PROTOCOL_SSL,
+        self::PROTOCOL_TLS,
+    ];
 
     #[Required]
     public Environment $templating;
@@ -31,6 +46,9 @@ class MailerService
 
     #[Required]
     public ?EntityManagerInterface $entityManager = null;
+
+    #[Required]
+    public ExceptionLoggerService $exceptionLoggerService;
 
     /**
      * @param string|array $template string|['path' => string, 'options' => array]
@@ -52,20 +70,24 @@ class MailerService
             return false;
         }
 
-        $mailerServerRepository = $this->entityManager->getRepository(MailerServer::class);
-        $mailerServer = $mailerServerRepository->findOneBy([]);
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $mailerServerSettings = $settingRepository->findByLabel([
+            Setting::MAILER_URL,
+            Setting::MAILER_PORT,
+            Setting::MAILER_USER,
+            Setting::MAILER_PASSWORD,
+            Setting::MAILER_PROTOCOL,
+            Setting::MAILER_SENDER_NAME,
+            Setting::MAILER_SENDER_MAIL,
+        ]);
 
-        if ($mailerServer) {
-            $user = $mailerServer->getUser() ?? '';
-            $password = $mailerServer->getPassword() ?? '';
-            $host = $mailerServer->getSmtp() ?? '';
-            $port = $mailerServer->getPort() ?? '';
-            $protocole = $mailerServer->getProtocol() ?? '';
-            $senderName = $mailerServer->getSenderName() ?? '';
-            $senderMail = $mailerServer->getSenderMail() ?? '';
-        } else {
-            return false;
-        }
+        $user = ($mailerServerSettings[Setting::MAILER_USER] ?? null)?->getValue();
+        $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
+        $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
+        $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
+        $protocole = ($mailerServerSettings[Setting::MAILER_PROTOCOL] ?? null)?->getValue();
+        $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
+        $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
 
         if (empty($user) || empty($password) || empty($host) || empty($port)) {
             return false;
@@ -74,40 +96,51 @@ class MailerService
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
 
-        $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
+        $transport = (new EsmtpTransport($host, $port, $protocole === self::PROTOCOL_TLS))
             ->setUsername($user)
             ->setPassword($password);
 
         foreach ($contents as $content) {
-            $message = (new \Swift_Message());
+            $message = new Email();
+
             $body = $content['content'];
-            if ($redirectToTest) {
-                $body .= $this->getRecipientsLabel($content['to']);
-            }
+            $body .= $redirectToTest ? $this->getRecipientsLabel($content['to']) : "";
 
             $message
-                ->setFrom($senderMail, $senderName)
-                ->setTo($redirectToTest ? [self::TEST_EMAIL] : $content['to'])
-                ->setSubject($content['subject'])
-                ->setBody($body)
-                ->setContentType('text/html');
+                ->from(new Address($senderMail, $senderName))
+                ->subject($content['subject'])
+                ->html($body);
 
-            foreach ($attachments as $attachment) {
-                $swiftAttachment = \Swift_Attachment::fromPath(is_string($attachment)
-                    ? $attachment
-                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"
-                );
-                if ($attachment instanceof Attachment) {
-                    $attachmentOriginalName = $attachment->getOriginalName();
-                    if ($attachmentOriginalName) {
-                        $swiftAttachment->setFilename($attachmentOriginalName);
-                    }
-                }
-                $message->attach($swiftAttachment);
+            $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
+
+
+            $to = (is_array($to) || $to instanceof Traversable) ? $to : [$to];
+            foreach ($to as $email) {
+                $message->addTo($email);
             }
 
-            $mailer = (new \Swift_Mailer($transport));
-            $mailer->send($message);
+            foreach ($attachments as $attachment) {
+                if ($attachment instanceof Attachment) {
+                    $path = "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}";
+                    $fileName = $attachment->getOriginalName() ?? basename($path);
+                } else {
+                    $path = $attachment;
+                    $fileName = basename($path);
+                }
+                $file = fopen($path, 'r');
+                $message->attach(
+                    $file,
+                    $fileName,
+                );
+            }
+
+            $mailer = (new Mailer($transport));
+            try {
+                $mailer->send($message);
+            } catch (TransportExceptionInterface $e) {
+                $this->exceptionLoggerService->sendLog($e);
+                throw $e;
+            }
         }
 
         return true;
