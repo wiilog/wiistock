@@ -25,7 +25,7 @@ class CloseSessionsCommand extends Command
     }
 
     protected function configure() {
-        $this->setName("app:sessions:close-all");
+        $this->setName("app:sessions:close:all");
         $this->setDescription("Close sessions History Records and Sessions");
     }
 
