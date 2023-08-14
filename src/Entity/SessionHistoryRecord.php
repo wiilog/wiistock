@@ -22,13 +22,6 @@ class SessionHistoryRecord
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
 
-    /*
-     * Correspond à l'ancien api_key de l’utilisateur si session nomade
-     * ou au session_id de symfony pour la session web
-     * */
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $sessionKey = null;
-
     #[ORM\ManyToOne(inversedBy: 'sessionHistory')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
@@ -37,7 +30,7 @@ class SessionHistoryRecord
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    #[ORM\Column(length: 128)]
+    #[ORM\Column(length: 128, nullable: true)]
     private ?string $sessionId = null;
 
     public function getId(): ?int
@@ -65,18 +58,6 @@ class SessionHistoryRecord
     public function setClosedAt(?DateTime $closedAt): self
     {
         $this->closedAt = $closedAt;
-
-        return $this;
-    }
-
-    public function getSessionKey(): ?string
-    {
-        return $this->sessionKey;
-    }
-
-    public function setSessionKey(string $sessionKey): self
-    {
-        $this->sessionKey = $sessionKey;
 
         return $this;
     }
@@ -114,7 +95,7 @@ class SessionHistoryRecord
         return $this->sessionId;
     }
 
-    public function setSessionId(string $sessionId): self
+    public function setSessionId(?string $sessionId): self
     {
         $this->sessionId = $sessionId;
 

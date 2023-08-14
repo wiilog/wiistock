@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
+use App\Entity\Type;
 use App\Entity\UserSession;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
@@ -18,7 +20,7 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class SessionHistoryRecordRepository extends EntityRepository
 {
-    public function findSessionHistoryRecordToClose(): array
+    public function findSessionHistoryRecordToClose(?Type $type): array
     {
         $now = (new DateTime())->getTimestamp();
         $queryBuilder = $this->createQueryBuilder('session_history_record');
@@ -27,7 +29,9 @@ class SessionHistoryRecordRepository extends EntityRepository
             ->leftJoin(UserSession::class, 'user_session', Join::WITH, 'user_session.id = session_history_record.sessionId')
             ->andWhere('session_history_record.closedAt IS NULL AND user_session.lifetime < :now')
             ->orWhere('user_session.id IS NULL AND session_history_record.closedAt IS NULL')
-            ->setParameter('now', $now);
+            ->andWhere('session_history_record.type = :type')
+            ->setParameter('now', $now)
+            ->setParameter('type', $type);
 
         return $queryBuilder->getQuery()->getResult();
     }

@@ -125,9 +125,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $apiKey = null;
-
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
     private ?string $mobileLoginKey = null;
 
@@ -623,16 +620,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $mouvement->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getApiKey(): ?string {
-        return $this->apiKey;
-    }
-
-    public function setApiKey(?string $apiKey): self {
-        $this->apiKey = $apiKey;
 
         return $this;
     }

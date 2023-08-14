@@ -70,7 +70,7 @@ class SecuriteController extends AbstractController {
         if($loggedUser && $loggedUser instanceof Utilisateur) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, $request, new DateTime('now'), $type);
+            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser,  new DateTime('now'), $type, $request);
 
             return $this->redirectToRoute('app_index');
         }
