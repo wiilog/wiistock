@@ -477,10 +477,15 @@ function treatInputError($input, errors, form) {
             }
         } else {
             const valueIsEmpty = (
-                $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
-                !$input.val() // other fields
+                $input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`) // for wysuwyg fields
+                    ? !$input.find(`.ql-editor`).text()
+                    : ($input.is(`.wii-one-line-wysiwyg`)
+                        ? !$input.text()
+                        : (($input.is(`select[multiple]`) && Array.isArray($input.val())) // for select2 multiple
+                            ? $input.val().length === 0
+                            : ($input.is(`[type="file"]`)
+                                ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) // for input file
+                                : !$input.val()))) // other fields
             );
 
             if (valueIsEmpty) {

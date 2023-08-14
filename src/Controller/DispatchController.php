@@ -23,6 +23,7 @@ use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\SubLineFieldsParam;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -499,7 +500,8 @@ class DispatchController extends AbstractController {
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
             "attachments" => $attachments,
-            'addNewUlToDispatch' => $addNewUlToDispatch
+            'addNewUlToDispatch' => $addNewUlToDispatch,
+            "initial_visible_columns" => json_encode($dispatchService->getDispatckPacksColumnVisibleConfig($entityManager, true)),
         ]);
     }
 
@@ -800,6 +802,13 @@ class DispatchController extends AbstractController {
         $entityManager->flush();
     }
 
+    #[Route("/dispatch-editable-logistic-unit-columns-api", name: "dispatch_editable_logistic_unit_columns_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
+    public function apiEditableLogisticUnitColumns(EntityManagerInterface $entityManager, DispatchService $dispatchService): Response {
+        $columns = $dispatchService->getDispatckPacksColumnVisibleConfig($entityManager);
+
+        return $this->json(array_values($columns));
+    }
 
     #[Route("/{dispatch}/editable-logistic-units-api", name: "dispatch_editable_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
@@ -852,7 +861,6 @@ class DispatchController extends AbstractController {
                             PackService $packService,
                             Dispatch $dispatch): Response {
         $data = $request->request->all();
-        dump($data);
         $noPrefixPackCode = trim($data["pack"]);
         $natureId = $data["nature"];
         $quantity = $data["quantity"];
@@ -863,6 +871,17 @@ class DispatchController extends AbstractController {
         $height = $data["height"] ?? null;
         $width = $data["width"] ?? null;
         $length = $data["length"] ?? null;
+
+        $field = match (true) {
+            $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+            $width !== null && !StringHelper::matchEvery($width, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
+            $length !== null && !StringHelper::matchEvery($length, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
+            default => null,
+        };
+
+        if($field) {
+            throw new FormException("La valeur du champ $field n'est pas valide (entier et décimal uniquement).");
+        }
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 

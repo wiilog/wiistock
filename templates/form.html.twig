@@ -283,11 +283,13 @@
         {% set fax = true %}
     {% endif %}
 
-    {% if labelWrap %}
-    <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% if label and labelWrap %}
+        <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
-        {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
-        {{ _self.tooltip(options.tooltip ?? null, inline) }}
+        {% if label %}
+            {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
+            {{ _self.tooltip(options.tooltip ?? null, inline) }}
+        {% endif %}
         <input type="{{ type }}"
                {{ fax ?? false ? 'data-fax' }}
                class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
@@ -301,7 +303,7 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
-    {% if labelWrap %}
+    {% if label and labelWrap %}
     </label>
     {% endif %}
 {% endmacro %}
@@ -382,10 +384,16 @@
     {% set id = random(100000, 10000000) %}
     {% set labelOptions = options.labelOptions ?? {} %}
     {% set inline = options.inline ?? false %}
+    {% set oneLineWysiwyg = options.oneLineWysiwyg ?? false %}
 
-    <label class="wii-subtitle">{{ _self.label(label, required, inline, labelOptions) }}</label>
+    {% if label %}
+        <label class="wii-subtitle">{{ _self.label(label, required, inline, labelOptions) }}</label>
+    {% endif %}
     {{ _self.tooltip(options.tooltip ?? null, inline) }}
-    <div class="data" data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>{{- value | raw -}}</div>
+    <div class="data {{ oneLineWysiwyg ? 'wii-one-line-wysiwyg ql-editor' }} {{ options.inputClass ?? '' }}"
+         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>
+            {{- value | raw -}}
+    </div>
 {% endmacro %}
 
 {% macro image(name, label, required, image = '', options = {}) %}

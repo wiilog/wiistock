@@ -264,7 +264,10 @@
                                  data-loader-size="normal">
                             </div>
                         {% else %}
-                            <table id="packTable" class="wii-table w-100"></table>
+                            <table id="packTable"
+                                   class="wii-table w-100"
+                                   data-initial-visible="{{ initial_visible_columns }}">
+                            </table>
                         {% endif %}
                     </div>
                 </div>

@@ -78,6 +78,7 @@ use Throwable;
 use Twig\Environment;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/parametrage")
@@ -1706,10 +1707,8 @@ class SettingsController extends AbstractController {
             $field->setElements(explode(",", $request->request->get("elements")));
         } else if ($field->getElementsType() == FieldsParam::ELEMENTS_TYPE_FREE_NUMBER) {
             $elements = $request->request->get("elements");
-            $hasUnauthorizedElements = Stream::explode(",", $elements)
-                ->some(static fn($element) => !preg_match('/^\d+(?:[.,]\d+)?$/', $element));
 
-            if($elements !== "" && $hasUnauthorizedElements) {
+            if($elements !== "" && StringHelper::matchEvery(explode(",", $elements), StringHelper::INTEGER_AND_DECIMAL_REGEX)) {
                 throw new FormException("Une ou plusieurs valeurs renseignées ne sont pas valides (entiers et décimaux uniquement).");
             } else {
                 $field->setElements(explode(",", $elements));

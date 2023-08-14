@@ -1,7 +1,7 @@
 let packsTable;
 
 $(function() {
-    registerCopyToClipboard($(`.dispatch-number`), `Le numéro a bien été copié dans le presse-papiers.`);
+    registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
@@ -373,6 +373,8 @@ function savePackLine(dispatchId, $row, async = true) {
 
 function initializePacksTable(dispatchId, isEdit) {
     const $table = $(`#packTable`);
+    const columns = $table.data('initial-visible');
+
     const table = initDataTable($table, {
         serverSide: false,
         ajax: {
@@ -451,33 +453,7 @@ function initializePacksTable(dispatchId, isEdit) {
         columnDefs: [
             {targets: 1, width: '300px'},
         ],
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'code', name: 'code', title: Translation.of('Demande', 'Acheminements', 'Général', 'Code')},
-            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') + (isEdit ? '*' : '')},
-            {data: 'nature', name: 'nature', title: Translation.of('Demande','Acheminements', 'Général', 'Nature') + (isEdit ? '*' : '')},
-            {data: 'weight', name: 'weight', title: Translation.of('Demande', 'Acheminements', 'Général', 'Poids (kg)')},
-            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Général`, 'Volume (m3)')},
-            {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'Commentaire')},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), render: function(data, type) {
-                if(type !== `sort`) {
-                    const date = moment(data, 'YYYY/MM/DD HH:mm');
-                    if(date.isValid()) {
-                        const $userFormat = $('#userDateFormat');
-                        const format = ($userFormat.val() ? DATE_FORMATS_TO_DISPLAY[$userFormat.val()] : 'DD/MM/YYYY') + ' HH:mm';
-                        return date.format(format);
-                    }
-                }
-
-                return data;
-            }},
-            {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Général`, `Dernier emplacement`)},
-            {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Général`, `Opérateur`)},
-            {data: 'status', name: 'status', title: Translation.of('Demande', `Général`, `Statut`)},
-            {data: 'height', name: 'status', title: 'Hauteur'},
-            {data: 'width', name: 'status', title: 'Largeur'},
-            {data: 'length', name: 'status', title: 'Longueur'},
-        ],
+        columns,
     });
 
     if(isEdit) {
@@ -833,10 +809,9 @@ function registerVolumeCompute() {
             const $volume = $line.find(`[name=volume]`);
             if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null)) {
                 $volume.val(null);
-                $(this).prop(`required`, true);
-                $(this).addClass(`is-invalid`);
             } else {
-                $line.find(`[name=volume]`).val(Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1));
+                const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);
+                $volume.val(value.toFixed(3));
             }
         });
     });

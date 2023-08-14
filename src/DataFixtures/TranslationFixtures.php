@@ -1950,6 +1950,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
+                            "fr" => "Hauteur",
+                            "en" => "Height",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
+                            "fr" => "Largeur",
+                            "en" => "Width",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
+                            "fr" => "Longueur",
+                            "en" => "Length",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
                             "fr" => "Traité",
                             "en" => "Processed",
                             "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",

@@ -46,9 +46,6 @@ class SubLineFieldsParam {
     const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT = 'height';
     const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT = 'hauteur';
 
-    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_QUANTITY = 'quantity';
-    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_QUANTITY = 'quantité';
-
     const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT = 'weight';
     const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT = 'poids';
 
@@ -83,6 +80,12 @@ class SubLineFieldsParam {
     public const DISABLED_REQUIRED = [
         self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
             SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+        ],
+        self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
         ],
     ];
 
