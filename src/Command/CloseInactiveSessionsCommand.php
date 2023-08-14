@@ -26,7 +26,7 @@ class CloseInactiveSessionsCommand extends Command
     }
 
     protected function configure() {
-        $this->setName("app:sessions:close-inactive");
+        $this->setName("app:sessions:close:inactives");
         $this->setDescription("Close inactive sessions History Records");
     }
 
