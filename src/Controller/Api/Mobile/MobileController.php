@@ -212,6 +212,25 @@ class MobileController extends AbstractApiController
     }
 
     /**
+     * @Rest\Post("/api/logout", name="api_logout", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function logout(EntityManagerInterface $entityManager,
+                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse{
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $nomadUser = $this->getUser();
+        $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
+        $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $nomadUser, $sessionType);
+        $entityManager->flush();
+
+        $this->setUser($nomadUser);
+        return new JsonResponse([
+            'success' => true,
+        ]);
+    }
+
+    /**
      * @Rest\Post("/api/tracking-movements", name="api-post-tracking-movements", condition="request.isXmlHttpRequest()")
      * @Rest\View()
      * @Wii\RestAuthenticated()

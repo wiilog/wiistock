@@ -22,7 +22,7 @@ class SessionHistoryRecord
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'sessionHistory')]
+    #[ORM\ManyToOne(inversedBy: 'sessionHistoryRecords')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
