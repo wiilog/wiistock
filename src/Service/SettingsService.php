@@ -707,9 +707,9 @@ class SettingsService {
                         ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
                         : $type->getDropLocation()?->getId();
 
-                    $suggestedDropLocations = explode(',', $data["suggestedDropLocations"]);
+                    $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
 
-                    if ($dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                    if ( !empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
                         throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
                     }
                 }
@@ -720,9 +720,9 @@ class SettingsService {
                         ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
                         : $type->getPickLocation()?->getId();
 
-                    $suggestedPickLocations = explode(',', $data["suggestedPickLocations"]);
+                    $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
 
-                    if ($pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
+                    if (!empty($suggestedPickLocations) && $pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }
