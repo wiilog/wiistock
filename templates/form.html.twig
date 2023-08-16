@@ -1,6 +1,10 @@
 {% macro custom_attributes(attributes = []) %}
     {% for key, value in attributes %}
-        {{ key }}="{{ value }}"
+        {% if value %}
+            {{ key }}="{{ value }}"
+        {% else %}
+            {{ key }}
+        {% endif %}
     {% endfor %}
 {% endmacro %}
 
@@ -216,7 +220,7 @@
                         {% if options.emptyOption is defined and options.emptyOption is not empty %}
                             <option {{ options.emptyOption.selected ?? false ? "selected" }}
                                      value="{{ options.emptyOption.value ?? null }}">
-                                {{ options.emptyOption.text ?? null }}
+                                {{ options.emptyOption.text ?? options.emptyOption.label ?? null }}
                             </option>
                         {% elseif options.type is not defined and options.placeholder ?? false %}
                             <option disabled selected>{{ options.placeholder }}</option>
@@ -450,6 +454,25 @@
     </label>
 {% endmacro %}
 
+{% macro inlineInputs(name, label, required, options = {}) %}
+    <label class="w-100 {{ options.labelClass ?? '' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        <div class="input-group w-100">
+            {% for input in options.content %}
+                {% if input.label is defined %}
+                    <div class="input-group-prepend">
+                        <span class="input-group-text w-50px">{{ input.label }}</span>
+                    </div>
+                {% endif %}
+                {% set inputOptions = input|merge({
+                    isLabelFree : true,
+                }) %}
+                {{ _self.input(input.name, null , required, input.value ?? '', inputOptions) }}
+            {% endfor %}
+        </div>
+    </label>
+{% endmacro %}
+
 {% set macroName = macroName ?? null %}
 {% set macroParams = macroParams ?? null %}
 
@@ -481,6 +504,8 @@
         {{ _self.image(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
     {% elseif macroName == 'lang' %}
         {{ _self.lang(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
+    {% elseif macroName == 'inlineInputs' %}
+        {{ _self.inlineInputs(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
     {% endif %}
 {% endif %}
 

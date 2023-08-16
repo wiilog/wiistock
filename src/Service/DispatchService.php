@@ -30,6 +30,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -215,7 +216,7 @@ class DispatchService {
                                          array $types,
                                          ?Arrivage $arrival = null,
                                          bool $fromArrival = false,
-                                         array $packs = []) {
+                                         array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -266,7 +267,8 @@ class DispatchService {
                     'locationTo' => $this->formatService->location($dispatch->getLocationTo()),
                     'type' => $this->formatService->type($dispatch->getType())
                 ])
-                ->toArray()
+                ->toArray(),
+            'dispatch' => new Dispatch(),
         ];
     }
 
@@ -386,7 +388,7 @@ class DispatchService {
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
             ],
             [
-                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de', false),
                 'value' => $dispatch->getCustomerRecipient() ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
             ],
@@ -1849,5 +1851,31 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+    }
+
+
+    public function checkFormForErrors(EntityManagerInterface $entityManager,
+                                       InputBag               $form,
+                                       Dispatch               $dispatch,
+                                       bool                   $isCreation):InputBag {
+        if ($form->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)){
+            $form->add([
+                FieldsParam::FIELD_CODE_DEADLINE_DISPATCH => true,
+            ]);
+        }
+        if ($dispatch->getAttachments()->count()){
+            $form->add([
+                FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
+            ]);
+        }
+        return $this->fieldsParamService->checkForErrors(
+            $entityManager,
+            $form,
+            FieldsParam::ENTITY_CODE_DISPATCH,
+            $isCreation,
+            New ParameterBag([
+                FieldsParam::FIELD_CODE_EMERGENCY => true,
+            ])
+        );
     }
 }

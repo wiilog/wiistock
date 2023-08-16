@@ -22,23 +22,39 @@ $(function () {
     }
     SetRequestQuery({});
 
-    $(`.dispatch-button`).on(`click`, function () {
-        $(this).pushLoader(`black`);
-        $.post(Routing.generate(`create_from_arrival_template`, {arrival: $(this).data(`id`)}, true))
-            .then(({content}) => {
-                $(this).popLoader();
-                $(`body`).append(content);
-
-                let $modalNewDispatch = $("#modalNewDispatch");
-                $modalNewDispatch.modal(`show`);
-
-                let $submitNewDispatch = $("#submitNewDispatch");
-                let urlDispatchNew = Routing.generate('dispatch_new', true);
-                InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
-
-                initNewDispatchEditor('#modalNewDispatch');
-            });
+    const $modalNewDispatch = $("#modalNewDispatch");
+    const $buttonNewDispatch = $(`.dispatch-button`);
+    $($buttonNewDispatch).on(`click`, function () {
+        $modalNewDispatch.modal(`show`);
     });
+
+    Form
+        .create($modalNewDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalNewDispatch.find('[name=customerPhone]')?.val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]')?.val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]')?.val(customer?.address);
+        })
+        .onOpen(() => {
+            initNewDispatchEditor('#modalNewDispatch');
+            Modal
+                .load(
+                    'create_from_arrival_template',
+                    {arrival: $buttonNewDispatch.data(`id`)},
+                    $modalNewDispatch,
+                    $modalNewDispatch.find(`.modal-body`)
+                )
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_new',
+            {
+                success: ({redirect}) => window.location.href = redirect,
+            }
+        )
 
     $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
         let pathPacks = Routing.generate('packs_api', {arrivage: $('#arrivageId').val()}, true);
@@ -151,14 +167,6 @@ $(function () {
     let submitDeleteArrivage = $('#submitDeleteArrivage');
     let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
     InitModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage);
-
-    let $modalNewDispatch = $("#modalNewDispatch");
-    let $submitNewDispatch = $("#submitNewDispatch");
-    let $submitNewDispatchWithBL = $("#submitNewDispatchWithBL");
-    let urlDispatchNew = Routing.generate('dispatch_new', true);
-    let urlDispatchNewWithBL = Routing.generate('dispatch_new', {printDeliveryNote: 1}, true);
-    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
-    InitModal($modalNewDispatch, $submitNewDispatchWithBL, urlDispatchNewWithBL);
 
     $(`.new-dispute-modal`).on(`click`, function () {
         getNewDisputeModalContent($(this));

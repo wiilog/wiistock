@@ -98,7 +98,12 @@ class FieldsParam {
     const FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'immatriculation';
     const FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'emplacement de déchargement';
 
+
     const ENTITY_CODE_DISPATCH = 'acheminements';
+    const FIELD_CODE_TYPE_DISPATCH = 'type';
+    const FIELD_CODE_STATUS_DISPATCH = 'status';
+    const FIELD_CODE_START_DATE_DISPATCH = 'startDate';
+    const FIELD_CODE_END_DATE_DISPATCH = 'endDate';
     const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
@@ -133,6 +138,10 @@ class FieldsParam {
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
     const FIELD_LABEL_DESTINATION = 'destination';
+    const FIELD_LABEL_CUSTOMER_NAME = 'client';
+    const FIELD_LABEL_CUSTOMER_PHONE = 'téléphone client';
+    const FIELD_LABEL_CUSTOMER_RECIPIENT = 'a l\'attention client';
+    const FIELD_LABEL_CUSTOMER_ADDRESS = 'adresse de livraison';
 
     const ENTITY_CODE_HANDLING = 'services';
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
