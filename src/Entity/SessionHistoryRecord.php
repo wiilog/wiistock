@@ -69,18 +69,6 @@ class SessionHistoryRecord
         return $this;
     }
 
-    public function getSessionKey(): ?string
-    {
-        return $this->sessionKey;
-    }
-
-    public function setSessionKey(string $sessionKey): self
-    {
-        $this->sessionKey = $sessionKey;
-
-        return $this;
-    }
-
     public function getUser(): ?Utilisateur
     {
         return $this->user;
@@ -114,7 +102,7 @@ class SessionHistoryRecord
         return $this->sessionId;
     }
 
-    public function setSessionId(string $sessionId): self
+    public function setSessionId(?string $sessionId): self
     {
         $this->sessionId = $sessionId;
 
