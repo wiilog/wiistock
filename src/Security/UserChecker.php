@@ -32,7 +32,7 @@ class UserChecker implements UserCheckerInterface
         }
         $this->sessionService->closeInactiveSessions($this->entityManager);
         if (!$this->sessionService->isLoginPossible($this->entityManager, $user)) {
-            throw new CustomUserMessageAccountStatusException('Connexion impossible, Il y a trop d\'utilisateurs connectés.', [], self::NO_MORE_SESSION_AVAILABLE);
+            throw new CustomUserMessageAccountStatusException('Connexion impossible, il y a trop d\'utilisateurs connectés.', [], self::NO_MORE_SESSION_AVAILABLE);
         }
     }
 
