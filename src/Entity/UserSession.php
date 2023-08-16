@@ -10,16 +10,16 @@ use Doctrine\ORM\Mapping as ORM;
 class UserSession
 {
     #[ORM\Id]
-    #[ORM\Column(type: Types::STRING, length: 128)]
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: false)]
     private ?string $id = null;
 
-    #[ORM\Column(type: Types::BLOB)]
+    #[ORM\Column(type: Types::BLOB, nullable: false)]
     private $data = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $lifetime = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $time = null;
 
     public function getId(): ?string

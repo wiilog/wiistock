@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Type;
+use App\Entity\UserSession;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -92,7 +93,7 @@ class SessionHistoryRecordService{
 
     public function closeOpenedSessionsByUserAndType(EntityManagerInterface $entityManager, Utilisateur $user, Type $type, ?DateTime $dateTime= null): void{
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $datetime = $datetime ?? new DateTime();
+        $dateTime = $dateTime ?? new DateTime();
         $sessionsToClose = $sessionHistoryRepository->findBy([
             "user" => $user,
             "closedAt" => null,
@@ -100,7 +101,7 @@ class SessionHistoryRecordService{
         ]);
 
         foreach ($sessionsToClose as $sessionToClose) {
-            $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $datetime);
+            $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
         }
     }
 }
