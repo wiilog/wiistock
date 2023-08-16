@@ -1,10 +1,9 @@
 <?php
-// Every 5 minutes
-// */5  * * * *
+// Every deployment
 
 namespace App\Command;
 
-use App\Entity\SessionHistoryRecord;
+
 use App\Service\SessionHistoryRecordService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -12,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
-class CloseInactiveSessionsCommand extends Command
+class CloseAllSessionsCommand extends Command
 {
     #[Required]
     public EntityManagerInterface $entityManager;
@@ -26,12 +25,12 @@ class CloseInactiveSessionsCommand extends Command
     }
 
     protected function configure() {
-        $this->setName("app:sessions:close:inactives");
-        $this->setDescription("Close inactive sessions History Records");
+        $this->setName("app:sessions:close:all");
+        $this->setDescription("Close sessions History Records and Sessions");
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
-    {
+    public function execute(InputInterface $input, OutputInterface $output) {
+        $this->entityManager->getConnection()->executeQuery('DELETE FROM user_session');
         $this->sessionHistoryRecordService->closeInactiveSessions($this->entityManager);
         return 0;
     }
