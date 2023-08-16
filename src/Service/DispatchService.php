@@ -216,7 +216,7 @@ class DispatchService {
                                          array $types,
                                          ?Arrivage $arrival = null,
                                          bool $fromArrival = false,
-                                         array $packs = []) {
+                                         array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -267,7 +267,8 @@ class DispatchService {
                     'locationTo' => $this->formatService->location($dispatch->getLocationTo()),
                     'type' => $this->formatService->type($dispatch->getType())
                 ])
-                ->toArray()
+                ->toArray(),
+            'dispatch' => new Dispatch(),
         ];
     }
 

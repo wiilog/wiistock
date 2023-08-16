@@ -749,7 +749,7 @@ class DispatchController extends AbstractController {
 
         $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
-        $form = $this->renderView('dispatch/formDispatch.html.twig', [
+        $form = $this->renderView('dispatch/form.html.twig', [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
@@ -1592,7 +1592,7 @@ class DispatchController extends AbstractController {
         return $this->json([
             'success' => true,
             'content' => $this->renderView('dispatch/modalNewDispatch.html.twig',
-                $dispatchService->getNewDispatchConfig($entityManager, $types, $arrival, true, $packs)
+                $dispatchService->getNewDispatchConfig($entityManager, $types, $arrival, true, $packs),
             )
         ]);
     }

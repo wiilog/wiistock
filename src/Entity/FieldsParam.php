@@ -100,10 +100,10 @@ class FieldsParam {
 
 
     const ENTITY_CODE_DISPATCH = 'acheminements';
-    const  FIELD_CODE_TYPE_DISPATCH = 'type';
-    const  FIELD_CODE_STATUS_DISPATCH = 'status';
-    const  FIELD_CODE_START_DATE_DISPATCH = 'startDate';
-    const  FIELD_CODE_END_DATE_DISPATCH = 'endDate';
+    const FIELD_CODE_TYPE_DISPATCH = 'type';
+    const FIELD_CODE_STATUS_DISPATCH = 'status';
+    const FIELD_CODE_START_DATE_DISPATCH = 'startDate';
+    const FIELD_CODE_END_DATE_DISPATCH = 'endDate';
     const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
@@ -114,6 +114,10 @@ class FieldsParam {
     const FIELD_CODE_COMMAND_NUMBER_DISPATCH = 'commandNumber';
     const FIELD_CODE_COMMENT_DISPATCH = 'comment';
     const FIELD_CODE_ATTACHMENTS_DISPATCH = 'attachments';
+    const FIELD_CODE_CUSTOMER_NAME_DISPATCH = 'customerName';
+    const FIELD_CODE_CUSTOMER_PHONE_DISPATCH = 'customerPhone';
+    const FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH = "customerRecipient";
+    const FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH = "customerAddress";
     const FIELD_CODE_LOCATION_PICK = 'pickLocation';
     const FIELD_CODE_LOCATION_DROP = 'dropLocation';
     const FIELD_CODE_DESTINATION = 'destination';

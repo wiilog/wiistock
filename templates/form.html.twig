@@ -1,6 +1,10 @@
 {% macro custom_attributes(attributes = []) %}
     {% for key, value in attributes %}
-        {{ key }}="{{ value }}"
+        {% if value %}
+            {{ key }}="{{ value }}"
+        {% else %}
+            {{ key }}
+        {% endif %}
     {% endfor %}
 {% endmacro %}
 

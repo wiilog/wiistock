@@ -39,7 +39,7 @@
                 value:  dispatch.statut.id,
                 label:  dispatch.statut|format_helper('status'),
                 selected: true,
-            }] : statuts|map(status => ({
+            }] : notTreatedStatus|map(status => ({
                 value: status.id,
                 label: status|format_helper('status'),
                 'type-id': status.type.id,
