@@ -10,9 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 class UserSession
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::STRING, length: 128)]
-    private ?int $id = null;
+    private ?string $id = null;
 
     #[ORM\Column(type: Types::BLOB)]
     private $data = null;
@@ -23,7 +22,7 @@ class UserSession
     #[ORM\Column]
     private ?int $time = null;
 
-    public function getId(): ?int
+    public function getId(): ?string
     {
         return $this->id;
     }

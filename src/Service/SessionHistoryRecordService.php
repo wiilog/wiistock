@@ -5,7 +5,6 @@ namespace App\Service;
 use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Type;
-use App\Entity\UserSession;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,14 +12,13 @@ use Symfony\Component\HttpFoundation\Request;
 
 class SessionHistoryRecordService{
 
-    public const UNLIMITED_SESSION = -1;
+    public const UNLIMITED_SESSIONS = -1;
 
-    public function newSessionHistoryRecord(
-        EntityManagerInterface $entityManager,
-        ?Utilisateur $user,
-        DateTime $date,
-        Type $type,
-        Request|string $request ): bool{
+    public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
+                                            ?Utilisateur           $user,
+                                            DateTime               $date,
+                                            Type                   $type,
+                                            Request|string         $request): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $sessionId = $request instanceof Request ? $request?->getSession()?->getId() : $request;
 
@@ -44,11 +42,11 @@ class SessionHistoryRecordService{
         return true;
     }
 
-    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $utilisateur): bool{
+    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $utilisateur): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $oppenedSessionLimit = (int)$_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSION;
+        $oppenedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
 
-        if ($oppenedSessionLimit === self::UNLIMITED_SESSION) {
+        if ($oppenedSessionLimit === self::UNLIMITED_SESSIONS) {
             return true;
         } else {
             $oppenedSessionsHistory = $sessionHistoryRepository->count([
@@ -58,7 +56,7 @@ class SessionHistoryRecordService{
         }
     }
 
-    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool{
+    public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
         if(is_string($sessionHistory)){
             $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
             $sessionHistory = $sessionHistoryRepository->findOneBy([
@@ -75,12 +73,12 @@ class SessionHistoryRecordService{
         return false;
     }
 
-    public function closeInactiveSessions(EntityManagerInterface $entityManager): void{
+    public function closeInactiveSessions(EntityManagerInterface $entityManager): void {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
         $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType);
-        $now = (new DateTime());
+        $now = new DateTime();
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $now);
         }

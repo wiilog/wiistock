@@ -25,7 +25,6 @@ class SessionHistoryRecordRepository extends EntityRepository
         $now = (new DateTime())->getTimestamp();
         $queryBuilder = $this->createQueryBuilder('session_history_record');
         $queryBuilder
-            // ->join(InventoryLocationMission::class, 'inventoryLocationMission', Join::WITH, "article MEMBER OF inventoryLocationMission.articles")
             ->leftJoin(UserSession::class, 'user_session', Join::WITH, 'user_session.id = session_history_record.sessionId')
             ->andWhere('session_history_record.closedAt IS NULL AND user_session.lifetime < :now')
             ->orWhere('user_session.id IS NULL AND session_history_record.closedAt IS NULL')
