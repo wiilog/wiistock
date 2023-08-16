@@ -113,12 +113,18 @@ export default class Form {
                                 options.success(response);
                             }
 
-                            if(options.table) {
-                                if (options.table instanceof Function) {
-                                    options.table().ajax.reload();
-                                } else {
-                                    options.table.ajax.reload();
-                                }
+                            if(options.tables) {
+                                const tables = Array.isArray(options.tables)
+                                    ? options.tables
+                                    : [options.tables];
+
+                                tables.forEach((table) => {
+                                    if (table instanceof Function) {
+                                        table().ajax.reload();
+                                    } else {
+                                        table.ajax.reload();
+                                    }
+                                })
                             }
                         }
                     })

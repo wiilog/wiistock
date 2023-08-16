@@ -84,6 +84,9 @@ $(function () {
         .submitTo(
             AJAX.POST,
             'dispatch_new',
+            {
+                success: ({redirect}) => window.location.href = redirect,
+            }
         )
 
     $dispatchModeContainer.find(`.validate`).on(`click`, function () {

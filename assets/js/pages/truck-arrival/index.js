@@ -22,7 +22,7 @@ $(function () {
                     window.location.href = response.redirect;
                 }
             },
-            table: () => $('#truckArrivalsTable').DataTable()
+            tables: () => $('#truckArrivalsTable').DataTable()
         });
 
     $modalNew.on('change','.display-condition', function () {

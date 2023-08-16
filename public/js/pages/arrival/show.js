@@ -51,6 +51,9 @@ $(function () {
         .submitTo(
             AJAX.POST,
             'dispatch_new',
+            {
+                success: ({redirect}) => window.location.href = redirect,
+            }
         )
 
     $.post(Routing.generate('arrival_list_packs_api_columns'), function(columns){
