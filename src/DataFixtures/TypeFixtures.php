@@ -52,9 +52,9 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Type::LABEL_SCHEDULED_EXPORT,
                 Type::LABEL_UNIQUE_EXPORT
             ],
-            CategoryType::SESSION => [
-                TYPE::LABEL_WEB_SESSION,
-                TYPE::LABEL_NOMADE_SESSION,
+            CategoryType::SESSION_HISTORY => [
+                TYPE::LABEL_WEB_SESSION_HISTORY,
+                TYPE::LABEL_NOMADE_SESSION_HISTORY,
             ],
         ];
 

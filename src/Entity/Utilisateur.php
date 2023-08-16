@@ -303,8 +303,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Session::class)]
-    private Collection $sessions;
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
+    private Collection $sessionHistoryRecords;
 
 
     public function __construct() {
@@ -347,7 +347,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
         $this->keptFieldValues = new ArrayCollection();
-        $this->sessions = new ArrayCollection();
+        $this->sessionHistoryRecords = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1992,26 +1992,26 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection<int, Session>
+     * @return Collection<int, SessionHistoryRecord>
      */
-    public function getSessions(): Collection
+    public function getSessionHistoryRecords(): Collection
     {
-        return $this->sessions;
+        return $this->sessionHistoryRecords;
     }
 
-    public function addSession(Session $session): self
+    public function addSession(SessionHistoryRecord $session): self
     {
-        if (!$this->sessions->contains($session)) {
-            $this->sessions[] = $session;
+        if (!$this->sessionHistoryRecords->contains($session)) {
+            $this->sessionHistoryRecords[] = $session;
             $session->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeSession(Session $session): self
+    public function removeSession(SessionHistoryRecord $session): self
     {
-        if ($this->sessions->removeElement($session)) {
+        if ($this->sessionHistoryRecords->removeElement($session)) {
             // set the owning side to null (unless already changed)
             if ($session->getUser() === $this) {
                 $session->setUser(null);
@@ -2021,13 +2021,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
-    public function setSessions(?iterable $sessions): self {
-        foreach($this->getSessions()->toArray() as $session) {
+    public function setSessionHistoryRecords(?iterable $sessionHistoryRecords): self {
+        foreach($this->getSessionHistoryRecords()->toArray() as $session) {
             $this->removeSession($session);
         }
 
-        $this->sessions = new ArrayCollection();
-        foreach($sessions ?? [] as $session) {
+        $this->sessionHistoryRecords = new ArrayCollection();
+        foreach($sessionHistoryRecords ?? [] as $session) {
             $this->addSession($session);
         }
 
