@@ -749,7 +749,7 @@ class DispatchController extends AbstractController {
 
         $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
-        $form = $this->renderView('dispatch/form.html.twig', [
+        $form = $this->renderView('dispatch/forms/form.html.twig', [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
@@ -1563,7 +1563,7 @@ class DispatchController extends AbstractController {
     }
 
     /**
-     * @Route("/create-form-arrival-template", name="create_from_arrival_template", options={"expose"=true}, methods="POST")
+     * @Route("/create-form-arrival-template", name="create_from_arrival_template", options={"expose"=true}, methods="GET")
      */
     public function createFromArrivalTemplate(Request $request, EntityManagerInterface $entityManager, DispatchService $dispatchService): JsonResponse {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -1589,9 +1589,13 @@ class DispatchController extends AbstractController {
             $packs = $arrival->getPacks()->toArray();
         }
 
+        Stream::from($packs)
+            ->map(fn(Pack $pack) => $pack->getId())
+            ->toArray();
+
         return $this->json([
             'success' => true,
-            'content' => $this->renderView('dispatch/modalNewDispatch.html.twig',
+            'html' => $this->renderView('dispatch/forms/formFromArrival.html.twig',
                 $dispatchService->getNewDispatchConfig($entityManager, $types, $arrival, true, $packs),
             )
         ]);

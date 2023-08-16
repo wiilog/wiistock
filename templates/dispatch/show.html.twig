@@ -272,7 +272,6 @@
     </div>
 
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
-    {% include "dispatch/modalEditDispatch.html.twig" %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalTreatDispatch.html.twig" with dispatchTreat %}
     {% include "dispatch/modalDeletePack.html.twig" %}
@@ -283,6 +282,21 @@
         {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
     {% endif %}
     {% include "dispatch/modalAddLogisticUnit.html.twig" %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditDispatch',
+        size: 'modal-xl',
+        header: {
+            title: trans('Demande', 'Acheminements', 'Général', 'Modifier un acheminement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}
