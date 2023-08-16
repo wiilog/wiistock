@@ -66,7 +66,13 @@ class SessionHistoryRecordService{
         }
 
         if ($sessionHistory) {
+            $userSessionRepository = $entityManager->getRepository(UserSession::class);
             $sessionHistory->setClosedAt($date);
+            $userSession = $userSessionRepository->find($sessionHistory->getSessionId());
+            if ($userSession) {
+                $entityManager->remove($userSession);
+            }
+
             $entityManager->flush();
             return true;
         }
