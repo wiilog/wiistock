@@ -29,7 +29,7 @@ class SessionHistoryRecord
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $sessionKey = null;
 
-    #[ORM\ManyToOne(inversedBy: 'sessionHistory')]
+    #[ORM\ManyToOne(inversedBy: 'sessionHistoryRecords')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $user = null;
 
@@ -37,7 +37,7 @@ class SessionHistoryRecord
     #[ORM\JoinColumn(nullable: false)]
     private ?Type $type = null;
 
-    #[ORM\Column(length: 128)]
+    #[ORM\Column(length: 128, nullable: false)]
     private ?string $sessionId = null;
 
     public function getId(): ?int

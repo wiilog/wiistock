@@ -80,9 +80,7 @@ class SecuriteController extends AbstractController {
 
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
-        if( in_array($error?->getCode(), [UserChecker::ACCOUNT_DISABLED_CODE, UserChecker::NO_MORE_SESSION_AVAILABLE])  ) {
+        if(in_array($error?->getCode(), [UserChecker::ACCOUNT_DISABLED_CODE, UserChecker::NO_MORE_SESSION_AVAILABLE])) {
             $errorToDisplay = $error->getMessage();
         } else if($error) {
             $errorToDisplay = 'Les identifiants renseignés sont incorrects';
