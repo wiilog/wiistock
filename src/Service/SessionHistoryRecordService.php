@@ -18,8 +18,7 @@ class SessionHistoryRecordService{
                                             ?Utilisateur           $user,
                                             DateTime               $date,
                                             Type                   $type,
-                                            Request|string         $request): bool
-    {
+                                            Request|string         $request): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $sessionId = $request instanceof Request ? $request?->getSession()?->getId() : $request;
 
