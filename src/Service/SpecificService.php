@@ -22,6 +22,7 @@ class SpecificService
     const CLIENT_CLB = 'clb';
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
+    const CLIENT_AIA_CUERS = 'aia-cuers';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',

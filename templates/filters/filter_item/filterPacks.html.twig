@@ -1,14 +1,30 @@
+{% import 'form.html.twig' as form %}
+
+{% set multiple = multiple is defined and multiple %}
 {% set placeholder = placeholder is defined
     ? placeholder
-    : trans('Général', null, 'Zone filtre', 'Unité logistique', false) %}
+    : trans('Général', null, 'Zone filtre', multiple ? 'Unité(s) logistique(s)' : 'Unité logistique', false) %}
 {% set disabled = disabled is defined ? disabled : '' %}
-<div class="col-auto m-1 pr-0">
-    <div class="input-group minw-100px">
-        <input type="text"
-               class="form-control data cursor-default filter-input"
-               name="UL"
-               id="ul"
-               placeholder="{{ placeholder }}"
-               title="Unité logistique" {{ disabled }}>
+
+<div class="col-auto m-1 select-filter pr-0">
+    <div class="input-group">
+        {% if multiple %}
+            {{ form.hidden('limit', constant('App\\Entity\\Dispatch::LOGISTIC_UNIT_FILTER_MAX_RESULTS')) }}
+            {{ form.select('logisticUnits', null, false, {
+                type: 'pack',
+                multiple: true,
+                placeholder,
+                inputClass: ' filter-select2 w-100',
+                includeParamsParent: '.input-group',
+                includeParams: '[name=limit]',
+            }) }}
+        {% else %}
+            <input type="text"
+                   class="form-control data cursor-default filter-input"
+                   name="UL"
+                   id="ul"
+                   placeholder="{{ placeholder }}"
+                   title="Unité logistique" {{ disabled }}>
+        {% endif %}
     </div>
 </div>

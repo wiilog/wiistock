@@ -108,14 +108,18 @@ export default class Modal {
         $modal.modal('show');
     }
 
-    static load(route, params = {}, $modal, $wrapperLoader, options = { $formContainer: null, onOpen: ()=>{} }) {
-        const container = options.$formContainer || $modal.find('.modal-body');
+    static load(route,
+                params = {},
+                $modal,
+                $wrapperLoader,
+                options = {$formContainer: null, onOpen: () => {}}) {
+        const $container = options.$formContainer || $modal.find('.modal-body');
         wrapLoadingOnActionButton($wrapperLoader, () => (
             AJAX
                 .route(GET, route, params)
                 .json()
                 .then(({html}) => {
-                    container.html(html);
+                    $container.html(html);
                     if (options.onOpen) {
                         options.onOpen();
                     }

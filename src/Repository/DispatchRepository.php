@@ -17,7 +17,6 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr\Join;
-use function Doctrine\ORM\QueryBuilder;
 
 /**
  * @method Dispatch|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,7 +26,11 @@ use function Doctrine\ORM\QueryBuilder;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, array $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
+    public function findByParamAndFilters(InputBag $params,
+                                          array $filters,
+                                          Utilisateur $user,
+                                          VisibleColumnService $visibleColumnService,
+                                          array $options = []): array {
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
@@ -119,6 +122,14 @@ class DispatchRepository extends EntityRepository
                         ->andWhere("filter_drop_location.id in (:dropLocationId)")
                         ->setParameter('dropLocationId', $value);
                     break;
+                case 'logisticUnits':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->innerJoin('dispatch.dispatchPacks', 'filter_dispatch_packs')
+                        ->innerJoin('filter_dispatch_packs.pack', 'filter_dispatch_packs_pack')
+                        ->andWhere("filter_dispatch_packs_pack.id IN (:logisticUnitIds)")
+                        ->setParameter('logisticUnitIds', $value);
+                    break;
             }
         }
         if (!empty($params)) {
@@ -138,6 +149,10 @@ class DispatchRepository extends EntityRepository
                         "locationTo" => "search_locationTo.label LIKE :search_value",
                         "status" => "search_statut.nom LIKE :search_value",
                         "destination" => "dispatch.destination LIKE :search_value",
+                        "customerName" => "dispatch.customerName LIKE :search_value",
+                        "customerPhone" => "dispatch.customerPhone LIKE :search_value",
+                        "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
+                        "customerAddress" => "dispatch.customerAddress LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
@@ -535,5 +550,15 @@ class DispatchRepository extends EntityRepository
 
                 return $carry;
             }, []);
+    }
+
+    public function iterateAll(DateTime $dateTimeMin, DateTime $dateTimeMax){
+        $qb = $this->createQueryBuilder('dispatch')
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateTimeMin)
+            ->setParameter('dateMax', $dateTimeMax);
+        return $qb
+            ->getQuery()
+            ->toIterable();
     }
 }

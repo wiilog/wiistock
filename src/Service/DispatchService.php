@@ -31,6 +31,7 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Security;
@@ -190,6 +191,10 @@ class DispatchService {
             'emergency' => $dispatch->getEmergency() ?? 'Non',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
             'treatmentDate' => $this->formatService->datetime($dispatch->getTreatmentDate()),
+            'customerName' => $dispatch->getCustomerName(),
+            'customerPhone' => $dispatch->getCustomerPhone(),
+            'customerRecipient' => $dispatch->getCustomerRecipient(),
+            'customerAddress' => $dispatch->getCustomerAddress(),
         ];
 
         if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
@@ -215,7 +220,7 @@ class DispatchService {
                                          array $types,
                                          ?Arrivage $arrival = null,
                                          bool $fromArrival = false,
-                                         array $packs = []) {
+                                         array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
@@ -266,7 +271,8 @@ class DispatchService {
                     'locationTo' => $this->formatService->location($dispatch->getLocationTo()),
                     'type' => $this->formatService->type($dispatch->getType())
                 ])
-                ->toArray()
+                ->toArray(),
+            'dispatch' => new Dispatch(),
         ];
     }
 
@@ -374,6 +380,26 @@ class DispatchService {
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
                 'value' => $dispatch->getDestination() ?: '-',
                 'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
+                'value' => $dispatch->getCustomerName() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
+                'value' => $dispatch->getCustomerPhone() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de', false),
+                'value' => $dispatch->getCustomerRecipient() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
+            ],
+            [
+                'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
+                'value' => $dispatch->getCustomerAddress() ?: '-',
+                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
         ];
 
@@ -643,6 +669,10 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Général', 'Statut', false), 'name' => 'status'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Urgence', false), 'name' => 'emergency'],
             ['title' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false), 'name' => 'treatedBy'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false), 'name' => 'customerName'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false), 'name' => 'customerPhone'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false), 'name' => 'customerRecipient'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false), 'name' => 'customerAddress'],
         ];
 
         if($groupedSignatureMode) {
@@ -1047,6 +1077,10 @@ class DispatchService {
             $nbPacksByDispatch[$number] ?? '',
             $this->formatService->status($dispatch->getStatut()),
             $dispatch->getEmergency(),
+            $dispatch->getCustomerName(),
+            $dispatch->getCustomerPhone(),
+            $dispatch->getCustomerRecipient(),
+            $dispatch->getCustomerAddress(),
         ];
 
         $freeFieldValues = $dispatch->getFreeFields();
@@ -1985,6 +2019,32 @@ class DispatchService {
             }
             $fileCounter++;
         } while (!empty($photoFile) && $fileCounter <= $maxNbFilesSubmitted);
+    }
+
+
+    public function checkFormForErrors(EntityManagerInterface $entityManager,
+                                       InputBag               $form,
+                                       Dispatch               $dispatch,
+                                       bool                   $isCreation):InputBag {
+        if ($form->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)){
+            $form->add([
+                FieldsParam::FIELD_CODE_DEADLINE_DISPATCH => true,
+            ]);
+        }
+        if ($dispatch->getAttachments()->count()){
+            $form->add([
+                FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
+            ]);
+        }
+        return $this->fieldsParamService->checkForErrors(
+            $entityManager,
+            $form,
+            FieldsParam::ENTITY_CODE_DISPATCH,
+            $isCreation,
+            New ParameterBag([
+                FieldsParam::FIELD_CODE_EMERGENCY => true,
+            ])
+        );
     }
 
     public function getDispatckPacksColumnVisibleConfig(EntityManagerInterface $entityManager, bool $editMode = false): array {

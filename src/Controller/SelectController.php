@@ -287,7 +287,8 @@ class SelectController extends AbstractController {
      * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
+        $limit = $request->query->get('limit') ?: null;
+        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"), ['limit' => $limit]);
         return $this->json([
             "results" => $results,
         ]);

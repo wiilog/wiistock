@@ -76,4 +76,8 @@
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
+
+    {% include 'filters/filter_item/filterPacks.html.twig' with {
+        multiple: true,
+    } %}
 {% endblock %}

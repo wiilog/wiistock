@@ -12,11 +12,35 @@ $(function() {
     packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
-    const $submitEditDispatch = $('#submitEditDispatch');
-    const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit, {
-        success: () => window.location.reload()
-    });
+    Form
+        .create($modalEditDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalEditDispatch.find('[name=customerPhone]')?.val(customer?.phoneNumber);
+            $modalEditDispatch.find('[name=customerRecipient]')?.val(customer?.recipient);
+            $modalEditDispatch.find('[name=customerAddress]')?.val(customer?.address);
+        })
+        .onOpen(() => {
+            Modal
+                .load(
+                    'dispatch_edit_api',
+                    {id: dispatchId},
+                    $modalEditDispatch,
+                    $modalEditDispatch.find(`.modal-body`)
+
+                )
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_edit',
+            {
+                success: () => {
+                    window.location.reload()
+                }
+            }
+        )
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
