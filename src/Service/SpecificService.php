@@ -42,6 +42,7 @@ class SpecificService
         self::CLIENT_SAFRAN_MC => 'Safran MC',
         self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
         self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
+        self::CLIENT_AIA_CUERS => 'AIA Cuers',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';

@@ -1334,11 +1334,10 @@ function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function registerCopyToClipboard($element, message = undefined) {
-    $element.on(`click`, function () {
+function registerCopyToClipboard(message = undefined) {
+    $(`.copyable`).on(`click`, function () {
         navigator.clipboard
             .writeText($(this)
-                .find(`.copyable`)
                 .text()
                 .trim()
             ).then(() => Flash.add(Flash.INFO, message || `Le texte a bien été copié dans le presse-papiers.`));

@@ -103,7 +103,7 @@ export default class Form {
     submitTo(method, route, options) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method,route)
+                () => AJAX.route(method, route, options.params || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {
@@ -482,12 +482,17 @@ function treatInputError($input, errors, form) {
                 });
             }
         } else {
-            const valueIsEmpty = (
-                $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
-                !$input.val() // other fields
-            );
+            if ($input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`)) { // for wysuwyg fields
+                valueIsEmpty = !$input.find(`.ql-editor`).text();
+            } else if ($input.is(`.wii-one-line-wysiwyg`)) {
+                valueIsEmpty = !$input.text();
+            } else if ($input.is(`select[multiple]`) && Array.isArray($input.val())) { // for select2 multiple
+                valueIsEmpty = $input.val().length === 0;
+            } else if ($input.is(`[type="file"]`)) { // for input file
+                valueIsEmpty = (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src'));
+            } else {
+                valueIsEmpty = !$input.val();
+            }
 
             if (valueIsEmpty) {
                 errors.push({
