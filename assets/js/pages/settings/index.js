@@ -272,7 +272,7 @@ $(function() {
 
         if(data) {
             wrapLoadingOnActionButton($modal.find(`[type=submit]`), () => (
-                AJAX.route(`POST`, `settings_save_field_param`, {field, isSubLine})
+                AJAX.route(POST, `settings_save_field_param`, {field, isSubLine})
                     .json(data)
                     .then((response) => {
                         if(response.success){

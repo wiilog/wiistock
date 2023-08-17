@@ -245,12 +245,6 @@
                                 <option value="{{ value }}" {{ value in values ? 'selected' }}>{{ text }}</option>
                             {% endif %}
                         {% endfor %}
-
-                        {% if((options.editable ?? false) and values is not empty) %}
-                            {% for value in values %}
-                                <option value="{{ value }}" selected>{{ value }}</option>
-                            {% endfor %}
-                        {% endif %}
                     </select>
         {% if options.selectAllLabel ?? false %}
                 </div>

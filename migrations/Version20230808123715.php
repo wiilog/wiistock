@@ -23,7 +23,7 @@ final class Version20230808123715 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        if($_SERVER["APP_CLIENT"] === SpecificService::AIA_CUERS) {
+        if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_AIA_CUERS) {
 
             $fields = [
                 SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,

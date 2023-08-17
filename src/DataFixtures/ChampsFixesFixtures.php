@@ -129,9 +129,9 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' =>  null, 'conditionFixedFieldValue' => [], 'required' => false],
             ],
             SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE_NUMBER],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE_NUMBER],
+                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FieldsParam::ELEMENTS_TYPE_FREE_NUMBER],
                 ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
                 ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_VOLUME, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
                 ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
@@ -179,7 +179,8 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                         ->setConditionFixedField($fieldCode['conditionFixedField'])
                         ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
                         ->setRequired($fieldCode['required'])
-                        ->setElements($fieldCode['values'] ?? null);
+                        ->setElements($fieldCode['values'] ?? null)
+                        ->setElementsType($fieldCode['elementsType'] ?? null);
 
                     $manager->persist($field);
                     $output->writeln('Champ fixe de ligne ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');

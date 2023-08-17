@@ -1708,7 +1708,7 @@ class SettingsController extends AbstractController {
         } else if ($field->getElementsType() == FieldsParam::ELEMENTS_TYPE_FREE_NUMBER) {
             $elements = $request->request->get("elements");
 
-            if($elements !== "" && StringHelper::matchEvery(explode(",", $elements), StringHelper::INTEGER_AND_DECIMAL_REGEX)) {
+            if($elements !== "" && !StringHelper::matchEvery(explode(",", $elements), StringHelper::INTEGER_AND_DECIMAL_REGEX)) {
                 throw new FormException("Une ou plusieurs valeurs renseignées ne sont pas valides (entiers et décimaux uniquement).");
             } else {
                 $field->setElements(explode(",", $elements));
@@ -2529,7 +2529,7 @@ class SettingsController extends AbstractController {
                 $labelAttributes = "class='font-weight-bold'";
                 if (in_array($field->getFieldCode(), SubLineFieldsParam::FREE_ELEMENTS_FIELDS[$field->getEntityCode()] ?? [])) {
                     $modal = strtolower($field->getFieldCode());
-                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'"; // TODO ICI
+                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
                 return [
@@ -2605,7 +2605,7 @@ class SettingsController extends AbstractController {
                 $labelAttributes = "class='font-weight-bold'";
                 if ($field->getElements() !== null) {
                     $modal = strtolower($field->getFieldCode());
-                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'"; // TODO ICI
+                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }
 
                 $row = [
