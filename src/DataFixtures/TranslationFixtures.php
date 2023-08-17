@@ -2125,6 +2125,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Bouton sous flèche",
                         ],
                         [
+                            "fr" => "Générer une étiquette",
+                            "en" => "Generate label",
+                            "tooltip" => "Détails acheminements - Bouton sous flèche",
+                        ],
+                        [
                             "fr" => "Retour au statut Brouillon",
                             "en" => "Return to draft status",
                             "tooltip" => "Détails acheminements - Bouton sous flèche",

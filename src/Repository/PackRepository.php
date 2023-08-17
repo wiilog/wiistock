@@ -606,7 +606,7 @@ class PackRepository extends EntityRepository
         }
 
         $dispatchId = $options['dispatchId'] ?? null;
-        $limit = $options['limit'] ? intval($options['limit']) : null;
+        $limit = isset($options['limit']) ? intval($options['limit']) : null;
 
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
