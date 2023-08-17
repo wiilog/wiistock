@@ -174,7 +174,7 @@ function generateOverconsumptionBill($button, dispatchId) {
 function generateDispatchLabel($button, dispatchId) {
     AJAX.route(`GET`, `print_dispatch_label`, {dispatch: dispatchId})
         .file({
-            success: "Votre étiquette a bien été imprimé.",
+            success: "Votre étiquette a bien été imprimée.",
             error: "Erreur lors de l'impression de l'étiquette"
         })
         .then(() => window.location.reload())
