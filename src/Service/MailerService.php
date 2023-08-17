@@ -24,8 +24,10 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
-    private const PROTOCOL_TLS = 'TLS';
-    private const PROTOCOL_SSL = 'SSL';
+    public const PROTOCOL_TLS = 'TLS';
+    public const PROTOCOL_SSL = 'SSL';
+
+    public const PORT_SSL = 587;
 
     public const PROTOCOLS = [
         self::PROTOCOL_SSL,
