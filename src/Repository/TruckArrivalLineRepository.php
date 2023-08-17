@@ -72,18 +72,18 @@ class TruckArrivalLineRepository extends EntityRepository
                             break;
                         case "operator":
                             $qb
-                                ->leftJoin("truck_arrival.operator", "truck_arrival_operator")
-                                ->orderBy("truck_arrival_operator.username", $order);
+                                ->leftJoin("truck_arrival.operator", "order_truck_arrival_operator")
+                                ->orderBy("order_truck_arrival_operator.username", $order);
                             break;
                         case "associatedToUL":
                             $qb
-                                ->leftJoin("truck_arrival_line.arrivals", "line_arrival")
-                                ->orderBy("IF(line_arrival.id IS NOT NULL, 1, 0)", $order);
+                                ->leftJoin("truck_arrival_line.arrivals", "order_line_arrival")
+                                ->orderBy("IF(order_line_arrival.id IS NOT NULL, 1, 0)", $order);
                             break;
                         case "arrivalLinks":
                             $qb
-                                ->leftJoin("truck_arrival_line.arrivals", "line_arrival")
-                                ->orderBy("line_arrival.numeroArrivage", $order);
+                                ->leftJoin("truck_arrival_line.arrivals", "order_line_arrival")
+                                ->orderBy("order_line_arrival.numeroArrivage", $order);
                             break;
                         default:
                             if (property_exists(TruckArrivalLine::class, $column)) {
