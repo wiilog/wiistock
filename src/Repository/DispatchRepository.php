@@ -551,4 +551,14 @@ class DispatchRepository extends EntityRepository
                 return $carry;
             }, []);
     }
+
+    public function iterateAll(DateTime $dateTimeMin, DateTime $dateTimeMax){
+        $qb = $this->createQueryBuilder('dispatch')
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateTimeMin)
+            ->setParameter('dateMax', $dateTimeMax);
+        return $qb
+            ->getQuery()
+            ->toIterable();
+    }
 }

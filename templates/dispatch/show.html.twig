@@ -114,7 +114,6 @@
                                         <a data-id='{{ dispatch.id }}'
                                            data-target='#modalEditDispatch'
                                            data-toggle='modal'
-                                           onclick="editRow($(this), Routing.generate('dispatch_edit_api', true), $('#modalEditDispatch'), $('#submitEditDispatch'), false, initDatePickers)"
                                            class="dropdown-item pointer">
                                             <i class="fa fa-pen mr-2"></i>
                                             {{ trans('Général', null, 'Modale', 'Modifier') }}
@@ -274,7 +273,10 @@
                                  data-loader-size="normal">
                             </div>
                         {% else %}
-                            <table id="packTable" class="wii-table w-100"></table>
+                            <table id="packTable"
+                                   class="wii-table w-100"
+                                   data-initial-visible="{{ initial_visible_columns }}">
+                            </table>
                         {% endif %}
                     </div>
                 </div>
@@ -283,7 +285,6 @@
     </div>
 
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
-    {% include "dispatch/modalEditDispatch.html.twig" %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalTreatDispatch.html.twig" with dispatchTreat %}
     {% include "dispatch/modalDeletePack.html.twig" %}
@@ -294,6 +295,21 @@
         {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
     {% endif %}
     {% include "dispatch/modalAddLogisticUnit.html.twig" %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalEditDispatch',
+        size: 'modal-xl',
+        header: {
+            title: trans('Demande', 'Acheminements', 'Général', 'Modifier un acheminement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success data', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}

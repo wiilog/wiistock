@@ -8,11 +8,12 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
 class FieldsParam {
 
-    const MODAL_TYPE_FREE = 'FREE';
-    const MODAL_TYPE_USER = 'USER_BY_TYPE';
-    const MODAL_RECEIVER = 'RECEIVER';
-    const MODAL_TYPE = 'TYPE';
-    const MODAL_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
+    const ELEMENTS_TYPE_FREE = 'FREE';
+    const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';
+    const ELEMENTS_TYPE_USER = 'USER_BY_TYPE';
+    const ELEMENTS_RECEIVER = 'RECEIVER';
+    const ELEMENTS_TYPE = 'TYPE';
+    const ELEMENTS_LOCATION_BY_TYPE = 'LOCATION_BY_TYPE';
 
     const ENTITY_CODE_RECEPTION = 'réception';
 
@@ -98,7 +99,12 @@ class FieldsParam {
     const FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'immatriculation';
     const FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION = 'emplacement de déchargement';
 
+
     const ENTITY_CODE_DISPATCH = 'acheminements';
+    const FIELD_CODE_TYPE_DISPATCH = 'type';
+    const FIELD_CODE_STATUS_DISPATCH = 'status';
+    const FIELD_CODE_START_DATE_DISPATCH = 'startDate';
+    const FIELD_CODE_END_DATE_DISPATCH = 'endDate';
     const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
     const FIELD_CODE_CARRIER_DISPATCH = 'carrier';
     const FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH = 'carrierTrackingNumber';
@@ -133,6 +139,10 @@ class FieldsParam {
     const FIELD_LABEL_LOCATION_PICK = 'emplacement de prise';
     const FIELD_LABEL_LOCATION_DROP = 'emplacement de dépose';
     const FIELD_LABEL_DESTINATION = 'destination';
+    const FIELD_LABEL_CUSTOMER_NAME = 'client';
+    const FIELD_LABEL_CUSTOMER_PHONE = 'téléphone client';
+    const FIELD_LABEL_CUSTOMER_RECIPIENT = 'a l\'attention client';
+    const FIELD_LABEL_CUSTOMER_ADDRESS = 'adresse de livraison';
 
     const ENTITY_CODE_HANDLING = 'services';
     const FIELD_CODE_LOADING_ZONE = 'loadingZone';
@@ -295,7 +305,7 @@ class FieldsParam {
     private ?bool $fieldRequiredHidden;
 
     #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $modalType = null;
+    private ?string $elementsType = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -407,14 +417,14 @@ class FieldsParam {
         return $this;
     }
 
-    public function getModalType(): ?string
+    public function getElementsType(): ?string
     {
-        return $this->modalType;
+        return $this->elementsType;
     }
 
-    public function setModalType(?string $modalType): self
+    public function setElementsType(?string $elementsType): self
     {
-        $this->modalType = $modalType;
+        $this->elementsType = $elementsType;
 
         return $this;
     }

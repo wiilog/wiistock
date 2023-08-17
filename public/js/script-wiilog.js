@@ -1199,7 +1199,10 @@ function onTypeChange($select) {
     $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
 
-    const $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
+    let $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
+    if(!$errorEmptyStatus.length) {
+        $errorEmptyStatus = $selectStatus.closest('.form-item').find('.error-empty-status');
+    }
     $errorEmptyStatus.addClass('d-none');
 
     if(!type) {
@@ -1207,7 +1210,7 @@ function onTypeChange($select) {
         $selectStatus.prop('disabled', true);
     } else {
         const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + type + '"]');
-        $selectStatus.removeAttr('disabled');
+        $selectStatus.prop('disabled', false);
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
@@ -1331,11 +1334,10 @@ function scrollToBottom() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-function registerCopyToClipboard($element, message = undefined) {
-    $element.on(`click`, function () {
+function registerCopyToClipboard(message = undefined) {
+    $(`.copyable`).on(`click`, function () {
         navigator.clipboard
             .writeText($(this)
-                .find(`.copyable`)
                 .text()
                 .trim()
             ).then(() => Flash.add(Flash.INFO, message || `Le texte a bien été copié dans le presse-papiers.`));
