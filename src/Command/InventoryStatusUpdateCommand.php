@@ -23,8 +23,7 @@ class InventoryStatusUpdateCommand extends Command
 		$this->setDescription('This commands updates the inventory dates on the refs');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $referenceArticleRepository->updateInventoryStatusQuery();
         return 1;
