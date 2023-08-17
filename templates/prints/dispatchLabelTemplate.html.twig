@@ -23,8 +23,9 @@
             margin-top: 0.5rem;
             position: relative;
             float: right;
-            height: 25mm;
-            width: 30mm;
+            height: 35mm;
+            width: 40mm;
+            margin-right: 0.5rem;
         }
 
         .table-container {
@@ -61,6 +62,11 @@
             padding: 0.3rem
         }
 
+        th.small-text, td.small-text {
+            font-size: small;
+            margin-right: 0.3rem;
+        }
+
         div.small-text {
             font-size: small;
             padding-left: 0.3rem
@@ -73,6 +79,14 @@
 
         th {
             font-size: small;
+        }
+
+        .mb-3px {
+            margin-bottom: 3px;
+        }
+
+        .pr-3rem {
+            padding-right: 0.3rem;
         }
 
         * {
@@ -115,46 +129,45 @@
 
     <div class="dispatch-label-container">
         <div class="entete-container">
-            <div style="font-weight: bold;">EXP N°{{ config.dispatch.number }}</div>
+            <div class="small-text" style="font-weight: bold;">EXP N°{{ config.dispatch.number }}</div>
             <div style="margin-bottom: 0.2rem;">
-                <div class="small-text">Mode d'acheminement</div>
-                <div class="left-align">{{ config.dispatch.businessUnit }}</div>
+                <div class="small-text">Mode d'acheminement:</div>
+                <div class="left-align small-text"><strong>{{ config.dispatch.businessUnit }}</strong></div>
             </div>
-            <div style="margin-bottom: 0.2rem;">
-                <div class="small-text">N° BL/AIA</div>
-                <div class="left-align">{{ config.dispatch.orderNumber }}</div>
+            <div class="small-text">
+                N° BL/AIA: <strong>{{ config.dispatch.orderNumber }}</strong>
             </div>
         </div>
         <div class="client-container">
-            <div class="small-text">Destinataire : <span style="font-size: large">{{ config.dispatch.customerRecipient }}</span></div>
-            <div class="small-text">Adresse de livraison : <span style="font-size: large">{{ config.dispatch.customerAddress }}</span></div>
-            <div class="small-text">N° téléphone : <span style="font-size: large">{{ config.dispatch.customerPhone }}</span></div>
+            <div class="small-text mb-3px">Destinataire: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
+            <div class="small-text mb-3px">Adresse de livraison: <strong style="white-space: nowrap;">{{ config.dispatch.customerAddress }}</strong></div>
+            <div class="small-text">N° téléphone: <strong>{{ config.dispatch.customerPhone }}</strong></div>
         </div>
         <div class="table-container">
             <table>
                 <tr>
-                    <th>Contenant</th>
-                    <th>Long(M)</th>
-                    <th>Larg(M)</th>
-                    <th>Haut(M)</th>
-                    <th>Vol(M²)</th>
-                    <th>Masse(Kg)</th>
+                    <th class="small-text pr-3rem">Contenant</th>
+                    <th class="small-text pr-3rem">Long(M)</th>
+                    <th class="small-text pr-3rem">Larg(M)</th>
+                    <th class="small-text pr-3rem">Haut(M)</th>
+                    <th class="small-text pr-3rem">Vol(M³)</th>
+                    <th class="small-text">Poids(Kg)</th>
                 </tr>
                 <tr>
-                    <td>{{ config.dispatch.dispatchPack.nature }}</td>
-                    <td>{{ config.dispatch.dispatchPack.length }}</td>
-                    <td>{{ config.dispatch.dispatchPack.width }}</td>
-                    <td>{{ config.dispatch.dispatchPack.height }}</td>
-                    <td>{{ config.dispatch.dispatchPack.volume }}</td>
-                    <td>{{ config.dispatch.dispatchPack.weight }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.nature ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.length ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.width ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.height ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.weight ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.volume ?? '-' }}</td>
                 </tr>
             </table>
         </div>
         <div class="visa-container">
             <div style="font-weight: bold">Visa</div>
             <div>
-                <span>Matricule : {{ config.requester }}</span>
-                <span style="margin-left: 5rem; font-weight: bold">Date : {{ "now"|date("m/d/Y") }}</span>
+                <span>Matricule: <strong>{{ config.requester }}</strong></span>
+                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("m/d/Y") }}</span>
             </div>
         </div>
     </div>
