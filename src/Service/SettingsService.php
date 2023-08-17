@@ -709,7 +709,7 @@ class SettingsService {
 
                     $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
 
-                    if ( !empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                    if (!empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
                         throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
                     }
                 }
