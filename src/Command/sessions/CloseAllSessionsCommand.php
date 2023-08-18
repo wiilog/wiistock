@@ -1,7 +1,7 @@
 <?php
 // Every deployment
 
-namespace App\Command;
+namespace App\Command\sessions;
 
 
 use App\Service\SessionHistoryRecordService;
