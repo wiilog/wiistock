@@ -297,14 +297,17 @@ CREATE TABLE dw_acheminement
     numero_commande              varchar(255),
     demandeur                    varchar(255),
     destinataire                 varchar(255),
-    code_colis                   varchar(255),
-    quantite_colis               integer,
+    code_ul                      varchar(255),
+    quantite_ul                  integer,
     quantite_a_acheminer         integer,
-    nature_colis                 varchar(255),
+    nature_ul                    varchar(255),
+    longueur_ul                  varchar(255),
+    largeur_ul                   varchar(255),
+    hauteur_ul                   varchar(255),
     emplacement_prise            varchar(255),
     emplacement_depose           varchar(255),
     destination                  varchar(255),
-    nb_colis                     integer,
+    nb_ul                        integer,
     statut                       varchar(255),
     operateur                    varchar(255),
     traite_par                   varchar(255),
@@ -321,7 +324,11 @@ CREATE TABLE dw_acheminement
     numero_serie                 varchar(255),
     numero_plombage_scelle       varchar(255),
     adr                          varchar(3),
-    commentaire                  text
+    commentaire                  text,
+    nom_client                   varchar(255),
+    adresse_client               varchar(255),
+    telephone_client             varchar(255),
+    destinataire_client          varchar(255)
 );
 
 CREATE TABLE dw_acheminement_statut
