@@ -14,11 +14,11 @@ use Doctrine\ORM\Mapping\OneToMany;
 #[Entity(LanguageRepository::class)]
 class Language {
 
-    private const DMY_FORMAT = 'd/m/Y';
+    public const DMY_FORMAT = 'd/m/Y';
     private const MDY_FORMAT = 'm-d-Y';
     private const YMD_FORMAT = 'Y-m-d';
 
-    public const DMY_MYSQL_FORMAT = '%d/%m/%Y';
+    private const DMY_MYSQL_FORMAT = '%d/%m/%Y';
     private const MDY_MYSQL_FORMAT = '%m-%d-%Y';
     private const YMD_MYSQL_FORMAT = '%Y-%m-%d';
 

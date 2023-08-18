@@ -11,6 +11,7 @@ use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\Query\Expr\Select;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -364,7 +365,7 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_MYSQL_FORMAT): array {
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
         $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat];
@@ -375,7 +376,7 @@ class DispatchRepository extends EntityRepository
             ->getQuery()
             ->getDQL();
 
-        return $this->createQueryBuilder('dispatch')
+        $queryBuilder = $this->createQueryBuilder('dispatch')
             ->select('dispatch.id AS id')
             ->addSelect('dispatch.freeFields AS freeFields')
             ->addSelect('dispatch.number AS number')
@@ -426,7 +427,15 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('join_dispatch_packs_pack_last_tracking.emplacement', 'join_dispatch_packs_pack_last_tracking_location')
             ->leftJoin('join_dispatch_packs_pack_last_tracking.operateur', 'join_dispatch_packs_pack_last_tracking_operator')
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
-            ->groupBy('join_dispatch_packs.id')
+            ->groupBy('join_dispatch_packs.id');
+
+        Stream::from($queryBuilder->getDQLParts()['select'])
+            ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
+            ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
+            ->filter(fn($selectAlias) => !in_array($selectAlias, ['receivers']))
+            ->each(fn($field) => $queryBuilder->addGroupBy($field));
+
+        return $queryBuilder
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
