@@ -1,22 +1,21 @@
 <?php
-// Every 5 minutes
-// */5  * * * *
+// Every deployment
 
-namespace App\Command;
+namespace App\Command\sessions;
+
 
 use App\Entity\SessionHistoryRecord;
-use App\Entity\Type;
 use App\Service\FormatService;
 use App\Service\SessionHistoryRecordService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
-    use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
-class CloseInactivesSessionsCommand extends Command
+class CloseSessionsCommand extends Command
 {
     #[Required]
     public EntityManagerInterface $entityManager;

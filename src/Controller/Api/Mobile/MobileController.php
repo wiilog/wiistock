@@ -195,7 +195,7 @@ class MobileController extends AbstractApiController
                 } else {
                     $data = [
                         'success' => false,
-                        'msg' => "Connexion impossible, il y a trop d'utilisateurs connectés."
+                        'msg' => "Le nombre de licence utilisés en cours sur cette instance a déjà été atteint"
                     ];
                 }
             } else {
