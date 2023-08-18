@@ -5,6 +5,7 @@ namespace App\Command\sessions;
 
 
 use App\Entity\SessionHistoryRecord;
+use App\Service\FormatService;
 use App\Service\SessionHistoryRecordService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
