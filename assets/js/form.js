@@ -482,6 +482,7 @@ function treatInputError($input, errors, form) {
                 });
             }
         } else {
+            let valueIsEmpty;
             if ($input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`)) { // for wysuwyg fields
                 valueIsEmpty = !$input.find(`.ql-editor`).text();
             } else if ($input.is(`.wii-one-line-wysiwyg`)) {

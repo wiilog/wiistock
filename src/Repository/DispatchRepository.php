@@ -4,11 +4,14 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\Query\Expr\Select;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -362,59 +365,83 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function iterateByDates(DateTime $dateMin,
-                                   DateTime $dateMax): iterable {
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat];
+
+        $subQuery = $this->createQueryBuilder('sub_dispatch')
+            ->select('COUNT(join_sub_dispatch_packs)')
+            ->innerJoin('sub_dispatch.dispatchPacks', 'join_sub_dispatch_packs', Join::WITH, 'sub_dispatch.id = dispatch.id')
+            ->getQuery()
+            ->getDQL();
 
         $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id AS id')
+            ->addSelect('dispatch.freeFields AS freeFields')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.commandNumber AS orderNumber')
+            ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
+            ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
+            ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
+            ->addSelect('join_type.label AS type')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect("GROUP_CONCAT(join_receivers.username SEPARATOR ',') AS receivers")
+            ->addSelect("join_treated_by.username AS treatedBy")
+            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("join_location_from.label AS locationFrom")
+            ->addSelect("join_location_to.label AS locationTo")
+            ->addSelect("dispatch.destination AS destination")
+            ->addSelect("($subQuery) AS packCount")
+            ->addSelect("join_status.nom AS status")
+            ->addSelect("dispatch.emergency AS emergency")
+            ->addSelect("dispatch.customerName AS customerName")
+            ->addSelect("dispatch.customerPhone AS customerPhone")
+            ->addSelect("dispatch.customerRecipient AS customerRecipient")
+            ->addSelect("dispatch.customerAddress AS customerAddress")
+            ->addSelect("join_dispatch_packs_pack.code AS packCode")
+            ->addSelect("join_dispatch_packs_pack_nature.code AS packNature")
+            ->addSelect("join_dispatch_packs.height AS dispatchPackHeight")
+            ->addSelect("join_dispatch_packs.width AS dispatchPackWidth")
+            ->addSelect("join_dispatch_packs.length AS dispatchPackLength")
+            ->addSelect("join_dispatch_packs_pack.volume AS packVolume")
+            ->addSelect("join_dispatch_packs_pack.comment AS packComment")
+            ->addSelect("join_dispatch_packs_pack.quantity AS packQuantity")
+            ->addSelect("join_dispatch_packs.quantity AS dispatchPackQuantity")
+            ->addSelect("join_dispatch_packs_pack.weight AS packWeight")
+            ->addSelect("DATE_FORMAT(join_dispatch_packs_pack_last_tracking.datetime, '$dateFormat') AS packLastTrackingDate")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_location.label AS packLastTrackingLocation")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_operator.username AS packLastTrackingOperator")
+            ->leftJoin('dispatch.type', 'join_type')
+            ->leftJoin('dispatch.statut', 'join_status')
+            ->leftJoin('dispatch.requester', 'join_requester')
+            ->leftJoin('dispatch.receivers', 'join_receivers')
+            ->leftJoin('dispatch.treatedBy', 'join_treated_by')
+            ->leftJoin('dispatch.carrier', 'join_carrier')
+            ->leftJoin('dispatch.locationFrom', 'join_location_from')
+            ->leftJoin('dispatch.locationTo', 'join_location_to')
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatch_packs')
+            ->leftJoin('join_dispatch_packs.pack', 'join_dispatch_packs_pack')
+            ->leftJoin('join_dispatch_packs_pack.nature', 'join_dispatch_packs_pack_nature')
+            ->leftJoin('join_dispatch_packs_pack.lastTracking', 'join_dispatch_packs_pack_last_tracking')
+            ->leftJoin('join_dispatch_packs_pack_last_tracking.emplacement', 'join_dispatch_packs_pack_last_tracking_location')
+            ->leftJoin('join_dispatch_packs_pack_last_tracking.operateur', 'join_dispatch_packs_pack_last_tracking_operator')
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->groupBy('join_dispatch_packs.id');
 
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
+        Stream::from($queryBuilder->getDQLParts()['select'])
+            ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
+            ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
+            ->filter(fn($selectAlias) => !in_array($selectAlias, ['receivers']))
+            ->each(fn($field) => $queryBuilder->addGroupBy($field));
 
         return $queryBuilder
-            ->getQuery()
-            ->toIterable();
-    }
-
-    /**
-     * Assoc array [dispatch number => nb packs]
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return array [dispatch number => nb packs]
-     */
-    public function getNbPacksByDates(DateTime $dateMin,
-                                      DateTime $dateMax): array {
-        $dateMax = $dateMax->format('Y-m-d H:i:s');
-        $dateMin = $dateMin->format('Y-m-d H:i:s');
-
-        $queryBuilder = $this->createQueryBuilder('dispatch')
-            ->addSelect('dispatch.number AS number')
-            ->addSelect('COUNT(join_dispatchPack.id) AS nbPacks')
-
-            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
-
-            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
-
-            ->groupBy('dispatch.number')
-
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
-
-        $res = $queryBuilder
+            ])
             ->getQuery()
             ->getResult();
-
-        return Stream::from($res)
-            ->reduce(function (array $carry, array $row) {
-                $carry[$row['number']] = $row['nbPacks'];
-                return $carry;
-            }, []);
     }
 
     public function getDispatchNumbers($search) {

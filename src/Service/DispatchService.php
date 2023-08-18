@@ -1059,68 +1059,57 @@ class DispatchService {
 
 
     public function putDispatchLine($handle,
-                                    Dispatch $dispatch,
-                                    array $receivers,
-                                    array $nbPacksByDispatch,
-                                    array $freeFieldsConfig): void {
+                                    array $dispatch,
+                                    array $freeFieldsConfig,
+                                    array $freeFieldsById): void {
 
-        $id = $dispatch->getId();
-        $number = $dispatch->getNumber();
-
-        $dispatchDataBefore = [
-            $number,
-            $dispatch->getCommandNumber(),
-            $this->formatService->datetime($dispatch->getCreationDate()),
-            $this->formatService->datetime($dispatch->getValidationDate()),
-            $this->formatService->datetime($dispatch->getTreatmentDate()),
-            $this->formatService->type($dispatch->getType()),
-            $this->formatService->user($dispatch->getRequester()),
-            Stream::from($receivers[$id] ?? [])->join(", "),
-            $this->formatService->location($dispatch->getLocationFrom()),
-            $this->formatService->location($dispatch->getLocationTo()),
-            $dispatch->getDestination(),
-            $nbPacksByDispatch[$number] ?? '',
-            $this->formatService->status($dispatch->getStatut()),
-            $dispatch->getEmergency(),
-            $dispatch->getCustomerName(),
-            $dispatch->getCustomerPhone(),
-            $dispatch->getCustomerRecipient(),
-            $dispatch->getCustomerAddress(),
-        ];
-
-        $freeFieldValues = $dispatch->getFreeFields();
-        $dispatchDataAfter = array_merge(
-            [$this->formatService->user($dispatch->getTreatedBy())],
-            Stream::from($freeFieldsConfig['freeFields'])
+        $freeFieldValues = $freeFieldsById[$dispatch['id']];
+        $row = [
+            $dispatch['number'],
+            $dispatch['orderNumber'],
+            $dispatch['creationDate'],
+            $dispatch['validationDate'],
+            $dispatch['treatmentDate'],
+            $dispatch['type'],
+            $dispatch['requester'],
+            $dispatch['receivers'],
+            $dispatch['carrier'],
+            $dispatch['locationFrom'],
+            $dispatch['locationTo'],
+            $dispatch['destination'],
+            $dispatch['treatedBy'],
+            $dispatch['packCount'],
+            $dispatch['status'],
+            $dispatch['emergency'],
+            $dispatch['customerName'],
+            $dispatch['customerPhone'],
+            $dispatch['customerRecipient'],
+            $dispatch['customerAddress'],
+            $dispatch['packNature'],
+            $dispatch['packCode'],
+            $dispatch['dispatchPackHeight'],
+            $dispatch['dispatchPackWidth'],
+            $dispatch['dispatchPackLength'],
+            $dispatch['packVolume'],
+            $this->formatService->html($dispatch['packComment']),
+            $dispatch['packQuantity'],
+            $dispatch['dispatchPackQuantity'],
+            $dispatch['packWeight'],
+            $dispatch['packLastTrackingDate'],
+            $dispatch['packLastTrackingLocation'],
+            $dispatch['packLastTrackingOperator'],
+            ...(Stream::from($freeFieldsConfig['freeFields'])
                 ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                     $value = $freeFieldValues[$freeFieldId] ?? null;
                     return $value
-                        ? $this->formatService->freeField($freeFieldValues[$freeFieldId] ?? '', $freeField)
+                        ? $this->formatService->freeField($value, $freeField)
                         : $value;
                 })
-                ->toArray()
-        );
+                ->values()
+            ),
+        ];
 
-        foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
-            $pack = $dispatchPack->getPack();
-            $lastTracking = $pack?->getLastTracking();
-            $row = array_merge(
-                $dispatchDataBefore,
-                [
-                    $this->formatService->nature($dispatchPack->getPack()?->getNature()),
-                    $pack?->getCode(),
-                    $pack?->getQuantity(),
-                    $dispatchPack->getQuantity(),
-                    $pack?->getWeight(),
-                    $this->formatService->datetime($lastTracking?->getDatetime()),
-                    $this->formatService->location($lastTracking?->getEmplacement()),
-                    $this->formatService->user($lastTracking?->getOperateur()),
-                ],
-                $dispatchDataAfter
-            );
-            $this->CSVExportService->putLine($handle, $row);
-        }
-
+        $this->CSVExportService->putLine($handle, $row);
     }
 
     public function getOverconsumptionBillData(Dispatch $dispatch): array {

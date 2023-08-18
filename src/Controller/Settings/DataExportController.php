@@ -335,6 +335,7 @@ class DataExportController extends AbstractController {
                                      DataExportService      $dataExportService,
                                      FreeFieldService       $freeFieldService,
                                      Request                $request): StreamedResponse {
+
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::DEMANDE_DISPATCH]);
         $header = $dataExportService->createDispatchesHeader($freeFieldsConfig);
 
@@ -349,15 +350,17 @@ class DataExportController extends AbstractController {
         return $csvService->streamResponse(
             function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig) {
                 $dispatchRepository = $manager->getRepository(Dispatch::class);
-                $dispatches = $dispatchRepository->iterateAll($dateTimeMin, $dateTimeMax);
+                $userDateFormat = $this->getUser()->getDateFormat();
+                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-                $nbPacksByDispatch = $dispatchRepository->getNbPacksByDates($dateTimeMin, $dateTimeMax);
-                $receivers = $dispatchRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
+                $freeFieldsById = Stream::from($dispatches)
+                    ->keymap(fn($dispatch) => [
+                        $dispatch['id'], $dispatch['freeFields']
+                    ])->toArray();
 
                 $start = new DateTime();
-                $dataExportService->exportDispatch($dispatches, $output, $receivers, $nbPacksByDispatch, $freeFieldsConfig);
+                $dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
                 $dataExportService->createUniqueExportLine(Export::ENTITY_DISPATCH, $start);
-
             },
             "export_acheminements-$today.csv",
             $header

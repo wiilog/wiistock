@@ -186,35 +186,43 @@ class DataExportService
         ];
     }
 
-    public function createDispatchesHeader(array $freeFieldsConfig){
-        return array_merge(
-            [
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
-                $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
-                $this->translation->translate('Demande', 'Général', 'Type', false),
-                $this->translation->translate('Demande', 'Général', 'Demandeur', false),
-                $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
-                $this->translation->translate('Demande', 'Général', 'Statut', false),
-                $this->translation->translate('Demande', 'Général', 'Urgence', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
-                $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
-                $this->translation->translate('Général', null, 'Zone liste', 'Traité par', false)
-            ],
-            $freeFieldsConfig['freeFieldsHeader']
-        );
+    public function createDispatchesHeader(array $freeFieldsConfig): array {
+        return [
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
+            $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
+            $this->translation->translate('Demande', 'Général', 'Type', false),
+            $this->translation->translate('Demande', 'Général', 'Demandeur', false),
+            $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
+            $this->translation->translate('Demande', 'Général', 'Transporteur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
+            $this->translation->translate('Demande', 'Général', 'Statut', false),
+            $this->translation->translate('Demande', 'Général', 'Urgence', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Hauteur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Largeur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Longueur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
+            'Commentaire UL',
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
+            ...($freeFieldsConfig['freeFieldsHeader']),
+        ];
     }
 
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
@@ -330,15 +338,13 @@ class DataExportService
         }
     }
 
-    public function exportDispatch(iterable $data,
+    public function exportDispatch(array $dispatches,
                                    mixed $output,
-                                   array $receivers,
-                                   array $nbPacksByDispatch,
-                                   array $freeFieldsConfig)
+                                   array $freeFieldsConfig,
+                                   array $freeFieldsById): void
     {
-        /** @var Dispatch $dispatch */
-        foreach ($data as $dispatch) {
-            $this->dispatchService->putDispatchLine($output, $dispatch, $receivers, $nbPacksByDispatch, $freeFieldsConfig);
+        foreach ($dispatches as $dispatch) {
+            $this->dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
         }
     }
 
