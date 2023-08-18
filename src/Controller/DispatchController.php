@@ -28,6 +28,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Service\DataExportService;
 use App\Service\FieldsParamService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
@@ -1159,62 +1160,29 @@ class DispatchController extends AbstractController {
                                      FreeFieldService $freeFieldService,
                                      CSVExportService $CSVExportService,
                                      EntityManagerInterface $entityManager,
-                                     TranslationService $translation): Response {
-        $dateMin = $request->query->get('dateMin');
-        $dateMax = $request->query->get('dateMax');
+                                     TranslationService $translation,
+                                     DataExportService $dataExportService): Response {
 
-        try {
-            $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $dateMin . ' 00:00:00');
-            $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $dateMax . ' 23:59:59');
-        } catch(Throwable) {
-        }
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMin') . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMax') . ' 23:59:59');
 
-        if(isset($dateTimeMin) && isset($dateTimeMax)) {
+        if($dateTimeMin && $dateTimeMax) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $dispatches = $dispatchRepository->iterateByDates($dateTimeMin, $dateTimeMax);
+            $userDateFormat = $this->getUser()->getDateFormat();
+            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
-            $nbPacksByDispatch = $dispatchRepository->getNbPacksByDates($dateTimeMin, $dateTimeMax);
-            $receivers = $dispatchRepository->getReceiversByDates($dateTimeMin, $dateTimeMax);
+            $freeFieldsById = Stream::from($dispatches)
+                ->keymap(fn($dispatch) => [
+                    $dispatch['id'], $dispatch['freeFields']
+                ])->toArray();
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
-
-            $headers = array_merge(
-                [
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
-                    $translation->translate('Général', null, 'Zone liste', 'Date de création', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
-                    $translation->translate('Demande', 'Général', 'Type', false),
-                    $translation->translate('Demande', 'Général', 'Demandeur', false),
-                    $translation->translate('Demande', 'Général', 'Destinataire(s)', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
-                    $translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
-                    $translation->translate('Demande', 'Général', 'Statut', false),
-                    $translation->translate('Demande', 'Général', 'Urgence', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
-                    $translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
-                    $translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
-                    $translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
-                    $translation->translate('Général', null, 'Zone liste', 'Traité par', false)
-                ],
-                $freeFieldsConfig['freeFieldsHeader']
-            );
+            $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig);
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $receivers, $nbPacksByDispatch, $freeFieldsConfig) {
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById) {
                     foreach ($dispatches as $dispatch) {
-                        $dispatchService->putDispatchLine($output, $dispatch, $receivers, $nbPacksByDispatch, $freeFieldsConfig);
+                        $dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
                     }
                 },
                 'export_acheminements.csv',
