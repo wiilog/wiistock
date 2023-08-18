@@ -216,7 +216,6 @@ function createForm() {
                             dateMax,
                         }));
                     } else if (content.entityToExport === ENTITY_DISPATCH) {
-                        console.log('test');
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
 
