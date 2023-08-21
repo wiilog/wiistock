@@ -262,9 +262,8 @@ class ArticleController extends AbstractController
                 }
 
                 $articleWithSameTag = $articleRepository->findOneBy(['RFIDtag' => $data['rfidTag']]);
-
                 if ($articleWithSameTag) {
-                    throw new FormException("Tag RFID déjà existant en base.");
+                    throw new FormException("Le tag RFID {$data['rfidTag']} est déja utilisé.");
                 }
             }
 
