@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\DispatchPackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DispatchPackRepository::class)]
@@ -12,22 +13,31 @@ class DispatchPack {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 1])]
-    private $quantity;
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private ?int $quantity;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'dispatchPacks')]
     #[ORM\JoinColumn(nullable: false)]
-    private $pack;
+    private ?Pack $pack = null;
 
     #[ORM\ManyToOne(targetEntity: Dispatch::class, inversedBy: 'dispatchPacks')]
     #[ORM\JoinColumn(nullable: false)]
-    private $dispatch;
+    private ?Dispatch $dispatch = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private $treated;
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private ?bool $treated = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $width = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $height = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $length = null;
 
     #[ORM\OneToMany(mappedBy: 'dispatchPack', targetEntity: DispatchReferenceArticle::class)]
     private Collection $dispatchReferenceArticles;
@@ -124,4 +134,30 @@ class DispatchPack {
         return $this;
     }
 
+    public function setWidth(?float $width): self {
+        $this->width = $width;
+        return $this;
+    }
+
+    public function getWidth(): ?float {
+        return $this->width;
+    }
+
+    public function setHeight(?float $height): self {
+        $this->height = $height;
+        return $this;
+    }
+
+    public function getHeight(): ?float {
+        return $this->height;
+    }
+
+    public function setLength(?float $length): self {
+        $this->length = $length;
+        return $this;
+    }
+
+    public function getLength(): ?float {
+        return $this->length;
+    }
 }

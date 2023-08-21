@@ -41,7 +41,7 @@ $(function () {
             AJAX.POST,
             'mission_new',
             {
-                table: tableMissions,
+                tables: tableMissions,
                 success: ({redirect}) => {
                     window.location.href = redirect;
                 }
@@ -55,7 +55,7 @@ $(function () {
             AJAX.POST,
             'mission_delete',
             {
-                table: tableMissions,
+                tables: tableMissions,
             }
         );
 
@@ -65,7 +65,7 @@ $(function () {
             AJAX.POST,
             'mission_new',
             {
-                table: tableMissions,
+                tables: tableMissions,
                 success: ({redirect}) => {
                     window.location.href = redirect;
                 }

@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
@@ -157,6 +158,20 @@ class ScheduledExportService
             $csvHeader = $this->dataExportService->createStorageRulesHeader();
             $this->csvExportService->putLine($output, $csvHeader);
             $this->dataExportService->exportRefLocation($storageRules, $output);
+        } else if($exportToRun->getEntity() === Export::ENTITY_DISPATCH) {
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+            [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
+            $dispatches = $dispatchRepository->getByDates($startDate, $endDate);
+
+            $freeFieldsById = Stream::from($dispatches)
+                ->keymap(fn($dispatch) => [
+                    $dispatch['id'], $dispatch['freeFields']
+                ])->toArray();
+
+            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($freeFieldsConfig));
+            $this->dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
