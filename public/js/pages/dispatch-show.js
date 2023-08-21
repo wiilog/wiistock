@@ -1,6 +1,7 @@
 let packsTable;
 
 $(function() {
+    registerCopyToClipboard(`Le numéro a bien été copié dans le presse-papiers.`);
     const dispatchId = $('#dispatchId').val();
     const isEdit = $(`#isEdit`).val();
 
@@ -11,11 +12,35 @@ $(function() {
     packsTable = initializePacksTable(dispatchId, isEdit);
 
     const $modalEditDispatch = $('#modalEditDispatch');
-    const $submitEditDispatch = $('#submitEditDispatch');
-    const urlDispatchEdit = Routing.generate('dispatch_edit', true);
-    InitModal($modalEditDispatch, $submitEditDispatch, urlDispatchEdit, {
-        success: () => window.location.reload()
-    });
+    Form
+        .create($modalEditDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalEditDispatch.find('[name=customerPhone]')?.val(customer?.phoneNumber);
+            $modalEditDispatch.find('[name=customerRecipient]')?.val(customer?.recipient);
+            $modalEditDispatch.find('[name=customerAddress]')?.val(customer?.address);
+        })
+        .onOpen(() => {
+            Modal
+                .load(
+                    'dispatch_edit_api',
+                    {id: dispatchId},
+                    $modalEditDispatch,
+                    $modalEditDispatch.find(`.modal-body`)
+
+                )
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_edit',
+            {
+                success: () => {
+                    window.location.reload()
+                }
+            }
+        )
 
     const $modalValidateDispatch = $('#modalValidateDispatch');
     const $submitValidatedDispatch = $modalValidateDispatch.find('.submit-button');
@@ -126,6 +151,8 @@ $(function() {
         SetRequestQuery(queryParams);
         $('#generateDeliveryNoteButton').click();
     }
+
+    registerVolumeCompute();
 });
 
 function generateOverconsumptionBill($button, dispatchId) {
@@ -142,6 +169,15 @@ function generateOverconsumptionBill($button, dispatchId) {
             })
             .then(() => window.location.reload())
     });
+}
+
+function generateDispatchLabel($button, dispatchId) {
+    AJAX.route(`GET`, `print_dispatch_label`, {dispatch: dispatchId})
+        .file({
+            success: "Votre étiquette a bien été imprimée.",
+            error: "Erreur lors de l'impression de l'étiquette"
+        })
+        .then(() => window.location.reload())
 }
 
 function forbiddenPhoneNumberValidator($modal) {
@@ -370,6 +406,8 @@ function savePackLine(dispatchId, $row, async = true) {
 
 function initializePacksTable(dispatchId, isEdit) {
     const $table = $(`#packTable`);
+    const columns = $table.data('initial-visible');
+
     const table = initDataTable($table, {
         serverSide: false,
         ajax: {
@@ -448,30 +486,7 @@ function initializePacksTable(dispatchId, isEdit) {
         columnDefs: [
             {targets: 1, width: '300px'},
         ],
-        columns: [
-            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
-            {data: 'code', name: 'code', title: Translation.of('Demande', 'Acheminements', 'Général', 'Code')},
-            {data: 'quantity', name: 'quantity', title: Translation.of('Demande', 'Acheminements', 'Général', 'Quantité à acheminer') + (isEdit ? '*' : '')},
-            {data: 'nature', name: 'nature', title: Translation.of('Demande','Acheminements', 'Général', 'Nature') + (isEdit ? '*' : '')},
-            {data: 'weight', name: 'weight', title: Translation.of('Demande', 'Acheminements', 'Général', 'Poids (kg)')},
-            {data: 'volume', name: 'volume', title: Translation.of('Demande', `Acheminements`, `Général`, 'Volume (m3)')},
-            {data: 'comment', name: 'comment', title: Translation.of('Général', null, 'Modale', 'Commentaire')},
-            {data: 'lastMvtDate', name: 'lastMvtDate', title: Translation.of('Demande', 'Acheminements', 'Général', 'Date dernier mouvement'), render: function(data, type) {
-                if(type !== `sort`) {
-                    const date = moment(data, 'YYYY/MM/DD HH:mm');
-                    if(date.isValid()) {
-                        const $userFormat = $('#userDateFormat');
-                        const format = ($userFormat.val() ? DATE_FORMATS_TO_DISPLAY[$userFormat.val()] : 'DD/MM/YYYY') + ' HH:mm';
-                        return date.format(format);
-                    }
-                }
-
-                return data;
-            }},
-            {data: 'lastLocation', name: 'lastLocation', title: Translation.of('Demande', `Acheminements`, `Général`, `Dernier emplacement`)},
-            {data: 'operator', name: 'operator', title: Translation.of('Demande', `Acheminements`, `Général`, `Opérateur`)},
-            {data: 'status', name: 'status', title: Translation.of('Demande', `Général`, `Statut`)},
-        ],
+        columns,
     });
 
     if(isEdit) {
@@ -524,6 +539,9 @@ function initializePacksTable(dispatchId, isEdit) {
             $row.find(`.lastLocation`).text(value.lastLocation);
             $row.find(`.operator`).text(value.operator);
             $row.find(`.status`).text(Translation.of('Demande', 'Acheminements', 'Général', 'À traiter', false));
+            $row.find(`.height`).text(value.height);
+            $row.find(`.width`).text(value.width);
+            $row.find(`.length`).text(value.length);
 
             if (defaultQuantity !== undefined) {
                 $quantity.val(defaultQuantity);
@@ -814,4 +832,20 @@ function selectUlChanged($select){
         }
         $modal.find('[name=packID]').val(ulData.exists ? ulData.id : null);
     }
+}
+
+function registerVolumeCompute() {
+    $(document).arrive(`[name=height], [name=width], [name=length]`, function() {
+        $(this).on(`change`, function() {
+            const $line = $(this).closest(`tr`);
+            const $fields = $line.find(`[name=height], [name=width], [name=length]`);
+            const $volume = $line.find(`[name=volume]`);
+            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null)) {
+                $volume.val(null);
+            } else {
+                const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);
+                $volume.val(value.toFixed(3));
+            }
+        });
+    });
 }

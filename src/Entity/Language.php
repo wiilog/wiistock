@@ -14,10 +14,24 @@ use Doctrine\ORM\Mapping\OneToMany;
 #[Entity(LanguageRepository::class)]
 class Language {
 
+    public const DMY_FORMAT = 'd/m/Y';
+    private const MDY_FORMAT = 'm-d-Y';
+    private const YMD_FORMAT = 'Y-m-d';
+
+    private const DMY_MYSQL_FORMAT = '%d/%m/%Y';
+    private const MDY_MYSQL_FORMAT = '%m-%d-%Y';
+    private const YMD_MYSQL_FORMAT = '%Y-%m-%d';
+
     public const DATE_FORMATS = [
-        "jj/mm/aaaa" => "d/m/Y",
-        "mm-dd-yyyy" => "m-d-Y",
-        "yyyy-mm-dd" => "Y-m-d"
+        "jj/mm/aaaa" => self::DMY_FORMAT,
+        "mm-dd-yyyy" => self::MDY_FORMAT,
+        "yyyy-mm-dd" => self::YMD_FORMAT,
+    ];
+
+    public const MYSQL_DATE_FORMATS = [
+        self::DMY_FORMAT => self::DMY_MYSQL_FORMAT,
+        self::MDY_FORMAT => self::MDY_MYSQL_FORMAT,
+        self::YMD_FORMAT => self::YMD_MYSQL_FORMAT,
     ];
 
     public const FRENCH_DEFAULT_SLUG = 'french-default';

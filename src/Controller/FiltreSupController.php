@@ -124,6 +124,7 @@ class FiltreSupController extends AbstractController
                 'article' => FiltreSup::FIELD_ARTICLE,
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
                 'drivers' => FiltreSup::FIELD_DRIVERS,
+                'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

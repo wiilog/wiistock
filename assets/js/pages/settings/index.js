@@ -267,17 +267,21 @@ $(function() {
 
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
+        const isSubLine = Boolean($button.data('is-sub-line'));
         const $modal = $button.closest(`.modal`);
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
+
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field})
-                .json(data)
-                .then((response) => {
-                    if(response.success){
-                        $modal.modal(`hide`);
-                    }
-                });
+            wrapLoadingOnActionButton($modal.find(`[type=submit]`), () => (
+                AJAX.route(POST, `settings_save_field_param`, {field, isSubLine})
+                    .json(data)
+                    .then((response) => {
+                        if(response.success){
+                            $modal.modal(`hide`);
+                        }
+                    })
+            ));
         }
     });
 
@@ -679,6 +683,25 @@ function initializeDispatchFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+
+    EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`, width: `115px`},
+            {data: `displayed`, title: `Afficher`, width: `70px`},
+            {data: `required`, title: `Obligatoire`},
         ],
     });
 }
