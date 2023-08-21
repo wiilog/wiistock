@@ -4,8 +4,10 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Export;
 use App\Entity\ExportScheduleRule;
 use App\Entity\ScheduleRule;
@@ -40,6 +42,9 @@ class DataExportService
 
     #[Required]
     public StorageRuleService $storageRuleService;
+
+    #[Required]
+    public DispatchService $dispatchService;
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
@@ -181,6 +186,45 @@ class DataExportService
         ];
     }
 
+    public function createDispatchesHeader(array $freeFieldsConfig): array {
+        return [
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
+            $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
+            $this->translation->translate('Demande', 'Général', 'Type', false),
+            $this->translation->translate('Demande', 'Général', 'Demandeur', false),
+            $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
+            $this->translation->translate('Demande', 'Général', 'Transporteur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
+            $this->translation->translate('Demande', 'Général', 'Statut', false),
+            $this->translation->translate('Demande', 'Général', 'Urgence', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Hauteur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Largeur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Longueur', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
+            'Commentaire UL',
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
+            ...($freeFieldsConfig['freeFieldsHeader']),
+        ];
+    }
+
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
                                          array $columnToExport): array
     {
@@ -294,6 +338,16 @@ class DataExportService
         }
     }
 
+    public function exportDispatch(array $dispatches,
+                                   mixed $output,
+                                   array $freeFieldsConfig,
+                                   array $freeFieldsById): void
+    {
+        foreach ($dispatches as $dispatch) {
+            $this->dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+        }
+    }
+
     /**
      * @throws \Exception
      */
@@ -368,7 +422,7 @@ class DataExportService
             $export->setColumnToExport([]);
         }
 
-        if($entity === Export::ENTITY_ARRIVAL || $entity === Export::ENTITY_DELIVERY_ROUND) {
+        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH])) {
             $export->setPeriod($data["period"])
                 ->setPeriodInterval($data["periodInterval"]);
         } else {

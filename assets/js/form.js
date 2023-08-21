@@ -103,7 +103,7 @@ export default class Form {
     submitTo(method, route, options) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method,route)
+                () => AJAX.route(method, route, options.params || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {
@@ -113,12 +113,18 @@ export default class Form {
                                 options.success(response);
                             }
 
-                            if(options.table) {
-                                if (options.table instanceof Function) {
-                                    options.table().ajax.reload();
-                                } else {
-                                    options.table.ajax.reload();
-                                }
+                            if(options.tables) {
+                                const tables = Array.isArray(options.tables)
+                                    ? options.tables
+                                    : [options.tables];
+
+                                tables.forEach((table) => {
+                                    if (table instanceof Function) {
+                                        table().ajax.reload();
+                                    } else {
+                                        table.ajax.reload();
+                                    }
+                                })
                             }
                         }
                     })
@@ -222,7 +228,7 @@ export default class Form {
         const $form = getFormElement(form);
         Form.addDataArray($form, data, config.classes);
 
-        processFiles($form, data);
+        processFiles($form, data, errors);
         if(config.button && config.button.attr(`name`)) {
             data.append(config.button.attr(`name`), config.button.val());
         }
@@ -476,12 +482,18 @@ function treatInputError($input, errors, form) {
                 });
             }
         } else {
-            const valueIsEmpty = (
-                $input.is(`[data-wysiwyg]`) ? !$input.find(`.ql-editor`).text() :  // for wysuwyg fields
-                ($input.is(`select[multiple]`) && Array.isArray($input.val())) ? $input.val().length === 0 : // for select2 multiple
-                $input.is(`[type="file"]`) ? (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src')) : // for input file
-                !$input.val() // other fields
-            );
+            let valueIsEmpty;
+            if ($input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`)) { // for wysuwyg fields
+                valueIsEmpty = !$input.find(`.ql-editor`).text();
+            } else if ($input.is(`.wii-one-line-wysiwyg`)) {
+                valueIsEmpty = !$input.text();
+            } else if ($input.is(`select[multiple]`) && Array.isArray($input.val())) { // for select2 multiple
+                valueIsEmpty = $input.val().length === 0;
+            } else if ($input.is(`[type="file"]`)) { // for input file
+                valueIsEmpty = (!$input.val() && !$input.siblings('.preview-container').find('img').attr('src'));
+            } else {
+                valueIsEmpty = !$input.val();
+            }
 
             if (valueIsEmpty) {
                 errors.push({
@@ -525,7 +537,7 @@ function getFormElement(form) {
     return form instanceof Form ? form.element : form;
 }
 
-function processFiles($form, data) {
+function processFiles($form, data, errors) {
     $.each(droppedFiles, function(index, file) {
         data.set(`file${index}`, file);
     });
@@ -535,6 +547,16 @@ function processFiles($form, data) {
         $savedFiles.each(function (index, field) {
             data.set(`files[${index}]`, $(field).val());
         });
+    } else {
+        const $requiredFileField = $form.find('input[name="isFileNeeded"][type="hidden"]');
+        const required = $requiredFileField.val() === '1';
+        if(required && droppedFiles.length === 0) {
+            console.log($requiredFileField.siblings('.dropFrame'), $requiredFileField);
+            errors.push({
+                elements: [$requiredFileField.siblings('.dropFrame')],
+                message: `Vous devez ajouter au moins un fichier`,
+            });
+        }
     }
 
     const $dataFiles = $form.find('.data-file');

@@ -606,6 +606,7 @@ class PackRepository extends EntityRepository
         }
 
         $dispatchId = $options['dispatchId'] ?? null;
+        $limit = isset($options['limit']) ? intval($options['limit']) : null;
 
         $qb = $this->createQueryBuilder("pack")
             ->select("pack.id AS id")
@@ -643,6 +644,10 @@ class PackRepository extends EntityRepository
         if($withoutArticle) {
             $qb->leftJoin("pack.article", "article")
                 ->andWhere("article.id IS NULL");
+        }
+
+        if($limit) {
+            $qb->setMaxResults($limit);
         }
 
         return $qb->getQuery()->getResult();

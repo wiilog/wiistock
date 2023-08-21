@@ -1,29 +1,54 @@
 {% import 'form.html.twig' as form %}
 
+{# Dispatch fixed field settings #}
+
 {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
-    modalType: emergency.modalType,
+    elementsType: emergency.elementsType,
     elements: emergency.elements,
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT'),
     field: businessUnit.field,
-    modalType: businessUnit.modalType,
+    elementsType: businessUnit.elementsType,
     elements: businessUnit.elements,
 } %}
 
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez
-            paramétrer leur visibilité ou leur caractère obligatoire.
-        </div>
+{# Dispatch logistic unit fixed field settings #}
+
+{% for field, values in dispatchLogisticUnitFixedFields %}
+    {% include 'settings/fixed_field_elements.html.twig' with {
+        modal: field,
+        field: values.field,
+        elementsType: businessUnit.elementsType,
+        elements: values.elements,
+        isSubLine: true,
+    } %}
+{% endfor %}
+
+<div class="row p-3">
+    <div class="col-12 mb-3 wii-small-text">
+        Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez
+        paramétrer leur visibilité ou leur caractère obligatoire.
     </div>
+</div>
+
+<div class="wii-section-title">Entête</div>
+<div class="wii-section">
     <table id="table-dispatch-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
             cells: 6
+        } %}
+    </table>
+</div>
+
+<div class="wii-section-title mt-3">Unités logistiques</div>
+<div class="wii-section">
+    <table id="table-dispatch-addition-fixed-fields" class="table no-border-top w-100" data-table-processing="subFixedFields">
+        {% include 'datatable/addition-table-header.html.twig' with {
+            cells: 3
         } %}
     </table>
 </div>

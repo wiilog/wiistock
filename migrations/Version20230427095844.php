@@ -46,7 +46,7 @@ final class Version20230427095844 extends AbstractMigration
                 'entityCode' => FieldsParam::ENTITY_CODE_DEMANDE,
                 'fieldCode' => $fieldCode,
                 'fieldLabel' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,
-                'modalType' => FieldsParam::MODAL_LOCATION_BY_TYPE,
+                'modalType' => FieldsParam::ELEMENTS_LOCATION_BY_TYPE,
             ]);
         }
 
