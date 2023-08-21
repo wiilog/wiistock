@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\SessionHistoryRecord;
 use App\Service\FormatService;
+use App\Service\SessionHistoryRecordService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,5 +36,18 @@ class SessionHistoryRecordController extends AbstractController
             ->toArray();
 
         return new JsonResponse($sessionHistoryRecords);
+    }
+
+    #[Route('/active-licence-count', name: 'active_licence_count', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    public function getNumberOfActiveLicence(EntityManagerInterface      $entityManager,
+                                             SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
+        $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
+        $numberOfActiveLicence = $sessionHistoryRecordRepository->getNumberOfActiveLicence();
+
+        return new JsonResponse([
+            'success' => true,
+            'refreshed' => $sessionHistoryRecordService->refreshDate($entityManager),
+            'numberOfActiveLicence' => $numberOfActiveLicence,
+        ]);
     }
 }

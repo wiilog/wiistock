@@ -15,21 +15,22 @@ Class WiilockService
     /**
      * @param EntityManagerInterface $entityManager
      * @param bool $lock
+     * @param string $type
      * @throws \Exception
      */
-    public function toggleFeedingDashboard(EntityManagerInterface $entityManager, bool $lock) {
+    public function toggleFeedingCommand(EntityManagerInterface $entityManager, bool $lock, string $type) {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
-        if (!$dashboardLock) {
-            $dashboardLock = new Wiilock();
-            $dashboardLock->setLockKey(Wiilock::DASHBOARD_FED_KEY);
-            $entityManager->persist($dashboardLock);
+        $commandLock = $wiilockRepository->findOneBy(['lockKey' => $type]);
+        if (!$commandLock) {
+            $commandLock = new Wiilock();
+            $commandLock->setLockKey($type);
+            $entityManager->persist($commandLock);
         }
 
-        $dashboardLock->setValue($lock);
+        $commandLock->setValue($lock);
 
         if (!$lock) {
-            $dashboardLock->setUpdateDate(new DateTime('now'));
+            $commandLock->setUpdateDate(new DateTime('now'));
         }
     }
 

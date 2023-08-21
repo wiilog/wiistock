@@ -1,6 +1,6 @@
 import {POST} from "@app/ajax";
 
-export function initializeLicencesPage() {
+export function initializeLicencesPage($container) {
     const tableSessionHistoryRecords = initDataTable('tableSessionHistoryRecords', {
         order: [['openedAt', 'desc']],
         serverSide: true,
@@ -18,6 +18,13 @@ export function initializeLicencesPage() {
         ],
         rowConfig: {
             needsRowClickAction: false
+        },
+        initComplete: () => {
+            AJAX.route(`GET`, 'session_history_record_active_licence_count')
+                .json()
+                .then(({numberOfActiveLicence, refreshed}) => {
+                    $container.find('.nb-actives-session').text(numberOfActiveLicence + ' licences actives - Actualisé le ' + refreshed);
+                });
         },
     });
 }

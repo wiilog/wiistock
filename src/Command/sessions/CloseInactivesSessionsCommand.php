@@ -4,7 +4,9 @@
 
 namespace App\Command\sessions;
 
+use App\Entity\Wiilock;
 use App\Service\SessionHistoryRecordService;
+use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +21,9 @@ class CloseInactivesSessionsCommand extends Command
     #[Required]
     public SessionHistoryRecordService $sessionHistoryRecordService;
 
+    #[Required]
+    public WiilockService $wiilockService;
+
     public function __construct() {
         parent::__construct();
     }
@@ -30,6 +35,8 @@ class CloseInactivesSessionsCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::INACTIVE_SESSIONS_CLEAN_KEY);
+        $this->entityManager->flush();
         $this->sessionHistoryRecordService->closeInactiveSessions($this->entityManager);
         return 0;
     }

@@ -7,11 +7,17 @@ use App\Entity\SessionHistoryRecord;
 use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
+use App\Entity\Wiilock;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SessionHistoryRecordService{
+
+    #[Required]
+    public FormatService $formatService;
 
     public const UNLIMITED_SESSIONS = -1;
 
@@ -103,5 +109,14 @@ class SessionHistoryRecordService{
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
         }
+    }
+
+    public function refreshDate(EntityManagerInterface $entityManager): string {
+        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
+        $lock = $wiilockRepository->findOneBy(["lockKey" => Wiilock::INACTIVE_SESSIONS_CLEAN_KEY]);
+
+        return $lock
+            ? $this->formatService->datetime($lock->getUpdateDate())
+            : "(date inconnue)";
     }
 }
