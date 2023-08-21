@@ -103,4 +103,10 @@ class SessionHistoryRecordRepository extends EntityRepository
 
         return $data;
     }
+
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder("session_history_record")
+            ->getQuery()
+            ->toIterable();
+    }
 }

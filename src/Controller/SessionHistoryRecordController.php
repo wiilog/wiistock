@@ -3,10 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\SessionHistoryRecord;
+use App\Service\CSVExportService;
 use App\Service\FormatService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -35,5 +38,27 @@ class SessionHistoryRecordController extends AbstractController
             ->toArray();
 
         return new JsonResponse($sessionHistoryRecords);
+    }
+
+    #[Route('/csv', name: 'csv', options: ['expose' => true], methods: ['GET'])]
+    public function getSessionHistoryRecordsCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
+        $csvHeader = [
+            "Nom utilisateur",
+            "Email",
+            "Type de connexion",
+            "Date de connexion",
+            "Date de déconnexion",
+            "Identifiant de la session",
+        ];
+
+        $today = new DateTime();
+        $today = $today->format("d-m-Y-H-i-s");
+
+        $sessionHistoryRecords = $entityManager->getRepository(SessionHistoryRecord::class)->iterateAll();
+        return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService, $sessionHistoryRecords) {
+            foreach ($sessionHistoryRecords as $sessionHistoryRecord) {
+                $CSVExportService->putLine($output, $sessionHistoryRecord->serialize());
+            }
+        }, "export-session-history-records-$today.csv", $csvHeader);
     }
 }

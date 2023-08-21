@@ -108,4 +108,15 @@ class SessionHistoryRecord
 
         return $this;
     }
+
+    public function serialize(): array {
+        return [
+            'username' => $this->getUser()->getUsername(),
+            'email' => $this->getUser()->getEmail(),
+            'type' => $this->getType()->getLabel(),
+            'openedAt' => $this->getOpenedAt()->format('d/m/Y H:i:s') ?? '',
+            'closedAt' => $this->getClosedAt()->format('d/m/Y H:i:s') ?? '',
+            'sessionId' => $this->getSessionId(),
+        ];
+    }
 }
