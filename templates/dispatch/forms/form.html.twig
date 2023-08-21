@@ -73,6 +73,7 @@
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Général', 'Demandeur', false), requiredOnform, {
                 type: 'user',
+                inputClass: 'no-clear',
                 items: [{
                     value: requester.id,
                     label: requester.username,
