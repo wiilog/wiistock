@@ -141,7 +141,6 @@ class FieldsParam {
     const FIELD_LABEL_DESTINATION = 'destination';
     const FIELD_LABEL_CUSTOMER_NAME = 'client';
     const FIELD_LABEL_CUSTOMER_PHONE = 'téléphone client';
-    const FIELD_LABEL_CUSTOMER_RECIPIENT = 'a l\'attention client';
     const FIELD_LABEL_CUSTOMER_ADDRESS = 'adresse de livraison';
 
     const ENTITY_CODE_HANDLING = 'services';

@@ -1954,17 +1954,17 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
-                            "fr" => "Hauteur",
+                            "fr" => "Hauteur (m)",
                             "en" => "Height",
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
                         ],
                         [
-                            "fr" => "Largeur",
+                            "fr" => "Largeur (m)",
                             "en" => "Width",
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
                         ],
                         [
-                            "fr" => "Longueur",
+                            "fr" => "Longueur (m)",
                             "en" => "Length",
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
                         ],

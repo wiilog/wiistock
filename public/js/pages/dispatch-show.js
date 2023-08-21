@@ -28,9 +28,16 @@ $(function() {
                     'dispatch_edit_api',
                     {id: dispatchId},
                     $modalEditDispatch,
-                    $modalEditDispatch.find(`.modal-body`)
-
-                )
+                    $modalEditDispatch.find(`.modal-body`),
+                    {
+                        onOpen: () => {
+                            const $userFormat = $('#userDateFormat');
+                            const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
+                            initDateTimePicker('.free-field-date', DATE_FORMATS_TO_DISPLAY[format]);
+                            initDateTimePicker('.free-field-datetime', DATE_FORMATS_TO_DISPLAY[format] + ' HH:mm');
+                        }
+                    }
+                );
         })
         .submitTo(
             AJAX.POST,
