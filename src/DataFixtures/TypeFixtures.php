@@ -51,7 +51,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
             CategoryType::EXPORT => [
                 Type::LABEL_SCHEDULED_EXPORT,
                 Type::LABEL_UNIQUE_EXPORT
-            ]
+            ],
+            CategoryType::SESSION_HISTORY => [
+                TYPE::LABEL_WEB_SESSION_HISTORY,
+                TYPE::LABEL_NOMADE_SESSION_HISTORY,
+            ],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);

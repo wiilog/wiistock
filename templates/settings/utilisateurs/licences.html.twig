@@ -1,0 +1,35 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-big-text">
+            Logs des connexions en temps réel.
+        </div>
+        <div class="col-12 mb-3 wii-big-text">
+            <span class="nb-actives-session mr-2">X</span>licences actives
+        </div>
+    </div>
+</div>
+<div class="wii-section">
+    <div class="row justify-content-end">
+        {# TODO WIIS-10110 #}
+        {% include "utils/action-buttons/header-buttons.html.twig" with {
+            actions: [
+                {
+                    title: "Exporter au format CSV",
+                    icon : "fa fa-file-csv",
+                    attributes: {
+                        "onclick" : "",
+                    },
+                },
+            ]
+        } %}
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table id="tableSessionHistoryRecords" class="table w-100">
+            </table>
+        </div>
+    </div>
+</div>
+{% include 'settings/utilisateurs/roles/delete.html.twig' %}

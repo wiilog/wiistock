@@ -3,6 +3,7 @@ import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MA
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
+import {initializeLicencesPage} from "./users/licences";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
@@ -90,6 +91,7 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
+    utilisateurs_licences: initializeLicencesPage,
     stock_receptions_types_litiges: initializeReceptionTypesLitige,
     trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
     trace_arrivages_statuts: initializeArrivalStatuses,

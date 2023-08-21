@@ -187,6 +187,7 @@ class Action {
     const SETTINGS_DISPLAY_LABELS_PERSO = 'afficher personnalisation des libellés';
     const SETTINGS_DISPLAY_ROLES = 'afficher rôles';
     const SETTINGS_DISPLAY_USERS = 'afficher utilisateurs';
+    const SETTINGS_DISPLAY_SESSIONS = 'afficher licences';
 
     const SETTINGS_DISPLAY_EXPORT_ENCODING = 'afficher encodage des exports CSV';
     const SETTINGS_DISPLAY_EXPORT = 'afficher export CSV';

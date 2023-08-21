@@ -125,9 +125,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $apiKey = null;
-
     #[ORM\Column(type: 'string', length: 255, unique: true, nullable: false)]
     private ?string $mobileLoginKey = null;
 
@@ -303,6 +300,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToOne(mappedBy: 'user', targetEntity: KioskToken::class)]
     private ?KioskToken $kioskToken = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
+    private Collection $sessionHistoryRecords;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -343,12 +343,13 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportRequests = new ArrayCollection();
         $this->transportRounds = new ArrayCollection();
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
+        $this->keptFieldValues = new ArrayCollection();
+        $this->sessionHistoryRecords = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
-        $this->keptFieldValues = new ArrayCollection();
     }
 
     public function getId() {
@@ -619,16 +620,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
                 $mouvement->setUser(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getApiKey(): ?string {
-        return $this->apiKey;
-    }
-
-    public function setApiKey(?string $apiKey): self {
-        $this->apiKey = $apiKey;
 
         return $this;
     }
@@ -1987,4 +1978,46 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
+    /**
+     * @return Collection<int, SessionHistoryRecord>
+     */
+    public function getSessionHistoryRecords(): Collection
+    {
+        return $this->sessionHistoryRecords;
+    }
+
+    public function addSession(SessionHistoryRecord $session): self
+    {
+        if (!$this->sessionHistoryRecords->contains($session)) {
+            $this->sessionHistoryRecords[] = $session;
+            $session->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSession(SessionHistoryRecord $session): self
+    {
+        if ($this->sessionHistoryRecords->removeElement($session)) {
+            // set the owning side to null (unless already changed)
+            if ($session->getUser() === $this) {
+                $session->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setSessionHistoryRecords(?iterable $sessionHistoryRecords): self {
+        foreach($this->getSessionHistoryRecords()->toArray() as $session) {
+            $this->removeSession($session);
+        }
+
+        $this->sessionHistoryRecords = new ArrayCollection();
+        foreach($sessionHistoryRecords ?? [] as $session) {
+            $this->addSession($session);
+        }
+
+        return $this;
+    }
 }
