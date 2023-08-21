@@ -56,7 +56,7 @@ class EmplacementRepository extends EntityRepository
                 ->setParameter("type", $collectType);
         }
 
-        if($restrictedLocations) {
+        if($restrictedLocations && !empty($restrictedLocations)) {
             $query->andWhere('location.id IN (:restrictedLocations)')
                 ->setParameter('restrictedLocations', $restrictedLocations);
         }
