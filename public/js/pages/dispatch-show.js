@@ -843,7 +843,7 @@ function selectUlChanged($select){
 
 function registerVolumeCompute() {
     $(document).arrive(`[name=height], [name=width], [name=length]`, function() {
-        $(this).on(`change`, function() {
+        $(this).on(`select2:close`, function() {
             const $line = $(this).closest(`tr`);
             const $fields = $line.find(`[name=height], [name=width], [name=length]`);
             const $volume = $line.find(`[name=volume]`);
