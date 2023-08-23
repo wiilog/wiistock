@@ -41,7 +41,9 @@ class SessionHistoryRecordController extends AbstractController
     }
 
     #[Route('/csv', name: 'csv', options: ['expose' => true], methods: ['GET'])]
-    public function getSessionHistoryRecordsCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
+    public function getSessionHistoryRecordsCSV(CSVExportService        $CSVExportService,
+                                                EntityManagerInterface  $entityManager,
+                                                FormatService           $formatService): Response {
         $csvHeader = [
             "Nom utilisateur",
             "Email",
@@ -55,9 +57,9 @@ class SessionHistoryRecordController extends AbstractController
         $today = $today->format("d-m-Y-H-i-s");
 
         $sessionHistoryRecords = $entityManager->getRepository(SessionHistoryRecord::class)->iterateAll();
-        return $CSVExportService->streamResponse(function ($output) use ($entityManager, $CSVExportService, $sessionHistoryRecords) {
+        return $CSVExportService->streamResponse(function ($output) use ($formatService, $entityManager, $CSVExportService, $sessionHistoryRecords) {
             foreach ($sessionHistoryRecords as $sessionHistoryRecord) {
-                $CSVExportService->putLine($output, $sessionHistoryRecord->serialize());
+                $CSVExportService->putLine($output, $sessionHistoryRecord->serialize($formatService));
             }
         }, "export-session-history-records-$today.csv", $csvHeader);
     }
