@@ -467,6 +467,7 @@ class LivraisonController extends AbstractController {
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
             'fromDelivery' => $request->query->getBoolean('fromDelivery'),
+            'deliveryOrder' => $deliveryOrder->getId(),
         ]));
 
         return $this->json([
@@ -476,20 +477,18 @@ class LivraisonController extends AbstractController {
     }
 
     /**
-     * @Route("/{deliveryOrder}/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
+     * @Route("/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
      */
     public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
-                                                  Livraison              $deliveryOrder,
                                                   Request                $request,
                                                   LivraisonService       $livraisonService,
-                                                  PDFGeneratorService    $PDFGeneratorService,
                                                   SpecificService        $specificService): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $data = json_decode($request->getContent(), true);
-
+        $data = $request->request->all();
+        $deliveryOrder = $entityManager->find(Livraison::class, $data['deliveryOrder']);
         $userDataToSave = [];
         $deliveryDataToSave = [];
 

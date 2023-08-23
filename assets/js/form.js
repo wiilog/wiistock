@@ -103,7 +103,7 @@ export default class Form {
     submitTo(method, route, options) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method, route, options.params || {})
+                () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
                         if(response.success) {
@@ -551,7 +551,6 @@ function processFiles($form, data, errors) {
         const $requiredFileField = $form.find('input[name="isFileNeeded"][type="hidden"]');
         const required = $requiredFileField.val() === '1';
         if(required && droppedFiles.length === 0) {
-            console.log($requiredFileField.siblings('.dropFrame'), $requiredFileField);
             errors.push({
                 elements: [$requiredFileField.siblings('.dropFrame')],
                 message: `Vous devez ajouter au moins un fichier`,
