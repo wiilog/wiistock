@@ -583,6 +583,7 @@ class MobileController extends AbstractApiController
 
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
+                        $fromStock = isset($mvt['fromStock']) && $mvt['fromStock'];
 
                         //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
@@ -591,7 +592,7 @@ class MobileController extends AbstractApiController
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
-                        if($pack) {
+                        if(!$fromStock && $pack) {
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
