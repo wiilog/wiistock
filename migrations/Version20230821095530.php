@@ -27,9 +27,6 @@ final class Version20230821095530 extends AbstractMigration
                 "label" => CategoryType::TRANSFER_REQUEST,
             ])->fetchOne();
 
-        dump($categoryId);
-        dump('helllllllo');
-
         $this->addSql("UPDATE type SET notifications_enabled = 1 WHERE category_id = :categoryId AND label = :label", [
             "categoryId" => $categoryId,
             "label" => Type::LABEL_STANDARD,
