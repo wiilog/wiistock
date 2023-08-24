@@ -493,10 +493,7 @@ class OrdreCollecteController extends AbstractController
                 $fileName
             );
         } else {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Aucune étiquette à imprimer"
-            ]);
+            return new Response('', 404);
         }
     }
 
