@@ -1039,6 +1039,7 @@ class ArrivageController extends AbstractController {
                     'id' => $statut->getId(),
                     'type' => $statut->getType(),
                     'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
                 ])
                 ->toArray();
 
