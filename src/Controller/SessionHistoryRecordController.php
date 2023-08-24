@@ -70,11 +70,13 @@ class SessionHistoryRecordController extends AbstractController
                                        SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $activeLicenceCount = $sessionHistoryRecordRepository->getActiveLicenceCount();
+        $maxLicenceCount = $sessionHistoryRecordService->getOpenedSessionLimit();
 
         return new JsonResponse([
             'success' => true,
             'refreshed' => $sessionHistoryRecordService->refreshDate($entityManager),
             'activeLicenceCount' => $activeLicenceCount,
+            'maxLicenceCount' => $maxLicenceCount,
         ]);
     }
 }
