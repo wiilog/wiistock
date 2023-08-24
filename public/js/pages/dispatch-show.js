@@ -844,7 +844,7 @@ function registerVolumeCompute() {
                 $volume.val(null);
             } else {
                 const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);
-                $volume.val(value.toFixed(3));
+                $volume.val(value.toFixed(6));
             }
         });
     });
