@@ -3,7 +3,8 @@
         <label class="wii-field-name" for="disputeType">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type') }}*</label>
         <select class="form-control data needed"
                 id="disputeType"
-                name="disputeType">
+                name="disputeType"
+                disabled>
             <option value="{{ dispute.type.id }}"
                     selected>{{ dispute.type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% for type in disputeTypes %}
