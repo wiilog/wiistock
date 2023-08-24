@@ -228,7 +228,7 @@
         <div class="form-group col-md-4 col-12">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% set dispatchBusinessUnit = dispatch.businessUnit %}
-            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Business unit', false), requiredOnform, {
+            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit', false), requiredOnform, {
                 items: dispatchBusinessUnits|map((businessUnit) => {
                     value: businessUnit,
                     label: businessUnit,
