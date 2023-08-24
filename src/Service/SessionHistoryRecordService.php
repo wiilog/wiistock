@@ -21,6 +21,8 @@ class SessionHistoryRecordService{
 
     public const UNLIMITED_SESSIONS = 0;
 
+    public const MAX_SESSIONS_POSSIBLE = 1000;
+
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
                                             ?Utilisateur           $user,
                                             DateTime               $date,
@@ -61,6 +63,10 @@ class SessionHistoryRecordService{
             ]);
             return $openedSessionsHistory < $openedSessionLimit;
         }
+    }
+
+    public function getOpenedSessionLimit(): int {
+        return intval($_SERVER["SESSION_LIMIT"] ?? self::MAX_SESSIONS_POSSIBLE);
     }
 
     public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
