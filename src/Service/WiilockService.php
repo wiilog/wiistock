@@ -12,13 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 Class WiilockService
 {
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param bool $lock
-     * @param string $type
-     * @throws \Exception
-     */
-    public function toggleFeedingCommand(EntityManagerInterface $entityManager, bool $lock, string $type) {
+    public function toggleFeedingCommand(EntityManagerInterface $entityManager, bool $lock, string $type): void {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $commandLock = $wiilockRepository->findOneBy(['lockKey' => $type]);
         if (!$commandLock) {
@@ -34,27 +28,19 @@ Class WiilockService
         }
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return bool
-     */
     public function dashboardIsBeingFed(EntityManagerInterface $entityManager): bool {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
         return (!empty($dashboardLock) && $dashboardLock->getValue());
     }
 
-    public function dashboardNeedsFeeding(EntityManagerInterface $entityManager) {
+    public function dashboardNeedsFeeding(EntityManagerInterface $entityManager): bool {
         $now = new DateTime('now');
         $lastUpdate = $this->getLastDashboardFeedingTime($entityManager);
 
         return !$this->dashboardIsBeingFed($entityManager) || $lastUpdate->diff($now)->i >= 15;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return DateTimeInterface|null
-     */
     public function getLastDashboardFeedingTime(EntityManagerInterface $entityManager): ?DateTimeInterface {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);

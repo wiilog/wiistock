@@ -22,8 +22,8 @@ export function initializeLicencesPage($container) {
         initComplete: () => {
             AJAX.route(`GET`, 'session_history_record_active_licence_count')
                 .json()
-                .then(({numberOfActiveLicence, refreshed}) => {
-                    $container.find('.nb-actives-session').text(numberOfActiveLicence + ' licences actives - Actualisé le ' + refreshed);
+                .then(({activeLicenceCount, refreshed}) => {
+                    $container.find('.nb-actives-session').html(`<strong>${activeLicenceCount} licence${activeLicenceCount > 1 ? 's' : ''} active${activeLicenceCount > 1 ? 's' : ''}</strong> - Actualisé le ${refreshed}`);
                 });
         },
     });

@@ -117,6 +117,6 @@ class SessionHistoryRecordService{
 
         return $lock
             ? $this->formatService->datetime($lock->getUpdateDate())
-            : "(date inconnue)";
+            : "-";
     }
 }

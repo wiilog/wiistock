@@ -38,16 +38,16 @@ class SessionHistoryRecordController extends AbstractController
         return new JsonResponse($sessionHistoryRecords);
     }
 
-    #[Route('/active-licence-count', name: 'active_licence_count', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
-    public function getNumberOfActiveLicence(EntityManagerInterface      $entityManager,
-                                             SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
+    #[Route('/active-licence-count', name: 'active_licence_count', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function activeLicenceCount(EntityManagerInterface      $entityManager,
+                                       SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $numberOfActiveLicence = $sessionHistoryRecordRepository->getNumberOfActiveLicence();
+        $activeLicenceCount = $sessionHistoryRecordRepository->getActiveLicenceCount();
 
         return new JsonResponse([
             'success' => true,
             'refreshed' => $sessionHistoryRecordService->refreshDate($entityManager),
-            'numberOfActiveLicence' => $numberOfActiveLicence,
+            'activeLicenceCount' => $activeLicenceCount,
         ]);
     }
 }
