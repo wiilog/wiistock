@@ -19,7 +19,7 @@ class SessionHistoryRecordService{
     #[Required]
     public FormatService $formatService;
 
-    public const UNLIMITED_SESSIONS = -1;
+    public const UNLIMITED_SESSIONS = 0;
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
                                             ?Utilisateur           $user,
@@ -49,17 +49,17 @@ class SessionHistoryRecordService{
         return true;
     }
 
-    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $utilisateur): bool {
+    public function isLoginPossible(EntityManagerInterface $entityManager): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $oppenedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
+        $openedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
 
-        if ($oppenedSessionLimit === self::UNLIMITED_SESSIONS) {
+        if ($openedSessionLimit === self::UNLIMITED_SESSIONS) {
             return true;
         } else {
-            $oppenedSessionsHistory = $sessionHistoryRepository->count([
+            $openedSessionsHistory = $sessionHistoryRepository->count([
                 'closedAt' => null,
             ]);
-            return $oppenedSessionsHistory < $oppenedSessionLimit;
+            return $openedSessionsHistory < $openedSessionLimit;
         }
     }
 

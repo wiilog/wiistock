@@ -180,7 +180,7 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ description and description['manufacturerCode'] ? description['manufacturerCode'] : '' }}
+                            {{ description and description['manufacturerCode'] is defined ? description['manufacturerCode'] : '' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -192,7 +192,7 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ description and description['weight'] ? description['weight'] : '' }}
+                            {{ description and description['weight'] is defined ? description['weight'] : '' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
