@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Wiilock;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -26,7 +27,7 @@ class DashboardResetCommand extends Command {
     protected function execute(InputInterface $input, OutputInterface $output): ?int {
         if($this->wiilockService->dashboardIsBeingFed($this->entityManager)) {
             $output->writeln("Dashboards are being fed...");
-            $this->wiilockService->toggleFeedingDashboard($this->entityManager, false);
+            $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
             $this->entityManager->flush();
         }
         $output->writeln("Wiilock reset...");
