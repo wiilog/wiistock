@@ -21,7 +21,7 @@ class SessionHistoryRecordService{
 
     public const UNLIMITED_SESSIONS = 0;
 
-    public const MAX_SESSIONS_POSSIBLE = 1000;
+    public const MAX_SESSIONS_POSSIBLE = 2000;
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
                                             ?Utilisateur           $user,
