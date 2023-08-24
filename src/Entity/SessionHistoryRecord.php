@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\SessionHistoryRecordRepository;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -107,5 +108,16 @@ class SessionHistoryRecord
         $this->sessionId = $sessionId;
 
         return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+        return [
+            'username' => $formatService->user($this->getUser()),
+            'email' => $formatService->user($this->getUser(), "", true),
+            'type' => $formatService->type($this->getType()),
+            'openedAt' => $formatService->datetime($this->getOpenedAt()),
+            'closedAt' => $formatService->datetime($this->getClosedAt()),
+            'sessionId' => $this->getSessionId(),
+        ];
     }
 }

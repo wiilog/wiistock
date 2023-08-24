@@ -1126,13 +1126,11 @@ class TrackingMovementService extends AbstractController
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir l'UL
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
-            $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
-            $bold = '<span class="font-weight-bold"> ';
             return [
                 'success' => false,
-                'msg' => 'Le ' . $packTranslation . $bold . $packCode . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.',
+                'msg' => "L'unité logistique <strong>$packCode</strong> ne dispose pas des $natureTranslation pour être déposée sur l'emplacement <strong>$location</strong>.",
             ];
         }
 

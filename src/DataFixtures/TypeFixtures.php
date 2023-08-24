@@ -84,6 +84,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                         $type
                             ->setCategory($this->getReference('type-' . $categoryName))
                             ->setLabel($typeName);
+
+                        if($categoryName === CategoryType::TRANSFER_REQUEST) {
+                            $type->setNotificationsEnabled(true);
+                        }
+
                         $manager->persist($type);
                         $output->writeln("Création du type \"" . $typeName . "\" dans la catégorie \"" . $type->getCategory()->getLabel() . "\"");
                     }

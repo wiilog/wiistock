@@ -111,4 +111,10 @@ class SessionHistoryRecordRepository extends EntityRepository
 
         return QueryBuilderHelper::count($queryBuilder, 'session_history_record');
     }
+
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder("session_history_record")
+            ->getQuery()
+            ->toIterable();
+    }
 }

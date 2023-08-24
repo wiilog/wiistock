@@ -1343,3 +1343,8 @@ function registerCopyToClipboard(message = undefined) {
             ).then(() => Flash.add(Flash.INFO, message || `Le texte a bien été copié dans le presse-papiers.`));
     });
 }
+
+function openModal(modal) {
+    let $modal = modal instanceof jQuery ? modal : $(modal);
+    $modal.modal(`show`);
+}
