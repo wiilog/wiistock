@@ -69,7 +69,7 @@ services:
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'
-            - { db_table: 'user_session', db_id_col: 'id', db_data_col: 'data', db_time_col: 'time', db_lifetime_col: 'lifetime' }
+            - { db_table: 'user_session', db_id_col: 'id', db_data_col: 'data', db_time_col: 'time', db_lifetime_col: 'lifetime', lock_mode: '0' }
 
     wiistock.specific_service:
         class: App\Service\SpecificService
