@@ -525,7 +525,7 @@ class LivraisonController extends AbstractController {
         file_put_contents($filePath, $content);
 
         return new PdfResponse(
-            $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder),
+            $content,
             "$title.pdf"
         );
     }
