@@ -68,7 +68,7 @@
                                     {% if hasRightToGenerateDeliveryNote %}
                                         <a type="button"
                                            data-dispatch-id='{{ dispatch.id }}'
-                                           onclick="openDeliveryNoteModal($(this))"
+                                           onclick="openModal(`#modalPrintDeliveryNote`)"
                                            id="generateDeliveryNoteButton"
                                            title="Générer un bon de livraison"
                                            class="dropdown-item  d-flex align-items-center">

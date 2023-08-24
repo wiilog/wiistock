@@ -6,19 +6,6 @@ $(function () {
     Select2Old.location($selectDeleteDeliveryLocation);
     loadLogisticUnitPack(deliveryId);
 
-    let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
-    let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
-    let urlPrintDeliveryNote = Routing.generate('delivery_note_delivery_order', {deliveryOrder: getDeliveryId()}, true);
-    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId, headerDetailsConfig}) => {
-            $('.zone-entete').html(headerDetailsConfig);
-            window.location.href = Routing.generate('print_delivery_note_delivery_order', {
-                deliveryOrder: getDeliveryId(),
-                attachment: attachmentId
-            });
-        }
-    });
-
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_delivery_waybill', {deliveryOrder: deliveryId}, true);
@@ -31,6 +18,8 @@ $(function () {
             });
         },
     });
+
+    initDeliveryNoteModal();
 });
 
 function loadLogisticUnitPack(deliveryId) {
@@ -242,35 +231,53 @@ function getDeliveryId() {
     return $('input[type="hidden"][name="delivery-id"]').val();
 }
 
-function openDeliveryNoteModal($button, fromDelivery = false) {
-    const livraisonId = getDeliveryId();
-    $.get(Routing.generate('api_delivery_note_livraison', {deliveryOrder: livraisonId, fromDelivery}))
-        .then((result) => {
-            if(result.success) {
-                const $modal = $('#modalPrintDeliveryNote');
-                const $modalBody = $modal.find('.modal-body');
-                $modalBody.html(result.html);
-                $modal.modal('show');
+function initDeliveryNoteModal() {
+    const $modal = $(`#modalPrintDeliveryNote`);
+    const $modalBody = $modal.find(`.modal-body`);
+    const deliveryOrderId = getDeliveryId();
 
-                $('select[name=buyer]').on('change', function (){
-                    const data = $(this).select2('data');
-                    if(data.length > 0){
-                        const {fax, phoneNumber, address} = data[0];
-                        const $modal = $(this).closest('.modal');
-                        if(fax){
-                            $modal.find('input[name=buyerFax]').val(fax);
-                        }
-                        if(phoneNumber){
-                            $modal.find('input[name=buyerPhone]').val(phoneNumber);
-                        }
-                        if(address){
-                            $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
-                        }
-                    }
-                });
-            } else {
-                showBSAlert(result.msg, "danger");
+    Form.create($modal)
+        .submitTo(AJAX.POST, `delivery_note_delivery_order`, {
+            success: ({attachmentId, headerDetailsConfig}) => {
+                $(`.zone-entete`).html(headerDetailsConfig);
+
+                Flash.presentFlashWhile(() => (
+                    AJAX.route(AJAX.GET, `print_delivery_note_delivery_order`, {
+                        deliveryOrder: deliveryOrderId,
+                        attachment: attachmentId
+                    }).file({
+                        success: "Votre bon de livraison a bien été téléchargé.",
+                        error: "Erreur lors du téléchargement du bon de livraison."
+                    }).then(() => window.location.reload())
+                ), `Le téléchargement du bon de livraison est en cours, veuillez patienter...`);
             }
+        })
+        .onOpen(() => {
+            Modal.load(`api_delivery_note_livraison`, {deliveryOrder: deliveryOrderId, fromDelivery: true}, $modal, $modalBody, {
+                onOpen: ({success, msg}) => {
+                    if (success) {
+                        $modal.find(`[name=buyer]`).on(`change`, function () {
+                            const data = $(this).select2(`data`);
+                            if (data.length > 0) {
+                                const {fax, phoneNumber, address} = data[0];
+                                const $modal = $(this).closest(`.modal`);
+                                if (fax) {
+                                    $modal.find(`input[name=buyerFax]`).val(fax);
+                                }
+                                if (phoneNumber) {
+                                    $modal.find(`input[name=buyerPhone]`).val(phoneNumber);
+                                }
+                                if (address) {
+                                    $modal.find(`[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo]`).val(address);
+                                }
+                            }
+                        });
+                    } else {
+                        Flash.add(Flash.ERROR, msg);
+                    }
+                },
+                onClose: () => $modalBody.empty(),
+            });
         });
 }
 

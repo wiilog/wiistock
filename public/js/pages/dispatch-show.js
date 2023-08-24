@@ -64,23 +64,6 @@ $(function() {
     const urlDispatchDelete = Routing.generate('dispatch_delete', true);
     InitModal($modalDeleteDispatch, $submitDeleteDispatch, urlDispatchDelete);
 
-    let $modalPrintDeliveryNote = $('#modalPrintDeliveryNote');
-    let $submitPrintDeliveryNote = $modalPrintDeliveryNote.find('.submit');
-    let urlPrintDeliveryNote = Routing.generate('delivery_note_dispatch', {dispatch: dispatchId}, true);
-    InitModal($modalPrintDeliveryNote, $submitPrintDeliveryNote, urlPrintDeliveryNote, {
-        success: ({attachmentId, headerDetailsConfig}) => {
-            $(`.zone-entete`).html(headerDetailsConfig);
-            AJAX.route(`GET`, `print_delivery_note_dispatch`, {
-                dispatch: dispatchId,
-                attachment: attachmentId,
-            }).file({
-                success: "Votre bon de livraison a bien été imprimée.",
-                error: "Erreur lors de l'impression du bon de livraison."
-            }).then(() => window.location.reload());
-        },
-        validator: forbiddenPhoneNumberValidator,
-    });
-
     let $modalPrintWaybill = $('#modalPrintWaybill');
     let $submitPrintWayBill = $modalPrintWaybill.find('.submit');
     let urlPrintWaybill = Routing.generate('post_dispatch_waybill', {dispatch: dispatchId}, true);
@@ -159,6 +142,7 @@ $(function() {
         $('#generateDeliveryNoteButton').click();
     }
 
+    initDeliveryNoteModal(dispatchId);
     registerVolumeCompute();
 });
 
@@ -187,10 +171,8 @@ function generateDispatchLabel($button, dispatchId) {
         .then(() => window.location.reload())
 }
 
-function forbiddenPhoneNumberValidator($modal) {
-    const $inputs = $modal.find(".forbidden-phone-numbers");
-    const $invalidElements = [];
-    const errorMessages = [];
+function forbiddenPhoneNumberValidator(data, errors, $form) {
+    const $inputs = $form.find(".forbidden-phone-numbers");
     const numbers = ($('#forbiddenPhoneNumbers').val() || '')
         .split(';')
         .map((number) => number.replace(/[^0-9]/g, ''));
@@ -200,18 +182,15 @@ function forbiddenPhoneNumberValidator($modal) {
         const rawValue = ($input.val() || '');
         const value = rawValue.replace(/[^0-9]/g, '');
 
-        if(value
-            && numbers.indexOf(value) !== -1) {
-            errorMessages.push(`Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici`);
-            $invalidElements.push($input);
+        if(value && numbers.indexOf(value) !== -1) {
+            errors.push({
+                message: `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`,
+                global: true,
+            });
         }
     });
 
-    return {
-        success: $invalidElements.length === 0,
-        errorMessages,
-        $isInvalidElements: $invalidElements,
-    };
+    return errors;
 }
 
 function openValidateDispatchModal() {
@@ -283,40 +262,54 @@ function runDispatchPrint($button) {
             })));
 }
 
-function openDeliveryNoteModal($button, fromDelivery = false) {
-    const dispatchId = $button.data('dispatch-id');
+function initDeliveryNoteModal(dispatchId) {
+    const $modal = $(`#modalPrintDeliveryNote`);
+    const $modalBody = $modal.find(`.modal-body`);
 
-    wrapLoadingOnActionButton($button, () => (
-        AJAX.route(`GET`, `api_delivery_note_dispatch`, {dispatch: dispatchId, fromDelivery})
-            .json()
-            .then((result) => {
-                if (result.success) {
-                    const $modal = $('#modalPrintDeliveryNote');
-                    const $modalBody = $modal.find('.modal-body');
-                    $modalBody.html(result.html);
-                    $modal.modal('show');
+    Form.create($modal)
+        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator(data, errors, $form))
+        .submitTo(AJAX.POST, `delivery_note_dispatch`, {
+            success: ({attachmentId, headerDetailsConfig}) => {
+                $(`.zone-entete`).html(headerDetailsConfig);
 
-                    $('select[name=buyer]').on('change', function () {
-                        const data = $(this).select2('data');
-                        if (data.length > 0) {
-                            const {fax, phoneNumber, address} = data[0];
-                            const $modal = $(this).closest('.modal');
-                            if (fax) {
-                                $modal.find('input[name=buyerFax]').val(fax);
+                Flash.presentFlashWhile(() => (
+                    AJAX.route(`GET`, `print_delivery_note_dispatch`, {
+                        dispatch: dispatchId,
+                        attachment: attachmentId,
+                    }).file({
+                        success: "Votre bon de livraison a bien été téléchargé.",
+                        error: "Erreur lors du téléchargement du bon de livraison."
+                    }).then(() => window.location.reload())
+                ), `Le téléchargement du bon de livraison est en cours, veuillez patienter...`);
+            }
+        })
+        .onOpen(() => {
+            Modal.load(`api_delivery_note_dispatch`, {dispatch: dispatchId, fromDelivery: false}, $modal, $modalBody, {
+                onOpen: ({success, msg}) => {
+                    if (success) {
+                        $modal.find(`[name=buyer]`).on(`change`, function () {
+                            const data = $(this).select2(`data`);
+                            if (data.length > 0) {
+                                const {fax, phoneNumber, address} = data[0];
+                                const $modal = $(this).closest(`.modal`);
+                                if (fax) {
+                                    $modal.find(`input[name=buyerFax]`).val(fax);
+                                }
+                                if (phoneNumber) {
+                                    $modal.find(`input[name=buyerPhone]`).val(phoneNumber);
+                                }
+                                if (address) {
+                                    $modal.find(`[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo]`).val(address);
+                                }
                             }
-                            if (phoneNumber) {
-                                $modal.find('input[name=buyerPhone]').val(phoneNumber);
-                            }
-                            if (address) {
-                                $modal.find('[name=deliveryAddress],[name=invoiceTo],[name=soldTo],[name=endUser],[name=deliverTo] ').val(address);
-                            }
-                        }
-                    });
-                } else {
-                    showBSAlert(result.msg, "danger");
-                }
-            })
-    ))
+                        });
+                    } else {
+                        Flash.add(Flash.ERROR, msg);
+                    }
+                },
+                onClose: () => $modalBody.empty(),
+            });
+        });
 }
 
 function openWaybillModal($button) {
