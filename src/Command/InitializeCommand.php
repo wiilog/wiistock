@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Entity\Wiilock;
 use App\Service\SettingsService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,7 +30,7 @@ class InitializeCommand extends Command {
     protected function execute(InputInterface $input, OutputInterface $output): ?int {
         if ($this->wiilockService->dashboardIsBeingFed($this->entityManager)) {
             $output->writeln("Dashboards were locked, unlocking");
-            $this->wiilockService->toggleFeedingDashboard($this->entityManager, false);
+            $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::DASHBOARD_FED_KEY);
         } else {
             $output->writeln("Dashboards were not locked");
         }

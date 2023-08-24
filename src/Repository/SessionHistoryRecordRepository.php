@@ -104,6 +104,14 @@ class SessionHistoryRecordRepository extends EntityRepository
         return $data;
     }
 
+    public function getActiveLicenceCount(): int
+    {
+        $queryBuilder = $this->createQueryBuilder('session_history_record')
+            ->andWhere('session_history_record.closedAt IS NULL');
+
+        return QueryBuilderHelper::count($queryBuilder, 'session_history_record');
+    }
+
     public function iterateAll(): iterable {
         return $this->createQueryBuilder("session_history_record")
             ->getQuery()

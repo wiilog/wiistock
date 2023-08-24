@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\SessionHistoryRecord;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
+use App\Service\SessionHistoryRecordService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -62,5 +63,18 @@ class SessionHistoryRecordController extends AbstractController
                 $CSVExportService->putLine($output, $sessionHistoryRecord->serialize($formatService));
             }
         }, "export-session-history-records-$today.csv", $csvHeader);
+    }
+
+    #[Route('/active-licence-count', name: 'active_licence_count', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function activeLicenceCount(EntityManagerInterface      $entityManager,
+                                       SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
+        $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
+        $activeLicenceCount = $sessionHistoryRecordRepository->getActiveLicenceCount();
+
+        return new JsonResponse([
+            'success' => true,
+            'refreshed' => $sessionHistoryRecordService->refreshDate($entityManager),
+            'activeLicenceCount' => $activeLicenceCount,
+        ]);
     }
 }
