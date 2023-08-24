@@ -66,8 +66,6 @@ class SessionHistoryRecordService{
     }
 
     public function getOpenedSessionLimit(): int {
-        var_dump($_SERVER);
-        var_dump($_ENV);
         return intval($_SERVER["SESSION_LIMIT"] ?? self::MAX_SESSIONS_POSSIBLE);
     }
 
