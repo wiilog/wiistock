@@ -68,9 +68,11 @@ class SecuriteController extends AbstractController {
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
         if($loggedUser && $loggedUser instanceof Utilisateur) {
+            $sessionHistoryRecordService->closeInactiveSessions($entityManager);
             $typeRepository = $entityManager->getRepository(Type::class);
             $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
             $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser,  new DateTime('now'), $type, $request);
+            $entityManager->flush();
 
             return $this->redirectToRoute('app_index');
         }
