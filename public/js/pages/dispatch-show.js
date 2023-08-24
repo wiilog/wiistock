@@ -374,9 +374,11 @@ function reverseFields($button, inputName1, inputName2) {
 }
 
 function savePackLine(dispatchId, $row, async = true) {
+    console.log($row);
     let data = Form.process($row);
     data = data instanceof FormData ? data.asObject() : data;
 
+    console.log(data);
     if(data) {
         if (!jQuery.deepEquals(data, JSON.parse($row.data(`data`)))) {
             $.ajax({
@@ -844,7 +846,7 @@ function registerVolumeCompute() {
                 $volume.val(null);
             } else {
                 const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);
-                $volume.val(value.toFixed(3));
+                $volume.val(value);
             }
         });
     });

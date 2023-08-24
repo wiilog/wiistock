@@ -959,7 +959,7 @@ class DispatchController extends AbstractController {
         $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
         $pack->setWeight($weight ? round($weight, 3) : null);
-        $pack->setVolume($volume ? round($volume, 3) : null);
+        $pack->setVolume($volume ?? null);
         $dispatch->setUpdatedAt(new DateTime());
         $success = true;
         $packCode = $pack->getCode();
