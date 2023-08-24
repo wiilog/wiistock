@@ -778,7 +778,10 @@ class DispatchService {
             $quantity = $dispatchPack->getQuantity();
             $nature = $pack->getNature();
             $weight = $pack->getWeight();
-            $volume = $pack->getVolume();
+            $volume = $this->formatService->decimal($pack->getVolume(), [
+                'decimals' => 6,
+                'decimalSeparator' => '.',
+            ]);
             $comment = $pack->getComment();
             $lastMvtDate = $lastTracking && $lastTracking->getDatetime() ? $lastTracking->getDatetime()->format("{$user->getDateFormat()} H:i") : null;
             $lastLocation = $lastTracking ? $this->formatService->location($lastTracking->getEmplacement()) : null;

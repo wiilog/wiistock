@@ -955,11 +955,12 @@ class DispatchController extends AbstractController {
         $entityManager->persist($dispatchPack);
 
         $nature = $natureRepository->find($natureId);
-        $pack->setNature($nature);
-        $pack->setComment($comment);
         $dispatchPack->setQuantity($quantity);
-        $pack->setWeight($weight ? round($weight, 3) : null);
-        $pack->setVolume($volume ?? null);
+        $pack
+            ->setNature($nature)
+            ->setComment($comment)
+            ->setWeight($weight ? round($weight, 3) : null)
+            ->setVolume($volume ? round($volume, 6) : null);
         $dispatch->setUpdatedAt(new DateTime());
         $success = true;
         $packCode = $pack->getCode();
