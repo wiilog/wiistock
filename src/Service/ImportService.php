@@ -1224,6 +1224,12 @@ class ImportService
                 $message = "Veuillez saisir la référence de l'article de référence.";
                 $this->throwError($message);
             }
+
+            if (empty($data['articleFournisseurReference'])) {
+                $message = "Veuillez saisir la référence article fournisseur.";
+                $this->throwError($message);
+            }
+
             $article = new Article();
             $isNewEntity = true;
         }
