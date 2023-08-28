@@ -165,7 +165,7 @@
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
                             <div class="col-6 mt-2">
-                                {{ form.input('manufactureDate', 'Date de fabrication', required, article.id and article.manifacturingDate ? article.manifacturingDate|date('Y-m-d'), {
+                                {{ form.input('manufactureDate', 'Date de fabrication', required, article.id and article.manufacturingDate ? article.manufacturingDate|date('Y-m-d'), {
                                     type: 'date'
                                 }) }}
                             </div>

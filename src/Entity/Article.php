@@ -161,7 +161,7 @@ class Article implements PairedEntity {
     private ?NativeCountry $nativeCountry = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?DateTime $manifacturingDate = null;
+    private ?DateTime $manufacturingDate = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
@@ -849,14 +849,14 @@ class Article implements PairedEntity {
     /**
      * @return string|null
      */
-    public function getManifacturingDate(): ?DateTime
+    public function getManufacturingDate(): ?DateTime
     {
-        return $this->manifacturingDate;
+        return $this->manufacturingDate;
     }
 
-    public function setManifacturingDate(?DateTime $manifacturingDate): self
+    public function setManufacturingDate(?DateTime $manufacturingDate): self
     {
-        $this->manifacturingDate = $manifacturingDate;
+        $this->manufacturingDate = $manufacturingDate;
 
         return $this;
     }
