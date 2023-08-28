@@ -306,7 +306,7 @@ class ArticleDataService
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setBatch($data['batch'] ?? null);
 
             if(isset($data['nativeCountry'])) {
@@ -328,7 +328,7 @@ class ArticleDataService
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null)
@@ -451,13 +451,13 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
-            "manufactureDate" => $this->formatService->date($article->getManifacturingDate()),
+            "manufactureDate" => $this->formatService->date($article->getManufacturingDate()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
             'RFIDtag' => $article->getRFIDtag(),
-            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
+            'manifacturingDate' => $article->getManufacturingDate() ? $article ->getManufacturingDate()->format('d/m/Y') : '',
             'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 

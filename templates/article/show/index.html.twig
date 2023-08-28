@@ -165,7 +165,7 @@
                         'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_MANUFACTURE_DATE'),
                         'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE'), 'displayedCreate'),
                         'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURE_DATE'), 'displayedEdit'),
-                        'value': article.manifacturingDate ? article.manifacturingDate|format_helper('longDate')
+                        'value': article.manufacturingDate ? article.manufacturingDate|format_helper('longDate')
                     },
                     {
                         'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE'),
