@@ -357,7 +357,7 @@
                      data-type="{{ type.typeId }}">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: type.champsLibres,
-                        freeFieldValues: [],
+                        freeFieldValues: dispatch.freeFields,
                         colType: 'col-md-4 col-12',
                         requiredType: 'requiredCreate',
                         actionType: 'new',
