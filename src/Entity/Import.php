@@ -43,12 +43,13 @@ class Import {
     ];
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
-            'référence article de référence',
-            'référence fournisseur',
+            'referenceReference',
+            'fournisseurReference',
             'reference',
         ],
         self::ENTITY_ART => [
-            'référence article de référence',
+            'referenceReference',
+            'articleFournisseurReference',
             'label',
             'emplacement',
         ],
