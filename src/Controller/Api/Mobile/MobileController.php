@@ -75,6 +75,7 @@ use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReserveService;
+use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TrackingMovementService;
@@ -117,79 +118,116 @@ class MobileController extends AbstractApiController
      * @Rest\View()
      * @Wii\RestVersionChecked()
      */
-    public function postApiKey(Request                  $request,
-                               EntityManagerInterface   $entityManager,
-                               UserService              $userService,
-                               DispatchService          $dispatchService)
+    public function postApiKey(Request                      $request,
+                               EntityManagerInterface       $entityManager,
+                               UserService                  $userService,
+                               SessionHistoryRecordService  $sessionHistoryRecordService,
+                               DispatchService              $dispatchService)
     {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-
+        $typeRepository = $entityManager->getRepository(Type::class);
         $mobileKey = $request->request->get('loginKey');
 
         $loggedUser = $utilisateurRepository->findOneBy(['mobileLoginKey' => $mobileKey, 'status' => true]);
         $data = [];
 
         if (!empty($loggedUser)) {
-            $apiKey = $this->apiKeyGenerator();
-            $loggedUser->setApiKey($apiKey);
-            $entityManager->flush();
+            if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
+                $sessionHistoryRecordService->closeInactiveSessions($entityManager);
+                if($sessionHistoryRecordService->isLoginPossible($entityManager)){
+                    $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
+                    $apiKey = $this->apiKeyGenerator();
+                    $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
+                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager,$loggedUser, new DateTime('now'), $sessionType, $apiKey);
+                    $entityManager->flush();
 
-            $rights = $userService->getMobileRights($loggedUser);
-            $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
+                    $rights = $userService->getMobileRights($loggedUser);
+                    $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
 
-            $channels = Stream::from($rights)
-                ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
-                ->takeKeys()
-                ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
-                ->toArray();
+                    $channels = Stream::from($rights)
+                        ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                        ->takeKeys()
+                        ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                        ->toArray();
 
-            if (in_array($_SERVER["APP_INSTANCE"] . "-stock" , $channels)) {
-                Stream::from($loggedUser->getDeliveryTypes())
-                    ->each(function(Type $deliveryType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
-                    });
+                    if (in_array($_SERVER["APP_INSTANCE"] . "-stock", $channels)) {
+                        Stream::from($loggedUser->getDeliveryTypes())
+                            ->each(function (Type $deliveryType) use (&$channels) {
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                            });
+                    }
+                    if (in_array($_SERVER["APP_INSTANCE"] . "-tracking", $channels)) {
+                        Stream::from($loggedUser->getDispatchTypes())
+                            ->each(function (Type $dispatchType) use (&$channels) {
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
+                            });
+                    }
+                    if (in_array($_SERVER["APP_INSTANCE"] . "-demande", $channels)) {
+                        Stream::from($loggedUser->getHandlingTypes())
+                            ->each(function (Type $handlingType) use (&$channels) {
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
+                            });
+                    }
+
+                    $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+
+                    $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
+                        ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+                        ->toArray();
+
+                    $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
+                    $wayBillData['dispatch_id'] = null;
+
+                    $data['success'] = true;
+                    $data['data'] = [
+                        'apiKey' => $apiKey,
+                        'notificationChannels' => $channels,
+                        'rights' => $rights,
+                        'parameters' => $parameters,
+                        'username' => $loggedUser->getUsername(),
+                        'userId' => $loggedUser->getId(),
+                        'fieldsParam' => $fieldsParam ?? [],
+                        'dispatchDefaultWaybill' => $wayBillData ?? [],
+                    ];
+                } else {
+                    $data = [
+                        'success' => false,
+                        'msg' => "Le nombre de licence utilisés en cours sur cette instance a déjà été atteint"
+                    ];
+                }
+            } else {
+                $data = [
+                    'success' => false,
+                    'msg' => "Cet utilisateur ne dispose pas des droits pour accéder à l'application mobile."
+                ];
             }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-tracking" , $channels)) {
-                Stream::from($loggedUser->getDispatchTypes())
-                    ->each(function(Type $dispatchType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
-                    });
-            }
-            if (in_array($_SERVER["APP_INSTANCE"] . "-demande" , $channels)) {
-                Stream::from($loggedUser->getHandlingTypes())
-                    ->each(function(Type $handlingType) use (&$channels) {
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
-                    });
-            }
-
-            $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
-
-            $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
-                ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
-                ->toArray();
-
-            $wayBillData = $dispatchService->getWayBillDataForUser($loggedUser, $entityManager);
-            $wayBillData['dispatch_id'] = null;
-
-            $data['success'] = true;
-            $data['data'] = [
-                'apiKey' => $apiKey,
-                'notificationChannels' => $channels,
-                'rights' => $rights,
-                'parameters' => $parameters,
-                'username' => $loggedUser->getUsername(),
-                'userId' => $loggedUser->getId(),
-                'fieldsParam' => $fieldsParam ?? [],
-                'dispatchDefaultWaybill' => $wayBillData ?? [],
-            ];
         } else {
             $data['success'] = false;
         }
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Rest\Post("/api/logout", name="api_logout", condition="request.isXmlHttpRequest()")
+     * @Wii\RestAuthenticated()
+     * @Wii\RestVersionChecked()
+     */
+    public function logout(EntityManagerInterface $entityManager,
+                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse{
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $nomadUser = $this->getUser();
+        $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
+        $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $nomadUser, $sessionType);
+        $entityManager->flush();
+
+        $this->setUser($nomadUser);
+        return new JsonResponse([
+            'success' => true,
+        ]);
     }
 
     /**
@@ -545,6 +583,7 @@ class MobileController extends AbstractApiController
 
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
+                        $fromStock = isset($mvt['fromStock']) && $mvt['fromStock'];
 
                         //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
@@ -553,7 +592,7 @@ class MobileController extends AbstractApiController
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
-                        if($pack) {
+                        if(!$fromStock && $pack) {
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -3501,8 +3540,13 @@ class MobileController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $userRepository = $manager->getRepository(Utilisateur::class);
         $dispatchRepository = $manager->getRepository(Dispatch::class);
+        $settingRepository = $manager->getRepository(Setting::class);
 
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH);
+        $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+            throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+        }
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;
@@ -3838,7 +3882,7 @@ class MobileController extends AbstractApiController
 
             if(isset($truckArrivalLine['reserve'])){
                 $lineReserve = (new Reserve())
-                    ->setKind($truckArrivalLine['reserve']['type'])
+                    ->setKind(Reserve::KIND_LINE)
                     ->setComment($truckArrivalLine['reserve']['comment'] ?? null);
 
                 if($truckArrivalLine['reserve']['reserveTypeId']){

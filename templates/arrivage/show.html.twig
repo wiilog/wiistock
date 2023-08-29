@@ -56,12 +56,11 @@
                                             title: trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer unités logistiques'),
                                             icon: "wii-icon wii-icon-printer-black",
                                             attributes: {
-                                            "data-toggle": "modal",
-                                            "data-target": "#modalColumnVisible",
                                             "onclick": "printArrival({
                                                     'arrivageId': " ~ arrivage.id ~ ",
                                                     'printPacks' : true,
-                                                    'printArrivage' : true
+                                                    'printArrivage' : true,
+                                                    'printAll': true,
                                                 })"
                                         },
                                         }
@@ -120,6 +119,20 @@
         'route': 'save_column_visible_for_pack',
     } %}
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalNewDispatch',
+        size: 'modal-xl',
+        header: {
+            title: trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Demande d\'acheminement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
 
 {% endblock %}
 

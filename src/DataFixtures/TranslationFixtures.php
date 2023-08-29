@@ -78,6 +78,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "Unité logistique",
                             "en" => "Logistic unit",
                         ],
+                        [
+                            "fr" => "Unité(s) logistique(s)",
+                            "en" => "Logistic unit(s)",
+                        ],
                     ],
                 ],
                 "Zone liste" => [
@@ -1950,6 +1954,21 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF bon acheminement\nPDF lettre de voiture\nEmails",
                         ],
                         [
+                            "fr" => "Hauteur (m)",
+                            "en" => "Height",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
+                            "fr" => "Largeur (m)",
+                            "en" => "Width",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
+                            "fr" => "Longueur (m)",
+                            "en" => "Length",
+                            "tooltip" => "Détails acheminements - Liste des UL - Nom de colonnes\nPDF étiquette d'UL",
+                        ],
+                        [
                             "fr" => "Traité",
                             "en" => "Processed",
                             "tooltip" => "Détails acheminements - Liste des unités logistiques - Nom de colonnes\nEmails",
@@ -2052,6 +2071,26 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Drop location",
                             "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \nNomade\nPDF bon acheminement",
                         ],
+                        [
+                            "fr" => "Client",
+                            "en" => "Customer",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
+                        [
+                            "fr" => "Téléphone client",
+                            "en" => "Customer phone",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête \n",
+                        ],
+                        [
+                            "fr" => "À l'attention de",
+                            "en" => "Customer recipient",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
+                        [
+                            "fr" => "Adresse de livraison",
+                            "en" => "Customer address",
+                            "tooltip" => "Zone liste - Nom de colonnes\nModale Nouvelle demande\nModale Modifier un acheminement \nDétails acheminement - Entête",
+                        ],
                     ],
                 ],
                 "Zone liste - Noms de colonnes" => [
@@ -2083,6 +2122,11 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         [
                             "fr" => "Générer un bon d'acheminement",
                             "en" => "Generate a transfer note",
+                            "tooltip" => "Détails acheminements - Bouton sous flèche",
+                        ],
+                        [
+                            "fr" => "Générer une étiquette",
+                            "en" => "Generate label",
                             "tooltip" => "Détails acheminements - Bouton sous flèche",
                         ],
                         [
@@ -3096,7 +3140,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
                     $this->console->writeln("Created default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 } else if($french->getTranslation() != $translation["fr"]) {
-                    $english->setTranslation($translation["fr"]);
+                    $french->setTranslation($translation["fr"]);
 
                     $this->console->writeln("Updated default french source translation \"" . str_replace("\n", "\\n ", $translation["fr"]) . "\"");
                 }
@@ -3201,7 +3245,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
 
     private function updateUsers()
     {
-        $users = $this->manager->getRepository(Utilisateur::class)->findAll();
+        $users = $this->manager->getRepository(Utilisateur::class)->iterateUserWithNullLanguageOrDateFormat();
         $french = $this->manager->getRepository(Language::class)->findOneBy(["slug" => "french"]);
 
         foreach ($users as $user) {

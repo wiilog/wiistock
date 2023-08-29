@@ -20,7 +20,6 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -218,22 +217,6 @@ class SettingsService {
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
             $updated[] = Setting::APP_CLIENT;
-        }
-
-        if ($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
-            $mailer
-                ->setSmtp($data->get("MAILER_URL"))
-                ->setUser($data->get("MAILER_USER"))
-                ->setPassword($data->get("MAILER_PASSWORD"))
-                ->setPort($data->get("MAILER_PORT"))
-                ->setProtocol($data->get("MAILER_PROTOCOL"))
-                ->setSenderName($data->get("MAILER_SENDER_NAME"))
-                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-
-            if (!$mailer->getId()) {
-                $this->manager->persist($mailer);
-            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -707,9 +690,9 @@ class SettingsService {
                         ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
                         : $type->getDropLocation()?->getId();
 
-                    $suggestedDropLocations = explode(',', $data["suggestedDropLocations"]);
+                    $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
 
-                    if ($dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                    if (!empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
                         throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
                     }
                 }
@@ -720,9 +703,9 @@ class SettingsService {
                         ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
                         : $type->getPickLocation()?->getId();
 
-                    $suggestedPickLocations = explode(',', $data["suggestedPickLocations"]);
+                    $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
 
-                    if ($pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
+                    if (!empty($suggestedPickLocations) && $pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }
@@ -871,8 +854,8 @@ class SettingsService {
                 $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($subLineFieldParam) {
-                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()]);
-                    $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition ;
+                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
+                    $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition;
                     $conditionFixedFieldValue = Stream::explode(",", $subLineFieldCanBeDisplayedUnderCondition ? ($item["conditionFixedFieldValue"] ?? "") : "")
                         ->filter()
                         ->toArray();
@@ -882,7 +865,7 @@ class SettingsService {
                     }
 
                     $subLineFieldRequired = ($item["required"] ?? false )
-                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()]);
+                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
 
                     $subLineFieldParam
                         ->setDisplayed($item["displayed"] ?? null)

@@ -372,6 +372,10 @@ label, .wii-checkbox, .wii-radio {
     }
 }
 
+.wii-one-line-wysiwyg-wrapper .invalid-feedback {
+    font-size: 100% !important;
+}
+
 $wysiwyg-dropdown-button-size: 20px;
 
 .wii-one-line-wysiwyg-popover {
@@ -426,6 +430,7 @@ $wysiwyg-dropdown-button-size: 20px;
             color: $input-focus-color;
             background-color: $input-focus-bg;
             border-color: $input-focus-border-color;
+            box-shadow: none !important;
             outline: 0;
         }
 

@@ -2,8 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
 use App\Entity\Role;
+use App\Entity\Type;
+use App\Security\UserChecker;
 use App\Service\MailerService;
+use App\Service\SessionHistoryRecordService;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -55,15 +59,21 @@ class SecuriteController extends AbstractController {
 
 
     /**
-     * @Route("/login/{success}", name="login", options={"expose"=true})
+     * @Route("/login/{success}", name="login", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
+                          SessionHistoryRecordService $sessionHistoryRecordService,
+                          Request $request,
                           string $success = ''): Response {
         $loggedUser = $this->getUser();
-        if($loggedUser && $loggedUser instanceof Utilisateur && $loggedUser->getStatus()) {
-            $loggedUser->setLastLogin(new DateTime('now'));
+        if($loggedUser && $loggedUser instanceof Utilisateur) {
+            $sessionHistoryRecordService->closeInactiveSessions($entityManager);
+            $typeRepository = $entityManager->getRepository(Type::class);
+            $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
+            $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser,  new DateTime('now'), $type, $request);
             $entityManager->flush();
+
             return $this->redirectToRoute('app_index');
         }
 
@@ -72,10 +82,8 @@ class SecuriteController extends AbstractController {
 
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $user = $utilisateurRepository->findOneBy(['email' => $lastUsername]);
-        if($user && $user->getStatus() === false) {
-            return $this->redirectToRoute('logout');
+        if(in_array($error?->getCode(), [UserChecker::ACCOUNT_DISABLED_CODE, UserChecker::NO_MORE_SESSION_AVAILABLE])) {
+            $errorToDisplay = $error->getMessage();
         } else if($error) {
             $errorToDisplay = 'Les identifiants renseignés sont incorrects';
         }

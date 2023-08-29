@@ -6,12 +6,12 @@ use App\Entity\Utilisateur;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
 class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
 
     public function load(ObjectManager $manager) {
-        $users = $manager->getRepository(Utilisateur::class)->findAll();
-
+        $users = $manager->getRepository(Utilisateur::class)->iterateAll();
         /** @var Utilisateur $user */
         foreach ($users as $user) {
             $visibleColumns = $user->getVisibleColumns() ?? Utilisateur::DEFAULT_VISIBLE_COLUMNS;
@@ -24,6 +24,9 @@ class VisibleColumnFixtures extends Fixture implements FixtureGroupInterface {
             }
 
             $user->setVisibleColumns(array_merge($visibleColumns, $missingVisibleColumns));
+
+            $manager->flush();
+            $manager->clear();
         }
 
         $manager->flush();

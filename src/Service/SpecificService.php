@@ -22,6 +22,7 @@ class SpecificService
     const CLIENT_CLB = 'clb';
     const CLIENT_AIA_BRETAGNE = 'aia-bretagne';
     const CLIENT_RATIER_FIGEAC = 'ratier-figeac';
+    const CLIENT_AIA_CUERS = 'aia-cuers';
 
 	const CLIENTS = [
         self::CLIENT_COLLINS_VERNON => 'Collins Vernon',
@@ -41,6 +42,7 @@ class SpecificService
         self::CLIENT_SAFRAN_MC => 'Safran MC',
         self::CLIENT_AIA_BRETAGNE => 'AIA Bretagne',
         self::CLIENT_RATIER_FIGEAC => 'Ratier Figeac',
+        self::CLIENT_AIA_CUERS => 'AIA Cuers',
     ];
 
 	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';

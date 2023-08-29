@@ -1,7 +1,7 @@
 {% extends 'mails/template.html.twig' %}
 
 {% set isReception = (isReception is defined and isReception) %}
-{% set roleIsQuantityTypeArticle = (app.user.role.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE')) %}
+{% set roleIsQuantityTypeArticle = (requester ?? app.user).role.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
 {% block content %}
     {% if isReception and reception.manualUrgent %}
         <p style="font-weight: 600">{{ trans('Ordre', 'Réceptions', 'Cette réception est urgente', false) }}.</p>

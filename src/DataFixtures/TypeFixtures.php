@@ -51,7 +51,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
             CategoryType::EXPORT => [
                 Type::LABEL_SCHEDULED_EXPORT,
                 Type::LABEL_UNIQUE_EXPORT
-            ]
+            ],
+            CategoryType::SESSION_HISTORY => [
+                TYPE::LABEL_WEB_SESSION_HISTORY,
+                TYPE::LABEL_NOMADE_SESSION_HISTORY,
+            ],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);
@@ -80,6 +84,11 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                         $type
                             ->setCategory($this->getReference('type-' . $categoryName))
                             ->setLabel($typeName);
+
+                        if($categoryName === CategoryType::TRANSFER_REQUEST) {
+                            $type->setNotificationsEnabled(true);
+                        }
+
                         $manager->persist($type);
                         $output->writeln("Création du type \"" . $typeName . "\" dans la catégorie \"" . $type->getCategory()->getLabel() . "\"");
                     }

@@ -3,7 +3,7 @@
 {% include 'settings/fixed_field_elements.html.twig' with {
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
-    modalType: emergency.modalType,
+    elementsType: emergency.elementsType,
     elements: emergency.elements,
 } %}
 
@@ -11,7 +11,7 @@
     modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING'),
     field: receivers.field,
     types: receivers.types,
-    modalType: receivers.modalType,
+    elementsType: receivers.elementsType,
     elements: receivers.elements,
 } %}
 

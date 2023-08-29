@@ -352,8 +352,7 @@ class UserController extends AbstractController {
                     }
                     else {
                         $user
-                            ->setMobileLoginKey($mobileLoginKey)
-                            ->setApiKey(null);
+                            ->setMobileLoginKey($mobileLoginKey);
                     }
                 }
             }

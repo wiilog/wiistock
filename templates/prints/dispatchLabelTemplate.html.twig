@@ -1,0 +1,176 @@
+<html lang="fr">
+<head>
+    <style>
+        body {
+            width: 100mm;
+            height: 75mm;
+        }
+
+        .dispatch-label-container{
+            padding: 0.5rem;
+        }
+
+        .entete-container {
+            margin-right: 3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .client-container {
+            margin-bottom: 0.3rem;
+        }
+
+        .barcode-container {
+            margin-top: 0.5rem;
+            position: relative;
+            float: right;
+            height: 35mm;
+            width: 40mm;
+            margin-right: 0.5rem;
+        }
+
+        .table-container {
+             display: block;
+             width: 24cm;
+        }
+
+        .visa-container {
+            padding: 0.2rem;
+            border: black 2px solid;
+        }
+
+        svg {
+            max-width: 100%;
+            height: 100%;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-breaker {
+            page-break-before: always;
+            height: 0;
+        }
+
+        span.small-text {
+            font-size: small;
+            padding: 0.3rem
+        }
+
+        th.small-text, td.small-text {
+            font-size: small;
+            margin-right: 0.3rem;
+        }
+
+        div.small-text {
+            font-size: small;
+            padding-left: 0.3rem
+        }
+
+        .left-align {
+            padding-left: 0.3rem;
+            font-size: large;
+        }
+
+        th {
+            font-size: small;
+        }
+
+        .mb-3px {
+            margin-bottom: 3px;
+        }
+
+        .pr-3rem {
+            padding-right: 0.3rem;
+        }
+
+        * {
+            color: black !important;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+    <title>{{ title }}</title>
+</head>
+<body>
+{% for config in barcodeConfigs %}
+    {% if not loop.first %}
+        <div class="page-breaker"></div>
+    {% endif %}
+
+    <div class="barcode-container">
+        <div class="barcode-wrapper"
+             style="height: 50% !important;">
+            {{ printBarcode({
+                code: config.barcode.code,
+                type: config.barcode.type,
+                format: 'svg',
+                height: config.barcode.height,
+                width: config.barcode.width
+            })|raw }}
+        </div>
+
+        <div class="barcode-code">
+            <svg viewBox="{{ config.barcode.type == 'qrcode' ? '0.1 0.5 3 3' : '-0.1 0.7 3 3' }}"
+                 xmlns="http://www.w3.org/2000/svg">
+                <text y="1"
+                      x="50%"
+                      text-anchor="middle"
+                      font-size="0.3">
+                    {{ config.barcode.code }}
+                </text>
+            </svg>
+        </div>
+    </div>
+
+    <div class="dispatch-label-container">
+        <div class="entete-container">
+            <div class="small-text" style="font-weight: bold;">EXP N°{{ config.dispatch.number }}</div>
+            <div style="margin-bottom: 0.2rem;">
+                <div class="small-text">Mode d'acheminement:</div>
+                <div class="left-align small-text"><strong>{{ config.dispatch.businessUnit }}</strong></div>
+            </div>
+            <div class="small-text">
+                N° BL/AIA: <strong>{{ config.dispatch.orderNumber }}</strong>
+            </div>
+        </div>
+        <div class="client-container">
+            <div class="small-text mb-3px">Destinataire: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
+            <div class="small-text mb-3px">Adresse de livraison: <strong style="white-space: nowrap;">{{ config.dispatch.customerAddress }}</strong></div>
+            <div class="small-text">N° téléphone: <strong>{{ config.dispatch.customerPhone }}</strong></div>
+        </div>
+        <div class="table-container">
+            <table>
+                <tr>
+                    <th class="small-text pr-3rem">Contenant</th>
+                    <th class="small-text pr-3rem">Long(M)</th>
+                    <th class="small-text pr-3rem">Larg(M)</th>
+                    <th class="small-text pr-3rem">Haut(M)</th>
+                    <th class="small-text pr-3rem">Vol(M³)</th>
+                    <th class="small-text">Poids(Kg)</th>
+                </tr>
+                <tr>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.nature ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.length ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.width ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.height ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.volume ?? '-' }}</td>
+                    <td class="small-text">{{ config.dispatch.dispatchPack.weight ?? '-' }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="visa-container">
+            <div style="font-weight: bold">Visa</div>
+            <div>
+                <span>Matricule: <strong>{{ config.requester }}</strong></span>
+                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("m/d/Y") }}</span>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</body>
+</html>

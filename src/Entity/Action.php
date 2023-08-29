@@ -63,6 +63,7 @@ class Action {
     const SHOW_CARRIER_FIELD = 'afficher le champ transporteur';
     const GENERATE_DELIVERY_NOTE = 'générer un bon de livraison';
     const GENERATE_WAY_BILL = 'générer une lettre de voiture';
+    const GENERATE_DISPATCH_LABEL = 'générer une étiquette';
     const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
@@ -186,6 +187,7 @@ class Action {
     const SETTINGS_DISPLAY_LABELS_PERSO = 'afficher personnalisation des libellés';
     const SETTINGS_DISPLAY_ROLES = 'afficher rôles';
     const SETTINGS_DISPLAY_USERS = 'afficher utilisateurs';
+    const SETTINGS_DISPLAY_SESSIONS = 'afficher licences';
 
     const SETTINGS_DISPLAY_EXPORT_ENCODING = 'afficher encodage des exports CSV';
     const SETTINGS_DISPLAY_EXPORT = 'afficher export CSV';
@@ -197,6 +199,7 @@ class Action {
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
     // menu nomade
+    const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
     const MODULE_ACCESS_STOCK = 'Accès Stock';
     const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
