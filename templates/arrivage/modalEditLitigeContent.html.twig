@@ -1,8 +1,10 @@
+{% set hasRightTreatDispute = hasRight(constant('App\\Entity\\Menu::QUALI'), constant('App\\Entity\\Action::TREAT_DISPUTE')) %}
+
 <div class="row">
     <div class="form-group col-8">
         <label class="wii-field-name" for="disputeType">{{ trans('Qualité', 'Litiges', 'Type') }}*</label>
         <select class="form-control data needed"
-            {{ not hasRightToTreatLitige ? 'disabled' }}
+            {{ not hasRightTreatDispute ? 'disabled' }}
                 id="disputeType" name="disputeType" disabled>
             <option value="{{ dispute.type.id }}" selected>{{ dispute.type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% for type in disputeTypes %}
@@ -24,7 +26,7 @@
         <select class="form-control data needed" name="disputeStatus" title="Statut">
             {% for statut in disputeStatuses %}
                 {% set selected = (dispute.status.id == statut.id) ? 'selected' : '' %}
-                {% set disabled = hasRightToTreatLitige ? '' : (statut.treated and statut.id != dispute.status.id ? 'disabled' : '') %}
+                {% set disabled = hasRightTreatDispute ? '' : (statut.treated and statut.id != dispute.status.id ? 'disabled' : '') %}
                 <option value="{{ statut.id }}" {{ selected }} {{ disabled }}>{{ statut.nom }}</option>
             {% endfor %}
         </select>
