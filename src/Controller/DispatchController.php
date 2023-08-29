@@ -457,7 +457,7 @@ class DispatchController extends AbstractController {
         ]);
     }
 
-    #[Route("/voir/{id}/{printBL}", name: "dispatch_show", defaults: ["printBL" => 0, "fromCreation" => 0])]
+    #[Route("/voir/{id}/{printBL}", name: "dispatch_show", options: ["expose" => true], defaults: ["printBL" => 0, "fromCreation" => 0])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
     public function show(Dispatch               $dispatch,
                          Request                $request,

@@ -368,7 +368,7 @@ class DispatchRepository extends EntityRepository
     public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
-        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat];
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
 
         $subQuery = $this->createQueryBuilder('sub_dispatch')
             ->select('COUNT(join_sub_dispatch_packs)')
