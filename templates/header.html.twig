@@ -16,7 +16,14 @@
                 <a class="position-relative" href="{{ path('app_index') }}">
                     <img src="{{ logo('website') }}" alt="Follow GT" height="100" class="sizeLogo"/>
                 </a>
-                <span class="web-version d-none d-lg-inline">{{ web_version }}</span>
+                <span class="web-version d-none d-lg-inline">
+                    {% if  app_environment is not same as('prod') %}
+                        <span class="h3">
+                            Recette
+                        </span>
+                    {% endif %}
+                    {{ web_version }}
+                </span>
             </div>
 
             {% if not withOnlyLogo %}

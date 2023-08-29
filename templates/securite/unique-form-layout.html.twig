@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
 {% block body %}
-    <div class="header-container d-flex">
+    <div class="header-container d-flex {{ app_environment }}">
         {% include 'header.html.twig' with {
             withOnlyLogo: 1
         } %}

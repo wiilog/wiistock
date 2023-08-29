@@ -406,6 +406,10 @@ select.is-invalid {
 }
 
 .bg-primary-followgt {
+    &.preprod {
+        background: linear-gradient(-64deg, $purple, $aqua);
+    }
+
     background: linear-gradient(-64deg, $header-right, $header-left);
 }
 
