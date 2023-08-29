@@ -117,4 +117,25 @@ class SessionHistoryRecordRepository extends EntityRepository
             ->getQuery()
             ->toIterable();
     }
+
+    public function countsNonWiilogOpenedSessions() {
+        $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
+
+        $queryBuilder = $this->createQueryBuilder("session_history_record")
+            ->leftJoin('session_history_record.user', 'user')
+            ->andWhere('session_history_record.closedAt IS NULL');
+
+        foreach ($wiilogDomains as $index => $domain) {
+            $parameterName = 'domain' . $index;
+            $queryBuilder
+                ->andWhere('user.email NOT LIKE :'.$parameterName)
+                ->setParameter($parameterName, '%@'.$domain.'%');
+        }
+
+        return $queryBuilder
+            ->select('count(session_history_record.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

@@ -9,7 +9,10 @@
 </div>
 <div class="wii-section">
     <div class="row justify-content-between align-items-center">
-        <span class="nb-actives-session ml-4"></span>
+        <span class="ml-4">
+            {{ activeSessionsCount }} Licence{{ activeSessionsCount > 1 ? 's' : '' }} active{{ activeSessionsCount > 1 ? 's' : '' }}
+            {{ maxAutorisedSession > 0 ? 'sur ' ~ maxAutorisedSession : '' }} - Actualisé le : {{ "now"|date("d/m/Y H:i:s") }}
+        </span>
         {% include "utils/action-buttons/header-buttons.html.twig" with {
             actions: [
                 {

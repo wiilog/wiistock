@@ -28,6 +28,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduleRule;
+use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -56,6 +57,7 @@ use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\SessionHistoryRecordService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
@@ -108,6 +110,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public  SessionHistoryRecordService $sessionHistoryRecordService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -1075,6 +1080,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
@@ -1672,6 +1678,10 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
+                ],
+                self::MENU_SESSIONS => fn() => [
+                    "activeSessionsCount" => $sessionHistoryRepository->countsNonWiilogOpenedSessions(),
+                    "maxAutorisedSession" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
                 ],
             ],
         ];
