@@ -2127,15 +2127,18 @@ class SettingsController extends AbstractController {
                         false,
                         [
                             [
-                                "label" => "Désactiver", "value" => 0,
+                                "label" => "Désactiver",
+                                "value" => 0,
                                 "checked" => !$type || !$type->isNotificationsEnabled(),
                             ],
                             [
-                                "label" => "Activer", "value" => 1,
+                                "label" => "Activer",
+                                "value" => 1,
                                 "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies(),
                             ],
                             [
-                                "label" => "Activer seulement si urgence", "value" => 2,
+                                "label" => "Activer seulement si urgence",
+                                "value" => 2,
                                 "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies(),
                             ],
                         ],
@@ -2152,6 +2155,7 @@ class SettingsController extends AbstractController {
                     ->map(fn(string $emergency) => "<option value='$emergency' " . ($type && in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
                     ->join("");
 
+                $required = $type && $type->getNotificationsEmergencies() ? 'required' : '';
                 $data = array_merge($data, [
                     [
                         'breakline' => true,
@@ -2162,7 +2166,7 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100' $required>$emergencyValues</select>",
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);
