@@ -225,6 +225,7 @@ function initPage() {
             'dispatch_new',
             {
                 tables: [tableDispatches],
+                success: ({redirect}) => window.location.href = redirect,
             }
         )
 }
