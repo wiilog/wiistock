@@ -2137,7 +2137,7 @@ class MobileController extends AbstractApiController
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
-            ->setManufacturingDate($manufacturingDate)
+            ->setManufacturedAt($manufacturingDate)
             ->setPurchaseOrder($commandNumberStr)
             ->setRFIDtag($rfidTag)
             ->setBatch($batchStr)
