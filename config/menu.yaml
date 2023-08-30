@@ -255,6 +255,10 @@ parameters:
             icon: 'documentation'
             url: 'https://wiilog.gitbook.io/docs/'
 
+        -   label: 'Support'
+            icon: 'phone'
+            url: 'https://wiilog.freshdesk.com/support/home'
+
         -   label: 'Déconnexion'
             icon: 'deco'
             path: 'logout'

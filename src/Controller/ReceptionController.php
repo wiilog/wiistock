@@ -1182,7 +1182,6 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
             $packsCode = [];
@@ -1198,10 +1197,19 @@ class ReceptionController extends AbstractController {
                 $acheteursCode[] = $buyer->getId();
             }
 
+            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
+                ])
+                ->toArray();
+
             $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
+                'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
             ]);
 
