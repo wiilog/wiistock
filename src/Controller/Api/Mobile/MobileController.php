@@ -137,11 +137,11 @@ class MobileController extends AbstractApiController
         if (!empty($loggedUser)) {
             if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
                 $sessionHistoryRecordService->closeInactiveSessions($entityManager);
-                if($sessionHistoryRecordService->isLoginPossible($entityManager)){
+                if($sessionHistoryRecordService->isLoginPossible($entityManager, $loggedUser)){
                     $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
                     $apiKey = $this->apiKeyGenerator();
                     $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
-                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager,$loggedUser, new DateTime('now'), $sessionType, $apiKey);
+                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $sessionType, $apiKey);
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
