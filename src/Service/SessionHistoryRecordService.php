@@ -58,7 +58,7 @@ class SessionHistoryRecordService{
         if ($openedSessionLimit === self::UNLIMITED_SESSIONS || $user->isWiilogUser()) {
             return true;
         } else {
-            $openedSessionsHistory = $sessionHistoryRepository->countsNonWiilogOpenedSessions();
+            $openedSessionsHistory = $sessionHistoryRepository->countOpenedSessions();
             return $openedSessionsHistory < $openedSessionLimit;
         }
     }

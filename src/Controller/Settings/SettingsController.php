@@ -112,7 +112,7 @@ class SettingsController extends AbstractController {
     public LanguageService $languageService;
 
     #[Required]
-    public  SessionHistoryRecordService $sessionHistoryRecordService;
+    public SessionHistoryRecordService $sessionHistoryRecordService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -1680,8 +1680,8 @@ class SettingsController extends AbstractController {
                         ->toArray(),
                 ],
                 self::MENU_SESSIONS => fn() => [
-                    "activeSessionsCount" => $sessionHistoryRepository->countsNonWiilogOpenedSessions(),
-                    "maxAutorisedSession" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
+                    "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
+                    "maxAuthorizedSessions" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
                 ],
             ],
         ];

@@ -203,7 +203,7 @@ class UserController extends AbstractController {
             }
 
             if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                throw new FormException("L'adresse email principale \"{$data['email']}\" n'est pas valide");
+                throw new FormException("L'adresse email principale {$data['email']} n'est pas valide");
             }
 
             // unicité de l'username
@@ -218,9 +218,9 @@ class UserController extends AbstractController {
                 throw new FormException('Vous ne pouvez pas désactiver votre propre compte.');
             }
 
-            // vérification si logger user a le droit de modifier un utilisateur wiilog
+            // vérification si logged user a le droit de modifier un utilisateur wiilog
             if (!$loggedUser->isWiilogUser() && $user->isWiilogUser()) {
-                throw new FormException("Vous ne pouvez pas modifier le rôle d'un membre de l'equipe Wiilog.");
+                throw new FormException("Vous ne pouvez pas modifier un membre de l'equipe Wiilog.");
             }
 
             $secondaryEmails = isset($data['secondaryEmails'])
@@ -228,7 +228,7 @@ class UserController extends AbstractController {
                 : [];
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    throw new FormException("L'adresse email \"{$email}\" n'est pas valide");
+                    throw new FormException("L'adresse email $email n'est pas valide");
                 }
             }
 
@@ -323,7 +323,7 @@ class UserController extends AbstractController {
                     if (empty($mobileLoginKey)
                         || strlen($mobileLoginKey) < UserService::MIN_MOBILE_KEY_LENGTH
                         || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
-                        throw new FormException("La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.");
+                        throw new FormException('La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.');
                     }
                     else {
                         $user->setMobileLoginKey($mobileLoginKey);
