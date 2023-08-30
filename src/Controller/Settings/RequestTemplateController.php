@@ -38,9 +38,7 @@ class RequestTemplateController extends AbstractController {
     #[Required]
     public TranslationService $translation;
 
-    /**
-     * @Route("/modele-demande/{category}/header/{template}", name="settings_request_template_header", options={"expose"=true})
-     */
+    #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true])]
     public function requestTemplateHeader(Request                   $request,
                                           string                    $category,
                                           Environment               $twig,
@@ -330,7 +328,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Urgence",
-                    "value" => $template->getEmergency() ?: $this->translation->translate('Demande', 'Général', 'Statut'),
+                    "value" => $template->getEmergency() ?: $this->translation->translate('Demande', 'Général', 'Non urgent'),
                 ];
 
                 $data[] = [
@@ -385,9 +383,7 @@ class RequestTemplateController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modele-demande/api/{template}", name="settings_request_template_api", options={"expose"=true})
-     */
+    #[Route("/modele-demande/api/{template}", name: "settings_request_template_api", options: ["expose" => true])]
     public function requestTemplateApi(Request $request, ?RequestTemplate $template = null): Response {
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
 
@@ -444,11 +440,9 @@ class RequestTemplateController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modele-demande/ligne/supprimer/{entity}", name="settings_request_template_line_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
-    public function deleteRequestTemplateLine(EntityManagerInterface $manager, RequestTemplateLine $entity) {
+    #[Route("/modele-demande/ligne/supprimer/{entity}", name: "settings_request_template_line_delete", options: ["expose" => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
+    public function deleteRequestTemplateLine(EntityManagerInterface $manager, RequestTemplateLine $entity): JsonResponse {
         $entity->setRequestTemplate(null);
         $manager->remove($entity);
         $manager->flush();
@@ -458,9 +452,8 @@ class RequestTemplateController extends AbstractController {
             "msg" => "Le modèle de demande a bien été mise à jour",
         ]);
     }
-    /**
-     * @Route("/verification/demande/{requestTemplate}", name="settings_request_template_check_delete", methods={"GET"}, options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+
+    #[Route("/verification/demande/{requestTemplate}", name: "settings_request_template_check_delete", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function checkRequestTemplateCanBeDeleted(RequestTemplate $requestTemplate): Response {
         if ($requestTemplate->getTriggerActions()->isEmpty()) {
             $success = true;
@@ -477,10 +470,8 @@ class RequestTemplateController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/modele-demande/supprimer/{requestTemplate}", name="settings_request_template_delete", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route("/modele-demande/supprimer/{requestTemplate}", name: "settings_request_template_delete", options: ["expose" => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteRequestTemplate(EntityManagerInterface $manager,
                                           RequestTemplate $requestTemplate): JsonResponse {
 

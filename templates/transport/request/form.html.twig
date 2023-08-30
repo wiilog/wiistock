@@ -177,7 +177,7 @@
                                 value: label
                             })) %}
                             {{ form.select('emergency', 'Urgence', false, {
-                                items: [{label: trans( 'Demande', 'Général', 'Non urgent', false), value: ''}]|merge(emergenciesValues),
+                                items: [{label: trans('Demande', 'Général', 'Non urgent', false), value: ''}]|merge(emergenciesValues),
                                 disabled: assignedOrder
                             }) }}
                         </div>
