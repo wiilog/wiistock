@@ -25,18 +25,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/parametrage")
- */
+#[Route('/parametrage')]
 class RequestTemplateController extends AbstractController {
 
-    /**
-     * @Required
-     */
+    #[Required]
     public FieldsParamService $fieldsParamService;
+
+    #[Required]
+    public TranslationService $translation;
 
     /**
      * @Route("/modele-demande/{category}/header/{template}", name="settings_request_template_header", options={"expose"=true})
@@ -330,7 +330,7 @@ class RequestTemplateController extends AbstractController {
 
                 $data[] = [
                     "label" => "Urgence",
-                    "value" => $template->getEmergency() ?: 'Non urgent',
+                    "value" => $template->getEmergency() ?: $this->translation->translate('Demande', 'Général', 'Statut'),
                 ];
 
                 $data[] = [
