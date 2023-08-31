@@ -47,20 +47,15 @@ use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 
-/**
- * @Route("/demande")
- */
+#[Route('/demande')]
 class DemandeController extends AbstractController
 {
 
-    /**
-     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/compareStock", name: "compare_stock", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
     public function compareStock(Request                $request,
                                  DeliveryRequestService $demandeLivraisonService,
                                  FreeFieldService       $champLibreService,
-                                 EntityManagerInterface $entityManager): Response
-    {
+                                 EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
                 $entityManager,
@@ -73,14 +68,11 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "demandeLivraison_api_edit", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request,
                             SettingsService $settingsService,
-                            EntityManagerInterface $entityManager): Response
-    {
+                            EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $typeRepository = $entityManager->getRepository(Type::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -123,10 +115,8 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "demande_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          FreeFieldService       $champLibreService,
                          DeliveryRequestService $demandeLivraisonService,
@@ -192,10 +182,8 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/creer", name="demande_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "demande_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         DeliveryRequestService $demandeLivraisonService,
@@ -230,10 +218,8 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/liste/{reception}/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
-     */
+    #[Route("/liste/{reception}/{filter}", name: "demande_index", methods: ["GET", "POST"], options: ["expose" => true])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR])]
     public function index(EntityManagerInterface $entityManager,
                           SettingsService        $settingsService,
                           DeliveryRequestService $deliveryRequestService,
@@ -292,10 +278,8 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/delete", name: "demande_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                $request,
                            DeliveryRequestService $demandeLivraisonService,
                            EntityManagerInterface $entityManager): Response
@@ -327,13 +311,10 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", options: ["expose" => true], name: "demande_api", methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
-                        DeliveryRequestService $demandeLivraisonService): Response
-    {
+                        DeliveryRequestService $demandeLivraisonService): Response {
         // cas d'un filtre statut depuis page d'accueil
         $filterStatus = $request->request->get('filterStatus');
         $filterReception = $request->request->get('filterReception');
@@ -342,15 +323,12 @@ class DemandeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR})
-     */
+    #[Route("voir/{id}", name: "demande_show", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR])]
     public function show(EntityManagerInterface $entityManager,
                          DeliveryRequestService $deliveryRequestService,
                          Demande                $deliveryRequest,
                          EntityManagerInterface $manager): Response {
-
         $statutRepository = $entityManager->getRepository(Statut::class);
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $currentUser = $this->getUser();
@@ -512,15 +490,12 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/ajouter-article", name="demande_add_article", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/ajouter-article", name: "demande_add_article", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function addArticle(Request                $request,
                                EntityManagerInterface $entityManager,
                                ArticleDataService     $articleDataService,
-                               RefArticleDataService  $refArticleDataService): Response
-    {
+                               RefArticleDataService  $refArticleDataService): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
@@ -550,11 +525,8 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     *
-     * @Route("/{lineId}", name="delivery_request_remove_article", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/{lineId}', name: 'delivery_request_remove_article', options: ['expose' => true], methods: ['DELETE'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function removeLine(Request                $request,
                                EntityManagerInterface $entityManager,
                                string                 $lineId,
@@ -581,10 +553,8 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-article", name="demande_article_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier-article", name: "demande_article_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editArticle(Request $request,
                                 EntityManagerInterface $entityManager): Response
     {
@@ -609,13 +579,10 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier-article", name: "demande_article_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function articleEditApi(EntityManagerInterface $entityManager,
-                                   Request $request): Response
-    {
+                                   Request $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $referenceLineRepository = $entityManager->getRepository(DeliveryRequestReferenceLine::class);
 
@@ -634,12 +601,9 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/non-vide", name: "demande_livraison_has_articles", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function hasArticles(Request $request,
-                                EntityManagerInterface $entityManager): Response
-    {
+                                EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $requestRepository = $entityManager->getRepository(Demande::class);
             $request = $requestRepository->find($data['id']);
@@ -653,16 +617,13 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_demandes_csv", options={"expose"=true}, methods={"GET"})
-     * @HasPermission({Menu::DEM, Action::EXPORT})
-     */
+    #[Route("/csv", name: "get_demandes_csv", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::DEM, Action::EXPORT])]
     public function getDemandesCSV(EntityManagerInterface $entityManager,
                                    Request                $request,
                                    FreeFieldService       $freeFieldService,
                                    CSVExportService       $CSVExportService,
-                                   TranslationService     $translation): Response
-    {
+                                   TranslationService     $translation): Response {
         $dateMin = $request->query->get('dateMin');
         $dateMax = $request->query->get('dateMax');
 
@@ -802,14 +763,10 @@ class DemandeController extends AbstractController
         ];
     }
 
-
-    /**
-     * @Route("/autocomplete", name="get_demandes", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/autocomplete", name: "get_demandes", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function getDemandesAutoComplete(Request $request,
-                                            EntityManagerInterface $entityManager): Response
-    {
+                                            EntityManagerInterface $entityManager): Response {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $search = $request->query->get('term');
 
@@ -818,22 +775,17 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api-references", options={"expose"=true}, name="demande_api_references", methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-references", name: "demande_api_references", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function apiReferences(Request                $request,
-                                  DeliveryRequestService $demandeLivraisonService): Response
-    {
+                                  DeliveryRequestService $demandeLivraisonService): Response {
         $data = $demandeLivraisonService->getDataForReferencesDatatable($request->request->get('deliveryId'));
 
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/api-columns", name="delivery_request_api_columns", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-columns", name: "delivery_request_api_columns", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function apiColumns(EntityManagerInterface $entityManager, DeliveryRequestService $deliveryRequestService): Response {
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -843,10 +795,8 @@ class DemandeController extends AbstractController
         return $this->json(array_values($columns));
     }
 
-    /**
-     * @Route("/visible_column", name="save_visible_columns_for_delivery_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::DISPLAY_DEM_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/visible_column", name: "save_visible_columns_for_delivery_request", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR], mode: HasPermission::IN_JSON)]
     public function saveVisibleColumn(Request $request,
                                       EntityManagerInterface $entityManager,
                                       VisibleColumnService $visibleColumnService): Response {
