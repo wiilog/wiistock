@@ -12,8 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class GenerateAlertsCommand extends Command {
 
-    private $manager;
-    private $service;
+    private EntityManagerInterface $manager;
+    private AlertService $service;
 
     public function __construct(EntityManagerInterface $manager, AlertService $service) {
         parent::__construct();
@@ -22,12 +22,12 @@ class GenerateAlertsCommand extends Command {
         $this->service = $service;
     }
 
-    protected function configure() {
+    protected function configure(): void {
         $this->setName("app:generate:alerts");
         $this->setDescription("Génère les alertes pour les dates de péremption");
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $this->service->generateAlerts($this->manager);
         return 0;
     }

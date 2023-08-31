@@ -11,18 +11,22 @@ use App\Service\RefArticleDataService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:recalc:quantity',
+    description: 'This command recalc refs quantities.'
+)]
 class UpdateRefQuantitiesCommand extends Command
 {
-    protected static $defaultName = 'app:recalc:quantity';
 
-    private $em;
-    private $refArticleService;
+    private EntityManagerInterface $em;
+    private RefArticleDataService $refArticleService;
 
     #[Required]
     public FormatService $formatService;
@@ -32,14 +36,13 @@ class UpdateRefQuantitiesCommand extends Command
 
     public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService)
     {
-        parent::__construct(self::$defaultName);
+        parent::__construct();
         $this->em = $entityManager;
         $this->refArticleService = $refArticleDataService;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
-        $this->setDescription('This command recalc refs quantities.');
         $this
             ->addArgument('ref', InputArgument::REQUIRED, 'La référence à mettre à jour.');
     }
@@ -50,8 +53,7 @@ class UpdateRefQuantitiesCommand extends Command
      * @return int|void
      * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): null|int|string|bool {
         $refToUpdate = $input->getArgument('ref');
         $referenceArticleRepository = $this->em->getRepository(ReferenceArticle::class);
         $referenceArticleToUpdate = $referenceArticleRepository->findOneBy(['reference' => $refToUpdate]);

@@ -15,7 +15,7 @@ use DateTime;
 class HistoricArrivalCommand extends Command
 {
 
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -24,15 +24,13 @@ class HistoricArrivalCommand extends Command
     }
 
 
-    protected function configure()
-    {
-        $this->setName('app:indicateur-arrivage');
-
-        $this->setDescription('Enregistre l\'indicateur de l\'historique d\'arrivage du mois courant');
+    protected function configure(): void {
+        $this
+            ->setName('app:indicateur-arrivage')
+            ->setDescription('Enregistre l\'indicateur de l\'historique d\'arrivage du mois courant');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $arrivageRepository = $this->entityManager->getRepository(Arrivage::class);
         $arrivalHistoryRepository = $this->entityManager->getRepository(ArrivalHistory::class);
 
