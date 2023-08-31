@@ -96,6 +96,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use Twig\Environment as Twig_Environment;
@@ -104,13 +105,13 @@ use Twig\Environment as Twig_Environment;
 class MobileController extends AbstractApiController
 {
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public MobileApiService $mobileApiService;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
 
     /**
@@ -122,8 +123,7 @@ class MobileController extends AbstractApiController
                                EntityManagerInterface       $entityManager,
                                UserService                  $userService,
                                SessionHistoryRecordService  $sessionHistoryRecordService,
-                               DispatchService              $dispatchService)
-    {
+                               DispatchService              $dispatchService) : JsonResponse {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
@@ -217,7 +217,7 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function logout(EntityManagerInterface $entityManager,
-                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse{
+                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $typeRepository = $entityManager->getRepository(Type::class);
         $nomadUser = $this->getUser();
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);

@@ -30,8 +30,7 @@ class PasswordService
     }
 
 
-    public function sendToken($token, $to)
-    {
+    public function sendToken($token, $to): void {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $user = $utilisateurRepository->findOneBy(['email' => $to, 'status' => true]);
         if ($user) {
@@ -48,8 +47,7 @@ class PasswordService
 		}
     }
 
-    public function generateToken($length)
-    {
+    public function generateToken($length): string {
         do {
             $generated_string = '';
             $domain = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';

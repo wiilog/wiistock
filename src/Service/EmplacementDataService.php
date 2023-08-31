@@ -13,7 +13,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use Doctrine\ORM\EntityManagerInterface;
 
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 
 use Symfony\Contracts\Service\Attribute\Required;
