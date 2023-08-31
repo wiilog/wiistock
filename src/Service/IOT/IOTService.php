@@ -828,6 +828,13 @@ class IOTService
                             $value = $temperature['value'];
 
                             $fakeFrame = [
+                                'metadata' => [
+                                    "network" => [
+                                        "lora" => [
+                                            "devEUI" => $code,
+                                        ],
+                                    ],
+                                ],
                                 'profile' => IOTService::KOOVEA_TAG,
                                 'device_id' => $code,
                                 'timestamp' => $dateReceived,

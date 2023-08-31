@@ -62,7 +62,7 @@ function initPage() {
         .create($modalNewUrgence)
         .submitTo(AJAX.POST, 'emergency_new', {
             success: (data) => callbackUrgenceAction(data, $modalNewUrgence, true),
-            table: tableEmergencies
+            tables: tableEmergencies
         })
 
 
@@ -76,7 +76,7 @@ function initPage() {
         .create($modalModifyUrgence)
         .submitTo(AJAX.POST, 'emergency_edit', {
             success: (data) => callbackUrgenceAction(data, $modalModifyUrgence, true),
-            table: tableEmergencies
+            tables: tableEmergencies
         })
 
     const $userFormat = $('#userDateFormat');

@@ -192,49 +192,35 @@ class UserController extends AbstractController {
 
             $result = $passwordService->checkPassword($data['password'],$data['password2']);
             if ($result['response'] == false){
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => $result['message'],
-                    'action' => 'edit'
-                ]);
+                throw new FormException($result['message']);
             }
 
             // unicité de l'email
             $emailAlreadyUsed = $utilisateurRepository->count(['email' => $data['email']]);
 
             if ($emailAlreadyUsed > 0  && $data['email'] != $user->getEmail()) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Cette adresse email est déjà utilisée.',
-                    'action' => 'edit'
-                ]);
+                throw new FormException("Cette adresse email est déjà utilisée.");
             }
 
             if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'adresse email principale \"{$data['email']}\" n'est pas valide"
-                ]);
+                throw new FormException("L'adresse email principale {$data['email']} n'est pas valide");
             }
 
             // unicité de l'username
             $usernameAlreadyUsed = $utilisateurRepository->count(['username' => $data['username']]);
 
             if ($usernameAlreadyUsed > 0  && $data['username'] != $user->getUsername() ) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Ce nom d'utilisateur est déjà utilisé.",
-                    'action' => 'edit'
-                ]);
+                throw new FormException("Ce nom d'utilisateur est déjà utilisé.");
             }
 
             //vérification que l'user connecté ne se désactive pas
             if ($user->getId() === $loggedUser->getId() && $data['status'] == 0) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Vous ne pouvez pas désactiver votre propre compte.',
-                    'action' => 'edit'
-                ]);
+                throw new FormException('Vous ne pouvez pas désactiver votre propre compte.');
+            }
+
+            // vérification si logged user a le droit de modifier un utilisateur wiilog
+            if (!$loggedUser->isWiilogUser() && $user->isWiilogUser()) {
+                throw new FormException("Vous ne pouvez pas modifier un membre de l'equipe Wiilog.");
             }
 
             $secondaryEmails = isset($data['secondaryEmails'])
@@ -242,10 +228,7 @@ class UserController extends AbstractController {
                 : [];
             foreach($secondaryEmails as $email) {
                 if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "L'adresse email \"{$email}\" n'est pas valide"
-                    ]);
+                    throw new FormException("L'adresse email $email n'est pas valide");
                 }
             }
 
@@ -333,26 +316,17 @@ class UserController extends AbstractController {
                         count($usersWithKey) > 1
                         || $usersWithKey[0]->getId() !== $user->getId()
                     )) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'Cette clé de connexion est déjà utilisée.',
-                        'action' => 'edit'
-                    ]);
+                    throw new FormException("Cette clé de connexion est déjà utilisée.");
                 }
                 else {
                     $mobileLoginKey = $data['mobileLoginKey'];
                     if (empty($mobileLoginKey)
                         || strlen($mobileLoginKey) < UserService::MIN_MOBILE_KEY_LENGTH
                         || strlen($mobileLoginKey) > UserService::MAX_MOBILE_KEY_LENGTH) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' => 'La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.',
-                            'action' => 'edit'
-                        ]);
+                        throw new FormException('La longueur de la clé de connexion doit être comprise entre ' . UserService::MIN_MOBILE_KEY_LENGTH . ' et ' . UserService::MAX_MOBILE_KEY_LENGTH . ' caractères.');
                     }
                     else {
-                        $user
-                            ->setMobileLoginKey($mobileLoginKey);
+                        $user->setMobileLoginKey($mobileLoginKey);
                     }
                 }
             }

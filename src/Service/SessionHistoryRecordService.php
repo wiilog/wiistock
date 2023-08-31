@@ -7,16 +7,24 @@ use App\Entity\SessionHistoryRecord;
 use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
+use App\Entity\Wiilock;
+use App\Helper\FormatHelper;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class SessionHistoryRecordService{
 
-    public const UNLIMITED_SESSIONS = -1;
+    #[Required]
+    public FormatService $formatService;
+
+    public const UNLIMITED_SESSIONS = 0;
+
+    public const MAX_SESSIONS_POSSIBLE = 2000;
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
-                                            ?Utilisateur           $user,
+                                            Utilisateur            $user,
                                             DateTime               $date,
                                             Type                   $type,
                                             Request|string         $request): bool {
@@ -43,18 +51,20 @@ class SessionHistoryRecordService{
         return true;
     }
 
-    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $utilisateur): bool {
+    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $user): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $oppenedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
+        $openedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
 
-        if ($oppenedSessionLimit === self::UNLIMITED_SESSIONS) {
+        if ($openedSessionLimit === self::UNLIMITED_SESSIONS || $user->isWiilogUser()) {
             return true;
         } else {
-            $oppenedSessionsHistory = $sessionHistoryRepository->count([
-                'closedAt' => null,
-            ]);
-            return $oppenedSessionsHistory < $oppenedSessionLimit;
+            $openedSessionsHistory = $sessionHistoryRepository->countOpenedSessions();
+            return $openedSessionsHistory < $openedSessionLimit;
         }
+    }
+
+    public function getOpenedSessionLimit(): int {
+        return intval($_SERVER["SESSION_LIMIT"] ?? self::MAX_SESSIONS_POSSIBLE);
     }
 
     public function closeSessionHistoryRecord(EntityManagerInterface $entityManager, SessionHistoryRecord|string $sessionHistory, DateTime $date): bool {
@@ -103,5 +113,14 @@ class SessionHistoryRecordService{
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $dateTime);
         }
+    }
+
+    public function refreshDate(EntityManagerInterface $entityManager): string {
+        $wiilockRepository = $entityManager->getRepository(Wiilock::class);
+        $lock = $wiilockRepository->findOneBy(["lockKey" => Wiilock::INACTIVE_SESSIONS_CLEAN_KEY]);
+
+        return $lock
+            ? $this->formatService->datetime($lock->getUpdateDate())
+            : "-";
     }
 }

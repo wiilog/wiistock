@@ -141,7 +141,7 @@ class MobileController extends AbstractApiController
                     $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
                     $apiKey = $this->apiKeyGenerator();
                     $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
-                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager,$loggedUser, new DateTime('now'), $sessionType, $apiKey);
+                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $sessionType, $apiKey);
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
@@ -583,6 +583,7 @@ class MobileController extends AbstractApiController
 
                         $dateArray = explode('_', $mvt['date']);
                         $date = DateTime::createFromFormat(DateTimeInterface::ATOM, $dateArray[0]);
+                        $fromStock = isset($mvt['fromStock']) && $mvt['fromStock'];
 
                         //trouve les ULs sans association à un article car les ULs
                         //associés a des articles SONT des articles donc on les traite normalement
@@ -591,7 +592,7 @@ class MobileController extends AbstractApiController
                         //dans le cas d'une prise stock sur une UL, on ne peut pas créer de
                         //mouvement de stock sur l'UL donc on ignore la partie stock et
                         //on créé juste un mouvement de prise sur l'UL et ses articles
-                        if($pack) {
+                        if(!$fromStock && $pack) {
                             $packMvt = $trackingMovementService->treatLUPicking(
                                 $pack,
                                 $location,
@@ -2136,7 +2137,7 @@ class MobileController extends AbstractApiController
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
-            ->setManifacturingDate($manufacturingDate)
+            ->setManufacturedAt($manufacturingDate)
             ->setPurchaseOrder($commandNumberStr)
             ->setRFIDtag($rfidTag)
             ->setBatch($batchStr)
@@ -3545,7 +3546,7 @@ class MobileController extends AbstractApiController
         if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
             throw new FormException("Le format de numéro d'acheminement n'est pas valide");
         }
-        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat::DATE_COUNTER_FORMAT_DISPATCH_LONG);
+        $dispatchNumber = $uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat);
         $type = $typeRepository->find($request->request->get('type'));
         $draftStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]);
         $pickLocation = $request->request->get('pickLocation') ? $locationRepository->find($request->request->get('pickLocation')) : null;

@@ -10,6 +10,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\Export;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -325,6 +326,45 @@ class DataExportController extends AbstractController {
             $dataExportService->exportRefLocation($refLocationsIterator, $output);
             $dataExportService->createUniqueExportLine(Export::ENTITY_REF_LOCATION, $start);
         }, $nameFile, $csvHeader);
+    }
+
+    #[Route("/export/unique/dispatches", name: "settings_export_dispatches", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
+    public function exportDispatches(EntityManagerInterface $manager,
+                                     CSVExportService       $csvService,
+                                     DataExportService      $dataExportService,
+                                     FreeFieldService       $freeFieldService,
+                                     Request                $request): StreamedResponse {
+
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::DEMANDE_DISPATCH]);
+        $header = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+
+        $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
+
+        $dateMin = $request->query->get("dateMin");
+        $dateMax = $request->query->get("dateMax");
+
+        $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
+        $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
+
+        return $csvService->streamResponse(
+            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig) {
+                $dispatchRepository = $manager->getRepository(Dispatch::class);
+                $userDateFormat = $this->getUser()->getDateFormat();
+                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+
+                $freeFieldsById = Stream::from($dispatches)
+                    ->keymap(fn($dispatch) => [
+                        $dispatch['id'], $dispatch['freeFields']
+                    ])->toArray();
+
+                $start = new DateTime();
+                $dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+                $dataExportService->createUniqueExportLine(Export::ENTITY_DISPATCH, $start);
+            },
+            "export_acheminements-$today.csv",
+            $header
+        );
     }
 
     #[Route("/export-template", name: "export_template", options: ["expose" => true], methods: "GET")]

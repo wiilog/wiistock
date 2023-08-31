@@ -103,11 +103,12 @@ function printArticles(collecteId) {
                 }))
         ).then(() => Flash.add('success', 'Impression des étiquettes terminée.'));
     } else {
-        window.location.href = Routing.generate(
-            'collecte_bar_codes_print',
-            params,
-            true
-        );
+        AJAX
+            .route('GET', `collecte_bar_codes_print`, params)
+            .file({
+                success: "Votre étiquette a bien été imprimée.",
+                error: "Erreur lors de l'impression de l'étiquette"
+            });
     }
 }
 

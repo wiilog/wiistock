@@ -2020,4 +2020,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
         return $this;
     }
+
+    public function isWiilogUser(): bool {
+        $userEmailDomain = explode("@", $this->getEmail())[1] ?? "";
+        $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
+
+        return in_array($userEmailDomain, $wiilogDomains);
+    }
+
 }

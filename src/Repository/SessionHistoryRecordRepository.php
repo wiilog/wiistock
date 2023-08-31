@@ -103,4 +103,39 @@ class SessionHistoryRecordRepository extends EntityRepository
 
         return $data;
     }
+
+    public function getActiveLicenceCount(): int
+    {
+        $queryBuilder = $this->createQueryBuilder('session_history_record')
+            ->andWhere('session_history_record.closedAt IS NULL');
+
+        return QueryBuilderHelper::count($queryBuilder, 'session_history_record');
+    }
+
+    public function iterateAll(): iterable {
+        return $this->createQueryBuilder("session_history_record")
+            ->getQuery()
+            ->toIterable();
+    }
+
+    public function countOpenedSessions(): int {
+        $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
+
+        $queryBuilder = $this->createQueryBuilder("session_history_record")
+            ->leftJoin('session_history_record.user', 'user')
+            ->andWhere('session_history_record.closedAt IS NULL');
+
+        foreach ($wiilogDomains as $index => $domain) {
+            $parameterName = "domain$index";
+            $queryBuilder
+                ->andWhere("user.email NOT LIKE :$parameterName")
+                ->setParameter($parameterName, "%@$domain%");
+        }
+
+        return $queryBuilder
+            ->select('COUNT(session_history_record.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 }

@@ -2,24 +2,24 @@
 
 <div class="wii-section">
     <div class="row">
-        <div class="col-12 mb-3 wii-big-text">
-            Logs des connexions en temps réel.
-        </div>
-        <div class="col-12 mb-3 wii-big-text">
-            <span class="nb-actives-session mr-2">X</span>licences actives
+        <div class="col-12 mb-3 wii-small-text">
+            Tableau récapitulatif des licences.
         </div>
     </div>
 </div>
 <div class="wii-section">
-    <div class="row justify-content-end">
-        {# TODO WIIS-10110 #}
+    <div class="row justify-content-between align-items-center">
+        <span class="ml-4">
+            {{ activeSessionsCount }} licence{{ activeSessionsCount > 1 ? 's' : '' }} active{{ activeSessionsCount > 1 ? 's' : '' }}
+            {{ maxAuthorizedSessions > 0 ? 'sur ' ~ maxAuthorizedSessions : '' }} - Actualisé le : {{ date('now')|format_helper('datetime', '', true) }}
+        </span>
         {% include "utils/action-buttons/header-buttons.html.twig" with {
             actions: [
                 {
                     title: "Exporter au format CSV",
                     icon : "fa fa-file-csv",
                     attributes: {
-                        "onclick" : "",
+                        "onclick" : "saveExportFile('session_history_record_csv', false)",
                     },
                 },
             ]

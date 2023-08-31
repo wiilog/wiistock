@@ -210,9 +210,24 @@ function initTableDispatch(groupedSignatureMode = false) {
 
 function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
-    let $submitNewDispatch = $("#submitNewDispatch");
-    let urlDispatchNew = Routing.generate('dispatch_new', true);
-    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
+    Form
+        .create($modalNewDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_new',
+            {
+                tables: [tableDispatches],
+                success: ({redirect}) => window.location.href = redirect,
+            }
+        )
 }
 
 function toggleValidateGroupedSignatureButton($dispatchsTable, $groupedSignatureModeContainer) {

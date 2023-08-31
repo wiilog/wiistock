@@ -29,6 +29,7 @@ use App\Service\FreeFieldService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -289,7 +290,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $request->request, $this->getUser());
+                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, new ParameterBag($data), $this->getUser());
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
