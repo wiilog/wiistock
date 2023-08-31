@@ -394,6 +394,8 @@ class DispatchRepository extends EntityRepository
             ->addSelect("dispatch.destination AS destination")
             ->addSelect("($subQuery) AS packCount")
             ->addSelect("join_status.nom AS status")
+            ->addSelect("dispatch.businessUnit AS businessUnit")
+            ->addSelect("dispatch.commentaire AS comment")
             ->addSelect("dispatch.emergency AS emergency")
             ->addSelect("dispatch.customerName AS customerName")
             ->addSelect("dispatch.customerPhone AS customerPhone")
