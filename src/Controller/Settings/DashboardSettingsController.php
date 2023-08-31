@@ -24,6 +24,7 @@ use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -31,10 +32,10 @@ use WiiCommon\Helper\Stream;
  */
 class DashboardSettingsController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translationService;
 
     /**

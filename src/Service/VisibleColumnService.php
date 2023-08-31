@@ -14,10 +14,10 @@ use Symfony\Contracts\Service\Attribute\Required;
 class VisibleColumnService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required  */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     #[Required]
@@ -26,12 +26,6 @@ class VisibleColumnService {
     #[Required]
     public LanguageService $languageService;
 
-    /**
-     * @param array $fields
-     * @param FreeField[] $freeFields
-     * @param string[] $columnsVisible
-     * @return array
-     */
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
                                    array $columnsVisible = []): array

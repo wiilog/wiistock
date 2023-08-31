@@ -59,6 +59,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -70,19 +71,19 @@ use WiiCommon\Helper\StringHelper;
 class ReferenceArticleController extends AbstractController
 {
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
-    /** @Required */
+    #[Required]
     public ArticleDataService $articleDataService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
     /**

@@ -114,6 +114,12 @@ class SettingsController extends AbstractController {
     #[Required]
     public SessionHistoryRecordService $sessionHistoryRecordService;
 
+    #[Required]
+    public SettingsService $service;
+
+    #[Required]
+    public UserService $userService;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
@@ -697,16 +703,6 @@ class SettingsController extends AbstractController {
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
-
-    /**
-     * @Required
-     */
-    public SettingsService $service;
-
-    /**
-     * @Required
-     */
-    public UserService $userService;
 
     /**
      * @Route("/", name="settings_index")

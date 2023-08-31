@@ -14,6 +14,7 @@ use App\Entity\TransferRequest;
 use App\Entity\Article;
 use App\Entity\Utilisateur;
 use App\Service\NotificationService;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\TransferOrderService;
 use DateTime;
@@ -36,9 +37,10 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class TransferOrderController extends AbstractController {
 
     private $userService;
+
     private $service;
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
     public function __construct(UserService $us, TransferOrderService $service) {
