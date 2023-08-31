@@ -1261,7 +1261,7 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
-                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
+                        "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
