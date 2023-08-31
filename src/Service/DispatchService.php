@@ -1084,6 +1084,8 @@ class DispatchService {
             $dispatch['packCount'],
             $dispatch['status'],
             $dispatch['emergency'],
+            $dispatch['businessUnit'],
+            $this->formatService->html($dispatch['comment']),
             $dispatch['customerName'],
             $dispatch['customerPhone'],
             $dispatch['customerRecipient'],
