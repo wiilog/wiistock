@@ -27,12 +27,10 @@ use App\Service\TranslationService;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/nature-unite-logistique")
- */
+#[Route('/nature-unite-logistique')]
 class NatureController extends AbstractController
 {
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
     #[Route('/', name: "nature_param_index", options: ['expose' => true], methods: 'GET')]

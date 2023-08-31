@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 
@@ -15,13 +16,13 @@ class InactiveSensorsCommand extends Command {
 
     protected static $defaultName = "app:iot:check-sensors-inactivity";
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
     protected function configure() {

@@ -10,15 +10,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class RemindPackDeliveriesCommand extends Command
 {
     protected static $defaultName = 'app:emails:remind-pack-deliveries';
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public PackService $packService;
 
     protected function configure(): void {

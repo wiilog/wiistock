@@ -7,13 +7,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
 class CheckPairingValidityCommand extends Command {
 
     protected static $defaultName = "app:iot:pairing-validity";
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     protected function configure() {

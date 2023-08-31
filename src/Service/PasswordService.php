@@ -5,27 +5,19 @@ namespace App\Service;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class PasswordService
 {
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /**
-     * @var EntityManagerInterface
-     */
-    private $entityManager;
+    private EntityManagerInterface $entityManager;
 
-    /**
-     * @var MailerService
-     */
-    private $mailerService;
+    private MailerService $mailerService;
 
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
+    private Twig_Environment $templating;
 
 
     public function __construct(EntityManagerInterface $entityManager,

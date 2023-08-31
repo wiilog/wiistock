@@ -8,16 +8,17 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
 class DashboardResetCommand extends Command {
 
     protected static $defaultName = 'app:dashboards:reset';
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public WiilockService $wiilockService;
 
     protected function configure(): void {

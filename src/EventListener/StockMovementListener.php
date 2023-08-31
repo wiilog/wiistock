@@ -8,7 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class StockMovementListener {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     public function postPersist(MouvementStock $movement) {
