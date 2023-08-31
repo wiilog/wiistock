@@ -1679,10 +1679,14 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                 ],
-                self::MENU_SESSIONS => fn() => [
-                    "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
-                    "maxAuthorizedSessions" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
-                ],
+                self::MENU_SESSIONS => function () use ($sessionHistoryRepository, $entityManager) {
+                    $countOpenedSessions = $sessionHistoryRepository->countOpenedSessions();
+                    $this->sessionHistoryRecordService->updateSimultaneousOpenedSessionCounter($entityManager, $countOpenedSessions);
+                    return [
+                        "activeSessionsCount" => $countOpenedSessions,
+                        "maxAuthorizedSessions" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
+                    ];
+                }
             ],
         ];
     }

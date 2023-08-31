@@ -65,14 +65,11 @@ class DataHistoryController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/chart-data-history", name="chart_data_history", options={"expose"=true})
-     */
+    #[Route("/chart-data-history", name: "chart_data_history", options: ["expose" => true])]
     public function getChartDataHistory(Request $request,
                                         EntityManagerInterface $entityManager,
                                         DataMonitoringService $dataMonitoringService,
-                                        PairingService $pairingService): JsonResponse
-    {
+                                        PairingService $pairingService): JsonResponse {
         $filters = $request->query->all();
         $query = $request->query;
         $type = $query->get('type');
@@ -90,6 +87,7 @@ class DataHistoryController extends AbstractController {
 
         return new JsonResponse($data);
     }
+
     /**
      * @Route("/map-data-history", name="map_data_history", options={"expose"=true})
      */

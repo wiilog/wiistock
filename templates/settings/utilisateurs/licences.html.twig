@@ -1,12 +1,39 @@
 {% import 'form.html.twig' as form %}
 
 <div class="wii-section">
-    <div class="row">
-        <div class="col-12 mb-3 wii-small-text">
-            Tableau récapitulatif des licences.
+    <div class="filters filters-container row pt-2">
+        <div class="col-auto mb-2 pr-0">
+            <div class="h-100 w-450px">
+                {{ form.inlineInputs('dates', '', false,{
+                    content: [
+                        {
+                            label: 'Du',
+                            name: 'start',
+                            value: date('now')|date_modify('-1 week')|date('Y-m-d'),
+                            type: 'date',
+                            autocompleteOff: true,
+                            width: '',
+                        },
+                        {
+                            label: 'Au',
+                            name: 'end',
+                            value: date('now')|date('Y-m-d'),
+                            type: 'date',
+                            autocompleteOff: true,
+                            width: '',
+                        },
+                    ],
+                }) }}
+            </div>
         </div>
+
+
+        <button class="btn btn-primary minw-105px mb-2 ml-3 filter-button">
+            <i class="fas fa-filter mr-1"></i> Filtrer
+        </button>
     </div>
 </div>
+
 <div class="wii-section">
     <div class="row justify-content-between align-items-center">
         <span class="ml-4">
@@ -30,6 +57,19 @@
             <table id="tableSessionHistoryRecords" class="table w-100">
             </table>
         </div>
+    </div>
+</div>
+
+<div class="wii-section">
+    <div class="max-h-px-400 w-100">
+        <canvas
+            data-chart
+            data-fetch-url="{{ path('session_history_record_chart_data') }}"
+            data-needsline="{{ maxAuthorizedSessions > 0 }}
+            data-maxTemp="{{ maxAuthorizedSessions }}"
+            width="400"
+            height="400">
+        </canvas>
     </div>
 </div>
 {% include 'settings/utilisateurs/roles/delete.html.twig' %}

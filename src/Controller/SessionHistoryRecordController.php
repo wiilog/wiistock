@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\CountSimultaneousOpenedSessions;
 use App\Entity\SessionHistoryRecord;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
@@ -70,6 +71,7 @@ class SessionHistoryRecordController extends AbstractController
                                        SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $activeLicenceCount = $sessionHistoryRecordRepository->countOpenedSessions();
+        $sessionHistoryRecordService->updateSimultaneousOpenedSessionCounter($entityManager, $activeLicenceCount);
         $maxLicenceCount = $sessionHistoryRecordService->getOpenedSessionLimit();
 
         return new JsonResponse([
@@ -78,5 +80,34 @@ class SessionHistoryRecordController extends AbstractController
             'activeLicenceCount' => $activeLicenceCount,
             'maxLicenceCount' => $maxLicenceCount,
         ]);
+    }
+
+
+    #[Route('/chart-data', name: 'chart_data', options: ['expose' => true], methods: ['GET'])]
+    public function getChartData(Request $request, EntityManagerInterface $entityManager, FormatService $formatService): JsonResponse
+    {
+        $filters = $request->query;
+        $countSimultaneousOpenedSessionsRepository = $entityManager->getRepository(CountSimultaneousOpenedSessions::class);
+        $label = 'Nombre de sessions ouvertes simultanément';
+
+        $counts = $countSimultaneousOpenedSessionsRepository->getByDates(
+            DateTime::createFromFormat("Y-m-d", $filters->get('start'), new \DateTimeZone('Europe/Paris')),
+            DateTime::createFromFormat("Y-m-d", $filters->get('end'), new \DateTimeZone('Europe/Paris'))
+        );
+
+        $data['colors'][$label] = "#000000";
+        foreach ($counts as $count) {
+            $date = $count->getDateTime();
+
+            $dateStr = $date->format('d/m/Y H:i:s');
+            if (!isset($data[$dateStr])) {
+                $data[$dateStr] = [];
+            }
+
+            $data[$dateStr][$label] = floatval($count->getCount());
+        }
+
+        dump($data);
+        return new JsonResponse($data);
     }
 }

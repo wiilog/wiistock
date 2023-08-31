@@ -5,6 +5,8 @@ const charts = {};
 $(document).ready(() => {
     initData();
 
+
+
     const $timelineContainer = $('.timeline-container');
     if ($timelineContainer.exists()) {
         $timelineContainer.each(function () {
@@ -46,7 +48,7 @@ function initMapCall(callback) {
     }
 }
 
-function initChartCall(callback) {
+export function initChartCall(callback) {
     const $charts = $(`[data-chart]`);
     if ($charts.length > 0) {
         $charts.each((i, elem) => initLineChart(elem, callback));

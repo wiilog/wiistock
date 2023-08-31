@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\CategoryType;
+use App\Entity\CountSimultaneousOpenedSessions;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Type;
 use App\Entity\UserSession;
@@ -18,6 +19,9 @@ class SessionHistoryRecordService{
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public CacheService $cacheService;
 
     public const UNLIMITED_SESSIONS = 0;
 
@@ -122,5 +126,39 @@ class SessionHistoryRecordService{
         return $lock
             ? $this->formatService->datetime($lock->getUpdateDate())
             : "-";
+    }
+
+    public function updateSimultaneousOpenedSessionCounter(EntityManagerInterface $entityManager, int $count): void {
+        $countSimultaneousOpenedSessionsRepository = $entityManager->getRepository(CountSimultaneousOpenedSessions::class);
+        $now = new DateTime();
+
+        // get in cache the last count and the date
+        $max = $this->cacheService->get(CacheService::SESSION_HISTORY_RECORDS, 'maxSimultaneousSessionOpenedInTheHour', static function (){}) ?? 0;
+        $date = $this->cacheService->get(CacheService::SESSION_HISTORY_RECORDS, 'lasCountDate', static function (){}) ?? $now;
+
+        // if the date is not set or the date is not the same hour as now we save the count and reset the count
+        if($date->format('Y-m-d H') !== $now->format('Y-m-d H')){
+            $countSimultaneousOpenedSessions = (new CountSimultaneousOpenedSessions())
+                ->setCount($max)
+                ->setDateTime($date->setTime(23, 59));
+
+            dump($countSimultaneousOpenedSessions);
+
+            $entityManager->persist($countSimultaneousOpenedSessions);
+
+            $this->cacheService->set(CacheService::SESSION_HISTORY_RECORDS, 'maxSimultaneousSessionOpenedInTheHour', $count);
+            $this->cacheService->set(CacheService::SESSION_HISTORY_RECORDS, 'lasCountDate', $now);
+            $max = 0;
+        }
+
+        // update the max count
+        if($count > $max){
+            $this->cacheService->set(CacheService::SESSION_HISTORY_RECORDS, 'maxSimultaneousSessionOpenedInTheHour', $count);
+        }
+
+        // update the lasCountDate
+        $this->cacheService->set(CacheService::SESSION_HISTORY_RECORDS, 'lasCountDate', $now);
+
+        $entityManager->flush();
     }
 }

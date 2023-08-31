@@ -1,5 +1,6 @@
+import {initChartCall} from '../../../../../public/js/pages/iot/data-monitoring'
 export function initializeLicencesPage() {
-    initDataTable('tableSessionHistoryRecords', {
+     const datatable = initDataTable('tableSessionHistoryRecords', {
         order: [['openedAt', 'desc']],
         serverSide: true,
         ajax: {
@@ -18,4 +19,10 @@ export function initializeLicencesPage() {
             needsRowClickAction: false
         },
     });
+
+
+    $('.filter-button').on('click', function () {
+        datatable.ajax.reload();
+        initChartCall();
+    })
 }
