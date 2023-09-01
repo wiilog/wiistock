@@ -223,7 +223,7 @@ class InvMissionService {
 
         $row['Actions'] = $this->templating->render('saisie_inventaire/inventoryEntryRefArticleRow.html.twig', [
             'inventoryData' => Stream::from($actionData)
-                ->map(fn(string $value, string $key) => "${key}: ${value}")
+                ->map(fn(string $value, string $key) => "{$key}: {$value}")
                 ->join(';'),
         ]);
 

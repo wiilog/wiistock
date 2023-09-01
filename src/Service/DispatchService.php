@@ -1379,7 +1379,7 @@ class DispatchService {
         }
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$waybillTemplatePath",
+            "{$projectDir}/public/$waybillTemplatePath",
             $variables,
             ["barcodes" => ["qrcodenumach"],]
         );
@@ -1498,7 +1498,7 @@ class DispatchService {
             })
             ->toArray();
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$reportTemplatePath",
+            "{$projectDir}/public/$reportTemplatePath",
             $variables,
             ["barcodes" => ["qrcodenumach"],]
         );

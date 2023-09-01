@@ -117,12 +117,12 @@ class VisibleColumnService {
                     $lowerSearchValue = strtolower($search);
                     if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                         $booleanValue = $lowerSearchValue === "oui" ? '1' : '0';
-                        $condition->add("JSON_SEARCH(${queryBuilderAlias}.freeFields, 'one', :boolean_value, NULL, '$.\"${id}\"') IS NOT NULL");
+                        $condition->add("JSON_SEARCH({$queryBuilderAlias}.freeFields, 'one', :boolean_value, NULL, '$.\"{$id}\"') IS NOT NULL");
                         $qb->setParameter("boolean_value", $booleanValue);
                     }
                 }
-                $condition->add("JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
-                $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
+                $condition->add("JSON_EXTRACT({$queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
+                $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT({$queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
             } else if(isset($conditions[$column])) {
                 $condition->add($conditions[$column]);
             }

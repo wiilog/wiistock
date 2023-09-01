@@ -313,7 +313,7 @@ class LivraisonService
         ];
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$waybillTemplatePath",
+            "{$projectDir}/public/$waybillTemplatePath",
             $variables,
             ["barcodes" => ["qrcodenumordreliv"],]
         );

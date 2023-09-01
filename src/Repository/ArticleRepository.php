@@ -240,11 +240,11 @@ class ArticleRepository extends EntityRepository {
 
         $queryBuilder
             ->select('article.id AS id')
-            ->addSelect("article.${field} AS text")
+            ->addSelect("article.{$field} AS text")
             ->addSelect('location.label AS locationLabel')
             ->addSelect('article.quantite AS quantity')
             ->leftJoin('article.emplacement', 'location')
-            ->andWhere("article.${field} LIKE :search")
+            ->andWhere("article.{$field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
@@ -511,7 +511,7 @@ class ArticleRepository extends EntityRepository {
                                             $lowerSearchValue = strtolower($searchValue);
                                             if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                                                 $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"{$freeFieldId}\"') IS NOT NULL";
                                                 $queryBuilder->setParameter("search", $booleanValue);
                                             }
                                         } else {

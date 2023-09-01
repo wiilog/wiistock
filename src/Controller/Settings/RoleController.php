@@ -142,7 +142,7 @@ class RoleController extends AbstractController {
                 $sUser = $nbUsers > 1 ? 's' : '';
                 $html = "
                     <p class='error-msg'>
-                        Ce rôle est utilisé par ${nbUsers} utilisateur${sUser}.
+                        Ce rôle est utilisé par {$nbUsers} utilisateur{$sUser}.
                         Vous ne pouvez pas le supprimer.
                     </p>
                 ";

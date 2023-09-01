@@ -104,7 +104,7 @@ class DashboardSettingsController extends AbstractController {
                 $unknownComponentLabel = $matches[1] ?? '';
                 return $this->json([
                     "success" => false,
-                    "msg" => "Type de composant ${unknownComponentLabel} inconnu"
+                    "msg" => "Type de composant {$unknownComponentLabel} inconnu"
                 ]);
             } else {
                 $invalidSegmentsEntry = DashboardSettingsService::INVALID_SEGMENTS_ENTRY;

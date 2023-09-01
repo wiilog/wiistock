@@ -25,7 +25,7 @@ final class Version20210914123203 extends AbstractMigration
             ->executeQuery("SELECT id FROM category_type WHERE label = '" . CategoryType::ARTICLE . "'")
             ->fetchFirstColumn();
         $this->addSql("ALTER TABLE type ADD color VARCHAR(255)");
-        $this->addSql("UPDATE type SET color = '#3353D7' WHERE category_id = ${categoryTypeId[0]}");
+        $this->addSql("UPDATE type SET color = '#3353D7' WHERE category_id = {$categoryTypeId[0]}");
     }
 
     public function down(Schema $schema): void

@@ -514,7 +514,7 @@ class PurchaseRequestController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "La demande d'achat <strong>${number}</strong> a bien été modifiée",
+            'msg' => "La demande d'achat <strong>{$number}</strong> a bien été modifiée",
             'entete' => $this->renderView('purchase_request/show_header.html.twig', [
                 'request' => $purchaseRequest,
                 'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
@@ -709,7 +709,7 @@ class PurchaseRequestController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => "La demande d'achat <strong>${number}</strong> a bien été validée",
+                'msg' => "La demande d'achat <strong>{$number}</strong> a bien été validée",
                 'entete' => $this->renderView('purchase_request/show_header.html.twig', [
                     'modifiable' => $status->isDraft(),
                     'request' => $purchaseRequest,

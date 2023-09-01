@@ -68,7 +68,7 @@ class RoleService
             if ($labelCount > 0) {
                 return [
                     "success" => false,
-                    "message" => "Le rôle <strong>${label}</strong> existe déjà, veuillez choisir un autre libellé"
+                    "message" => "Le rôle <strong>{$label}</strong> existe déjà, veuillez choisir un autre libellé"
                 ];
             }
         }

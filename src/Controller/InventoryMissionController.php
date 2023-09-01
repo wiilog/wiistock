@@ -528,7 +528,7 @@ class InventoryMissionController extends AbstractController
                     $inventoryEntryService->putMissionEntryLine($refArticle, $inventoryEntries[$barcode] ?? null, $output);
                 }
             },
-            "Export_Mission_Inventaire_${missionStartDateStr}_${missionEndDateStr}.csv",
+            "Export_Mission_Inventaire_{$missionStartDateStr}_{$missionEndDateStr}.csv",
             [
                 ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')],
                 $headers

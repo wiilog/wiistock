@@ -2073,18 +2073,18 @@ class MobileController extends AbstractApiController
             $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
         }
         if (!$ref) {
-            throw new FormException("Référence scannée (${referenceStr}) inconnue.");
+            throw new FormException("Référence scannée ({$referenceStr}) inconnue.");
         } else if ($fromMatrix) {
             $type = $ref->getType();
             if ($ref->getArticlesFournisseur()->isEmpty()) {
-                throw new FormException("La référence scannée (${referenceStr}) n'a pas d'article fournisseur paramétré.");
+                throw new FormException("La référence scannée ({$referenceStr}) n'a pas d'article fournisseur paramétré.");
             } else {
                 $articleSupplier = $ref->getArticlesFournisseur()->first();
             }
         }
         $refTypeLabel = $ref->getType()->getLabel();
         if ($ref->getType()?->getId() !== $type?->getId()) {
-            throw new FormException("Le type selectionné est différent de celui de la référence (${refTypeLabel})");
+            throw new FormException("Le type selectionné est différent de celui de la référence ({$refTypeLabel})");
         }
 
         if (!$articleSupplier) {

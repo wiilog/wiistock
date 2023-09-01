@@ -39,7 +39,7 @@ final class Version20211108093728 extends AbstractMigration {
                        columns_visible_for_tracking_movement AS trackingMovement,
                        columns_visible_for_reception AS reception
                 FROM utilisateur
-                WHERE id = ${user['id']}"
+                WHERE id = {$user['id']}"
             )
             ->fetchAssociative();
 
@@ -65,7 +65,7 @@ final class Version20211108093728 extends AbstractMigration {
 
             $visibleColumns["deliveryRequest"] = Utilisateur::DEFAULT_DELIVERY_REQUEST_VISIBLE_COLUMNS;
 
-            $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = ${user['id']}", ['columns' => json_encode($visibleColumns)]);
+            $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = {$user['id']}", ['columns' => json_encode($visibleColumns)]);
         }
 
         $this->addSql("ALTER TABLE utilisateur DROP COLUMN columns_visible_for_dispatch");
@@ -81,7 +81,7 @@ final class Version20211108093728 extends AbstractMigration {
             ->fetchAllAssociative();
 
         foreach($deliveryRequests as $deliveryRequest) {
-            $this->addSql("UPDATE demande SET validated_at = '${deliveryRequest['preparation_date']}' WHERE id = ${deliveryRequest['id']}");
+            $this->addSql("UPDATE demande SET validated_at = '{$deliveryRequest['preparation_date']}' WHERE id = {$deliveryRequest['id']}");
         }
     }
 
