@@ -1981,7 +1981,9 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null, FormService $formService): Response {
+    public function typeHeader(Request $request,
+                               FormService $formService,
+                               ?Type $type = null): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -2151,11 +2153,7 @@ class SettingsController extends AbstractController {
                 ];
 
                 $emergencies = $fixedFieldRepository->getElements($entity[$categoryLabel], FieldsParam::FIELD_CODE_EMERGENCY);
-                $emergencyValues = Stream::from($emergencies)
-                    ->map(fn(string $emergency) => "<option value='$emergency' " . ($type && in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
-                    ->join("");
 
-                $required = $type && $type->getNotificationsEmergencies() ? 'required' : '';
                 $data = array_merge($data, [
                     [
                         'breakline' => true,
@@ -2166,7 +2164,21 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100' $required>$emergencyValues</select>",
+                        "value" => $formService->macro("select", "notificationEmergencies", null, $type && $type->getNotificationsEmergencies(), [
+                            "type" => "",
+                            "noEmptyOption" => true,
+                            "multiple" => true,
+                            "attributes" => [
+                                "data-parent" => "body"
+                            ],
+                            "items" => Stream::from($emergencies)
+                                ->map(fn(string $emergency) => [
+                                    "label" => $emergency,
+                                    "value" => $emergency,
+                                    "selected" => $type && in_array($emergency, $type->getNotificationsEmergencies() ?? []),
+                                ])
+                                ->toArray()
+                        ]),
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);

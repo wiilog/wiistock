@@ -159,14 +159,14 @@ export function createFreeFieldsPage($container, canEdit, mode) {
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
     $container.on(`change`, `[type=radio][name=pushNotifications]`, function() {
         const $radio = $(this);
-        const val = Number($radio.val());
+        const enabledIfEmergencies = Number($radio.val()) === 2;
 
         const $notificationEmergencies = $container.find(`[name=notificationEmergencies]`);
         $notificationEmergencies
             .closest(`.main-entity-content-item`)
-            .toggleClass(`d-none`, val !== 2);
+            .toggleClass(`d-none`, !enabledIfEmergencies);
 
-        $notificationEmergencies.prop(`required`, val === 2);
+        $notificationEmergencies.prop(`required`, enabledIfEmergencies);
     });
 }
 
