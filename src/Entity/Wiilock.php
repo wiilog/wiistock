@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Wiilock {
 
     public const DASHBOARD_FED_KEY = 'dashboard_is_being_fed';
+    public const INACTIVE_SESSIONS_CLEAN_KEY = 'inactive_sessions_are_being_cleaned';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

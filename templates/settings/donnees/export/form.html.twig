@@ -40,6 +40,12 @@
                 value: constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
                 checked: export.entity == constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
                 disabled: export.id is not null
+            },
+            {
+                label: 'Acheminements',
+                value: constant('App\\Entity\\Export::ENTITY_DISPATCH'),
+                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DISPATCH'),
+                disabled: export.id is not null
             }
         ], {expanded: true}) }}
 

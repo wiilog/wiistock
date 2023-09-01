@@ -1,6 +1,6 @@
 import Flash, {INFO} from "@app/flash";
 
-const SPINNER_WRAPPER_CLASS = 'spinner-border-wrapper';
+export const SPINNER_WRAPPER_CLASS = 'spinner-border-wrapper';
 export const LOADING_CLASS = 'wii-loading';
 export const MULTIPLE_LOADING_CLASS = 'wii-multiple-loading';
 

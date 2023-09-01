@@ -7,6 +7,7 @@ use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
+use Google\Service\Resource;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -23,8 +24,10 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
-    private const PROTOCOL_TLS = 'TLS';
-    private const PROTOCOL_SSL = 'SSL';
+    public const PROTOCOL_TLS = 'TLS';
+    public const PROTOCOL_SSL = 'SSL';
+
+    public const PORT_SSL = 587;
 
     public const PROTOCOLS = [
         self::PROTOCOL_SSL,
@@ -119,14 +122,17 @@ class MailerService
             }
 
             foreach ($attachments as $attachment) {
-                $file = fopen(is_string($attachment)
-                    ? $attachment
-                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}",
-                    'r');
-
+                if ($attachment instanceof Attachment) {
+                    $path = "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}";
+                    $fileName = $attachment->getOriginalName() ?? basename($path);
+                } else {
+                    $path = $attachment;
+                    $fileName = basename($path);
+                }
+                $file = fopen($path, 'r');
                 $message->attach(
                     $file,
-                    $attachment instanceof Attachment ? $attachment->getOriginalName() : null,
+                    $fileName,
                 );
             }
 

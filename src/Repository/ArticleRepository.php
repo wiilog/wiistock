@@ -56,7 +56,7 @@ class ArticleRepository extends EntityRepository {
         "lastAvailableDate",
         "expiryDate",
         "stockEntryDate",
-        "manifacturingDate",
+        "manufacturedAt",
         "productionDate"
     ];
 
@@ -166,7 +166,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.prixUnitaire')
             ->addSelect('article.purchaseOrder')
             ->addSelect('article.deliveryNote')
-            ->addSelect('article.manifacturingDate')
+            ->addSelect('article.manufacturedAt')
             ->addSelect('nativeCountry.label AS nativeCountryLabel')
             ->addSelect('article.productionDate')
             ->addSelect('article.RFIDtag')

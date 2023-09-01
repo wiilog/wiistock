@@ -150,6 +150,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::GENERATE_DELIVERY_NOTE,
                 Action::GENERATE_OVERCONSUMPTION_BILL,
                 Action::GENERATE_WAY_BILL,
+                Action::GENERATE_DISPATCH_LABEL,
             ],
             self::SUB_MENU_TRANSFERS => [
                 Action::DISPLAY_TRANSFER_REQ,
@@ -345,7 +346,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_USERS => [
                 Action::SETTINGS_DISPLAY_LABELS_PERSO,
                 Action::SETTINGS_DISPLAY_ROLES,
-                Action::SETTINGS_DISPLAY_USERS
+                Action::SETTINGS_DISPLAY_USERS,
+                Action::SETTINGS_DISPLAY_SESSIONS,
             ],
             self::SUB_MENU_DATA => [
                 Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
