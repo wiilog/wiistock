@@ -1092,7 +1092,7 @@ class DispatchService {
             $dispatch['treatedBy'],
             $dispatch['packCount'],
             $dispatch['status'],
-            $dispatch['emergency'],
+            $dispatch['emergency'] ?: $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
             $dispatch['businessUnit'],
             $this->formatService->html($dispatch['comment']),
             $dispatch['customerName'],
