@@ -425,8 +425,8 @@ class ShippingRequestService {
             null,
             TrackingMovement::TYPE_DEPOSE,
             [
-                'from'=>$shippingRequest,
-                'shippingRequest'=>$shippingRequest
+                'from' => $shippingRequest,
+                'shippingRequest' => $shippingRequest,
             ]
         );
         $entityManager->persist($trackingMovement);
