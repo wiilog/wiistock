@@ -391,6 +391,7 @@ function savePackLine(dispatchId, $row, async = true) {
                     }
 
                     $row.data(`data`, JSON.stringify(data));
+                    $row.find('[name=height]').trigger('change');
                 },
             });
 
@@ -836,11 +837,11 @@ function selectUlChanged($select){
 
 function registerVolumeCompute() {
     $(document).arrive(`[name=height], [name=width], [name=length]`, function() {
-        $(this).on(`select2:close`, function() {
+        $(this).on(`select2:close change`, function() {
             const $line = $(this).closest(`tr`);
             const $fields = $line.find(`[name=height], [name=width], [name=length]`);
             const $volume = $line.find(`[name=volume]`);
-            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null)) {
+            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null || $(element).val() === '')) {
                 $volume.val(null);
             } else {
                 const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);

@@ -973,6 +973,9 @@ class DispatchService {
                         'editable' => true,
                         'value' => $height,
                         'labelClass' => "$creationMode w-100",
+                        'emptyOption' => [
+                            'selected' => true,
+                        ],
                         'additionalAttributes' => [
                             [
                                 'name' => 'data-parent',
@@ -991,6 +994,9 @@ class DispatchService {
                         'editable' => true,
                         'value' => $width,
                         'labelClass' => "$creationMode w-100",
+                        'emptyOption' => [
+                            'selected' => true,
+                        ],
                         'additionalAttributes' => [
                             [
                                 'name' => 'data-parent',
@@ -1009,6 +1015,9 @@ class DispatchService {
                         'editable' => true,
                         'value' => $length,
                         'labelClass' => "$creationMode w-100",
+                        'emptyOption' => [
+                            'selected' => true,
+                        ],
                         'additionalAttributes' => [
                             [
                                 'name' => 'data-parent',
