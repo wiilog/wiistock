@@ -927,7 +927,8 @@ class ShippingRequestController extends AbstractController {
                     TrackingMovement::TYPE_PRISE,
                     [
                         'from' => $shippingRequest,
-                        'shippingRequest' => $shippingRequest
+                        'shippingRequest' => $shippingRequest,
+                        'quantity' => $logisticUnitParent->getQuantity()
                     ]
                 );
                 $entityManager->persist($trackingMovement);
@@ -943,6 +944,7 @@ class ShippingRequestController extends AbstractController {
                     TrackingMovement::TYPE_DEPOSE,
                     [
                         'from' => $shippingRequest,
+                        'quantity' => $logisticUnitParent->getQuantity()
                     ]
                 );
                 $entityManager->persist($trackingMovement);
