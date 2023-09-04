@@ -69,7 +69,7 @@ class SessionHistoryRecordController extends AbstractController
     public function activeLicenceCount(EntityManagerInterface      $entityManager,
                                        SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $sessionHistoryRecordRepository = $entityManager->getRepository(SessionHistoryRecord::class);
-        $activeLicenceCount = $sessionHistoryRecordRepository->getActiveLicenceCount();
+        $activeLicenceCount = $sessionHistoryRecordRepository->countOpenedSessions();
         $maxLicenceCount = $sessionHistoryRecordService->getOpenedSessionLimit();
 
         return new JsonResponse([
