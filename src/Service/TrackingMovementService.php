@@ -941,7 +941,9 @@ class TrackingMovementService extends AbstractController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $options = [];
+        $options = [
+            "stockAction" => true,
+        ];
 
         if ($trackingType === TrackingMovement::TYPE_PRISE) {
             $article = $articleRepository->findOneByBarCodeAndLocation($movement['ref_article'], $movement['ref_emplacement']);
@@ -1093,6 +1095,7 @@ class TrackingMovementService extends AbstractController
                                             bool                   $keepGroup = false): array {
 
         $ignoreProjectChange = $options['ignoreProjectChange'] ?? false;
+        $stockAction = $options['stockAction'] ?? false;
 
         $movement = $this->createTrackingMovement(
             $packOrCode,
@@ -1129,7 +1132,9 @@ class TrackingMovementService extends AbstractController
         }
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir l'UL
-        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
+        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE
+            && $stockAction === false
+            && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
             return [
