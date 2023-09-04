@@ -364,11 +364,12 @@ function initEditableTableArticles($table) {
                 const $target = $(event.target);
                 const $relatedTarget = $(event.relatedTarget);
 
-
                 const wasLineSelect = $target.closest(`td`).find(`select[name="reference"]`).exists();
+                const isStillInSelect = $target.is('input') && $target.closest('label').find('select[name=target-location-picking]').exists();
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-row`)
-                    || wasLineSelect) {
+                    || wasLineSelect
+                    || isStillInSelect) {
                     return;
                 }
 
