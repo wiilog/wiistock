@@ -1,4 +1,4 @@
-import {getStatusHistory} from "@app/pages/handling/common";
+ import {getStatusHistory} from "@app/pages/handling/common";
 import AJAX from "@app/ajax";
 
 $(function () {

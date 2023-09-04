@@ -21,7 +21,6 @@ class ProjectService {
     #[Required]
     public FormatService $formatService;
 
-    public const MAX_LENGTH_CODE_PROJECT = 20;
 
 
     public function getDataForDatatable(InputBag $params): array {

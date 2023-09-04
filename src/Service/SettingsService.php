@@ -20,10 +20,10 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
+use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -41,6 +41,7 @@ use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\IOT\AlertTemplateService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use JetBrains\PhpStorm\ArrayShape;
@@ -216,22 +217,6 @@ class SettingsService {
         if ($client = $data->get(Setting::APP_CLIENT)) {
             $this->changeClient($client);
             $updated[] = Setting::APP_CLIENT;
-        }
-
-        if ($data->has("MAILER_URL")) {
-            $mailer = $this->manager->getRepository(MailerServer::class)->findOneBy([]) ?? new MailerServer();
-            $mailer
-                ->setSmtp($data->get("MAILER_URL"))
-                ->setUser($data->get("MAILER_USER"))
-                ->setPassword($data->get("MAILER_PASSWORD"))
-                ->setPort($data->get("MAILER_PORT"))
-                ->setProtocol($data->get("MAILER_PROTOCOL"))
-                ->setSenderName($data->get("MAILER_SENDER_NAME"))
-                ->setSenderMail($data->get("MAILER_SENDER_MAIL"));
-
-            if (!$mailer->getId()) {
-                $this->manager->persist($mailer);
-            }
         }
 
         if ($data->has("en_attente_de_réception") && $data->has("réception_partielle") && $data->has("réception_totale") && $data->has("anomalie")) {
@@ -641,16 +626,23 @@ class SettingsService {
                 $tagTemplate->setHeight($tagTemplateData['height']);
                 $tagTemplate->setWidth($tagTemplateData['width']);
                 $tagTemplate->setModule($tagTemplateData['module']);
+
+                $natures = [];
+                $types = [];
+
                 Stream::explode(',', $tagTemplateData['natureOrType'])
-                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate) {
+                    ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
-                            $tagTemplate->addNature($nature);
+                            $natures[] = $nature;
                         } else {
                             $type = $typeRepository->find($id);
-                            $tagTemplate->addType($type);
+                            $types[] = $type;
                         }
                     } );
+
+                $tagTemplate->setNatures(new ArrayCollection($natures));
+                $tagTemplate->setTypes(new ArrayCollection($types));
 
                 $this->manager->persist($tagTemplate);
             }
@@ -692,11 +684,39 @@ class SettingsService {
                     throw new RuntimeException("Vous devez saisir un libellé pour le type");
                 }
 
+                $suggestedDropLocations = null;
+                if (isset($data["suggestedDropLocations"])) {
+                    $dropLocation = isset($data["dropLocation"])
+                        ? $this->manager->find(Emplacement::class, $data["dropLocation"])->getId()
+                        : $type->getDropLocation()?->getId();
+
+                    $suggestedDropLocations = !empty($data["suggestedDropLocations"]) ? explode(',', $data["suggestedDropLocations"]) : [];
+
+                    if (!empty($suggestedDropLocations) && $dropLocation && !in_array($dropLocation, $suggestedDropLocations)) {
+                        throw new RuntimeException("L'emplacement de dépose par défaut doit être compris dans les emplacements de dépose suggérés");
+                    }
+                }
+
+                $suggestedPickLocations = null;
+                if (isset($data["suggestedPickLocations"])) {
+                    $pickLocation = isset($data["pickLocation"])
+                        ? $this->manager->find(Emplacement::class, $data["pickLocation"])->getId()
+                        : $type->getPickLocation()?->getId();
+
+                    $suggestedPickLocations = !empty($data["suggestedPickLocations"]) ? explode(',', $data["suggestedPickLocations"]) : [];;
+
+                    if (!empty($suggestedPickLocations) && $pickLocation && !in_array($pickLocation, $suggestedPickLocations)) {
+                        throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
+                    }
+                }
+
                 $type
                     ->setLabel($data["label"] ?? $type->getLabel())
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
+                    ->setSuggestedPickLocations($suggestedPickLocations)
+                    ->setSuggestedDropLocations($suggestedDropLocations)
                     ->setNotificationsEnabled($data["pushNotifications"] ?? false)
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
@@ -764,12 +784,17 @@ class SettingsService {
                         ->setTranslation($freeField->getLabel());
                 }
 
-                if($freeField->getDefaultValue() && !$freeField->getDefaultValueTranslation()) {
+                $defaultValue = $freeField->getDefaultValue();
+                $defaultValueTranslation = $freeField->getDefaultValueTranslation();
+                if($defaultValue && !$defaultValueTranslation) {
                     $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
-                } else if($freeField->getDefaultValueTranslation()) {
-                    $freeField->getDefaultValueTranslation()
-                        ->getTranslationIn(Language::FRENCH_SLUG)
-                        ->setTranslation($freeField->getDefaultValue());
+                } else if($defaultValue && $defaultValueTranslation) {
+                    $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
+                        ?: (new Translation())
+                            ->setLanguage($this->manager->getRepository(Language::class)->findOneBy((['slug'=> Language::FRENCH_SLUG])))
+                            ->setSource($defaultValueTranslation);
+                    $this->manager->persist($translation);
+                    $translation->setTranslation($defaultValue);
                 }
 
                 foreach($freeField->getElementsTranslations() as $source) {
@@ -799,13 +824,13 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FieldsParam $fieldsParam */
-                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+                /** @var FieldsParam $subLineFieldParam */
+                $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
-                if ($fieldsParam) {
-                    $code = $fieldsParam->getFieldCode();
+                if ($subLineFieldParam) {
+                    $code = $subLineFieldParam->getFieldCode();
                     $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
-                    $fieldsParam
+                    $subLineFieldParam
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
@@ -825,17 +850,13 @@ class SettingsService {
                 ->toArray();
 
             foreach (array_filter($tables["subFixedFields"]) as $item) {
-                /** @var SubLineFieldsParam $fieldsParam */
-                $fieldsParam = $fieldsParams[$item["id"]] ?? null;
+                /** @var SubLineFieldsParam|null $subLineFieldParam */
+                $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
-                if ($fieldsParam) {
-                    $fieldsParam
-                        ->setDisplayed($item["displayed"] ?? null)
-                        ->setConditionFixedField(SubLineFieldsParam::DEFAULT_CONDITION_FIXED_FIELD)
-                        ->setRequired($item["required"] ?? null);
-
-                    $displayedUnderCondition = $item["displayedUnderCondition"] ?? false;
-                    $conditionFixedFieldValue = Stream::explode(",", $item["conditionFixedFieldValue"] ?? "")
+                if ($subLineFieldParam) {
+                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
+                    $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition;
+                    $conditionFixedFieldValue = Stream::explode(",", $subLineFieldCanBeDisplayedUnderCondition ? ($item["conditionFixedFieldValue"] ?? "") : "")
                         ->filter()
                         ->toArray();
 
@@ -843,7 +864,13 @@ class SettingsService {
                         throw new FormException("Vous devez saisir la colonne valeur");
                     }
 
-                    $fieldsParam
+                    $subLineFieldRequired = ($item["required"] ?? false )
+                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
+
+                    $subLineFieldParam
+                        ->setDisplayed($item["displayed"] ?? null)
+                        ->setConditionFixedField($item["conditionFixedField"] ?? null)
+                        ->setRequired($subLineFieldRequired)
                         ->setDisplayedUnderCondition($displayedUnderCondition)
                         ->setConditionFixedFieldValue($conditionFixedFieldValue);
                 }
@@ -941,7 +968,7 @@ class SettingsService {
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
-                        ->setComment(StringHelper::cleanedComment($statusData['comment'] ?? null))
+                        ->setComment($statusData['comment'] ?? null)
                         ->setDefaultForCategory($statusData['defaultStatut'] ?? false)
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
@@ -1056,6 +1083,63 @@ class SettingsService {
                         ->setActive($nativeCountryData['active']);
 
                     $this->manager->persist($nativeCountry);
+                }
+            }
+        }
+
+        if (isset($tables["TruckArrivalReserves"])) {
+            $reserveTypesData = array_filter($tables["TruckArrivalReserves"]);
+            $reserveTypeRepository = $this->manager->getRepository(ReserveType::class);
+            $userRepository = $this->manager->getRepository(Utilisateur::class);
+
+            if (!empty($reserveTypesData)) {
+                $isDefaultReserveTypes = Stream::from($reserveTypesData)->filter(fn($data) => $data['defaultReserveType'] === '1')->count();
+                if ($isDefaultReserveTypes !== 1) {
+                    throw new RuntimeException("Il doit y avoir un seul type de réserve par défaut.");
+                }
+
+                $labelReserveTypes = Stream::from($reserveTypesData)->map(fn($data) => $data['label'])->toArray();
+                $nbLabelsWithoutDoubles = count(array_unique($labelReserveTypes));
+                if ($nbLabelsWithoutDoubles != count($reserveTypesData)) {
+                    throw new RuntimeException("Il ne peut pas y avoir plusieurs fois le même libellé de type de réserve.");
+                }
+
+                foreach ($reserveTypesData as $reserveTypeData) {
+                    $persistedReserveTypes = [];
+                    if (isset($reserveTypeData['id'])) {
+                        $reserveType = Stream::from($persistedReserveTypes)
+                            ->filter(fn(ReserveType $reserveType) => $reserveType->getId() == $reserveTypeData['id'])
+                            ->first();
+
+                        if (!$reserveType) {
+                            $reserveType = $reserveTypeRepository->find($reserveTypeData['id']);
+                            $persistedReserveTypes[] = $reserveType;
+                        }
+                    } else {
+                        $reserveType = new ReserveType();
+                        $persistedReserveTypes[] = $reserveType;
+                    }
+
+                    if (isset($reserveTypeData['emails']) && $reserveTypeData['emails'] != "") {
+                        $emails = explode(',', $reserveTypeData['emails']);
+                        $notifiedUsers = Stream::from($emails)
+                            ->map(fn($userId) => $userRepository->find($userId))
+                            ->toArray();
+                    } else {
+                        $notifiedUsers = [];
+                    }
+
+                    if($reserveTypeData['defaultReserveType'] && !$reserveTypeData['active']){
+                        throw new RuntimeException("Impossible de rendre inactif le type de réserve par défaut.");
+                    }
+
+                    $reserveType
+                        ->setLabel($reserveTypeData['label'])
+                        ->setNotifiedUsers(!empty($notifiedUsers) ? $notifiedUsers : null)
+                        ->setDefaultReserveType($reserveTypeData['defaultReserveType'])
+                        ->setActive($reserveTypeData['active']);
+
+                    $this->manager->persist($reserveType);
                 }
             }
         }

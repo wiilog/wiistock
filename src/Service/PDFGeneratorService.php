@@ -3,9 +3,12 @@
 namespace App\Service;
 
 use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\Livraison;
 use App\Entity\Setting;
 use App\Entity\TagTemplate;
+use WiiCommon\Helper\Stream;
+use phpDocumentor\Reflection\Types\Self_;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -24,6 +27,8 @@ class PDFGeneratorService {
 
     public const PREFIX_BARCODE_FILENAME = 'ETQ';
 
+    public const MAX_LINE_LENGHT_WRAP = 30;
+
     /** @var Twig_Environment */
     private $templating;
 
@@ -36,6 +41,9 @@ class PDFGeneratorService {
 
     #[Required]
     public SettingsService $settingsService;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function __construct(PDFGenerator           $PDFGenerator,
                                 KernelInterface        $kernel,
@@ -60,7 +68,6 @@ class PDFGeneratorService {
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
-
         $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
         $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
         $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
@@ -77,6 +84,18 @@ class PDFGeneratorService {
                 return strlen($label) > $carry ? $currentLen : $carry;
             }, 0);
 
+            // use to wrap long label
+            foreach ($labels as $key=>$label){
+                $largeLabel = strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
+                if($largeLabel){
+                    // first part
+                    $labels[$key] = substr($label, 0, self::MAX_LINE_LENGHT_WRAP);
+                    // second part
+                    $newLabel[] = substr($label, self::MAX_LINE_LENGHT_WRAP,strlen($label)-1);
+                    // add second part to the array
+                    array_splice($labels, $key-1,0, $newLabel);
+                }
+            }
             return [
                 'barcode' => [
                     'code' => $code,
@@ -272,5 +291,65 @@ class PDFGeneratorService {
     public function generateFromDocx(string $docx, string $outdir) {
         $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
+    }
+
+    public function generateDispatchLabel(Dispatch $dispatch, string $title) {
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+        $height = $barcodeConfig['height'];
+        $width = $barcodeConfig['width'];
+        $isCode128 = $barcodeConfig['isCode128'];
+
+        $barcodeConfigsToTwig = Stream::from($dispatch->getDispatchPacks()->toArray())
+            ->map(function(DispatchPack $dispatchPack) use ($dispatch, $isCode128) {
+                $pack = $dispatchPack->getPack();
+                return [
+                    'barcode' => [
+                        'code' => $pack->getCode(),
+                        'type' => $isCode128 ? 'c128' : 'qrcode',
+                        'width' => $isCode128 ? 1 : 48,
+                        'height' => 48,
+                    ],
+                    'dispatch' => [
+                        'number' => $dispatch->getNumber(),
+                        'businessUnit' => $dispatch->getBusinessUnit(),
+                        'orderNumber' => $dispatch->getCommandNumber(),
+                        'customerName' => $dispatch->getCustomerName(),
+                        'customerAddress' => $dispatch->getCustomerAddress(),
+                        'customerRecipient' => $dispatch->getCustomerRecipient(),
+                        'customerPhone' => $dispatch->getCustomerPhone(),
+                        'dispatchPack' => [
+                            'code' => $pack->getCode(),
+                            'nature' => $this->formatService->nature($pack->getNature()),
+                            'height' => $dispatchPack->getHeight(),
+                            'width' => $dispatchPack->getWidth(),
+                            'length' => $dispatchPack->getLength(),
+                            'weight' => $pack->getWeight(),
+                            'volume' => $pack->getVolume(),
+                        ],
+                    ],
+                    'requester' => $this->formatService->user($dispatch->getRequester()),
+                ];
+            })
+            ->toArray();
+
+        return $this->PDFGenerator->getOutputFromHtml(
+            $this->templating->render('prints/dispatchLabelTemplate.html.twig', [
+                'title' => $title,
+                'height' => $height,
+                'width' => $width,
+                'barcodeConfigs' => $barcodeConfigsToTwig,
+            ]),
+            [
+                'page-height' => "${height}mm",
+                'page-width' => "${width}mm",
+                'margin-top' => 0,
+                'margin-right' => 0,
+                'margin-bottom' => 0,
+                'margin-left' => 0,
+                'encoding' => 'UTF-8',
+                'no-outline' => true,
+                'disable-smart-shrinking' => true,
+            ]
+        );
     }
 }

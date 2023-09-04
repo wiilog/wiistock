@@ -156,7 +156,7 @@ class PurchaseRequestService
             ->setCreationDate($now)
             ->setStatus($status)
             ->setRequester($requester)
-            ->setComment(StringHelper::cleanedComment($comment))
+            ->setComment($comment)
             ->setNumber($purchaseRequestNumber)
             ->setSupplier($supplier)
             ->setValidationDate($validationDate);

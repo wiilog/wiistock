@@ -34,6 +34,7 @@ class TriggerActionRepository extends EntityRepository
                             'search_sensorWrapper.name LIKE :value',
                             "IFNULL(search_alert_template.name, search_request_template.name) LIKE :value"
                         ))
+                        ->orWhere('trigger_action.lastTrigger LIKE :value')
                         ->leftJoin('trigger_action.sensorWrapper', 'search_sensorWrapper')
                         ->setParameter('value', "%$search%");
                 }
@@ -53,6 +54,9 @@ class TriggerActionRepository extends EntityRepository
                             ->leftJoin('trigger_action.alertTemplate', 'alert_template')
                             ->leftJoin('trigger_action.requestTemplate', 'request_template')
                             ->orderBy('IFNULL(alert_template.name, request_template.name)', $order);
+                    } else if ($column === 'lastTrigger') {
+                        $qb
+                            ->orderBy('trigger_action.lastTrigger', $order);
                     }
                 }
             }

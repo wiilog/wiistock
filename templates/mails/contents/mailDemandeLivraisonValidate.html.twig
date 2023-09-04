@@ -1,6 +1,7 @@
 {% extends 'mails/template.html.twig' %}
 
 {% set isReception = (isReception is defined and isReception) %}
+{% set roleIsQuantityTypeArticle = (requester ?? app.user).role.quantityType == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
 {% block content %}
     {% if isReception and reception.manualUrgent %}
         <p style="font-weight: 600">{{ trans('Ordre', 'Réceptions', 'Cette réception est urgente', false) }}.</p>
@@ -21,10 +22,12 @@
                 style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
                 Code barre {{ trans('Stock', 'Référence', 'référence', false) }}
             </th>
-            <th class="th"
-                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
-                Code barre article
-            </th>
+            {% if roleIsQuantityTypeArticle %}
+                <th class="th"
+                    style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                    Code barre article
+                </th>
+            {% endif %}
             {% if isReception %}
                 <th class="th"
                     style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
@@ -57,10 +60,12 @@
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ article.articleFournisseur.referenceArticle.barCode }}
                 </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                    {{ article.barCode }}
-                </td>
+                {% if roleIsQuantityTypeArticle %}
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                        {{ article.barCode }}
+                    </td>
+                {% endif %}
                 {% if isReception %}
                     <td class="td"
                         style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -91,9 +96,11 @@
                     style="border: 1px solid black; padding: 10px; text-align: center;">
                     {{ line.reference.barCode }}
                 </td>
-                <td class="td"
-                    style="border: 1px solid black; padding: 10px; text-align: center;">
-                </td>
+                {% if roleIsQuantityTypeArticle %}
+                    <td class="td"
+                        style="border: 1px solid black; padding: 10px; text-align: center;">
+                    </td>
+                {% endif %}
                 {% if fournisseur is defined %}
                     <th class="th"
                         style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">

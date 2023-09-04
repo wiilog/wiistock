@@ -4,9 +4,11 @@ namespace App\Repository;
 
 use App\Entity\Action;
 use App\Entity\Dispute;
+use App\Entity\SessionHistoryRecord;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -80,15 +82,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
 
     public function findOneByApiKey(string $key): Utilisateur|null
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT u
-            FROM App\Entity\Utilisateur u
-            WHERE u.apiKey = :key
-              AND u.status = true
-              AND u.kioskUser = 0"
-        )->setParameter('key', $key);
+        $query = $this->createQueryBuilder("user")
+            ->innerJoin('user.sessionHistoryRecords',
+                'session_history_record',
+                Join::WITH,
+                "session_history_record.closedAt IS NULL AND session_history_record.sessionId = :key")
+            ->andWhere("user.status = 1")
+            ->andWhere("user.kioskUser = 0")
+            ->setParameter('key', $key)
+            ->getQuery();
 
         return $query->getOneOrNullResult();
     }
@@ -246,8 +248,22 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         return $this->createQueryBuilder("user")
             ->select("user.id AS id")
             ->addSelect("user.username AS username")
+            ->addSelect("user.signatoryPassword AS signatoryPassword")
             ->andWhere("user.status = 1")
             ->getQuery()
             ->getResult();
+    }
+
+    public function iterateUserWithNullLanguageOrDateFormat()
+    {
+        $qb = $this->createQueryBuilder("user");
+
+        return $qb
+                ->andWhere($qb->expr()->orX(
+                    'user.dateFormat IS NULL',
+                    'user.language IS NULL',
+                ))
+                ->getQuery()
+                ->toIterable();
     }
 }

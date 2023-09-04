@@ -140,7 +140,7 @@ function processSubmitAction($modal,
         const smartData = isAttachmentForm || formData
             ? createFormData(data)
             : JSON.stringify(data);
-        console.log(formData, smartData);
+
         $submit.pushLoader('white');
         if (waitForUserAction) {
             return waitForUserAction()
@@ -510,9 +510,9 @@ function processInputsForm($modal, data, isAttachmentForm) {
                             ? ` doit être inférieure à ${max}.`
                             : ` doit être comprise entre ${min} et ${max}.`;
                     } else if (!isNaN(max)) {
-                        errorMessage += ` doit être inférieure à ${max}.`;
+                        errorMessage += ` doit être inférieure ou égale à ${max}.`;
                     } else if (!isNaN(min)) {
-                        errorMessage += ` doit être supérieure à ${min}.`;
+                        errorMessage += ` doit être supérieure ou égale à ${min}.`;
                     } else {
                         errorMessage += ` ne peut pas être rempli`;
                     }
@@ -703,7 +703,7 @@ function processFilesForm($modal, data) {
         });
     }
 
-    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
+    const isInvalidRequiredSheet = (requiredSheetFile && sheetFile && sheetFile.length === 0 && !alreadyExistSheetFile)
     const isInvalidRequired = (required && droppedFiles.length === 0 && $savedFiles.length === 0);
     let dropFrame = [];
 
@@ -872,8 +872,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal
     }
 }
 
-function displayAttachements(files, $dropFrame, isMultiple = true) {
-
+function displayAttachements(files, $dropFrame, isMultiple = true, lineClass = '') {
     const errorMessages = [];
 
     const $fileBag = $dropFrame.siblings('.file-bag');
@@ -905,7 +904,7 @@ function displayAttachements(files, $dropFrame, isMultiple = true) {
                         <a target="_blank" href="` + reader.result + `" class="has-tooltip" title="${fileName}">
                             <i class="fa ${icon} mr-2"></i>` + fileName + `
                         </a>
-                        <i class="fa fa-times red pointer" onclick="removeAttachment($(this))"></i>
+                        <i class="fa fa-times red pointer ${lineClass}" onclick="removeAttachment($(this))"></i>
                     </p>`);
             });
             reader.readAsDataURL(file);
@@ -930,6 +929,7 @@ function removeAttachment($elem, callback = null) {
     if (callback) {
         callback($elem);
     }
+
     let deleted = false;
     let fileName = $elem.closest('.attachement').find('a').first().text().trim();
     $elem.closest('.attachement').remove();
@@ -939,6 +939,7 @@ function removeAttachment($elem, callback = null) {
             droppedFiles.splice(droppedFiles.indexOf(file), 1);
         }
     });
+
     if ($elem.hasClass('delete-sheet-file')) {
         deleteSheetFile();
     }
@@ -948,8 +949,8 @@ function deleteSheetFile() {
     const $deleteSheetFile = $('.delete-sheet-file');
     $deleteSheetFile.addClass('d-none');
 
-    $('input[name=deletedSheetFile]').val(1);
-    $('#upload-article-reference-image').val(null);
+    $(`[name=deletedSheetFile]`).val(1);
+    $(`[name=fileSheet]`).val(null);
 }
 
 
@@ -991,7 +992,7 @@ function saveDroppedFiles(event, $div) {
             let files = Array.from(event.dataTransfer.files);
 
             const $inputFile = $div.find('.fileInput');
-            saveInputFiles($inputFile, files);
+            saveInputFiles($inputFile, {files});
         }
     } else {
         displayWrong($div);
@@ -999,23 +1000,25 @@ function saveDroppedFiles(event, $div) {
     return false;
 }
 
-function saveInputFiles($inputFile, singleton) {
-    singleton = singleton ?? false;
-    let filesToSave = $inputFile[0].files;
+function saveInputFiles($inputFile, options) {
+    const {files, singleton, lineClass} = options || {};
+    let filesToSave = files || $inputFile[0].files;
     const isMultiple = $inputFile.prop('multiple');
 
-    Array.from(filesToSave).forEach(file => {
-        if (checkSizeFormat(file) && checkFileFormat(file)) {
-            if (!isMultiple && !singleton) {
-                droppedFiles = [];
+    if(!singleton){
+        Array.from(filesToSave).forEach(file => {
+            if (checkSizeFormat(file) && checkFileFormat(file)) {
+                if (!isMultiple && !singleton) {
+                    droppedFiles = [];
+                }
+                droppedFiles.push(file);
             }
-            if (!singleton) droppedFiles.push(file);
-        }
-    });
+        });
+    }
 
     let dropFrame = $inputFile.closest('.dropFrame');
 
-    displayAttachements(filesToSave, dropFrame, isMultiple);
+    displayAttachements(filesToSave, dropFrame, isMultiple, lineClass);
     if (!singleton) $inputFile[0].value = '';
 }
 

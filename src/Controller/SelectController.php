@@ -51,15 +51,26 @@ class SelectController extends AbstractController {
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
+        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? null;
+        $typeDispatchPickLocation = $request->query->get("typeDispatchPickLocation") ?? null;
         $term = $request->query->get("term");
         $addGroup = $request->query->getBoolean("add-group");
 
+        $restrictedLocations = [];
+        if($typeDispatchDropLocation) {
+            $type = $manager->getRepository(Type::class)->find($typeDispatchDropLocation);
+            $restrictedLocations = $type->getSuggestedDropLocations();
+        } elseif($typeDispatchPickLocation) {
+            $type = $manager->getRepository(Type::class)->find($typeDispatchPickLocation);
+            $restrictedLocations = $type->getSuggestedPickLocations();
+        }
         $locations = $manager->getRepository(Emplacement::class)->getForSelect(
             $term,
             [
                 'deliveryType' => $deliveryType,
                 'collectType' => $collectType,
-                'idPrefix' => $addGroup ? 'location:' : ''
+                'idPrefix' => $addGroup ? 'location:' : '',
+                'restrictedLocations' => $restrictedLocations,
             ]
         );
 
@@ -276,7 +287,8 @@ class SelectController extends AbstractController {
      * @Route("/select/unites-logistiques", name="ajax_select_packs", options={"expose": true})
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
-        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"));
+        $limit = $request->query->get('limit') ?: null;
+        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"), ['limit' => $limit]);
         return $this->json([
             "results" => $results,
         ]);
@@ -811,8 +823,11 @@ class SelectController extends AbstractController {
     #[Route('/select/driver', name: 'ajax_select_driver', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     public function driver(Request $request, EntityManagerInterface $manager): Response {
         $term = $request->query->get("term");
+        $carrierId = $request->query->get("carrier");
 
-        $drivers = $manager->getRepository(Chauffeur::class)->getForSelect($term);
+        $drivers = $manager->getRepository(Chauffeur::class)->getForSelect($term, [
+            'carrierId' => $carrierId
+        ]);
 
         return $this->json([
             "results" => $drivers,

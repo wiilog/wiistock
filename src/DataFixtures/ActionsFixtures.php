@@ -21,6 +21,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_GENERAL = 'général';
     const SUB_MENU_GLOBAL = 'global';
     const SUB_MENU_STOCK = 'stock';
+    const SUB_MENU_REQUESTS = 'demandes';
     const SUB_MENU_TERMINAL_MOBILE = 'terminal mobile';
     const SUB_MENU_DASHBOARD = 'dashboard';
     const SUB_MENU_IOT = 'iot';
@@ -149,6 +150,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::GENERATE_DELIVERY_NOTE,
                 Action::GENERATE_OVERCONSUMPTION_BILL,
                 Action::GENERATE_WAY_BILL,
+                Action::GENERATE_DISPATCH_LABEL,
             ],
             self::SUB_MENU_TRANSFERS => [
                 Action::DISPLAY_TRANSFER_REQ,
@@ -344,7 +346,8 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_USERS => [
                 Action::SETTINGS_DISPLAY_LABELS_PERSO,
                 Action::SETTINGS_DISPLAY_ROLES,
-                Action::SETTINGS_DISPLAY_USERS
+                Action::SETTINGS_DISPLAY_USERS,
+                Action::SETTINGS_DISPLAY_SESSIONS,
             ],
             self::SUB_MENU_DATA => [
                 Action::SETTINGS_DISPLAY_EXPORT_ENCODING,
@@ -360,6 +363,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         ],
         Menu::NOMADE => [
             self::SUB_MENU_GENERAL => [
+                Action::ACCESS_NOMADE_LOGIN,
                 Action::MODULE_ACCESS_STOCK,
                 Action::MODULE_ACCESS_TRACA,
                 Action::MODULE_ACCESS_HAND,
@@ -374,6 +378,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
             self::SUB_MENU_STOCK => [
                 Action::CREATE_ARTICLE_FROM_NOMADE
+            ],
+            self::SUB_MENU_REQUESTS => [
+                Action::DISPATCH_REQUEST_OFFLINE_MODE,
             ],
         ],
     ];

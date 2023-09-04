@@ -3,22 +3,90 @@
 namespace App\Entity;
 
 use App\Repository\SubLineFieldsParamRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
 class SubLineFieldsParam {
 
-    const DEFAULT_CONDITION_FIXED_FIELD = "Type Reference";
+    public const FREE_ELEMENTS_FIELDS = [
+        self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
+            self::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
+            self::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
+            self::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+        ]
+    ];
 
     const ENTITY_CODE_DEMANDE_REF_ARTICLE = 'demandeRefArticle';
+    const ENTITY_CODE_DISPATCH_LOGISTIC_UNIT = 'dispatchLogisticUnit';
+
+    const DISPLAY_CONDITIONS = [
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            self::DISPLAY_CONDITION_REFERENCE_TYPE,
+        ],
+    ];
+
+    const DISPLAY_CONDITION_REFERENCE_TYPE = "Type Reference";
 
     const FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT = 'project';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT = 'projet';
+
     const FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT = 'comment';
     const FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT = 'commentaire';
 
+    const FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES = 'notes';
+    const FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES = 'remarques';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH = 'length';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH = 'longueur';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH = 'width';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH = 'largeur';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT = 'height';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT = 'hauteur';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT = 'weight';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT = 'poids';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME = 'volume';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_VOLUME = 'volume';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT = 'comment';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_COMMENT = 'commentaire';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE = 'lastTrackingDate';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE = 'date dernier mouvement';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION = 'lastLocation';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION = 'dernier emplacement';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR = 'operator';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_OPERATOR = 'opérateur';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS = 'status';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_STATUS = 'statut';
+
+    const FIELD_CODE_DISPATCH_LOGISTIC_UNIT_NATURE = 'nature';
+    const FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_NATURE = 'nature';
+
     public const DISABLED_DISPLAYED_UNDER_CONDITION = [
-        SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
+        ],
+    ];
+
+    public const DISABLED_REQUIRED = [
+        self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+        ],
+        self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
+            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
+        ],
     ];
 
     #[ORM\Id]
@@ -52,6 +120,9 @@ class SubLineFieldsParam {
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $elements = [];
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $elementsType = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -133,6 +204,18 @@ class SubLineFieldsParam {
 
     public function setRequired(?bool $required): self {
         $this->required = $required;
+
+        return $this;
+    }
+
+    public function getElementsType(): ?string
+    {
+        return $this->elementsType;
+    }
+
+    public function setElementsType(?string $elementsType): self
+    {
+        $this->elementsType = $elementsType;
 
         return $this;
     }

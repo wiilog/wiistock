@@ -58,25 +58,42 @@ $(function () {
         });
     });
 
+    let $modalNewDispatch = $("#modalNewDispatch");
+    let $checkedCheckboxes = undefined;
+    let arrivalsToDispatch = undefined;
+    Form
+        .create($modalNewDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalNewDispatch.find('[name=customerPhone]')?.val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]')?.val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]')?.val(customer?.address);
+        })
+        .onOpen(() => {
+            initNewDispatchEditor('#modalNewDispatch');
+            Modal
+                .load(
+                    'create_from_arrival_template',
+                    {arrivals: arrivalsToDispatch},
+                    $modalNewDispatch,
+                    $modalNewDispatch.find(`.modal-body`)
+                )
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_new',
+            {
+                success: ({redirect}) => window.location.href = redirect,
+            }
+        )
+
     $dispatchModeContainer.find(`.validate`).on(`click`, function () {
-        const $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
-        const arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
+        $checkedCheckboxes = $arrivalsTable.find(`input[type=checkbox]:checked`).not(`.check-all`);
+        arrivalsToDispatch = $checkedCheckboxes.toArray().map((element) => $(element).val());
         if (arrivalsToDispatch.length > 0) {
-            $(this).pushLoader(`white`);
-            $.post(Routing.generate(`create_from_arrival_template`, {arrivals: arrivalsToDispatch}, true))
-                .then(({content}) => {
-                    $(this).popLoader();
-                    $(`body`).append(content);
-
-                    let $modalNewDispatch = $("#modalNewDispatch");
-                    $modalNewDispatch.modal(`show`);
-
-                    let $submitNewDispatch = $("#submitNewDispatch");
-                    let urlDispatchNew = Routing.generate('dispatch_new', true);
-                    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew);
-
-                    initNewDispatchEditor('#modalNewDispatch');
-                });
+            $modalNewDispatch.modal(`show`);
         }
     });
 
@@ -387,7 +404,8 @@ function createArrival(form = null) {
                         );
                         hasDataToRefresh = true;
                     },
-                }).catch(() => {
+                }).catch((error) => {
+                    console.log(error);
                 });
             })
     }, 1);

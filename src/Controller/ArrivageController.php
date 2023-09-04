@@ -214,7 +214,7 @@ class ArrivageController extends AbstractController {
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
-            ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+            ->setCommentaire($data['commentaire'] ?? null)
             ->setType($typeRepository->find($data['type']));
 
         $status = !empty($data['status']) ? $statutRepository->find($data['status']) : null;
@@ -304,26 +304,13 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
-        if ($useTruckArrivals) {
-            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
-                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
-                    ? $line->getNumber()
-                    : null
-                )
-                ->join(',');
-            if ($linesNeedingConfirmation) {
-                $lastElement = array_pop($alertConfigs);
-                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
-                $alertConfigs[] = $lastElement;
-            }
-        }
-
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
         }
 
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
+        // packs tracking movement are create at the end of the creation of the arrival, after truckArrivalLine reserve modal
         $packService->persistMultiPacks(
             $entityManager,
             $arrivage,
@@ -348,7 +335,22 @@ class ArrivageController extends AbstractController {
             $arrivalService->sendArrivalEmails($entityManager, $arrivage);
         }
 
+        if ($useTruckArrivals) {
+            $linesNeedingConfirmation = Stream::from($arrivage->getTruckArrivalLines())
+                ->filterMap(fn(TruckArrivalLine $line) => $line->getReserve() && $line->getArrivals()->count() === 1
+                    ? $line->getNumber()
+                    : null
+                )
+                ->join(',');
+            if ($linesNeedingConfirmation) {
+                $lastElement = array_pop($alertConfigs);
+                $alertConfigs[] = $arrivalService->createArrivalReserveModalConfig($arrivage, $linesNeedingConfirmation);
+                $alertConfigs[] = $lastElement;
+            }
+        }
+
         $entityManager->flush();
+
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
         return new JsonResponse([
             'success' => true,
@@ -535,7 +537,7 @@ class ArrivageController extends AbstractController {
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
         $arrivage
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')))
+            ->setCommentaire($post->get('commentaire'))
             ->setNoTracking(substr($post->get('noTracking'), 0, 64))
             ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
             ->setDropLocation($dropLocation)
@@ -1010,7 +1012,6 @@ class ArrivageController extends AbstractController {
      * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiEditLitige(Request $request,
-                                  UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -1019,7 +1020,6 @@ class ArrivageController extends AbstractController {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
 
@@ -1030,19 +1030,17 @@ class ArrivageController extends AbstractController {
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
-
             $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
                 ->map(fn(Statut $statut) => [
                     'id' => $statut->getId(),
                     'type' => $statut->getType(),
                     'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
                 ])
                 ->toArray();
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
-                'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),

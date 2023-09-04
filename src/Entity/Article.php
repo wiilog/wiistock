@@ -9,8 +9,6 @@ use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
-use App\Entity\ShippingRequest\ShippingRequestLine;
-use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArticleRepository;
 use DateTime;
@@ -19,12 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
-
-/**
- * @UniqueEntity("reference")
- */
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article implements PairedEntity {
 
@@ -125,6 +118,7 @@ class Article implements PairedEntity {
     private Collection $disputes;
 
     #[ORM\OneToOne(mappedBy: 'article', targetEntity: Pack::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Pack $trackingPack = null;
 
     #[ORM\ManyToMany(targetEntity: TransferRequest::class, mappedBy: 'articles')]
@@ -148,7 +142,7 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'articles')]
     private ?Collection $carts;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "childArticles")]
+    #[ORM\ManyToOne(targetEntity: Pack::class, cascade: ['persist'], inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
@@ -167,13 +161,10 @@ class Article implements PairedEntity {
     private ?NativeCountry $nativeCountry = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
-    private ?DateTime $manifacturingDate = null;
+    private ?DateTime $manufacturedAt = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?DateTime $productionDate = null;
-
-    #[ORM\OneToOne(mappedBy: 'article', targetEntity: ShippingRequestLine::class)]
-    private ?ShippingRequestLine $shippingRequestLine = null;
 
     public function __construct() {
         $this->deliveryRequestLines = new ArrayCollection();
@@ -222,11 +213,11 @@ class Article implements PairedEntity {
     }
 
     public function getCommentaire(): ?string {
-        return $this->commentaire;
+        return strip_tags($this->commentaire);
     }
 
     public function setCommentaire(?string $commentaire): self {
-        $this->commentaire = $commentaire;
+        $this->commentaire = strip_tags($commentaire);  //strip_tags: supprimer les balises HTML en BDD
 
         return $this;
     }
@@ -592,6 +583,7 @@ class Article implements PairedEntity {
             : new ArrayCollection();
     }
 
+
     /**
      * @return int|null
      */
@@ -854,24 +846,18 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getManifacturingDate(): ?DateTime
+    public function getManufacturedAt(): ?DateTime
     {
-        return $this->manifacturingDate;
+        return $this->manufacturedAt;
     }
 
-    public function setManifacturingDate(?DateTime $manifacturingDate): self
+    public function setManufacturedAt(?DateTime $manufacturedAt): self
     {
-        $this->manifacturingDate = $manifacturingDate;
+        $this->manufacturedAt = $manufacturedAt;
 
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getProductionDate(): ?DateTime
     {
         return $this->productionDate;
@@ -880,24 +866,6 @@ class Article implements PairedEntity {
     public function setProductionDate(?DateTime $productionDate): self
     {
         $this->productionDate = $productionDate;
-
-        return $this;
-    }
-
-    public function getShippingRequestLine(): ?ShippingRequestLine {
-        return $this->shippingRequestLine;
-    }
-
-    public function setShippingRequestLine(?ShippingRequestLine $line): self {
-        if($this->shippingRequestLine && $this->shippingRequestLine->getArticleOrReference() !== $this) {
-            $oldLine = $this->shippingRequestLine;
-            $this->shippingRequestLine = null;
-            $oldLine->setArticle(null);
-        }
-        $this->shippingRequestLine = $line;
-        if($this->shippingRequestLine && $this->shippingRequestLine->getArticleOrReference() !== $this) {
-            $this->shippingRequestLine->setArticle($this);
-        }
 
         return $this;
     }

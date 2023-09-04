@@ -216,9 +216,9 @@ class ShippingRequestRepository extends EntityRepository {
             ->addSelect('shipping_request.carrying')
             ->addSelect('COUNT(join_packLine.id) AS nbPacks')
             ->addSelect('IF(COUNT(join_packLine.id) = 0, NULL, join_packLine.size) as size')
-            ->addSelect('SUM(join_expectedLine.unitWeight) AS totalWeight')
+            ->addSelect('shipping_request.netWeight AS totalWeight')
             ->addSelect('shipping_request.grossWeight')
-            ->addSelect('SUM(join_expectedLine.unitPrice) AS totalSum')
+            ->addSelect('shipping_request.totalValue AS totalSum')
             ->addSelect('join_carrier.label AS carrierName')
             ->addselect('join_expectedLine_RefArticle_sheet.originalName AS originalName')
             ->leftJoin('shipping_request.status', 'join_status')
@@ -280,5 +280,15 @@ class ShippingRequestRepository extends EntityRepository {
         else {
             return null;
         }
+    }
+
+    public function countByRequesters($user) {
+        $qb = $this->createQueryBuilder('shipping_request');
+        return $qb
+            ->select("COUNT(shipping_request)")
+            ->andWhere(':user MEMBER OF shipping_request.requesters')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

@@ -197,7 +197,7 @@ class DisputeController extends AbstractController
                 'user' => $this->getFormatter()->user($record->getUser()),
                 'date' => $this->getFormatter()->datetime($record->getDate()),
                 'commentaire' => nl2br($record->getComment()),
-                'status' => $this->getFormatter()->status($disputeStatus) ?? $record->getStatusLabel(),
+                'status' => $this->getFormatter()->status($disputeStatus) ?: $record->getStatusLabel(),
                 'type' => $this->getFormatter()->type($disputeType) ?? $record->getTypeLabel()
             ];
         }

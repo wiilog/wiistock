@@ -22,13 +22,13 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\KioskToken;
 use App\Entity\Language;
-use App\Entity\MailerServer;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduleRule;
+use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -43,6 +43,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Repository\IOT\AlertTemplateRepository;
 use App\Repository\IOT\RequestTemplateRepository;
@@ -51,10 +52,12 @@ use App\Repository\TypeRepository;
 use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
+use App\Service\FormService;
 use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\SessionHistoryRecordService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
@@ -77,6 +80,7 @@ use Throwable;
 use Twig\Environment;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/parametrage")
@@ -106,6 +110,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public SessionHistoryRecordService $sessionHistoryRecordService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -329,6 +336,10 @@ class SettingsController extends AbstractController {
                             "label" => "Champs fixes",
                             "save" => true,
                         ],
+                        self::MENU_RESERVES => [
+                            "label" => "Réserves",
+                            "save" => false,
+                        ],
                     ],
                 ],
                 self::MENU_BR_ASSOCIATION => [
@@ -510,6 +521,11 @@ class SettingsController extends AbstractController {
                     "right" => Action::SETTINGS_DISPLAY_USERS,
                     "save" => false,
                 ],
+                self::MENU_SESSIONS => [
+                    "label" => "Licences",
+                    "right" => Action::SETTINGS_DISPLAY_SESSIONS,
+                    "save" => false,
+                ],
             ],
         ],
         self::CATEGORY_DATA => [
@@ -543,7 +559,7 @@ class SettingsController extends AbstractController {
         ],
         self::CATEGORY_TEMPLATES => [
             "label" => "Modèles de document",
-            "icon" => "menu-donnees",
+            "icon" => "settings-document-template",
             "menus" => [
                 self::MENU_TEMPLATE_DISPATCH => [
                     "label" => "Acheminements",
@@ -625,6 +641,7 @@ class SettingsController extends AbstractController {
     public const MENU_DISPATCHES = "acheminements";
     public const MENU_STATUSES = "statuts";
     public const MENU_FIXED_FIELDS = "champs_fixes";
+    public const MENU_RESERVES = "reserves";
     public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
     public const MENU_MOVEMENTS = "mouvements";
@@ -663,6 +680,7 @@ class SettingsController extends AbstractController {
     public const MENU_LANGUAGES = "langues";
     public const MENU_ROLES = "roles";
     public const MENU_USERS = "utilisateurs";
+    public const MENU_SESSIONS = "licences";
 
     public const MENU_EXPORTS_ENCODING = "exports_encodage";
     public const MENU_CSV_EXPORTS = "exports_csv";
@@ -1047,7 +1065,6 @@ class SettingsController extends AbstractController {
 
     ])]
     public function customValues(EntityManagerInterface $entityManager): array {
-        $mailerServerRepository = $entityManager->getRepository(MailerServer::class);
         $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $locationsRepository = $entityManager->getRepository(Emplacement::class);
@@ -1056,12 +1073,14 @@ class SettingsController extends AbstractController {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $entityManager->getRepository(FieldsParam::class);
+        $subLineFieldParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
@@ -1069,9 +1088,6 @@ class SettingsController extends AbstractController {
             self::CATEGORY_GLOBAL => [
                 self::MENU_CLIENT => fn() => [
                     "current_client" => $this->specificService->getAppClient(),
-                ],
-                self::MENU_MAIL_SERVER => fn() => [
-                    "mailer_server" => $mailerServerRepository->findOneBy([]) ?? new MailerServer(),
                 ],
                 self::MENU_LABELS => fn() => [
                     "typeOptions" => Stream::from($typeRepository->findBy(['category' => $categoryTypeArrivage]))
@@ -1159,7 +1175,7 @@ class SettingsController extends AbstractController {
                         return [
                             "receiver" => [
                                 "field" => $receiver->getId(),
-                                "modalType" => $receiver->getModalType(),
+                                "elementsType" => $receiver->getElementsType(),
                                 "elements" => Stream::from($receiver->getElements() ?? [])
                                     ->map(function(string $element) use ($userRepository) {
                                         $user = $userRepository->find($element);
@@ -1173,7 +1189,7 @@ class SettingsController extends AbstractController {
                             ],
                             "type" => [
                                 "field" => $defaultType->getId(),
-                                "modalType" => $defaultType->getModalType(),
+                                "elementsType" => $defaultType->getElementsType(),
                                 "elements" => Stream::from($types)
                                     ->map(function(Type $type) use ($defaultType, $typeRepository) {
                                         $selectedType = !empty($defaultType->getElements()) ? $typeRepository->find($defaultType->getElements()[0]) : null;
@@ -1187,10 +1203,9 @@ class SettingsController extends AbstractController {
                             ],
                             "locationByType" => [
                                 "field" => $defaultLocationByType?->getId(),
-                                "modalType" => $defaultLocationByType?->getModalType(),
+                                "elementsType" => $defaultLocationByType?->getElementsType(),
                                 "elements" => json_encode($this->settingsService->getDefaultDeliveryLocationsByType($this->manager)),
                             ],
-                            "disabledDisplayedUnderConditionFields" => SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION,
                             "deliveryTypesCount" => $typeRepository->countAvailableForSelect(CategoryType::DEMANDE_LIVRAISON, []),
                         ];
                     },
@@ -1246,7 +1261,7 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
-                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
+                        "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
@@ -1276,14 +1291,26 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     ],
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository, $subLineFieldParamRepository) {
                         $emergencyField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
                         $businessField = $fixedFieldRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
 
+                        $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
+                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
+                        ]);
+                        $dispatchLogisticUnitWidthField = $subLineFieldParamRepository->findOneBy([
+                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                        ]);
+                        $dispatchLogisticUnitHeightField = $subLineFieldParamRepository->findOneBy([
+                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                        ]);
                         return [
                             "emergency" => [
                                 "field" => $emergencyField->getId(),
-                                "modalType" => $emergencyField->getModalType(),
+                                "elementsType" => $emergencyField->getElementsType(),
                                 "elements" => Stream::from($emergencyField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1294,7 +1321,7 @@ class SettingsController extends AbstractController {
                             ],
                             "businessUnit" => [
                                 "field" => $businessField->getId(),
-                                "modalType" => $businessField->getModalType(),
+                                "elementsType" => $businessField->getElementsType(),
                                 "elements" => Stream::from($businessField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1303,6 +1330,41 @@ class SettingsController extends AbstractController {
                                     ])
                                     ->toArray(),
                             ],
+                            "dispatchLogisticUnitFixedFields" => [
+                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => [
+                                    "field" => $dispatchLogisticUnitLengthField->getId(),
+                                    "elementsType" => FieldsParam::ELEMENTS_TYPE_FREE,
+                                    "elements" => Stream::from($dispatchLogisticUnitLengthField->getElements() ?? [])
+                                        ->map(fn(string $element) => [
+                                            "label" => $element,
+                                            "value" => $element,
+                                            "selected" => true,
+                                        ])
+                                        ->toArray(),
+                                ],
+                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => [
+                                    "field" => $dispatchLogisticUnitWidthField->getId(),
+                                    "elementsType" => FieldsParam::ELEMENTS_TYPE_FREE,
+                                    "elements" => Stream::from($dispatchLogisticUnitWidthField->getElements() ?? [])
+                                        ->map(fn(string $element) => [
+                                            "label" => $element,
+                                            "value" => $element,
+                                            "selected" => true,
+                                        ])
+                                        ->toArray(),
+                                ],
+                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => [
+                                    "field" => $dispatchLogisticUnitHeightField->getId(),
+                                    "elementsType" => FieldsParam::ELEMENTS_TYPE_FREE,
+                                    "elements" => Stream::from($dispatchLogisticUnitHeightField->getElements() ?? [])
+                                        ->map(fn(string $element) => [
+                                            "label" => $element,
+                                            "value" => $element,
+                                            "selected" => true,
+                                        ])
+                                        ->toArray(),
+                                ],
+                            ]
                         ];
                     },
                     self::MENU_TYPES_FREE_FIELDS => fn() => [
@@ -1328,7 +1390,7 @@ class SettingsController extends AbstractController {
                         return [
                             "businessUnit" => [
                                 "field" => $field->getId(),
-                                "modalType" => $field->getModalType(),
+                                "elementsType" => $field->getElementsType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1365,7 +1427,7 @@ class SettingsController extends AbstractController {
                         return [
                             "emergency" => [
                                 "field" => $field->getId(),
-                                "modalType" => $field->getModalType(),
+                                "elementsType" => $field->getElementsType(),
                                 "elements" => Stream::from($field->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1376,7 +1438,7 @@ class SettingsController extends AbstractController {
                             ],
                             "receivers" => [
                                 "field" => $receiversField->getId(),
-                                "modalType" => $receiversField->getModalType(),
+                                "elementsType" => $receiversField->getElementsType(),
                                 "types" => $types,
                                 "elements" => Stream::from($receiversField->getElements() ?? [])
                                     ->map(fn($users, $type) => [
@@ -1426,7 +1488,7 @@ class SettingsController extends AbstractController {
                         return [
                             "emergencyType" => [
                                 "field" => $emergencyTypeField->getId(),
-                                "modalType" => $emergencyTypeField->getModalType(),
+                                "elementsType" => $emergencyTypeField->getElementsType(),
                                 "elements" => Stream::from($emergencyTypeField->getElements() ?? [])
                                     ->map(fn(string $element) => [
                                         "label" => $element,
@@ -1617,6 +1679,10 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                 ],
+                self::MENU_SESSIONS => fn() => [
+                    "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
+                    "maxAuthorizedSessions" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
+                ],
             ],
         ];
     }
@@ -1648,17 +1714,29 @@ class SettingsController extends AbstractController {
      * @Route("/enregistrer/champ-fixe/{field}", name="settings_save_field_param", options={"expose"=true})
      * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function saveFieldParam(Request $request, EntityManagerInterface $manager, FieldsParam $field): Response {
-        if ($field->getModalType() == FieldsParam::MODAL_TYPE_FREE) {
+    public function saveFieldParam(Request $request, EntityManagerInterface $manager, int $field): Response {
+        $field = $request->query->getBoolean('isSubLine')
+            ? $manager->find(SubLineFieldsParam::class, $field)
+            : $manager->find(FieldsParam::class, $field);
+
+        if ($field->getElementsType() == FieldsParam::ELEMENTS_TYPE_FREE) {
             $field->setElements(explode(",", $request->request->get("elements")));
-        } elseif ($field->getModalType() == FieldsParam::MODAL_TYPE_USER) {
+        } else if ($field->getElementsType() == FieldsParam::ELEMENTS_TYPE_FREE_NUMBER) {
+            $elements = $request->request->get("elements");
+
+            if($elements !== "" && !StringHelper::matchEvery(explode(",", $elements), StringHelper::INTEGER_AND_DECIMAL_REGEX)) {
+                throw new FormException("Une ou plusieurs valeurs renseignées ne sont pas valides (entiers et décimaux uniquement).");
+            } else {
+                $field->setElements(explode(",", $elements));
+            }
+        } elseif ($field->getElementsType() == FieldsParam::ELEMENTS_TYPE_USER) {
             $lines = $request->request->has("lines") ? json_decode($request->request->get("lines"), true) : [];
             $elements = [];
             foreach ($lines as $line) {
                 $elements[$line['handlingType']] = $line['user'];
             }
             $field->setElements($elements);
-        } else if($field->getModalType() == FieldsParam::MODAL_RECEIVER) {
+        } else if($field->getElementsType() == FieldsParam::ELEMENTS_RECEIVER) {
             $settingRepository = $manager->getRepository(Setting::class);
             $setting = $settingRepository->findOneBy(['label' => Setting::RECEIVER_EQUALS_REQUESTER]);
             if($request->request->get("defaultReceiver")){
@@ -1670,14 +1748,14 @@ class SettingsController extends AbstractController {
             if($request->request->has(Setting::RECEIVER_EQUALS_REQUESTER)){
                 $setting->setValue($request->request->get(Setting::RECEIVER_EQUALS_REQUESTER));
             }
-        } else if($field->getModalType() == FieldsParam::MODAL_TYPE) {
+        } else if($field->getElementsType() == FieldsParam::ELEMENTS_TYPE) {
             if($request->request->get("demandeType")){
                 $field->setElements([$request->request->get("demandeType")]);
             } else {
                 $field->setElements([]);
             }
         }
-        else if($field->getModalType() == FieldsParam::MODAL_LOCATION_BY_TYPE){
+        else if($field->getElementsType() == FieldsParam::ELEMENTS_LOCATION_BY_TYPE){
             if($request->request->has('deliveryType') && $request->request->has('deliveryRequestLocation')){
                 $deliveryTypes = explode(',', $request->request->get("deliveryType"));
                 $deliveryRequestLocations = explode(',', $request->request->get("deliveryRequestLocation"));
@@ -1913,7 +1991,9 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null): Response {
+    public function typeHeader(Request $request,
+                               FormService $formService,
+                               ?Type $type = null): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -1999,8 +2079,30 @@ class SettingsController extends AbstractController {
                 ];
             } else {
                 if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                    $locationRepository = $this->manager->getRepository(Emplacement::class);
+
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
                     $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+
+                    $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                        ->map(fn(Emplacement $location) => [
+                            "value" => $location->getId(),
+                            "label" => $location->getLabel(),
+                            "selected" => true,
+                        ])
+                        ->toArray()
+                    : [];
+
+                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                            ->map(fn(Emplacement $location) => [
+                                "value" => $location->getId(),
+                                "label" => $location->getLabel(),
+                                "selected" => true,
+                            ])
+                            ->toArray()
+                        : [];
 
                     $data = array_merge($data, [
                         [
@@ -2009,6 +2111,20 @@ class SettingsController extends AbstractController {
                         ], [
                             "label" => "Emplacement de dépose par défaut",
                             "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
+                        ], [], [], [
+                            "label" => "Emplacement(s) de prise suggéré(s)",
+                            "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedPickLocationOptions,
+                            ]),
+                        ], [
+                            "label" => "Emplacement(s) de dépose suggéré(s)",
+                            "value" => $formService->macro("select", "suggestedDropLocations", null, false, [
+                                "type" => "location",
+                                "multiple" => true,
+                                "items" => $suggestedDropLocationOptions,
+                            ]),
                         ],
                     ]);
                 }
@@ -2023,15 +2139,18 @@ class SettingsController extends AbstractController {
                         false,
                         [
                             [
-                                "label" => "Désactiver", "value" => 0,
+                                "label" => "Désactiver",
+                                "value" => 0,
                                 "checked" => !$type || !$type->isNotificationsEnabled(),
                             ],
                             [
-                                "label" => "Activer", "value" => 1,
+                                "label" => "Activer",
+                                "value" => 1,
                                 "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies(),
                             ],
                             [
-                                "label" => "Activer seulement si urgence", "value" => 2,
+                                "label" => "Activer seulement si urgence",
+                                "value" => 2,
                                 "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies(),
                             ],
                         ],
@@ -2044,9 +2163,6 @@ class SettingsController extends AbstractController {
                 ];
 
                 $emergencies = $fixedFieldRepository->getElements($entity[$categoryLabel], FieldsParam::FIELD_CODE_EMERGENCY);
-                $emergencyValues = Stream::from($emergencies)
-                    ->map(fn(string $emergency) => "<option value='$emergency' " . ($type && in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
-                    ->join("");
 
                 $data = array_merge($data, [
                     [
@@ -2058,7 +2174,21 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "value" => $formService->macro("select", "notificationEmergencies", null, $type && $type->getNotificationsEmergencies(), [
+                            "type" => "",
+                            "noEmptyOption" => true,
+                            "multiple" => true,
+                            "attributes" => [
+                                "data-parent" => "body"
+                            ],
+                            "items" => Stream::from($emergencies)
+                                ->map(fn(string $emergency) => [
+                                    "label" => $emergency,
+                                    "value" => $emergency,
+                                    "selected" => $type && in_array($emergency, $type->getNotificationsEmergencies() ?? []),
+                                ])
+                                ->toArray()
+                        ]),
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);
@@ -2112,13 +2242,29 @@ class SettingsController extends AbstractController {
             }
 
             if ($categoryLabel === CategoryType::DEMANDE_DISPATCH) {
+                $locationRepository = $this->manager->getRepository(Emplacement::class);
+
+                $suggestedPickLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
+                    ->map(fn(Emplacement $location) => $location->getLabel())
+                    ->join(', ');
+
+                $suggestedDropLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                    ->map(fn(Emplacement $location) => $location->getLabel())
+                    ->join(', ');
+
                 $data = array_merge($data, [
                     [
                         "label" => "Emplacement de prise par défaut",
-                        "value" => FormatHelper::location($type?->getPickLocation()),
+                        "value" => $this->formatService->location($type?->getPickLocation()),
                     ], [
                         "label" => "Emplacement de dépose par défaut",
-                        "value" => FormatHelper::location($type?->getDropLocation()),
+                        "value" => $this->formatService->location($type?->getDropLocation()),
+                    ], [
+                        "label" => "Emplacement(s) de prise suggéré(s)",
+                        "value" => $suggestedPickLocations,
+                    ], [
+                        "label" => "Emplacement(s) de dépose suggéré(s)",
+                        "value" => $suggestedDropLocations,
                     ],
                 ]);
             }
@@ -2375,46 +2521,84 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champ-fixe/sous-lignes/{entity}", name="settings_sublines_fixed_field_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
-    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity): Response {
-        $class = "form-control data";
+    public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity, FormService $formService): Response
+    {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $arrayFields = $subLineFieldsParamRepository->findByEntityForEntity($entity);
+        $rows = Stream::from($subLineFieldsParamRepository->findByEntityForEntity($entity))
+            ->map(function (SubLineFieldsParam $field) use ($formService, $typeRepository) {
 
-        $rows = [];
-        foreach ($arrayFields as $field) {
-            $label = ucfirst($field->getFieldLabel());
-            $displayed = $field->isDisplayed() ? "checked" : "";
-            $displayedUnderCondition = $field->isDisplayed() ? ($field->isDisplayedUnderCondition() ? "checked" : "") : "disabled";
-            $conditionFixedField = $field->getConditionFixedField() ?? "";
-            $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
-            $required = $field->isDisplayed() ? ($field->isRequired() ? "checked" : "") : "disabled";
-            $disabledDisplayedUnderCondition = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION) ? 'disabled' : '';
+                $label = ucfirst($field->getFieldLabel());
 
-            $labelAttributes = "class='font-weight-bold'";
+                $fieldEntityCode = $field->getEntityCode();
+                $isDisplayUnderCondition = $field->isDisplayedUnderCondition();
+                $isDisplayUnderConditionDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$fieldEntityCode] ?? []);
+                $isRequiredDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$fieldEntityCode] ?? []);
 
-            $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
-                ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
-                : [];
+                $isDisplayUnderConditionDisplayed = !$isDisplayUnderConditionDisabled && $isDisplayUnderCondition;
 
-            $conditionFixedFieldOptionsSelected = Stream::from($conditionFixedFieldValue)
-                ->map(fn(Type $type) => "<option value='{$type->getId()}' selected>{$type->getLabel()}</option>")
-                ->join("");
+                $rawConditionFixedFieldValue = $field->getConditionFixedFieldValue() ?? [];
+                $conditionFixedFieldValue = !empty($rawConditionFixedFieldValue)
+                    ? $typeRepository->findBy(['id' => $rawConditionFixedFieldValue])
+                    : [];
 
-            $classConditionFixedField = $class . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition())  ? " d-none" : "");
-            $classConditionFixedFieldValue = "conditionFixedFieldValueDiv" . ((!$field->isDisplayed() || !$field->isDisplayedUnderCondition()) ? " d-none" : "");
+                $conditionFixedFieldOptionsSelected = Stream::from(!$isDisplayUnderConditionDisabled ? $conditionFixedFieldValue : [])
+                    ->map(fn(Type $type) => [
+                        'value' => $type->getId(),
+                        'label' => $type->getLabel(),
+                        'selected' => true,
+                    ])
+                    ->toArray();
 
-            $row = [
-                "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                "displayed" => "<input type='checkbox' name='displayed' id='{$field->getFieldCode()}' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayed />",
-                "displayedUnderCondition" => "<input type='checkbox' name='displayedUnderCondition' onchange='changeDisplayRefArticleTable($(this))' class='$class' $displayedUnderCondition $disabledDisplayedUnderCondition/>",
-                "conditionFixedField" => "<select name='conditionFixedField' class='$classConditionFixedField'><option value='$conditionFixedField' selected>$conditionFixedField</option></select>",
-                "conditionFixedFieldValue" => "<div class='$classConditionFixedFieldValue'><select name='conditionFixedFieldValue' data-parent='body' data-min-length='0' data-s2='referenceType' multiple class='$class'>$conditionFixedFieldOptionsSelected</select></div>",
-                "required" => "<input type='checkbox' name='required' class='$class' $required />",
-            ];
+                $displayConditions = Stream::from(SubLineFieldsParam::DISPLAY_CONDITIONS[$field->getEntityCode()] ?? [])
+                    ->map(fn(string $condition) => [
+                        'value' => $condition,
+                        'label' => $condition,
+                        'selected' => $condition === $field->getConditionFixedField(),
+                    ])
+                    ->toArray();
 
-            $rows[] = $row;
-        }
+                $labelAttributes = "class='font-weight-bold'";
+                if (in_array($field->getFieldCode(), SubLineFieldsParam::FREE_ELEMENTS_FIELDS[$field->getEntityCode()] ?? [])) {
+                    $modal = strtolower($field->getFieldCode());
+                    $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
+                }
+
+                return [
+                    "label" => "<span $labelAttributes>$label</span>" . $formService->macro("hidden", "id", $field->getId(), []),
+                    "displayed" => $formService->macro("checkbox", "displayed", null, false, $field->isDisplayed(), [
+                        "additionalAttributes" => [
+                            ['name' => "onchange", "value" => "changeDisplayRefArticleTable($(this))"],
+                        ],
+                    ]),
+                    "displayedUnderCondition" => $formService->macro("checkbox", "displayedUnderCondition", null, false, $isDisplayUnderCondition, [
+                        "disabled" => $isDisplayUnderConditionDisabled,
+                        "additionalAttributes" => [
+                            ['name' => "onchange", "value" => "changeDisplayRefArticleTable($(this))"],
+                        ],
+                    ]),
+                    "conditionFixedField" => $isDisplayUnderConditionDisabled
+                        ? ''
+                        : $formService->macro("select", "conditionFixedField", null, false, [
+                            "items" => $displayConditions,
+                            "additionalAttributes" => $isDisplayUnderConditionDisplayed
+                                ? []
+                                : [['name' => "hidden", "value" => 'hidden']],
+                        ]),
+                    "conditionFixedFieldValue" => $isDisplayUnderConditionDisabled
+                        ? ''
+                        : $formService->macro("select", "conditionFixedFieldValue", null, false, [
+                        "type" => "referenceType",
+                        "items" => $conditionFixedFieldOptionsSelected,
+                        "hidden" => !$isDisplayUnderConditionDisplayed,
+                        "multiple" => true,
+                    ]),
+                    "required" => $formService->macro("checkbox", "required", null, false, $field->isRequired(), [
+                        "disabled" => $isRequiredDisabled,
+                    ]),
+                ];
+            })
+            ->toArray();
 
         return $this->json([
             "data" => $rows,

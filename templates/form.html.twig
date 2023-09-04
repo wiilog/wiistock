@@ -1,6 +1,10 @@
 {% macro custom_attributes(attributes = []) %}
     {% for key, value in attributes %}
-        {{ key }}="{{ value }}"
+        {% if value %}
+            {{ key }}="{{ value }}"
+        {% else %}
+            {{ key }}
+        {% endif %}
     {% endfor %}
 {% endmacro %}
 
@@ -79,7 +83,10 @@
                    value="{{ switch.value ?? '' }}"
                 {{ disabled ? 'disabled' }}
                 {{ required ? 'required' }}
-                {{ switch.checked ?? false ? 'data-init="checked" checked' }}/>
+                {{ switch.checked ?? false ? 'data-init="checked" checked' }}
+                {% for attribute in switch.additionalAttributes ?? [] %}
+                    {{ attribute.name }}="{{ attribute.value ?? '' }}"
+                {% endfor %}/>
 
             <label for="{{ name }}-{{ id }}"
                 {{ _self.custom_attributes(switch.attributes ?? []) }}>
@@ -112,6 +119,9 @@
            id="{{ id }}"
            class="checkbox data {{ options.inputClass ?? '' }}"
         {{ required ? 'required' }}
+        {% for attribute in options.additionalAttributes ?? [] %}
+            {{ attribute.name }}="{{ attribute.value ?? '' }}"
+        {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}
         {{ {on: 1, off: 0}[value] ?? value ? 'checked' }}>
@@ -169,7 +179,13 @@
         ? (value is iterable ? value : [value])
         : [] %}
 
-    <label class="{{ options.labelClass ?? 'w-100' }} {{ not options.search ?? true ? 'no-search' }}">
+    <label
+        class="{{ options.labelClass ?? 'w-100' }}
+        {{ not options.search ?? true ? 'no-search' }}"
+        {% if options.hidden ?? false %}
+            hidden
+        {% endif %}>
+
         {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
         {% if label %}
             {{ _self.tooltip(options.tooltip ?? null, inline) }}
@@ -204,7 +220,7 @@
                         {% if options.emptyOption is defined and options.emptyOption is not empty %}
                             <option {{ options.emptyOption.selected ?? false ? "selected" }}
                                      value="{{ options.emptyOption.value ?? null }}">
-                                {{ options.emptyOption.text ?? null }}
+                                {{ options.emptyOption.text ?? options.emptyOption.label ?? null }}
                             </option>
                         {% elseif options.type is not defined and options.placeholder ?? false %}
                             <option disabled selected>{{ options.placeholder }}</option>
@@ -265,11 +281,13 @@
         {% set fax = true %}
     {% endif %}
 
-    {% if labelWrap %}
-    <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
+    {% if label and labelWrap %}
+        <label class="{{ options.labelWidth ?? 'w-100' }} {{ options.labelClass ?? '' }} {{ inline ? 'labelled-field' }}">
     {% endif %}
-        {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
-        {{ _self.tooltip(options.tooltip ?? null, inline) }}
+        {% if label %}
+            {{ _self.label(label, required, inline, options.labelOptions ?? {}) }}
+            {{ _self.tooltip(options.tooltip ?? null, inline) }}
+        {% endif %}
         <input type="{{ type }}"
                {{ fax ?? false ? 'data-fax' }}
                class="form-control {{ dataInput ? 'data' }} {{ noClear ? 'no-clear' }} {{ required ? 'needed' }} {{ options.inputClass ?? '' }} {{ options.width ?? 'w-100' }}"
@@ -283,7 +301,7 @@
         {% endfor %}
         {{ _self.common_attributes(name, options) }}
         {{ _self.multiple_key(options) }}>
-    {% if labelWrap %}
+    {% if label and labelWrap %}
     </label>
     {% endif %}
 {% endmacro %}
@@ -364,10 +382,16 @@
     {% set id = random(100000, 10000000) %}
     {% set labelOptions = options.labelOptions ?? {} %}
     {% set inline = options.inline ?? false %}
+    {% set oneLineWysiwyg = options.oneLineWysiwyg ?? false %}
 
-    <label class="wii-subtitle">{{ _self.label(label, required, inline, labelOptions) }}</label>
+    {% if label %}
+        <label class="wii-subtitle">{{ _self.label(label, required, inline, labelOptions) }}</label>
+    {% endif %}
     {{ _self.tooltip(options.tooltip ?? null, inline) }}
-    <div class="data" data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>{{- value | raw -}}</div>
+    <div class="data {{ oneLineWysiwyg ? 'wii-one-line-wysiwyg ql-editor' }} {{ options.inputClass ?? '' }}"
+         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>
+            {{- value | raw -}}
+    </div>
 {% endmacro %}
 
 {% macro image(name, label, required, image = '', options = {}) %}
@@ -438,6 +462,25 @@
     </label>
 {% endmacro %}
 
+{% macro inlineInputs(name, label, required, options = {}) %}
+    <label class="w-100 {{ options.labelClass ?? '' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        <div class="input-group w-100">
+            {% for input in options.content %}
+                {% if input.label is defined %}
+                    <div class="input-group-prepend">
+                        <span class="input-group-text w-50px">{{ input.label }}</span>
+                    </div>
+                {% endif %}
+                {% set inputOptions = input|merge({
+                    isLabelFree : true,
+                }) %}
+                {{ _self.input(input.name, null , required, input.value ?? '', inputOptions) }}
+            {% endfor %}
+        </div>
+    </label>
+{% endmacro %}
+
 {% set macroName = macroName ?? null %}
 {% set macroParams = macroParams ?? null %}
 
@@ -469,6 +512,8 @@
         {{ _self.image(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3] ?? null, macroParams[4] ?? null) }}
     {% elseif macroName == 'lang' %}
         {{ _self.lang(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
+    {% elseif macroName == 'inlineInputs' %}
+        {{ _self.inlineInputs(macroParams[0], macroParams[1] ?? null, macroParams[2] ?? null, macroParams[3]) }}
     {% endif %}
 {% endif %}
 

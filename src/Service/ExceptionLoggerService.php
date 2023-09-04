@@ -43,7 +43,7 @@ class ExceptionLoggerService {
         $this->serializer = new Serializer([$normalizer], [$encoder]);
     }
 
-    public function sendLog(Throwable $throwable, Request $request) {
+    public function sendLog(Throwable $throwable, ?Request $request = null) {
         if (!empty($_SERVER["APP_NO_LOGGER"]) ||
             $throwable instanceof NotFoundHttpException ||
             $throwable instanceof AccessDeniedHttpException ||
@@ -113,7 +113,7 @@ class ExceptionLoggerService {
                             "forbidden_phones" => $_SERVER["APP_FORBIDDEN_PHONES"] ?? null,
                         ],
                         "user" => $user,
-                        "request" => $this->serializer->serialize($this->normalizeRequest($request), "json"),
+                        "request" => $request ? $this->serializer->serialize($this->normalizeRequest($request), "json") : "",
                         "exceptions" => $this->serializer->serialize($exceptions, "json"),
                         "time" => (new DateTime())->format("d-m-Y H:i:s"),
                     ],

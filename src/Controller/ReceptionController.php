@@ -97,8 +97,8 @@ class ReceptionController extends AbstractController {
                         AttachmentService $attachmentService,
                         Request $request,
                         TranslationService $translation): Response {
-
-        if ($data = $request->request->all()) {
+        if ($request->request) {
+            $data = $request->request->all();
             /** @var Utilisateur $currentUser */
             $currentUser = $this->getUser();
             $reception = $receptionService->persistReception($entityManager, $currentUser, $data);
@@ -184,7 +184,7 @@ class ReceptionController extends AbstractController {
                     !empty($data['dateCommande'])
                         ? new DateTime(str_replace('/', '-', $data['dateCommande']))
                         : null)
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $reception->removeIfNotIn($data['files'] ?? []);
 
@@ -622,7 +622,7 @@ class ReceptionController extends AbstractController {
                 $receptionReferenceArticle
                     ->setCommande($commande)
                     ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire(StringHelper::cleanedComment($contentData['commentaire'] ?? null))
+                    ->setCommentaire($contentData['commentaire'] ?? null)
                     ->setReferenceArticle($refArticle)
                     ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
 
@@ -747,7 +747,7 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                ->setCommentaire($data['commentaire'] ?? null);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
@@ -1182,7 +1182,6 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
             $packsCode = [];
@@ -1198,10 +1197,19 @@ class ReceptionController extends AbstractController {
                 $acheteursCode[] = $buyer->getId();
             }
 
+            $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'))
+                ->map(fn(Statut $statut) => [
+                    'id' => $statut->getId(),
+                    'type' => $statut->getType(),
+                    'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
+                ])
+                ->toArray();
+
             $html = $this->renderView('reception/show/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
-                'disputeStatuses' => $statutRepository->findByCategorieName(CategorieStatut::LITIGE_RECEPT, 'displayOrder'),
+                'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
             ]);
 
@@ -1712,6 +1720,8 @@ class ReceptionController extends AbstractController {
                     "count" => $receptionReferenceArticle->getQuantite() ?? 0,
                 ];
             }
+
+            $articleArray['quantityReceived'] = max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
             $totalQuantities[$receptionReferenceArticle->getId()]["count"] += max($articleArray['quantityToReceive'] * $articleArray['quantite'], 0);
         }
 
@@ -1910,7 +1920,7 @@ class ReceptionController extends AbstractController {
                 $article->setReceptionReferenceArticle($receptionReferenceArticle);
 
                 if($referenceArticle->getIsUrgent()) {
-                    $emergencies[] = $article;
+                    $emergencies[$article->getId()] = [$article, $articleArray['quantityReceived']];
                 }
 
                 $mouvementStock = $mouvementStockService->createMouvementStock(
@@ -1986,13 +1996,16 @@ class ReceptionController extends AbstractController {
             $entityManager->flush();
         }
 
-        foreach($emergencies as $article) {
+        foreach($emergencies as $emergency) {
+            $article =  $emergency[0];
             $referenceArticle = $article->getReceptionReferenceArticle()->getReferenceArticle();
+            $newEmergencyQuantity = $referenceArticle->getEmergencyQuantity() - $emergency[1];
 
             $mailContent = $this->renderView('mails/contents/mailArticleUrgentReceived.html.twig', [
                 'emergency' => $referenceArticle->getEmergencyComment(),
                 'article' => $article,
                 'title' => 'Votre article urgent a bien été réceptionné.',
+                'newEmergencyQuantity' => $newEmergencyQuantity,
             ]);
 
             $destinataires = '';
@@ -2020,10 +2033,23 @@ class ReceptionController extends AbstractController {
                 );
             }
 
-            $referenceArticle
-                ->setIsUrgent(false)
-                ->setUserThatTriggeredEmergency(null)
-                ->setEmergencyComment('');
+            if (!$referenceArticle->getEmergencyQuantity() || $referenceArticle->getEmergencyQuantity() === 0) {
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setUserThatTriggeredEmergency(null)
+                    ->setEmergencyComment('');
+            } else {
+                if ($newEmergencyQuantity <= 0) {
+                    $referenceArticle
+                        ->setIsUrgent(false)
+                        ->setEmergencyQuantity(null)
+                        ->setUserThatTriggeredEmergency(null)
+                        ->setEmergencyComment('');
+                } else {
+                    $referenceArticle->setEmergencyQuantity($newEmergencyQuantity);
+                }
+            }
+            $entityManager->flush();
         }
 
         if(isset($demande) && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {

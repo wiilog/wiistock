@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
@@ -403,9 +404,10 @@ class DashboardSettingsService {
                 }
             }
             if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
+                $typeRepository = $entityManager->getRepository(Type::class);
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, 50, $config["entityTypes"] ?? []))
                         ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
                             return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
                         })
@@ -505,6 +507,7 @@ class DashboardSettingsService {
 
         $values['linesCountTooltip'] = $config['linesCountTooltip'] ?? '';
         $values['nextLocationTooltip'] = $config['nextLocationTooltip'] ?? '';
+        $values['truckArrivalTime'] = $config['truckArrivalTime'] ?? null;
 
         return $values;
     }
@@ -1105,8 +1108,6 @@ class DashboardSettingsService {
                 'delay' => $meter ? $meter->getDelay() : '-',
                 'subCounts' => $meter ? $meter->getSubCounts() : []
             ];
-
-
         }
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
@@ -1304,6 +1305,12 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ARRIVALS_EMERGENCIES_TO_RECEIVE:
                 $redirect = isset($config['redirect']) && $config['redirect'];
                 $link = $redirect ? $this->router->generate('emergency_index', ['unassociated' => true]) : null;
+                break;
+            case Dashboard\ComponentType::REQUESTS_TO_TREAT:
+                $statuses = $config['entityStatuses'];
+                $types = $config['entityTypes'];
+                $redirect = isset($config['redirect']) && $config['redirect'];
+                $link = $redirect ? $this->router->generate('dispatch_index', ['statuses' => $statuses, 'types' => $types, 'fromDashboard' => true]) : null;
                 break;
             default:
                 $link = null;

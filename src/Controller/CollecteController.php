@@ -29,6 +29,7 @@ use App\Service\FreeFieldService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -223,7 +224,7 @@ class CollecteController extends AbstractController
                 ->setStatut($status)
                 ->setPointCollecte($emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
-                ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setstockOrDestruct($destination);
 
             $entityManager->persist($collecte);
@@ -265,22 +266,22 @@ class CollecteController extends AbstractController
 
             $refArticle = $referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $collecteRepository->find($data['collecte']);
-            if ((isset($data['article-to-pick']) && !$data['article-to-pick']) && ($data['quantity-to-pick'] ?? 0) <= 0) {
+            if ((isset($data['article-to-pick']) && !$data['article-to-pick']) && ($data['quantity-to-pick'] ?? 0) < 1) {
                 return new JsonResponse([
                     "success" => false,
-                    "msg" => "Vous devez sélectionner un article ou la quantité doit être superieure à zero"
+                    "msg" => "Vous devez sélectionner un article où la quantité doit être supérieure à zéro"
                 ]);
             }
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE || empty($data['roleIsHandlingArticles'])) {
                 if ($collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 0)); // protection contre quantités négatives
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantity-to-pick']), 1)); // protection contre quantités < 1
                 } else {
                     $collecteReference = new CollecteReference();
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite(max($data['quantity-to-pick'], 0)); // protection contre quantités négatives
+                        ->setQuantite(max($data['quantity-to-pick'], 1)); // protection contre quantités < 1
 
                     $entityManager->persist($collecteReference);
                 }
@@ -289,7 +290,7 @@ class CollecteController extends AbstractController
                     return $this->redirectToRoute('access_denied');
                 }
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, $data, $this->getUser());
+                    $this->refArticleDataService->editRefArticle($entityManager, $refArticle, new ParameterBag($data), $this->getUser());
                 }
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                 $demandeCollecteService->persistArticleInDemand($data, $refArticle, $collecte);
@@ -453,7 +454,7 @@ class CollecteController extends AbstractController
 
 				$collecte
 					->setDate(new DateTime($data['date-collecte']))
-					->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null))
+					->setCommentaire($data['commentaire'] ?? null)
 					->setObjet(substr($data['objet'], 0, 255))
 					->setPointCollecte($pointCollecte)
 					->setType($type)

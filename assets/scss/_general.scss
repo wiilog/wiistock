@@ -254,6 +254,10 @@ a {
     width: 300px !important;
 }
 
+.w-200px, .w-200px + .select2.select2-container {
+    width: 200px !important;
+}
+
 .w-49 {
     width: 49%;
 }
@@ -892,7 +896,7 @@ label.required:after {
     height: 18px;
 }
 
-.wii-icon-trash-black, .wii-icon-cart, .wii-icon-lu {
+.wii-icon-trash-black, .wii-icon-cart, .wii-icon-lu, .wii-icon-export {
     display: inline-block;
     background-color: $black;
     width: 17px;
@@ -1611,4 +1615,9 @@ label.required:after {
 
 .treated-line {
     background-color: #c5eee7 !important;
+}
+
+.copyable {
+    text-decoration: underline;
+    cursor: pointer;
 }

@@ -30,7 +30,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'packs')]
@@ -61,7 +61,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
     private ?float $weight = null;
 
-    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 6, nullable: true)]
     private ?float $volume = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -76,8 +76,8 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: LocationClusterRecord::class, cascade: ['remove'])]
     private Collection $locationClusterRecords;
 
-    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: Article::class, cascade: ['persist'])]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Article $article = null;
 
     #[ORM\OneToOne(inversedBy: 'trackingPack', targetEntity: ReferenceArticle::class)]
@@ -118,8 +118,11 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'boolean')]
     private ?bool $articleContainer = false;
 
-    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class)]
+    #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
+
+    #[ORM\Column(type: 'bigint', nullable: true)]
+    private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
 
     public function __construct() {
         $this->disputes = new ArrayCollection();
@@ -307,20 +310,20 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getWeight(): ?string {
+    public function getWeight(): ?float {
         return $this->weight;
     }
 
-    public function setWeight(?string $weight): self {
+    public function setWeight(?float $weight): self {
         $this->weight = $weight;
         return $this;
     }
 
-    public function getVolume(): ?string {
+    public function getVolume(): ?float {
         return $this->volume;
     }
 
-    public function setVolume(?string $volume): self {
+    public function setVolume(?float $volume): self {
         $this->volume = $volume;
         return $this;
     }
@@ -762,6 +765,16 @@ class Pack implements PairedEntity {
         if($this->shippingRequestPack && $this->shippingRequestPack->getPack() !== $this) {
             $this->shippingRequestPack->setPack($this);
         }
+
+        return $this;
+    }
+
+    public function getTruckArrivalDelay(): ?int {
+        return $this->truckArrivalDelay;
+    }
+
+    public function setTruckArrivalDelay(?int $truckArrivalDelay): self {
+        $this->truckArrivalDelay = $truckArrivalDelay;
 
         return $this;
     }

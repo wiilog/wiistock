@@ -85,7 +85,7 @@ class TrackingMovementController extends AbstractController
         $currentUser = $this->getUser();
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
-        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT);
+        $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT);
         $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
         $request->request->add(['length' => 10]);
@@ -234,10 +234,11 @@ class TrackingMovementController extends AbstractController
                 }
             }
             else {
-                $packArray = explode(',', $packCode);
+                $packArrayFiltered = Stream::explode(',', $packCode)
+                    ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
                 $dropLocation = $emplacementRepository->find($post->get('emplacement-depose'));
-                foreach ($packArray as $pack) {
+                foreach ($packArrayFiltered as $pack) {
                     $pickingRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
                         $codeToPack[$pack] ?? $pack,
@@ -485,7 +486,7 @@ class TrackingMovementController extends AbstractController
         $mvt
             ->setOperateur($operator)
             ->setQuantity($quantity)
-            ->setCommentaire(StringHelper::cleanedComment($post->get('commentaire')));
+            ->setCommentaire($post->get('commentaire'));
 
         $entityManager->flush();
 

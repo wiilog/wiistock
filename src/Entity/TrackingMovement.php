@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
@@ -24,6 +25,15 @@ class TrackingMovement {
     const TYPE_EMPTY_ROUND = 'passage à vide';
     const TYPE_DROP_LU = 'dépose dans UL';
     const TYPE_PICK_LU = 'prise dans UL';
+
+    const DISPATCH_ENTITY = 'dispatch';
+    const ARRIVAL_ENTITY = 'arrival';
+    const RECEPTION_ENTITY = 'reception';
+    const TRANSFER_ORDER_ENTITY = 'transferOrder';
+    const PREPARATION_ENTITY = 'preparation';
+    const DELIVERY_ORDER_ENTITY = 'deliveryOrder';
+    const DELIVERY_REQUEST_ENTITY = 'deliveryRequest';
+    const SHIPPING_REQUEST_ENTITY = 'shippingRequest';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -79,6 +89,9 @@ class TrackingMovement {
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'trackingMovements')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Demande $deliveryRequest;
+
+    #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'trackingMovements')]
+    private ?ShippingRequest $shippingRequest;
 
     #[ORM\OneToOne(mappedBy: 'lastDrop', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastDrop = null;
@@ -507,6 +520,16 @@ class TrackingMovement {
     public function setMainMovement(?TrackingMovement $movement): self {
         $this->mainMovement = $movement;
         return $this;
+    }
+
+    public function setShippingRequest(?ShippingRequest $shippingRequest): self {
+        $this->shippingRequest = $shippingRequest;
+
+        return $this;
+    }
+
+    public function getShippingRequest(): ?ShippingRequest {
+        return $this->shippingRequest;
     }
 
 }

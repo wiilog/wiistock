@@ -21,7 +21,6 @@ class StatusHistory {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    // TODO WIIS-9630 rajouter des on cascade delete pour supprimer les statusHistory
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'statusHistory')]
     private ?TransportOrder $transportOrder = null;
 
@@ -50,6 +49,14 @@ class StatusHistory {
 
     #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
     private Collection $transportHistory;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $initiatedBy = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $validatedBy = null;
 
     public function __construct() {
         $this->date = new DateTime();
@@ -192,6 +199,30 @@ class StatusHistory {
         }
         $this->shippingRequest = $shippingRequest;
         $shippingRequest?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getValidatedBy(): ?utilisateur
+    {
+        return $this->validatedBy;
+    }
+
+    public function setValidatedBy(?utilisateur $validatedBy): self
+    {
+        $this->validatedBy = $validatedBy;
+
+        return $this;
+    }
+
+    public function getInitiatedBy(): ?utilisateur
+    {
+        return $this->initiatedBy;
+    }
+
+    public function setInitiatedBy(?utilisateur $initiatedBy): self
+    {
+        $this->initiatedBy = $initiatedBy;
 
         return $this;
     }

@@ -59,6 +59,9 @@ class ArticleDataService
     #[Required]
     public TranslationService $translation;
 
+    #[Required]
+    public EmplacementDataService $emplacementDataService;
+
     private $visibleColumnService;
 
     private ?array $freeFieldsConfig = null;
@@ -219,7 +222,7 @@ class ArticleDataService
                     ->setPrixUnitaire((float)$price)
                     ->setBatch($data['batch'] ?? null)
                     ->setExpiryDate($expiryDate ?: null)
-                    ->setCommentaire(StringHelper::cleanedComment($data['commentaire'] ?? null));
+                    ->setCommentaire($data['commentaire'] ?? null);
 
                 if (isset($data['conform'])) {
                     $article->setConform($data['conform'] == 1);
@@ -283,14 +286,9 @@ class ArticleDataService
         } else {
             $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
             if (!$location) {
-                $zoneRepository = $entityManager->getRepository(Zone::class);
-                $defaultZone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
-
-                $location = new Emplacement();
-                $location
-                    ->setLabel(Emplacement::LABEL_A_DETERMINER)
-                    ->setZone($defaultZone);
-                $entityManager->persist($location);
+                $location = $this->emplacementDataService->persistLocation([
+                    "Label" => Emplacement::LABEL_A_DETERMINER,
+                ], $entityManager);
             }
             $location->setIsActive(true);
         }
@@ -301,13 +299,25 @@ class ArticleDataService
         if ($existing) {
             $existing
                 ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
+                ->setConform($data['conform'] ?? true)
+                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
+                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
+                ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt(isset($data['manufacturedAt']) ? $this->formatService->parseDatetime($data['manufacturedAt'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setBatch($data['batch'] ?? null);
+
+            if(isset($data['nativeCountry'])) {
+                $existing->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
+            }
         } else {
             $article = (new Article())
                 ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
                 ->setConform($data['conform'] ?? true)
                 ->setStatut($statut)
-                ->setCommentaire(isset($data['commentaire']) ? StringHelper::cleanedComment($data['commentaire']) : null)
+                ->setCommentaire($data['commentaire'] ?? null)
                 ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
@@ -318,7 +328,7 @@ class ArticleDataService
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt(isset($data['manufacturedAt']) ? $this->formatService->parseDatetime($data['manufacturedAt'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null)
@@ -330,12 +340,6 @@ class ArticleDataService
 
             if (isset($data['expiry'])) {
                 $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
-            }
-            if (isset($data['productionDate'])) {
-                $article->setProductionDate($data['productionDate'] ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null);
-            }
-            if (isset($data['manufactureDate'])) {
-                $article->setManifacturingDate($data['manufactureDate'] ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null);
             }
 
             $entityManager->persist($article);
@@ -447,13 +451,12 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
-            "manufactureDate" => $this->formatService->date($article->getManifacturingDate()),
+            "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
             'RFIDtag' => $article->getRFIDtag(),
-            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
             'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 
@@ -485,7 +488,7 @@ class ArticleDataService
 		return $generatedBarcode;
 	}
 
-    public function getBarcodeConfig(Article $article, Reception $reception = null): array {
+    public function getBarcodeConfig(Article $article, Reception $reception = null, bool $fromKiosk = false): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
@@ -572,28 +575,29 @@ class ArticleDataService
             "L/R : $labelRefArticle",
             "C/R : $refRefArticle",
             "L/A : $labelArticle",
-            !empty($this->typeCLOnLabel) && !empty($champLibreValue) ? $champLibreValue : '',
+            !empty($this->typeCLOnLabel) && !empty($champLibreValue) && !$fromKiosk ? $champLibreValue : '',
         ];
 
-        $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
-        $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
-        $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
-        $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+        if(!$fromKiosk){
+            $includeQuantity = $settingRepository->getOneParamByLabel(Setting::INCLUDE_QTT_IN_LABEL);
+            $includeBatch = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BATCH_NUMBER_IN_ARTICLE_LABEL);
+            $includeExpirationDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_EXPIRATION_DATE_IN_ARTICLE_LABEL);
+            $includeStockEntryDate = $settingRepository->getOneParamByLabel(Setting::INCLUDE_STOCK_ENTRY_DATE_IN_ARTICLE_LABEL);
+            if ($includeBatch && $batchArticle) {
+                $labels[] = "N° lot : $batchArticle";
+            }
 
-        if ($includeBatch && $batchArticle) {
-            $labels[] = "N° lot : $batchArticle";
-        }
+            if ($includeExpirationDate && $expirationDateArticle) {
+                $labels[] = "Date péremption : $expirationDateArticle";
+            }
 
-        if ($includeExpirationDate && $expirationDateArticle) {
-            $labels[] = "Date péremption : $expirationDateArticle";
-        }
+            if ($includeStockEntryDate && $stockEntryDateArticle) {
+                $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
+            }
 
-        if ($includeStockEntryDate && $stockEntryDateArticle) {
-            $labels[] = "Date d'entrée en stock : $stockEntryDateArticle";
-        }
-
-        if ($includeQuantity) {
-            $labels[] = "Qte : $quantityArticle";
+            if ($includeQuantity) {
+                $labels[] = "Qte : $quantityArticle";
+            }
         }
 
         return [
@@ -641,7 +645,7 @@ class ArticleDataService
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
-            ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
+            ["title" => "Date de fabrication", "name" => "manufacturedAt", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
             ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
@@ -653,7 +657,7 @@ class ArticleDataService
 
     public function putArticleLine($handle,
                                    array $article,
-                                   array $freeFieldsConfig) {
+                                   array $freeFieldsConfig): void {
         $line = [
             $article['reference'],
             $article['label'],
@@ -678,7 +682,7 @@ class ArticleDataService
             $article['purchaseOrder'],
             $article['deliveryNote'],
             $article['nativeCountryLabel'],
-            $article['manifacturingDate'] ? $article['manifacturingDate']->format('d/m/Y') : '',
+            $article['manufacturedAt'] ? $article['manufacturedAt']->format('d/m/Y') : '',
             $article['productionDate'] ? $article['productionDate']->format('d/m/Y') : '',
         ];
 

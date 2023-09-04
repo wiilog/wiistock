@@ -36,6 +36,7 @@ use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportRoundService;
+use App\Service\EmplacementDataService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -468,7 +469,18 @@ class TransportController extends AbstractApiController
             $pack->getTransportDeliveryOrderPack()?->setState(TransportDeliveryOrderPack::LOADED_STATE);
 
             $trackingMovement = $trackingMovementService
-                ->createTrackingMovement($pack, $location, $user, $now, true, true, TrackingMovement::TYPE_DEPOSE);
+                ->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $user,
+                    $now,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
+                );
             $manager->persist($trackingMovement);
         }
 
@@ -514,7 +526,10 @@ class TransportController extends AbstractApiController
                     $now,
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $manager->persist($trackingMovement);
@@ -555,7 +570,10 @@ class TransportController extends AbstractApiController
             $now,
             true,
             true,
-            TrackingMovement::TYPE_EMPTY_ROUND
+            TrackingMovement::TYPE_EMPTY_ROUND,
+            [
+                'quantity' => 0
+            ]
         );
         $manager->persist($trackingMovement);
 
@@ -748,7 +766,8 @@ class TransportController extends AbstractApiController
                                     TransportHistoryService $historyService,
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
-                                    AttachmentService       $attachmentService): Response
+                                    AttachmentService       $attachmentService,
+                                    EmplacementDataService  $emplacementDataService): Response
     {
         $data = $request->request;
         $files = $request->files;
@@ -772,12 +791,10 @@ class TransportController extends AbstractApiController
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
-            $patient = (new Emplacement())
-                ->setLabel("Patient")
-                ->setDescription("Unités logistiques livrées chez un patient")
-                ->setIsActive(true);
-
-            $manager->persist($patient);
+            $patient = $emplacementDataService->persistLocation([
+                "label" => "Patient",
+                "description" => "Unités logistiques livrées chez un patient",
+            ], $manager);
         }
 
         $comment = $data->get('comment');
@@ -827,7 +844,10 @@ class TransportController extends AbstractApiController
                                 $now,
                                 true,
                                 true,
-                                TrackingMovement::TYPE_DEPOSE);
+                                TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'quantity' =>  $line->getPack()->getQuantity()
+                            ]);
                         $manager->persist($trackingMovement);
                     }
                 }
@@ -1171,7 +1191,10 @@ class TransportController extends AbstractApiController
                     new DateTime(),
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $transport = $pack->getTransportDeliveryOrderPack()->getOrder();
@@ -1226,7 +1249,10 @@ class TransportController extends AbstractApiController
                         new DateTime(),
                         true,
                         true,
-                        TrackingMovement::TYPE_DEPOSE
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'quantity' => $createdPack->getQuantity()
+                        ]
                     );
 
                     $manager->persist($createdPack);
@@ -1365,7 +1391,7 @@ class TransportController extends AbstractApiController
     {
         $order = $request->getOrder();
 
-        $order->setComment(StringHelper::cleanedComment($comment));
+        $order->setComment($comment);
 
         $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),

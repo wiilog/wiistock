@@ -10,7 +10,7 @@
     {% set endDateStr = endDate ? endDate.format('d/m/Y') : '-' %}
     {% set emergency = dispatch.emergency ?? 'Non' %}
     {% set receivers = dispatch.receivers ? dispatch.receivers|map(receiver => receiver.username)|join(", ") : '' %}
-    {% set comment = dispatch.commentaire ? dispatch.commentaire|raw : '-' %}
+    {% set comment = dispatch.commentaire ? dispatch.commentaire : '-' %}
     {% set hideNumberParam = hideNumber is defined and hideNumber %}
     {% set hideTreatmentDateParam = hideTreatmentDate is defined and hideTreatmentDate %}
     {% set hideTreatedBy = hideTreatedBy is defined and hideTreatedBy %}
@@ -48,7 +48,7 @@
         {% endif %}
         <li>{{ translateIn(language, 'Demande', 'Acheminements', 'Général', 'N° tracking transporteur') }} : <strong>{{ dispatch.carrierTrackingNumber ?? '' }}</strong></li>
         <li>{{ translateIn(language, "Demande", "Général", "Urgence") }} : <strong>{{ emergency }}</strong></li>
-        <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|striptags }}</li>
+        <li>{{ translateIn(language, "Général", null, "Modale", "Commentaire") }} : {{ comment|raw }}</li>
         {% if dispatch.attachments|length > 0 %}
             <li>
                 {{ translateIn(language, "Général", null, "Modale", "Pièces jointes") }} :
@@ -180,7 +180,7 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ description and description['manufacturerCode'] ? description['manufacturerCode'] : '' }}
+                            {{ description and description['manufacturerCode'] is defined ? description['manufacturerCode'] : '' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
@@ -192,7 +192,7 @@
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">
-                            {{ description and description['weight'] ? description['weight'] : '' }}
+                            {{ description and description['weight'] is defined ? description['weight'] : '' }}
                         </td>
                         <td class="td"
                             style="border: 1px solid black; padding: 10px; text-align: center;">

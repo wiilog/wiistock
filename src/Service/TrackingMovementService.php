@@ -20,11 +20,14 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Helper\FormatHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -54,6 +57,9 @@ class TrackingMovementService extends AbstractController
 
     #[Required]
     public ProjectHistoryRecordService $projectHistoryRecordService;
+
+    #[Required]
+    public LoggerInterface $logger;
 
     private $locationClusterService;
     private $visibleColumnService;
@@ -117,7 +123,7 @@ class TrackingMovementService extends AbstractController
     }
 
 
-    public function getFromColumnData(?TrackingMovement $movement): array
+    public function getFromColumnData(TrackingMovement|array|null $movement): array
     {
         $data = [
             'entityPath' => null,
@@ -125,42 +131,88 @@ class TrackingMovementService extends AbstractController
             'fromLabel' => null,
             'from' => '-',
         ];
+
         if (isset($movement)) {
-            if ($movement->getDispatch()) {
-                $data ['entityPath'] = 'dispatch_show';
-                $data ['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
-                $data ['entityId'] = $movement->getDispatch()->getId();
-                $data ['from'] = $movement->getDispatch()->getNumber();
-            } else if ($movement->getArrivage()) {
-                $data ['entityPath'] = 'arrivage_show';
-                $data ['fromLabel'] = $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivage UL', false);
-                $data ['entityId'] = $movement->getArrivage()->getId();
-                $data ['from'] = $movement->getArrivage()->getNumeroArrivage();
-            } else if ($movement->getReception()) {
-                $data ['entityPath'] = 'reception_show';
-                $data ['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
-                $data ['entityId'] = $movement->getReception()->getId();
-                $data ['from'] = $movement->getReception()->getNumber();
-            } else if ($movement->getMouvementStock() && $movement->getMouvementStock()->getTransferOrder()) {
-                $data ['entityPath'] = 'transfer_order_show';
-                $data ['fromLabel'] = 'Transfert de stock';
-                $data ['entityId'] = $movement->getMouvementStock()->getTransferOrder()->getId();
-                $data ['from'] = $movement->getMouvementStock()->getTransferOrder()->getNumber();
-            } else if ($movement->getPreparation()) {
-                $data ['entityPath'] = 'preparation_show';
-                $data ['fromLabel'] = 'Preparation';
-                $data ['entityId'] = $movement->getPreparation()->getId();
-                $data ['from'] = $movement->getPreparation()->getNumero();
-            } else if ($movement->getDelivery()) {
-                $data ['entityPath'] = 'livraison_show';
-                $data ['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
-                $data ['entityId'] = $movement->getDelivery()->getId();
-                $data ['from'] = $movement->getDelivery()->getNumero();
-            } else if ($movement->getDeliveryRequest()) {
-                $data ['entityPath'] = 'demande_show';
-                $data ['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
-                $data ['entityId'] = $movement->getDeliveryRequest()->getId();
-                $data ['from'] = $movement->getDeliveryRequest()->getNumero();
+            if (($movement instanceof TrackingMovement && $movement->getDispatch())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DISPATCH_ENTITY)) {
+                $data['entityPath'] = 'dispatch_show';
+                $data['fromLabel'] = $this->translation->translate('Demande', 'Acheminements', 'Général', 'Acheminement', false);
+                $data['entityId'] =  is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDispatch()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDispatch()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getArrivage())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::ARRIVAL_ENTITY)) {
+                $data['entityPath'] = 'arrivage_show';
+                $data['fromLabel'] = $this->translation->translate('Traçabilité', 'Flux - Arrivages', 'Divers', 'Arrivage', false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getArrivage()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getArrivage()->getNumeroArrivage();
+            } else if (($movement instanceof TrackingMovement && $movement->getReception())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::RECEPTION_ENTITY)) {
+                $data['entityPath'] = 'reception_show';
+                $data['fromLabel'] = $this->translation->translate('Ordre', 'Réceptions', 'Réception', false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getReception()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getReception()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getMouvementStock()?->getTransferOrder())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::TRANSFER_ORDER_ENTITY)) {
+                $data['entityPath'] = 'transfer_order_show';
+                $data['fromLabel'] = 'Transfert de stock';
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getMouvementStock()->getTransferOrder()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getMouvementStock()->getTransferOrder()->getNumber();
+            } else if (($movement instanceof TrackingMovement && $movement->getPreparation())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::PREPARATION_ENTITY)) {
+                $data['entityPath'] = 'preparation_show';
+                $data['fromLabel'] = 'Preparation';
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getPreparation()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getPreparation()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getDelivery())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_ORDER_ENTITY)) {
+                $data['entityPath'] = 'livraison_show';
+                $data['fromLabel'] = $this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDelivery()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDelivery()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getDeliveryRequest())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::DELIVERY_REQUEST_ENTITY)) {
+                $data['entityPath'] = 'demande_show';
+                $data['fromLabel'] = $this->translation->translate("Demande", "Livraison", "Demande de livraison", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getDeliveryRequest()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getDeliveryRequest()->getNumero();
+            } else if (($movement instanceof TrackingMovement && $movement->getShippingRequest())
+                || (is_array($movement) && $movement['entity'] === TrackingMovement::SHIPPING_REQUEST_ENTITY)) {
+                $data['entityPath'] = 'shipping_request_show';
+                $data['fromLabel'] = $this->translation->translate("Demande", "Expédition", "Demande d'expédition", false);
+                $data['entityId'] = is_array($movement)
+                    ? $movement['entityId']
+                    : $movement->getShippingRequest()->getId();
+                $data['from'] = is_array($movement)
+                    ? $movement['entityNumber']
+                    : $movement->getShippingRequest()->getNumber();
             }
         }
         return $data;
@@ -183,18 +235,18 @@ class TrackingMovementService extends AbstractController
 
         if ($movement->getLogisticUnitParent()) {
             if (in_array($movement->getType()->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
-                $pack = "";
+                $packCode = "";
             } else {
-                $pack = $movement->getLogisticUnitParent()->getCode();
+                $packCode = $movement->getLogisticUnitParent()->getCode();
             }
         } else {
-            $pack = $movement->getPackArticle()?->getBarCode() ?? $movement->getPack()->getCode();
+            $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
-            'packCode' => $pack,
+            'packCode' => $packCode,
             'origin' => $this->templating->render('mouvement_traca/datatableMvtTracaRowFrom.html.twig', $fromColumnData),
             'group' => $movement->getPackParent()
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
@@ -210,7 +262,7 @@ class TrackingMovementService extends AbstractController
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
-            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity(),
+            "quantity" => $movement->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
@@ -324,7 +376,7 @@ class TrackingMovementService extends AbstractController
         }
     }
 
-    public function createTrackingMovement($packOrCode,
+    public function createTrackingMovement(Pack|string $packOrCode,
                                            ?Emplacement $location,
                                            Utilisateur $user,
                                            DateTime $date,
@@ -365,7 +417,7 @@ class TrackingMovementService extends AbstractController
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
         $tracking = new TrackingMovement();
         $tracking
-            ->setQuantity($quantity)
+            ->setQuantity($pack->getQuantity())
             ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
@@ -373,7 +425,7 @@ class TrackingMovementService extends AbstractController
             ->setFinished($finished)
             ->setType($type)
             ->setMouvementStock($mouvementStock)
-            ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null)
+            ->setCommentaire(!empty($commentaire) ? $commentaire : null)
             ->setMainMovement($mainMovement)
             ->setPreparation($preparation)
             ->setDelivery($delivery)
@@ -407,7 +459,7 @@ class TrackingMovementService extends AbstractController
 
             $trackingUngroup = new TrackingMovement();
             $trackingUngroup
-                ->setQuantity($quantity)
+                ->setQuantity($pack->getQuantity())
                 ->setOperateur($user)
                 ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
                 ->setDatetime($date)
@@ -416,7 +468,7 @@ class TrackingMovementService extends AbstractController
                 ->setPackParent($pack->getParent())
                 ->setGroupIteration($pack->getParent() ? $pack->getParent()->getGroupIteration() : null)
                 ->setMouvementStock($mouvementStock)
-                ->setCommentaire(!empty($commentaire) ? StringHelper::cleanedComment($commentaire) : null);
+                ->setCommentaire(!empty($commentaire) ? $commentaire : null);
             $pack->addTrackingMovement($trackingUngroup);
             if ($removeFromGroup) {
                 $pack->setParent(null);
@@ -476,6 +528,8 @@ class TrackingMovementService extends AbstractController
                 $tracking->setPreparation($from);
             } else if ($from instanceof Livraison) {
                 $tracking->setDelivery($from);
+            } else if ($from instanceof ShippingRequest) {
+                $tracking->setShippingRequest($from);
             }
         }
 
@@ -579,6 +633,11 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if ($tracking->isDrop()) {
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
+                        'user' => $tracking->getOperateur()->getUsername(),
+                        'pack' => $pack->getCode(),
+                        'location' => $tracking->getEmplacement()->getLabel(),
+                    ]);
                     $record->setActive(true);
                     $previousRecordLastTracking = $record->getLastTracking();
                     // check if pack previous last tracking !== record previous lastTracking
@@ -589,7 +648,10 @@ class TrackingMovementService extends AbstractController
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
-
+                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
+                        'pack' => $pack->getCode(),
+                        'cluster' => $cluster->getId(),
+                    ]);
                     $this->locationClusterService->setMeter(
                         $entityManager,
                         LocationClusterService::METER_ACTION_INCREASE,
@@ -599,11 +661,19 @@ class TrackingMovementService extends AbstractController
 
                     if ($previousLastTracking
                         && $previousLastTracking->isTaking()) {
-
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
+                        $this->logger->critical('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking from location : {location}', [
+                            'pack' => $pack->getCode(),
+                            'location' => $locationPreviousLastTracking?->getLabel()
+                        ]);
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
+                            $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
+                                'pack' => $pack->getCode(),
+                                'cluster1' => $locationClusterPreviousLastTracking->getId(),
+                                'cluster2' => $cluster->getId(),
+                            ]);
                             $this->locationClusterService->setMeter(
                                 $entityManager,
                                 LocationClusterService::METER_ACTION_INCREASE,
@@ -665,7 +735,9 @@ class TrackingMovementService extends AbstractController
             false,
             true,
             TrackingMovement::TYPE_DEPOSE,
-            ['from' => $arrivage]
+            [
+                'from' => $arrivage,
+            ]
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
@@ -821,7 +893,9 @@ class TrackingMovementService extends AbstractController
 
                 $entityManager->persist($stockMovement);
 
-                $currentArticleOptions["mouvementStock"] = $stockMovement;
+                $currentArticleOptions = [
+                    "mouvementStock" => $stockMovement,
+                ];
             }
 
             $createdMvt = $this->createTrackingMovement(
@@ -1056,13 +1130,11 @@ class TrackingMovementService extends AbstractController
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir l'UL
         if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
-            $packTranslation = $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false);
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
-            $bold = '<span class="font-weight-bold"> ';
             return [
                 'success' => false,
-                'msg' => 'Le ' . $packTranslation . $bold . $packCode . '</span> ne dispose pas des ' . $natureTranslation . ' pour être déposé sur l\'emplacement' . $bold . $location . '</span>.',
+                'msg' => "L'unité logistique <strong>$packCode</strong> ne dispose pas des $natureTranslation pour être déposée sur l'emplacement <strong>$location</strong>.",
             ];
         }
 

@@ -20,7 +20,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 
-use App\Helper\FormatHelper;
+use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
@@ -182,6 +182,7 @@ class HandlingController extends AbstractController {
                         TranslationService $translation,
                         UniqueNumberService $uniqueNumberService,
                         NotificationService $notificationService,
+                        ExceptionLoggerService $exceptionLoggerService,
                         StatusHistoryService $statusHistoryService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -221,10 +222,12 @@ class HandlingController extends AbstractController {
             ->setDestination($post->get('destination') ?? '')
             ->setStatus($status)
             ->setDesiredDate($desiredDate)
-            ->setComment(StringHelper::cleanedComment($post->get('comment')))
+            ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
+
+        $exceptionLoggerService->sendLog(new \Exception(mb_detect_encoding($post->get('comment'))), $request);
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
         ]);
@@ -268,16 +271,17 @@ class HandlingController extends AbstractController {
             $entityManager->flush();
             if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
                 && $handling->getType()
-                && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                && (($handling->getType()->isNotificationsEnabled() && !$handling->getType()->getNotificationsEmergencies())
+                    || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
                 $notificationService->toTreat($handling);
             }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException | ConnectException $e) {
+        catch (UniqueConstraintViolationException|ConnectException $e) {
             if ($e instanceof UniqueConstraintViolationException) {
                 $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
-                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
+                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notification de cette demande de service. Veuillez réessayer.');
             }
             if (!empty($message)) {
                 return new JsonResponse([
@@ -338,7 +342,7 @@ class HandlingController extends AbstractController {
             ->setSource($post->get('source') ?? $handling->getSource())
             ->setDestination($post->get('destination') ?? $handling->getDestination())
             ->setDesiredDate($desiredDate)
-            ->setComment(StringHelper::cleanedComment($post->get('comment')) ?: '')
+            ->setComment($post->get('comment'))
             ->setEmergency($post->get('emergency') ?? $handling->getEmergency())
             ->setCarriedOutOperationCount(
                 (is_numeric($carriedOutOperationCount)

@@ -4,12 +4,10 @@ namespace App\DataFixtures;
 
 use App\Entity\FreeField;
 use App\Entity\Setting;
-
 use App\Service\SpecificService;
-
+use App\Service\UniqueNumberService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -167,7 +165,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CL_USED_IN_LABELS => [
                 'default' => FreeField::SPECIC_COLLINS_BL
             ],
-            Setting::CLOSE_AND_CLEAR_AFTER_NEW_MVT => [
+            Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
@@ -340,6 +338,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DELIVERY_REQUEST_ADD_UL => [
                 'default' => false,
+            ],
+            Setting::DISPATCH_NUMBER_FORMAT => [
+                'default' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
             ],
         ];
 

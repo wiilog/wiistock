@@ -34,6 +34,9 @@ class Type {
     const LABEL_COLLECT = 'collecte';
     const LABEL_SCHEDULED_EXPORT = 'Export planifié';
     const LABEL_UNIQUE_EXPORT = 'Export unique';
+    const LABEL_NOMADE_SESSION_HISTORY = 'session mobile';
+    const LABEL_WEB_SESSION_HISTORY = 'session web';
+
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -105,6 +108,12 @@ class Type {
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'pickTypes')]
     private ?Emplacement $pickLocation = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedDropLocations = [];
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $suggestedPickLocations = [];
 
     #[ORM\OneToOne(mappedBy: 'type', targetEntity: AverageRequestTime::class, cascade: ['persist', 'remove'])]
     private ?AverageRequestTime $averageRequestTime = null;
@@ -701,11 +710,8 @@ class Type {
         return (
             $emergency
             && (
-                $this->notificationsEnabled
-                || (
-                    !empty($this->notificationsEmergencies)
-                    && in_array($emergency, $this->notificationsEmergencies)
-                )
+                !empty($this->notificationsEmergencies)
+                && in_array($emergency, $this->notificationsEmergencies)
             )
         );
     }
@@ -842,4 +848,31 @@ class Type {
         return $this->tags;
     }
 
+    public function getSuggestedDropLocations(): ?array {
+        return $this->suggestedDropLocations;
+    }
+
+
+    public function setSuggestedDropLocations(?array $suggestedDropLocations): self {
+        $this->suggestedDropLocations = [];
+        foreach($suggestedDropLocations ?? [] as $suggestedDropLocation) {
+            $this->suggestedDropLocations[] = $suggestedDropLocation;
+        }
+
+        return $this;
+    }
+
+    public function getSuggestedPickLocations(): ?array {
+        return $this->suggestedPickLocations;
+    }
+
+
+    public function setSuggestedPickLocations(?array $suggestedPickLocations): self {
+        $this->suggestedPickLocations = [];
+        foreach($suggestedPickLocations ?? [] as $suggestedPickLocation) {
+            $this->suggestedPickLocations[] = $suggestedPickLocation;
+        }
+
+        return $this;
+    }
 }

@@ -38,7 +38,7 @@ class GroupService {
     public function createParentPack(array $options = []): Pack {
         $group = $this->packService->createPackWithCode($options['parent']);
         $group
-            ->setComment(StringHelper::cleanedComment($options['comment'] ?? null))
+            ->setComment($options['comment'] ?? null)
             ->setGroupIteration(1)
             ->setNature($options['nature'] ?? null)
             ->setVolume($options['volume'] ?? 0)
@@ -98,7 +98,9 @@ class GroupService {
                 false,
                 null,
                 TrackingMovement::TYPE_UNGROUP,
-                ["parent" => $parent]
+                [
+                    'parent' => $parent,
+                ]
             );
 
             $deposit = $this->trackingMovementService->createTrackingMovement(

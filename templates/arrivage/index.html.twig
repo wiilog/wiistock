@@ -110,6 +110,21 @@
         'table': 'arrivalsTable',
         'route': 'save_column_visible_for_arrivage'
     } %}
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalNewDispatch',
+        size: 'modal-xl',
+        header: {
+            title: trans('Traçabilité', 'Arrivages UL', 'Modale Nouvelle demande d\'acheminement', 'Demande d\'acheminement')
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}

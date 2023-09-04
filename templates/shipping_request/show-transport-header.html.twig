@@ -29,7 +29,7 @@
                 {% if hasRightEditTransportShippingPart %}
                     <button type="button"
                             data-id='{{ shipping.id }}'
-                            onclick=""
+                            onclick="openScheduledShippingRequestModal($(this))"
                             class="btn btn-outline-primary align-items-center justify-content-center split-button mr-0">
                         Modifier
                     </button>
@@ -59,7 +59,7 @@
                 <div class="row">
                     <div class="col-12 col-md-6 d-flex mb-2">
                         <label class="box-item ml-3">
-                            <span class="wii-field-name">Nombre de colis</span>
+                            <span class="wii-field-name">Nombre d'unités logistiques</span>
                             <span class="wii-body-text">{{ packsCount > 0 ? packsCount : '-' }}</span>
                         </label>
                     </div>

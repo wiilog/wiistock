@@ -1103,7 +1103,7 @@ function initSecondStep(html, component) {
 
     $modalComponentTypeSecondStep.attr(`data-meter-key`, component.meterKey);
 
-    const $entitySelect = $modalComponentTypeSecondStepContent.find('select[name="entity"].init-entity-change');
+    const $entitySelect = $modalComponentTypeSecondStepContent.find('.init-entity-change');
     if ($entitySelect.length > 0) {
         onEntityChange($entitySelect, true);
     }
@@ -1320,11 +1320,6 @@ function initializeEntryTimeIntervals(segments) {
 function addEntryTimeInterval($button, time = null, notEmptySegment = false) {
     const current = $button.data(`current`);
 
-    if ($('.segment-container').length === 5) {
-        showBSAlert('Il n\'est pas possible d\'ajouter plus de 5 segments à ce composant', 'danger');
-        return false;
-    }
-
     if (notEmptySegment) {
         const lastSegmentHourEndValue = $('.segment-hour').last().val();
         const lastSegmentLabel = $('.segment-container label').last().text();
@@ -1444,6 +1439,7 @@ function onEntityChange($select, onInit = false) {
     const $otherStatuses = $selectStatus.find(`option[data-category-label!="${categoryStatus}"]`);
     const $toHide = $modal.find(`.toToggle:not(.${categoryStatus})`);
     const $toShow = $modal.find(`.toToggle.${categoryStatus}`);
+    const $redirectDispatch = $modal.find(`.redirect-dispatch`)
 
     const disabledTypeSelect = (!categoryType || $correspondingTypes.length === 0);
     const disabledStatusSelect = (!categoryStatus || $correspondingStatuses.length === 0);
@@ -1472,6 +1468,12 @@ function onEntityChange($select, onInit = false) {
                 $selectStatus.val($correspondingStatuses[0].value);
             }
         }
+    }
+
+    if ($selectedOption.val() === 'requests_to_treat_dispatch') {
+        $redirectDispatch.removeClass('d-none');
+    } else if (!$redirectDispatch.hasClass('d-none')) {
+        $redirectDispatch.addClass('d-none');
     }
 
     $selectType.trigger('change');

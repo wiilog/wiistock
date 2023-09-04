@@ -4,11 +4,14 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\Query\Expr\Select;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -26,7 +29,11 @@ use Doctrine\ORM\Query\Expr\Join;
  */
 class DispatchRepository extends EntityRepository
 {
-    public function findByParamAndFilters(InputBag $params, $filters, Utilisateur $user, VisibleColumnService $visibleColumnService, array $options = []) {
+    public function findByParamAndFilters(InputBag $params,
+                                          array $filters,
+                                          Utilisateur $user,
+                                          VisibleColumnService $visibleColumnService,
+                                          array $options = []): array {
         $qb = $this->createQueryBuilder('dispatch')
             ->groupBy('dispatch.id');
 
@@ -43,11 +50,13 @@ class DispatchRepository extends EntityRepository
 						->setParameter('statut', $value);
 					break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('dispatch.type', 'filter_type')
-                        ->andWhere('filter_type.id in (:filter_type_value)')
-                        ->setParameter('filter_type_value', $value);
+                    if(!empty($filter['value'])){
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('dispatch.type', 'filter_type')
+                            ->andWhere('filter_type.id in (:filter_type_value)')
+                            ->setParameter('filter_type_value', $value);
+                    }
                     break;
                 case FiltreSup::FIELD_REQUESTERS:
                     $value = explode(',', $filter['value']);
@@ -116,6 +125,14 @@ class DispatchRepository extends EntityRepository
                         ->andWhere("filter_drop_location.id in (:dropLocationId)")
                         ->setParameter('dropLocationId', $value);
                     break;
+                case 'logisticUnits':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->innerJoin('dispatch.dispatchPacks', 'filter_dispatch_packs')
+                        ->innerJoin('filter_dispatch_packs.pack', 'filter_dispatch_packs_pack')
+                        ->andWhere("filter_dispatch_packs_pack.id IN (:logisticUnitIds)")
+                        ->setParameter('logisticUnitIds', $value);
+                    break;
             }
         }
         if (!empty($params)) {
@@ -135,6 +152,10 @@ class DispatchRepository extends EntityRepository
                         "locationTo" => "search_locationTo.label LIKE :search_value",
                         "status" => "search_statut.nom LIKE :search_value",
                         "destination" => "dispatch.destination LIKE :search_value",
+                        "customerName" => "dispatch.customerName LIKE :search_value",
+                        "customerPhone" => "dispatch.customerPhone LIKE :search_value",
+                        "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
+                        "customerAddress" => "dispatch.customerAddress LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
@@ -240,7 +261,6 @@ class DispatchRepository extends EntityRepository
         $result = $this->createQueryBuilder('dispatch')
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
-            ->orderBy('dispatch.creationDate', 'DESC')
             ->addOrderBy('dispatch.number', 'DESC')
             ->setParameter('value', Dispatch::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
@@ -248,12 +268,13 @@ class DispatchRepository extends EntityRepository
         return $result ? $result[0]['number'] : null;
     }
 
-    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null)
+    public function getMobileDispatches(?Utilisateur $user = null, ?Dispatch $dispatch = null, ?bool $offlineMode = false)
     {
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
             ->addSelect('dispatch.id AS id')
+            ->addSelect('dispatch_created_by.username AS createdBy')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')
@@ -263,6 +284,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('locationTo.label AS locationToLabel')
             ->addSelect('locationTo.id AS locationToId')
             ->addSelect('dispatch.destination AS destination')
+            ->addSelect('dispatch.updatedAt AS updatedAt')
             ->addSelect('dispatch.carrierTrackingNumber AS carrierTrackingNumber')
             ->addSelect('dispatch.commentaire AS comment')
             ->addSelect('type.label AS typeLabel')
@@ -270,11 +292,12 @@ class DispatchRepository extends EntityRepository
             ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
             ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
-            ->addSelect('IF(status.state = 0, 1, 0) AS draft')
+            ->addSelect('IF(status.state = :draftStatusState, 1, 0) AS draft')
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
             ->join('dispatch.requester', 'dispatch_requester')
+            ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
             ->leftJoin('dispatch_packs.pack', 'pack')
             ->leftJoin('dispatch_packs.dispatchReferenceArticles', 'dispatch_reference_articles')
@@ -282,7 +305,8 @@ class DispatchRepository extends EntityRepository
             ->leftJoin('dispatch.locationFrom', 'locationFrom')
             ->leftJoin('dispatch.locationTo', 'locationTo')
             ->join('dispatch.type', 'type')
-            ->join('dispatch.statut', 'status');
+            ->join('dispatch.statut', 'status')
+            ->setParameter('draftStatusState', Statut::DRAFT);
 
         if ($dispatch) {
             $queryBuilder
@@ -290,9 +314,24 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("dispatch", $dispatch);
         } else {
             $queryBuilder
-                ->andWhere('type.id IN (:dispatchTypeIds)')
-                ->andWhere('status.needsMobileSync = true')
-                ->andWhere('status.state IN (:untreatedStates)')
+                ->andWhere('type.id IN (:dispatchTypeIds)');
+            if ($offlineMode){
+                $queryBuilder
+                    ->andWhere('dispatch_created_by = :user')
+                    ->andWhere($queryBuilder->expr()->orX(
+                        $queryBuilder->expr()->andX(
+                            'status.needsMobileSync = true',
+                            'status.state IN (:untreatedStates)',
+                        ),
+                        'status.state = :draftStatusState',
+                    ))
+                ->setParameter('user', $user);
+            } else {
+                $queryBuilder
+                    ->andWhere('status.needsMobileSync = true')
+                    ->andWhere('status.state IN (:untreatedStates)');
+            }
+            $queryBuilder
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
@@ -300,13 +339,19 @@ class DispatchRepository extends EntityRepository
         return $queryBuilder->getQuery()->getResult();
     }
 
-    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
         $qb = $this->createQueryBuilder("dispatch");
 
         if($requester) {
             $qb
                 ->andWhere("dispatch.requester = :requester")
                 ->setParameter("requester", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("dispatch.type IN (:types)")
+                ->setParameter("types", $types);
         }
 
         return $qb
@@ -320,59 +365,85 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function iterateByDates(DateTime $dateMin,
-                                   DateTime $dateMax): iterable {
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
+
+        $subQuery = $this->createQueryBuilder('sub_dispatch')
+            ->select('COUNT(join_sub_dispatch_packs)')
+            ->innerJoin('sub_dispatch.dispatchPacks', 'join_sub_dispatch_packs', Join::WITH, 'sub_dispatch.id = dispatch.id')
+            ->getQuery()
+            ->getDQL();
 
         $queryBuilder = $this->createQueryBuilder('dispatch')
+            ->select('dispatch.id AS id')
+            ->addSelect('dispatch.freeFields AS freeFields')
+            ->addSelect('dispatch.number AS number')
+            ->addSelect('dispatch.commandNumber AS orderNumber')
+            ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
+            ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
+            ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
+            ->addSelect('join_type.label AS type')
+            ->addSelect('join_requester.username AS requester')
+            ->addSelect("GROUP_CONCAT(join_receivers.username SEPARATOR ',') AS receivers")
+            ->addSelect("join_treated_by.username AS treatedBy")
+            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("join_location_from.label AS locationFrom")
+            ->addSelect("join_location_to.label AS locationTo")
+            ->addSelect("dispatch.destination AS destination")
+            ->addSelect("($subQuery) AS packCount")
+            ->addSelect("join_status.nom AS status")
+            ->addSelect("dispatch.businessUnit AS businessUnit")
+            ->addSelect("dispatch.commentaire AS comment")
+            ->addSelect("dispatch.emergency AS emergency")
+            ->addSelect("dispatch.customerName AS customerName")
+            ->addSelect("dispatch.customerPhone AS customerPhone")
+            ->addSelect("dispatch.customerRecipient AS customerRecipient")
+            ->addSelect("dispatch.customerAddress AS customerAddress")
+            ->addSelect("join_dispatch_packs_pack.code AS packCode")
+            ->addSelect("join_dispatch_packs_pack_nature.code AS packNature")
+            ->addSelect("join_dispatch_packs.height AS dispatchPackHeight")
+            ->addSelect("join_dispatch_packs.width AS dispatchPackWidth")
+            ->addSelect("join_dispatch_packs.length AS dispatchPackLength")
+            ->addSelect("join_dispatch_packs_pack.volume AS packVolume")
+            ->addSelect("join_dispatch_packs_pack.comment AS packComment")
+            ->addSelect("join_dispatch_packs_pack.quantity AS packQuantity")
+            ->addSelect("join_dispatch_packs.quantity AS dispatchPackQuantity")
+            ->addSelect("join_dispatch_packs_pack.weight AS packWeight")
+            ->addSelect("DATE_FORMAT(join_dispatch_packs_pack_last_tracking.datetime, '$dateFormat') AS packLastTrackingDate")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_location.label AS packLastTrackingLocation")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_operator.username AS packLastTrackingOperator")
+            ->leftJoin('dispatch.type', 'join_type')
+            ->leftJoin('dispatch.statut', 'join_status')
+            ->leftJoin('dispatch.requester', 'join_requester')
+            ->leftJoin('dispatch.receivers', 'join_receivers')
+            ->leftJoin('dispatch.treatedBy', 'join_treated_by')
+            ->leftJoin('dispatch.carrier', 'join_carrier')
+            ->leftJoin('dispatch.locationFrom', 'join_location_from')
+            ->leftJoin('dispatch.locationTo', 'join_location_to')
+            ->leftJoin('dispatch.dispatchPacks', 'join_dispatch_packs')
+            ->leftJoin('join_dispatch_packs.pack', 'join_dispatch_packs_pack')
+            ->leftJoin('join_dispatch_packs_pack.nature', 'join_dispatch_packs_pack_nature')
+            ->leftJoin('join_dispatch_packs_pack.lastTracking', 'join_dispatch_packs_pack_last_tracking')
+            ->leftJoin('join_dispatch_packs_pack_last_tracking.emplacement', 'join_dispatch_packs_pack_last_tracking_location')
+            ->leftJoin('join_dispatch_packs_pack_last_tracking.operateur', 'join_dispatch_packs_pack_last_tracking_operator')
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->groupBy('join_dispatch_packs.id');
 
-            ->setParameters([
-                'dateMin' => $dateMin,
-                'dateMax' => $dateMax
-            ]);
+        Stream::from($queryBuilder->getDQLParts()['select'])
+            ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
+            ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
+            ->filter(fn($selectAlias) => !in_array($selectAlias, ['receivers']))
+            ->each(fn($field) => $queryBuilder->addGroupBy($field));
 
         return $queryBuilder
-            ->getQuery()
-            ->toIterable();
-    }
-
-    /**
-     * Assoc array [dispatch number => nb packs]
-     * @param DateTime $dateMin
-     * @param DateTime $dateMax
-     * @return array [dispatch number => nb packs]
-     */
-    public function getNbPacksByDates(DateTime $dateMin,
-                                      DateTime $dateMax): array {
-        $dateMax = $dateMax->format('Y-m-d H:i:s');
-        $dateMin = $dateMin->format('Y-m-d H:i:s');
-
-        $queryBuilder = $this->createQueryBuilder('dispatch')
-            ->addSelect('dispatch.number AS number')
-            ->addSelect('COUNT(join_dispatchPack.id) AS nbPacks')
-
-            ->leftJoin('dispatch.dispatchPacks', 'join_dispatchPack')
-
-            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
-
-            ->groupBy('dispatch.number')
-
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ]);
-
-        $res = $queryBuilder
+            ])
             ->getQuery()
             ->getResult();
-
-        return Stream::from($res)
-            ->reduce(function (array $carry, array $row) {
-                $carry[$row['number']] = $row['nbPacks'];
-                return $carry;
-            }, []);
     }
 
     public function getDispatchNumbers($search) {
@@ -508,5 +579,15 @@ class DispatchRepository extends EntityRepository
 
                 return $carry;
             }, []);
+    }
+
+    public function iterateAll(DateTime $dateTimeMin, DateTime $dateTimeMax){
+        $qb = $this->createQueryBuilder('dispatch')
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameter('dateMin', $dateTimeMin)
+            ->setParameter('dateMax', $dateTimeMax);
+        return $qb
+            ->getQuery()
+            ->toIterable();
     }
 }

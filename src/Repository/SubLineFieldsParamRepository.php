@@ -23,10 +23,10 @@ class SubLineFieldsParamRepository extends EntityRepository
 
         return Stream::from($fields)
             ->keymap(fn(SubLineFieldsParam $field) => [$field->getFieldCode(), [
-                "displayed" =>$field->isDisplayed(),
-                "displayedUnderCondition" =>$field->isDisplayedUnderCondition(),
-                "conditionFixedField" =>$field->getConditionFixedField(),
-                "conditionFixedFieldValue" =>$field->getConditionFixedFieldValue(),
+                "displayed" => $field->isDisplayed(),
+                "displayedUnderCondition" => $field->isDisplayedUnderCondition(),
+                "conditionFixedField" => $field->getConditionFixedField(),
+                "conditionFixedFieldValue" => $field->getConditionFixedFieldValue(),
                 "required" => $field->isRequired(),
             ]])
             ->toArray();

@@ -23,8 +23,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
-use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
+use App\Service\DeliveryRequestService;
 use App\Service\LivraisonService;
 use App\Service\LivraisonsManagerService;
 use App\Service\PDFGeneratorService;
@@ -35,7 +35,6 @@ use App\Service\TranslationService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
-use phpDocumentor\Reflection\Types\Collection;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,18 +45,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use function PHPUnit\Framework\isEmpty;
 
-
-/**
- * @Route("/livraison")
- */
+#[Route("/livraison")]
 class LivraisonController extends AbstractController {
 
-    /**
-     * @Route("/liste/{demandId}", name="livraison_index", methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
-     */
+    #[Route("/liste/{demandId}", name: "livraison_index", options: ["expose" => true])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR])]
     public function index(EntityManagerInterface $entityManager,
                           string                 $demandId = null): Response {
 
@@ -79,10 +72,8 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/finir/{id}", name: "livraison_finish", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function finish(Livraison                $livraison,
                            LivraisonsManagerService $livraisonsManager,
                            EntityManagerInterface   $entityManager): Response {
@@ -149,10 +140,8 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "livraison_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
     public function api(Request          $request,
                         LivraisonService $livraisonService): Response {
         $filterDemandId = $request->request->get('filterDemand');
@@ -162,7 +151,10 @@ class LivraisonController extends AbstractController {
 
     #[Route("/delivery-order-logistic-units-api", name: "delivery_order_logistic_units_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR], mode: HasPermission::IN_JSON)]
-    public function logisticUnitsApi(Request $request, EntityManagerInterface $manager): Response {
+    public function logisticUnitsApi(Request                $request,
+                                     EntityManagerInterface $manager,
+                                     DeliveryRequestService $deliveryRequestService): Response
+    {
         $deliveryOrder = $manager->find(Livraison::class, $request->query->get('id'));
         $preparationOrder = $deliveryOrder->getPreparation();
 
@@ -188,7 +180,7 @@ class LivraisonController extends AbstractController {
                     : null,
                 "articles" => Stream::from($preparationOrder->getArticleLines())
                     ->filter(fn(PreparationOrderArticleLine $line) => $line->getPack()?->getId() === $logisticUnit?->getId())
-                    ->map(function(PreparationOrderArticleLine $line) {
+                    ->map(function(PreparationOrderArticleLine $line) use ($deliveryRequestService) {
                         $article = $line->getArticle();
                         $deliveryRequestLine = $line->getDeliveryRequestArticleLine() ?? $line->getDeliveryRequestReferenceLine();
                         return [
@@ -197,7 +189,8 @@ class LivraisonController extends AbstractController {
                             "label" => $article->getLabel() ?: '',
                             "quantity" => $line->getPickedQuantity(),
                             "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                            "comment" => $deliveryRequestLine?->getComment() ?: '',
+                            "comment" => '<div class="text-wrap">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                            "notes" => $deliveryRequestLine?->getNotes() ?: '',
                             "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                                 'id' => $article->getId(),
                             ]),
@@ -208,7 +201,7 @@ class LivraisonController extends AbstractController {
             ->values();
 
         $references = Stream::from($preparationOrder->getReferenceLines())
-            ->map(function(PreparationOrderReferenceLine $line) {
+            ->map(function(PreparationOrderReferenceLine $line) use ($deliveryRequestService) {
                 $reference = $line->getReference();
                 $deliveryRequestLine = $line->getDeliveryRequestReferenceLine();
                 return [
@@ -218,7 +211,8 @@ class LivraisonController extends AbstractController {
                     "location" => $this->formatService->location($reference->getEmplacement()),
                     "quantity" => $line->getPickedQuantity(),
                     "project" => $this->formatService->project($deliveryRequestLine?->getProject()),
-                    "comment" => $deliveryRequestLine?->getComment() ?: '',
+                    "comment" => '<div class="text-wrap ">'.$deliveryRequestService->getDeliveryRequestLineComment($deliveryRequestLine).'</div>',
+                    "notes" => $deliveryRequestLine?->getNotes() ?: '',
                     "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
                         'refArticleId' => $reference->getId(),
                     ]),
@@ -242,62 +236,11 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR}, mode=HasPermission::IN_JSON)
-     */
-    public function apiArticle(Livraison $livraison): Response {
-        $preparation = $livraison->getPreparation();
-        $data = [];
-        if ($preparation) {
-            $rows = [];
-            /** @var PreparationOrderArticleLine $articleLine */
-            foreach ($preparation->getArticleLines() as $articleLine) {
-                $article = $articleLine->getArticle();
-                if ($articleLine->getQuantityToPick() !== 0 && $articleLine->getPickedQuantity() !== 0 && !$article->getCurrentLogisticUnit()) {
-                    $rows[] = [
-                        "reference" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "barcode" => $article->getBarCode() ?: '',
-                        "label" => $article->getLabel() ?: '',
-                        "location" => FormatHelper::location($article->getEmplacement()),
-                        "quantity" => $articleLine->getPickedQuantity(),
-                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                            'id' => $article->getId(),
-                        ]),
-                    ];
-                }
-            }
-
-            /** @var PreparationOrderReferenceLine $referenceLine */
-            foreach ($preparation->getReferenceLines() as $referenceLine) {
-                if ($referenceLine->getPickedQuantity() > 0) {
-                    $reference = $referenceLine->getReference();
-                    $rows[] = [
-                        "reference" => $reference->getReference(),
-                        "label" => $reference->getLibelle(),
-                        "barCode" => $reference->getBarCode() ?: '',
-                        "location" => FormatHelper::location($reference->getEmplacement()),
-                        "quantity" => $referenceLine->getPickedQuantity(),
-                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                            'refArticleId' => $reference->getId(),
-                        ]),
-                    ];
-                }
-            }
-
-            $data['data'] = $rows;
-        }
-        else {
-            $data = false; //TODO gérer retour message erreur
-        }
-        return new JsonResponse($data);
-    }
-
-    /**
-     * @Route("/voir/{id}", name="livraison_show", options={"expose"=true}, methods={"GET","POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR})
-     */
-    public function show(EntityManagerInterface $entityManager, Livraison $livraison, LivraisonService $livraisonService): Response
+    #[Route("/voir/{id}", name: "livraison_show", options: ["expose" => true])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_ORDRE_LIVR])]
+    public function show(EntityManagerInterface $entityManager,
+                         Livraison $livraison,
+                         LivraisonService $livraisonService): Response
     {
         $headerDetailsConfig = $livraisonService->createHeaderDetailsConfig($livraison);
 
@@ -309,10 +252,8 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/{livraison}", name="livraison_delete", options={"expose"=true}, methods={"DELETE"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/{livraison}", name: "livraison_delete", options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                    $request,
                            Livraison                  $livraison,
                            LivraisonsManagerService   $livraisonsManager,
@@ -359,9 +300,7 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/csv", name="get_delivery_order_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_delivery_order_csv", options: ["expose" => true], methods: "GET")]
     public function getDeliveryOrderCSV(Request                 $request,
                                         CSVExportService        $CSVExportService,
                                         EntityManagerInterface  $entityManager,
@@ -413,12 +352,11 @@ class LivraisonController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/{deliveryOrder}/api-delivery-note", name="api_delivery_note_livraison", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
-    public function apiDeliveryNote(Request $request,
+    #[Route("/{deliveryOrder}/api-delivery-note", name: "api_delivery_note_livraison", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function apiDeliveryNote(Request                $request,
                                     EntityManagerInterface $manager,
-                                    Livraison $deliveryOrder): JsonResponse {
+                                    Livraison              $deliveryOrder): JsonResponse
+    {
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
@@ -462,6 +400,7 @@ class LivraisonController extends AbstractController {
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
             'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
             'fromDelivery' => $request->query->getBoolean('fromDelivery'),
+            'deliveryOrder' => $deliveryOrder->getId(),
         ]));
 
         return $this->json([
@@ -470,21 +409,17 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/{deliveryOrder}/delivery-note", name="delivery_note_delivery_order", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/delivery-note", name: "delivery_note_delivery_order", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function postDeliveryNoteDeliveryOrder(EntityManagerInterface $entityManager,
-                                                  Livraison              $deliveryOrder,
                                                   Request                $request,
                                                   LivraisonService       $livraisonService,
-                                                  PDFGeneratorService    $PDFGeneratorService,
                                                   SpecificService        $specificService): JsonResponse {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
 
-        $data = json_decode($request->getContent(), true);
-
+        $data = $request->request->all();
+        $deliveryOrder = $entityManager->find(Livraison::class, $data['deliveryOrder']);
         $userDataToSave = [];
         $deliveryDataToSave = [];
 
@@ -533,16 +468,14 @@ class LivraisonController extends AbstractController {
         // TODO WIIS-8882
         $logo = $settingRepository->getOneParamByLabel(Setting::FILE_WAYBILL_LOGO);
         $now = new DateTime();
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$now->format('dmYHis')}";
-
-        $fileName = $PDFGeneratorService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
 
         $deliveryNoteAttachment = new Attachment();
         $deliveryNoteAttachment
             ->setDeliveryOrder($deliveryOrder)
-            ->setFileName($fileName)
+            ->setFileName(uniqid() . '.pdf')
             ->setOriginalName($title . '.pdf');
 
         $entityManager->persist($deliveryNoteAttachment);
@@ -562,14 +495,13 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/{deliveryOrder}/delivery-note/{attachment}", name="print_delivery_note_delivery_order", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/{deliveryOrder}/delivery-note/{attachment}", name: "print_delivery_note_delivery_order", options: ["expose" => true], methods: "GET")]
     public function printDeliveryNote(EntityManagerInterface    $entityManager,
                                       Livraison                 $deliveryOrder,
                                       PDFGeneratorService       $pdfService,
                                       SpecificService           $specificService,
-                                      TranslationService        $translation): Response {
+                                      TranslationService        $translation,
+                                      KernelInterface           $kernel): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -581,19 +513,24 @@ class LivraisonController extends AbstractController {
         $logo = $settingRepository->getOneParamByLabel(Setting::DELIVERY_NOTE_LOGO);
 
         $nowDate = new DateTime('now');
-        $client = SpecificService::CLIENTS[$specificService->getAppClient()];
+        $client = $specificService->getAppClientLabel();
 
         $title = "BL - {$deliveryOrder->getNumero()} - $client - {$nowDate->format('dmYHis')}";
 
+        $attachments = $deliveryOrder->getAttachments();
+        $fileName = $attachments->last()->getFilename();
+        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
+
+        $content = $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
+        file_put_contents($filePath, $content);
+
         return new PdfResponse(
-            $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder),
+            $content,
             "$title.pdf"
         );
     }
 
-    /**
-     * @Route("/{deliveryOrder}/check-waybill", name="check_delivery_waybill", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/{deliveryOrder}/check-waybill", name: "check_delivery_waybill", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function checkDeliveryWaybill(Livraison $deliveryOrder): Response {
         $preparationArticleLines = $deliveryOrder->getPreparation()->getArticleLines();
         $deliveryOrderHasPacks = Stream::from($preparationArticleLines)
@@ -611,12 +548,11 @@ class LivraisonController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/{deliveryOrder}/api-waybill", name="api_delivery_waybill", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     */
-    public function apiDeliveryWaybill(Request $request,
-                               EntityManagerInterface $entityManager,
-                               Livraison $deliveryOrder): JsonResponse {
+    #[Route("/{deliveryOrder}/api-waybill", name: "api_delivery_waybill", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function apiDeliveryWaybill(Request                $request,
+                                       EntityManagerInterface $entityManager,
+                                       Livraison              $deliveryOrder): JsonResponse
+    {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -677,9 +613,7 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/{deliveryOrder}/waybill", name="post_delivery_waybill", options={"expose"=true}, condition="request.isXmlHttpRequest()", methods="POST")
-     */
+    #[Route("/{deliveryOrder}/waybill", name: "post_delivery_waybill", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function postDeliveryOrderWaybill(EntityManagerInterface $entityManager,
                                              Livraison              $deliveryOrder,
                                              LivraisonService       $livraisonService,
@@ -721,13 +655,12 @@ class LivraisonController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/{deliveryOrder}/waybill/{attachment}", name="print_waybill_delivery", options={"expose"=true}, methods="GET")
-     */
-    public function printWaybillNote(Livraison $deliveryOrder,
-                                     Attachment $attachment,
+    #[Route("/{deliveryOrder}/waybill/{attachment}", name: "print_waybill_delivery", options: ["expose" => true], methods: "GET")]
+    public function printWaybillNote(Livraison          $deliveryOrder,
+                                     Attachment         $attachment,
                                      TranslationService $translationService,
-                                     KernelInterface $kernel): Response {
+                                     KernelInterface    $kernel): Response
+    {
         if(!$deliveryOrder->getWaybillData()) {
             return $this->json([
                 "success" => false,
@@ -741,10 +674,10 @@ class LivraisonController extends AbstractController {
         return $response;
     }
 
-    /**
-     * @Route("/depose-articles-non-demandes", name="livraison_treat_articles_not_requested", options={"expose"=true}, methods="POST")
-     */
-    public function treatArticlesNotRequested(Request $request, EntityManagerInterface $manager, TrackingMovementService $trackingMovementService): JsonResponse
+    #[Route("/depose-articles-non-demandes", name: "livraison_treat_articles_not_requested", options: ["expose" => true], methods: "POST")]
+    public function treatArticlesNotRequested(Request $request,
+                                              EntityManagerInterface $manager,
+                                              TrackingMovementService $trackingMovementService): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -753,8 +686,6 @@ class LivraisonController extends AbstractController {
         $packRepository = $manager->getRepository(Pack::class);
         $locationRepository = $manager->getRepository(Emplacement::class);
         $user = $this->getUser();
-
-        $deliveryOrder = $livraisonRepository->find($data['deliveryId']);
 
         $articles = $data['articles'];
         foreach ($articles as ['barCode' => $barcode, 'lu' => $luId, 'location' => $locationId]) {

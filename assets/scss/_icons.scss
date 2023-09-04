@@ -72,6 +72,8 @@ $icons: (
     'iot-collect-request': "../../public/svg/iot/collect.svg",
     'iot-tracking': "../../public/svg/iot/tracking.svg",
     'iot-temperature': "../../public/svg/iot/temperature.svg",
+    'iot-temperature-hygrometry': "../../public/svg/iot/temperature-hygrometry.svg",
+    'iot-hygrometry': "../../public/svg/iot/hygrometry.svg",
     'iot-historic': "../../public/svg/iot/historic.svg",
     'iot-vehicle': "../../public/svg/iot/vehicle.svg",
     'pairing':"../../public/svg/pairing.svg",
@@ -131,6 +133,7 @@ $icons: (
     'size': '../../public/svg/size.svg',
     'dangerous-goods': '../../public/svg/dangerous-goods.svg',
     'edit-form': '../../public/svg/edit-form.svg',
+    'settings-document-template': '../../public/svg/settings-document-template.svg',
 );
 
 @each $iconName, $iconPath in $icons {

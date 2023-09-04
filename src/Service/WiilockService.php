@@ -12,48 +12,35 @@ use Doctrine\ORM\EntityManagerInterface;
 Class WiilockService
 {
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @param bool $lock
-     * @throws \Exception
-     */
-    public function toggleFeedingDashboard(EntityManagerInterface $entityManager, bool $lock) {
+    public function toggleFeedingCommand(EntityManagerInterface $entityManager, bool $lock, string $type): void {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
-        $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
-        if (!$dashboardLock) {
-            $dashboardLock = new Wiilock();
-            $dashboardLock->setLockKey(Wiilock::DASHBOARD_FED_KEY);
-            $entityManager->persist($dashboardLock);
+        $commandLock = $wiilockRepository->findOneBy(['lockKey' => $type]);
+        if (!$commandLock) {
+            $commandLock = new Wiilock();
+            $commandLock->setLockKey($type);
+            $entityManager->persist($commandLock);
         }
 
-        $dashboardLock->setValue($lock);
+        $commandLock->setValue($lock);
 
         if (!$lock) {
-            $dashboardLock->setUpdateDate(new DateTime('now'));
+            $commandLock->setUpdateDate(new DateTime('now'));
         }
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return bool
-     */
     public function dashboardIsBeingFed(EntityManagerInterface $entityManager): bool {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);
         return (!empty($dashboardLock) && $dashboardLock->getValue());
     }
 
-    public function dashboardNeedsFeeding(EntityManagerInterface $entityManager) {
+    public function dashboardNeedsFeeding(EntityManagerInterface $entityManager): bool {
         $now = new DateTime('now');
         $lastUpdate = $this->getLastDashboardFeedingTime($entityManager);
 
         return !$this->dashboardIsBeingFed($entityManager) || $lastUpdate->diff($now)->i >= 15;
     }
 
-    /**
-     * @param EntityManagerInterface $entityManager
-     * @return DateTimeInterface|null
-     */
     public function getLastDashboardFeedingTime(EntityManagerInterface $entityManager): ?DateTimeInterface {
         $wiilockRepository = $entityManager->getRepository(Wiilock::class);
         $dashboardLock = $wiilockRepository->findOneBy(['lockKey' => Wiilock::DASHBOARD_FED_KEY]);

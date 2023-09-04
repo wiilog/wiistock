@@ -22,6 +22,7 @@ class LocationClusterRepository extends EntityRepository {
             ->addSelect('currentLocation.label AS currentLocationLabel')
             ->addSelect('pack.code AS code')
             ->addSelect('pack.id AS packId')
+            ->addSelect('pack.truckArrivalDelay AS truckArrivalDelay')
 
             ->join('cluster.locationClusterRecords', 'record')
             ->join('record.pack', 'pack')

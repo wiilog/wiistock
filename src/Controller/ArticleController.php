@@ -17,6 +17,7 @@ use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Setting;
+use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
 use App\Entity\ReferenceArticle;
@@ -38,6 +39,7 @@ use App\Annotation\HasPermission;
 
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -250,12 +252,19 @@ class ArticleController extends AbstractController
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
             $settingRepository = $entityManager->getRepository(Setting::class);
+            $articleRepository = $entityManager->getRepository(Article::class);
+
             $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
-            if (isset($data['rfidTag']) && !empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix)."
-                ]);
+
+            if (isset($data['rfidTag'])) {
+                if(!empty($rfidPrefix) && !str_starts_with($data['rfidTag'], $rfidPrefix)) {
+                    throw new FormException("Le tag RFID ne respecte pas le préfixe paramétré ($rfidPrefix).");
+                }
+
+                $articleWithSameTag = $articleRepository->findOneBy(['RFIDtag' => $data['rfidTag']]);
+                if ($articleWithSameTag) {
+                    throw new FormException("Le tag RFID {$data['rfidTag']} est déja utilisé.");
+                }
             }
 
             $article = $this->articleDataService->newArticle($entityManager, $data);
@@ -338,20 +347,28 @@ class ArticleController extends AbstractController
                     $entityManager->flush();
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(ArticleNotAvailableException $exception) {
+                catch(ArticleNotAvailableException) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
                     ];
                 }
                 /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(RequestNeedToBeProcessedException $exception) {
+                catch(RequestNeedToBeProcessedException) {
                     $response = [
                         'success' => false,
                         'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
                     ];
                 }
-            return new JsonResponse($response);
+                /** @noinspection PhpRedundantCatchClauseInspection */
+                catch (UniqueConstraintViolationException) {
+                    $response = [
+                        'success' => false,
+                        'msg' => "Le tag RFID {$data['rfidTag']} est déja utilisé.",
+                    ];
+                }
+
+                return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }
@@ -366,12 +383,14 @@ class ArticleController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $articleRepository = $entityManager->getRepository(Article::class);
+            $shippingRequestLineRepository = $entityManager->getRepository(ShippingRequestLine::class);
 
             /** @var Article $article */
             $article = $articleRepository->find($data['article']);
             $articleBarCode = $article->getBarCode();
 
             $locationMissionCounter = $articleRepository->countInventoryLocationMission($article);
+            $shippingRequestLineCounter = $shippingRequestLineRepository->count(['article' => $article]);
 
             $trackingPack = $article->getTrackingPack();
 
@@ -381,7 +400,8 @@ class ArticleController extends AbstractController
                 && $article->getTransferRequests()->isEmpty()
                 && $article->getInventoryMissions()->isEmpty()
                 && $article->getInventoryEntries()->isEmpty()
-                && $locationMissionCounter === 0) {
+                && $locationMissionCounter === 0
+                && $shippingRequestLineCounter === 0) {
 
                 if ($trackingPack) {
                     $trackingPack->setArticle(null);

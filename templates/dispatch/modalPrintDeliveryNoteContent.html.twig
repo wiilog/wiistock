@@ -1,14 +1,17 @@
 {% import 'form.html.twig' as form %}
 
+{% if deliveryOrder ?? false %}
+    {{ form.hidden('deliveryOrder', deliveryOrder) }}
+{% elseif dispatch ?? false %}
+    {{ form.hidden('dispatch', dispatch) }}
+{% endif %}
+
 <div class="row">
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <label class="w-100 col-12">
                 {{ form.select('buyer', trans('Demande', 'Acheminements', 'Bon de livraison', 'Client acheteur'), true, {
                     type: 'customers',
-                    labelOptions: {
-                        class: 'm-0',
-                    },
                     items: [{label: buyer, value: buyer, selected: true}]
                 }) }}
             </label>
@@ -17,12 +20,12 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone') }}</label>
-                <input class="form-control data forbidden-phone-numbers"
-                       name="buyerPhone"
-                       maxlength="50"
-                       value="{{ buyerPhone }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone', false) }}"/>
+                {{ form.input('buyerPhone', trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone'), false, buyerPhone, {
+                    inputClass: 'forbidden-phone-numbers',
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
             </div>
         </div>
     </div>
@@ -31,169 +34,12 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}</label>
-                <input class="form-control data forbidden-phone-numbers"
-                       name="buyerFax"
-                       maxlength="50"
-                       value="{{ buyerFax }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax', false) }}"/>
-            </div>
-        </div>
-    </div>
-</div>
-<hr class="mb-4"/>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur', false) }}"
-                          name="consignor"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data needed">{{ consignor }}</textarea>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Adresse de livraison') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Adresse de livraison', false) }}"
-                          name="deliveryAddress"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data needed">{{ deliveryAddress }}</textarea>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison', false) }}"
-                       name="deliveryNumber"
-                       value="{{ deliveryNumber }}"
-                       class="form-control data needed"
-                       disabled/>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date de livraison') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date de livraison', false) }}"
-                       name="deliveryDate"
-                       value="{{ deliveryDate }}"
-                       class="form-control data"
-                       type="date"/>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente', false) }}"
-                       name="salesOrderNumber"
-                       maxlength="50"
-                       value="{{ salesOrderNumber }}"
-                       class="form-control data needed"/>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Lettre de voiture') }}</label>
-            </div>
-            <div class="col-12">
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Lettre de voiture', false) }}"
-                       name="wayBill"
-                       maxlength="50"
-                       value="{{ wayBill }}"
-                       class="form-control data"/>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Bon de commande client') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Bon de commande client', false) }}"
-                       name="customerPONumber"
-                       maxlength="50"
-                       value="{{ customerPONumber }}"
-                       class="form-control data needed"/>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date commande client') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date commande client', false) }}"
-                       name="customerPODate"
-                       class="form-control data"
-                       value="{{ customerPODate }}"
-                       type="date"/>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Réponse numéro commande') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Réponse numéro commande', false) }}"
-                       name="respOrderNb"
-                       maxlength="50"
-                       value="{{ respOrderNb }}"
-                       class="form-control data"/>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de projet') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de projet', false) }}"
-                       name="projectNumber"
-                       maxlength="50"
-                       value="{{ projectNumber }}"
-                       class="form-control data needed"/>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-12 col-md-6">
-        <div class="form-group row">
-            <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Général', 'Urgence') }}</label>
-            </div>
-            <div class="col-12">
-                <select title="{{ trans('Demande', 'Général', 'Urgence', false) }}"
-                        name="emergency"
-                        class="form-control data">
-                    <option value=""></option>
-                    {% for emergencyValue in dispatchEmergencyValues %}
-                        <option value="{{ emergencyValue }}"
-                                {{ dispatchEmergency == emergencyValue ? 'selected' }}>
-                            {{ emergencyValue }}
-                        </option>
-                    {% endfor %}
-                </select>
+                {{ form.input('buyerFax', trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax'), false, buyerFax, {
+                    inputClass: 'forbidden-phone-numbers',
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
             </div>
         </div>
     </div>
@@ -203,28 +49,26 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Contact') }}</label>
-            </div>
-            <div class="col-12">
-                <select class="form-control data needed"
-                        name="username"
-                        title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Contact', false) }}"
-                        disabled>
-                    <option value="{{ username }}" selected>{{ username }}</option>
-                </select>
+                {{ form.textarea('consignor', trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur'), true, consignor, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone') }}</label>
-            </div>
-            <div class="col-12">
-                <input class="form-control data forbidden-phone-numbers needed"
-                       name="userPhone"
-                       value="{{ userPhone }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone', false) }}"/>
+                {{ form.textarea('deliveryAddress', trans('Demande', 'Acheminements', 'Bon de livraison', 'Adresse de livraison'), true, deliveryAddress, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
@@ -233,12 +77,105 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax') }}</label>
-                <input class="form-control data forbidden-phone-numbers"
-                       name="userFax"
-                       maxlength="50"
-                       value="{{ userFax }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax', false) }}"/>
+                {{ form.input('deliveryNumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison'), true, deliveryNumber, {
+                    attributes: {
+                        disabled: 'disabled',
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('deliveryDate', trans('Demande', 'Acheminements', 'Bon de livraison', 'Date de livraison'), false, deliveryDate, {
+                    type: 'date',
+                }) }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('salesOrderNumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de commande de vente'), true, salesOrderNumber, {
+                    attributes: {
+                        maxlength: 50
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('wayBill', trans('Demande', 'Acheminements', 'Bon de livraison', 'Lettre de voiture'), false, wayBill, {
+                    attributes: {
+                        maxlength: 50
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('customerPONumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Bon de commande client'), true, customerPONumber, {
+                    attributes: {
+                        maxlength: 50
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('customerPODate', trans('Demande', 'Acheminements', 'Bon de livraison', 'Date commande client'), false, customerPODate, {
+                    type: 'date',
+                }) }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('respOrderNb', trans('Demande', 'Acheminements', 'Bon de livraison', 'Réponse numéro commande'), false, respOrderNb, {
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('projectNumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de projet'), true, projectNumber, {
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.select('username', trans('Demande', 'Général', 'Urgence'), false, {
+                    items: dispatchEmergencyValues|map((emergency) => {
+                        label: emergency,
+                        value: emergency,
+                        selected: dispatchEmergency == emergency
+                    })
+                }) }}
             </div>
         </div>
     </div>
@@ -248,12 +185,48 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro facture') }}</label>
-                <input class="form-control data"
-                       name="invoiceNumber"
-                       maxlength="50"
-                       value="{{ invoiceNumber }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro facture', false) }}"/>
+                {{ form.select('username', trans('Demande', 'Acheminements', 'Bon de livraison', 'Contact'), true, {
+                    type: 'customers',
+                    items: [{label: username, value: username, selected: true}]
+                }) }}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            {{ form.input('userPhone', trans('Demande', 'Acheminements', 'Bon de livraison', 'Téléphone'), true, userPhone, {
+                inputClass: 'forbidden-phone-numbers',
+                attributes: {
+                    maxlength: 50,
+                },
+            }) }}
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('userFax', trans('Demande', 'Acheminements', 'Bon de livraison', 'Fax'), false, userFax, {
+                    inputClass: 'forbidden-phone-numbers',
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
+            </div>
+        </div>
+    </div>
+</div>
+<hr class="mb-4"/>
+<div class="row">
+    <div class="col-12 col-md-6">
+        <div class="form-group row">
+            <div class="col-12">
+                {{ form.input('invoiceNumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro facture'), false, invoiceNumber, {
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
             </div>
             <div class="col-12">
                 <button class="btn btn-primary btn-sm mt-2"
@@ -267,12 +240,11 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro vente') }}</label>
-                <input class="form-control data"
-                       name="soldNumber"
-                       maxlength="50"
-                       value="{{ soldNumber }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro vente', false) }}"/>
+                {{ form.input('soldNumber', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro vente'), false, soldNumber, {
+                    attributes: {
+                        maxlength: 50,
+                    },
+                }) }}
             </div>
         </div>
     </div>
@@ -281,26 +253,26 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Facturé à') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Facturé à', false) }}"
-                          name="invoiceTo"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data needed">{{ invoiceTo }}</textarea>
+                {{ form.textarea('invoiceTo', trans('Demande', 'Acheminements', 'Bon de livraison', 'Facturé à'), true, invoiceTo, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Vendu à') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Vendu à', false) }}"
-                          name="soldTo"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data needed">{{ soldTo }}</textarea>
+                {{ form.textarea('soldTo', trans('Demande', 'Acheminements', 'Bon de livraison', 'Vendu à'), true, soldTo, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
@@ -310,11 +282,7 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Nom dernier utilisateur') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Nom dernier utilisateur', false) }}"
-                       name="endUserNo"
-                       value="{{ endUserNo }}"
-                       class="form-control data needed"/>
+                {{ form.input('endUserNo', trans('Demande', 'Acheminements', 'Bon de livraison', 'Nom dernier utilisateur'), true, endUserNo) }}
             </div>
             <div class="col-12">
                 <div class="row">
@@ -339,12 +307,11 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison') }}</label>
-                <input title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison', false) }}"
-                       name="deliverNo"
-                       maxlength="50"
-                       value="{{ deliverNo }}"
-                       class="form-control data needed"/>
+                {{ form.input('deliverNo', trans('Demande', 'Acheminements', 'Bon de livraison', 'Numéro de livraison'), true, deliverNo, {
+                    attributes: {
+                        maxlength: 50,
+                    }
+                }) }}
             </div>
         </div>
     </div>
@@ -353,26 +320,26 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Dernier utilisateur') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Dernier utilisateur', false) }}"
-                          name="endUser"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data">{{ endUser }}</textarea>
+                {{ form.textarea('endUser', trans('Demande', 'Acheminements', 'Bon de livraison', 'Dernier utilisateur'), false, endUser, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Livrer à') }}</label>
-                <textarea title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Livrer à', false) }}"
-                          name="deliverTo"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 7, 50)"
-                          rows="7"
-                          class="form-control data">{{ deliverTo }}</textarea>
+                {{ form.textarea('deliverTo', trans('Demande', 'Acheminements', 'Bon de livraison', 'Livrer à'), false, deliverTo, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 7, 50)",
+                        rows: 7,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>
@@ -402,29 +369,31 @@
                      data-multiple-key="packs"
                      data-multiple-object-index="{{ loop.index0 }}">
                     <div class="col-3">
-                        <input class="form-control data needed"
-                               name="code"
-                               title="Numéro"
-                               value="{{ dispatchPack.code }}"
-                               disabled/>
+                        {{ form.input('code', null, true, dispatchPack.code, {
+                            attributes: {
+                                title: "Numéro",
+                                disabled: "disabled",
+                            },
+                        }) }}
                     </div>
                     <div class="col-3">
-                        <label class="sr-only">{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}</label>
-                        <input class="form-control data needed"
-                               name="quantity"
-                               title="{{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false) }}"
-                               type="number"
-                               step="1"
-                               min="1"
-                               value="{{ dispatchPack.quantity }}"/>
+                        {{ form.input('quantity', trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Quantité à acheminer', false), true, dispatchPack.quantity, {
+                            labelClass: 'sr-only',
+                            type: 'number',
+                            attributes: {
+                                step: 1,
+                                min: 1,
+                            }
+                        }) }}
                     </div>
                     <div class="col-6">
-                        <label class="sr-only">{{ trans("Général", null, "Modale", 'Commentaire') }}</label>
-                        <textarea class="form-control data {{ not isHidden ? 'needed' }}"
-                                  name="comment"
-                                  title="{{ trans("Général", null, "Modale", 'Commentaire', false) }}"
-                                  rows="1"
-                                  oninput="limitTextareaLength($(this), 7, 100)">{{ (dispatchPack.comment|striptags) ? (dispatchPack.comment|striptags) : ' ' }}</textarea>
+                        {{ form.textarea('comment', trans("Général", null, "Modale", 'Commentaire'), not isHidden, dispatchPack.comment|striptags ?: ' ', {
+                            labelClass: 'sr-only',
+                            attributes: {
+                                oninput: "limitTextareaLength($(this), 7, 100)",
+                                rows: 1,
+                            }
+                        }) }}
                     </div>
                 </div>
             {% endfor %}
@@ -436,22 +405,16 @@
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur') }}</label>
-                <input class="form-control data needed"
-                       name="consignor2"
-                       value="{{ consignor2 }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur', false) }}"/>
+                {{ form.input('consignor2', trans('Demande', 'Acheminements', 'Bon de livraison', 'Expéditeur'), true, consignor2) }}
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date') }}</label>
-                <input class="form-control data needed"
-                       name="date"
-                       value="{{ date }}"
-                       title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Date', false) }}"/>
+                {{ form.input('date', trans('Demande', 'Acheminements', 'Bon de livraison', 'Date'), true, date, {
+                    type: 'date',
+                }) }}
             </div>
         </div>
     </div>
@@ -461,15 +424,13 @@
     <div class="col-12">
         <div class="form-group row">
             <div class="col-12">
-                <label class="wii-field-name">{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Note(s)') }}</label>
-            </div>
-            <div class="col-12">
-                <textarea class="form-control data"
-                          name="notes"
-                          title="{{ trans('Demande', 'Acheminements', 'Bon de livraison', 'Note(s)', false) }}"
-                          style="resize: none"
-                          oninput="limitTextareaLength($(this), 3, 100)"
-                          rows="3">{{ notes }}</textarea>
+                {{ form.textarea('notes', trans('Demande', 'Acheminements', 'Bon de livraison', 'Note(s)'), false, notes, {
+                    attributes: {
+                        oninput: "limitTextareaLength($(this), 3, 100)",
+                        rows: 3,
+                        style: "resize: none",
+                    }
+                }) }}
             </div>
         </div>
     </div>

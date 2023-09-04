@@ -8,11 +8,13 @@ use App\Entity\Article;
 use App\Entity\Customer;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
+use App\Entity\LocationClusterRecord;
+use App\Entity\MouvementStock;
 use App\Entity\Menu;
 use App\Entity\Role;
 use App\Entity\Nature;
-use App\Entity\Setting;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\ShippingRequest\ShippingRequestLine;
@@ -26,15 +28,14 @@ use App\Service\Document\TemplateDocumentService;
 use App\Service\FormatService;
 use App\Service\PDFGeneratorService;
 use App\Service\SpecificService;
+use App\Service\MouvementStockService;
 use App\Service\MailerService;
 use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\MakerBundle\Str;
 use DateTime;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
@@ -91,6 +92,9 @@ class ShippingRequestService {
 
     #[Required]
     public TranslationService $translationService;
+
+    #[Required]
+    public MouvementStockService $mouvementStockService;
 
     public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
         $columnsVisible = $currentUser->getVisibleColumns()['shippingRequest'];
@@ -156,7 +160,7 @@ class ShippingRequestService {
         $formatService = $this->formatService;
 
         $url = $this->router->generate('shipping_request_show', [
-            "shippingRequest" => $shipping->getId()
+            "id" => $shipping->getId()
         ]);
         $row = [
             "actions" => $this->templating->render('shipping_request/actions.html.twig', [
@@ -419,7 +423,11 @@ class ShippingRequestService {
             $date,
             false,
             null,
-            TrackingMovement::TYPE_DEPOSE
+            TrackingMovement::TYPE_DEPOSE,
+            [
+                'from' => $shippingRequest,
+                'shippingRequest' => $shippingRequest,
+            ]
         );
         $entityManager->persist($trackingMovement);
 
@@ -464,8 +472,8 @@ class ShippingRequestService {
                         ]);
 
                         return [
-                            'actions' => $actions,
-                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'actions' => '<div class="d-flex align-items-center">' . $actions . ($reference->isDangerousGoods() ? "<i title='Matière dangereuse' class='dangerous wii-icon wii-icon-dangerous-goods wii-icon-25px ml-2'></i>" : '') . '</div>',
+                            'reference' => '<div class="d-flex align-items-center">' . $reference->getReference() . '</div>',
                             'label' => $reference->getLibelle(),
                             'quantity' => $shippingRequestLine->getQuantity(),
                             'price' => $expectedLine->getUnitPrice(),
@@ -487,6 +495,77 @@ class ShippingRequestService {
                 ];
             })
             ->toArray();
+    }
+
+    public function deletePacking(EntityManagerInterface $entityManager,
+                                  ShippingRequest        $shippingRequest): void
+    {
+
+        // remove track mvt
+        Stream::from($shippingRequest->getTrackingMovements())
+            ->each(function (TrackingMovement $trackingMovement) use ($entityManager, $shippingRequest) {
+                foreach ($trackingMovement->getFirstDropsRecords() as $firstDropRecord){
+                    $entityManager->remove($firstDropRecord);
+                    $trackingMovement->removeFirstDropRecord($firstDropRecord);
+                }
+
+                foreach ($trackingMovement->getLastTrackingRecords() as $lastTrackingRecord){
+                    $entityManager->remove($lastTrackingRecord);
+                    $trackingMovement->removeLastTrackingRecord($lastTrackingRecord);
+                }
+
+                $entityManager->remove($trackingMovement);
+                $shippingRequest->removeTrackingMovement($trackingMovement);
+            });
+
+        // remove stock mvt
+        Stream::from($shippingRequest->getStockMovements())
+            ->each(function (MouvementStock $mouvementStock) use ($entityManager, $shippingRequest) {
+                $this->mouvementStockService->manageMouvementStockPreRemove($mouvementStock, $entityManager);
+                $entityManager->remove($mouvementStock);
+                $shippingRequest->removeStockMovement($mouvementStock);
+            });
+
+        /* @var ShippingRequestPack $packLine */
+        foreach ($shippingRequest->getPackLines() as $packLine) {
+            $pack = $packLine->getPack();
+
+            /* @var ShippingRequestLine $requestLine */
+            foreach ($packLine->getLines() as $requestLine) {
+
+                $articleOrReference = $requestLine->getArticleOrReference();
+
+                if ($articleOrReference instanceof Article) {
+                    $trackingPack = $articleOrReference->getTrackingPack();
+                    $articleOrReference->setTrackingPack(null);
+                    $entityManager->remove($articleOrReference);
+                    $entityManager->remove($trackingPack);
+                }
+                // only on scheduled status (quantities were added)
+                else if ($shippingRequest->getStatus()?->getCode() === ShippingRequest::STATUS_SCHEDULED
+                         && $articleOrReference instanceof ReferenceArticle) {
+                    $newStock = $articleOrReference->getQuantiteStock() - $requestLine->getQuantity();
+                    $newQteReserve = $articleOrReference->getQuantiteReservee() - $requestLine->getQuantity();
+
+                    $articleOrReference->setQuantiteStock($newStock);
+                    $articleOrReference->setQuantiteReservee($newQteReserve);
+                }
+
+                $requestLine->getExpectedLine()->removeLine($requestLine);
+                $entityManager->remove($requestLine);
+                $packLine->removeLine($requestLine);
+            }
+
+            foreach ($pack->getTrackingMovements() as $trackMvt){
+                $entityManager->remove($trackMvt);
+                $pack->removeTrackingMovement($trackMvt);
+            }
+
+            $shippingRequest->removePackLine($packLine);
+
+            $entityManager->remove($pack);
+            $entityManager->remove($packLine);
+        }
     }
 
     public function persistNewDeliverySlipAttachment(EntityManagerInterface     $entityManager,
@@ -574,8 +653,7 @@ class ShippingRequestService {
 
         $now = new DateTime();
 
-        $client = SpecificService::CLIENTS[$this->specificService->getAppClient()];
-
+        $client = $this->specificService->getAppClientLabel();
         $name = "BDL - {$shippingRequest->getNumber()} - $client - {$now->format('dmYHis')}";
 
         $deliverySlipAttachment = new Attachment();
@@ -590,4 +668,15 @@ class ShippingRequestService {
         return $deliverySlipAttachment;
     }
 
+    public function hasEditRightWithStatus(ShippingRequest $shippingRequest): bool {
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_TO_TREAT_SHIPPING))
+            || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_PLANIFIED_SHIPPING))
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_SHIPPED_SHIPPING)));
+    }
+
+    public function hasDeleteRightWithStatus(ShippingRequest $shippingRequest): bool {
+        return !(($shippingRequest->isToTreat() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_TO_TREAT_SHIPPING))
+            || ($shippingRequest->isScheduled() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_PLANIFIED_SHIPPING))
+            || ($shippingRequest->isShipped() && !$this->userService->hasRightFunction(Menu::DEM, Action::DELETE_SHIPPED_SHIPPING)));
+    }
 }

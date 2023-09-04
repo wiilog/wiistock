@@ -17,6 +17,7 @@ function initTableSensor(){
         columns: [
             {data: 'date', name: 'date', title: 'Date'},
             {data: 'content', name: 'content', title: 'Donnée principale'},
+            {data: 'contentType', name: 'contentType', title: 'Type de donnée'},
             {data: 'event', name: 'event', title: 'Type de message'}
         ],
     };
