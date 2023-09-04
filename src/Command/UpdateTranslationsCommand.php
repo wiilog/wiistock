@@ -13,12 +13,12 @@ class UpdateTranslationsCommand extends Command {
     #[Required]
     public TranslationService $translationService;
 
-    protected function configure() {
+    protected function configure(): void {
 		$this->setName("app:update:translations");
 		$this->setDescription("This commands generate the yaml translations.");
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $this->translationService->generateCache(null, true);
         $this->translationService->generateJavascripts();
         $output->writeln("Updated translation files");

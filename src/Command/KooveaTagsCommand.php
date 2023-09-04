@@ -19,11 +19,11 @@ class KooveaTagsCommand extends Command {
         $this->iotService = $iotService;
     }
 
-    protected function configure() {
+    protected function configure(): void {
 		$this->setName('app:run:koovea:tag');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output) :int {
         $this->iotService->runKooveaJOB($this->entityManager, IOTService::KOOVEA_TAG);
         return 0;
     }

@@ -24,12 +24,13 @@ class CloseAllSessionsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure() {
+    protected function configure(): void
+    {
         $this->setName("app:sessions:close:all");
         $this->setDescription("Close sessions History Records and Sessions");
     }
 
-    public function execute(InputInterface $input, OutputInterface $output) {
+    public function execute(InputInterface $input, OutputInterface $output): int {
         $this->entityManager->getConnection()->executeQuery('DELETE FROM user_session');
         $this->sessionHistoryRecordService->closeInactiveSessions($this->entityManager);
         return 0;

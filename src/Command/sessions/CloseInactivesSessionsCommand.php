@@ -28,13 +28,12 @@ class CloseInactivesSessionsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure() {
+    protected function configure(): void {
         $this->setName("app:sessions:close:inactives");
         $this->setDescription("Close inactive sessions History Records");
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
-    {
+    public function execute(InputInterface $input, OutputInterface $output): int {
         $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::INACTIVE_SESSIONS_CLEAN_KEY);
         $this->entityManager->flush();
         $this->sessionHistoryRecordService->closeInactiveSessions($this->entityManager);
