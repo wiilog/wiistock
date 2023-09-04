@@ -89,23 +89,27 @@ class ReceiptAssociationService
         /** @var Pack $pack */
         foreach ($packs as $pack) {
             //prise UL
-            $pickMvt = $this->trackingMovementService->createTrackingMovement($pack,
+            $pickMvt = $this->trackingMovementService->createTrackingMovement(
+                $pack,
                 $pack->getLastTracking()->getEmplacement(),
                 $this->userService->getUser(),
                 $now,
                 false,
                 true,
-                TrackingMovement::TYPE_PRISE);
+                TrackingMovement::TYPE_PRISE
+            );
             $this->entityManager->persist($pickMvt);
 
             //dépose UL
-            $dropMvtLU = $this->trackingMovementService->createTrackingMovement($pack,
+            $dropMvtLU = $this->trackingMovementService->createTrackingMovement(
+                $pack,
                 $defaultLocationUL,
                 $this->userService->getUser(),
                 $now,
                 false,
                 true,
-                TrackingMovement::TYPE_DEPOSE);
+                TrackingMovement::TYPE_DEPOSE
+            );
             $this->entityManager->persist($dropMvtLU);
         }
 

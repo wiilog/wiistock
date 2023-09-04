@@ -204,6 +204,8 @@ class DataExportService
             $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
             $this->translation->translate('Demande', 'Général', 'Statut', false),
             $this->translation->translate('Demande', 'Général', 'Urgence', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
+            $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),

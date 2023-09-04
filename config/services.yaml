@@ -5,9 +5,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.38.5#rfid_PHP8.2'
-    nomade_version: '=6.38.4#rfid'
-    nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/app-6-38-4-rfid.apk'
+    web_version: '6.38.6#rfid'
+    nomade_version: '=6.38.6#rfid'
+    nomade_apk: 'https://ftp.wiilog.fr/wiistock/recette/app-6-38-6-rfid.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 
@@ -69,7 +69,7 @@ services:
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'
-            - { db_table: 'user_session', db_id_col: 'id', db_data_col: 'data', db_time_col: 'time', db_lifetime_col: 'lifetime' }
+            - { db_table: 'user_session', db_id_col: 'id', db_data_col: 'data', db_time_col: 'time', db_lifetime_col: 'lifetime', lock_mode: '1'}
 
     wiistock.specific_service:
         class: App\Service\SpecificService

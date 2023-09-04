@@ -262,7 +262,7 @@ class TrackingMovementService extends AbstractController
                 : ($movement->getPackArticle()
                     ? $movement->getPackArticle()->getLabel()
                     : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
-            "quantity" => $movement->getPackArticle()?->getQuantite() ?: $movement->getPack()?->getQuantity(),
+            "quantity" => $movement->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,
             "operator" => $this->formatService->user($movement->getOperateur()),
@@ -376,7 +376,7 @@ class TrackingMovementService extends AbstractController
         }
     }
 
-    public function createTrackingMovement($packOrCode,
+    public function createTrackingMovement(Pack|string $packOrCode,
                                            ?Emplacement $location,
                                            Utilisateur $user,
                                            DateTime $date,
@@ -417,7 +417,7 @@ class TrackingMovementService extends AbstractController
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
         $tracking = new TrackingMovement();
         $tracking
-            ->setQuantity($quantity)
+            ->setQuantity($pack->getQuantity())
             ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
@@ -459,7 +459,7 @@ class TrackingMovementService extends AbstractController
 
             $trackingUngroup = new TrackingMovement();
             $trackingUngroup
-                ->setQuantity($quantity)
+                ->setQuantity($pack->getQuantity())
                 ->setOperateur($user)
                 ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
                 ->setDatetime($date)
@@ -735,7 +735,9 @@ class TrackingMovementService extends AbstractController
             false,
             true,
             TrackingMovement::TYPE_DEPOSE,
-            ['from' => $arrivage]
+            [
+                'from' => $arrivage,
+            ]
         );
         $this->persistSubEntities($entityManager, $mouvementDepose);
         $entityManager->persist($mouvementDepose);
@@ -891,7 +893,9 @@ class TrackingMovementService extends AbstractController
 
                 $entityManager->persist($stockMovement);
 
-                $currentArticleOptions["mouvementStock"] = $stockMovement;
+                $currentArticleOptions = [
+                    "mouvementStock" => $stockMovement,
+                ];
             }
 
             $createdMvt = $this->createTrackingMovement(
@@ -937,7 +941,9 @@ class TrackingMovementService extends AbstractController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $options = [];
+        $options = [
+            "stockAction" => true,
+        ];
 
         if ($trackingType === TrackingMovement::TYPE_PRISE) {
             $article = $articleRepository->findOneByBarCodeAndLocation($movement['ref_article'], $movement['ref_emplacement']);
@@ -1089,6 +1095,7 @@ class TrackingMovementService extends AbstractController
                                             bool                   $keepGroup = false): array {
 
         $ignoreProjectChange = $options['ignoreProjectChange'] ?? false;
+        $stockAction = $options['stockAction'] ?? false;
 
         $movement = $this->createTrackingMovement(
             $packOrCode,
@@ -1125,7 +1132,9 @@ class TrackingMovementService extends AbstractController
         }
 
         // Dans le cas d'une dépose, on vérifie si l'emplacement peut accueillir l'UL
-        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
+        if ($movementType?->getCode() === TrackingMovement::TYPE_DEPOSE
+            && $stockAction === false
+            && ($location && !$location->ableToBeDropOff($movement->getPack()))) {
             $natureTranslation = $this->translation->translate('Traçabilité', 'Mouvements', 'natures requises', false);
             $packCode = $movement->getPack()->getCode();
             return [

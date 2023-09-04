@@ -15,16 +15,20 @@ $(function () {
 });
 
 function hideColumns(table, data) {
-    data.forEach(function (col) {
-        table.column(col + ':name').visible(false);
-    })
+    if (data?.forEach) {
+        data.forEach(function (col) {
+            table.column(col + ':name').visible(false);
+        });
+    }
 }
 
 function showColumns(table, data) {
     table.columns().visible(false);
-    data.forEach(function (col) {
-        table.columns(col + ':name').visible(true);
-    })
+    if (data?.forEach) {
+        data.forEach(function (col) {
+            table.columns(col + ':name').visible(true);
+        });
+    }
 }
 
 function extendsDateSort(name, format = '') {
@@ -227,10 +231,10 @@ function datatableDrawCallback({   response,
     if (needsSearchOverride && $searchInput.length > 0) {
         overrideSearch($searchInput, table);
     }
-    if (needsColumnHide) {
+    if (needsColumnHide && response?.json) {
         hideColumns(table, response.json.columnsToHide);
     }
-    if (needsColumnShow) {
+    if (needsColumnShow && response?.json) {
         showColumns(table, response.json.visible);
     }
     if (needsEmplacementSearchOverride) {
