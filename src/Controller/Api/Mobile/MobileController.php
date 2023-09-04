@@ -1715,7 +1715,10 @@ class MobileController extends AbstractApiController
                     false,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
-                    ["delivery" => $deliveryOrder]
+                    [
+                        "delivery" => $deliveryOrder,
+                        "stockAction" => true,
+                    ]
                 );
             }
         }
