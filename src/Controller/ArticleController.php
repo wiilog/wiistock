@@ -303,10 +303,7 @@ class ArticleController extends AbstractController
                     new DateTime('now'),
                     false,
                     true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'quantity' => $quantity
-                    ]
+                    TrackingMovement::TYPE_DEPOSE
                 );
 
                 $trackingMovement->setMouvementStock($stockMovement);

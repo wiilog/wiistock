@@ -427,7 +427,6 @@ class ShippingRequestService {
             [
                 'from' => $shippingRequest,
                 'shippingRequest' => $shippingRequest,
-                'quantity' => $pack->getQuantity()
             ]
         );
         $entityManager->persist($trackingMovement);

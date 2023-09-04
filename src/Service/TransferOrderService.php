@@ -174,7 +174,6 @@ class TransferOrderService {
                 TrackingMovement::TYPE_PRISE,
                 [
                     'mouvementStock' => $newMouvementStock,
-                    'quantity' => $newMouvementStock->getQuantity()
                 ]
             );
             $entityManager->persist($trackingPick);
@@ -189,7 +188,6 @@ class TransferOrderService {
                 TrackingMovement::TYPE_DEPOSE,
                 [
                     'mouvementStock' => $newMouvementStock,
-                    'quantity' => $newMouvementStock->getQuantity()
                 ]
             );
             $entityManager->persist($trackingDrop);

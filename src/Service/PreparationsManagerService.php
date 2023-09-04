@@ -189,7 +189,6 @@ class PreparationsManagerService
                     [
                         'preparation' => $preparation,
                         'mouvementStock' => $movement,
-                        'quantity' => $quantity
                     ]
                 );
                 $this->entityManager->persist($trackingMovementPick);
@@ -209,7 +208,6 @@ class PreparationsManagerService
                     [
                         'preparation' => $preparation,
                         'mouvementStock' => $movement,
-                        'quantity' => $quantity
                     ]
                 );
                 $this->entityManager->persist($trackingMovementDrop);
@@ -235,7 +233,6 @@ class PreparationsManagerService
                         TrackingMovement::TYPE_PRISE,
                         [
                             'preparation' => $preparation,
-                            'quantity' => $lu->getQuantity()
                         ]
                     );
                     $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
@@ -248,7 +245,6 @@ class PreparationsManagerService
                         TrackingMovement::TYPE_DEPOSE,
                         [
                             'preparation' => $preparation,
-                            'quantity' => $lu->getQuantity()
                         ]
                     );
                     $this->entityManager->persist($pickTrackingMovement);

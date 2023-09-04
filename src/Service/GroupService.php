@@ -100,7 +100,6 @@ class GroupService {
                 TrackingMovement::TYPE_UNGROUP,
                 [
                     'parent' => $parent,
-                    'quantity'=> $pack->getQuantity()
                 ]
             );
 
@@ -111,10 +110,7 @@ class GroupService {
                 $date ?? new DateTime("now"),
                 false,
                 null,
-                TrackingMovement::TYPE_DEPOSE,
-                [
-                    'quantity' => $pack->getQuantity()
-                ]
+                TrackingMovement::TYPE_DEPOSE
             );
             $manager->persist($deposit);
             $manager->persist($ungroup);
