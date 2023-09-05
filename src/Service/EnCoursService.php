@@ -10,10 +10,9 @@ use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
 use DateInterval;
-use DatePeriod;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 
 
@@ -24,6 +23,9 @@ class EnCoursService
      */
     private EntityManagerInterface $entityManager;
     private Environment $templating;
+
+    #[Required]
+    public TimeService $timeService;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -201,7 +203,7 @@ class EnCoursService
                 }
                 foreach ($oldestDrops as $oldestDrop) {
                     $dateMvt = $oldestDrop['datetime'];
-                    $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
+                    $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
                     $dateMaxTime = $oldestDrop['dateMaxTime'];
                     $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                     $isLate = $timeInformation['countDownLateTimespan'] < 0;
@@ -237,7 +239,7 @@ class EnCoursService
             $oldestDrops = $oldestDrops[0];
             foreach ($oldestDrops as $oldestDrop) {
                 $dateMvt = $oldestDrop['datetime'];
-                $movementAge = $this->getTrackingMovementAge($daysWorked, $dateMvt, $freeWorkDays);
+                $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
                 $dateMaxTime = $oldestDrop['dateMaxTime'];
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
@@ -257,113 +259,7 @@ class EnCoursService
         return $emplacementInfo;
     }
 
-    /**
-     * @param array $workedDays [<english day label ('l' format)> => <nb time worked>]
-     * @param DateTime $movementDate
-     * @param DateTime[] $workFreeDays
-     * @return DateInterval
-     * @throws Exception
-     */
-    public function getTrackingMovementAge(array $workedDays, DateTime $movementDate, array $workFreeDays): DateInterval
-    {
-        if (count($workedDays) > 0) {
-            $now = new DateTime("now");
-            if ($now->getTimezone()->getName() !== $movementDate->getTimezone()->getName()) {
-                $currentHours = $now->format('H');
-                $currentMinutes = $now->format('i');
-                $now->setTimezone($movementDate->getTimezone());
-                $now->setTime((int)$currentHours, (int)$currentMinutes);
-            }
-            $nowIncluding = (clone $now)->setTime(23, 59, 59);
-            $interval = DateInterval::createFromDateString('1 day');
-            $period = new DatePeriod($movementDate, $interval, $nowIncluding);
 
-            $periodsWorked = [];
-            // pour chaque jour entre la date du mouvement et aujourd'hui, minimum un tour de boucle pour les mouvements du jours
-            /** @var DateTime $day */
-            foreach ($period as $day) {
-                $dayLabel = strtolower($day->format('l'));
-                if (isset($workedDays[$dayLabel])
-                    && !$this->isDayInArray($day, $workFreeDays)) {
-                    $periodsWorked = array_merge(
-                        $periodsWorked,
-                        array_map(
-                            function (string $timePeriod) use ($now, $day, $movementDate) {
-                                // we calculate delay between two given times
-                                $times = explode('-', $timePeriod);
-
-                                $time1 = explode(':', $times[0]);
-                                $begin = (clone $day)->setTime($time1[0], $time1[1], 0);
-
-                                $time2 = explode(':', $times[1]);
-                                $end = (clone $day)->setTime($time2[0], $time2[1], 0);
-                                if (($end < $movementDate) || ($now < $begin)) {
-                                    $calculatedInterval = new DateInterval('P0Y');
-                                } else {
-                                    // si la date du mouvement est dans la fourchette => devient la date de begin
-                                    if ($begin < $movementDate && $movementDate <= $end) {
-                                        $begin = $movementDate;
-                                    }
-
-                                    // si le DateTime 'now'  est dans la fourchette => devient la date de end
-                                    if ($begin <= $now &&
-                                        $now < $end) {
-                                        $end = $now;
-                                    }
-                                    $calculatedInterval = $begin->diff($end);
-                                }
-                                return $calculatedInterval;
-                            },
-                            explode(';', $workedDays[$dayLabel])
-                        )
-                    );
-                }
-            }
-
-            // on fait la somme de toutes les périodes calculés
-            $age = array_reduce(
-                $periodsWorked,
-                function (?DateInterval $carry, DateInterval $interval) {
-                    $f = ($carry->f + $interval->f);
-                    $s = ($carry->s + $interval->s) + intval($f / 1000);
-                    $i = ($carry->i + $interval->i) + intval($s / 60);
-                    $h = ($carry->h + $interval->h) + intval($i / 60);
-
-                    $newDateInterval = new DateInterval('P0Y');
-                    $newDateInterval->h = $h;
-                    $newDateInterval->i = $i % 60;
-                    $newDateInterval->s = $s % 60;
-                    $newDateInterval->f = $f % 1000;
-                    return $newDateInterval;
-                },
-                new DateInterval('P0Y')
-            );
-        }
-        else {
-            // age null
-            $age = new DateInterval('P0Y');
-        }
-        return $age;
-    }
-
-    public function isDayInArray(DateTime $day, array $daysToCheck): bool
-    {
-        $isDayInArray = false;
-        $dayIndex = 0;
-        $daysToCheckCount = count($daysToCheck);
-        $comparisonFormat = 'Y-m-d';
-
-        $formattedDay = $day->format($comparisonFormat);
-        while (!$isDayInArray && $dayIndex < $daysToCheckCount) {
-            $currentFormattedDay = $daysToCheck[$dayIndex]->format($comparisonFormat);
-            if ($currentFormattedDay === $formattedDay) {
-                $isDayInArray = true;
-            } else {
-                $dayIndex++;
-            }
-        }
-        return $isDayInArray;
-    }
 
     /**
      * @param $handle

@@ -7,6 +7,7 @@ $(function() {
     });
 
     const filtersContainer = $('.filters-container');
+    const fromDashboard = $('.filters-container [name="fromDashboard"]').val() === '1';
 
     Select2Old.init(filtersContainer.find('.filter-select2[name="carriers"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Transporteurs', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
@@ -26,7 +27,9 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_DISPATCHES);
     $.post(path, params, function(data) {
-        displayFiltersSup(data, true);
+        if (!fromDashboard) {
+            displayFiltersSup(data, true);
+        }
     }, 'json');
 
     const $modalNewDispatch = $('#modalNewDispatch');
@@ -142,7 +145,12 @@ $(function() {
 });
 
 function initTableDispatch(groupedSignatureMode = false) {
-    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode}, true);
+    const $filtersContainer = $(".filters-container");
+    const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
+    const $statutFilter = $filtersContainer.find(`select[name=statut]`);
+    const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+
+    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, preFilledStatuses: $statutFilter.val(), preFilledTypes: $typeFilter.val()}, true);
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
     if(groupedSignatureMode || !initialVisible) {
         return $.post(Routing.generate('dispatch_api_columns', {groupedSignatureMode}))
@@ -202,9 +210,24 @@ function initTableDispatch(groupedSignatureMode = false) {
 
 function initPage() {
     let $modalNewDispatch = $("#modalNewDispatch");
-    let $submitNewDispatch = $("#submitNewDispatch");
-    let urlDispatchNew = Routing.generate('dispatch_new', true);
-    InitModal($modalNewDispatch, $submitNewDispatch, urlDispatchNew, {tables: [tableDispatches]});
+    Form
+        .create($modalNewDispatch)
+        .on('change', '[name=customerName]', (event) => {
+            const $customers = $(event.target)
+            // pre-filling customer information according to the customer
+            const [customer] = $customers.select2('data');
+            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
+        })
+        .submitTo(
+            AJAX.POST,
+            'dispatch_new',
+            {
+                tables: [tableDispatches],
+                success: ({redirect}) => window.location.href = redirect,
+            }
+        )
 }
 
 function toggleValidateGroupedSignatureButton($dispatchsTable, $groupedSignatureModeContainer) {

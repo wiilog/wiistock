@@ -81,10 +81,16 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
 }
 
 function redirectWithReserve(newArrivalId) {
-    window.location.href = Routing.generate('arrivage_show', {
-        id: newArrivalId,
-        reserve: true
-    }, true)
+    $.post(Routing.generate('post_arrival_tracking_movements', {arrival: newArrivalId}))
+        .then(() => {
+            window.location.href = Routing.generate('arrivage_show', {
+                id: newArrivalId,
+                reserve: true
+            }, true)
+        })
+        .catch(() => {
+            showBSAlert('Erreur lors de la création des mouvements de tracaçabilité', 'danger');
+        });
 }
 
 function setArrivalUrgent(newArrivalId, numeroCommande, postNb, arrivalResponseCreation, isCreation, arrivalsDatatable) {
@@ -150,7 +156,7 @@ function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printPacks, printArrivage}) {
+function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) {
     let templates;
     try {
         templates = JSON.parse($('#tagTemplates').val());
@@ -160,9 +166,11 @@ function printArrival({arrivageId, printPacks, printArrivage}) {
     let params = {
         arrivage: arrivageId,
         printPacks: printPacks ? 1 : 0,
-        printArrivage: printArrivage ? 1 : 0
+        printArrivage: printArrivage ? 1 : 0,
+        packs: packs || [],
     };
-    if (templates.length > 0) {
+    const printAllPacks = printAll || false;
+    if (templates.length > 0 && !printAllPacks) {
         Promise.all(
             [AJAX.route('GET', `print_arrivage_bar_codes`, {forceTagEmpty: true, ...params}).file({})]
                 .concat(templates.map(function(template) {

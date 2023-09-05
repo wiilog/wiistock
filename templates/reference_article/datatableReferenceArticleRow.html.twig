@@ -1,7 +1,71 @@
 <div class="d-flex">
     <div class="dropdown dropright">
         <div class="d-flex referenceRow">
-            {% include 'datatable/dotsRow.html.twig' %}
+
+            {% include "utils/action-buttons/dropdown.html.twig" with {
+                actions: [
+                    {
+                        title: "voir",
+                        href: path("reference_article_show_page", {id: reference_id}),
+                        actionOnClick: true
+                    },
+                    {
+                        hasRight: hasRight(constant("App\\Entity\\Menu::STOCK"), constant("App\\Entity\\Action::EDIT"))
+                        or (not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT'))
+                            and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING'))) ,
+                        title: "Modifier",
+                        icon: "fas fa-pencil-alt",
+                        href: path("reference_article_edit_page", {reference: reference_id}),
+                        attributes: {
+                            target: "_blank",
+                        },
+                    },
+                    {
+                        title: "Voir les mouvements",
+                        icon: "fas fa-list",
+                        attributes: {
+                            "onclick": "showItems($(this), $('#modalShowMouvements'), initDatatableMovements)",
+                            "data-togggle": "tooltip",
+                            "title": "mouvements de stock",
+                            "data-id": reference_id,
+                            "data-ref-label": reference_label,
+                        },
+                    },
+                    {
+                        hasRight: hasRight(constant("App\\Entity\\Menu::DEM"), constant("App\\Entity\\Action::DISPLAY_PURCHASE_REQUESTS")),
+                        title: "Voir les demandes d'achats",
+                        icon: "wii-icon wii-icon-cart",
+                        attributes: {
+                            "onclick": "showItems($(this), $('#modalShowPurchaseRequests'), initDatatablePurchaseRequests)",
+                            "data-togggle": "tooltip",
+                            "title": "mouvements de stock",
+                            "data-id": reference_id,
+                            "data-ref-label": reference_label,
+                        },
+                    },
+                    {
+                        title: "Recalculer les quantités",
+                        icon: "fas fa-sync-alt",
+                        attributes: {
+                            "onclick": "updateQuantity(" ~ reference_id ~ ")",
+                            "data-togggle": "modal",
+                            "data-id": 'update' ~ reference_id,
+                        },
+                    },
+                    {
+                        hasRight: hasRight(constant("App\\Entity\\Menu::STOCK"), constant("App\\Entity\\Action::DELETE")) ,
+                        title: "Supprimer",
+                        icon: "wii-icon wii-icon-trash-black",
+                        attributes: {
+                            "id" : 'delete' ~ reference_id,
+                            "onclick": "deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))",
+                            "data-id": reference_id,
+                            "data-target": "#modalDeleteRefArticle",
+                            "data-toggle": "modal",
+                        },
+                    },
+                ]
+            } %}
             {% if active %}
                 {% include 'datatable/addRefToCart.html.twig' with {reference: reference_id} %}
             {% endif %}
@@ -11,48 +75,6 @@
                     attachmentsLength: attachmentsLength
                 } %}
             {% endif %}
-            <div class="dropdown-menu dropdown-follow-gt pointer">
-                <a class="dropdown-item action-on-click d-none"
-                   href="{{ path('reference_article_show_page', {id: reference_id}) }}">
-                </a>
-
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT'))
-                    or (not hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT'))
-                        and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_SHIPPING')))%}
-                    <a class="dropdown-item"
-                         href="{{ path('reference_article_edit_page', {reference: reference_id}) }}" target="_blank">
-                        <i class='fas fa-pencil-alt mr-2'></i>Modifier
-                    </a>
-                {% endif %}
-
-                <div class="dropdown-item"
-                     onclick="showRowMouvements($(this))"
-                     data-togggle='tooltip'
-                     title='mouvements de stock'
-                     data-id='{{ reference_id }}'
-                     data-target='#modalShowMouvements'
-                     data-toggle='modal'>
-                    <i class='fas fa-list mr-2'></i>Voir les mouvements
-                </div>
-
-                <div class="dropdown-item"
-                     onclick="updateQuantity({{ reference_id }})"
-                     data-id='update{{ reference_id }}'
-                     data-toggle='modal'>
-                    <i class='fa fa-sync-alt mr-2'></i>Recalculer les quantités
-                </div>
-
-                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
-                    <div class="dropdown-item d-flex align-items-center"
-                         id='delete{{ reference_id }}'
-                         onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
-                         data-id='{{ reference_id }}'
-                         data-target='#modalDeleteRefArticle'
-                         data-toggle='modal'>
-                        <span class="wii-icon wii-icon-trash-black mr-2"></span>Supprimer
-                    </div>
-                {% endif %}
-            </div>
         </div>
     </div>
 </div>

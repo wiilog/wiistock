@@ -34,6 +34,9 @@ class Type {
     const LABEL_COLLECT = 'collecte';
     const LABEL_SCHEDULED_EXPORT = 'Export planifié';
     const LABEL_UNIQUE_EXPORT = 'Export unique';
+    const LABEL_NOMADE_SESSION_HISTORY = 'session mobile';
+    const LABEL_WEB_SESSION_HISTORY = 'session web';
+
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -707,11 +710,8 @@ class Type {
         return (
             $emergency
             && (
-                $this->notificationsEnabled
-                || (
-                    !empty($this->notificationsEmergencies)
-                    && in_array($emergency, $this->notificationsEmergencies)
-                )
+                !empty($this->notificationsEmergencies)
+                && in_array($emergency, $this->notificationsEmergencies)
             )
         );
     }

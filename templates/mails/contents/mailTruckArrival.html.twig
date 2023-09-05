@@ -1,0 +1,67 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    {% set hasGeneralReserve = truckArrival.reserves is not empty
+        and truckArrival.reserves|filter(r => r.kind == constant('App\\Entity\\Reserve::KIND_GENERAL'))|length > 0 %}
+
+    {% set hasQuantityReserve = truckArrival.reserves is not empty
+        and truckArrival.reserves|filter(r => r.kind == constant('App\\Entity\\Reserve::KIND_QUANTITY'))|length > 0 %}
+
+    <div>Transporteur : <strong>{{ truckArrival.carrier|format_helper('carrier') }}</strong></div>
+    <div>Chauffeur : <strong>{{ truckArrival.driver|format_helper('driver') }}</strong></div>
+    <div>Immatriculation : <strong>{{ truckArrival.registrationNumber }}</strong></div>
+    <div>Opérateur : <strong>{{ truckArrival.operator|format_helper('user') }}</strong></div>
+    <div>Emplacement : <strong>{{ truckArrival.unloadingLocation|format_helper('location') }}</strong></div>
+    <div>Réserve générale : <strong>{{ hasGeneralReserve|format_helper('bool') }}</strong></div>
+    <div>Réserve quantité : <strong>{{ hasQuantityReserve|format_helper('bool') }}</strong></div>
+
+    <br>
+    <h3>Contenu des réserves de l'arrivage camion</h3>
+    <table class="table"
+           style="border: 1px solid black; border-collapse: collapse;">
+        <thead>
+        <tr>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Numéro de tracking
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Type de réserve
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Pièce jointe
+            </th>
+            <th class="th"
+                style="border: 1px solid black; padding: 10px; text-align: center; font-weight: bold;">
+                Commentaire réserve
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for reserve in reserves %}
+            <tr>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ reserve.line.number }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ reserve.reserveType.label }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ (reserve.attachments.count > 0)|format_helper('bool') }}
+                </td>
+                <td class="td"
+                    style="border: 1px solid black; padding: 10px; text-align: center;">
+                    {{ reserve.comment }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <br>
+{% endblock %}

@@ -7,9 +7,10 @@ use App\Entity\Emplacement;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\SensorMessage;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class PairingService
@@ -19,6 +20,9 @@ class PairingService
 
     /** @Required */
     public Twig_Environment $twigEnvironment;
+
+    #[Required]
+    public FormatService $formatService;
 
     public function getDataForDatatable(SensorWrapper $wrapper, $params = null)
     {
@@ -51,33 +55,33 @@ class PairingService
             ]),
             'id' => $pairing->getId(),
             'element' => (string) $element,
-            'start' => FormatHelper::datetime($pairing->getStart()),
-            'end' => FormatHelper::datetime($pairing->getEnd()),
+            'start' => $this->formatService->datetime($pairing->getStart()),
+            'end' => $this->formatService->datetime($pairing->getEnd()),
         ];
     }
 
     public function buildChartDataFromMessages(array $associatedMessages) {
         $data = ["colors" => []];
-        /** @var SensorMessage $message */
         foreach ($associatedMessages as $message) {
             $date = $message->getDate();
             $sensor = $message->getSensor();
-
             $wrapper = $sensor->getAvailableSensorWrapper();
-            $pairing = $wrapper->getActivePairing();
-            $label = $pairing && $pairing->getEntity() instanceof Emplacement ? $pairing->getEntity()->getLabel() : $sensor->getCode();
-            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $label;
-            if(!isset($data['colors'][$sensorCode])) {
-                srand($sensor->getId());
-                $data['colors'][$sensorCode] = "#000000";
+            $contentTypeLabel = $this->formatService->messageContentType($message);
+            $sensorCode = ($wrapper ? $wrapper->getName() . ' : ' : '') . $sensor->getCode();
+
+            if (!isset($data['colors'][$sensorCode][$contentTypeLabel])) {
+                srand($sensor->getId().$message->getContentType());
+                $data['colors'][$sensorCode][$contentTypeLabel] = sprintf('#%06X', mt_rand(0, 0xFFFFFF));
             }
+
 
             $dateStr = $date->format('d/m/Y H:i:s');
             if (!isset($data[$dateStr])) {
                 $data[$dateStr] = [];
             }
-            $data[$dateStr][$sensorCode] = floatval($message->getContent());
+            $data[$dateStr][$sensorCode][$contentTypeLabel] = floatval($message->getContent());
         }
+
         srand();
         return $data;
     }

@@ -18,6 +18,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
@@ -127,6 +128,7 @@ class UserService
         $purchaseRequestScheduleRuleRepository = $entityManager->getRepository(PurchaseRequestScheduleRule::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
+        $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -148,8 +150,11 @@ class UserService
             + $inventoryMissionRepository->count(['validator' => $user])
             + $inventoryLocationMissionRepository->count(['operator' => $user])
         );
-        $hasPurchaseRequestShcheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
-        $hasStatusHistory = $statusHistoryRepository->count(['changedBy' => $user->getId()]) + $statusHistoryRepository->count(['initiatedBy' => $user->getId()]);
+        $hasPurchaseRequestScheduleRules = $purchaseRequestScheduleRuleRepository->count(['requester' => $user]);
+        $hasStatusHistory = $statusHistoryRepository->count(['validatedBy' => $user->getId()]) + $statusHistoryRepository->count(['initiatedBy' => $user->getId()]);
+        $hasShippingRequest = $shippingRequestRepository->count(['createdBy' => $user->getId()]) + $shippingRequestRepository->count(['validatedBy' => $user->getId()])
+            + $shippingRequestRepository->count(['plannedBy' => $user->getId()]) + $shippingRequestRepository->count(['treatedBy' => $user->getId()])
+            + $shippingRequestRepository->countByRequesters($user->getId());
 
         return [
             mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
@@ -165,8 +170,9 @@ class UserService
             'emplacement(s)' => $hasSignatoryLocation,
             "planification(s) d'inventaire" => $hasInventoryMissionRules,
             "mission(s) d'inventaire" => $hasInventoryMissions,
-            "planification(s) de demande d'achat" => $hasPurchaseRequestShcheduleRules,
+            "planification(s) de demande d'achat" => $hasPurchaseRequestScheduleRules,
             "historique(s) de statut" => $hasStatusHistory,
+            "demande(s) d'expédition" => $hasShippingRequest,
         ];
 	}
 

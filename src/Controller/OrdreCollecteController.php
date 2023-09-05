@@ -493,7 +493,7 @@ class OrdreCollecteController extends AbstractController
                 $fileName
             );
         } else {
-            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+            return new Response('', 404);
         }
     }
 

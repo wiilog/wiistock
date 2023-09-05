@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Article;
+use App\Entity\DaysWorked;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Pack;
@@ -14,6 +15,7 @@ use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Utilisateur;
+use App\Entity\WorkFreeDay;
 use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
@@ -26,7 +28,6 @@ use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class PackService {
 
@@ -74,6 +75,9 @@ class PackService {
 
     #[Required]
     public UniqueNumberService $uniqueNumberService;
+
+    #[Required]
+    public TimeService $timeService;
 
     public function getDataForDatatable($params = null) {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -262,9 +266,12 @@ class PackService {
                 $counterStr = sprintf("%03u", $counter);
 
                 $code = (($nature->getPrefix() ?? '') . $arrivalNum . $counterStr ?? '');
+
                 $pack = $this
                     ->createPackWithCode($code)
-                    ->setNature($nature);
+                    ->setNature($nature)
+                    ->setTruckArrivalDelay($options['truckArrivalDelay'] ?? 0);
+
                 if (isset($options['reception'])) {
                     /** @var Reception $reception */
                     $reception = $options['reception'];
@@ -352,6 +359,23 @@ class PackService {
         return $pack;
     }
 
+    public function calcutateTruckArrivalDelay(EntityManagerInterface   $entityManager,
+                                               DateTime                 $creationDate): int {
+        $workedDaysRepository = $entityManager->getRepository(DaysWorked::class);
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $workedDays = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
+        $delayTimestamp = $this->timeService->getIntervalFromDate($workedDays, $creationDate, $workFreeDays);
+
+        return (
+            ($delayTimestamp->h * 60 * 60 * 1000) + // hours in milliseconds
+            ($delayTimestamp->i * 60 * 1000) + // minutes in milliseconds
+            ($delayTimestamp->s * 1000) + // seconds in milliseconds
+            ($delayTimestamp->f)
+        );
+    }
+
     public function persistMultiPacks(EntityManagerInterface $entityManager,
                                       Arrivage               $arrivage,
                                       array                  $packByNatures,
@@ -373,10 +397,18 @@ class PackService {
 
         $now = new DateTime('now');
         $createdPacks = [];
+
+        if (!$arrivage->getTruckArrivalLines()->isEmpty()) {
+            $truckArrivalCreationDate = $arrivage->getTruckArrivalLines()->first()->getTruckArrival()->getCreationDate();
+
+            //en millisecondes
+            $delay = $this->calcutateTruckArrivalDelay($entityManager, $truckArrivalCreationDate);
+        }
+
         foreach ($packByNatures as $natureId => $number) {
             $nature = $natureRepository->find($natureId);
             for ($i = 0; $i < $number; $i++) {
-                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception]);
+                $pack = $this->createPack($entityManager, ['arrival' => $arrivage, 'nature' => $nature, 'project' => $project, 'reception' => $reception, 'truckArrivalDelay' => $delay ?? null]);
                 if ($persistTrackingMovements && isset($location)) {
                     $this->trackingMovementService->persistTrackingForArrivalPack(
                         $entityManager,

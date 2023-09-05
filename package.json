@@ -2,6 +2,7 @@
     "devDependencies": {
         "@symfony/webpack-encore": "^1.6.1",
         "core-js": "^3.8.1",
+        "cypress": "^12.14.0",
         "node-sass": "^7.0.0",
         "regenerator-runtime": "^0.13.7",
         "sass-loader": "^12.3.0"
@@ -17,7 +18,9 @@
         "watch": "yarn build:dev --watch",
         "build": "yarn generate-routes && yarn initialize && yarn build:only:production",
         "build:only:dev": "encore dev",
-        "build:only:production": "encore production"
+        "build:only:production": "encore production",
+        "cy:open": "cypress open",
+        "cy:run": "cypress run"
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^5.15.1",

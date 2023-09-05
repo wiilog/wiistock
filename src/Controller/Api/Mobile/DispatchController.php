@@ -7,6 +7,7 @@ use App\Controller\Api\AbstractApiController;
 use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -47,10 +48,12 @@ class DispatchController extends AbstractApiController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $dispatchs = json_decode($data->get('dispatches'), true);
         $dispatchReferences = json_decode($data->get('dispatchReferences'), true);
 
         $localIdsToInsertIds = [];
+        $createdDispatchLocalIds = [];
         $syncedAt = new DateTime();
         $errors = [];
         foreach($dispatchs as $dispatchArray){
@@ -78,6 +81,8 @@ class DispatchController extends AbstractApiController
 
             // Dispatch creation
             if (!$dispatchId && !$dispatch) {
+                $createdDispatchLocalIds[] = $dispatchArray['localId'];
+
                 $type = $typeRepository->find($dispatchArray['typeId']);
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
@@ -86,7 +91,12 @@ class DispatchController extends AbstractApiController
                 $locationTo = $locationRepository->find($dispatchArray['locationToId']);
                 $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
                 $wasDraft = true;
-                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH, $createdAt);
+
+                $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+                if(!in_array($numberFormat, Dispatch::NUMBER_FORMATS)) {
+                    throw new FormException("Le format de numéro d'acheminement n'est pas valide");
+                }
+                $dispatchNumber = $uniqueNumberService->create($entityManager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat, $createdAt);
 
                 $dispatch = (new Dispatch())
                     ->setNumber($dispatchNumber)
@@ -165,16 +175,15 @@ class DispatchController extends AbstractApiController
             }
         }
 
-
         // grouped signature
         $groupedSignatureHistory = Stream::from(json_decode($data->get('groupedSignatureHistory'), true))
             ->sort(fn($groupedSignaturePrev, $groupedSignatureNext) => $this->getFormatter()->parseDatetime($groupedSignaturePrev['signatureDate']) <=> $this->getFormatter()->parseDatetime($groupedSignatureNext['signatureDate']))
             ->keymap(fn($groupedSignature) => [$groupedSignature['localDispatchId'], $groupedSignature], true);
 
-        foreach ($groupedSignatureHistory as $dispatchId => $groupedSignatureByDispatch) {
-            $dispatchId = $localIdsToInsertIds[$dispatchId] ?? null;
-            if ($dispatchId) {
-                $dispatch = $dispatchRepository->find($dispatchId);
+        foreach ($groupedSignatureHistory as $localDispatchId => $groupedSignatureByDispatch) {
+            $dispatchId = $localIdsToInsertIds[$localDispatchId] ?? null;
+            $dispatch = $dispatchId ? $dispatchRepository->find($dispatchId) : null;
+            if ($dispatch) {
                 foreach ($groupedSignatureByDispatch as $groupedSignature) {
                     $groupedSignatureStatus = $statusRepository->find($groupedSignature['statutTo']);
                     $date = $this->getFormatter()->parseDatetime($groupedSignature['signatureDate']);
@@ -200,8 +209,25 @@ class DispatchController extends AbstractApiController
             }
         }
 
-        //GENERATION DES LETTRES DE VOITURE
-//            $dispatchService->generateWayBill()
+        $dispatchWaybillData = json_decode($data->get('waybillData'), true);
+        foreach($dispatchWaybillData as $waybill) {
+            $localId = $waybill['localId'] ?? null;
+            $dispatchId = $localIdsToInsertIds[$localId] ?? null;
+            unset($waybill['localId']);
+            if ($localId && in_array($localId, $createdDispatchLocalIds)) {
+                $dispatch = $dispatchId ? $dispatchRepository->find($dispatchId) : null;
+                if ($dispatch && !($dispatch->getDispatchPacks()->isEmpty())) {
+                    try {
+                        $dispatchService->generateWayBill($dispatch->getCreatedBy(), $dispatch, $entityManager, $waybill);
+                        $entityManager->flush();
+                    } catch (Exception $error) {
+                        $exceptionLoggerService->sendLog($error, $request);
+                        $errors[] = "La génération de la lettre de voiture n°{$dispatch->getNumber()} s'est mal déroulée";
+                        [$dispatchRepository, $typeRepository, $statusRepository, $locationRepository, $userRepository, $entityManager] = $this->closeAndReopenEntityManager($entityManager);
+                    }
+                }
+            }
+        }
 
         return $this->json([
             'success' => empty($errors),

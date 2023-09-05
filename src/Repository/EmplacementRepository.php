@@ -38,6 +38,7 @@ class EmplacementRepository extends EntityRepository
         $idPrefix = $options['idPrefix'] ?? '';
         $deliveryType = $options['deliveryType'] ?? '';
         $collectType = $options['collectType'] ?? '';
+        $restrictedLocations = $options['restrictedLocations'] ?? '';
 
         $query = $this->createQueryBuilder("location")
             ->groupBy('location');
@@ -53,6 +54,11 @@ class EmplacementRepository extends EntityRepository
             $query->leftJoin("location.allowedCollectTypes", "allowed_collect_types")
                 ->andWhere("allowed_collect_types.id = :type")
                 ->setParameter("type", $collectType);
+        }
+
+        if($restrictedLocations && !empty($restrictedLocations)) {
+            $query->andWhere('location.id IN (:restrictedLocations)')
+                ->setParameter('restrictedLocations', $restrictedLocations);
         }
 
         return $query->select("CONCAT('$idPrefix', location.id) AS id, location.label AS text")

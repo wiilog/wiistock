@@ -15,9 +15,13 @@ class Sensor {
     const TEMPERATURE = 'Température';
     const GPS = 'GPS';
     const ACTION = 'Action';
+    const TEMPERATURE_HYGROMETRY = 'Température & Hygrométrie';
+    const HYGROMETRY = 'Hygrométrie';
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
+        self::TEMPERATURE_HYGROMETRY => 'iot-temperature-hygrometry',
         self::GPS => 'iot-tracking',
+        self::HYGROMETRY => 'iot-hygrometry',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';
@@ -61,14 +65,14 @@ class Sensor {
     /**
      * @var null|SensorMessage
      */
-    #[ORM\OneToOne(targetEntity: SensorMessage::class, inversedBy: 'linkedSensorLastMessage')]
+    #[ORM\OneToOne(inversedBy: 'linkedSensorLastMessage', targetEntity: SensorMessage::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?SensorMessage $lastMessage = null;
 
-    #[ORM\OneToMany(targetEntity: SensorMessage::class, mappedBy: 'sensor')]
+    #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorMessage::class)]
     private Collection $sensorMessages;
 
-    #[ORM\OneToMany(targetEntity: SensorWrapper::class, mappedBy: 'sensor')]
+    #[ORM\OneToMany(mappedBy: 'sensor', targetEntity: SensorWrapper::class)]
     private Collection $sensorWrappers;
 
     public function __construct() {

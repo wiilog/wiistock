@@ -47,7 +47,7 @@ class StatusHistoryService {
         }
 
         if ($historyContainer instanceof Dispatch) {
-            $historyContainer->setUpdatedAt($date);
+            $historyContainer->setUpdatedAt(new DateTime());
         }
 
         return $record;

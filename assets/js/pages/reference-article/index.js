@@ -1,11 +1,15 @@
+import AJAX from "@app/ajax";
+
 let $printTag;
 let pageTables;
 
 window.removeFilter = removeFilter;
 window.displayFilterValue = displayFilterValue;
-window.showRowMouvements = showRowMouvements;
+window.showItems = showItems;
 window.printReferenceArticleBarCode = printReferenceArticleBarCode;
 window.updateQuantity = updateQuantity;
+window.initDatatableMovements = initDatatableMovements;
+window.initDatatablePurchaseRequests = initDatatablePurchaseRequests;
 
 $(function () {
     $('#modalNewFilter').on('hide.bs.modal', function(e) {
@@ -29,6 +33,15 @@ $(function () {
     initTableRefArticle().then((table) => {
         initPageModals(table);
     });
+
+
+    $('#modalShowMouvements, #modalShowPurchaseRequests')
+        .on('hide.bs.modal', function () {
+            $(this).find('table.tableItems').DataTable().destroy();
+        })
+        .on('click', '[data-purchase-request-id]', function () {
+            window.open(Routing.generate('purchase_request_show', {id: $(this).data('purchase-request-id')}), '_blank');
+        });
 });
 
 function initPageModals(table) {
@@ -239,11 +252,10 @@ function printReferenceArticleBarCode($button, event) {
     }
 }
 
-function initDatatableMovements(referenceArticleId) {
+function initDatatableMovements(referenceArticleId, $modal) {
     extendsDateSort('customDate');
     let pathRefMouvements = Routing.generate('ref_mouvements_api', {referenceArticle: referenceArticleId}, true);
     let tableRefMvtOptions = {
-
         ajax: {
             "url": pathRefMouvements,
             "type": "POST"
@@ -265,19 +277,42 @@ function initDatatableMovements(referenceArticleId) {
             {"data": 'Operator', 'title': 'Opérateur'}
         ],
     };
-    initDataTable('tableMouvements', tableRefMvtOptions);
+    initDataTable($modal.find('.tableItems'), tableRefMvtOptions);
 }
 
-function showRowMouvements(button) {
-    let id = button.data('id');
-    let params = JSON.stringify(id);
-    let path = Routing.generate('ref_mouvements_list', true);
-    let modal = $('#modalShowMouvements');
+function initDatatablePurchaseRequests(referenceArticleId, $modal) {
+    extendsDateSort('customDate');
+    let pathRefShippingRequest = Routing.generate('ref_purchase_requests_api', {referenceArticle: referenceArticleId}, true);
+    let tableRefPurchaseRequestsOptions = {
+        ajax: {
+            "url": pathRefShippingRequest,
+            "type": "POST"
+        },
+        serverSide: true,
+        drawConfig: {
+            needsResize: true
+        },
+        domConfig: {
+            removeInfo: true,
+        },
+        columns: [
+            {"data": 'creationDate', 'title': 'Date de création', 'type': 'customDate'},
+            {"data": 'from', 'title': 'Numéro', sortable: false},
+            {"data": 'requester', 'title': 'Demandeur'},
+            {"data": 'status', 'title': 'Statut'},
+            {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
+            {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
+        ],
+    };
+    initDataTable($modal.find('.tableItems'), tableRefPurchaseRequestsOptions);
+}
 
-    $.post(path, params, function (data) {
-        modal.find('.modal-body').html(data);
-        initDatatableMovements(id);
-    }, 'json');
+function showItems(button, $modal, initDatatable) {
+    const refId = button.data('id');
+    const refLabel = button.data('ref-label');
+    $modal.find('.ref-label').html(refLabel);
+    initDatatable(refId, $modal);
+    $modal.modal('show');
 }
 
 function updateQuantity(referenceArticleId) {

@@ -11,12 +11,14 @@ use App\Entity\FreeField;
 use App\Entity\Handling;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\ReferenceArticle;
+use App\Entity\ReserveType;
 use App\Entity\Role;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
@@ -24,6 +26,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
+use App\Service\IOT\IOTService;
 use DateTime;
 use DateTimeInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -93,8 +96,12 @@ class FormatService
         return $user ?? $this->userService->getUser();
     }
 
-    public function user(?Utilisateur $user, $else = "") {
-        return $user ? $user->getUsername() : $else;
+    public function user(?Utilisateur $user, $else = "", $email = false) {
+        return $user
+            ? ($email
+                ? $user->getEmail()
+                : $user->getUsername())
+            : $else;
     }
 
     public function supplier(?Fournisseur $supplier, string $else = ""): string {
@@ -344,20 +351,12 @@ class FormatService
     }
 
 
-    public function messageContent(SensorMessage $sensorMessage) {
-        $type = $sensorMessage->getSensor() ? self::type($sensorMessage->getSensor()->getType()) : '';
-        $content = $sensorMessage->getContent();
-        switch ($type) {
-            case Sensor::TEMPERATURE:
-                $measureUnit = '°C';
-                break;
-            case Sensor::GPS:
-            case Sensor::ACTION:
-            default:
-                $measureUnit = '';
-        }
+    public function messageContent(SensorMessage $sensorMessage): string {
+        return $sensorMessage->getContent() . (IOTService::DATA_TYPE_TO_UNIT[$sensorMessage->getContentType()] ?? '');
+    }
 
-        return $content . $measureUnit;
+    public function messageContentType(SensorMessage $sensorMessage): string {
+        return IOTService::DATA_TYPE[$sensorMessage->getContentType()] ?? '';
     }
 
     public function sqlString(string $sqlString): string {
@@ -394,5 +393,32 @@ class FormatService
 
     public function truckArrivalLines($truckArrivalLines, $separator = ', '): string {
         return $this->entity($truckArrivalLines, 'number', $separator);
+    }
+
+    public function reserveType(?ReserveType $reserveType, string $else = ''): string {
+        return $reserveType ? $reserveType->getLabel() : $else;
+    }
+
+    public function referenceArticle(?ReferenceArticle $referenceArticle, string $else = '', bool $label = false): string {
+        return ($label ? $referenceArticle?->getLibelle() : $referenceArticle->getReference()) ?: $else;
+    }
+
+    public function triggerActionThreshold(TriggerAction $triggerAction): string {
+        $triggerActionConfig = $triggerAction->getConfig() ?? [];
+
+        $actionType = $triggerAction->getActionType();
+        $actionDataType =  $triggerAction::ACTION_DATA_TYPES[$actionType] ?? "";
+        $thresholdValue = $triggerActionConfig[$actionType] ?? "";
+
+        return (IOTService::DATA_TYPE[$actionDataType] ?? "")
+            ." "
+            .lcfirst((TriggerAction::COMPARATORS[$triggerActionConfig['limit'] ?? ""] ?? ""))
+            ." à "
+            .$thresholdValue
+            .(IOTService::DATA_TYPE_TO_UNIT[$actionDataType] ?? "");
+    }
+
+    public function triggerActionTemplateType(?TriggerAction $triggerAction,string $else = ""): string {
+        return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
     }
 }
