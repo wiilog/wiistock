@@ -26,6 +26,7 @@ function initPageDataTable() {
             {data: 'profile', name: 'profile', title: 'Profil'},
             {data: 'name', name: 'name', title: 'Nom'},
             {data: 'code', name: 'code', title: 'Code'},
+            {data: 'cloverMac', name: 'Adresse MAC Clover-Net', title: 'Adresse MAC Clover-Net'},
             {data: 'lastLift', name: 'lastLift', title: 'Dernière remontée'},
             {data: 'battery', name: 'battery', title: 'Niveau de batterie'},
             {data: 'manager', name: 'manager', title: 'Gestionnaire'},
