@@ -710,11 +710,8 @@ class Type {
         return (
             $emergency
             && (
-                $this->notificationsEnabled
-                || (
-                    !empty($this->notificationsEmergencies)
-                    && in_array($emergency, $this->notificationsEmergencies)
-                )
+                !empty($this->notificationsEmergencies)
+                && in_array($emergency, $this->notificationsEmergencies)
             )
         );
     }

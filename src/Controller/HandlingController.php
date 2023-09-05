@@ -271,16 +271,17 @@ class HandlingController extends AbstractController {
             $entityManager->flush();
             if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
                 && $handling->getType()
-                && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                && (($handling->getType()->isNotificationsEnabled() && !$handling->getType()->getNotificationsEmergencies())
+                    || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
                 $notificationService->toTreat($handling);
             }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException | ConnectException $e) {
+        catch (UniqueConstraintViolationException|ConnectException $e) {
             if ($e instanceof UniqueConstraintViolationException) {
                 $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
-                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
+                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notification de cette demande de service. Veuillez réessayer.');
             }
             if (!empty($message)) {
                 return new JsonResponse([

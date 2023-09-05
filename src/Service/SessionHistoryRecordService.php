@@ -24,7 +24,7 @@ class SessionHistoryRecordService{
     public const MAX_SESSIONS_POSSIBLE = 2000;
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
-                                            ?Utilisateur           $user,
+                                            Utilisateur            $user,
                                             DateTime               $date,
                                             Type                   $type,
                                             Request|string         $request): bool {
@@ -51,16 +51,14 @@ class SessionHistoryRecordService{
         return true;
     }
 
-    public function isLoginPossible(EntityManagerInterface $entityManager): bool {
+    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $user): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $openedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
 
-        if ($openedSessionLimit === self::UNLIMITED_SESSIONS) {
+        if ($openedSessionLimit === self::UNLIMITED_SESSIONS || $user->isWiilogUser()) {
             return true;
         } else {
-            $openedSessionsHistory = $sessionHistoryRepository->count([
-                'closedAt' => null,
-            ]);
+            $openedSessionsHistory = $sessionHistoryRepository->countOpenedSessions();
             return $openedSessionsHistory < $openedSessionLimit;
         }
     }

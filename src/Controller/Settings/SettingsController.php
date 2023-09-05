@@ -28,6 +28,7 @@ use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduleRule;
+use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -56,6 +57,7 @@ use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
+use App\Service\SessionHistoryRecordService;
 use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\StatusService;
@@ -108,6 +110,9 @@ class SettingsController extends AbstractController {
 
     #[Required]
     public LanguageService $languageService;
+
+    #[Required]
+    public SessionHistoryRecordService $sessionHistoryRecordService;
 
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
@@ -1075,6 +1080,7 @@ class SettingsController extends AbstractController {
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
+        $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
@@ -1255,7 +1261,7 @@ class SettingsController extends AbstractController {
                         'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
-                        "type" => $typeRepository->findOneByLabel(Type::LABEL_RECEPTION),
+                        "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
                 self::MENU_TOUCH_TERMINAL => fn() => [
@@ -1673,6 +1679,10 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                 ],
+                self::MENU_SESSIONS => fn() => [
+                    "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
+                    "maxAuthorizedSessions" => $this->sessionHistoryRecordService->getOpenedSessionLimit(),
+                ],
             ],
         ];
     }
@@ -1981,7 +1991,9 @@ class SettingsController extends AbstractController {
     /**
      * @Route("/champs-libres/header/{type}", name="settings_type_header", options={"expose"=true})
      */
-    public function typeHeader(Request $request, ?Type $type = null, FormService $formService): Response {
+    public function typeHeader(Request $request,
+                               FormService $formService,
+                               ?Type $type = null): Response {
         $categoryTypeRepository = $this->manager->getRepository(CategoryType::class);
 
         $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
@@ -2127,15 +2139,18 @@ class SettingsController extends AbstractController {
                         false,
                         [
                             [
-                                "label" => "Désactiver", "value" => 0,
+                                "label" => "Désactiver",
+                                "value" => 0,
                                 "checked" => !$type || !$type->isNotificationsEnabled(),
                             ],
                             [
-                                "label" => "Activer", "value" => 1,
+                                "label" => "Activer",
+                                "value" => 1,
                                 "checked" => $type && $type->isNotificationsEnabled() && !$type->getNotificationsEmergencies(),
                             ],
                             [
-                                "label" => "Activer seulement si urgence", "value" => 2,
+                                "label" => "Activer seulement si urgence",
+                                "value" => 2,
                                 "checked" => $type && $type->isNotificationsEnabled() && $type->getNotificationsEmergencies(),
                             ],
                         ],
@@ -2148,9 +2163,6 @@ class SettingsController extends AbstractController {
                 ];
 
                 $emergencies = $fixedFieldRepository->getElements($entity[$categoryLabel], FieldsParam::FIELD_CODE_EMERGENCY);
-                $emergencyValues = Stream::from($emergencies)
-                    ->map(fn(string $emergency) => "<option value='$emergency' " . ($type && in_array($emergency, $type->getNotificationsEmergencies() ?? []) ? "selected" : "") . ">$emergency</option>")
-                    ->join("");
 
                 $data = array_merge($data, [
                     [
@@ -2162,7 +2174,21 @@ class SettingsController extends AbstractController {
                     ],
                     [
                         "label" => "Pour les valeurs",
-                        "value" => "<select name='notificationEmergencies' data-s2 data-parent='body' data-no-empty-option multiple class='data form-control w-100'>$emergencyValues</select>",
+                        "value" => $formService->macro("select", "notificationEmergencies", null, $type && $type->getNotificationsEmergencies(), [
+                            "type" => "",
+                            "noEmptyOption" => true,
+                            "multiple" => true,
+                            "attributes" => [
+                                "data-parent" => "body"
+                            ],
+                            "items" => Stream::from($emergencies)
+                                ->map(fn(string $emergency) => [
+                                    "label" => $emergency,
+                                    "value" => $emergency,
+                                    "selected" => $type && in_array($emergency, $type->getNotificationsEmergencies() ?? []),
+                                ])
+                                ->toArray()
+                        ]),
                         "hidden" => !$type || !$type->isNotificationsEnabled() || !$type->getNotificationsEmergencies(),
                     ],
                 ]);
