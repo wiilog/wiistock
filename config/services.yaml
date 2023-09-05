@@ -69,18 +69,15 @@ services:
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'
-            - {
-                db_table: 'user_session',
+            - { db_table: 'user_session',
                 db_id_col: 'id',
                 db_data_col: 'data',
                 db_time_col: 'time',
                 db_lifetime_col: 'lifetime',
                 lock_mode: '1',
                 db_connection_options: {
-                    !php/const:PDO::MYSQL_ATTR_SSL_CA: '/etc/ca-certificates/cert.pem',
-                    !php/const:PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: false
-                }
-            }
+                  1009: '/etc/ca-certificates/cert.pem',
+                  1014: false } }
 
     wiistock.specific_service:
         class: App\Service\SpecificService
