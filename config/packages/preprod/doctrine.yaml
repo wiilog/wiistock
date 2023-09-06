@@ -1,8 +1,6 @@
 doctrine:
     dbal:
-        options:
-            !php/const:PDO::MYSQL_ATTR_SSL_CA: '/etc/ca-certificates/cert.pem'
-            !php/const:PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: false
+        options: '%env(json:PDO_SESSION_HANDLER_DB_CONNECTION_OPTIONS)%'
     orm:
         auto_generate_proxy_classes: false
         metadata_cache_driver:
