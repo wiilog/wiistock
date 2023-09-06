@@ -74,10 +74,7 @@ services:
                 db_data_col: 'data',
                 db_time_col: 'time',
                 db_lifetime_col: 'lifetime',
-                lock_mode: '1',
-                db_connection_options: {
-                  1009: '/etc/ca-certificates/cert.pem',
-                  1014: false } }
+                lock_mode: '1' }
 
     wiistock.specific_service:
         class: App\Service\SpecificService
