@@ -1224,6 +1224,7 @@ class ImportService
                 $message = "Veuillez saisir la référence de l'article de référence.";
                 $this->throwError($message);
             }
+
             $article = new Article();
             $isNewEntity = true;
         }

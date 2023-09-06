@@ -306,7 +306,7 @@ class ArticleDataService
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt(isset($data['manufacturedAt']) ? $this->formatService->parseDatetime($data['manufacturedAt'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setBatch($data['batch'] ?? null);
 
             if(isset($data['nativeCountry'])) {
@@ -328,7 +328,7 @@ class ArticleDataService
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
                 ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt(isset($data['manufacturedAt']) ? $this->formatService->parseDatetime($data['manufacturedAt'], ['Y-m-d', 'd/m/Y']) : null)
                 ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
                 ->setRFIDtag($data['rfidTag'] ?? null)
                 ->setBatch($data['batch'] ?? null)
@@ -451,13 +451,12 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
-            "manufactureDate" => $this->formatService->date($article->getManifacturingDate()),
+            "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
             'RFIDtag' => $article->getRFIDtag(),
-            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
             'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 
@@ -646,7 +645,7 @@ class ArticleDataService
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
-            ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
+            ["title" => "Date de fabrication", "name" => "manufacturedAt", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
             ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
@@ -658,7 +657,7 @@ class ArticleDataService
 
     public function putArticleLine($handle,
                                    array $article,
-                                   array $freeFieldsConfig) {
+                                   array $freeFieldsConfig): void {
         $line = [
             $article['reference'],
             $article['label'],
@@ -683,7 +682,7 @@ class ArticleDataService
             $article['purchaseOrder'],
             $article['deliveryNote'],
             $article['nativeCountryLabel'],
-            $article['manifacturingDate'] ? $article['manifacturingDate']->format('d/m/Y') : '',
+            $article['manufacturedAt'] ? $article['manufacturedAt']->format('d/m/Y') : '',
             $article['productionDate'] ? $article['productionDate']->format('d/m/Y') : '',
         ];
 

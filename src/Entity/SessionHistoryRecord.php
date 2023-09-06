@@ -23,12 +23,6 @@ class SessionHistoryRecord
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $closedAt = null;
 
-    /*
-     * Correspond à l'ancien api_key de l’utilisateur si session nomade
-     * ou au session_id de symfony pour la session web
-     * */
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $sessionKey = null;
 
     #[ORM\ManyToOne(inversedBy: 'sessionHistoryRecords')]
     #[ORM\JoinColumn(nullable: false)]

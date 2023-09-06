@@ -137,11 +137,11 @@ class MobileController extends AbstractApiController
         if (!empty($loggedUser)) {
             if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
                 $sessionHistoryRecordService->closeInactiveSessions($entityManager);
-                if($sessionHistoryRecordService->isLoginPossible($entityManager)){
+                if($sessionHistoryRecordService->isLoginPossible($entityManager, $loggedUser)){
                     $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
                     $apiKey = $this->apiKeyGenerator();
                     $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
-                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager,$loggedUser, new DateTime('now'), $sessionType, $apiKey);
+                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $sessionType, $apiKey);
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
@@ -653,7 +653,6 @@ class MobileController extends AbstractApiController
                             }
 
                             $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
-
                             $createdMvt = $trackingMovementService->createTrackingMovement(
                                 //either reference or article
                                 $mvt["ref_article"],
@@ -897,7 +896,7 @@ class MobileController extends AbstractApiController
                                     [
                                         'mouvementStock' => $movement,
                                         'preparation' => $preparation,
-                                    ],
+                                    ]
                                 );
 
                                 $entityManager->persist($trackingMovementDrop);
@@ -906,6 +905,7 @@ class MobileController extends AbstractApiController
                             }
                         }
                         if (isset($ulToMove)){
+                            /** @var Pack $lu */
                             foreach (array_unique($ulToMove) as $lu) {
                                 if ($lu != null){
                                     $pickTrackingMovement = $trackingMovementService->createTrackingMovement(
@@ -916,8 +916,9 @@ class MobileController extends AbstractApiController
                                         true,
                                         true,
                                         TrackingMovement::TYPE_PRISE,
-                                        ['preparation' => $preparation]
-
+                                        [
+                                            'preparation' => $preparation,
+                                        ]
                                     );
                                     $DropTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
@@ -927,7 +928,9 @@ class MobileController extends AbstractApiController
                                         true,
                                         true,
                                         TrackingMovement::TYPE_DEPOSE,
-                                        ['preparation' => $preparation]
+                                        [
+                                            'preparation' => $preparation,
+                                        ]
                                     );
                                     $entityManager->persist($pickTrackingMovement);
                                     $entityManager->persist($DropTrackingMovement);
@@ -1339,7 +1342,7 @@ class MobileController extends AbstractApiController
         $movementsStr = $request->request->get('mouvements');
         $movements = json_decode($movementsStr, true);
 
-        $finishedMovements = ($trackingMode === 'drop');
+        $isMovementFinished = ($trackingMode === 'drop');
         $movementType = $trackingMode === 'drop' ? TrackingMovement::TYPE_DEPOSE : TrackingMovement::TYPE_PRISE;
 
         $groupsArray = Stream::from($movements)
@@ -1377,13 +1380,13 @@ class MobileController extends AbstractApiController
 
                     $options = ['disableUngrouping' => true];
 
-                    if ($finishedMovements) {
+                    if ($isMovementFinished) {
                         $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
                     }
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
-                        if ($finishedMovements) {
+                        if ($isMovementFinished) {
                             $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastTracking());
                         }
 
@@ -1393,9 +1396,13 @@ class MobileController extends AbstractApiController
                             $operator,
                             $serializedGroup['date'],
                             true,
-                            $finishedMovements,
+                            $isMovementFinished,
                             $movementType,
-                            array_merge(['parent' => $parent], $options)
+                            array_merge(
+                                [
+                                    'parent' => $parent,
+                                ],
+                                $options)
                         );
 
                         $newMovements[] = $trackingMovement;
@@ -1410,7 +1417,7 @@ class MobileController extends AbstractApiController
                         $operator,
                         $serializedGroup['date'],
                         true,
-                        $finishedMovements,
+                        $isMovementFinished,
                         $movementType,
                         $options
                     );
@@ -1715,7 +1722,10 @@ class MobileController extends AbstractApiController
                     false,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
-                    ["delivery" => $deliveryOrder]
+                    [
+                        "delivery" => $deliveryOrder,
+                        "stockAction" => true,
+                    ]
                 );
             }
         }
@@ -2137,7 +2147,7 @@ class MobileController extends AbstractApiController
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
-            ->setManifacturingDate($manufacturingDate)
+            ->setManufacturedAt($manufacturingDate)
             ->setPurchaseOrder($commandNumberStr)
             ->setRFIDtag($rfidTag)
             ->setBatch($batchStr)
@@ -2170,8 +2180,8 @@ class MobileController extends AbstractApiController
             true,
             TrackingMovement::TYPE_DEPOSE,
             [
-                "refOrArticle" => $article,
-                "mouvementStock" => $stockMovement,
+                'refOrArticle' => $article,
+                'mouvementStock' => $stockMovement,
             ]
         );
 
@@ -3159,7 +3169,9 @@ class MobileController extends AbstractApiController
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
-                    ["parent" => $parentPack]
+                    [
+                        'parent' => $parentPack,
+                    ]
                 );
 
                 $entityManager->persist($groupingTrackingMovement);
@@ -3456,7 +3468,9 @@ class MobileController extends AbstractApiController
                     true,
                     true,
                     TrackingMovement::TYPE_EMPTY_ROUND,
-                    ['commentaire' => $emptyRound['comment'] ?? null]
+                    [
+                        'commentaire' => $emptyRound['comment'] ?? null,
+                    ]
                 );
 
                 $manager->persist($trackingMovement);

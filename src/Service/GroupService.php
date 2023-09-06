@@ -98,7 +98,9 @@ class GroupService {
                 false,
                 null,
                 TrackingMovement::TYPE_UNGROUP,
-                ["parent" => $parent]
+                [
+                    'parent' => $parent,
+                ]
             );
 
             $deposit = $this->trackingMovementService->createTrackingMovement(

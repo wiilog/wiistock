@@ -1012,7 +1012,6 @@ class ArrivageController extends AbstractController {
      * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiEditLitige(Request $request,
-                                  UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -1021,7 +1020,6 @@ class ArrivageController extends AbstractController {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
 
@@ -1032,19 +1030,17 @@ class ArrivageController extends AbstractController {
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
-
             $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
                 ->map(fn(Statut $statut) => [
                     'id' => $statut->getId(),
                     'type' => $statut->getType(),
                     'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
                 ])
                 ->toArray();
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
-                'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),

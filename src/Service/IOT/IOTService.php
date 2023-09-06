@@ -30,8 +30,6 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
-use App\Entity\Type;
-use App\Helper\FormatHelper;
 use App\Repository\ArticleRepository;
 use App\Repository\IOT\SensorMessageRepository;
 use App\Repository\PackRepository;
@@ -44,9 +42,9 @@ use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class IOTService
 {
@@ -58,6 +56,7 @@ class IOTService
     const INEO_SENS_ACS_HYGRO = 'ACS-Switch-HYGRO';
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
+    const INEO_INS_EXTENDER = 'Ins-Extender';
     const SYMES_ACTION_SINGLE = 'symes-action-single';
     const SYMES_ACTION_MULTI = 'symes-action-multi';
     const KOOVEA_TAG = 'Tag température Koovea';
@@ -75,6 +74,7 @@ class IOTService
         self::SYMES_ACTION_SINGLE => 1,
         self::KOOVEA_TAG => 1,
         self::KOOVEA_HUB => 1,
+        self::INEO_INS_EXTENDER => 0,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -89,6 +89,7 @@ class IOTService
         self::SYMES_ACTION_SINGLE => Sensor::ACTION,
         self::DEMO_ACTION => Sensor::ACTION,
         self::DEMO_TEMPERATURE => Sensor::TEMPERATURE,
+        self::INEO_INS_EXTENDER => Sensor::EXTENDER,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -101,6 +102,7 @@ class IOTService
         self::INEO_SENS_ACS_BTN => 'à l\'action',
         self::SYMES_ACTION_SINGLE => 'à l\'action',
         self::SYMES_ACTION_MULTI => 'à l\'action',
+        self::INEO_INS_EXTENDER => 'au message reçu',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -108,7 +110,8 @@ class IOTService
     const DATA_TYPE_HYGROMETRY = 2;
     const DATA_TYPE_ACTION = 3;
     const DATA_TYPE_GPS = 4;
-
+    const DATA_TYPE_SENSOR_CLOVER_MAC = 5;
+    const DATA_TYPE_PAYLOAD = 6;
 
     const DATA_TYPE = [
         self::DATA_TYPE_TEMPERATURE => 'Température',
@@ -122,29 +125,28 @@ class IOTService
         self::DATA_TYPE_HYGROMETRY => '%',
     ];
 
-    /** @Required */
+    #[Required]
     public DeliveryRequestService $demandeLivraisonService;
 
-    /** @Required */
+    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
-    /** @Required */
+    #[Required]
     public AlertService $alertService;
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public HttpService $client;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false)
-    {
+    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local);
         foreach ($messages as $message) {
             if($message){
@@ -437,11 +439,27 @@ class IOTService
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $deviceCode = $message['metadata']["network"]["lora"]["devEUI"];
+        $deviceCode = $message['metadata']["network"]["lora"]["devEUI"] ?? null;
 
-        $device = $deviceRepository->findOneBy([
-            'code' => $deviceCode,
-        ]);
+        $device = $deviceCode
+            ? $deviceRepository->findOneBy([
+                'code' => $deviceCode,
+            ])
+            : null;
+
+        if (!($device instanceof Sensor)) {
+            $deviceCode = $message['sensorCloverMac'] ?? null;
+
+            $device = $deviceCode
+                ? $deviceRepository->findOneBy([
+                    'cloverMac' => $deviceCode,
+                ])
+                : null;
+        }
+
+        if (!($device instanceof Sensor)) {
+            return [];
+        }
 
         $profile =  $device->getProfile()->getName();
 
@@ -467,12 +485,24 @@ class IOTService
         }
         $entityManager->flush();
 
+        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
+        if ($device->getType()->getLabel() === Sensor::EXTENDER) {
+            $fakeFrame = [
+                'sensorCloverMac' => $mainDatas[IOTService::DATA_TYPE_SENSOR_CLOVER_MAC],
+                'value' => [
+                    'payload' => $mainDatas[IOTService::DATA_TYPE_PAYLOAD],
+                ],
+                'timestamp' => $message['timestamp'] ?? 'now',
+                'extenderPayload' => $message
+            ];
+            $this->onMessageReceived($fakeFrame, $entityManager);
+            return [];
+        }
+
         $messageDate = new DateTime($message['timestamp'], $local ? null : new DateTimeZone("UTC"));
         if (!$local) {
             $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
         }
-
-        $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
 
         $messages = Stream::from($mainDatas)
             ->map(function ($mainData, $type) use ($message, $messageDate, $device, $entityManager) :SensorMessage {
@@ -656,6 +686,14 @@ class IOTService
                     return [self::DATA_TYPE_GPS => $data];
                 }
                 break;
+            case IOTService::INEO_INS_EXTENDER:
+                $payloadSizeHexa = substr($config['value']['payload'], 12, 2);
+                // Convert hexa to decimal and multiply by 2 to get the number of bytes plus 2 for the header
+                $payloadSize = hexdec($payloadSizeHexa)*2+2;
+                return [
+                    self::DATA_TYPE_SENSOR_CLOVER_MAC => substr($config['value']['payload'], 2, 8),
+                    self::DATA_TYPE_PAYLOAD => substr($config['value']['payload'], 14, $payloadSize),
+                ];
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -827,6 +865,13 @@ class IOTService
                             $value = $temperature['value'];
 
                             $fakeFrame = [
+                                'metadata' => [
+                                    "network" => [
+                                        "lora" => [
+                                            "devEUI" => $code,
+                                        ],
+                                    ],
+                                ],
                                 'profile' => IOTService::KOOVEA_TAG,
                                 'device_id' => $code,
                                 'timestamp' => $dateReceived,
@@ -1022,6 +1067,7 @@ class IOTService
     public function validateFrame(string $profile, array $frame): bool {
         return match ($profile) {
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($frame['value']['payload'], '6d'),
+            IOTService::INEO_INS_EXTENDER => str_starts_with($frame['value']['payload'], '12'),
             default => true,
         };
     }
