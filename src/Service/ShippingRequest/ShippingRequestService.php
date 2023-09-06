@@ -644,7 +644,7 @@ class ShippingRequestService {
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "$projectDir/public/uploads/attachements";
+        $deliverySlipOutdir = "$projectDir/public/uploads/attachments";
         $docxPath = "$deliverySlipOutdir/$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);

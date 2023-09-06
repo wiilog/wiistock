@@ -75,7 +75,7 @@ class AlertService
             }
         } else if ($template->getType() == AlertTemplate::MAIL) {
             if (isset($config['image']) && !empty($config['image'])) {
-                $src = $this->kernel->getProjectDir() . '/public/uploads/attachements/' . $config['image'];
+                $src = $this->kernel->getProjectDir() . '/public/uploads/attachments/' . $config['image'];
                 $type = pathinfo($src, PATHINFO_EXTENSION);
                 $imageContent = base64_encode(file_get_contents($src));
 
@@ -90,7 +90,7 @@ class AlertService
         } else if ($template->getType() == AlertTemplate::PUSH) {
             $src = null;
             if (isset($config['image']) && !empty($config['image'])) {
-                $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
+                $src = $_SERVER['APP_URL'] . '/uploads/attachments/' . $config['image'];
             }
             $emitted = new Notification();
             $emitted

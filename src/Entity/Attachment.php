@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AttachmentRepository::class)]
 class Attachment {
 
-    const MAIN_PATH = '/uploads/attachements';
+    const MAIN_PATH = '/uploads/attachments';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
