@@ -160,7 +160,6 @@ class ShippingRequestExpectedLineService {
                                 'onclick' => "window.location.href = '{$this->router->generate('reference_article_show_page', ['id' => $reference->getId()])}'",
                             ]
                         ],[
-                            'hasRight' => $this->userService->hasRightFunction(Menu::STOCK, Action::EDIT),
                             'title' => 'Modifier la référence',
                             'icon' => 'fa fa-pen',
                             'attributes' => [

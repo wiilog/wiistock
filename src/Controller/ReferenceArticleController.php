@@ -62,7 +62,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 #[Route("/reference-article")]
@@ -110,9 +109,13 @@ class ReferenceArticleController extends AbstractController
         return $this->json($this->refArticleDataService->getRefArticleDataByParams($request->request));
     }
 
-    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "reference_article_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[
+        HasPermission([Menu::STOCK, Action::CREATE]),
+        HasPermission([Menu::STOCK, Action::CREATE_DRAFT_REFERENCE]),
+        HasPermission([Menu::DEM, Action::CREATE_SHIPPING])
+    ]
     public function new(Request $request,
-                        UserService $userService,
                         FreeFieldService $champLibreService,
                         EntityManagerInterface $entityManager,
                         MouvementStockService $mouvementStockService,
@@ -120,12 +123,6 @@ class ReferenceArticleController extends AbstractController
                         ArticleFournisseurService $articleFournisseurService,
                         AttachmentService $attachmentService): Response
     {
-        if (!$userService->hasRightFunction(Menu::STOCK, Action::CREATE)
-            && !$userService->hasRightFunction(Menu::STOCK, Action::CREATE_DRAFT_REFERENCE)
-            && !$userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)) {
-            throw new FormException("Accès refusé");
-        }
-
         if (($data = $request->request->all()) || ($data = json_decode($request->getContent(), true))) {
             /** @var Utilisateur $loggedUser */
             $loggedUser = $this->getUser();
@@ -459,19 +456,15 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    #[Route(path: "/modifier", name: "reference_article_edit",  options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route(path: "/modifier", name: "reference_article_edit",  options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[
+        HasPermission([Menu::STOCK, Action::EDIT]),
+        HasPermission([Menu::STOCK, Action::EDIT_PARTIALLY]),
+        HasPermission([Menu::DEM, Action::CREATE_SHIPPING])
+    ]
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         UserService            $userService,
                          TranslationService     $translation): Response {
-        if ((!$userService->hasRightFunction(Menu::STOCK, Action::EDIT)
-            && !$userService->hasRightFunction(Menu::STOCK, Action::EDIT_PARTIALLY)
-            && !$userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING))) {
-            return $this->json([
-                "success" => false,
-                "msg" => "Accès refusé",
-            ]);
-        }
         $data = $request->request;
         if ($data->all()) {
             $refId = $data->getInt('idRefArticle');
@@ -504,7 +497,7 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/supprimer", name: "reference_article_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "reference_article_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request                  $request,
                            EntityManagerInterface   $entityManager,
@@ -550,7 +543,7 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/addFournisseur", name: "ajax_render_add_fournisseur", requirements: ["currentIndex" => "\d+"], options: ["expose" => true], methods: ["GET"])]
+    #[Route("/addFournisseur", name: "ajax_render_add_fournisseur", requirements: ["currentIndex" => "\d+"], options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::STOCK, Action::EDIT])]
     public function addFournisseur(Request $request): Response
     {
@@ -565,7 +558,7 @@ class ReferenceArticleController extends AbstractController
 
     #[Route("/quantite", name: "get_quantity_ref_article", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager)
+    public function getQuantityByRefArticleId(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $settings = $entityManager->getRepository(Setting::class);
@@ -584,9 +577,9 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($quantity);
     }
 
-    #[Route("/autocomplete-ref", name: "get_ref_articles", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/autocomplete-ref", name: "get_ref_articles", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
     public function getRefArticles(Request $request,
-                                   EntityManagerInterface $entityManager)
+                                   EntityManagerInterface $entityManager): JsonResponse
     {
         $search = $request->query->get('term');
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -615,8 +608,8 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse(['results' => $refArticles]);
     }
 
-    #[Route("/{reference}/data", name: "get_reference_data", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager)
+    #[Route("/{reference}/data", name: "get_reference_data", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getReferenceData(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse
     {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locations = [];
@@ -645,7 +638,7 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    #[Route("/colonne-visible", name: "save_column_visible", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[Route("/colonne-visible", name: "save_column_visible", options: ["expose" => true], methods: "POST")]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request $request,
                                       EntityManagerInterface $manager,
@@ -666,7 +659,7 @@ class ReferenceArticleController extends AbstractController
             ]);
     }
 
-    #[Route("/voir", name: "reference_article_show", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/voir", name: "reference_article_show", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
     public function show(Request $request,
                          RefArticleDataService $refArticleDataService,
@@ -683,7 +676,7 @@ class ReferenceArticleController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/quantites/{id}/{period}", name: "reference_article_quantity_variations", options: ["expose" => true], methods: ["GET"])]
+    #[Route("/quantites/{id}/{period}", name: "reference_article_quantity_variations", options: ["expose" => true], methods: "GET")]
     public function quantities(ReferenceArticle $referenceArticle,
                                int $period,
                                RefArticleDataService $refArticleDataService,
@@ -724,21 +717,6 @@ class ReferenceArticleController extends AbstractController
             'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
         ]);
     }
-
-    #[Route("/type-quantite", name: "get_quantity_type", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
-    public function getQuantityType(Request $request, EntityManagerInterface $entityManager)
-	{
-		if ($data = json_decode($request->getContent(), true)) {
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-
-            $reference = $referenceArticleRepository->find($data['id']);
-
-			$quantityType = $reference ? $reference->getTypeQuantite() : '';
-
-			return new JsonResponse($quantityType);
-		}
-		throw new BadRequestHttpException();
-	}
 
     #[Route("/etiquettes", name: "reference_article_bar_codes_print", options: ["expose" => true])]
     public function getBarCodes(Request $request,
@@ -797,24 +775,7 @@ class ReferenceArticleController extends AbstractController
         );
     }
 
-    #[Route("/mouvements/lister", name: "ref_mouvements_list", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
-    public function showMovements(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-
-            $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            if ($ref = $referenceArticleRepository->find($data)) {
-                $name = $ref->getLibelle();
-            }
-
-           return new JsonResponse($this->renderView('reference_article/modalShowMouvementsContent.html.twig', [
-               'refLabel' => $name?? ''
-           ]));
-        }
-        throw new BadRequestHttpException();
-    }
-
-    #[Route("/mouvements/api/{referenceArticle}", name: "ref_mouvements_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/mouvements/api/{referenceArticle}", name: "ref_mouvements_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function apiMouvements(EntityManagerInterface $entityManager,
                                   MouvementStockService $mouvementStockService,
                                   ReferenceArticle $referenceArticle): Response
@@ -850,7 +811,7 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/purchaseRequests/api/{referenceArticle}", name: "ref_purchase_requests_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/purchaseRequests/api/{referenceArticle}", name: "ref_purchase_requests_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::DISPLAY_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function apiPurchaseRequests(EntityManagerInterface $entityManager,
                                         ReferenceArticle       $referenceArticle,
@@ -886,10 +847,10 @@ class ReferenceArticleController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/{referenceArticle}/quantity", name: "update_qte_refarticle", options: ["expose" => true], methods: ["PATCH"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/{referenceArticle}/quantity", name: "update_qte_refarticle", options: ["expose" => true], methods: "PATCH", condition: "request.isXmlHttpRequest()")]
     public function updateQuantity(EntityManagerInterface $entityManager,
                                    ReferenceArticle $referenceArticle,
-                                   RefArticleDataService $refArticleDataService) {
+                                   RefArticleDataService $refArticleDataService): JsonResponse {
 
         $refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticle, true);
         $entityManager->flush();
@@ -900,16 +861,14 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/nouveau-page", name: "reference_article_new_page", options: ["expose" => true])]
-    #[HasPermission([Menu::STOCK, Action::CREATE]), HasPermission([Menu::DEM, Action::CREATE_SHIPPING])]
+    #[
+        HasPermission([Menu::STOCK, Action::CREATE]),
+        HasPermission('fromShipping', type: HasPermission::TYPE_QUERY_PARAM)
+    ]
     public function newTemplate(Request                $request,
                                 EntityManagerInterface $entityManager,
                                 RefArticleDataService  $refArticleDataService,
-                                SettingsService        $settingsService) {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)
-            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)
-            && !$request->query->has('shipping')) {
-            return new Response($this->templating->render("securite/access_denied.html.twig"));
-        }
+                                SettingsService        $settingsService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
@@ -967,16 +926,13 @@ class ReferenceArticleController extends AbstractController
     }
 
     #[Route("/modifier-page/{reference}", name: "reference_article_edit_page", options: ["expose" => true])]
-    #[HasPermission([Menu::STOCK, Action::EDIT]), HasPermission([Menu::DEM, Action::CREATE_SHIPPING])]
+    #[
+        HasPermission([Menu::STOCK, Action::EDIT]),
+        HasPermission('fromShipping', type: HasPermission::TYPE_QUERY_PARAM)
+    ]
     public function editTemplate(EntityManagerInterface $entityManager,
                                  RefArticleDataService  $refArticleDataService,
-                                 ReferenceArticle       $reference,
-                                 Request                $request) {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)
-            && $this->userService->hasRightFunction(Menu::DEM, Action::CREATE_SHIPPING)
-            && !$request->query->has('fromShipping')) {
-            return new Response($this->templating->render("securite/access_denied.html.twig"));
-        }
+                                 ReferenceArticle       $reference): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $inventoryCategoryRepository = $entityManager->getRepository(InventoryCategory::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -1004,7 +960,7 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    #[Route("/api-check-stock", name: "reference_article_check_quantity", options: ["expose" => true], methods: ["GET"])]
+    #[Route("/api-check-stock", name: "reference_article_check_quantity", options: ["expose" => true], methods: "GET")]
     public function checkQuantity(Request                $request,
                                   EntityManagerInterface $entityManager): Response {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -1028,7 +984,7 @@ class ReferenceArticleController extends AbstractController
         ]);
     }
 
-    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: ["GET|POST"])]
+    #[Route("/validate-stock-entry", name: "entry_stock_validate", options: ["expose" => true], methods: "GET")]
     public function validateEntryStock(Request $request,
                                   EntityManagerInterface $entityManager,
                                   ArticleFournisseurService $articleFournisseurService,

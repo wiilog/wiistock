@@ -14,6 +14,7 @@ use App\Service\UserService;
 use DateTime;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
@@ -87,7 +88,6 @@ class AnnotationListener {
         }
 
         $annotation = $this->getAnnotation($reader, $method, HasPermission::class);
-
         if (isset($annotation[0]) && $annotation[0] instanceof HasPermission) {
             $this->handleHasPermission($event, $annotation);
         }
@@ -101,16 +101,14 @@ class AnnotationListener {
     private function getAnnotation(AnnotationReader $reader, mixed $method, string $class): mixed {
         $annotation = $reader->getMethodAnnotation($method, $class);
         if($annotation) {
-            return [$annotation];
+            return $annotation;
         }
 
         $nativeAnnotations = $method->getAttributes($class);
         if(!empty($nativeAnnotations)) {
-            $annotations = [$nativeAnnotations[0]->newInstance()];
-            if (isset($nativeAnnotations[1])) {
-                $annotations[] = $nativeAnnotations[1]->newInstance();
-            }
-            return $annotations;
+            return Stream::from($nativeAnnotations)
+                ->map(fn(ReflectionAttribute $annotation) => $annotation->newInstance())
+                ->toArray();
         }
 
         return null;
@@ -145,23 +143,31 @@ class AnnotationListener {
         }
     }
 
-    private function handleHasPermission(ControllerArgumentsEvent $event, array $annotation) {
-        $permissionsWithRight = Stream::from($annotation)
-            ->filter(fn(HasPermission $permission) => $this->userService->hasRightFunction(...$permission->value));
+    private function handleHasPermission(ControllerArgumentsEvent $event, array $annotation): void {
+        $request = $event->getRequest();
+        $permissionsWithRightCount = Stream::from($annotation)
+            ->filter(function(HasPermission $permission) use ($request) {
+                if($permission->type) {
+                    return $request->{$permission->type}->has($permission->value);
+                } else {
+                    return $this->userService->hasRightFunction(...$permission->value);
+                }
+            })
+            ->count();
 
-        if ($permissionsWithRight->count() == 0) {
+        if ($permissionsWithRightCount === 0) {
             $event->setController(function() use ($annotation) {
                 if ($annotation[0]->mode == HasPermission::IN_JSON) {
                     return new JsonResponse([
-                                                "success" => false,
-                                                "msg" => "Accès refusé",
-                                            ]);
+                        "success" => false,
+                        "msg" => "Accès refusé",
+                    ]);
                 }
                 else if ($annotation[0]->mode == HasPermission::IN_RENDER) {
                     return new Response($this->templating->render("securite/access_denied.html.twig"));
                 }
                 else {
-                    throw new RuntimeException("Unknown mode $annotation[0]->mode");
+                    throw new RuntimeException("Unknown mode {$annotation[0]->mode}");
                 }
             });
         }

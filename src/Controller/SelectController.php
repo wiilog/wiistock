@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
@@ -17,7 +16,6 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
-use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -37,7 +35,6 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\FormatHelper;
-use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -274,7 +271,7 @@ class SelectController extends AbstractController {
                 ->unshift([
                     "id" => "redirect-url",
                     "url" => $this->generateUrl('reference_article_new_page', [
-                        "shipping" => 1,
+                        "fromShipping" => 1,
                         'redirect-route' => $redirectRoute,
                         'redirect-route-params' => $redirectParams
                     ]),
