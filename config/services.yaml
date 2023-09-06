@@ -75,7 +75,7 @@ services:
                 db_time_col: 'time',
                 db_lifetime_col: 'lifetime',
                 lock_mode: '1',
-                db_connection_options: '%env(json:PDO_SESSION_HANDLER_DB_CONNECTION_OPTIONS)%' }
+                db_connection_options: '%env(json:DATABASE_SSL_CONFIG)%' }
 
     wiistock.specific_service:
         class: App\Service\SpecificService
