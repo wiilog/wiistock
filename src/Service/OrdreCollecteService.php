@@ -294,32 +294,33 @@ class OrdreCollecteService
 
 		$partialCollect = !empty($rowsToRemove);
 
-        $kioskUser = $demandeCollecte->getDemandeur()->isKioskUser();
-        $to = $kioskUser
-            ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
-            : $demandeCollecte->getDemandeur();
+        if($demandeCollecte->getDemandeur()){
+            $kioskUser = $demandeCollecte->getDemandeur()?->isKioskUser();
+            $to = $kioskUser
+                ? $userRepository->find($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_REQUESTER))
+                : $demandeCollecte->getDemandeur();
 
-        if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
-            $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
-                ->map(fn(Utilisateur $manager) => $manager->getEmail())
-                ->toArray();
-            $to = array_merge([$to], $managers);
+            if($kioskUser && $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_CEA_LETI)) {
+                $managers = Stream::from($demandeCollecte->getCollecteReferences()->first()->getReferenceArticle()->getManagers())
+                    ->map(fn(Utilisateur $manager) => $manager->getEmail())
+                    ->toArray();
+                $to = array_merge([$to], $managers);
+            }
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Collecte effectuée',
+                $this->templating->render(
+                    'mails/contents/mailCollecteDone.html.twig',
+                    [
+                        'title' => $partialCollect
+                            ? 'Votre demande de collecte a été partiellement effectuée.'
+                            : 'Votre demande de collecte a bien été effectuée.',
+                        'collecte' => $ordreCollecte,
+                        'demande' => $demandeCollecte,
+                    ]
+                ),
+                $to
+            );
         }
-
-        $this->mailerService->sendMail(
-            'FOLLOW GT // Collecte effectuée',
-            $this->templating->render(
-                'mails/contents/mailCollecteDone.html.twig',
-                [
-                    'title' => $partialCollect
-                        ? 'Votre demande de collecte a été partiellement effectuée.'
-                        : 'Votre demande de collecte a bien été effectuée.',
-                    'collecte' => $ordreCollecte,
-                    'demande' => $demandeCollecte,
-                ]
-            ),
-            $to
-        );
 
 		return $newCollecte ?? null;
 	}
