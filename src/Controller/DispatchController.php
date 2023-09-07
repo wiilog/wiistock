@@ -413,6 +413,7 @@ class DispatchController extends AbstractController {
 
         if(isset($fileBag)) {
             $fileNames = [];
+            dump($fileBag->all());
             foreach($fileBag->all() as $file) {
                 $fileNames = array_merge(
                     $fileNames,

@@ -42,5 +42,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/ordre-collecte-show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('collect-order-show') }}
 {% endblock %}

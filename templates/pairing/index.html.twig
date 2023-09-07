@@ -36,5 +36,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/iot/pairing-index.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('pairing-index') }}
 {% endblock %}

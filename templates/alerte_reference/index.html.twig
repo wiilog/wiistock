@@ -45,6 +45,6 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/alert.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/reference-common.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('alert') }}
+    {{ encore_entry_script_tags('reference-article-form-common') }}
 {% endblock %}

@@ -1,4 +1,5 @@
 import {formatIconSelector} from "@app/form";
+import Select2Old from "@app/select2-old";
 
 global.editRowUser = editRowUser;
 

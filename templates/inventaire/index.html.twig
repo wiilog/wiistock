@@ -57,5 +57,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/mission-inventaire.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('inventory-mission-index') }}
 {% endblock %}

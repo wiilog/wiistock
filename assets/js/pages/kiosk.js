@@ -1,6 +1,7 @@
 import '@styles/pages/kiosk.scss';
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {SUCCESS, ERROR} from "@app/flash";
+import Select2Old from "@app/select2-old";
 
 let scannedReference = '';
 const $modalInStockWarning = $("#modal-in-stock-warning");

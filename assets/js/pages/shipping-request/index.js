@@ -1,4 +1,5 @@
 import {GET, POST} from "@app/ajax";
+import Select2Old from "@app/select2-old";
 import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
 
 let tableShippings;
@@ -31,7 +32,7 @@ $(function() {
         }, 'json');
     }
 
-    initTableShippings().then((table) => {
+    initShippingsTable().then((table) => {
         tableShippings = table;
     });
     initModalFormShippingRequest($('#modalNewShippingRequest'), 'shipping_request_new', (data) => {
@@ -39,7 +40,7 @@ $(function() {
     });
 })
 
-function initTableShippings() {
+function initShippingsTable() {
     let initialVisible = $(`#tableShippings`).data(`initial-visible`);
     if (!initialVisible) {
         return AJAX

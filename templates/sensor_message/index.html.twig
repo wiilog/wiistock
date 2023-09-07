@@ -21,5 +21,5 @@
         let id = {{ sensor.id }};
     </script>
 
-    <script src="{{ asset('js/pages/sensor_message/index.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('sensor-message-index') }}
 {% endblock %}

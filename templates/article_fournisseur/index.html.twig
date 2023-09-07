@@ -10,7 +10,7 @@
                     <button type="button"
                             data-toggle="modal"
                             data-target="#modalNewArticleFournisseur"
-                            onclick="Select2Old.articleReference($('.ajax-autocomplete')), Select2Old.provider($('.ajax-autocomplete-fournisseur')), clearModal($('#modalNewArticleFournisseur'))"
+                            onclick="clearModal($('#modalNewArticleFournisseur'))"
                             class="btn btn-primary d-flex align-items-center">
                         <span class="wii-icon wii-icon-plus mr-2"></span>Nouvel article fournisseur
                     </button>
@@ -32,5 +32,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/article-fournisseur.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('provider-article-index') }}
 {% endblock %}

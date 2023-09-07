@@ -1,5 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Select2Old from "@app/select2-old";
 
 $(function () {
     $(`.kiosk-link`).on(`click`, function() {
