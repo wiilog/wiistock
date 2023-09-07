@@ -171,26 +171,38 @@ function generateDispatchLabel($button, dispatchId) {
         .then(() => window.location.reload())
 }
 
-function forbiddenPhoneNumberValidator(data, errors, $form) {
+function forbiddenPhoneNumberValidator($form, data = undefined, errors = undefined) {
     const $inputs = $form.find(".forbidden-phone-numbers");
     const numbers = ($('#forbiddenPhoneNumbers').val() || '')
         .split(';')
         .map((number) => number.replace(/[^0-9]/g, ''));
 
+    const $invalidElements = [];
+    const errorMessages = [];
     $inputs.each(function() {
         const $input = $(this);
         const rawValue = ($input.val() || '');
         const value = rawValue.replace(/[^0-9]/g, '');
 
         if(value && numbers.indexOf(value) !== -1) {
-            errors.push({
-                message: `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`,
-                global: true,
-            });
+            const message = `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`;
+            if(errors || data) {
+                errors.push({
+                    message,
+                    global: true,
+                });
+            } else {
+                errorMessages.push(message);
+                $invalidElements.push($input);
+            }
         }
     });
 
-    return errors;
+    return errors || {
+        success: $invalidElements.length === 0,
+        errorMessages,
+        $isInvalidElements: $invalidElements,
+    };
 }
 
 function openValidateDispatchModal() {
@@ -267,7 +279,7 @@ function initDeliveryNoteModal(dispatchId) {
     const $modalBody = $modal.find(`.modal-body`);
 
     Form.create($modal)
-        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator(data, errors, $form))
+        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator($form, data, errors))
         .submitTo(AJAX.POST, `delivery_note_dispatch`, {
             success: ({attachmentId, headerDetailsConfig}) => {
                 $(`.zone-entete`).html(headerDetailsConfig);
