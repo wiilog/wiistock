@@ -486,7 +486,9 @@ class IOTService
         $entityManager->flush();
 
         $mainDatas = $this->extractMainDataFromConfig($message, $device->getProfile()->getName());
-        if ($device->getType()->getLabel() === Sensor::EXTENDER) {
+        if ( $device->getType()->getLabel() === Sensor::EXTENDER
+            && array_key_exists(self::DATA_TYPE_PAYLOAD, $mainDatas)
+            && array_key_exists(self::DATA_TYPE_SENSOR_CLOVER_MAC, $mainDatas)) {
             $fakeFrame = [
                 'sensorCloverMac' => $mainDatas[IOTService::DATA_TYPE_SENSOR_CLOVER_MAC],
                 'value' => [
@@ -687,13 +689,23 @@ class IOTService
                 }
                 break;
             case IOTService::INEO_INS_EXTENDER:
-                $payloadSizeHexa = substr($config['value']['payload'], 12, 2);
-                // Convert hexa to decimal and multiply by 2 to get the number of bytes plus 2 for the header
-                $payloadSize = hexdec($payloadSizeHexa)*2+2;
-                return [
-                    self::DATA_TYPE_SENSOR_CLOVER_MAC => substr($config['value']['payload'], 2, 8),
-                    self::DATA_TYPE_PAYLOAD => substr($config['value']['payload'], 14, $payloadSize),
-                ];
+                $frame = $config['value']['payload'];
+                if (str_starts_with($frame, '49')) {
+                    return [
+                        // Current device temperature. Range is from 0 to 250, where 0 represents -100°C, 250 represent 150°C (thus 0°C will be 100).
+                        self::DATA_TYPE_TEMPERATURE => hexdec(substr($config['value']['payload'], 38, 2)) - 100,
+                    ];
+                } else if (str_starts_with($frame, '12')) {
+                    $payloadSizeHexa = substr($frame, 12, 2);
+                    // Convert hexa to decimal and multiply by 2 to get the number of bytes plus 2 for the header
+                    $payloadSize = hexdec($payloadSizeHexa)*2+2;
+                    return [
+                        self::DATA_TYPE_SENSOR_CLOVER_MAC => substr($frame, 2, 8),
+                        self::DATA_TYPE_PAYLOAD => substr($frame, 14, $payloadSize),
+                    ];
+                } else {
+                    return [];
+                }
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -732,6 +744,12 @@ class IOTService
                     return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
                 }
                 break;
+            case IOTService::INEO_INS_EXTENDER:
+                $frame = $config['value']['payload'];
+                if (str_starts_with($frame, '49')) {
+                    return self::ACS_PRESENCE;
+                }
+                break;
         }
         return 'Évenement non trouvé';
     }
@@ -767,6 +785,13 @@ class IOTService
                 $incertitudeLevel = 10;
                 $currentVoltage = $level * $incertitudeLevel + $minVoltage;
                 return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
+            case IOTService::INEO_INS_EXTENDER:
+                $frame = $config['value']['payload'];
+                if (str_starts_with($frame, '49')) {
+                    return 100 - hexdec(substr($config['value']['payload'], 24, 2));
+                } else {
+                    return -1;
+                }
         }
         return -1;
     }
@@ -1067,7 +1092,7 @@ class IOTService
     public function validateFrame(string $profile, array $frame): bool {
         return match ($profile) {
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($frame['value']['payload'], '6d'),
-            IOTService::INEO_INS_EXTENDER => str_starts_with($frame['value']['payload'], '12'),
+            IOTService::INEO_INS_EXTENDER => str_starts_with($frame['value']['payload'], '12') || str_starts_with($frame['value']['payload'], '49'),
             default => true,
         };
     }
