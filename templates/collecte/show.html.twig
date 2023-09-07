@@ -27,7 +27,7 @@
                     <div class="col-auto ml-auto">
                         <div class="btn-group">
                             <button type="button" data-toggle="modal" data-target="#modalNewArticle"
-                                    onclick="clearModal('#modalNewArticle'); Select2Old.articleReference($('#reference'))"
+                                    onclick="clearModal('#modalNewArticle')"
                                     class="btn btn-primary split-button d-flex align-items-center">
                                 <span class="wii-icon wii-icon-plus mr-2"></span>Ajouter article
                             </button>
@@ -72,6 +72,5 @@
     <script>
         let id = {{ collecte.id }};
     </script>
-    <script src="{{ asset('js/pages/collect/request/show.js') }}?v={{ web_version }}"></script>
-
+    {{ encore_entry_script_tags('collect-request-show') }}
 {% endblock %}

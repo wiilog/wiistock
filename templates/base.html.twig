@@ -41,7 +41,18 @@
             const USER_SLUG = '{{ getLanguage().slug }}';
         </script>
 
+        {# scripts wiilog #}
         {{ encore_entry_script_tags('app') }}
+        {{ encore_entry_script_tags('script-wiilog') }}
+        {{ encore_entry_script_tags('alerts') }}
+        {{ encore_entry_script_tags('translations') }}
+        {{ encore_entry_script_tags('datatable') }}
+        {{ encore_entry_script_tags('utils') }}
+        {{ encore_entry_script_tags('collapsible') }}
+        {{ encore_entry_script_tags('script-menu') }}
+        {{ encore_entry_script_tags('init-modal') }}
+        {{ encore_entry_script_tags('select2-old') }}
+        {{ encore_entry_script_tags('iot-common') }}
 
         {# datetime picker #}
         <script src={{ asset('js/bootstrap-datetimepicker.min.js') }}></script>
@@ -50,19 +61,8 @@
         <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/encoding.js') }}"></script>
         <script type="text/javascript" src="{{ asset('js/js-csv-encoding-master/fileSaver.js') }}"></script>
 
-        {# scripts wiilog #}
+
         <script src="{{ asset('generated/translations.js') }}?v={{ date().timestamp }}"></script>
-        <script src="{{ asset('js/alerts.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/translations.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/select2.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/common.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/script-wiilog.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/init-modal.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/script-menu.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/datatable.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/collapsible.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/pages/purchase_request/new.js') }}?v={{ web_version }}"></script>
-        <script src="{{ asset('js/pages/iot-common.js') }}?v={{ web_version }}"></script>
     {% endblock %}
 
 </body>

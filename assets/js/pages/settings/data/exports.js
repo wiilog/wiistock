@@ -1,6 +1,6 @@
 import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Modal from "@app/modal";
-
+import Select2Old from "@app/select2-old";
 import Form from '@app/form';
 import Flash from '@app/flash';
 import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
@@ -25,7 +25,7 @@ global.cancelExport = cancelExport;
 
 let tableExport = null;
 
-$(document).ready(() => {
+$(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate(`filter_get_by_page`);
     let params = JSON.stringify(PAGE_EXPORT);

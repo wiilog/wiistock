@@ -26,5 +26,5 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/notifications.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('notification-index') }}
 {% endblock %}

@@ -30,7 +30,7 @@ $(function () {
         activeFilter = false;
     }
     managePrintButtonTooltip(activeFilter, $printTag.is('button') ? $printTag.parent() : $printTag);
-    initTableRefArticle().then((table) => {
+    initRefArticleTable().then((table) => {
         initPageModals(table);
     });
 
@@ -60,7 +60,7 @@ function initPageModals(table) {
     });
 }
 
-function initTableRefArticle() {
+function initRefArticleTable() {
     let url = Routing.generate('ref_article_api', true);
     return $
         .post(Routing.generate('ref_article_api_columns'))

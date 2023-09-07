@@ -108,6 +108,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/delivery/request/index.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('delivery-request-index') }}
+    {{ encore_entry_script_tags('delivery-request-common') }}
 {% endblock %}

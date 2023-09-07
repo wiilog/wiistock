@@ -138,8 +138,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/form-litiges.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/delivery/request/common.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/form-reference-article.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('delivery-request-common') }}
+    {{ encore_entry_script_tags('reference-article-form') }}
     {{ encore_entry_script_tags('reception-show') }}
+    {{ encore_entry_script_tags('dispute-form') }}
 {% endblock %}

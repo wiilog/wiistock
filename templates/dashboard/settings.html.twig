@@ -35,8 +35,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/dashboard/render.js') }}?v={{ web_version }}"></script>
-    <script src="{{ asset('js/pages/dashboard/settings.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('dashboard-render') }}
+    {{ encore_entry_script_tags('dashboard-settings') }}
 
     <script>
         $(document).ready(() => loadDashboards(MODE_EDIT));

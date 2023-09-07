@@ -60,5 +60,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{asset('js/pages/preparation-show.js')}}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('preparation-show') }}
 {% endblock %}

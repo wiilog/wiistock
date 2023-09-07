@@ -63,5 +63,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/receipt_association.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('receipt-association-index') }}
 {% endblock %}

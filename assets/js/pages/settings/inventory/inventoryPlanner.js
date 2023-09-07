@@ -1,6 +1,6 @@
 import AJAX, {DELETE, GET, POST} from "@app/ajax";
 import Form from "@app/form";
-import {initFormAddInventoryLocations} from "@app/pages/inventory-mission/form-add-inventory-locations";
+import {initFormAddInventoryLocations} from "@app/pages/inventory/mission/form-add-inventory-locations";
 import {toggleFrequencyInput} from '@app/pages/settings/utils';
 
 let tableInventoryPanning;

@@ -15,7 +15,7 @@
                 title: "Finir la collecte",
                 attributes: {
                     "onclick":  collecte.demandeCollecte.stock
-                        ? "Select2Old.location($('.ajax-autocomplete-location')); checkIfRowSelected(openLocationModal);"
+                        ? "checkIfRowSelected(openLocationModal);"
                         : "checkIfRowSelected(() => finishCollecte($(this), true))",
                 },
             },

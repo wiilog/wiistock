@@ -459,6 +459,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/iot/data-monitoring.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('data-monitoring') }}
     {{ encore_entry_script_tags('reference-article-form') }}
 {% endblock %}

@@ -1,3 +1,4 @@
+import Select2Old from "@app/select2-old";
 import AJAX, {GET, POST} from "@app/ajax";
 import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, SAVE_MANUALLY} from "@app/editatable";
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";

@@ -65,6 +65,6 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/fournisseur.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('supplier-index') }}
 {% endblock %}
 

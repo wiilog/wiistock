@@ -67,7 +67,9 @@ class AttachmentService {
             mkdir($this->attachmentDirectory, 0777);
         }
 
+        dump(strtolower($file->getClientOriginalExtension()));
         $filename = ($wantedName ?? uniqid()) . '.' . strtolower($file->getClientOriginalExtension()) ?? '';
+        //dump($filename);
         $file->move($this->attachmentDirectory, $filename);
         return [$file->getClientOriginalName() => $filename];
     }
