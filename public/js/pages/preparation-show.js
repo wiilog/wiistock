@@ -151,7 +151,7 @@ function submitSplitting($submit) {
                 }, {})
 
             AJAX
-                .route(AJAX.POST, 'submit_splitting', params)
+                .route(AJAX.POST, 'submit_splitting')
                 .json( {
                     articles: chosenArticles,
                     quantite: $submit.data('qtt'),

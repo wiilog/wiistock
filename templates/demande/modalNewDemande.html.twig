@@ -21,7 +21,7 @@
                     <div class="row">
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                                <label class="wii-field-name" for="demandeur">Demandeur</label>
+                                <label class="wii-field-name" for="demandeur" style="margin-bottom: 5px;">Demandeur</label>
                                 <select class="demandeur form-control data" name="demandeur" disabled>
                                     <option value="{{ app.user.id }}">{{ app.user.username }}</option>
                                 </select>
@@ -31,7 +31,7 @@
                         <div class="col-12 col-md-6">
                             {% set uniqueType = types|length == 1 %}
                             <div class="form-group">
-                                <label class="wii-field-name" for="type">Type*</label>
+                                <label class="wii-field-name" for="type" style="margin-bottom: 5px;">Type*</label>
                                 <select name="type"
                                         class="form-control data d-block type needed
                                         {{ uniqueType ? 'needs-default' }}"
@@ -55,7 +55,7 @@
                         <div class="col-12 col-md-6">
                             {% set restrictedLocations = restrictedLocations is defined and restrictedLocations %}
                             <div class="form-group w-100">
-                                <label class="wii-field-name" for="destination">Destination*</label>
+                                <label class="wii-field-name" for="destination" style="margin-bottom: 5px;">Destination*</label>
                                 <select name="destination" class="form-control data ajax-autocomplete-location d-block needed" id="locationDemandeLivraison">
                                 </select>
                             </div>
@@ -77,7 +77,7 @@
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                             <div class="col-12 col-md-6">
                                 <div class="form-group">
-                                    <label class="wii-field-name">Date attendue{{ fieldRequired ? '*' }}</label>
+                                    <label class="wii-field-name" style="margin-bottom: 5px;">Date attendue{{ fieldRequired ? '*' }}</label>
                                     <input name="expectedAt"
                                            type="date"
                                            class="form-control data {{fieldRequired ? 'needed'}}"/>
@@ -91,7 +91,7 @@
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeProject, 'requiredCreate') %}
                             <div class="col-12 col-md-6">
                                 <div class="form-group w-100">
-                                    <label class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}{{ fieldRequired ? '*' }}</label>
+                                    <label class="wii-field-name" style="margin-bottom: 5px;">{{ trans('Référentiel', 'Projet', "Projet", false) }}{{ fieldRequired ? '*' }}</label>
                                     <select data-s2="project" name="project" class="form-control data d-block {{fieldRequired ? 'needed'}}">
                                     </select>
                                 </div>
