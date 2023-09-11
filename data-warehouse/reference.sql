@@ -39,6 +39,21 @@ SELECT reference_article.id,
           JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."manufacturerCode"')))
                                                                  AS code_fabricant,
 
+       IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."length"')) = 'null',
+          null,
+          JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."length"')))
+                                                                 AS longueur,
+
+       IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."width"')) = 'null',
+          null,
+          JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."width"')))
+                                                                 AS largeur,
+
+       IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."height"')) = 'null',
+          null,
+          JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."height"')))
+                                                                 AS hauteur,
+
        IF(JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."volume"')) = 'null',
           null,
           JSON_UNQUOTE(JSON_EXTRACT(reference_article.description, '$."volume"')))
@@ -102,6 +117,9 @@ GROUP BY reference_article.id,
          date_derniere_sortie,
          materiel_hors_format,
          code_fabricant,
+         longueur,
+         largeur,
+         hauteur,
          volume,
          poids,
          types_documents_associes,

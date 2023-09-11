@@ -18,7 +18,7 @@ SELECT dispute.id                                                     AS litige_
        reference_article.reference                                    AS reference,
        IF(arrivage.id, transporteur_arrivage.label,
           IF(reception.id, transporteur_reception.label, NULL))       AS transporteur,
-       IF(article.id, article.bar_code, IF(pack.id, pack.code, NULL)) AS colis_article,
+       IF(article.id, article.bar_code, IF(pack.id, pack.code, NULL)) AS ul_article,
        article.label                                                  AS libelle_article,
        article_reference_article.reference                            AS reference_article,
        article.quantite                                               AS quantite_article
