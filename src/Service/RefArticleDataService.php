@@ -1188,9 +1188,8 @@ class RefArticleDataService
     public function getDraftDefaultReference(EntityManagerInterface $entityManager): string
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $prefix = "A DEFINIR";
-        $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
-        return $prefix . ($referenceCount + 1);
+        $lastDraftReferenceNumber = $referenceArticleRepository->getLastDraftReferenceNumber();
+        return ReferenceArticle::TO_DEFINE_LABEL . ($lastDraftReferenceNumber + 1);
     }
 
     public function putReferenceLine($handle,
