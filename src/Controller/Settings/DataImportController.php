@@ -79,7 +79,7 @@ class DataImportController extends AbstractController
                 ];
 
             } else {
-                $attachments = $attachmentService->createAttachements([$file]);
+                $attachments = $attachmentService->createAttachments([$file]);
                 $csvAttachment = $attachments[0];
                 $entityManager->persist($csvAttachment);
                 $import->setCsvFile($csvAttachment);

@@ -480,7 +480,7 @@ class RefArticleDataService
 
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('image')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -495,7 +495,7 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('fileSheet')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);

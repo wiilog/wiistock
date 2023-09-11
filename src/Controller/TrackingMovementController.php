@@ -700,7 +700,7 @@ class TrackingMovementController extends AbstractController
     private function persistAttachments(TrackingMovement $trackingMovement, AttachmentService $attachmentService, $files, EntityManagerInterface $entityManager ,  array $options = [])
     {
         $isAddToDispatch = $options['addToDispatch'] ?? false;
-        $attachments = $attachmentService->createAttachements($files);
+        $attachments = $attachmentService->createAttachments($files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $trackingMovement->addAttachment($attachment);

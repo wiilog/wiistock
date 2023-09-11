@@ -38,7 +38,7 @@
                     </div>
                     <div class="d-flex header-wrapper">
                         <div class="image-container-show" style="background-image: url('{{ referenceArticle.image
-                        ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachements/" ~ referenceArticle.image.fileName)
+                        ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/uploads/attachments/" ~ referenceArticle.image.fileName)
                         : asset('svg/reference_article/product.svg') }}');
                             background-color: {{ referenceArticle.image ? '#FFFFFF' : "#F5F5F7" }};
                             background-size: {{ referenceArticle.image ? 'cover' : '50%' }}">

@@ -115,7 +115,7 @@
                                 <div class="col">
                                     <div class="d-flex align-items-center">
                                         {% if request_delivery.type.logo %}
-                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachments/" ~ request_delivery.type.logo.fileName }}"
                                                  alt="Image type {{ request_delivery.type|format_helper('type') }}"
                                                  class="mr-2"
                                                  width="20px">
@@ -136,7 +136,7 @@
                                 <div class="col">
                                     <div class="d-flex align-items-center">
                                         {% if request_collect.type.logo %}
-                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
+                                            <img src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachments/" ~ request_collect.type.logo.fileName }}"
                                                  alt="Image type {{ request_collect.type|format_helper('type') }}"
                                                  class="mr-2"
                                                  width="20px">

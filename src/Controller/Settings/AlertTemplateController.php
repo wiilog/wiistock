@@ -82,7 +82,7 @@ class AlertTemplateController extends AbstractController
                         'name' => "image",
                         'label' => '',
                         'required' => false,
-                        'image' => $image ? 'uploads/attachements/' . $image : '',
+                        'image' => $image ? 'uploads/attachments/' . $image : '',
                         'options' => []
                     ]),
                 ];
@@ -120,7 +120,7 @@ class AlertTemplateController extends AbstractController
                         'name' => "image",
                         'label' => "",
                         'required' => false,
-                        'image' => $image ? 'uploads/attachements/' . $image : '',
+                        'image' => $image ? 'uploads/attachments/' . $image : '',
                         'options' => []
                     ]),
                 ];
@@ -187,7 +187,7 @@ class AlertTemplateController extends AbstractController
                     "value" => $content,
                 ];
                 if ($image) {
-                    $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $image;
+                    $src = $_SERVER['APP_URL'] . '/uploads/attachments/' . $image;
                     $data[] = [
                         "label" => "Image de notification",
                         "value" => "<img src='$src' alt='' width='85px' height='75px' style='margin: auto'>"
@@ -247,7 +247,7 @@ class AlertTemplateController extends AbstractController
                 ];
 
                 if ($image) {
-                    $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $image;
+                    $src = $_SERVER['APP_URL'] . '/uploads/attachments/' . $image;
                     $data[] = [
                         "label" => "Image de début de mail",
                         "value" => "<img src='$src' alt='' width='85px' height='75px' style='margin: auto'>"

@@ -540,7 +540,7 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
         if (isset($fileBag)) {
-            $attachments = $this->attachmentService->createAttachements($fileBag);
+            $attachments = $this->attachmentService->createAttachments($fileBag);
             foreach ($attachments as $attachment) {
                 $tracking->addAttachment($attachment);
             }

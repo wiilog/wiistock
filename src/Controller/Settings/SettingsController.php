@@ -927,7 +927,7 @@ class SettingsController extends AbstractController {
             $language = new Language;
             $flagCustom = $file->get('flagCustom');
             if ($flagCustom) {
-                $flagFile = $attachmentService->createAttachements($file);
+                $flagFile = $attachmentService->createAttachments($file);
                 $languageFile = $flagFile[0]->getFullPath();
             }
             else {

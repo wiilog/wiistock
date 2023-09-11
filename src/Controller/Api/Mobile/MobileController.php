@@ -636,7 +636,7 @@ class MobileController extends AbstractApiController
                                 if (!empty($photoFile)) {
                                     $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
                                 }
-                                $attachments = $attachmentService->createAttachements($fileNames);
+                                $attachments = $attachmentService->createAttachments($fileNames);
                                 foreach ($attachments as $attachment) {
                                     $entityManager->persist($attachment);
                                     $packMvt->addAttachment($attachment);
@@ -1143,7 +1143,7 @@ class MobileController extends AbstractApiController
             do {
                 $photoFile = $request->files->get("photo_$fileCounter");
                 if (!empty($photoFile)) {
-                    $attachments = $attachmentService->createAttachements([$photoFile]);
+                    $attachments = $attachmentService->createAttachments([$photoFile]);
                     if (!empty($attachments)) {
                         $handling->addAttachment($attachments[0]);
                         $entityManager->persist($attachments[0]);
@@ -1438,7 +1438,7 @@ class MobileController extends AbstractApiController
                     }
 
                     foreach ($newMovements as $movement) {
-                        $attachments = $attachmentService->createAttachements($fileNames);
+                        $attachments = $attachmentService->createAttachments($fileNames);
                         foreach ($attachments as $attachment) {
                             $entityManager->persist($attachment);
                             $movement->addAttachment($attachment);
@@ -2406,7 +2406,7 @@ class MobileController extends AbstractApiController
                     return [
                         'handlingId' => $attachment['handlingId'],
                         'fileName' => $attachment['originalName'],
-                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName'],
+                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachments/' . $attachment['fileName'],
                     ];
                 },
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
@@ -2436,7 +2436,7 @@ class MobileController extends AbstractApiController
                     $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
-                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
                         if (file_exists($path)) {
                             $type = pathinfo($path, PATHINFO_EXTENSION);
                             $type = ($type === 'svg' ? 'svg+xml' : $type);
@@ -3356,7 +3356,7 @@ class MobileController extends AbstractApiController
                                     $photoFile = $request->files->get("{$code}_{$photoName}");
                                     if ($photoFile) {
                                         $fileName = $attachmentService->saveFile($photoFile);
-                                        $attachments = $attachmentService->createAttachements($fileName);
+                                        $attachments = $attachmentService->createAttachments($fileName);
                                         foreach ($attachments as $attachment) {
                                             $entityManager->persist($attachment);
                                             $dispatch->addAttachment($attachment);
@@ -3529,7 +3529,7 @@ class MobileController extends AbstractApiController
         $data = $request->request->all();
         $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $manager, $data);
         $manager->flush();
-        $file = '/uploads/attachements/' . $wayBillAttachment->getFileName();
+        $file = '/uploads/attachments/' . $wayBillAttachment->getFileName();
 
         return $this->json([
             'filePath' => $file,
@@ -3738,7 +3738,7 @@ class MobileController extends AbstractApiController
             if ($ref) {
                 $photos = Stream::from($ref->getAttachments())
                     ->map(function(Attachment $attachment) use ($kernel) {
-                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
                         $type = pathinfo($path, PATHINFO_EXTENSION);
                         $data = file_get_contents($path);
 
@@ -3838,8 +3838,8 @@ class MobileController extends AbstractApiController
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,
                                        UniqueNumberService    $uniqueNumberService,
-                                       KernelInterface        $kernel,
-                                       ReserveService         $reserveService): Response {
+                                       ReserveService         $reserveService,
+                                       AttachmentService $attachmentService): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -3907,13 +3907,13 @@ class MobileController extends AbstractApiController
                 if($truckArrivalLine['reserve']['photos']){
                     foreach($truckArrivalLine['reserve']['photos'] as $photo){
                         $name = uniqid();
-                        $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                        file_put_contents($path, file_get_contents($photo));
+                        $attachmentService->createFile("$name.jpeg", file_get_contents($photo));
+
                         $attachment = new Attachment();
                         $attachment
                             ->setOriginalName("$name.jpeg")
                             ->setFileName("$name.jpeg")
-                            ->setFullPath("/uploads/attachements/$name.jpeg");
+                            ->setFullPath("/uploads/attachments/$name.jpeg");
 
                         $lineReserve->addAttachment($attachment);
                         $entityManager->persist($attachment);
@@ -3933,13 +3933,13 @@ class MobileController extends AbstractApiController
 
         foreach($signatures as $signature){
             $name = uniqid();
-            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-            file_put_contents($path, file_get_contents($signature));
+            $attachmentService->createFile("$name.jpeg", file_get_contents($signature));
+
             $attachment = new Attachment();
             $attachment
                 ->setOriginalName($truckArrival->getNumber()."_signature_". array_search($signature, $signatures) .".jpeg")
                 ->setFileName("$name.jpeg")
-                ->setFullPath("/uploads/attachements/$name.jpeg");
+                ->setFullPath("/uploads/attachments/$name.jpeg");
 
             $truckArrival->addAttachment($attachment);
             $entityManager->persist($attachment);
