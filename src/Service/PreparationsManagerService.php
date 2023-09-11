@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
@@ -72,6 +73,11 @@ class PreparationsManagerService
 
     #[Required]
     public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public MouvementStockService $stockMovementService;
+
+
 
     public function __construct(Security $security,
                                 CSVExportService $CSVExportService,
@@ -182,8 +188,8 @@ class PreparationsManagerService
                     TrackingMovement::TYPE_PRISE,
                     [
                         'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                        'mouvementStock' => $movement,
+                    ]
                 );
                 $this->entityManager->persist($trackingMovementPick);
 
@@ -201,8 +207,8 @@ class PreparationsManagerService
                     TrackingMovement::TYPE_DEPOSE,
                     [
                         'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                        'mouvementStock' => $movement,
+                    ]
                 );
                 $this->entityManager->persist($trackingMovementDrop);
                 if ($articleEntity instanceof Article) {
@@ -214,6 +220,7 @@ class PreparationsManagerService
         }
 
         if (!empty($ulToMove)){
+            /** @var Pack $lu */
             foreach (array_unique($ulToMove) as $lu) {
                 if ($lu != null){
                     $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
@@ -224,8 +231,9 @@ class PreparationsManagerService
                         false,
                         true,
                         TrackingMovement::TYPE_PRISE,
-                        ['preparation' => $preparation]
-
+                        [
+                            'preparation' => $preparation,
+                        ]
                     );
                     $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                         $lu,
@@ -235,7 +243,9 @@ class PreparationsManagerService
                         false,
                         true,
                         TrackingMovement::TYPE_DEPOSE,
-                        ['preparation' => $preparation]
+                        [
+                            'preparation' => $preparation,
+                        ]
                     );
                     $this->entityManager->persist($pickTrackingMovement);
                     $this->entityManager->persist($DropTrackingMovement);
@@ -550,8 +560,7 @@ class PreparationsManagerService
 
     public function createMouvementsPrepaAndSplit(Preparation $preparation,
                                                   Utilisateur $user,
-                                                  EntityManagerInterface $entityManager,
-                                                  ?Emplacement $endLocation = null): array
+                                                  EntityManagerInterface $entityManager): array
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $splitArticleLineIds = [];
@@ -560,37 +569,37 @@ class PreparationsManagerService
         $articleTransitStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_EN_TRANSIT);
         $articleActiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         $now = new DateTime();
+
         foreach ($articleLines as $line) {
             $article = $line->getArticle();
             $mouvementAlreadySaved = $preparation->getArticleMovement($article);
             if (!$mouvementAlreadySaved) {
                 $pickedQuantity = $line->getPickedQuantity();
-                $selected = !(empty($pickedQuantity));
-                $article->setStatut($selected ? $articleTransitStatus : $articleActiveStatus);
                 if ($article->getQuantite() >= $pickedQuantity) {
                     // scission des articles dont la quantité prélevée n'est pas totale
                     if ($article->getQuantite() > $pickedQuantity) {
-                        $newArticle = [
-                            'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                            'libelle' => $article->getLabel(),
-                            'prix' => $article->getPrixUnitaire(),
-                            'conform' => $article->getConform(),
-                            'commentaire' => $article->getcommentaire(),
-                            'quantite' => $selected ? $pickedQuantity : 0,
-                            'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                            'statut' => $selected ? Article::STATUT_EN_TRANSIT : Article::STATUT_INACTIF,
-                            'refArticle' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : ''
-                        ];
+                        if ($pickedQuantity > 0) {
+                            $newArticle = [
+                                'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                                'libelle' => $article->getLabel(),
+                                'prix' => $article->getPrixUnitaire(),
+                                'conform' => $article->getConform(),
+                                'commentaire' => $article->getcommentaire(),
+                                'quantite' => $pickedQuantity,
+                                'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                                'statut' => Article::STATUT_EN_TRANSIT,
+                                'refArticle' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : ''
+                            ];
 
-                        // copy of all free fields
-                        $newArticle += $article->getFreeFields();
+                            // copy of all free fields
+                            $newArticle += $article->getFreeFields();
 
-                        $insertedArticle = $this->articleDataService->newArticle($entityManager, $newArticle);
-                        if ($selected) {
+                            $insertedArticle = $this->articleDataService->newArticle($entityManager, $newArticle);
                             $newArticleLine = $line->clone()
                                 ->setPreparation($line->getPreparation())
                                 ->setQuantityToPick($line->getPickedQuantity())
-                                ->setPickedQuantity($line->getPickedQuantity());
+                                ->setPickedQuantity($line->getPickedQuantity())
+                                ->setArticle($insertedArticle);
 
                             $entityManager->persist($newArticleLine);
                             if ($line->getQuantityToPick() > $line->getPickedQuantity()) {
@@ -604,51 +613,72 @@ class PreparationsManagerService
                             }
                             $article->setQuantite($article->getQuantite() - $pickedQuantity);
 
-                            $outputMovement = (new MouvementStock())
-                                ->setUser($user)
-                                ->setArticle($article)
-                                ->setQuantity($insertedArticle->getQuantite())
-                                ->setEmplacementFrom($article->getEmplacement())
-                                ->setEmplacementTo($article->getEmplacement())
-                                ->setType(MouvementStock::TYPE_SORTIE)
-                                ->setDate($now)
-                                ->setPreparationOrder($preparation);
+                            $location = $article->getEmplacement();
+                            // Output movement of the picking quantity from a stock article
+                            $outputMovement = $this->stockMovementService->createMouvementStock(
+                                $user,
+                                $location,
+                                $pickedQuantity,
+                                $article,
+                                MouvementStock::TYPE_SORTIE,
+                                [
+                                    'date' => $now,
+                                    'locationTo' => $location,
+                                    'from' => $preparation,
+                                ]
+                            );
                             $entityManager->persist($outputMovement);
-                            $inputMovement = (new MouvementStock())
-                                ->setUser($user)
-                                ->setArticle($insertedArticle)
-                                ->setQuantity($insertedArticle->getQuantite())
-                                ->setEmplacementTo($article->getEmplacement())
-                                ->setType(MouvementStock::TYPE_ENTREE)
-                                ->setDate($now)
-                                ->setPreparationOrder($preparation);
+
+                            // article creation
+                            $inputMovement = $this->stockMovementService->createMouvementStock(
+                                $user,
+                                $location,
+                                $pickedQuantity,
+                                $insertedArticle,
+                                MouvementStock::TYPE_ENTREE,
+                                [
+                                    'date' => $now,
+                                    'locationTo' => $location,
+                                    'from' => $preparation,
+                                ]
+                            );
                             $entityManager->persist($inputMovement);
-                            $transferMovement = (new MouvementStock())
-                                ->setUser($user)
-                                ->setArticle($insertedArticle)
-                                ->setQuantity($insertedArticle->getQuantite())
-                                ->setEmplacementFrom($article->getEmplacement())
-                                ->setType(MouvementStock::TYPE_TRANSFER)
-                                ->setDate($now)
-                                ->setPreparationOrder($preparation);
+
+                            $transferMovement = $this->stockMovementService->createMouvementStock(
+                                $user,
+                                $location,
+                                $pickedQuantity,
+                                $insertedArticle,
+                                MouvementStock::TYPE_TRANSFER,
+                                [
+                                    'date' => $now,
+                                    'from' => $preparation,
+                                ]
+                            );
                             $entityManager->persist($transferMovement);
                         }
                         else {
                             $splitArticleLineIds[] = $line->getId();
                         }
                     }
-                    else if ($selected) {
+                    else if ($pickedQuantity > 0) {
+                        $article->setStatut($articleTransitStatus);
                         // création des mouvements de préparation pour les articles
-                        $mouvement = new MouvementStock();
-                        $mouvement
-                            ->setUser($user)
-                            ->setArticle($article)
-                            ->setQuantity($pickedQuantity)
-                            ->setEmplacementFrom($article->getEmplacement())
-                            ->setType(MouvementStock::TYPE_TRANSFER)
-                            ->setDate($now)
-                            ->setPreparationOrder($preparation);
-                        $entityManager->persist($mouvement);
+                        $stockMovement = $this->stockMovementService->createMouvementStock(
+                            $user,
+                            $article->getEmplacement(),
+                            $pickedQuantity,
+                            $article,
+                            MouvementStock::TYPE_TRANSFER,
+                            [
+                                'date' => $now,
+                                'from' => $preparation,
+                            ]
+                        );
+                        $entityManager->persist($stockMovement);
+                    }
+                    else {
+                        throw new NegativeQuantityException($article);
                     }
                     $entityManager->flush();
                 }

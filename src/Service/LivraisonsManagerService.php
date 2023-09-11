@@ -174,7 +174,10 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
-                    ['delivery' => $livraison]
+                    [
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ]
                 );
             }
 
@@ -189,7 +192,10 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_PRISE,
                     false,
-                    ['delivery' => $livraison]
+                    [
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ]
                 );
 
                 $pickingMovement = $tracking["movement"];
@@ -203,7 +209,10 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    ['delivery' => $livraison]
+                    [
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ]
                 );
 
                 if($tracking['success']){
@@ -228,7 +237,10 @@ class LivraisonsManagerService
                     true,
                     TrackingMovement::TYPE_DEPOSE,
                     false,
-                    ['delivery' => $livraison]
+                    [
+                        "delivery" => $livraison,
+                        "stockAction" => true,
+                    ]
                 );
                 $pack
                     ->setLastDrop($dropMovement['movement'])

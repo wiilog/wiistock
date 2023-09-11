@@ -5,6 +5,7 @@
 namespace App\Command;
 
 use App\Entity\DaysWorked;
+use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
 use App\Service\DashboardService;
 use App\Service\WiilockService;
@@ -51,7 +52,7 @@ class DashboardFeedCommand extends Command {
             $output->writeln("Dashboards are being fed, aborting");
             return 0;
         }
-        $this->wiilockService->toggleFeedingDashboard($entityManager, true);
+        $this->wiilockService->toggleFeedingCommand($entityManager, true, Wiilock::DASHBOARD_FED_KEY);
         $entityManager->flush();
 
         $dashboardComponentRepository = $entityManager->getRepository(Dashboard\Component::class);
@@ -141,7 +142,7 @@ class DashboardFeedCommand extends Command {
 
         $entityManager->flush();
 
-        $this->wiilockService->toggleFeedingDashboard($entityManager, false);
+        $this->wiilockService->toggleFeedingCommand($entityManager, false, Wiilock::DASHBOARD_FED_KEY);
         $entityManager->flush();
 
         return 0;

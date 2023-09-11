@@ -61,7 +61,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
     private ?float $weight = null;
 
-    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 12, scale: 6, nullable: true)]
     private ?float $volume = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
@@ -310,20 +310,20 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function getWeight(): ?string {
+    public function getWeight(): ?float {
         return $this->weight;
     }
 
-    public function setWeight(?string $weight): self {
+    public function setWeight(?float $weight): self {
         $this->weight = $weight;
         return $this;
     }
 
-    public function getVolume(): ?string {
+    public function getVolume(): ?float {
         return $this->volume;
     }
 
-    public function setVolume(?string $volume): self {
+    public function setVolume(?float $volume): self {
         $this->volume = $volume;
         return $this;
     }

@@ -298,7 +298,7 @@ class RefArticleDataService
         }
 
         $isDangerousGood = $data->getBoolean('security');
-        $fileSheetSubmitted = $fileBag?->has('fileSheet') && !($data->get('fileSheet') === 'undefined');
+        $fileSheetSubmitted = !!$fileBag?->has('fileSheet');
         $fileSheetPreviouslySaved = $data->has('savedSheetFile');
         $fileSheetDeleted = $data->getBoolean('deletedSheetFile');
 
@@ -477,10 +477,10 @@ class RefArticleDataService
         $entityManager->persist($refArticle);
         //modification ou création des champsLibres
         $this->freeFieldService->manageFreeFields($refArticle, $data->all(), $entityManager);
+
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $file = $fileBag->get('image');
-                $attachments = $this->attachmentService->createAttachements([$file]);
+                $attachments = $this->attachmentService->createAttachements([$fileBag->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -495,14 +495,12 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $file = $fileBag->get('fileSheet');
-                $attachments = $this->attachmentService->createAttachements([$file]);
+                $attachments = $this->attachmentService->createAttachements([$fileBag->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
-                $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
-            } elseif ($data->getBoolean('deletedSheetFile')) {
+            } else {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -554,34 +552,36 @@ class RefArticleDataService
 
         $typeColor = $refArticle->getType()->getColor();
 
+        $formatService = $this->formatService;
+
         $row = [
             "id" => $refArticle->getId(),
             "image" => $this->templating->render('datatable/image.html.twig', [
                 "image" => $refArticle->getImage()
             ]),
-            "label" => $refArticle->getLibelle() ?? "Non défini",
+            "label" => $formatService->referenceArticle($refArticle,  "Non défini", true),
             "reference" => $refArticle->getReference() ?? "Non défini",
             "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
             "type" => "<div class='d-flex align-items-center'><span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>"
-                . FormatHelper::type($refArticle->getType())
+                . $formatService->type($refArticle->getType())
                 . "</div>",
-            "location" => FormatHelper::location($refArticle->getEmplacement()),
+            "location" => $formatService->location($refArticle->getEmplacement()),
             "availableQuantity" => $refArticle->getQuantiteDisponible() ?? 0,
             "stockQuantity" => $refArticle->getQuantiteStock() ?? 0,
             "buyer" => $refArticle->getBuyer() ? $refArticle->getBuyer()->getUsername() : '',
             "emergencyComment" => $refArticle->getEmergencyComment(),
-            "visibilityGroups" => FormatHelper::visibilityGroup($refArticle->getVisibilityGroup()),
+            "visibilityGroups" => $formatService->visibilityGroup($refArticle->getVisibilityGroup()),
             "barCode" => $refArticle->getBarCode() ?? "Non défini",
             "comment" => $refArticle->getCommentaire(),
-            "status" => FormatHelper::status($refArticle->getStatut()),
+            "status" => $formatService->status($refArticle->getStatut()),
             "securityThreshold" => $refArticle->getLimitSecurity() ?? "Non défini",
             "warningThreshold" => $refArticle->getLimitWarning() ?? "Non défini",
             "unitPrice" => $refArticle->getPrixUnitaire(),
-            "emergency" => FormatHelper::bool($refArticle->getIsUrgent()),
-            "mobileSync" => FormatHelper::bool($refArticle->getNeedsMobileSync()),
+            "emergency" => $formatService->bool($refArticle->getIsUrgent()),
+            "mobileSync" => $formatService->bool($refArticle->getNeedsMobileSync()),
             'supplierLabel' => implode(",", $providerLabels),
             'supplierCode' => implode(",", $providerCodes),
-            "lastInventory" => FormatHelper::date($refArticle->getDateLastInventory()),
+            "lastInventory" => $formatService->date($refArticle->getDateLastInventory()),
             "stockManagement" => $refArticle->getStockManagement(),
             'referenceSupplierArticle' => Stream::from($refArticle->getArticlesFournisseur())
                 ->map(fn(ArticleFournisseur $articleFournisseur) => $articleFournisseur->getReference())
@@ -595,16 +595,17 @@ class RefArticleDataService
                 })
                 ->unique()
                 ->join(", "),
-            "createdAt" => FormatHelper::datetime($refArticle->getCreatedAt()),
-            "createdBy" => $refArticle->getCreatedBy() ? FormatHelper::user($refArticle->getCreatedBy()) : "-",
-            "lastStockEntry" => FormatHelper::datetime($refArticle->getLastStockEntry()),
-            "editedAt" => FormatHelper::datetime($refArticle->getEditedAt()),
-            "editedBy" => FormatHelper::user($refArticle->getEditedBy()),
-            "lastStockExit" => FormatHelper::datetime($refArticle->getLastStockExit()),
+            "createdAt" => $formatService->datetime($refArticle->getCreatedAt()),
+            "createdBy" => $refArticle->getCreatedBy() ? $formatService->user($refArticle->getCreatedBy()) : "-",
+            "lastStockEntry" => $formatService->datetime($refArticle->getLastStockEntry()),
+            "editedAt" => $formatService->datetime($refArticle->getEditedAt()),
+            "editedBy" => $formatService->user($refArticle->getEditedBy()),
+            "lastStockExit" => $formatService->datetime($refArticle->getLastStockExit()),
             "upToDateInventory" => $refArticle->hasUpToDateInventory() ? 'Oui' : 'Non',
             "actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 "attachmentsLength" => $refArticle->getAttachments()->count(),
                 "reference_id" => $refArticle->getId(),
+                "reference_label" => $formatService->referenceArticle($refArticle, "Non défini", true),
                 "active" => $refArticle->getStatut() ? $refArticle->getStatut()?->getCode() == ReferenceArticle::STATUT_ACTIF : 0,
             ]),
             "colorClass" => (
@@ -1187,9 +1188,8 @@ class RefArticleDataService
     public function getDraftDefaultReference(EntityManagerInterface $entityManager): string
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $prefix = "A DEFINIR";
-        $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
-        return $prefix . ($referenceCount + 1);
+        $lastDraftReferenceNumber = $referenceArticleRepository->getLastDraftReferenceNumber();
+        return ReferenceArticle::TO_DEFINE_LABEL . ($lastDraftReferenceNumber + 1);
     }
 
     public function putReferenceLine($handle,

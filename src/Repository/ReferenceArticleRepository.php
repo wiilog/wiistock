@@ -862,6 +862,16 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
+    public function getLastDraftReferenceNumber(): int {
+        $length = strlen(ReferenceArticle::TO_DEFINE_LABEL) + 1;
+        return $this->createQueryBuilder("reference_article")
+            ->select("MAX(CAST(SUBSTRING(reference_article.reference, $length) AS SIGNED)) AS max")
+            ->andWhere("reference_article.reference LIKE :toDefineLabel")
+            ->setParameter("toDefineLabel", ReferenceArticle::TO_DEFINE_LABEL . "%")
+            ->getQuery()
+            ->getOneOrNullResult()['max'] ?: 0;
+    }
+
     public function getByPreparationsIds($preparationsIds): array
     {
         return $this->createQueryBuilder('reference_article')

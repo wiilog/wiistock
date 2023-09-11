@@ -43,7 +43,7 @@ $(function () {
     let modalEditLigneArticle = $("#modalEditLigneArticle");
     let submitEditLigneArticle = $("#submitEditLigneArticle");
     InitModal(modalEditLigneArticle, submitEditLigneArticle, urlEditLigneArticle, {
-        success: () => loadLogisticUnitList($preparationId.val())
+        success: ({needReload}) =>  needReload ? window.location.reload() : loadLogisticUnitList($preparationId.val())
     });
 });
 
@@ -150,28 +150,25 @@ function submitSplitting($submit) {
                     };
                 }, {})
 
-            let path = Routing.generate('submit_splitting', true);
-            let params = {
-                articles: chosenArticles,
-                quantite: $submit.data('qtt'),
-                demande: $submit.data('demande'),
-                refArticle: $submit.data('ref'),
-                preparation: $submit.data('prep')
-            };
-
-            $.post(path, JSON.stringify(params))
-                .then((data) => {
-                    const $modal = $submit.closest('.modal');
-                    $submit.removeClass('loading');
-                    $submit.popLoader();
-                    if (data.success) {
-                        $modal.find('.close').click();
+            AJAX
+                .route(AJAX.POST, 'submit_splitting')
+                .json( {
+                    articles: chosenArticles,
+                    quantite: $submit.data('qtt'),
+                    demande: $submit.data('demande'),
+                    refArticle: $submit.data('ref'),
+                    preparation: $submit.data('prep')
+                })
+                .then(({success, needReload}) => {
+                    if (needReload) {
+                        window.location.reload();
+                    } else if (success) {
+                        $('#modalSplitting').modal('hide');
                         loadLogisticUnitList($preparationId.val());
-                    } else if (data.msg) {
-                        $modal.find('.error-msg').html(data.msg);
-                        showBSAlert(data.msg, 'danger');
+                    } else {
+                        showBSAlert(message, 'danger');
                     }
-                });
+                })
         }
     }
 }
@@ -188,17 +185,6 @@ function addToScissionAll($checkbox) {
     }
 
     validatePreparationArticlesSplitting();
-}
-
-function beginPrepa() {
-    if (!prepaHasBegun) {
-        let prepaId = $preparationId.val();
-        let path = Routing.generate('prepa_begin');
-
-        $.post(path, prepaId, () => {
-            prepaHasBegun = true;
-        });
-    }
 }
 
 function validatePreparationArticlesSplitting() {
@@ -300,7 +286,7 @@ function finishPrepa($button) {
 
     const canProceed = data
         .flat()
-        .reduce((total, elem) => total + elem) > 0;
+        .reduce((total, elem) => total + elem, 0) > 0;
     if (!canProceed) {
         showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');
     } else if (!$button.hasClass('loading')) {
@@ -461,9 +447,12 @@ function treatLine(event, $line) {
         wrapLoadingOnActionButton($line, () => (
             AJAX.route(`GET`, `prepa_edit_ligne_article`, {values: JSON.stringify(values)})
                 .json()
-                .then(() => {
+                .then(({needReload}) => {
                     Flash.add(`success`, `Les articles de l'unité logistique ont bien été préparés.`);
                     loadLogisticUnitList($preparationId.val());
+                    if(needReload){
+                        window.location.reload();
+                    }
                 })
         ));
     }

@@ -32,8 +32,9 @@
                 icon: "wii-icon wii-icon-printer-black",
                 title: "Générer un bon de livraison",
                 dropdownOnly: true,
+                class: 'generate-delivery-note',
                 attributes: {
-                    "onclick": "openDeliveryNoteModal($(this), true)",
+                    "onclick": "openModal('#modalPrintDeliveryNote')",
                 },
             },
             {

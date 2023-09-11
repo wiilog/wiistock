@@ -5,9 +5,9 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '6.38.1#rfid'
-    nomade_version: '=6.36.6#rfid'
-    nomade_apk: 'https://ftp.wiilog.fr/wiistock/app-current-rfid.apk'
+    web_version: '7.0.2'
+    nomade_version: '=7.0.2'
+    nomade_apk: 'https://ftp.wiilog.fr/wiistock/app-7-0-2.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 
@@ -66,6 +66,17 @@ services:
     App\Command\DumpRoutingCommand:
         arguments: ['@kernel', '@fos_js_routing.extractor', '@serializer']
 
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
+        arguments:
+            - '%env(DATABASE_URL)%'
+            - { db_table: 'user_session',
+                db_id_col: 'id',
+                db_data_col: 'data',
+                db_time_col: 'time',
+                db_lifetime_col: 'lifetime',
+                lock_mode: '1',
+                db_connection_options: '%env(json:DATABASE_SSL_CONFIG)%' }
+
     wiistock.specific_service:
         class: App\Service\SpecificService
         public: true
@@ -101,10 +112,6 @@ services:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.controller_arguments', method: 'onRequest' }
 
-    App\EventListener\LoginListener:
-        tags:
-            - { name: 'kernel.event_listener', event: 'security.interactive_login' }
-
     App\EventListener\ExceptionLoggerListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 1 }
@@ -112,5 +119,10 @@ services:
     App\EventListener\FormExceptionListener:
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.exception', priority: 2 }
+
+    App\EventListener\LogoutListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'Symfony\Component\Security\Http\Event\LogoutEvent', dispatcher: security.event_dispatcher.main }
+
     saml_user_factory:
         class: App\Security\SAMLUserFactory

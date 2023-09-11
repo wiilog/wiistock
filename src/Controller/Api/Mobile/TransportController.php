@@ -469,7 +469,18 @@ class TransportController extends AbstractApiController
             $pack->getTransportDeliveryOrderPack()?->setState(TransportDeliveryOrderPack::LOADED_STATE);
 
             $trackingMovement = $trackingMovementService
-                ->createTrackingMovement($pack, $location, $user, $now, true, true, TrackingMovement::TYPE_DEPOSE);
+                ->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $user,
+                    $now,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
+                );
             $manager->persist($trackingMovement);
         }
 
@@ -515,7 +526,10 @@ class TransportController extends AbstractApiController
                     $now,
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $manager->persist($trackingMovement);
@@ -556,7 +570,10 @@ class TransportController extends AbstractApiController
             $now,
             true,
             true,
-            TrackingMovement::TYPE_EMPTY_ROUND
+            TrackingMovement::TYPE_EMPTY_ROUND,
+            [
+                'quantity' => 0
+            ]
         );
         $manager->persist($trackingMovement);
 
@@ -827,7 +844,10 @@ class TransportController extends AbstractApiController
                                 $now,
                                 true,
                                 true,
-                                TrackingMovement::TYPE_DEPOSE);
+                                TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'quantity' =>  $line->getPack()->getQuantity()
+                            ]);
                         $manager->persist($trackingMovement);
                     }
                 }
@@ -1171,7 +1191,10 @@ class TransportController extends AbstractApiController
                     new DateTime(),
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $transport = $pack->getTransportDeliveryOrderPack()->getOrder();
@@ -1226,7 +1249,10 @@ class TransportController extends AbstractApiController
                         new DateTime(),
                         true,
                         true,
-                        TrackingMovement::TYPE_DEPOSE
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'quantity' => $createdPack->getQuantity()
+                        ]
                     );
 
                     $manager->persist($createdPack);

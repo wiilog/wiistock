@@ -3,6 +3,7 @@ import EditableDatatable, {MODE_ADD_ONLY, MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MA
 import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
+import {initializeLicencesPage} from "./users/licences";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
@@ -90,6 +91,7 @@ const initializers = {
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
     utilisateurs_roles: initializeRolesPage,
+    utilisateurs_licences: initializeLicencesPage,
     stock_receptions_types_litiges: initializeReceptionTypesLitige,
     trace_arrivages_types_litiges: initializeTraceArrivalTypesLitige,
     trace_arrivages_statuts: initializeArrivalStatuses,
@@ -265,17 +267,21 @@ $(function() {
 
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
+        const isSubLine = Boolean($button.data('is-sub-line'));
         const $modal = $button.closest(`.modal`);
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
+
         if(data) {
-            AJAX.route(`POST`, `settings_save_field_param`, {field})
-                .json(data)
-                .then((response) => {
-                    if(response.success){
-                        $modal.modal(`hide`);
-                    }
-                });
+            wrapLoadingOnActionButton($modal.find(`[type=submit]`), () => (
+                AJAX.route(POST, `settings_save_field_param`, {field, isSubLine})
+                    .json(data)
+                    .then((response) => {
+                        if(response.success){
+                            $modal.modal(`hide`);
+                        }
+                    })
+            ));
         }
     });
 
@@ -677,6 +683,25 @@ function initializeDispatchFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+
+    EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
+        route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`, width: `115px`},
+            {data: `displayed`, title: `Afficher`, width: `70px`},
+            {data: `required`, title: `Obligatoire`},
         ],
     });
 }
