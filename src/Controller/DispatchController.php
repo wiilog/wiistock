@@ -411,21 +411,6 @@ class DispatchController extends AbstractController {
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
-        if(isset($fileBag)) {
-            $fileNames = [];
-            foreach($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachements($fileNames);
-            foreach($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $dispatch->addAttachment($attachment);
-            }
-        }
-
         if(!empty($packs)) {
             $dispatchService->manageDispatchPacks($dispatch, $packs, $entityManager);
         }
