@@ -24,7 +24,7 @@ function initPage() {
         serverSide: true,
         ajax:{
             "url": pathUrgences,
-            "type": "GET"
+            "type": "POST"
         },
         order: [['start', "desc"]],
         columns:[
