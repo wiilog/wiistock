@@ -15,7 +15,8 @@ final class Version20230828090636 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        if(!$schema->getTable('article')->hasColumn('manufactured_at')) {
+        if(!$schema->getTable('article')->hasColumn('manufactured_at')
+            && $schema->getTable('article')->hasColumn('manifacturing_date')) {
             $this->addSql("ALTER TABLE article RENAME COLUMN manifacturing_date TO manufactured_at");
         }
 

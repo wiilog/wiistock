@@ -43,6 +43,8 @@ class ReferenceArticle
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
     const MAX_NOMADE_SYNC = 4000;
 
+    public const TO_DEFINE_LABEL = "A DEFINIR";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
