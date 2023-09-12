@@ -10,6 +10,7 @@ use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @extends EntityRepository<SessionHistoryRecord>
@@ -119,7 +120,9 @@ class SessionHistoryRecordRepository extends EntityRepository
     }
 
     public function countOpenedSessions(): int {
-        $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
+        $wiilogDomains = Stream::explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "")
+            ->filter()
+            ->toArray();
 
         $queryBuilder = $this->createQueryBuilder("session_history_record")
             ->leftJoin('session_history_record.user', 'user')
@@ -129,7 +132,7 @@ class SessionHistoryRecordRepository extends EntityRepository
             $parameterName = "domain$index";
             $queryBuilder
                 ->andWhere("user.email NOT LIKE :$parameterName")
-                ->setParameter($parameterName, "%@$domain%");
+                ->setParameter($parameterName, "%@$domain");
         }
 
         return $queryBuilder

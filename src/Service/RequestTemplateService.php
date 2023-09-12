@@ -64,7 +64,7 @@ class RequestTemplateService {
                 ->setDestination($data["destination"] ?? null)
                 ->setCarriedOutOperationCount(($data["carriedOutOperationCount"] ?? null) ?: null)
                 ->setComment($data["comment"] ?? null)
-                ->setAttachments($this->attachmentService->createAttachements($files));
+                ->setAttachments($this->attachmentService->createAttachments($files));
         } else if ($template instanceof DeliveryRequestTemplate) {
             $locationRepository = $this->manager->getRepository(Emplacement::class);
 

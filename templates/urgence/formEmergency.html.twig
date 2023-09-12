@@ -117,4 +117,21 @@
         </div>
     {% endif %}
 
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, trans('Traçabilité', 'Urgences', 'Code article interne', false), requiredOnform, emergency.internalArticleCode) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-6 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, trans('Traçabilité', 'Urgences', 'Code article fournisseur', false), requiredOnform, emergency.supplierArticleCode) }}
+        </div>
+    {% endif %}
 </div>

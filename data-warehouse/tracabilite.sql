@@ -2,7 +2,7 @@ SELECT tracking_movement.id                                        AS mouvement_
        tracking_movement.datetime                                  AS date_mouvement,
        IF(tracking_movement.logistic_unit_parent_id IS NOT NULL,
           IF(type_mouvement.nom IN ('prise', 'depose'), '', tracking_movement_logistic_unit_parent.code),
-          COALESCE(article.bar_code, tracking_movement_pack.code)) AS code_colis,
+          COALESCE(article.bar_code, tracking_movement_pack.code)) AS code_ul,
        article.bar_code                                            AS code_barre_article,
        type_mouvement.nom                                          AS type_mouvement,
        IF(tracking_movement_parent_pack.id, CONCAT(tracking_movement_parent_pack.code,

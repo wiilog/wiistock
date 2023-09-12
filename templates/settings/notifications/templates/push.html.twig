@@ -19,7 +19,7 @@
 {% set image = config and config['image'] is defined ? config['image'] : '' %}
 <div class="col-md-4 col-12 d-flex flex-column">
     <label class="wii-field-name mb-2">Image de notification</label>
-    <img src="{{ image ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ image : '' }}"
+    <img src="{{ image ? app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachments/" ~ image : '' }}"
          id="preview-mail-image" alt="Logo choisi" height="50px" class="{{ image ? '' : 'd-none' }} mr-2"/>
 
     <div>
