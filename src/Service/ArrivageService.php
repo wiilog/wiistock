@@ -641,33 +641,25 @@ class ArrivageService {
     }
 
     public function getLocationForTracking(EntityManagerInterface $entityManager,
-                                           Arrivage $arrivage): ?Emplacement {
+                                           Arrivage               $arrivage): ?Emplacement
+    {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
-            $location = $emplacementRepository->find($customsArrivalsLocation);
-        }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
-            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
-        }
-        else if (
-            (
-                $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-                || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)
-            ) && $arrivage->getDestinataire()) {
-            $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
-        } else if ($arrivage->getDropLocation()) {
-            $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
-            $location = $emplacementRepository->find($defaultArrivalsLocation);
-        }
-        else {
-            $location = null;
-        }
+        $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        $dropOffLocationIfReceiver = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECEIVER);
+        $defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
 
-        return $location;
+        return match (true) {
+            $arrivage->getCustoms() && $customsArrivalsLocation => $emplacementRepository->find($customsArrivalsLocation),
+            $arrivage->getIsUrgent() && $emergenciesArrivalsLocation => $emplacementRepository->find($emergenciesArrivalsLocation),
+            $dropOffLocationIfReceiver && $arrivage->getDestinataire() => $emplacementRepository->find($dropOffLocationIfReceiver),
+            $arrivage->getDropLocation() !== null => $arrivage->getDropLocation(),
+            $defaultArrivalsLocation => $emplacementRepository->find($defaultArrivalsLocation),
+            default => null,
+        };
     }
 
     public function sendMailForDeliveredPack(Emplacement            $location,

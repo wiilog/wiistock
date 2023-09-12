@@ -219,6 +219,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MVT_DEPOSE_DESTINATION => [],
             Setting::DROP_OFF_LOCATION_IF_CUSTOMS => [],
             Setting::DROP_OFF_LOCATION_IF_EMERGENCY => [],
+            Setting::DROP_OFF_LOCATION_IF_RECEIVER => [],
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
                 "default" => json_encode(["provider", "commande"]),
             ],
