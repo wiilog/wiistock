@@ -56,7 +56,9 @@ function initPage() {
                 "targets": [1, 2]
             }
         ],
+        page: 'emergency',
     };
+
     let tableEmergencies = initDataTable('tableEmergencies', tableUrgenceConfig);
 
     let $modalNewUrgence = $('#modalNewEmergency');
