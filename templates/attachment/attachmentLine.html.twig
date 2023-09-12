@@ -4,7 +4,7 @@
 
 {% set href = attachment.fullPath is defined and attachment.fullPath is not null
     ? attachment.fullPath
-    : ('/uploads/attachements/' ~ attachment.fileName) %}
+    : ('/uploads/attachments/' ~ attachment.fileName) %}
 {% set tooltip = tooltip ?? true %}
 {% set sheetFileClass = sheetFileClass is defined and sheetFileClass ? sheetFileClass : "" %}
 {% set name = savedSheetFiles is defined and savedSheetFiles ? savedSheetFiles : "savedFiles[]" %}

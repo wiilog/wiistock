@@ -105,7 +105,7 @@
                     {% endif %}
                     {% for attachment in order.attachments %}
                         <div class="wii-small-text">
-                            <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachements/' ~ attachment.fileName }}"
+                            <a href="{{ attachment.fullPath is defined and attachment.fullPath is not null ? attachment.fullPath : '/uploads/attachments/' ~ attachment.fileName }}"
                                download="{{ attachment.originalName }}" title="{{ attachment.originalName }}" class="text-primary underlined stop-propagation">{{ attachment.originalName }}</a>
                         </div>
                     {% endfor %}

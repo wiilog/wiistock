@@ -351,7 +351,7 @@ class ReferenceArticleController extends AbstractController
 
             $files = $request->files;
             if($files->has('image')) {
-                $attachments = $attachmentService->createAttachements([$files->get('image')]);
+                $attachments = $attachmentService->createAttachments([$files->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -359,7 +359,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             if($files->has('fileSheet')) {
-                $attachments = $attachmentService->createAttachements([$files->get('fileSheet')]);
+                $attachments = $attachmentService->createAttachments([$files->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);

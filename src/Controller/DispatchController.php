@@ -270,7 +270,7 @@ class DispatchController extends AbstractController {
                     $attachmentService->saveFile($file)
                 );
             }
-            $attachments = $attachmentService->createAttachements($fileNames);
+            $attachments = $attachmentService->createAttachments($fileNames);
             foreach($attachments as $attachment) {
                 $entityManager->persist($attachment);
                 $dispatch->addAttachment($attachment);
@@ -537,7 +537,7 @@ class DispatchController extends AbstractController {
     public function printDispatchStateSheet(TranslationService $translationService,
                                             Dispatch           $dispatch,
                                             DispatchService    $dispatchService,
-                                            KernelInterface    $kernel): ?Response
+                                            AttachmentService  $attachmentService): ?Response
     {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
@@ -550,11 +550,7 @@ class DispatchController extends AbstractController {
 
         $dispatchSheet = $dispatch->getAttachments()->last();
 
-        $fileName = $dispatchSheet->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($dispatchSheet->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchSheet->getOriginalName());
@@ -792,7 +788,7 @@ class DispatchController extends AbstractController {
                                         AttachmentService $attachmentService,
                                         Request $request,
                                         EntityManagerInterface $entityManager): void {
-        $attachments = $attachmentService->createAttachements($request->files);
+        $attachments = $attachmentService->createAttachments($request->files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachment($attachment);
@@ -1277,7 +1273,7 @@ class DispatchController extends AbstractController {
     public function printDeliveryNote(TranslationService $translationService,
                                       Dispatch           $dispatch,
                                       DispatchService    $dispatchService,
-                                      KernelInterface    $kernel): Response
+                                      AttachmentService  $attachmentService): Response
     {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
@@ -1290,11 +1286,7 @@ class DispatchController extends AbstractController {
 
         $deliveryNote = $dispatch->getAttachments()->last();
 
-        $fileName = $deliveryNote->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($deliveryNote->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $deliveryNote->getOriginalName());
@@ -1371,7 +1363,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
         return $response;
     }
@@ -1414,18 +1406,14 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL])]
     public function printOverconsumptionBill(Dispatch        $dispatch,
                                              DispatchService $dispatchService,
-                                             KernelInterface $kernel): Response
+                                             AttachmentService $attachmentService): Response
     {
 
         $data = $dispatchService->getOverconsumptionBillData($dispatch);
 
         $overConsumptionBill = $dispatch->getAttachments()->last();
 
-        $fileName = $overConsumptionBill->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($overConsumptionBill->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overConsumptionBill->getOriginalName());
@@ -1759,17 +1747,13 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
     public function printDispatchLabel(Dispatch          $dispatch,
                                        DispatchService   $dispatchService,
-                                       KernelInterface   $kernel): Response
+                                       AttachmentService $attachmentService): Response
     {
         $data = $dispatchService->getDispatchLabelData($dispatch);
 
         $dispatchLabel = $dispatch->getAttachments()->last();
 
-        $fileName = $dispatchLabel->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($dispatchLabel->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());

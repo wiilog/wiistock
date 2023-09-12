@@ -19,7 +19,7 @@
         <div>{{ translateIn(language, 'Général', null, 'Modale', 'Pièces jointes') }} :</div>
         {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
         {% for pj in pjs %}
-            <a href="{{ linkBaseHref ~ asset('uploads/attachements/' ~ pj.fileName) }}">
+            <a href="{{ linkBaseHref ~ asset('uploads/attachments/' ~ pj.fileName) }}">
                 {{ pj.OriginalName }}
             </a>
             <br>

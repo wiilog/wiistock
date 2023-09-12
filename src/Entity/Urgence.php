@@ -53,6 +53,12 @@ class Urgence {
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $type = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $internalArticleCode = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $supplierArticleCode = null;
+
     public function __construct() {
         $this->createdAt = new DateTime('now');
     }
@@ -167,6 +173,30 @@ class Urgence {
     public function setType(?string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getInternalArticleCode(): ?string
+    {
+        return $this->internalArticleCode;
+    }
+
+    public function setInternalArticleCode(?string $internalArticleCode): self
+    {
+        $this->internalArticleCode = $internalArticleCode;
+
+        return $this;
+    }
+
+    public function getSupplierArticleCode(): ?string
+    {
+        return $this->supplierArticleCode;
+    }
+
+    public function setSupplierArticleCode(?string $supplierArticleCode): self
+    {
+        $this->supplierArticleCode = $supplierArticleCode;
 
         return $this;
     }
