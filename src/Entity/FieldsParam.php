@@ -196,6 +196,8 @@ class FieldsParam {
     const FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER = "trackingNumber";
     const FIELD_CODE_EMERGENCY_CARRIER = "emergencyCarrier";
     const FIELD_CODE_EMERGENCY_TYPE = "emergencyType";
+    const FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE = "internalArticleCode";
+    const FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE = "supplierArticleCode";
 
     const FIELD_LABEL_EMERGENCY_BUYER = "acheteur";
     const FIELD_LABEL_EMERGENCY_PROVIDER = "fournisseur";
@@ -204,6 +206,8 @@ class FieldsParam {
     const FIELD_LABEL_EMERGENCY_CARRIER_TRACKING_NUMBER = "numéro de tracking transporteur";
     const FIELD_LABEL_EMERGENCY_CARRIER = "transporteur";
     const FIELD_LABEL_EMERGENCY_TYPE = "type d'urgence";
+    const FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE = "code article interne";
+    const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,

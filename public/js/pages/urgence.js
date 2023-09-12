@@ -41,6 +41,8 @@ function initPage() {
             {"data": 'arrivalNb', 'name' : 'arrivalNb', 'title' : Translation.of('Traçabilité', 'Urgences', 'Numéro d\'arrivage UL', false)},
             {"data": 'createdAt', 'name': 'createdAt', 'title': Translation.of('Général', null, 'Zone liste', 'Date de création', false)},
             {"data": 'type', 'name': 'type', 'title': 'Type d\'urgence'},
+            {"data": 'internalArticleCode', 'name': 'internalArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article interne', false)},
+            {"data": 'supplierArticleCode', 'name': 'supplierArticleCode', 'title': Translation.of('Traçabilité', 'Urgences', 'Code article fournisseur', false)},
         ],
         drawConfig: {
             needsSearchOverride: true,

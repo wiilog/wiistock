@@ -194,6 +194,8 @@ class UrgenceRepository extends EntityRepository {
                         ->andWhere('(' . $exprBuilder->orX(
                                 'u.commande LIKE :value',
                                 'u.postNb LIKE :value',
+                                'u.internalArticleCode LIKE :value',
+                                'u.supplierArticleCode LIKE :value',
                                 'u.trackingNb LIKE :value',
                                 'b_search.username LIKE :value',
                                 'p_search.nom LIKE :value',

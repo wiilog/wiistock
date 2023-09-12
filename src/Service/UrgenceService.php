@@ -80,6 +80,8 @@ class UrgenceService
                 'urgence' => $urgence
             ]),
             'type' => $urgence->getType(),
+            'internalArticleCode' => $urgence->getInternalArticleCode() ?? '',
+            'supplierArticleCode' => $urgence->getSupplierArticleCode() ?? '',
         ];
     }
 
