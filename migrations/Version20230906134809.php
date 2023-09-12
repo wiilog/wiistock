@@ -14,9 +14,8 @@ use Symfony\Component\HttpKernel\KernelInterface;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230906134809 extends AbstractMigration implements ContainerAwareInterface
+final class Version20230906134809 extends AbstractMigration
 {
-    use ContainerAwareTrait;
 
     public function getDescription(): string
     {
