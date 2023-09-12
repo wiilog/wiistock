@@ -31,7 +31,7 @@ class RenameAttachmentsDirectory extends Command {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
-        $currentAttachmentsDirectory = "{$this->kernel->getProjectDir()}/public/uploads/attachments";
+        $currentAttachmentsDirectory = "{$this->kernel->getProjectDir()}/public/uploads/attachements";
         $newAttachmentsDirectory = $this->attachmentService->getAttachmentDirectory();
 
         if (file_exists($currentAttachmentsDirectory)) {
