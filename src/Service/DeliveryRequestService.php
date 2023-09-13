@@ -1136,9 +1136,9 @@ class DeliveryRequestService
     }
 
     public function getDeliveryRequestLineComment(DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
-        $request = $requestLine->getRequest();
-        $receiver = $request->getReceiver();
-        $project = $requestLine->getProject();
+        $request = $requestLine?->getRequest();
+        $receiver = $request?->getReceiver();
+        $project = $requestLine?->getProject();
         $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
         if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
             $settingRepository = $this->entityManager->getRepository(Setting::class);
