@@ -1,0 +1,46 @@
+{% set isHome = true %}
+
+{% extends 'delivery_station/layout.thml.twig' %}
+
+{% block title %} Caisse automatique {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('delivery-station') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="home-page-wrapper">
+        <div class="page-content home">
+            <h1 class="home">
+                Sortie de stock
+            </h1>
+            <p>{{ homeMessage|raw }}</p>
+            <div class="row">
+                <div class="col-12">
+                    <label class="w-100">
+                        Clé de connexion nomade
+                        <input type="password" class="data w-100" required autofocus name="mobileLoginKey">
+                    </label>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-12 d-flex justify-content-center">
+                    <button class="login">
+                        Connexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'delivery_station/modalRequiredMobileLoginKey.twig' %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('delivery-station') }}
+{% endblock %}
+
+

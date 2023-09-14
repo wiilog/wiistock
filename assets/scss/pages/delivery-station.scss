@@ -1,0 +1,45 @@
+@import "../variables";
+
+.wrapper button {
+    min-width: 200px !important;
+    height: 60px !important;
+    font-size: 20px !important;
+}
+
+.form-header {
+    font-size: 35px !important;
+}
+
+.wii-subtitle {
+    font-size: 16px !important;
+}
+
+.timeline-container {
+    margin: 20px 5% !important;
+
+    span {
+        font-size: 13px !important;
+    }
+}
+
+.form-content {
+    margin: 10px 5% !important;
+
+    .reference-informations {
+        height: fit-content;
+    }
+}
+
+label {
+    font-size: 15px !important;
+
+    select.form-control, input.form-control, .select2-selection--single, input:not(.select2-search__field) {
+        height: 50px !important;
+        margin-top: 0 !important;
+    }
+
+    .select2.select2-container.select2-container--default .select2-selection.select2-selection.select2-selection--single {
+        height: 50px !important;
+        margin-top: 0 !important;
+    }
+}
