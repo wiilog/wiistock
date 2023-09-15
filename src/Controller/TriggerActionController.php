@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/iot/actionneurs")
@@ -60,7 +61,7 @@ class TriggerActionController extends AbstractController
                         TriggerActionService $triggerActionService): Response
     {
         if($data = json_decode($request->getContent(), true)){
-            $sensorWrapperRepository= $entityManager->getRepository(SensorWrapper::class);
+            $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
             if($data['sensorWrapper']){
                 $name = $data['sensorWrapper'];
                 $sensorWrapper = $sensorWrapperRepository->findOneBy(["id" => $name, 'deleted' => false]);
@@ -68,49 +69,76 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper = null;
             }
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-                $triggerActionConfig = [
+                $triggerActionConfigs = [
                     "sensorHygrometryLimitLower" => [
                         "limit" => TriggerAction::LOWER,
-                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                        "configName" => [TriggerAction::ACTION_TYPE_HYGROMETRY],
                         "templateType" => "templateTypeLowerHygro",
                         "template" => "templatesForLowerHygro",
                     ],
                     "sensorHygrometryLimitHigher" => [
                         "limit" => TriggerAction::HIGHER,
-                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                        "configName" => [TriggerAction::ACTION_TYPE_HYGROMETRY],
                         "templateType" => "templateTypeHigherHygro",
                         "template" => "templatesForHigherHygro",
                     ],
                     "sensorTemperatureLimitLower" => [
                         "limit" => TriggerAction::LOWER,
-                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                        "configValues" => [TriggerAction::ACTION_TYPE_TEMPERATURE],
                         "data" => "sensorTemperatureLimitLower",
                         "templateType" => "templateTypeLowerTemp",
                         "template" => "templatesForLowerTemp",
                     ],
                     "sensorTemperatureLimitHigher" => [
                         "limit" => TriggerAction::HIGHER,
-                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                        "configValues" => [TriggerAction::ACTION_TYPE_TEMPERATURE],
                         "templateType" => "templateTypeHigherTemp",
                         "template" => "templatesForHigherTemp",
                     ],
+                    "zone" => [
+                        "configValues" => ["zone", "buttonIndex"],
+                    ]
                 ];
 
-                $triggerActionHaveBeenCreated = false;
-                foreach ($triggerActionConfig as $key => $config) {
-                    $limitValue = $data[$key] ?? false;
-                    if ($limitValue) {
-                        $triggerAction = $triggerActionService->createTriggerActionByTemplateType($entityManager, $data[$config["templateType"]],  $data[$config["template"]], $sensorWrapper);
-                        $triggerAction->setConfig([
-                            'limit' => $config["limit"],
-                            $config["type"] => $limitValue,
-                        ]);
-                        $triggerActionHaveBeenCreated = true;
+                foreach ($triggerActionConfigs as $key => $triggerActionConfig) {
+                    $config = Stream::from($data[$key] ?? [])
+                        ->keymap(fn(string $key) => [$key, $data[$key] ?? null])
+                        ->toArray();
+                    // at least one element defined
+                    $valueDefined = Stream::from($config)->some(fn($value) => isset($value));
+
+                    if ($valueDefined) {
+                        if (isset($triggerActionConfig["limit"])) {
+                            $config['limit'] = $triggerActionConfig["limit"];
+                        }
+
+                        if(isset($config['buttonIndex'])) {
+                            $buttonIndexNeverSet = $sensorWrapper->getTriggerActions()
+                                ->filter(fn(TriggerAction $trigger) => (
+                                    intval($trigger->getConfig()['buttonIndex'] ?? null) === intval($config['buttonIndex'])
+                                ))
+                                ->isEmpty();
+                            if (!$buttonIndexNeverSet) {
+                                return $this->json([
+                                    'success' => false,
+                                    'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
+                                ]);
+                            }
+                        }
+
+                        $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
+                            $entityManager,
+                            $sensorWrapper,
+                            $data[$triggerActionConfig["templateType"]] ?? "",
+                            $data[$triggerActionConfig["template"]] ?? "",
+                            $config
+                        );
+
                         $entityManager->persist($triggerAction);
                     }
                 }
 
-                if (!$triggerActionHaveBeenCreated) {
+                if (!isset($triggerAction)) {
                     return $this->json([
                         'success' => false,
                         'msg' => "Aucun actionneur n'a été créé, veuillez remplir les champs"
