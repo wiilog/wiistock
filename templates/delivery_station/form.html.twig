@@ -38,7 +38,7 @@
                             {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
                                 type: 'reference',
                                 inputClass: 'w-50',
-                                labelClass: 'w-100',
+                                labelClass: 'd-flex flex-column',
                                 includeParams: '[name=freeField1],[name=freeField2],[name=freeField3]',
                                 includeParamsParent: '.reference-choice-container',
                             }) }}
@@ -46,40 +46,31 @@
                     </div>
                     <div class="quantity-choice-container d-none">
                         <div class="row">
-                            <div class="reference-informations col-5 d-flex">
-                                <img class="image mr-3"
-                                     alt="Image référence"
-                                     width="150px"
-                                     style="
-                                         background-image: url('{{ asset('svg/reference_article/product.svg') }}');
-                                         background-color: #F5F5F7;
-                                         background-size: 50%;
-                                         background-repeat: no-repeat;
-                                         background-position: center"
-                                >
-
-                                <div class="d-flex flex-column justify-content-around py-2">
-                                    <div class="wii-field-name">
-                                        <strong>Référence:</strong>
-                                        <span class="reference wii-field-text"></span>
-                                    </div>
-                                    <div class="wii-field-name">Libellé:
-                                        <span class="label wii-field-text"></span>
-                                    </div>
-                                    <div class="wii-field-name">Quantité disponible:
-                                        <span class="quantity wii-field-text"></span>
-                                    </div>
-                                    <div class="wii-field-name">Code fournisseur:
-                                        <span class="supplierCode wii-field-text"></span>
+                            <div class="reference-informations col-6">
+                                <div class="d-flex">
+                                    <img class="image mr-3" width="150px" src="">
+                                    <div class="d-flex flex-column justify-content-around py-2">
+                                        <div class="wii-field-name">
+                                            <strong>Référence:</strong>
+                                            <span class="reference wii-field-text"></span>
+                                        </div>
+                                        <div class="wii-field-name">Libellé:
+                                            <span class="label wii-field-text"></span>
+                                        </div>
+                                        <div class="wii-field-name">Quantité disponible:
+                                            <span class="stockQuantity wii-field-text"></span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-1 d-flex align-items-start justify-content-end">
-                                <img src="{{ asset('svg/reference_article/location.svg') }}" width="50px">
+                                <div class="wii-field-name mt-3">Code(s) fournisseur(s):
+                                    <ul class="suppliers wii-field-text"></ul>
+                                    <span class="wii-small-text italic">Renseignez un code barre pour afficher le(s) code(s) fournisseur(s).</span>
+                                </div>
                             </div>
                             <div class="col-6">
                                 <div class="d-flex align-items-center">
-                                    <div class="bold wii-field-name">Emplacement:
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" width="50px">
+                                    <div class="wii-field-name">Emplacement:
                                         <span class="location"></span>
                                     </div>
                                 </div>
@@ -100,27 +91,49 @@
                             </div>
                         </div>
                     </div>
-                    <div class="other-informations-container d-none">
-                    </div>
+                    <div class="other-informations-container d-none"></div>
                     <div class="summary-container d-none">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="wii-field-name">Référence</th>
+                                    <th scope="col" class="wii-field-name">Libellé</th>
+                                    <th scope="col" class="wii-field-name">Code barre</th>
+                                    <th scope="col" class="wii-field-name">Quantité prise</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="add-reference-container">
+                            <span class='wii-icon wii-icon-plus wii-icon-30px-primary mr-3'></span>
+                            <span class="add-reference">Ajouter une référence</span>
+                        </div>
+                        <div class="row free-fields-container">
+                        </div>
                     </div>
-                    <div class="d-flex flex-row-reverse mt-5">
-                        <button class="button-next" data-loader-size="normal">
-                            Suivant
-                        </button>
-                    </div>
-                    <div class="d-none justify-content-between summary-button-container mt-5">
-                        <button class="outline danger give-up-button">
-                            Abandonner
-                        </button>
-                        <div>
-                            <button class="outline edit-stock-entry-button">
-                                Modifier
-                            </button>
-                            <button class="validate-stock-entry-button" data-loader-size="normal">
-                                Valider
+                    <div class="treated-delivery-container d-none">
+                        {% include 'utils/modal-alert/success-bookmark.html.twig' with {
+                            'show': true,
+                        } %}
+                        <div class="wii-title text-center black">Votre demande de livraison a bien été traitée</div>
+                        <div class="d-flex justify-content-center mt-4">
+                            <button class="button-next" data-loader-size="normal">
+                                Accueil
                             </button>
                         </div>
+
+                    </div>
+                    <div class="d-flex flex-row-reverse mt-5">
+                        <button class="validate-stock-exit-button d-none" data-loader-size="normal">
+                            Valider
+                        </button>
+                        <button class="outline edit-stock-exit-button mr-3 d-none">
+                            Modifier
+                        </button>
+                        <button class="btn button-next" data-loader-size="normal">
+                            Suivant
+                        </button>
                     </div>
                 </div>
             </div>
@@ -128,6 +141,9 @@
         <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
             <button class="outline return-or-give-up-button">
                 Retour
+            </button>
+            <button class="outline danger give-up-button d-none">
+                Abandonner
             </button>
         </div>
     </div>
@@ -153,6 +169,8 @@
     </div>
 
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}
+    {% include 'delivery_station/modalDeleteLine.html.twig' %}
+    {% include 'delivery_station/modalGeneric.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

@@ -23,7 +23,7 @@
 }
 
 .form-content {
-    margin: 10px 5% !important;
+    margin: 70px 5% !important;
 
     .reference-informations {
         height: fit-content;
@@ -42,4 +42,65 @@ label {
         height: 50px !important;
         margin-top: 0 !important;
     }
+
+    .select2.select2-container.select2-container--default .select2-selection.select2-selection .select2-selection__rendered {
+        height: 50px !important;
+        font-size: 15px !important;
+        padding: 10px !important;
+    }
+
+    .select2-container.select2-container--default.select2-container--open .select2-dropdown.select2-dropdown--below .select2-results ul.select2-results__options {
+        font-size: 15px !important;
+
+        li {
+            padding: 10px !important;
+        }
+    }
+}
+
+.reference-informations {
+    .default-image {
+        background-image: url('../../../public/svg/reference_article/product.svg');
+        background-color: #F5F5F7;
+        background-size: 50%;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 5px;
+        min-width: 150px;
+        min-height: 150px;
+    }
+}
+
+.wii-title {
+    color: $black !important;
+    font-size: 20px !important;
+}
+
+.add-reference-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    .add-reference {
+        color: $primary;
+        font-size: 20px;
+        font-weight: 600;
+    }
+}
+
+.kiosk-modal-content {
+    width: 70vw !important;
+
+    .content {
+        max-width: none !important;
+    }
+
+    .modal-footer {
+        justify-content: space-evenly !important;
+    }
+}
+
+.suppliers li::before {
+    content: "•";
+    padding-right: 8px;
 }
