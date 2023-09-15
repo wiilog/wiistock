@@ -72,71 +72,76 @@ class TriggerActionController extends AbstractController
                 $triggerActionConfigs = [
                     "sensorHygrometryLimitLower" => [
                         "limit" => TriggerAction::LOWER,
-                        "configName" => [TriggerAction::ACTION_TYPE_HYGROMETRY],
+                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
                         "templateType" => "templateTypeLowerHygro",
                         "template" => "templatesForLowerHygro",
                     ],
                     "sensorHygrometryLimitHigher" => [
                         "limit" => TriggerAction::HIGHER,
-                        "configName" => [TriggerAction::ACTION_TYPE_HYGROMETRY],
+                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
                         "templateType" => "templateTypeHigherHygro",
                         "template" => "templatesForHigherHygro",
                     ],
                     "sensorTemperatureLimitLower" => [
                         "limit" => TriggerAction::LOWER,
-                        "configValues" => [TriggerAction::ACTION_TYPE_TEMPERATURE],
-                        "data" => "sensorTemperatureLimitLower",
+                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
                         "templateType" => "templateTypeLowerTemp",
                         "template" => "templatesForLowerTemp",
                     ],
                     "sensorTemperatureLimitHigher" => [
                         "limit" => TriggerAction::HIGHER,
-                        "configValues" => [TriggerAction::ACTION_TYPE_TEMPERATURE],
+                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
                         "templateType" => "templateTypeHigherTemp",
                         "template" => "templatesForHigherTemp",
                     ],
-                    "zone" => [
-                        "configValues" => ["zone", "buttonIndex"],
-                    ]
                 ];
 
-                foreach ($triggerActionConfigs as $key => $triggerActionConfig) {
-                    $config = Stream::from($data[$key] ?? [])
-                        ->keymap(fn(string $key) => [$key, $data[$key] ?? null])
-                        ->toArray();
-                    // at least one element defined
-                    $valueDefined = Stream::from($config)->some(fn($value) => isset($value));
-
-                    if ($valueDefined) {
-                        if (isset($triggerActionConfig["limit"])) {
-                            $config['limit'] = $triggerActionConfig["limit"];
-                        }
-
-                        if(isset($config['buttonIndex'])) {
-                            $buttonIndexNeverSet = $sensorWrapper->getTriggerActions()
-                                ->filter(fn(TriggerAction $trigger) => (
-                                    intval($trigger->getConfig()['buttonIndex'] ?? null) === intval($config['buttonIndex'])
-                                ))
-                                ->isEmpty();
-                            if (!$buttonIndexNeverSet) {
-                                return $this->json([
-                                    'success' => false,
-                                    'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
-                                ]);
-                            }
-                        }
-
+                foreach ($triggerActionConfigs as $key => $config) {
+                    $limitValue = $data[$key] ?? false;
+                    if ($limitValue) {
                         $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
                             $entityManager,
                             $sensorWrapper,
-                            $data[$triggerActionConfig["templateType"]] ?? "",
-                            $data[$triggerActionConfig["template"]] ?? "",
-                            $config
+                            $data[$config["templateType"]],
+                            $data[$config["template"]],
+                            [
+                                'limit' => $config["limit"],
+                                $config["type"] => $limitValue,
+                            ]
                         );
-
                         $entityManager->persist($triggerAction);
                     }
                 }
+
+                if(isset($data['zone'])) {
+                    $config = ['zone' => $data['zone']];
+                    if (isset($data['buttonIndex'])) {
+                        $valid = $sensorWrapper->getTriggerActions()
+                            ->filter(fn(TriggerAction $trigger)  => (
+                                ($trigger->getConfig()['buttonIndex'] ?? null) === intval($data['buttonIndex'])
+                            ))
+                            ->isEmpty();
+                        if (!$valid) {
+                            return $this->json([
+                                'success' => false,
+                                'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
+                            ]);
+                        }
+                        $config['buttonIndex'] = $data['buttonIndex'];
+                    }
+
+                    $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
+                        $entityManager,
+                        $sensorWrapper,
+                        "",
+                        "",
+                        $config
+                    );
+                    $entityManager->persist($triggerAction);
+                }
+
+
+
 
                 if (!isset($triggerAction)) {
                     return $this->json([
