@@ -136,7 +136,7 @@
     <div>Expéditeur & Destinataire</div>
     <div class="row">
         <div class="col-md-4 col-12">
-            {{ form.textarea(setting('DISPATCH_WAYBILL_CONSIGNER'), 'Expéditeur par défaut', false, setting_value('DISPATCH_WAYBILL_CONSIGNER')) }}
+            {{ form.textarea(setting('DISPATCH_WAYBILL_CONSIGNER'), 'Adresse de l’expéditeur par défaut', false, setting_value('DISPATCH_WAYBILL_CONSIGNER')) }}
         </div>
         <div class="col-md-4 col-12">
             {{ form.input(setting('DISPATCH_WAYBILL_CONTACT_NAME'), 'Nom', false, setting_value('DISPATCH_WAYBILL_CONTACT_NAME')) }}
@@ -147,7 +147,7 @@
     </div>
     <div class="row">
         <div class="col-md-4 col-12">
-            {{ form.textarea(setting('DISPATCH_WAYBILL_RECEIVER'), 'Destinataire par défaut', false, setting_value('DISPATCH_WAYBILL_RECEIVER')) }}
+            {{ form.textarea(setting('DISPATCH_WAYBILL_RECEIVER'), 'Adresse du destinataire par défaut', false, setting_value('DISPATCH_WAYBILL_RECEIVER')) }}
         </div>
         <div class="col-md-4 col-12">
             {{ form.input(setting('DISPATCH_WAYBILL_LOCATION_FROM'), 'Lieu de chargement', false, setting_value('DISPATCH_WAYBILL_LOCATION_FROM')) }}
