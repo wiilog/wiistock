@@ -252,12 +252,17 @@ class TriggerActionController extends AbstractController
             $triggerAction = $triggerActionRepository->find($data['id']);
 
             $type = $data['templateType'];
+
             if($type === TriggerAction::ALERT){
                 $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
-                $triggerAction->setAlertTemplate($alertTemplate);
-            } else {
+                $triggerAction
+                    ->setRequestTemplate(null)
+                    ->setAlertTemplate($alertTemplate);
+            } else if ($type === TriggerAction::REQUEST) {
                 $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
-                $triggerAction->setRequestTemplate($requestTemplate);
+                $triggerAction
+                    ->setAlertTemplate(null)
+                    ->setRequestTemplate($requestTemplate);
             }
 
             if(isset($data['zone'])){
