@@ -390,7 +390,7 @@
                                                     <input type="number"
                                                            data-no-arrow
                                                            name="quantite"
-                                                           class="form-control data w-50"
+                                                           class="form-control data w-50 needed"
                                                            min="0"
                                                            value="{{ hasRightCreateDraft ? 0 : '' }}"
                                                         {{ hasRightCreateDraft ? 'disabled' }}>
@@ -461,7 +461,7 @@
                                 <div class="row">
                                     {% if not partialEdit %}
                                         <div class="col-12 col-md-4 mt-3">
-                                            <div class="reference {{ not reference.id or reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                            <div class="reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
@@ -471,7 +471,7 @@
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
                                             </div>
-                                            <div class="article {{ reference.id and reference.typeQuantite != 'article' ? 'd-none' }}">
+                                            <div class="article {{ reference.typeQuantite != 'article' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/stock-management.svg') }}"
@@ -493,7 +493,7 @@
                                             </div>
                                         </div>
                                     {% else %}
-                                        <div class="col-12 col-md-4 mt-3 reference {{ reference.typeQuantite == 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-4 mt-3 reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <div class="">
                                                 <label>
                                                     <span class="icon wii-field-name">
@@ -517,7 +517,7 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-8 col-md-8 mt-2">
-                                <div class="article {{ reference.typeQuantite and reference.typeQuantite != 'article' ? 'd-none' }}">
+                                <div class="article {{ reference.typeQuantite != 'article' ? 'd-none' }}">
                                     <label class="with-checkbox">
                                         <input type="checkbox"
                                                name="urgence"
