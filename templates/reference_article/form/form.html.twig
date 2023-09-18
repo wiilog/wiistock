@@ -303,7 +303,7 @@
                                    data-title="article"
                                    onclick="onTypeQuantityChange($(this))"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
+                                {{ reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
 
 
                             <input type="radio"
@@ -313,7 +313,7 @@
                                    data-title="reference"
                                    onclick="onTypeQuantityChange($(this))"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
+                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
 
                         </div>
                     {% endif %}
