@@ -38,14 +38,14 @@ class RequestTemplateController extends AbstractController {
     #[Required]
     public TranslationService $translation;
 
-    #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true])]
+    #[Route("/modele-demande/{category}/header/{template}", name: "settings_request_template_header", options: ["expose" => true], defaults: ["template" => null])]
     public function requestTemplateHeader(Request                   $request,
                                           string                    $category,
                                           Environment               $twig,
                                           EntityManagerInterface    $entityManager,
                                           FreeFieldService          $freeFieldService,
-                                          ?RequestTemplate          $template = null,
-                                          TranslationService        $translation): Response {
+                                          TranslationService        $translation,
+                                          ?RequestTemplate          $template): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
