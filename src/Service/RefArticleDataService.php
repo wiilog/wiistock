@@ -389,13 +389,15 @@ class RefArticleDataService
         }
 
         $managersIds = $data->get('managers');
-        $refArticle->getManagers()->clear();
-        if (!empty($managersIds)) {
-            $managers = is_string($managersIds)
-                ? explode(',', $managersIds)
-                : $managersIds;
-            foreach ($managers as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+        if($managersIds) {
+            $refArticle->getManagers()->clear();
+            if (!empty($managersIds)) {
+                $managers = is_string($managersIds)
+                    ? explode(',', $managersIds)
+                    : $managersIds;
+                foreach ($managers as $manager) {
+                    $refArticle->addManager($userRepository->find($manager));
+                }
             }
         }
 
@@ -410,10 +412,14 @@ class RefArticleDataService
         }
 
         $categoryId = $data->getInt('categorie');
-        $category = $categoryId ? $inventoryCategoryRepository->find($categoryId) : null;
+        if($categoryId) {
+            $refArticle->setCategory($inventoryCategoryRepository->find($categoryId));
+        }
 
         $buyerId = $data->getInt('buyer');
-        $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+        if($buyerId) {
+            $refArticle->setBuyer($userRepository->find($buyerId));
+        }
 
         $visibilityGroupId = $data->getInt('visibility-group');
         $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
@@ -433,7 +439,6 @@ class RefArticleDataService
         }
 
         $refArticle
-            ->setCategory($category)
             ->setReference($data->get('reference'))
             ->setIsUrgent($isUrgent)
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
@@ -442,7 +447,6 @@ class RefArticleDataService
             ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
-            ->setBuyer($buyer)
             ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
             ->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null)
             ->setStockManagement($data->get('stockManagement'))
@@ -450,7 +454,7 @@ class RefArticleDataService
             ->setDangerousGoods($data->getBoolean('security'))
             ->setOnuCode($data->get('onuCode'))
             ->setProductClass($data->get('productClass'))
-            ->setProperties(['visibilityGroup' => $visibilityGroup]);
+            ->setProperties($visibilityGroup ? ['visibilityGroup' => $visibilityGroup] : []);
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
