@@ -799,6 +799,10 @@ class Article implements PairedEntity {
         return $this->getStatut()->getCode() === self::STATUT_EN_TRANSIT;
     }
 
+    public function isAvailable(): bool {
+        return $this->statut->getCode() === self::STATUT_ACTIF;
+    }
+
     public function getRFIDtag(): ?string {
         return $this->RFIDtag;
     }

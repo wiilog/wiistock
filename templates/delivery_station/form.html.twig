@@ -1,0 +1,196 @@
+{% extends 'delivery_station/layout.thml.twig' %}
+{% import 'form.html.twig' as form %}
+
+{% block title %} Caisse automatique | Formulaire {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('delivery-station') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="main-page-container">
+        <div>
+            <div class="timeline-container">
+                <span class="wii-field-text current">Choix de la référence</span>
+                <span class="wii-field-text future">Choix de la quantité</span>
+                <span class="wii-field-text future">Autres informations</span>
+                <span class="future wii-field-text future">Récapitulatif</span>
+            </div>
+            <div class="form-content">
+                <div class="stock-exit-container">
+                    <div class="reference-choice-container active">
+                        <div class="row">
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Code NDP
+                                    <input class="form-control" name="filterField1" disabled>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Emplacement
+                                    <select class="form-control" name="filterField1" disabled></select>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Acheteur
+                                    <select class="form-control" name="filterField1" disabled></select>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mt-5">
+                            {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
+                                type: 'reference',
+                                inputClass: 'w-50',
+                                labelClass: 'd-flex flex-column',
+                                includeParams: '[name=multipleFields],[name=visibilityGroup],[name=filterField1],[name=filterField2],[name=filterField3]',
+                                includeParamsParent: '.reference-choice-container',
+                                attributes: {
+                                    'autofocus': 'autofocus'
+                                }
+                            }) }}
+                        </div>
+                        <input type="hidden" name="multipleFields" value="1">
+                        <input type="hidden" name="visibilityGroup" value="{{ visibilityGroup }}">
+                    </div>
+                    <div class="quantity-choice-container d-none">
+                        <div class="row">
+                            <div class="reference-informations col-6">
+                                <div class="d-flex">
+                                    <img class="image mr-3" width="150px" src="">
+                                    <div class="d-flex flex-column justify-content-around py-2">
+                                        <div class="wii-field-name">
+                                            <strong>Référence:</strong>
+                                            <span class="reference wii-field-text"></span>
+                                        </div>
+                                        <div class="wii-field-name">Libellé:
+                                            <span class="label wii-field-text"></span>
+                                        </div>
+                                        <div class="wii-field-name">Quantité disponible:
+                                            <span class="stockQuantity wii-field-text"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wii-field-name mt-3">Code(s) fournisseur(s):
+                                    <ul class="suppliers wii-field-text"></ul>
+                                    <span class="wii-small-text italic">Code barre requis pour afficher le(s) code(s) fournisseur(s).</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ asset('svg/reference_article/location.svg') }}" width="50px">
+                                    <div class="wii-field-name">Emplacement:
+                                        <span class="wii-small-text">Code barre requis pour afficher l'emplacement.</span>
+                                        <span class="location"></span>
+                                    </div>
+                                </div>
+                                <div class="mt-5">
+                                    {{ form.input('barcode', 'Code barre', false, null, {
+                                        type: 'search',
+                                        labelClass: 'w-100',
+                                    }) }}
+                                </div>
+                                <div class="mt-2">
+                                    {{ form.input('pickedQuantity', 'Quantité prise', false, null, {
+                                        type: 'number',
+                                        labelWidth: '100%',
+                                        width: 0,
+                                        inputClass: 'w-50',
+                                        min: 1,
+                                    }) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="other-informations-container d-none"></div>
+                    <div class="summary-container d-none">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col" class="wii-field-name">Référence</th>
+                                <th scope="col" class="wii-field-name">Libellé</th>
+                                <th scope="col" class="wii-field-name">Code barre</th>
+                                <th scope="col" class="wii-field-name">Quantité prise</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="add-reference-container">
+                            <span class='wii-icon wii-icon-plus wii-icon-30px-primary mr-3'></span>
+                            <span class="add-reference">Ajouter une référence</span>
+                        </div>
+                        <div class="row free-fields-container">
+                        </div>
+                    </div>
+                    <div class="treated-delivery-container d-none">
+                        {% include 'utils/modal-alert/success-bookmark.html.twig' with {
+                            'show': true,
+                        } %}
+                        <div class="wii-title text-center black">Votre demande de livraison a bien été traitée</div>
+                        <div class="wii-small-text text-center">Vous allez être redirigé automatiquement à l'accueil au bout de <span class="delay"></span> secondes.</div>
+                        <div class="d-flex justify-content-center mt-4">
+                            <button class="back-to-home-button" data-loader-size="normal">
+                                Accueil
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-row-reverse mt-5">
+                        <button class="validate-button d-none" data-loader-size="normal">
+                            Valider
+                        </button>
+                        <button class="btn next-button d-none" data-loader-size="normal">
+                            Suivant
+                        </button>
+                        <button class="btn search-button" data-loader-size="normal">
+                            Rechercher
+                        </button>
+                        <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
+                            Modifier les champs libres
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
+            <button class="outline back-button">
+                Retour
+            </button>
+            <button class="outline danger give-up-button d-none">
+                Abandonner
+            </button>
+        </div>
+    </div>
+    <div class="success-page-container d-none">
+        {% include 'utils/modal-alert/success-bookmark.html.twig' %}
+        <div class="ref-entry-stock-success text-center d-none">
+            <span class="field-success-page"></span>
+        </div>
+        <div class="article-entry-stock-success text-center d-none">
+            <span class="field-success-page"></span>
+        </div>
+        <div class="d-flex justify-content-center redirect-button-container">
+            <button class="outline print-again-button" data-loader-size="normal">
+                Réimprimer
+            </button>
+            <button class="go-home-button">
+                Accueil
+            </button>
+        </div>
+    </div>
+    <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
+        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+    </div>
+
+    {% include 'delivery_station/modalInformation.html.twig' %}
+    {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}
+    {% include 'delivery_station/modalDeleteLine.html.twig' %}
+    {% include 'delivery_station/modalGeneric.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('delivery-station') }}
+{% endblock %}
