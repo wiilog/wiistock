@@ -19,6 +19,7 @@ use App\Entity\VisibilityGroup;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
+use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,8 +37,8 @@ class DeliveryStationController extends AbstractController
     #[Route("/", name: "delivery_station_index", options: ["expose" => true])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0];
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null;
+        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0];  // TODO Appliquer le paramétrage
+        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage
 
         $rawMessage = "Demande de livraison simplifiée sur le flux @typelivraison et groupe de visibilité @groupevisibilite";
         $homeMessage = str_replace('@typelivraison', "<strong>{$type->getLabel()}</strong>", str_replace('@groupevisibilite', "<strong>{$visibilityGroup->getLabel()}</strong>", $rawMessage));
@@ -52,16 +53,32 @@ class DeliveryStationController extends AbstractController
     #[Route("/login/{mobileLoginKey}", name: "delivery_station_login", options: ["expose" => true], methods: "POST")]
     public function login(string $mobileLoginKey, EntityManagerInterface $entityManager): JsonResponse
     {
+        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage3
+
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $mobileLoginKey]);
-        return $this->json([
-            'success' => !!$user,
-        ]);
+        if($user) {
+            if($user->getVisibilityGroups()->contains($visibilityGroup)) {
+                return $this->json([
+                    'success' => true,
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "L'utilisateur ne dispose pas du groupe de visibilité requis."
+                ]);
+            }
+        } else {
+            return $this->json([
+                'success' => false,
+                'msg' => "Aucun utilisateur n'est lié à cette clé de connexion nomade."
+            ]);
+        }
     }
 
     #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
     public function form(EntityManagerInterface $entityManager): Response
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0];
+        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0];
         $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null;
 
         $filterFields = []; // TODO remplacer par les champs filtres du paramétrage
@@ -151,6 +168,7 @@ class DeliveryStationController extends AbstractController
                 'image' => $initialReference->getImage()
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
+                'isReferenceByArticle' => $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
             ];
         }
 
@@ -163,7 +181,7 @@ class DeliveryStationController extends AbstractController
     #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
     public function getFreeFields(EntityManagerInterface $entityManager): JsonResponse
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0]; // TODO A remplacer par le paramétrage
+        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 
         return $this->json([
@@ -180,34 +198,37 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/submit-request", name: "delivery_station_submit_request", options: ["expose" => true], methods: "POST")]
-    public function submitRequest(Request                    $deliveryRequest,
+    public function submitRequest(Request                    $request,
                                   EntityManagerInterface     $entityManager,
                                   DeliveryRequestService     $deliveryRequestService,
                                   LivraisonsManagerService   $deliveryOrderService,
                                   PreparationsManagerService $preparationOrderService,
-                                  FreeFieldService           $freeFieldService): JsonResponse
+                                  FreeFieldService           $freeFieldService,
+                                  MouvementStockService      $stockMovementService): JsonResponse
     {
-        $values = $deliveryRequest->query->all();
+        $values = $request->query->all();
         $references = json_decode($values['references'], true);
         $freeFields = Stream::from(json_decode($values['freeFields'], true))
             ->flatten(true)
             ->toArray();
+        $date = new DateTime();
 
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        $type = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0]; // TODO A remplacer par le paramétrage
+        $type = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
         $location = $locationRepository->findOneBy(['label' => 'SI BUREAU PLANNING']); // TODO A remplacer par le paramétrage
 
         $data = [
             'type' => $type->getId(),
             'demandeur' => $this->getUser(), // TODO A remplacer par le paramétrage
             'destination' => $location->getId(),
+            'disabledFieldChecking' => true,
         ];
         $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
-
+        dump($deliveryRequest);
         $entityManager->persist($deliveryRequest);
 
         foreach ($references as $reference) {
@@ -261,17 +282,17 @@ class DeliveryStationController extends AbstractController
         if ($response['success']) {
             $preparation = $deliveryRequest->getPreparations()->first();
             $articlesNotPicked = $preparationOrderService->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
-            $deliveryOrder = $deliveryOrderService->createLivraison(new DateTime(), $preparation, $entityManager, Livraison::STATUT_LIVRE);
+            $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager, Livraison::STATUT_LIVRE);
 
             $locationEndPreparation = $deliveryRequest->getDestination();
 
             $preparationOrderService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-            $preparationOrderService->closePreparationMouvement($preparation, new DateTime(), $locationEndPreparation);
+            $preparationOrderService->closePreparationMouvement($preparation, $date, $locationEndPreparation);
 
             $movements = $entityManager->getRepository(MouvementStock::class)->findByPreparation($preparation);
 
             foreach ($movements as $movement) {
-                $preparationOrderService->createMovementLivraison(
+                $movement = $preparationOrderService->createMovementLivraison(
                     $entityManager,
                     $movement->getQuantity(),
                     $this->getUser(),
@@ -282,6 +303,8 @@ class DeliveryStationController extends AbstractController
                     false,
                     $locationEndPreparation
                 );
+
+                $stockMovementService->finishMouvementStock($movement, $date, $locationEndPreparation);
             }
 
             $entityManager->flush();

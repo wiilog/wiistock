@@ -281,10 +281,11 @@ class DeliveryRequestService
         $projectRepository = $entityManager->getRepository(Project::class);
 
         $isManual = $data['isManual'] ?? false;
+        $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
-        if (!$fromNomade) {
+        if (!$fromNomade && !$disabledFieldsChecking) {
             $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
             foreach ($CLRequired as $CL) {

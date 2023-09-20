@@ -129,12 +129,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->select("reference.id AS id");
 
         if($options['multipleFields']) {
-            $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ','), reference.barCode) AS text");
+            $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ', '), reference.barCode) AS text");
         } else {
             $queryBuilder->addSelect('reference.reference AS text');
         }
 
-        if(true || $options['freeField2'] || $options['freeField3']) {
+        if(($options['filterField1'] ?? null) || ($options['filterField2'] ?? null) || ($options['filterField3'] ?? null)) {
             $options['freeField1'] = "13:CONSOMMABLES";
             [$id, $value] = explode(':', $options['freeField1']);
             $queryBuilder->andWhere($queryBuilder->expr()->orX(
@@ -163,10 +163,10 @@ class ReferenceArticleRepository extends EntityRepository {
 
         if($options['multipleFields']) {
             Stream::from($queryBuilder->getDQLParts()['select'])
-                ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
-                ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
-                ->filter(fn($selectAlias) => !in_array($selectAlias, ['text']))
-                ->each(fn($field) => $queryBuilder->addGroupBy($field));
+                ->flatMap(static fn($selectPart) => [$selectPart->getParts()[0]])
+                ->map(static fn($selectString) => trim(explode('AS', $selectString)[1]))
+                ->filter(static fn($selectAlias) => !in_array($selectAlias, ['text']))
+                ->each(static fn($field) => $queryBuilder->addGroupBy($field));
         }
 
         return $queryBuilder

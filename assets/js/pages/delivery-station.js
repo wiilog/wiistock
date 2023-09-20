@@ -19,20 +19,21 @@ const $otherInformationsContainer = $(`.other-informations-container`);
 const $treatedDeliveryContainer = $(`.treated-delivery-container`);
 
 const $loginButton = $(`button.login`);
-const $validateStockEntryButton = $(`.validate-stock-exit-button`);
+const $validateButton = $(`.validate-button`);
 const $submitGiveUpStockExit = $(`#submitGiveUpStockExit`);
 const $giveUpButtonContainer = $(`.give-up-button-container`);
 const $giveUpButton = $(`.give-up-button`);
 const $informationButton = $(`#information-button`);
 const $nextButton = $(`.next-button`);
-const $searchButton = $(`.button-search`);
+const $searchButton = $(`.search-button`);
 const $backButton = $(`.back-button`);
 const $backToHomeButton = $(`.back-to-home-button`);
-const $editStockExitButton = $(`.edit-stock-exit-button`);
+const $editFreeFieldsButton = $(`.edit-free-fields-button`);
 
 const $modalGeneric = $(`.modal-generic`);
 const $modalInformation = $(`#modal-information`);
 const $modalDeleteLine = $(`.modal-delete-line`);
+const $modalGiveUpStockExit = $(`.modal-give-up-stock-exit`);
 
 const $referenceInformations = $(`.reference-informations`);
 
@@ -71,8 +72,8 @@ $(function () {
                     const barcode = $current.find(`[name=barcode]`).val();
                     const pickedQuantity = $current.find(`[name=pickedQuantity]`).val();
 
-                    if (barcode && pickedQuantity !== "") {
-                        if(references.findIndex(({barcode}) => barcode === barcode) !== -1) {
+                    if (barcode && Number(pickedQuantity)) {
+                        if(references.findIndex((reference) => reference.barcode === barcode) > -1) {
                             showGenericModal(`Le code barre <strong>${barcode}</strong> est déjà présent dans cette demande de livraison.`)
                         } else {
                             references.push(referenceValues);
@@ -80,11 +81,27 @@ $(function () {
                             references[index].barcode = barcode;
                             references[index].pickedQuantity = pickedQuantity;
 
-                            wrapLoadingOnActionButton($(this), () => (
-                                AJAX.route(AJAX.GET, `delivery_station_get_free_fields`)
-                                    .json()
-                                    .then(({template}) => {
-                                        if (references.length === 1) {
+                            $backButton.addClass(`d-none`);
+                            $giveUpButton.removeClass(`d-none`);
+
+                            if(references.length > 1) {
+                                $current
+                                    .addClass(`d-none`)
+                                    .removeClass(`active`);
+
+                                $summaryContainer
+                                    .removeClass(`d-none`)
+                                    .addClass(`active`);
+
+                                updateTimeline($currentTimelineEvent);
+                                updateTimeline($timeline.find(`.current`));
+                                updateSummaryTable();
+                                toggleSummaryButtons();
+                            } else {
+                                wrapLoadingOnActionButton($(this), () => (
+                                    AJAX.route(AJAX.GET, `delivery_station_get_free_fields`)
+                                        .json()
+                                        .then(({template}) => {
                                             pushNextPage($current);
                                             updateTimeline($currentTimelineEvent);
 
@@ -92,24 +109,16 @@ $(function () {
                                             $otherInformationsContainer.html(template);
 
                                             toggleAutofocus();
-                                        } else {
-                                            $current
-                                                .addClass(`d-none`)
-                                                .removeClass(`active`);
-
-                                            $summaryContainer
-                                                .removeClass(`d-none`)
-                                                .addClass(`active`);
-
-                                            updateSummaryTable();
-                                        }
-                                    })
-                            ));
+                                        })
+                                ));
+                            }
                         }
                     } else if (!barcode) {
                         showGenericModal(`Vous devez renseigner un code barre pour continuer.`);
-                    } else if (!pickedQuantity) {
+                    } else if (pickedQuantity === ``) {
                         showGenericModal(`Vous devez renseigner une quantité prise pour continuer.`);
+                    } else if (Number(pickedQuantity) === 0) {
+                        showGenericModal(`La quantité prise doit être supérieure à 0.`);
                     }
                 }
 
@@ -136,8 +145,6 @@ $(function () {
                             values[$(freeField).find(`.field-label`).text().trim()] = $(freeField).find(`input, select`).val();
                         });
 
-                    console.log(freeFields);
-
                     pushNextPage($current);
                     updateTimeline($currentTimelineEvent);
                     updateSummaryTable();
@@ -152,7 +159,19 @@ $(function () {
             }
         });
 
-    $validateStockEntryButton.on(`click`, function () {
+    $backButton.on(`click`, function () {
+        backPreviousPage();
+    });
+
+    $editFreeFieldsButton.on(`click`, ()=> {
+        backPreviousPage();
+
+        $editFreeFieldsButton.addClass(`d-none`);
+        $backButton.addClass(`d-none`);
+        $giveUpButton.removeClass(`d-none`);
+    });
+
+    $validateButton.on(`click`, function () {
         const $current = $(this).closest(`.stock-exit-container`).find(`.active`);
 
         const parsedReferences = JSON.stringify(references);
@@ -166,8 +185,9 @@ $(function () {
                         updateTimeline(undefined, true);
                         toggleSummaryButtons($current);
 
-                        $nextButton.addClass(`d-none`);
-                        $backButton.addClass(`d-none`);
+                        $nextButton
+                            .add($backButton)
+                            .addClass(`d-none`);
 
                         setTimeout(() => backToHome(), REDIRECT_TO_HOME_DELAY);
                     } else {
@@ -175,10 +195,6 @@ $(function () {
                     }
                 })
         ));
-    });
-
-    $(`.back-button, .edit-stock-exit-button`).on(`click`, function () {
-        backPreviousPage();
     });
 
     $giveUpButton.on(`click`, () => {
@@ -239,13 +255,14 @@ $(function () {
             .remove();
 
         if (references.length === 0) {
-            window.location.href = Routing.generate(`delivery_station_login`, true);
+            backToHome();
         }
     });
 
     $addReferenceContainer.on(`click`, () => {
         Array(3).fill(0).forEach(() => backPreviousPage());
         $quantityChoiceContainer.find(`.suppliers li`).remove();
+        $quantityChoiceContainer.find(`.suppliers`).siblings(`span`).removeClass(`d-none`);
         $quantityChoiceContainer.find(`.location`).text(``);
         $quantityChoiceContainer.find(`.location`).siblings(`span`).removeClass(`d-none`);
 
@@ -261,11 +278,6 @@ $(function () {
         $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
     });
 });
-
-
-function toggleRequiredMobileLoginKeyModal() {
-    $(`.modal-required-mobile-login-key`).modal(`show`);
-}
 
 function updateTimeline($currentTimelineEvent = undefined, hide = false) {
     $timeline.toggleClass(`d-none`, hide);
@@ -297,7 +309,6 @@ function pushNextPage($current) {
 function backPreviousPage() {
     const $current = $(`.active`)
     const $currentTimelineEvent = $timeline.find(`.current`);
-    const $modalGiveUpStockExit = $(`.modal-give-up-stock-exit`);
 
     if ($current.prev().exists() && !$current.prev().first().is(`body`)) {
         $currentTimelineEvent.addClass(`future`).removeClass(`current`);
@@ -318,7 +329,6 @@ function backPreviousPage() {
 }
 
 function updateReferenceInformations() {
-    //const reference = references[references.length - 1];
     for (const [index, value] of Object.entries(referenceValues)) {
         if (index === `image`) {
             if (value) {
@@ -337,7 +347,9 @@ function updateReferenceInformations() {
         }
     }
 
-    $quantityChoiceContainer.find(`.location`).text(referenceValues.location);
+    if(!referenceValues.isReferenceByArticle) {
+        $quantityChoiceContainer.find(`.location`).text(referenceValues.location);
+    }
 }
 
 function updateSummaryTable() {
@@ -387,19 +399,17 @@ function toggleSummaryButtons() {
     if ($current.is(`.summary-container`)) {
         $giveUpButton.removeClass(`d-none`);
         $giveUpButtonContainer.find(`.back-button`).addClass(`d-none`);
-        $stockExitContainer.find(`.edit-stock-exit-button`).removeClass(`d-none`);
         $nextButton.addClass(`d-none`);
-        $validateStockEntryButton.removeClass(`d-none`);
-        $editStockExitButton.removeClass(`d-none`);
+        $validateButton.removeClass(`d-none`);
+        $editFreeFieldsButton.removeClass(`d-none`);
     } else if($current.is(`.reference-choice-container`)) {
         $nextButton.addClass(`d-none`);
     } else {
         $giveUpButton.addClass(`d-none`);
         $giveUpButtonContainer.find(`.back-button`).removeClass(`d-none`);
-        $stockExitContainer.find(`.edit-stock-exit-button`).addClass(`d-none`);
         $nextButton.removeClass(`d-none`);
-        $validateStockEntryButton.addClass(`d-none`);
-        $editStockExitButton.addClass(`d-none`);
+        $validateButton.addClass(`d-none`);
+        $editFreeFieldsButton.addClass(`d-none`);
     }
 }
 
@@ -419,16 +429,16 @@ function processLogin($loadingContainer = undefined) {
         wrapLoadingOnActionButton($loadingContainer || $(`.home .login`), () => (
             AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey})
                 .json()
-                .then(({success}) => {
+                .then(({success, msg}) => {
                     if (success) {
                         window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey});
                     } else {
-                        toggleRequiredMobileLoginKeyModal();
+                        showGenericModal(msg);
                     }
                 })
         ));
     } else {
-        toggleRequiredMobileLoginKeyModal();
+        showGenericModal(`Merci de renseigner une clé de connexion nomade valide.`);
     }
 }
 
@@ -437,7 +447,7 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
 
     if (reference) {
         wrapLoadingOnActionButton($loadingContainer, () => (
-            AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference})
+            AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference: reference.trim()})
                 .json()
                 .then(({values}) => {
                     referenceValues = values;
@@ -446,12 +456,16 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
                         .val(null)
                         .trigger(`change`);
 
-                    //references.push(values);
-                    console.log(references);
-
                     pushNextPage($current);
                     updateTimeline($currentTimelineEvent);
                     updateReferenceInformations();
+
+                    if(!referenceValues.isReferenceByArticle) {
+                        $quantityChoiceContainer
+                            .find(`[name=barcode]`)
+                            .val(referenceValues.barcode)
+                            .trigger(`blur`);
+                    }
 
                     $searchButton.addClass(`d-none`);
                     $nextButton.removeClass(`d-none`);
