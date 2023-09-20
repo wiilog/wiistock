@@ -78,8 +78,8 @@ class DeliveryStationController extends AbstractController
     #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
     public function form(EntityManagerInterface $entityManager): Response
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0];
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null;
+        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO Appliquer le paramétrage
+        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage
 
         $filterFields = []; // TODO remplacer par les champs filtres du paramétrage
         return $this->render('delivery_station/form.html.twig', [
@@ -182,7 +182,7 @@ class DeliveryStationController extends AbstractController
     public function getFreeFields(EntityManagerInterface $entityManager): JsonResponse
     {
         $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON); // TODO Appliquer le paramétrage
 
         return $this->json([
             'empty' => empty($freeFields),

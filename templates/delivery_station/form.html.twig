@@ -45,7 +45,7 @@
                                 type: 'reference',
                                 inputClass: 'w-50',
                                 labelClass: 'd-flex flex-column',
-                                includeParams: '[name=multipleFields],[name=filterField1],[name=filterField2],[name=filterField3]',
+                                includeParams: '[name=multipleFields],[name=visibilityGroup],[name=filterField1],[name=filterField2],[name=filterField3]',
                                 includeParamsParent: '.reference-choice-container',
                                 attributes: {
                                     'autofocus': 'autofocus'
@@ -53,6 +53,7 @@
                             }) }}
                         </div>
                         <input type="hidden" name="multipleFields" value="1">
+                        <input type="hidden" name="visibilityGroup" value="{{ visibilityGroup }}">
                     </div>
                     <div class="quantity-choice-container d-none">
                         <div class="row">

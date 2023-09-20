@@ -263,6 +263,7 @@ class SelectController extends AbstractController {
             'filterField1' => $request->query->get('filterField1'),
             'filterField2' => $request->query->get('filterField2'),
             'filterField3' => $request->query->get('filterField3'),
+            'visibilityGroup' => $request->query->get('visibilityGroup'),
         ];
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));

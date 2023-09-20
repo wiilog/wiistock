@@ -69,7 +69,7 @@ class ReferenceArticleRepository extends EntityRepository {
         $queryBuilder = $this->createQueryBuilder("reference");
 
         $visibilityGroup = $user->getVisibilityGroups();
-        if (!$visibilityGroup->isEmpty()) {
+        if (!($options['visibilityGroup'] ?? false) && !$visibilityGroup->isEmpty()) {
             $queryBuilder
                 ->join('reference.visibilityGroup', 'visibility_group')
                 ->andWhere('visibility_group.id IN (:userVisibilityGroups)')
@@ -91,6 +91,13 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder
                 ->andWhere('status.code = :status')
                 ->setParameter('status', $options['status']);
+        }
+
+        if($options['visibilityGroup'] ?? false) {
+            $queryBuilder
+                ->leftJoin('reference.visibilityGroup', 'visibility_group')
+                ->andWhere('visibility_group.label = :visibilityGroup')
+                ->setParameter('visibilityGroup', $options['visibilityGroup']);
         }
 
         if($options['ignoredDeliveryRequest'] ?? false) {
