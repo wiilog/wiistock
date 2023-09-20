@@ -4,8 +4,9 @@
     <div class="form-group col-8">
         <label class="wii-field-name" for="disputeType">{{ trans('Qualité', 'Litiges', 'Type') }}*</label>
         <select class="form-control data needed"
-            {{ not hasRightTreatDispute ? 'disabled' }}
-                id="disputeType" name="disputeType" disabled>
+                {{ not hasRightTreatDispute ? 'disabled' }}
+                id="disputeType"
+                name="disputeType">
             <option value="{{ dispute.type.id }}" selected>{{ dispute.type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) }}</option>
             {% for type in disputeTypes %}
                 {% if type.id != dispute.type.id %}
