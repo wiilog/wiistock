@@ -62,12 +62,18 @@ class VariableService
 
     public const CODE_ARTICLE = "codearticle";
     public const REFERENCE = "reference";
+    public const VISIBILITY_GROUP = "groupevisibilité";
 
     public const ALERT_DICTIONARY = [
         self::SENSOR_NAME => "Nom du capteur qui a déclenché l'alerte",
         self::SENSOR_CODE => "Code du capteur qui a déclenché l'alerte",
         self::ALERT_DATE => "Date et heure du déclenchement de l'alerte",
         self::DATA => "Donnée du capteur ayant déclenché l'alerte",
+    ];
+
+    public const FAST_DELIVERY_REQUEST = [
+        self::DELIVERY_TYPE => 'Type de la demande de livraison',
+        self::VISIBILITY_GROUP => 'Groupe de visibilité',
     ];
 
     public const KIOSK_DICTIONARY = [

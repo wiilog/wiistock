@@ -195,7 +195,16 @@ class SettingsController extends AbstractController {
                 self::MENU_TOUCH_TERMINAL => [
                     "label" => "Borne tactile",
                     "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
-                    "save" => true,
+                    "menus" => [
+                        self::MENU_COLLECT_REQUEST_AND_CREATE_REF => [
+                            "label" => "Demande collecte et création référence",
+                            "save" => true,
+                        ],
+                        self::MENU_FAST_DELIVERY_REQUEST => [
+                            "label" => "Demande livraison rapide",
+                            "save" => true,
+                        ],
+                    ],
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
@@ -626,6 +635,9 @@ class SettingsController extends AbstractController {
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
     public const MENU_ALERTS = "alertes";
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
+
+    public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "collect_request_and_create_ref";
+    public const MENU_FAST_DELIVERY_REQUEST = "fast_delivery_request";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_INVENTORY_CONFIGURATION = "configuration";
@@ -1264,9 +1276,11 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
-                self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
-                ],
+                self::MENU_TOUCH_TERMINAL => [
+                    self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
+                        'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                    ],
+                ]
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [

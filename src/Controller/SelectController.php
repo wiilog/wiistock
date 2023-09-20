@@ -252,7 +252,6 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
-        dump($request);
         $options = [
             'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
             'type-quantity' => $request->query->get('type-quantity'),
