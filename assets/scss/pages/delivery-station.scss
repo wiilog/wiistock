@@ -27,6 +27,11 @@
 
     .reference-informations {
         height: fit-content;
+
+        .image {
+            max-width: 150px;
+            max-height: 150px;
+        }
     }
 }
 
@@ -80,6 +85,7 @@ label {
     display: flex;
     align-items: center;
     cursor: pointer;
+    width: fit-content;
 
     .add-reference {
         color: $primary;
@@ -100,7 +106,15 @@ label {
     }
 }
 
-.suppliers li::before {
+.suppliers li::before, .modal-body li::before {
     content: "•";
     padding-right: 8px;
+}
+
+#information-button img {
+    cursor: pointer;
+}
+
+.delete-line {
+    cursor: pointer;
 }

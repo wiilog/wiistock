@@ -252,13 +252,18 @@ class SelectController extends AbstractController {
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
+        dump($request);
         $options = [
             'needsOnlyMobileSyncReference' => $request->query->getBoolean('needs-mobile-sync'),
             'type-quantity' => $request->query->get('type-quantity'),
             'status' => $request->query->get('status'),
             'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
             'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
-            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+            'minQuantity' => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+            'multipleFields' => $request->query->getBoolean('multipleFields'),
+            'freeField1' => $request->query->get('freeField1'),
+            'freeField2' => $request->query->get('freeField2'),
+            'freeField3' => $request->query->get('freeField3'),
         ];
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));

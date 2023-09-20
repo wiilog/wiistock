@@ -2,39 +2,34 @@
 
 namespace App\Controller\DeliveryStation;
 
-use App\Annotation\HasValidToken;
 use App\Controller\AbstractController;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\Demande;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\KioskToken;
+use App\Entity\Livraison;
+use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
-use App\Entity\Setting;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
-use App\Service\AttachmentService;
 use App\Service\DeliveryRequestService;
-use App\Service\Kiosk\KioskService;
-use App\Service\LivraisonService;
-use DateInterval;
+use App\Service\FreeFieldService;
+use App\Service\LivraisonsManagerService;
+use App\Service\PreparationsManagerService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Twig\Environment;
 use WiiCommon\Helper\Stream;
 
-
-/**
- * @Route("/caisse-automatique")
- */
+#[Route("/caisse-automatique")]
 class DeliveryStationController extends AbstractController
 {
 
@@ -64,15 +59,14 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response
+    public function form(EntityManagerInterface $entityManager): Response
     {
-        $request = $request->query;
+        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0];
+        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null;
 
-        $type = $entityManager->getRepository(Type::class)->find($request->get('type'));
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->find($request->get('visibilityGroup'));
-        $freeFields = [];
+        $filterFields = []; // TODO remplacer par les champs filtres du paramétrage
         return $this->render('delivery_station/form.html.twig', [
-            'freeFields' => $freeFields,
+            'filterFields' => $filterFields,
             'form' => true,
             'type' => $type->getLabel(),
             'visibilityGroup' => $visibilityGroup->getLabel(),
@@ -92,42 +86,55 @@ class DeliveryStationController extends AbstractController
         if ($barcode) {
             if (str_starts_with($barcode, Article::BARCODE_PREFIX)) {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $barcode]);
-
-                if($article->isAvailable()) {
-                    if($article->getReferenceArticle()->getId() === $initialReference->getId()) {
-                        $values = [
-                            'location' => $this->formatService->location($article->getEmplacement()),
-                            'suppliers' => $article->getArticleFournisseur()?->getFournisseur()?->getCodeReference() ?: '-',
-                        ];
+                if ($article) {
+                    if ($article->isAvailable()) {
+                        if ($article->getReferenceArticle()->getId() === $initialReference->getId()) {
+                            $values = [
+                                'location' => $this->formatService->location($article->getEmplacement()),
+                                'suppliers' => $article->getArticleFournisseur()?->getFournisseur()?->getCodeReference() ?: '-',
+                                'isReference' => false,
+                            ];
+                        } else {
+                            return $this->json([
+                                'success' => false,
+                                'msg' => "L'article renseigné n'est pas lié à la référence sélectionée.",
+                            ]);
+                        }
                     } else {
                         return $this->json([
                             'success' => false,
-                            'msg' => "L'article renseigné n'est pas lié à la référence sélectionée.",
+                            'msg' => "L'article sélectionné n'est pas disponible.",
                         ]);
                     }
                 } else {
                     return $this->json([
                         'success' => false,
-                        'msg' => "L'article sélectionné n'est pas disponible.",
+                        'msg' => "L'article renseigné n'existe pas.",
                     ]);
                 }
             } elseif (str_starts_with($barcode, ReferenceArticle::BARCODE_PREFIX)) {
                 $reference = $referenceArticleRepository->findOneBy(['barCode' => $barcode]);
-
-                if($reference->getId() === $initialReference->getId()) {
-                    $values = [
-                        'location' => $this->formatService->location($reference->getEmplacement()),
-                        'suppliers' => Stream::from($reference->getArticlesFournisseur())
-                            ->map(static fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur()->getCodeReference())
-                            ->join(','),
-                    ];
+                if ($reference) {
+                    if ($reference->getId() === $initialReference->getId()) {
+                        $values = [
+                            'location' => $this->formatService->location($reference->getEmplacement()),
+                            'suppliers' => Stream::from($reference->getArticlesFournisseur())
+                                ->map(static fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur()->getCodeReference())
+                                ->join(','),
+                            'isReference' => true,
+                        ];
+                    } else {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "La référence renseignée doit être identique à celle sélectionnée au début du processus.",
+                        ]);
+                    }
                 } else {
                     return $this->json([
                         'success' => false,
-                        'msg' => "La référence renseignée doit être identique à celle sélectionnée au début du processus.",
+                        'msg' => "La référence renseignée n'existe pas.",
                     ]);
                 }
-
             } else {
                 return $this->json([
                     'success' => false,
@@ -173,24 +180,116 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/submit-request", name: "delivery_station_submit_request", options: ["expose" => true], methods: "POST")]
-    public function submitRequest(Request                $request,
-                                  EntityManagerInterface $entityManager,
-                                  DeliveryRequestService $deliveryRequestService,
-                                  LivraisonService       $deliveryOrderService): JsonResponse
+    public function submitRequest(Request                    $deliveryRequest,
+                                  EntityManagerInterface     $entityManager,
+                                  DeliveryRequestService     $deliveryRequestService,
+                                  LivraisonsManagerService   $deliveryOrderService,
+                                  PreparationsManagerService $preparationOrderService,
+                                  FreeFieldService           $freeFieldService): JsonResponse
     {
-        $data = $request->request->all();
-        dump($data);
-        /*$request = $deliveryRequestService->newDemande([
-            'isManual' => true,
-            'type' => $data['type'],
-            'demandeur' => $nomadUser,
-            'destination' => $location['id'],
-            'expectedAt' => $delivery['expectedAt'] ?? $now->format('Y-m-d'),
-            'project' => $delivery['project'] ?? null,
-            'commentaire' => $delivery['comment'] ?? null,
-        ], $entityManager, $freeFieldService, true);
+        $values = $deliveryRequest->query->all();
+        $references = json_decode($values['references'], true);
+        $freeFields = Stream::from(json_decode($values['freeFields'], true))
+            ->flatten(true)
+            ->toArray();
 
-        $entityManager->persist($request);*/
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
+        $type = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Consommable'])[0]; // TODO A remplacer par le paramétrage
+        $location = $locationRepository->findOneBy(['label' => 'SI BUREAU PLANNING']); // TODO A remplacer par le paramétrage
+
+        $data = [
+            'type' => $type->getId(),
+            'demandeur' => $this->getUser(), // TODO A remplacer par le paramétrage
+            'destination' => $location->getId(),
+        ];
+        $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
+
+        $entityManager->persist($deliveryRequest);
+
+        foreach ($references as $reference) {
+            $pickedQuantity = intval($reference['pickedQuantity']);
+            $barcode = $reference['barcode'];
+            if ($reference['isReference']) {
+                $reference = $referenceRepository->findOneBy(['barCode' => $barcode]);
+
+                if ($pickedQuantity > $reference->getQuantiteDisponible()) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "La quantité prise pour la référence <strong>{$reference->getReference()}</strong> excède la quantité disponible.",
+                    ]);
+                } else {
+                    $line = (new DeliveryRequestReferenceLine())
+                        ->setRequest($deliveryRequest)
+                        ->setPickedQuantity($pickedQuantity)
+                        ->setQuantityToPick($pickedQuantity)
+                        ->setReference($reference);
+                }
+            } else {
+                $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+
+                if ($pickedQuantity > $article->getQuantite()) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "La quantité prise pour l'article <strong>{$article->getLabel()}</strong> excède la quantité en stock.",
+                    ]);
+                } else {
+                    $line = (new DeliveryRequestArticleLine())
+                        ->setRequest($deliveryRequest)
+                        ->setPickedQuantity($pickedQuantity)
+                        ->setQuantityToPick($pickedQuantity)
+                        ->setArticle($article);
+                }
+            }
+
+            $entityManager->persist($line);
+        }
+
+        $response = $deliveryRequestService->validateDLAfterCheck(
+            $entityManager,
+            $deliveryRequest,
+            false,
+            true,
+            true,
+            false,
+            ['sendNotification' => false]
+        );
+
+        if ($response['success']) {
+            $preparation = $deliveryRequest->getPreparations()->first();
+            $articlesNotPicked = $preparationOrderService->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
+            $deliveryOrder = $deliveryOrderService->createLivraison(new DateTime(), $preparation, $entityManager, Livraison::STATUT_LIVRE);
+
+            $locationEndPreparation = $deliveryRequest->getDestination();
+
+            $preparationOrderService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
+            $preparationOrderService->closePreparationMouvement($preparation, new DateTime(), $locationEndPreparation);
+
+            $movements = $entityManager->getRepository(MouvementStock::class)->findByPreparation($preparation);
+
+            foreach ($movements as $movement) {
+                $preparationOrderService->createMovementLivraison(
+                    $entityManager,
+                    $movement->getQuantity(),
+                    $this->getUser(),
+                    $deliveryOrder,
+                    !empty($movement->getRefArticle()),
+                    $movement->getRefArticle() ?? $movement->getArticle(),
+                    $preparation,
+                    false,
+                    $locationEndPreparation
+                );
+            }
+
+            $entityManager->flush();
+        } else {
+            return $this->json([
+                'success' => false,
+            ]);
+        }
 
         return $this->json([
             'success' => true,

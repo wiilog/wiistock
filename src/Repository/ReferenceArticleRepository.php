@@ -22,6 +22,7 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
@@ -123,25 +124,52 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('shippingRequestId', $options['ignoredShippingRequest']);
         }
 
-        return $queryBuilder
+        $queryBuilder
             ->distinct()
-            ->select("reference.id AS id")
-            ->addSelect('reference.reference AS text')
+            ->select("reference.id AS id");
+
+        if($options['multipleFields']) {
+            $queryBuilder->addSelect("CONCAT_WS(' / ', reference.reference, reference.libelle, GROUP_CONCAT(supplier.codeReference SEPARATOR ','), reference.barCode) AS text");
+        } else {
+            $queryBuilder->addSelect('reference.reference AS text');
+        }
+
+        if(true || $options['freeField2'] || $options['freeField3']) {
+            $options['freeField1'] = "13:CONSOMMABLES";
+            [$id, $value] = explode(':', $options['freeField1']);
+            $queryBuilder->andWhere($queryBuilder->expr()->orX(
+                "JSON_CONTAINS(reference.freeFields, '\"$value\"', '$.\"$id\"') = true"
+            ));
+        }
+
+        $queryBuilder
             ->addSelect('reference.libelle AS label')
             ->addSelect('emplacement.label AS location')
             ->addSelect('reference.description AS description')
-            ->addSelect('reference.typeQuantite as typeQuantite')
-            ->addSelect('reference.barCode as barCode')
-            ->addSelect('type.id as typeId')
-            ->addSelect('reference.dangerousGoods as dangerous')
-            ->andWhere("reference.reference LIKE :term")
+            ->addSelect('reference.typeQuantite AS typeQuantite')
+            ->addSelect('reference.barCode AS barCode')
+            ->addSelect('type.id AS typeId')
+            ->addSelect('reference.dangerousGoods AS dangerous')
+            ->orHaving("text LIKE :term",)
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
             ->leftJoin("reference.type", "type")
+            ->leftJoin("reference.articlesFournisseur", "supplierArticle")
+            ->leftJoin("supplierArticle.fournisseur", "supplier")
             ->setParameter("term", "%$term%")
             ->setParameter("draft", ReferenceArticle::DRAFT_STATUS)
-            ->setMaxResults(100)
+            ->setMaxResults(100);
+
+        if($options['multipleFields']) {
+            Stream::from($queryBuilder->getDQLParts()['select'])
+                ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
+                ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
+                ->filter(fn($selectAlias) => !in_array($selectAlias, ['text']))
+                ->each(fn($field) => $queryBuilder->addGroupBy($field));
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getArrayResult();
     }

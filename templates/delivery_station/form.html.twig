@@ -20,29 +20,39 @@
             <div class="form-content">
                 <div class="stock-exit-container">
                     <div class="reference-choice-container active">
-                        <div class="">
-                            <label>
-                                Champ libre 1
-                                <select class="form-control"></select>
-                            </label>
-                            <label>
-                                Champ libre 2
-                                <select class="form-control"></select>
-                            </label>
-                            <label>
-                                Champ libre 3
-                                <select class="form-control"></select>
-                            </label>
+                        <div class="row">
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Code NDP
+                                    <input class="form-control" name="filterField1" disabled>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Emplacement
+                                    <select class="form-control" name="filterField1" disabled></select>
+                                </label>
+                            </div>
+                            <div class="col-4">
+                                <label class="w-100">
+                                    Acheteur
+                                    <select class="form-control" name="filterField1" disabled></select>
+                                </label>
+                            </div>
                         </div>
                         <div class="mt-5">
                             {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
                                 type: 'reference',
                                 inputClass: 'w-50',
                                 labelClass: 'd-flex flex-column',
-                                includeParams: '[name=freeField1],[name=freeField2],[name=freeField3]',
+                                includeParams: '[name=multipleFields],[name=filterField1],[name=filterField2],[name=filterField3]',
                                 includeParamsParent: '.reference-choice-container',
+                                attributes: {
+                                    'autofocus': 'autofocus'
+                                }
                             }) }}
                         </div>
+                        <input type="hidden" name="multipleFields" value="1">
                     </div>
                     <div class="quantity-choice-container d-none">
                         <div class="row">
@@ -64,28 +74,30 @@
                                 </div>
                                 <div class="wii-field-name mt-3">Code(s) fournisseur(s):
                                     <ul class="suppliers wii-field-text"></ul>
-                                    <span class="wii-small-text italic">Renseignez un code barre pour afficher le(s) code(s) fournisseur(s).</span>
+                                    <span class="wii-small-text italic">Code barre requis pour afficher le(s) code(s) fournisseur(s).</span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="d-flex align-items-center">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" width="50px">
                                     <div class="wii-field-name">Emplacement:
+                                        <span class="wii-small-text">Code barre requis pour afficher l'emplacement.</span>
                                         <span class="location"></span>
                                     </div>
                                 </div>
                                 <div class="mt-5">
-                                    {{ form.input('barcode', 'Veuillez scanner le code barre', false, null, {
+                                    {{ form.input('barcode', 'Code barre', false, null, {
                                         type: 'search',
                                         labelClass: 'w-100',
                                     }) }}
                                 </div>
                                 <div class="mt-2">
                                     {{ form.input('pickedQuantity', 'Quantité prise', false, null, {
-                                        type: 'search',
+                                        type: 'number',
                                         labelWidth: '100%',
                                         width: 0,
                                         inputClass: 'w-50',
+                                        min: 1,
                                     }) }}
                                 </div>
                             </div>
@@ -95,13 +107,13 @@
                     <div class="summary-container d-none">
                         <table class="table">
                             <thead>
-                                <tr>
-                                    <th scope="col" class="wii-field-name">Référence</th>
-                                    <th scope="col" class="wii-field-name">Libellé</th>
-                                    <th scope="col" class="wii-field-name">Code barre</th>
-                                    <th scope="col" class="wii-field-name">Quantité prise</th>
-                                    <th></th>
-                                </tr>
+                            <tr>
+                                <th scope="col" class="wii-field-name">Référence</th>
+                                <th scope="col" class="wii-field-name">Libellé</th>
+                                <th scope="col" class="wii-field-name">Code barre</th>
+                                <th scope="col" class="wii-field-name">Quantité prise</th>
+                                <th></th>
+                            </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -117,12 +129,12 @@
                             'show': true,
                         } %}
                         <div class="wii-title text-center black">Votre demande de livraison a bien été traitée</div>
+                        <div class="wii-small-text text-center">Vous allez être redirigé automatiquement à l'accueil au bout de <span class="delay"></span> secondes.</div>
                         <div class="d-flex justify-content-center mt-4">
-                            <button class="button-next" data-loader-size="normal">
+                            <button class="back-to-home-button" data-loader-size="normal">
                                 Accueil
                             </button>
                         </div>
-
                     </div>
                     <div class="d-flex flex-row-reverse mt-5">
                         <button class="validate-stock-exit-button d-none" data-loader-size="normal">
@@ -131,15 +143,18 @@
                         <button class="outline edit-stock-exit-button mr-3 d-none">
                             Modifier
                         </button>
-                        <button class="btn button-next" data-loader-size="normal">
+                        <button class="btn next-button d-none" data-loader-size="normal">
                             Suivant
+                        </button>
+                        <button class="btn button-search" data-loader-size="normal">
+                            Rechercher
                         </button>
                     </div>
                 </div>
             </div>
         </div>
         <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
-            <button class="outline return-or-give-up-button">
+            <button class="outline back-button">
                 Retour
             </button>
             <button class="outline danger give-up-button d-none">
@@ -168,6 +183,7 @@
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
     </div>
 
+    {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}
     {% include 'delivery_station/modalDeleteLine.html.twig' %}
     {% include 'delivery_station/modalGeneric.html.twig' %}

@@ -5,14 +5,16 @@
                 {% include 'utils/modal-alert/warning-bookmark.html.twig' with {
                     'show': true,
                 } %}
-                <div class="mt-4 content field-text text-center" id="stock-error-message">
+                <div class="mt-4 content field-text text-center ">
                     Voulez-vous supprimer cette référence de votre demande de livraison ?<br>
-                    Si oui, pensez à remettre la référence @référence à son emplacement d'origine @emplacement.
+                    <span class="reminder"></span>
                 </div>
 
-                <div class="content field-text text-center last-reference mt-3 font-weight-bold d-none">
-                    Il s'agit de la dernière référence présente dans la demande.<br>
-                    Si vous confirmez, vous serez redirigé à la page d'accueil.
+                <div class="content field-text text-center last-reference mt-3 d-none">
+                    <span class="wii-icon wii-icon-info wii-icon-20px bg-black mr-2"></span>
+                    <span>
+                        Il s'agit de la dernière référence présente dans la demande. Si vous confirmez, vous serez redirigé à la page d'accueil.
+                    </span>
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

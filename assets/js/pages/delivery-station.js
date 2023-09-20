@@ -1,159 +1,189 @@
 import '@styles/pages/kiosk.scss';
 import '@styles/pages/delivery-station.scss';
 
+const REDIRECT_TO_HOME_DELAY = 15000;
+
 let references = [];
+let freeFields = [];
+let referenceValues = {};
+
+const $timeline = $(`.timeline-container`);
+
+const $homeContainer = $(`.home`);
+const $stockExitContainer = $(`.stock-exit-container`);
+const $referenceChoiceContainer = $(`.reference-choice-container`);
+const $quantityChoiceContainer = $(`.quantity-choice-container`);
+const $summaryContainer = $(`.summary-container`);
+const $addReferenceContainer = $(`.add-reference-container`);
+const $otherInformationsContainer = $(`.other-informations-container`);
+const $treatedDeliveryContainer = $(`.treated-delivery-container`);
+
+const $loginButton = $(`button.login`);
+const $validateStockEntryButton = $(`.validate-stock-exit-button`);
+const $submitGiveUpStockExit = $(`#submitGiveUpStockExit`);
+const $giveUpButtonContainer = $(`.give-up-button-container`);
+const $giveUpButton = $(`.give-up-button`);
+const $informationButton = $(`#information-button`);
+const $nextButton = $(`.next-button`);
+const $searchButton = $(`.button-search`);
+const $backButton = $(`.back-button`);
+const $backToHomeButton = $(`.back-to-home-button`);
+const $editStockExitButton = $(`.edit-stock-exit-button`);
+
 const $modalGeneric = $(`.modal-generic`);
+const $modalInformation = $(`#modal-information`);
+const $modalDeleteLine = $(`.modal-delete-line`);
+
+const $referenceInformations = $(`.reference-informations`);
 
 $(function () {
-    $(`button.login`).on(`click`, function () {
-        const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
-        const type = $(`[name=type]`).val();
-        const visibilityGroup = $(`[name=visibilityGroup]`).val();
+    toggleAutofocus();
+    $treatedDeliveryContainer.find(`.delay`).text(REDIRECT_TO_HOME_DELAY / 1000);
 
-        if (mobileLoginKey) {
-            wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey})
-                    .json()
-                    .then(({success}) => {
-                        if (success) {
-                            window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey, type, visibilityGroup});
+    $loginButton.on(`click`, function () {
+        processLogin($(this));
+    });
+
+    // catching DataWedge barcode event
+    $(document).on(`keypress`, (event) => {
+        if (event.originalEvent.key === 'Enter') {
+            const $target = $(event.target);
+            if ($target.is(`.login`)) {
+                processLogin();
+            } else if ($target.is(`[name=barcode]`)) {
+                processBarcodeEntering($target.val());
+            }
+        }
+    });
+
+    $nextButton
+        .add($searchButton)
+        .on(`click`, function () {
+            const $current = $(this).closest(`.stock-exit-container`).find(`.active`);
+            const $currentTimelineEvent = $timeline.find(`.current`);
+
+            if ($current.find(`.invalid`).length === 0) {
+                if ($current.is(`.reference-choice-container`)) {
+                    processReferenceChoice($current, $searchButton, $currentTimelineEvent);
+                }
+
+                if ($current.is(`.quantity-choice-container`)) {
+                    const barcode = $current.find(`[name=barcode]`).val();
+                    const pickedQuantity = $current.find(`[name=pickedQuantity]`).val();
+
+                    if (barcode && pickedQuantity !== "") {
+                        if(references.findIndex(({barcode}) => barcode === barcode) !== -1) {
+                            showGenericModal(`Le code barre <strong>${barcode}</strong> est déjà présent dans cette demande de livraison.`)
                         } else {
-                            toggleRequiredMobileLoginKeyModal();
+                            references.push(referenceValues);
+                            const index = references.length - 1;
+                            references[index].barcode = barcode;
+                            references[index].pickedQuantity = pickedQuantity;
+
+                            wrapLoadingOnActionButton($(this), () => (
+                                AJAX.route(AJAX.GET, `delivery_station_get_free_fields`)
+                                    .json()
+                                    .then(({template}) => {
+                                        if (references.length === 1) {
+                                            pushNextPage($current);
+                                            updateTimeline($currentTimelineEvent);
+
+                                            template = template || `<div class="text-center">Il n'y a aucun champ libre pour ce type de demande de livraison.</div>`;
+                                            $otherInformationsContainer.html(template);
+
+                                            toggleAutofocus();
+                                        } else {
+                                            $current
+                                                .addClass(`d-none`)
+                                                .removeClass(`active`);
+
+                                            $summaryContainer
+                                                .removeClass(`d-none`)
+                                                .addClass(`active`);
+
+                                            updateSummaryTable();
+                                        }
+                                    })
+                            ));
                         }
-                    })
-            ));
-        } else {
-            toggleRequiredMobileLoginKeyModal();
-        }
-    });
+                    } else if (!barcode) {
+                        showGenericModal(`Vous devez renseigner un code barre pour continuer.`);
+                    } else if (!pickedQuantity) {
+                        showGenericModal(`Vous devez renseigner une quantité prise pour continuer.`);
+                    }
+                }
 
-    $('.button-next').on('click', function () {
-        const $current = $(this).closest('.stock-exit-container').find('.active');
-        const $timeline = $(`.timeline-container`);
-        const $currentTimelineEvent = $timeline.find(`.current`);
-        const $inputs = $current.find(`input[required]`);
-        const $selects = $current.find(`select.needed`);
+                if ($current.is(`.other-informations-container`)) {
+                    const $freeFields = $current.find(`.free-field`);
+                    let values = {};
+                    $freeFields
+                        .each(function (index, element) {
+                            const $element = $(element);
 
-        $selects.each(function () {
-            if ($(this).find('option:selected').length === 0) {
-                $(this).parent().find('.select2-selection ').addClass('invalid');
-            } else {
-                $(this).parent().find('.select2-selection ').removeClass('invalid');
+                            const label = $element.find(`.field-label`).text().trim();
+                            const value = $element.find(`input, select`).val();
+                            values[label] = value;
+
+                            let freeField = {};
+                            const id = $element.find(`input, select`).attr(`name`);
+                            freeField[id] = value;
+                            freeFields.push(freeField);
+                        });
+
+                    $current
+                        .find(`.free-field`)
+                        .each(function (index, freeField) {
+                            values[$(freeField).find(`.field-label`).text().trim()] = $(freeField).find(`input, select`).val();
+                        });
+
+                    console.log(freeFields);
+
+                    pushNextPage($current);
+                    updateTimeline($currentTimelineEvent);
+                    updateSummaryTable();
+                    toggleSummaryButtons($current);
+
+                    const $freeFieldsContainer = $summaryContainer.find(`.free-fields-container`);
+                    $freeFieldsContainer.empty();
+                    for (const [label, value] of Object.entries(values)) {
+                        renderFreeField($freeFieldsContainer, label, value);
+                    }
+                }
             }
         });
 
-        $inputs.each(function () {
-            if (!($(this).val())) {
-                $(this).addClass('invalid');
-            } else {
-                $(this).removeClass('invalid');
-            }
-        });
+    $validateStockEntryButton.on(`click`, function () {
+        const $current = $(this).closest(`.stock-exit-container`).find(`.active`);
 
-        toggleSummaryButtons($current);
-
-        if ($current.find(`.invalid`).length === 0) {
-            if ($current.is(`.reference-choice-container`)) {
-                //const reference = $(`[name=reference]`).val();
-                const reference = $current.find(`[name=reference]`).val();
-
-                if(reference) {
-                    wrapLoadingOnActionButton($(this), () => (
-                        AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference})
-                            .json()
-                            .then(({values}) => {
-                                references.push(values);
-                                pushNextPage($current);
-                                updateTimeline($currentTimelineEvent);
-                                updateReferenceInformations();
-                            })
-                    ));
-                } else {
-                    showGenericModal(`Vous devez sélectionner une référence pour pouvoir continuer.`);
-                }
-
-            }
-
-            if ($current.is(`.quantity-choice-container`)) {
-                const barcode = $current.find(`[name=barcode]`).val();
-                const pickedQuantity = $current.find(`[name=pickedQuantity]`).val();
-
-                if(barcode && pickedQuantity !== "") {
-                    wrapLoadingOnActionButton($(this), () => (
-                        AJAX.route(AJAX.GET, `delivery_station_get_free_fields`)
-                            .json()
-                            .then(({template}) => {
-                                $current.find(`.suppliers ~ span`).removeClass(`d-none`); // todo vérifier pourquoi ça ne cache pas le message
-
-                                if(references.length === 1) {
-                                    pushNextPage($current);
-                                    updateTimeline($currentTimelineEvent);
-
-                                    template = template || `<div class="text-center">Il n'y a aucun champ libre pour ce type de demande de livraison.</div>`;
-                                    $(`.other-informations-container`).html(template);
-                                } else {
-                                    $current
-                                        .addClass(`d-none`)
-                                        .removeClass(`active`);
-
-                                    $(`.summary-container`)
-                                        .removeClass(`d-none`)
-                                        .addClass(`active`);
-                                }
-                            })
-                    ));
-                } else if(!barcode) {
-                    showGenericModal(`Vous devez renseigner un code barre pour continuer.`);
-                } else if(!pickedQuantity) {
-                    showGenericModal(`Vous devez renseigner une quantité prise pour continuer.`);
-                }
-            }
-
-            if ($current.is(`.other-informations-container`)) {
-                let values = {};
-                $current
-                    .find(`.free-field`)
-                    .each(function (index, freeField) {
-                        values[$(freeField).find(`.field-label`).text().trim()] = $(freeField).find(`input, select`).val();
-                    });
-
-                pushNextPage($current);
-                updateTimeline($currentTimelineEvent);
-                updateSummaryTable();
-                toggleSummaryButtons($current);
-
-                const $freeFieldsContainer = $(`.summary-container`).find(`.free-fields-container`);
-                $freeFieldsContainer.empty();
-                for (const [label, value] of Object.entries(values)) {
-                    renderFreeField($freeFieldsContainer, label, value);
-                }
-            }
-        }
-    });
-
-    $(`.validate-stock-exit-button`).on(`click`, function () {
-        const $current = $(this).closest('.stock-exit-container').find('.active');
-
+        const parsedReferences = JSON.stringify(references);
+        const parsedFreeFields = JSON.stringify(freeFields);
         wrapLoadingOnActionButton($(this), () => (
-            AJAX.route(AJAX.POST, `delivery_station_submit_request`, references)
+            AJAX.route(AJAX.POST, `delivery_station_submit_request`, {references: parsedReferences, freeFields: parsedFreeFields})
                 .json()
-                .then(({success}) => {
+                .then(({success, msg}) => {
                     if (success) {
                         pushNextPage($current);
                         updateTimeline(undefined, true);
+                        toggleSummaryButtons($current);
+
+                        $nextButton.addClass(`d-none`);
+                        $backButton.addClass(`d-none`);
+
+                        setTimeout(() => backToHome(), REDIRECT_TO_HOME_DELAY);
+                    } else {
+                        showGenericModal(msg);
                     }
                 })
         ));
     });
 
-    $('.return-or-give-up-button, .edit-stock-exit-button').on('click', function () {
+    $(`.back-button, .edit-stock-exit-button`).on(`click`, function () {
         backPreviousPage();
     });
 
-    $(`.give-up-button`).on(`click`, () => {
-        // todo rediriger vers le login
+    $giveUpButton.on(`click`, () => {
         let list = [];
-        references.forEach(({reference, location}) => list.push(`<li>${reference} à son emplacement d'origine ${location}</li>`));
+        references.forEach(({reference, location}) => list.push(`<li><strong>${reference}</strong> à son emplacement d'origine <strong>${location}</strong></li>`));
 
         const message = `
             <div>
@@ -165,46 +195,32 @@ $(function () {
             </div>
         `;
 
+        $modalGeneric.find(`.submit`).removeClass(`d-none`);
+
         showGenericModal(message);
     });
 
-    $(`#submitGiveUpStockExit`).on('click', () => {
-        window.location.href = Routing.generate('delivery_station_index', true);
-    });
+    $submitGiveUpStockExit
+        .add($modalGeneric.find(`.submit`))
+        .add($backToHomeButton)
+        .on(`click`, () => backToHome());
 
-    $(`.quantity-choice-container [name=barcode]`).on(`focusout`, function () {
+    $quantityChoiceContainer.find(`[name=barcode]`).on(`focusout`, function () {
         const barcode = $(this).val();
-        const reference = references.slice(-1)[0]?.id;
 
-        if(barcode !== ``) {
-            wrapLoadingOnActionButton($(`body`), () => (
-                AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference, barcode})
-                    .json()
-                    .then(({success, msg, values}) => {
-                        if(success) {
-                            const $quantityChoiceContainer = $(`.quantity-choice-container`);
-                            const {location, suppliers} = values;
-
-                            const orderedSuppliers = suppliers
-                                .split(`,`)
-                                .reduce((acc, supplier) => acc + `<li>${supplier}</li>`, ``);
-
-                            $quantityChoiceContainer.find(`.location`).text(location);
-                            $quantityChoiceContainer.find(`.suppliers ~ span`).addClass(`d-none`);
-                            $quantityChoiceContainer.find(`.suppliers`).html(orderedSuppliers);
-                        } else {
-                            showGenericModal(msg);
-                        }
-                    })
-            ));
+        if (barcode !== ``) {
+            processBarcodeEntering(barcode);
         }
     });
 
-    const $modalDeleteLine = $(`.modal-delete-line`);
-    $(document).arrive('.delete-line', function () {
+    $(document).arrive(`.delete-line`, function () {
         $(this).on(`click`, function () {
             const lineIndex = $(this).data(`line-index`);
             $modalDeleteLine.find(`.submit`).attr(`data-line-index`, lineIndex);
+
+            const {reference, location} = references[lineIndex];
+            const message = `Si oui, pensez à remettre la référence <strong>${reference}</strong> à son emplacement d'origine <strong>${location}.</strong>`;
+            $modalDeleteLine.find(`.reminder`).html(message);
 
             if (references.length === 1) {
                 $modalDeleteLine.find(`.last-reference`).removeClass(`d-none`);
@@ -217,23 +233,32 @@ $(function () {
     $modalDeleteLine.find(`.submit`).on(`click`, function () {
         const lineIndex = $(this).data(`line-index`);
         references.splice(lineIndex, 1);
-        $(`.summary-container tbody tr`)[lineIndex]
+        $summaryContainer
+            .find(`tbody tr`)[lineIndex]
             .closest(`tr`)
             .remove();
 
         if (references.length === 0) {
-            window.location.href = Routing.generate('delivery_station_form', true);
-        } else {
-            Flash.add(Flash.SUCCESS, `La référence a bien été supprimée de la demande`);
+            window.location.href = Routing.generate(`delivery_station_login`, true);
         }
     });
 
-    $(`.add-reference-container`).on(`click`, () => {
+    $addReferenceContainer.on(`click`, () => {
         Array(3).fill(0).forEach(() => backPreviousPage());
+        $quantityChoiceContainer.find(`.suppliers li`).remove();
+        $quantityChoiceContainer.find(`.location`).text(``);
+        $quantityChoiceContainer.find(`.location`).siblings(`span`).removeClass(`d-none`);
+
+        $quantityChoiceContainer.find(`[name=barcode], [name=pickedQuantity]`).val(null);
     });
 
     $modalGeneric.on(`hidden.bs.modal`, function () {
         $(this).find(`.error-message`).empty();
+    });
+
+    $informationButton.on(`click`, function () {
+        $modalInformation.modal(`show`);
+        $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
     });
 });
 
@@ -243,7 +268,8 @@ function toggleRequiredMobileLoginKeyModal() {
 }
 
 function updateTimeline($currentTimelineEvent = undefined, hide = false) {
-    $(`.timeline-container`).toggleClass(`d-none`, hide);
+    $timeline.toggleClass(`d-none`, hide);
+
     if (!hide) {
         $currentTimelineEvent
             .removeClass(`current`);
@@ -264,33 +290,38 @@ function pushNextPage($current) {
         .next()
         .removeClass(`d-none`)
         .addClass(`active`);
+
+    toggleAutofocus();
 }
 
 function backPreviousPage() {
-    const $current = $('.active')
-    const $timeline = $('.timeline-container');
-    const $currentTimelineEvent = $timeline.find('.current');
+    const $current = $(`.active`)
+    const $currentTimelineEvent = $timeline.find(`.current`);
     const $modalGiveUpStockExit = $(`.modal-give-up-stock-exit`);
 
-    toggleSummaryButtons();
-
     if ($current.prev().exists() && !$current.prev().first().is(`body`)) {
-        $currentTimelineEvent.addClass('future').removeClass('current');
-        $($currentTimelineEvent.prev()[0]).addClass('current').removeClass('future');
-        $current.removeClass('active').addClass('d-none');
-        $($current.prev()[0]).addClass('active').removeClass('d-none');
+        $currentTimelineEvent.addClass(`future`).removeClass(`current`);
+        $($currentTimelineEvent.prev()[0]).addClass(`current`).removeClass(`future`);
+        $current.removeClass(`active`).addClass(`d-none`);
+        $($current.prev()[0]).addClass(`active`).removeClass(`d-none`);
+
+        if($referenceChoiceContainer.is(`.active`)) {
+            $searchButton.removeClass(`d-none`);
+            $nextButton.addClass(`d-none`);
+        }
+
+        toggleSummaryButtons();
     } else {
-        $modalGiveUpStockExit.modal('show');
-        $modalGiveUpStockExit.find('.bookmark-icon').removeClass('d-none');
+        $modalGiveUpStockExit.modal(`show`);
+        $modalGiveUpStockExit.find(`.bookmark-icon`).removeClass(`d-none`);
     }
 }
 
 function updateReferenceInformations() {
-    const $referenceInformations = $(`.reference-informations`);
-    const reference = references.slice(-1)[0];
-    for (const [index, value] of Object.entries(reference)) {
+    //const reference = references[references.length - 1];
+    for (const [index, value] of Object.entries(referenceValues)) {
         if (index === `image`) {
-            if(value) {
+            if (value) {
                 $referenceInformations
                     .find(`.${index}`)
                     .attr(`src`, value)
@@ -302,15 +333,14 @@ function updateReferenceInformations() {
                     .addClass(`default-image`);
             }
         } else {
-            $referenceInformations.find(`.${index}`).text(value || '-');
+            $referenceInformations.find(`.${index}`).text(value || `-`);
         }
     }
 
-    $(`.quantity-choice-container .location`).text(reference.location);
+    $quantityChoiceContainer.find(`.location`).text(referenceValues.location);
 }
 
 function updateSummaryTable() {
-    const $summaryContainer = $(`.summary-container`);
     $summaryContainer.find(`tbody`).empty();
     references.forEach((reference, lineIndex) => {
         renderReferenceLine($summaryContainer, lineIndex, reference);
@@ -323,7 +353,7 @@ function renderFreeField($freeFieldsContainer, label, value) {
             <span class="wii-icon wii-icon-document wii-icon-40px-primary mr-2"></span>
             <div class="d-flex flex-column">
                 <span class="wii-field-name">${label}</span>
-                <span class="wii-field-text">${value || '-'}</span>
+                <span class="wii-field-text">${value || `-`}</span>
             </div>
         </div>
     `;
@@ -337,7 +367,7 @@ function renderReferenceLine($summaryContainer, lineIndex, reference) {
             <td class="wii-body-text">@reference</td>
             <td class="wii-body-text">@label</td>
             <td class="wii-body-text">@barcode</td>
-            <td class="wii-body-text">@stockQuantity</td>
+            <td class="wii-body-text">@pickedQuantity</td>
             <td class="wii-body-text">
                 <i class="wii-icon wii-icon-trash wii-icon-25px-danger delete-line" data-line-index="${lineIndex}"></i>
             </td>
@@ -352,26 +382,131 @@ function renderReferenceLine($summaryContainer, lineIndex, reference) {
 }
 
 function toggleSummaryButtons() {
-    const $current = $('.stock-exit-container').find('.active');
-    const $stockExitContainer = $(`.stock-exit-container`);
-    const $giveUpButtonContainer = $(`.give-up-button-container`);
+    const $current = $stockExitContainer.find(`.active`);
 
     if ($current.is(`.summary-container`)) {
-        $giveUpButtonContainer.find(`.give-up-button`).removeClass(`d-none`);
-        $giveUpButtonContainer.find(`.return-or-give-up-button`).addClass(`d-none`);
+        $giveUpButton.removeClass(`d-none`);
+        $giveUpButtonContainer.find(`.back-button`).addClass(`d-none`);
         $stockExitContainer.find(`.edit-stock-exit-button`).removeClass(`d-none`);
-        $stockExitContainer.find(`.button-next`).addClass(`d-none`);
-        $stockExitContainer.find(`.validate-stock-exit-button`).removeClass(`d-none`);
+        $nextButton.addClass(`d-none`);
+        $validateStockEntryButton.removeClass(`d-none`);
+        $editStockExitButton.removeClass(`d-none`);
+    } else if($current.is(`.reference-choice-container`)) {
+        $nextButton.addClass(`d-none`);
     } else {
-        $giveUpButtonContainer.find(`.give-up-button`).addClass(`d-none`);
-        $giveUpButtonContainer.find(`.return-or-give-up-button`).removeClass(`d-none`);
+        $giveUpButton.addClass(`d-none`);
+        $giveUpButtonContainer.find(`.back-button`).removeClass(`d-none`);
         $stockExitContainer.find(`.edit-stock-exit-button`).addClass(`d-none`);
-        $stockExitContainer.find(`.button-next`).removeClass(`d-none`);
-        $stockExitContainer.find(`.validate-stock-exit-button`).addClass(`d-none`);
+        $nextButton.removeClass(`d-none`);
+        $validateStockEntryButton.addClass(`d-none`);
+        $editStockExitButton.addClass(`d-none`);
     }
 }
 
 function showGenericModal(message) {
-    $modalGeneric.find(`.error-message`).text(message);
+    $modalGeneric.find(`.error-message`).html(message);
     $modalGeneric.modal(`show`);
+}
+
+function backToHome() {
+    window.location.href = Routing.generate(`delivery_station_index`, true);
+}
+
+function processLogin($loadingContainer = undefined) {
+    const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
+
+    if (mobileLoginKey) {
+        wrapLoadingOnActionButton($loadingContainer || $(`.home .login`), () => (
+            AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey})
+                .json()
+                .then(({success}) => {
+                    if (success) {
+                        window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey});
+                    } else {
+                        toggleRequiredMobileLoginKeyModal();
+                    }
+                })
+        ));
+    } else {
+        toggleRequiredMobileLoginKeyModal();
+    }
+}
+
+function processReferenceChoice($current, $loadingContainer, $currentTimelineEvent) {
+    const reference = $current.find(`[name=reference]`).val();
+
+    if (reference) {
+        wrapLoadingOnActionButton($loadingContainer, () => (
+            AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference})
+                .json()
+                .then(({values}) => {
+                    referenceValues = values;
+                    $referenceChoiceContainer
+                        .find(`[name=reference]`)
+                        .val(null)
+                        .trigger(`change`);
+
+                    //references.push(values);
+                    console.log(references);
+
+                    pushNextPage($current);
+                    updateTimeline($currentTimelineEvent);
+                    updateReferenceInformations();
+
+                    $searchButton.addClass(`d-none`);
+                    $nextButton.removeClass(`d-none`);
+                })
+        ));
+    } else {
+        showGenericModal(`Vous devez sélectionner une référence pour pouvoir continuer.`);
+    }
+}
+
+function processBarcodeEntering(barcode) {
+    const reference = referenceValues.id;
+
+    wrapLoadingOnActionButton($(`body`), () => (
+        AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference, barcode})
+            .json()
+            .then(({success, msg, values}) => {
+                if (success) {
+                    const {location, suppliers, isReference} = values;
+
+                    referenceValues.location = location;
+                    referenceValues.isReference = isReference;
+
+                    const orderedSuppliers = suppliers
+                        .split(`,`)
+                        .reduce((acc, supplier) => acc + `<li>${supplier}</li>`, ``);
+
+                    $quantityChoiceContainer.find(`.location`).siblings(`span`).addClass(`d-none`);
+                    $quantityChoiceContainer.find(`.location`).text(location);
+                    $quantityChoiceContainer.find(`.suppliers`).siblings(`span`).addClass(`d-none`);
+                    $quantityChoiceContainer.find(`.suppliers`).html(orderedSuppliers);
+
+                    toggleAutofocus($quantityChoiceContainer.find(`[name=pickedQuantity]`));
+                } else {
+                    showGenericModal(msg);
+                }
+            })
+    ));
+}
+
+function toggleAutofocus($element = undefined) {
+    const $activeContainer = $stockExitContainer.exists()
+        ? $stockExitContainer.find(`.active`)
+        : $homeContainer;
+
+    $element = $activeContainer
+        .find($element || `input, select`)
+        .not(`.filtered-field`)
+        .first();
+
+    setTimeout(() => {
+        if ($element.is(`.select2-hidden-accessible`)) {
+            $element.select2(`open`);
+        } else {
+            $element.trigger(`focus`);
+        }
+    }, 1);
 }

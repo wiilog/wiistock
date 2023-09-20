@@ -69,6 +69,8 @@ class FreeFieldService {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $freeFields = [];
         $champsLibresKey = array_keys($data);
+        dump($data);
+        dump($champsLibresKey);
         foreach ($champsLibresKey as $field) {
             if (gettype($field) === 'integer') {
                 $champLibre = $champLibreRepository->find($field);
