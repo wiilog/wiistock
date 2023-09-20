@@ -228,7 +228,6 @@ class DeliveryStationController extends AbstractController
             'disabledFieldChecking' => true,
         ];
         $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
-        dump($deliveryRequest);
         $entityManager->persist($deliveryRequest);
 
         foreach ($references as $reference) {
