@@ -65,7 +65,7 @@ function initDeliveryStationTable(){
             {data: 'deliveryType', name: 'deliveryType', title: 'Type de livraison', orderable: false},
             {data: 'visibilityGroup', name: 'visibilityGroup', title: 'Groupe de visibilité', orderable: false},
             {data: 'destination', name: 'destination', title: 'Destination', orderable: false},
-            {data: 'receiver', name: 'receiver', title: 'Destinataire', orderable: false},
+            {data: 'receivers', name: 'receivers', title: 'Destinataire', orderable: false},
             {data: 'generatedExternalLink', name: 'generatedExternalLink', title: 'Lien externe généré', orderable: false, className: 'noVis'},
         ],
         domConfig: {

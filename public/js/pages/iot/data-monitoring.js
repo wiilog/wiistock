@@ -322,7 +322,7 @@ function initLineChart(element, callback) {
                 data: lineDataMax[0] > lineDataMin[0] ? lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                yAxisID: yAxes[0].id,
+                yAxisID: yAxes[0] ? yAxes[0].id : null,
                 borderColor: '#F00',
                 fill: false,
                 hiddenLegend: true,
@@ -332,13 +332,14 @@ function initLineChart(element, callback) {
                 data: lineDataMax[0] < lineDataMin[0] ? lineDataMax : lineDataMin,
                 pointRadius: 0,
                 pointHitRadius: 0,
-                yAxisID: yAxes[0].id,
+                yAxisID: yAxes[0] ? yAxes[0].id : null,
                 borderColor: '#00F',
                 fill: false,
                 hiddenLegend: true,
             };
         }
         data.datasets = Object.values(sensorMessagesDatasets);
+        console.log(data);
         const config = {
             type: 'line',
             data,
