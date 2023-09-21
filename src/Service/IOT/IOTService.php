@@ -227,9 +227,7 @@ class IOTService
             $wanted = intval($config['buttonIndex']);
             $needsTrigger = ($button === $wanted);
         }
-        dump("ON PASSE ICI");
-        dump($needsTrigger);
-        dump($triggerAction);
+
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
