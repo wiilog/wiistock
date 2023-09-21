@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use WiiCommon\Helper\Stream;
 
 
 /**
@@ -86,12 +87,13 @@ class DeliveryStationLineController extends AbstractController
                     "value" => $deliveryStationLine->getDestinationLocation()->getId(),
                     "selected" => true,
                 ],
-                'deliveryStationLineReceiver' => [
-                    "label" => $deliveryStationLine->getReceiver()?->getUsername(),
-                    "value" => $deliveryStationLine->getReceiver()?->getId(),
-                    "selected" => !!$deliveryStationLine->getReceiver(),
-                ],
-                'welcomeMessage' => $deliveryStationLine->getWelcomeMessage()
+                'deliveryStationLineReceivers' => Stream::from($deliveryStationLine->getReceivers())
+                    ->map(fn(Utilisateur $receiver) => [
+                        "label" => $receiver->getUsername(),
+                        "value" => $receiver->getId(),
+                        "selected" => !!$receiver,
+                    ])->toArray(),
+                'welcomeMessage' => $deliveryStationLine->getWelcomeMessage(),
             ])
         ]);
     }

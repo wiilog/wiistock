@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\DeliveryStationLineRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -26,14 +28,19 @@ class DeliveryStationLine
     #[ORM\JoinColumn(nullable: false)]
     private ?Emplacement $destinationLocation = null;
 
-    #[ORM\ManyToOne]
-    private ?Utilisateur $receiver = null;
-
     #[ORM\Column(nullable: true)]
     private array $filters = [];
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $welcomeMessage = null;
+
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    private Collection $receivers;
+
+    public function __construct()
+    {
+        $this->receivers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -76,18 +83,6 @@ class DeliveryStationLine
         return $this;
     }
 
-    public function getReceiver(): ?Utilisateur
-    {
-        return $this->receiver;
-    }
-
-    public function setReceiver(?Utilisateur $receiver): self
-    {
-        $this->receiver = $receiver;
-
-        return $this;
-    }
-
     public function getFilters(): array
     {
         return $this->filters;
@@ -108,6 +103,43 @@ class DeliveryStationLine
     public function setWelcomeMessage(string $welcomeMessage): self
     {
         $this->welcomeMessage = $welcomeMessage;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Utilisateur>
+     */
+    public function getReceivers(): Collection
+    {
+        return $this->receivers;
+    }
+
+    public function addReceiver(Utilisateur $receiver): self
+    {
+        if (!$this->receivers->contains($receiver)) {
+            $this->receivers->add($receiver);
+        }
+
+        return $this;
+    }
+
+    public function removeReceiver(Utilisateur $receiver): self
+    {
+        $this->receivers->removeElement($receiver);
+
+        return $this;
+    }
+
+    public function setReceivers(?iterable $receivers): self {
+        foreach($this->getReceivers()->toArray() as $receiver){
+            $this->removeReceiver($receiver);
+        }
+
+        $this->receivers = new ArrayCollection();
+        foreach ($receivers ?? [] as $receiver) {
+            $this->addReceiver($receiver);
+        }
 
         return $this;
     }

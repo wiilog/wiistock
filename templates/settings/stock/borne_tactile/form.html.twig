@@ -13,6 +13,7 @@
             items: [deliveryType],
             placeholder: 'Sélectionnez un type',
             search: false,
+            disabled: true,
         }) }}
     </div>
     <div class="form-group col-6 mb-2 w-100">
@@ -20,6 +21,7 @@
             type: 'visibilityGroup',
             items: [visibilityGroup],
             placeholder: 'Sélectionnez un groupe de visibilité',
+            disabled: true,
         }) }}
     </div>
     <div class="form-group col-6 mb-2 w-100">
@@ -30,9 +32,10 @@
         }) }}
     </div>
     <div class="form-group col-6 mb-2 w-100">
-        {{ form.select('receiver', 'Destinataire mail information', false, {
+        {{ form.select('receivers', 'Destinataire mail information', false, {
             type: 'user',
-            items: [deliveryStationLineReceiver],
+            multiple: true,
+            items: deliveryStationLineReceivers,
             placeholder: 'Sélectionnez un utilisateur',
         }) }}
     </div>

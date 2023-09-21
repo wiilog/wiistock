@@ -14,5 +14,13 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class DeliveryStationLineRepository extends EntityRepository
 {
-
+    public function countByUser($user) {
+        $qb = $this->createQueryBuilder('delivery_station_line');
+        return $qb
+            ->select("COUNT(delivery_station_line)")
+            ->andWhere(':user MEMBER OF delivery_station_line.receivers')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -10,10 +10,10 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\Routing\Router;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class DeliveryStationLineService {
 
@@ -42,7 +42,8 @@ class DeliveryStationLineService {
         ];
     }
 
-    public function createOrUpdateDeliveryStationLine(EntityManagerInterface $manager, InputBag $data, DeliveryStationLine|null $deliveryStationLine){
+    public function createOrUpdateDeliveryStationLine(EntityManagerInterface $manager, InputBag $data, DeliveryStationLine|null $deliveryStationLine): DeliveryStationLine
+    {
         $deliveryStationLine = $deliveryStationLine ?: (new DeliveryStationLine());
 
         $typeRepository = $manager->getRepository(Type::class);
@@ -53,26 +54,28 @@ class DeliveryStationLineService {
         $deliveryType = $typeRepository->find($data->get('deliveryType'));
         $visibilityGroup = $visibilityGroupRepository->find($data->get('visibilityGroup'));
         $destinationLocation = $locationRepository->find($data->get('destinationLocation'));
-        $receiver = $data->has('receiver') ? $userRepository->find($data->get('receiver')) : null;
-
+        $receivers = $data->has('receivers') ? $userRepository->findBy(['id' => explode(',', $data->get('receivers'))]) : null;
         $deliveryStationLine
             ->setWelcomeMessage($data->get('welcomeMessage'))
             ->setDeliveryType($deliveryType)
             ->setVisibilityGroup($visibilityGroup)
             ->setDestinationLocation($destinationLocation)
-            ->setReceiver($receiver)
+            ->setReceivers($receivers)
             ->setFilters([]);
 
         return $deliveryStationLine;
     }
 
-    public function dataRowDeliveryStationLine(DeliveryStationLine $deliveryStationLine){
+    public function dataRowDeliveryStationLine(DeliveryStationLine $deliveryStationLine): array
+    {
         return [
             'id' => $deliveryStationLine->getId(),
             'deliveryType' => $this->formatService->type($deliveryStationLine->getDeliveryType()),
             'visibilityGroup' => $this->formatService->visibilityGroup($deliveryStationLine->getVisibilityGroup()),
             'destination' => $this->formatService->location($deliveryStationLine->getDestinationLocation()),
-            'receiver' => $this->formatService->user($deliveryStationLine->getReceiver(), "", true),
+            'receivers' => Stream::from($deliveryStationLine->getReceivers())
+                ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver, "", true))
+                ->join(', '),
             'generatedExternalLink' => "<div><a target='_blank' href='{$this->router->generate('delivery_station_index')}'><i class='fas fa-external-link-alt mr-2'></i> Lien externe</a></div>",
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
