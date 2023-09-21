@@ -339,6 +339,7 @@ function initLineChart(element, callback) {
             };
         }
         data.datasets = Object.values(sensorMessagesDatasets);
+        console.log(data);
         const config = {
             type: 'line',
             data,
