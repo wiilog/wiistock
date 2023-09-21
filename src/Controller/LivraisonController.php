@@ -23,6 +23,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\LivraisonService;
@@ -501,7 +502,7 @@ class LivraisonController extends AbstractController {
                                       PDFGeneratorService       $pdfService,
                                       SpecificService           $specificService,
                                       TranslationService        $translation,
-                                      KernelInterface           $kernel): Response {
+                                      AttachmentService $attachmentService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -519,10 +520,9 @@ class LivraisonController extends AbstractController {
 
         $attachments = $deliveryOrder->getAttachments();
         $fileName = $attachments->last()->getFilename();
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
 
         $content = $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
-        file_put_contents($filePath, $content);
+        $attachmentService->createFile($fileName, $content);
 
         return new PdfResponse(
             $content,
@@ -668,7 +668,7 @@ class LivraisonController extends AbstractController {
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;

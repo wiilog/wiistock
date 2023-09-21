@@ -146,7 +146,8 @@ $icons: (
 $icon-sizes: 10, 13, 15, 17, 20, 25, 30, 35, 40, 45, 50;
 $icon-colors: (
     primary: $primary,
-    black: $black
+    black: $black,
+    danger: $danger,
 );
 
 @each $size in $icon-sizes {

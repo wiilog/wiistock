@@ -40,8 +40,8 @@ final class Version20220205174650 extends AbstractMigration
                 ->executeQuery("SELECT value FROM parametrage_global WHERE label = '$icon'")
                 ->fetchFirstColumn();
             $iconValue = $iconResult[0] ?? null;
-            if ($iconValue && !str_starts_with($iconValue, 'uploads/attachements')) {
-                $this->addSql("UPDATE parametrage_global SET value = 'uploads/attachements/$iconValue' WHERE label = '$icon'");
+            if ($iconValue && !str_starts_with($iconValue, 'uploads/attachments')) {
+                $this->addSql("UPDATE parametrage_global SET value = 'uploads/attachments/$iconValue' WHERE label = '$icon'");
             }
         }
     }

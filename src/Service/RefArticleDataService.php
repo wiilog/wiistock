@@ -388,14 +388,16 @@ class RefArticleDataService
             $article->setVisible($isVisible);
         }
 
-        $managersIds = $data->get('managers');
-        $refArticle->getManagers()->clear();
-        if (!empty($managersIds)) {
-            $managers = is_string($managersIds)
-                ? explode(',', $managersIds)
-                : $managersIds;
-            foreach ($managers as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+        if($data->has('managers')) {
+            $managersIds = $data->get('managers');
+            $refArticle->getManagers()->clear();
+            if (!empty($managersIds)) {
+                $managers = is_string($managersIds)
+                    ? explode(',', $managersIds)
+                    : $managersIds;
+                foreach ($managers as $manager) {
+                    $refArticle->addManager($userRepository->find($manager));
+                }
             }
         }
 
@@ -409,14 +411,30 @@ class RefArticleDataService
             $refArticle->setLibelle($data->get('libelle'));
         }
 
-        $categoryId = $data->getInt('categorie');
-        $category = $categoryId ? $inventoryCategoryRepository->find($categoryId) : null;
+        if($data->has('categorie')) {
+            $categoryId = $data->getInt('categorie');
+            $refArticle->setCategory($inventoryCategoryRepository->find($categoryId));
+        }
 
-        $buyerId = $data->getInt('buyer');
-        $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+        if($data->has('buyer')) {
+            $buyerId = $data->getInt('buyer');
+            $refArticle->setBuyer($userRepository->find($buyerId));
+        }
 
-        $visibilityGroupId = $data->getInt('visibility-group');
-        $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
+        if($data->has('visibility-group')) {
+            $visibilityGroupId = $data->getInt('visibility-group');
+            $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
+
+            $refArticle->setProperties(['visibilityGroup' => $visibilityGroup]);
+        }
+
+        if($data->has('limitWarning')) {
+            $refArticle->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null);
+        }
+
+        if($data->has('limitSecurity')) {
+            $refArticle->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null);
+        }
 
         $isUrgent = $data->getBoolean('urgence');
 
@@ -433,7 +451,6 @@ class RefArticleDataService
         }
 
         $refArticle
-            ->setCategory($category)
             ->setReference($data->get('reference'))
             ->setIsUrgent($isUrgent)
             ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
@@ -442,15 +459,11 @@ class RefArticleDataService
             ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
-            ->setBuyer($buyer)
-            ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
-            ->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null)
             ->setStockManagement($data->get('stockManagement'))
             ->setNdpCode($data->get('ndpCode'))
             ->setDangerousGoods($data->getBoolean('security'))
             ->setOnuCode($data->get('onuCode'))
-            ->setProductClass($data->get('productClass'))
-            ->setProperties(['visibilityGroup' => $visibilityGroup]);
+            ->setProductClass($data->get('productClass'));
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
@@ -480,7 +493,7 @@ class RefArticleDataService
 
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('image')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -495,7 +508,7 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('fileSheet')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);

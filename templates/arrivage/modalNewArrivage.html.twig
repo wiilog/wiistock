@@ -385,7 +385,7 @@
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
-                                <input class="checkbox mr-2 {{ not isClientSafranED ? 'no-clear' }}"
+                                <input class="checkbox mr-2"
                                        type="checkbox"
                                        name="customs"
                                     {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>

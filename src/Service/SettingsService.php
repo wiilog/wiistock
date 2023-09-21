@@ -369,7 +369,7 @@ class SettingsService {
             $setting = $this->getSetting($settings, $key);
             if (isset($setting)) {
                 $fileName = $this->attachmentService->saveFile($value, $key);
-                $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+                $setting->setValue("uploads/attachments/" . $fileName[array_key_first($fileName)]);
                 $updated[] = $key;
             }
         }
@@ -380,7 +380,9 @@ class SettingsService {
             [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
             [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
             [Setting::FILE_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
+            [Setting::GENERAL_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
             [Setting::FILE_TOP_RIGHT_LOGO, null],
+            [Setting::GENERAL_TOP_RIGHT_LOGO, null],
             [Setting::FILE_LABEL_EXAMPLE_LOGO, Setting::DEFAULT_LABEL_EXAMPLE_VALUE],
             [Setting::FILE_WAYBILL_LOGO, null], // TODO WIIS-8882
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],
@@ -724,7 +726,7 @@ class SettingsService {
                     ->setColor($data["color"] ?? null);
 
                 if (isset($files["logo"])) {
-                    $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
+                    $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
                 } else {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);

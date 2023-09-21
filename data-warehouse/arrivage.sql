@@ -6,7 +6,7 @@ SELECT arrivage.id,
                  LEFT JOIN pack
             AS pack_count ON sub_arrivage.id = pack_count.arrivage_id
         WHERE sub_arrivage.id = arrivage.id)
-                                                                                                                                                     AS nb_colis,
+                                                                                                                                                     AS nb_ul,
        destinataire.username                                                                                                                         AS destinataire,
        fournisseur.nom                                                                                                                               AS fournisseur,
        transporteur.label                                                                                                                            AS transporteur,
@@ -39,7 +39,7 @@ FROM arrivage
 
 GROUP BY id,
          no_arrivage,
-         nb_colis,
+         nb_ul,
          destinataire,
          fournisseur,
          transporteur,

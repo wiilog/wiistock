@@ -1,0 +1,125 @@
+@import "../variables";
+
+.wrapper button {
+    min-width: 200px !important;
+    height: 60px !important;
+    font-size: 20px !important;
+}
+
+.form-header {
+    font-size: 35px !important;
+}
+
+.wii-subtitle {
+    font-size: 16px !important;
+}
+
+.timeline-container {
+    margin: 20px 5% !important;
+
+    span {
+        font-size: 13px !important;
+    }
+}
+
+.form-content {
+    margin: 70px 5% !important;
+
+    .reference-informations {
+        height: fit-content;
+
+        .image {
+            max-width: 150px;
+            max-height: 150px;
+        }
+    }
+}
+
+label {
+    font-size: 15px !important;
+
+    select.form-control, input.form-control, .select2-selection--single, input:not(.select2-search__field) {
+        height: 50px !important;
+        margin-top: 0 !important;
+    }
+
+    .select2.select2-container.select2-container--default .select2-selection.select2-selection.select2-selection--single {
+        height: 50px !important;
+        margin-top: 0 !important;
+    }
+
+    .select2.select2-container.select2-container--default .select2-selection.select2-selection .select2-selection__rendered {
+        height: 50px !important;
+        font-size: 15px !important;
+        padding: 10px !important;
+    }
+
+    .select2-container.select2-container--default.select2-container--open .select2-dropdown.select2-dropdown--below .select2-results ul.select2-results__options {
+        font-size: 15px !important;
+
+        li {
+            padding: 10px !important;
+        }
+    }
+}
+
+.reference-informations {
+    .default-image {
+        background-image: url('../../../public/svg/reference_article/product.svg');
+        background-color: #F5F5F7;
+        background-size: 50%;
+        background-repeat: no-repeat;
+        background-position: center;
+        border-radius: 5px;
+        min-width: 150px;
+        min-height: 150px;
+    }
+}
+
+.wii-title {
+    color: $black !important;
+    font-size: 20px !important;
+}
+
+.add-reference-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    width: fit-content;
+
+    .add-reference {
+        color: $primary;
+        font-size: 20px;
+        font-weight: 600;
+    }
+}
+
+.kiosk-modal-content {
+    width: 70vw !important;
+
+    .content {
+        max-width: none !important;
+    }
+
+    .modal-footer {
+        justify-content: space-evenly !important;
+    }
+}
+
+.suppliers li::before, .modal-body li::before {
+    content: "•";
+    padding-right: 8px;
+}
+
+#information-button img {
+    cursor: pointer;
+}
+
+.delete-line {
+    cursor: pointer;
+}
+
+.edit-free-fields-button {
+    padding-right: 20px !important;
+    padding-left: 20px !important;
+}

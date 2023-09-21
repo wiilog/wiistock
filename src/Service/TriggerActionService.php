@@ -62,7 +62,11 @@ class TriggerActionService
         ];
     }
 
-    public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager, string $triggerActionType, string $requestTemplateId, SensorWrapper $sensorWrapper): TriggerAction {
+    public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager,
+                                                      SensorWrapper $sensorWrapper,
+                                                      string $triggerActionType,
+                                                      string $requestTemplateId,
+                                                      array $config): TriggerAction {
         $triggerAction = new TriggerAction();
 
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
@@ -76,7 +80,9 @@ class TriggerActionService
             $triggerAction->setAlertTemplate($alertTemplate);
         }
 
-        $triggerAction->setSensorWrapper($sensorWrapper);
+        $triggerAction
+            ->setConfig($config)
+            ->setSensorWrapper($sensorWrapper);
 
         return $triggerAction;
     }

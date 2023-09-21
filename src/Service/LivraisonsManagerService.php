@@ -65,37 +65,27 @@ class LivraisonsManagerService
         $this->mouvementStockService = $mouvementStockService;
     }
 
-    /**
-     * @param DateTime $dateEnd
-     * @param Preparation $preparation
-     * @param EntityManagerInterface|null $entityManager
-     * @return Livraison
-     */
     public function createLivraison(DateTime $dateEnd,
                                     Preparation $preparation,
-                                    EntityManagerInterface $entityManager = null)
+                                    EntityManagerInterface $entityManager = null,
+                                    string $statusCode = Livraison::STATUT_A_TRAITER): Livraison
     {
         if (!isset($entityManager)) {
             $entityManager = $this->entityManager;
         }
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
-
-        $entityManager->getRepository(Livraison::class);
-
-        $livraison = new Livraison();
-
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, $statusCode);
         $livraisonNumber = $this->generateNumber($dateEnd, $entityManager);
 
-        $livraison
+        $order = (new Livraison())
             ->setPreparation($preparation)
             ->setDate($dateEnd)
             ->setNumero($livraisonNumber)
             ->setStatut($statut);
 
-        $entityManager->persist($livraison);
+        $entityManager->persist($order);
 
-        return $livraison;
+        return $order;
     }
 
     public function setEntityManager(EntityManagerInterface $entityManager): self

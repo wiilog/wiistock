@@ -40,12 +40,12 @@ class UrgencesController extends AbstractController
         ]);
     }
 
-    #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['GET'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api', name: 'emergency_api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, UrgenceService $emergencyService): Response
     {
-        $unassociated = $request->query->get('unassociated');
-        $data = $emergencyService->getDataForDatatable($request->query, $unassociated ? [['field' => 'unassociated', 'value' => true]] : []);
+        $unassociated = $request->request->get('unassociated');
+        $data = $emergencyService->getDataForDatatable($request->request, $unassociated ? [['field' => 'unassociated', 'value' => true]] : []);
         return new JsonResponse($data);
     }
 

@@ -306,6 +306,12 @@ class ArrivageService {
         if ($askQuestion && $isArrivalUrgent) {
             $numeroCommande = $urgences[0]->getCommande();
             $postNb = $urgences[0]->getPostNb();
+            $internalArticleCode = $urgences[0]->getInternalArticleCode()
+                ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article interne', false) . ' : ' . $urgences[0]->getInternalArticleCode() . '</br>'
+                : '';
+            $supplierArticleCode = $urgences[0]->getSupplierArticleCode()
+                ? $this->translation->translate('Traçabilité', 'Urgences', 'Code article fournisseur', false) . " : " . $urgences[0]->getSupplierArticleCode() . '</br>'
+                : '';
 
             $posts = array_map(
                 function (Urgence $urgence) {
@@ -322,15 +328,19 @@ class ArrivageService {
             else {
                 if ($nbPosts == 1) {
                     $msgSedUrgent = "
-                        Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
-					    L'avez-vous reçu dans cet arrivage ?
+                        Le poste <span class='bold'>" . $posts[0] . "</span> est urgent sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>"
+                        . $internalArticleCode
+                        . $supplierArticleCode
+					    . "L'avez-vous reçu dans cet arrivage ?
 					";
                 }
                 else {
                     $postsStr = implode(', ', $posts);
                     $msgSedUrgent = "
-                        Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>
-					    Les avez-vous reçus dans cet arrivage ?
+                        Les postes <span class=\"bold\">$postsStr</span> sont urgents sur la commande <span class=\"bold\">$numeroCommande</span>.<br/>"
+                        . $internalArticleCode
+                        . $supplierArticleCode
+					    . "Les avez-vous reçus dans cet arrivage ?
                     ";
                 }
             }

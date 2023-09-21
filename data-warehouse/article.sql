@@ -16,7 +16,7 @@ SELECT article.id                                                           AS i
        fournisseur.nom                                                      AS label_reference_fournisseur,
        project.code                                                         AS projet,
        project_history_record.created_at                                    AS date_assignation_projet,
-       pack.code                                                            AS code_UL,
+       pack.code                                                            AS code_ul,
        article.prix_unitaire                                                AS prix_unitaire,
        IF(article.conform = 1, 'non', 'oui')                                AS anomalie
 

@@ -417,7 +417,7 @@ class TrackingMovementService extends AbstractController
         $pack = $this->packService->persistPack($entityManager, $packOrCode, $quantity, $natureId, $options['onlyPack'] ?? false);
         $tracking = new TrackingMovement();
         $tracking
-            ->setQuantity($pack->getQuantity())
+            ->setQuantity($quantity)
             ->setEmplacement($location)
             ->setOperateur($user)
             ->setUniqueIdForMobile($uniqueIdForMobile ?: ($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null))
@@ -540,7 +540,7 @@ class TrackingMovementService extends AbstractController
 
     private function manageTrackingFiles(TrackingMovement $tracking, $fileBag) {
         if (isset($fileBag)) {
-            $attachments = $this->attachmentService->createAttachements($fileBag);
+            $attachments = $this->attachmentService->createAttachments($fileBag);
             foreach ($attachments as $attachment) {
                 $tracking->addAttachment($attachment);
             }

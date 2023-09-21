@@ -1,0 +1,58 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalNewDeliveryStationLine" role="dialog" aria-labelledby="modalNewDeliveryStationLine"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter un lien externe"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group col-12 mb-2 w-100">
+                        {{ form.textarea('welcomeMessage', "Message d'accueil", true, '') }}
+                    </div>
+                    <div class="form-group col-6 mb-2 w-100">
+                        {{ form.select('deliveryType', 'Type de livraison', true, {
+                            type: 'deliveryType',
+                            placeholder: 'Sélectionnez un type',
+                            search: false,
+                        }) }}
+                    </div>
+                    <div class="form-group col-6 mb-2 w-100">
+                        {{ form.select('visibilityGroup', 'Groupe de visibilité', true, {
+                            type: 'visibilityGroup',
+                            placeholder: 'Sélectionnez un groupe de visibilité',
+                        }) }}
+                    </div>
+                    <div class="form-group col-6 mb-2 w-100">
+                        {{ form.select('destinationLocation', 'Emplacement de destination', true, {
+                            type: 'location',
+                            includeParams: '[name=deliveryType]',
+                        }) }}
+                    </div>
+                    <div class="form-group col-6 mb-2 w-100">
+                        {{ form.select('receivers', 'Destinataire mail information', false, {
+                            type: 'user',
+                            multiple: true,
+                            placeholder: 'Sélectionnez un utilisateur',
+                        }) }}
+                    </div>
+{#                    <div class="form-group col-6 mb-2 w-100">#}
+{#                        {{ form.select('filteredFields', 'Champs filtrés (max 3)', true, {}) }}#}
+{#                    </div>#}
+                    <div class="form-group col-12 mb-2 w-100">
+                        {% include 'variables_dictionary.html.twig' with {dictionary: 'FAST_DELIVERY_REQUEST'} %}
+                    </div>
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>
