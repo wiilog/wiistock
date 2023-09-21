@@ -99,6 +99,9 @@ class DeliveryStationController extends AbstractController
         $barcode = $request->query->has('barcode')
             ? $request->query->get('barcode')
             : null;
+        $pickedQuantity = $request->query->has('pickedQuantity')
+            ? $request->query->get('pickedQuantity')
+            : null;
 
         if ($barcode) {
             if (str_starts_with($barcode, Article::BARCODE_PREFIX)) {
@@ -106,6 +109,14 @@ class DeliveryStationController extends AbstractController
                 if ($article) {
                     if ($article->isAvailable()) {
                         if ($article->getReferenceArticle()->getId() === $initialReference->getId()) {
+                            if($pickedQuantity) {
+                                $isAvailable = $pickedQuantity <= $article->getQuantite();
+                                return $this->json([
+                                    'success' => $isAvailable,
+                                    'msg' => !$isAvailable ? "La quantité prise pour l'article <strong>{$article->getLabel()}</strong> excède la quantité en stock." : null,
+                                ]);
+                            }
+
                             $values = [
                                 'location' => $this->formatService->location($article->getEmplacement()),
                                 'suppliers' => $article->getArticleFournisseur()?->getFournisseur()?->getCodeReference() ?: '-',
@@ -133,6 +144,14 @@ class DeliveryStationController extends AbstractController
                 $reference = $referenceArticleRepository->findOneBy(['barCode' => $barcode]);
                 if ($reference) {
                     if ($reference->getId() === $initialReference->getId()) {
+                        if($pickedQuantity) {
+                            $isAvailable = $pickedQuantity <= $reference->getQuantiteDisponible();
+                            return $this->json([
+                                'success' => $isAvailable,
+                                'msg' => !$isAvailable ? "La quantité prise pour la référence <strong>{$reference->getReference()}</strong> excède la quantité disponible." : null,
+                            ]);
+                        }
+
                         $values = [
                             'location' => $this->formatService->location($reference->getEmplacement()),
                             'suppliers' => Stream::from($reference->getArticlesFournisseur())
@@ -189,10 +208,10 @@ class DeliveryStationController extends AbstractController
             'template' => !empty($freeFields) ?
                 $this->renderView('free_field/freeFieldsEdit.html.twig', [
                     'freeFields' => $freeFields,
-                    'freeFieldValues' => null,
+                    'freeFieldValues' => [],
                     'colType' => "col-6",
                     'actionType' => "new",
-                    'disabledNeeded' => true,
+                    'requiredType' => "requiredCreate",
                 ]) : "",
         ]);
     }
@@ -280,31 +299,29 @@ class DeliveryStationController extends AbstractController
 
         if ($response['success']) {
             $preparation = $deliveryRequest->getPreparations()->first();
-            $articlesNotPicked = $preparationOrderService->createMouvementsPrepaAndSplit($preparation, $this->getUser(), $entityManager);
-            $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager, Livraison::STATUT_LIVRE);
+            $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager);
 
-            $locationEndPreparation = $deliveryRequest->getDestination();
-
-            $preparationOrderService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-            $preparationOrderService->closePreparationMouvement($preparation, $date, $locationEndPreparation);
-
-            $movements = $entityManager->getRepository(MouvementStock::class)->findByPreparation($preparation);
-
-            foreach ($movements as $movement) {
-                $movement = $preparationOrderService->createMovementLivraison(
+            foreach ($deliveryRequest->getArticleLines() as $articleLine) {
+                $article = $articleLine->getArticle();
+                $outMovement = $preparationOrderService->createMovementLivraison(
                     $entityManager,
-                    $movement->getQuantity(),
+                    $article->getQuantite(),
                     $this->getUser(),
                     $deliveryOrder,
-                    !empty($movement->getRefArticle()),
-                    $movement->getRefArticle() ?? $movement->getArticle(),
-                    $preparation,
                     false,
-                    $locationEndPreparation
+                    $article,
+                    $preparation,
+                    true,
+                    $article->getEmplacement()
                 );
 
-                $stockMovementService->finishMouvementStock($movement, $date, $locationEndPreparation);
+                $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
             }
+
+            $preparationOrderService->treatPreparation($preparation, $this->getUser(), $deliveryRequest->getDestination());
+
+            $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
+            $deliveryOrderService->finishLivraison($this->getUser(), $deliveryOrder, $date, $deliveryRequest->getDestination());
 
             $entityManager->flush();
         } else {

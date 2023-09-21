@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="main-page-container">
+    <div class="main-page-container d-flex flex-column justify-content-between">
         <div>
             <div class="timeline-container">
                 <span class="wii-field-text current">Choix de la référence</span>
@@ -130,18 +130,20 @@
                             'show': true,
                         } %}
                         <div class="wii-title text-center black">Votre demande de livraison a bien été traitée</div>
-                        <div class="wii-small-text text-center">Vous allez être redirigé automatiquement à l'accueil au bout de <span class="delay"></span> secondes.</div>
+                        <div class="wii-small-text text-center">Vous allez être redirigé automatiquement à l'accueil au
+                            bout de <span class="delay"></span> secondes.
+                        </div>
                         <div class="d-flex justify-content-center mt-4">
                             <button class="back-to-home-button" data-loader-size="normal">
                                 Accueil
                             </button>
                         </div>
                     </div>
-                    <div class="d-flex flex-row-reverse mt-5">
+                    {# <div class="d-flex flex-row-reverse mt-5">
                         <button class="validate-button d-none" data-loader-size="normal">
                             Valider
                         </button>
-                        <button class="btn next-button d-none" data-loader-size="normal">
+                        <button class="btn next-button d-none" data-loader-size="normal" disabled>
                             Suivant
                         </button>
                         <button class="btn search-button" data-loader-size="normal">
@@ -150,39 +152,44 @@
                         <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
                             Modifier les champs libres
                         </button>
-                    </div>
+                    </div> #}
                 </div>
             </div>
         </div>
-        <div class="corner position-absolute left-0 bottom-0 p-4 give-up-button-container">
-            <button class="outline back-button">
-                Retour
-            </button>
-            <button class="outline danger give-up-button d-none">
-                Abandonner
-            </button>
+        <div class="p-4 d-flex w-100">
+            <div class="action-buttons">
+                <div class="">
+                    <button class="outline back-button">
+                        Retour
+                    </button>
+                    <button class="outline danger give-up-button d-none">
+                        Abandonner
+                    </button>
+                </div>
+                <div class="">
+                    <button class="btn next-button d-none" data-loader-size="normal" disabled>
+                        Suivant
+                    </button>
+                    <button class="btn search-button" data-loader-size="normal">
+                        Rechercher
+                    </button>
+                    <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
+                        Modifier les champs libres
+                    </button>
+                    <button class="validate-button d-none" data-loader-size="normal">
+                        Valider
+                    </button>
+                </div>
+            </div>
+            <div class="information-button">
+                <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+            </div>
         </div>
+
     </div>
-    <div class="success-page-container d-none">
-        {% include 'utils/modal-alert/success-bookmark.html.twig' %}
-        <div class="ref-entry-stock-success text-center d-none">
-            <span class="field-success-page"></span>
-        </div>
-        <div class="article-entry-stock-success text-center d-none">
-            <span class="field-success-page"></span>
-        </div>
-        <div class="d-flex justify-content-center redirect-button-container">
-            <button class="outline print-again-button" data-loader-size="normal">
-                Réimprimer
-            </button>
-            <button class="go-home-button">
-                Accueil
-            </button>
-        </div>
-    </div>
-    <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
+    {# <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
-    </div>
+    </div> #}
 
     {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}

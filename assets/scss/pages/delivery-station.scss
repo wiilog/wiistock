@@ -24,6 +24,7 @@
 
 .form-content {
     margin: 70px 5% !important;
+    margin-bottom: 10px !important;
 
     .reference-informations {
         height: fit-content;
@@ -111,8 +112,21 @@ label {
     padding-right: 8px;
 }
 
-#information-button img {
-    cursor: pointer;
+.information-button {
+    width: 10% !important;
+    display: flex;
+    align-items: center;
+    justify-content: end;
+
+    img {
+        cursor: pointer;
+    }
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 90% !important;
 }
 
 .delete-line {
@@ -122,4 +136,25 @@ label {
 .edit-free-fields-button {
     padding-right: 20px !important;
     padding-left: 20px !important;
+}
+
+.next-button:disabled, .next-button:disabled:active {
+    background: $dark-grey !important;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+    filter: brightness(100%) !important;
+}
+
+.wave-container {
+    background-image: url("../../../public/svg/kiosk/wave.svg");
+    background-repeat: no-repeat;
+    background-position: bottom;
+    z-index: auto !important;
+    position: relative !important;
+}
+
+.wrapper {
+    height: auto !important;
+    min-height: 100%;
 }
