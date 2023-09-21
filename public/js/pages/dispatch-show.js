@@ -461,9 +461,15 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const isStillInSelect = ($relatedTarget.is('input') || $relatedTarget.is('select'))
+                    && ($target.closest('label').find('select[name=width]').exists()
+                        || $target.closest('label').find('select[name=length]').exists()
+                        || $target.closest('label').find('select[name=height]').exists());
+
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-pack-row`)
-                    || wasPackSelect) {
+                    || wasPackSelect
+                    || isStillInSelect) {
                     return;
                 }
 
