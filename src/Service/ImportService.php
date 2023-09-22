@@ -1242,7 +1242,15 @@ class ImportService
         }
 
         if (isset($data['rfidTag'])) {
-            $article->setRFIDtag($data['rfidTag']);
+            $articleRepository = $this->entityManager->getRepository(Article::class);
+            $rfidTag = $data['rfidTag'] ?: null;
+            $existingArticle = $rfidTag
+                ? $articleRepository->findOneBy(['RFIDtag' => $data['rfidTag']])
+                : null;
+            if ($existingArticle) {
+                $this->throwError("Le tag RFID $rfidTag est déjà utilisé.");
+            }
+            $article->setRFIDtag($rfidTag);
         }
 
         if (isset($data['batch'])) {
