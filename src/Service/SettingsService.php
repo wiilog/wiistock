@@ -380,9 +380,9 @@ class SettingsService {
             [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
             [Setting::FILE_MOBILE_LOGO_HEADER, Setting::DEFAULT_MOBILE_LOGO_HEADER_VALUE],
             [Setting::FILE_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
-            [Setting::GENERAL_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
+            [Setting::DELIVERY_STATION_TOP_LEFT_LOGO, Setting::DEFAULT_TOP_LEFT_VALUE],
             [Setting::FILE_TOP_RIGHT_LOGO, null],
-            [Setting::GENERAL_TOP_RIGHT_LOGO, null],
+            [Setting::DELIVERY_STATION_TOP_RIGHT_LOGO, null],
             [Setting::FILE_LABEL_EXAMPLE_LOGO, Setting::DEFAULT_LABEL_EXAMPLE_VALUE],
             [Setting::FILE_WAYBILL_LOGO, null], // TODO WIIS-8882
             [Setting::FILE_OVERCONSUMPTION_LOGO, null],

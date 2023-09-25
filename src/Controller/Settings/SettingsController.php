@@ -636,8 +636,8 @@ class SettingsController extends AbstractController {
     public const MENU_ALERTS = "alertes";
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
 
-    public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "collect_request_and_create_ref";
-    public const MENU_FAST_DELIVERY_REQUEST = "fast_delivery_request";
+    public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "demande_collecte_et_creation_reference";
+    public const MENU_FAST_DELIVERY_REQUEST = "demande_livraison_rapide";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_INVENTORY_CONFIGURATION = "configuration";

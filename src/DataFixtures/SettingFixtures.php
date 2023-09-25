@@ -342,13 +342,13 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_NUMBER_FORMAT => [
                 'default' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
             ],
-            Setting::GENERAL_TOP_LEFT_LOGO => [
+            Setting::DELIVERY_STATION_TOP_LEFT_LOGO => [
                 'default' => Setting::DEFAULT_TOP_LEFT_VALUE,
             ],
-            Setting::GENERAL_TOP_RIGHT_LOGO => [
+            Setting::DELIVERY_STATION_TOP_RIGHT_LOGO => [
                 'default' => null,
             ],
-            Setting::GENERAL_INFORMATION_MESSAGE => [
+            Setting::DELIVERY_STATION_INFORMATION_MESSAGE => [
                 'default' => 'Si vous rencontrez un problème ou une difficulté, merci decontacter GT au 8 45 65.',
             ],
         ];
