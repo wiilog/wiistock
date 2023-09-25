@@ -30,11 +30,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-#[Route("/caisse-automatique")]
+//#[Route("/caisse-automatique")]
 class DeliveryStationController extends AbstractController
 {
 
-    #[Route("/", name: "delivery_station_index", options: ["expose" => true])]
+//    #[Route("/", name: "delivery_station_index", options: ["expose" => true])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0];  // TODO Appliquer le paramétrage
@@ -50,7 +50,7 @@ class DeliveryStationController extends AbstractController
         ]);
     }
 
-    #[Route("/login/{mobileLoginKey}", name: "delivery_station_login", options: ["expose" => true], methods: "POST")]
+//    #[Route("/login/{mobileLoginKey}", name: "delivery_station_login", options: ["expose" => true], methods: "POST")]
     public function login(string $mobileLoginKey, EntityManagerInterface $entityManager): JsonResponse
     {
         $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage3
@@ -75,7 +75,7 @@ class DeliveryStationController extends AbstractController
         }
     }
 
-    #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
+//    #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
     public function form(EntityManagerInterface $entityManager): Response
     {
         $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO Appliquer le paramétrage
@@ -90,7 +90,7 @@ class DeliveryStationController extends AbstractController
         ]);
     }
 
-    #[Route("/get-informations", name: "delivery_station_get_informations", options: ["expose" => true], methods: "GET")]
+//    #[Route("/get-informations", name: "delivery_station_get_informations", options: ["expose" => true], methods: "GET")]
     public function getReferenceInformations(Request                $request,
                                              EntityManagerInterface $entityManager): JsonResponse
     {
@@ -197,7 +197,7 @@ class DeliveryStationController extends AbstractController
         ]);
     }
 
-    #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
+//    #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
     public function getFreeFields(EntityManagerInterface $entityManager): JsonResponse
     {
         $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
@@ -216,7 +216,7 @@ class DeliveryStationController extends AbstractController
         ]);
     }
 
-    #[Route("/submit-request", name: "delivery_station_submit_request", options: ["expose" => true], methods: "POST")]
+//    #[Route("/submit-request", name: "delivery_station_submit_request", options: ["expose" => true], methods: "POST")]
     public function submitRequest(Request                    $request,
                                   EntityManagerInterface     $entityManager,
                                   DeliveryRequestService     $deliveryRequestService,
