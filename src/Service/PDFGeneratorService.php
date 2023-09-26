@@ -89,12 +89,14 @@ class PDFGeneratorService {
                 $largeLabel = strlen($label) >= self::MAX_LINE_LENGHT_WRAP;
                 if($largeLabel){
                     $lineBreakKey = strpos($label, ' ', self::MAX_LINE_LENGHT_WRAP);
-                    // first part
-                    $labels[$key] = substr($label, 0, $lineBreakKey);
-                    // second part
-                    $newLabel[] = substr($label, $lineBreakKey,strlen($label)-1);
-                    // add second part to the array
-                    array_splice($labels, $key+1, 0, $newLabel);
+                    if($lineBreakKey){
+                        // first part
+                        $labels[$key] = substr($label, 0, $lineBreakKey);
+                        // second part
+                        $newLabel[] = substr($label, $lineBreakKey,strlen($label)-1);
+                        // add second part to the array
+                        array_splice($labels, $key+1, 0, $newLabel);
+                    }
                 }
             }
             return [
