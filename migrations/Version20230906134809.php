@@ -29,7 +29,11 @@ final class Version20230906134809 extends AbstractMigration
         $this->addSql("UPDATE setting SET value = REPLACE(value, 'attachements', 'attachments') WHERE value IS NOT NULL");
         $this->addSql("UPDATE language SET flag = REPLACE(flag, 'attachements', 'attachments')");
 
+
+
         $projectDir = getcwd();
+
+        dump($projectDir);
         $currentAttachmentsDirectory = "{$projectDir}/public/uploads/attachements";
         $newAttachmentsDirectory = "{$projectDir}/public/uploads/attachments";
         if (file_exists($currentAttachmentsDirectory)) {
