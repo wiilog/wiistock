@@ -38,6 +38,10 @@ dump('=====================zepofkjzpeojfzepojkfzef========');
         $newAttachmentsDirectory = "{$projectDir}/public/uploads/attachments";
         dump($currentAttachmentsDirectory, $newAttachmentsDirectory);
         dump(file_exists($currentAttachmentsDirectory) ? 'true' : 'false');
+
+        dump('=====================2222222222222222222222222222222222222222========');
+        $row = exec('dir',$output);
+        dump($output);
         if (file_exists($currentAttachmentsDirectory)) {
             rename($currentAttachmentsDirectory, $newAttachmentsDirectory);
         }
