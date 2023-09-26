@@ -32,10 +32,12 @@ final class Version20230906134809 extends AbstractMigration
 
 
         $projectDir = getcwd();
-
+dump('=====================zepofkjzpeojfzepojkfzef========');
         dump($projectDir);
         $currentAttachmentsDirectory = "{$projectDir}/public/uploads/attachements";
         $newAttachmentsDirectory = "{$projectDir}/public/uploads/attachments";
+        dump($currentAttachmentsDirectory, $newAttachmentsDirectory);
+        dump(file_exists($currentAttachmentsDirectory) ? 'true' : 'false');
         if (file_exists($currentAttachmentsDirectory)) {
             rename($currentAttachmentsDirectory, $newAttachmentsDirectory);
         }
