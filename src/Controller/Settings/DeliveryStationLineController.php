@@ -3,8 +3,10 @@
 namespace App\Controller\Settings;
 
 use App\Controller\AbstractController;
+use App\Entity\CategorieCL;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
+use App\Entity\FreeField;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
@@ -65,13 +67,23 @@ class DeliveryStationLineController extends AbstractController
     public function getModalQualityReserveContent(Request $request,
                                                   EntityManagerInterface $entityManager): JsonResponse {
         $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
+        $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
 
         $deliveryStationLine = $deliveryStationLineRepository->find($request->query->get('deliveryStationLineId'));
+        $filterFields = Stream::from($freeFieldsRepository->findByCategory(CategorieCL::REFERENCE_ARTICLE))
+            ->concat(DeliveryStationLine::REFERENCE_FIXED_FIELDS)
+            ->map(static fn(FreeField|array $filterField) => [
+                'label' => $filterField instanceof FreeField ? $filterField->getLabel() : $filterField['label'],
+                'value' => $filterField instanceof FreeField ? $filterField->getId() : $filterField['value'],
+                'selected' => Stream::from($deliveryStationLine->getFilters())
+                    ->some(static fn(string $filter) => $filter == ($filterField instanceof FreeField ? $filterField->getId() : $filterField['value']))
+            ])
+            ->toArray();
 
         return $this->json([
             'success' => true,
             'content' => $this->renderView('settings/stock/borne_tactile/form.html.twig', [
-                "deliveryStationLineId" => $deliveryStationLine->getId(),
+                "deliveryStationLine" => $deliveryStationLine,
                 'deliveryType' => [
                     "label" => $deliveryStationLine->getDeliveryType()->getLabel(),
                     "value" => $deliveryStationLine->getDeliveryType()->getId(),
@@ -94,6 +106,7 @@ class DeliveryStationLineController extends AbstractController
                         "selected" => !!$receiver,
                     ])->toArray(),
                 'welcomeMessage' => $deliveryStationLine->getWelcomeMessage(),
+                'filterFields' => $filterFields,
             ])
         ]);
     }

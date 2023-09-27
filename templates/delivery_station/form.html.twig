@@ -20,40 +20,48 @@
             <div class="form-content">
                 <div class="stock-exit-container">
                     <div class="reference-choice-container active">
-                        <div class="row">
-                            <div class="col-4">
-                                <label class="w-100">
-                                    Code NDP
-                                    <input class="form-control" name="filterField1" disabled>
-                                </label>
-                            </div>
-                            <div class="col-4">
-                                <label class="w-100">
-                                    Emplacement
-                                    <select class="form-control" name="filterField1" disabled></select>
-                                </label>
-                            </div>
-                            <div class="col-4">
-                                <label class="w-100">
-                                    Acheteur
-                                    <select class="form-control" name="filterField1" disabled></select>
-                                </label>
-                            </div>
+                        <div class="row filter-fields-container">
+                            {% if filterFields is not empty %}
+                                {% for filterField in filterFields %}
+                                    {% if filterField is instanceof('App\\Entity\\FreeField') %}
+                                        {% include "free_field/freeFieldsEdit.html.twig" with {
+                                            freeFields: [filterField],
+                                            freeFieldValues: null,
+                                            actionType: "new",
+                                            disabledNeeded: true,
+                                            containerClasses: 'col-4 w-100',
+                                        } %}
+                                    {% elseif filterField == 'type' %}
+                                        <div class="col-4 w-100 my-2">
+                                            {{ form.select('type', 'Type', false, {
+                                                type: 'types',
+                                                includeParams: '[name=categoryType]',
+                                                includeParamsParent: '.reference-choice-container',
+                                                search: true,
+                                            }) }}
+                                        </div>
+                                        <input type="hidden" name="categoryType" value="{{ constant('App\\Entity\\CategoryType::ARTICLE') }}">
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="wii-small-text text-center w-100">Aucun champ filtre n'a été paramétré pour cette session de caisse automatique.</div>
+                            {% endif %}
                         </div>
                         <div class="mt-5">
                             {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
                                 type: 'reference',
                                 inputClass: 'w-50',
                                 labelClass: 'd-flex flex-column',
-                                includeParams: '[name=multipleFields],[name=visibilityGroup],[name=filterField1],[name=filterField2],[name=filterField3]',
+                                includeParams: '[name=multipleFields],[name=visibilityGroup],[name=filterFields]',
                                 includeParamsParent: '.reference-choice-container',
                                 attributes: {
                                     'autofocus': 'autofocus'
                                 }
                             }) }}
                         </div>
+                        <input type="hidden" name="filterFields">
                         <input type="hidden" name="multipleFields" value="1">
-                        <input type="hidden" name="visibilityGroup" value="{{ visibilityGroup }}">
+                        <input type="hidden" name="visibilityGroup" value="{{ line.visibilityGroup.id }}">
                     </div>
                     <div class="quantity-choice-container d-none">
                         <div class="row">
@@ -139,7 +147,7 @@
                             </button>
                         </div>
                     </div>
-                    {# <div class="d-flex flex-row-reverse mt-5">
+                     <div class="d-flex flex-row-reverse action-buttons-container mt-5">
                         <button class="validate-button d-none" data-loader-size="normal">
                             Valider
                         </button>
@@ -152,44 +160,24 @@
                         <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
                             Modifier les champs libres
                         </button>
-                    </div> #}
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="p-4 d-flex w-100">
-            <div class="action-buttons">
-                <div class="">
-                    <button class="outline back-button">
-                        Retour
-                    </button>
-                    <button class="outline danger give-up-button d-none">
-                        Abandonner
-                    </button>
-                </div>
-                <div class="">
-                    <button class="btn next-button d-none" data-loader-size="normal" disabled>
-                        Suivant
-                    </button>
-                    <button class="btn search-button" data-loader-size="normal">
-                        Rechercher
-                    </button>
-                    <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
-                        Modifier les champs libres
-                    </button>
-                    <button class="validate-button d-none" data-loader-size="normal">
-                        Valider
-                    </button>
-                </div>
-            </div>
-            <div class="information-button">
-                <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
-            </div>
+        <div class="corner position-absolute left-0 bottom-0 p-4">
+            <button class="outline back-button">
+                Retour
+            </button>
+            <button class="outline danger give-up-button d-none">
+                Abandonner
+            </button>
         </div>
 
     </div>
-    {# <div class="corner position-absolute right-0 bottom-0 p-4" id="information-button">
+     <div class="corner position-absolute right-0 bottom-0 p-4 information-button">
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
-    </div> #}
+    </div>
+    <input type="hidden" name="line" value="{{ line.id }}">
 
     {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}

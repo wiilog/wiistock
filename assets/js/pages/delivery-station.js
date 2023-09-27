@@ -181,10 +181,12 @@ $(function () {
 
         const parsedReferences = JSON.stringify(references);
         const parsedFreeFields = JSON.stringify(freeFields);
-        wrapLoadingOnActionButton($(this), () => (
+        const line = $(`[name=line]`).val();
+        wrapLoadingOnActionButton($validateButton, () => (
             AJAX.route(AJAX.POST, `delivery_station_submit_request`, {
                 references: parsedReferences,
-                freeFields: parsedFreeFields
+                freeFields: parsedFreeFields,
+                line,
             })
                 .json()
                 .then(({success, msg}) => {
@@ -232,7 +234,7 @@ $(function () {
         .add($backToHomeButton)
         .on(`click`, () => backToHome());
 
-    $quantityChoiceContainer.find(`[name=barcode]`).on(`focusout`, function () {
+    $quantityChoiceContainer.find(`[name=barcode]`).on(`focusout change`, function () {
         const barcode = $(this).val();
 
         if (barcode !== ``) {
@@ -246,7 +248,7 @@ $(function () {
         }
     });
 
-    $quantityChoiceContainer.find(`[name=pickedQuantity]`).on(`focusout`, function () {
+    $quantityChoiceContainer.find(`[name=pickedQuantity]`).on(`keyup`, function () {
         const pickedQuantity = Number($(this).val());
         const $barcode = $quantityChoiceContainer.find(`[name=barcode]`);
 
@@ -303,6 +305,18 @@ $(function () {
             $modalInformation.modal(`show`);
             $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
         });
+
+    //$(window).on(`beforeunload`, (e) => e.preventDefault());
+
+    $(`.filter-fields-container .data`).on(`change focusout`, () => {
+        const $elements = $(`.filter-fields-container .data`);
+        let values = [];
+        $elements.each(function () {
+            values.push({label: $(this).attr(`name`), value: $(this).val()})
+        });
+
+        $(`[name=filterFields]`).val(JSON.stringify(values));
+    });
 });
 
 function updateTimeline($currentTimelineEvent = undefined, hide = false) {
@@ -373,7 +387,8 @@ function updateReferenceInformations() {
         }
     }
 
-    if (!referenceValues.isReferenceByArticle) {
+    if (referenceValues.location) {
+        $quantityChoiceContainer.find(`.location`).siblings(`span`).addClass(`d-none`);
         $quantityChoiceContainer.find(`.location`).text(referenceValues.location);
     }
 }
@@ -445,19 +460,21 @@ function showGenericModal(message) {
 }
 
 function backToHome() {
-    window.location.href = Routing.generate(`delivery_station_index`, true);
+    const line = $(`[name=line]`).val();
+    window.location.href = Routing.generate(`delivery_station_index`, {line});
 }
 
 function processLogin($loadingContainer = undefined) {
     const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
+    const line = $(`[name=line]`).val();
 
     if (mobileLoginKey) {
         wrapLoadingOnActionButton($loadingContainer || $(`.home .login`), () => (
-            AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey})
+            AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey, line})
                 .json()
                 .then(({success, msg}) => {
                     if (success) {
-                        window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey});
+                        window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey, line});
                     } else {
                         showGenericModal(msg);
                     }
@@ -554,8 +571,9 @@ function toggleAutofocus($element = undefined) {
 }
 
 function getFreeFields($current, $currentTimelineEvent) {
+    const line = $(`[name=line]`).val();
     //wrapLoadingOnActionButton($nextButton, () => ( // TODO Faire en sorte d'exécuter cet appel en même temps que la vérification de quantité
-    AJAX.route(AJAX.GET, `delivery_station_get_free_fields`)
+    AJAX.route(AJAX.GET, `delivery_station_get_free_fields`, {line})
         .json()
         .then(({template}) => {
             pushNextPage($current);

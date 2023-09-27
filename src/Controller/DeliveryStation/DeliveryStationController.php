@@ -8,14 +8,12 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\FreeField;
-use App\Entity\Livraison;
-use App\Entity\MouvementStock;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Entity\VisibilityGroup;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -34,30 +32,28 @@ use WiiCommon\Helper\Stream;
 class DeliveryStationController extends AbstractController
 {
 
-    #[Route("/", name: "delivery_station_index", options: ["expose" => true])]
-    public function index(EntityManagerInterface $entityManager): Response
+    #[Route("/index/{line}", name: "delivery_station_index", options: ["expose" => true])]
+    public function index(DeliveryStationLine $line): Response
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0];  // TODO Appliquer le paramétrage
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage
-
-        $rawMessage = "Demande de livraison simplifiée sur le flux @typelivraison et groupe de visibilité @groupevisibilite";
-        $homeMessage = str_replace('@typelivraison', "<strong>{$type->getLabel()}</strong>", str_replace('@groupevisibilite', "<strong>{$visibilityGroup->getLabel()}</strong>", $rawMessage));
+        $type = $line->getDeliveryType();
+        $visibilityGroup = $line->getVisibilityGroup();
+        $message = str_replace("@groupevisibilite", "<strong>{$visibilityGroup->getLabel()}</strong>",
+            str_replace("@typelivraison", "<strong>{$type->getLabel()}</strong>", $line->getWelcomeMessage()));
 
         return $this->render('delivery_station/home.html.twig', [
-            'homeMessage' => $homeMessage,
-            'type' => $type->getId(),
-            'visibilityGroup' => $visibilityGroup?->getId(),
+            'homeMessage' => $message,
+            'line' => $line->getId(),
         ]);
     }
 
     #[Route("/login/{mobileLoginKey}", name: "delivery_station_login", options: ["expose" => true], methods: "POST")]
-    public function login(string $mobileLoginKey, EntityManagerInterface $entityManager): JsonResponse
+    public function login(string $mobileLoginKey, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage3
-
+        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $mobileLoginKey]);
+
         if($user) {
-            if($user->getVisibilityGroups()->contains($visibilityGroup)) {
+            if($user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
                 return $this->json([
                     'success' => true,
                 ]);
@@ -76,17 +72,18 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
-    public function form(EntityManagerInterface $entityManager): Response
+    public function form(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO Appliquer le paramétrage
-        $visibilityGroup = $entityManager->getRepository(VisibilityGroup::class)->findBy([])[0] ?? null; // TODO Appliquer le paramétrage
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $filterFields = []; // TODO remplacer par les champs filtres du paramétrage
+        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
+        $filterFields = Stream::from($line->getFilters())
+            ->map(static fn(string $filterField) => intval($filterField) ? $freeFieldRepository->find($filterField) : $filterField)
+            ->toArray();
         return $this->render('delivery_station/form.html.twig', [
             'filterFields' => $filterFields,
             'form' => true,
-            'type' => $type->getLabel(),
-            'visibilityGroup' => $visibilityGroup->getLabel(),
+            'line' => $line,
         ]);
     }
 
@@ -178,6 +175,13 @@ class DeliveryStationController extends AbstractController
                 ]);
             }
         } else {
+            $isReferenceByArticle = $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
+            $locationByStockManagement = null;
+            if($isReferenceByArticle && $initialReference->getStockManagement()) {
+                $articleRepository = $entityManager->getRepository(Article::class);
+                $locationByStockManagement = $articleRepository->findOneByReferenceAndStockManagement($initialReference)?->getEmplacement()->getLabel();
+            }
+
             $values = [
                 'id' => $initialReference->getId(),
                 'reference' => $initialReference->getReference(),
@@ -188,6 +192,7 @@ class DeliveryStationController extends AbstractController
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
                 'isReferenceByArticle' => $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                'location' => $locationByStockManagement,
             ];
         }
 
@@ -198,10 +203,10 @@ class DeliveryStationController extends AbstractController
     }
 
     #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
-    public function getFreeFields(EntityManagerInterface $entityManager): JsonResponse
+    public function getFreeFields(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $type = $entityManager->getRepository(Type::class)->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
-        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON); // TODO Appliquer le paramétrage
+        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
+        $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($line->getDeliveryType(), CategorieCL::DEMANDE_LIVRAISON);
 
         return $this->json([
             'empty' => empty($freeFields),
@@ -232,18 +237,15 @@ class DeliveryStationController extends AbstractController
             ->toArray();
         $date = new DateTime();
 
-        $typeRepository = $entityManager->getRepository(Type::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
 
-        $type = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], ['L - Silicium'])[0]; // TODO A remplacer par le paramétrage
-        $location = $locationRepository->findOneBy(['label' => 'SI BUREAU PLANNING']); // TODO A remplacer par le paramétrage
-
+        $line = $deliveryStationLineRepository->find($values['line']);
         $data = [
-            'type' => $type->getId(),
-            'demandeur' => $this->getUser(), // TODO A remplacer par le paramétrage
-            'destination' => $location->getId(),
+            'type' => $line->getDeliveryType()->getId(),
+            'demandeur' => $this->getUser(),
+            'destination' => $line->getDestinationLocation()->getId(),
             'disabledFieldChecking' => true,
         ];
         $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
@@ -255,7 +257,12 @@ class DeliveryStationController extends AbstractController
             if ($reference['isReference']) {
                 $reference = $referenceRepository->findOneBy(['barCode' => $barcode]);
 
-                if ($pickedQuantity > $reference->getQuantiteDisponible()) {
+                if($reference->getStatut()->getCode() === ReferenceArticle::STATUT_INACTIF) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "La référence <strong>{$reference->getReference()}</strong> est inactive.",
+                    ]);
+                } else if ($pickedQuantity > $reference->getQuantiteDisponible()) {
                     return $this->json([
                         'success' => false,
                         'msg' => "La quantité prise pour la référence <strong>{$reference->getReference()}</strong> excède la quantité disponible.",
@@ -270,7 +277,12 @@ class DeliveryStationController extends AbstractController
             } else {
                 $article = $articleRepository->findOneBy(['barCode' => $barcode]);
 
-                if ($pickedQuantity > $article->getQuantite()) {
+                if($article->isAvailable()) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "L'article <strong>{$article->getLabel()}</strong> n'est pas disponible.",
+                    ]);
+                } else if ($pickedQuantity > $article->getQuantite()) {
                     return $this->json([
                         'success' => false,
                         'msg' => "La quantité prise pour l'article <strong>{$article->getLabel()}</strong> excède la quantité en stock.",

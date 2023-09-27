@@ -55,13 +55,14 @@ class DeliveryStationLineService {
         $visibilityGroup = $visibilityGroupRepository->find($data->get('visibilityGroup'));
         $destinationLocation = $locationRepository->find($data->get('destinationLocation'));
         $receivers = $data->has('receivers') ? $userRepository->findBy(['id' => explode(',', $data->get('receivers'))]) : null;
+        $filterFields = $data->has('filterFields') ? explode(',', $data->get('filterFields')) : null;
         $deliveryStationLine
             ->setWelcomeMessage($data->get('welcomeMessage'))
             ->setDeliveryType($deliveryType)
             ->setVisibilityGroup($visibilityGroup)
             ->setDestinationLocation($destinationLocation)
             ->setReceivers($receivers)
-            ->setFilters([]);
+            ->setFilters($filterFields);
 
         return $deliveryStationLine;
     }
@@ -76,7 +77,7 @@ class DeliveryStationLineService {
             'receivers' => Stream::from($deliveryStationLine->getReceivers())
                 ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver, "", true))
                 ->join(', '),
-            'generatedExternalLink' => "<div><a target='_blank' href='{$this->router->generate('delivery_station_index')}'><i class='fas fa-external-link-alt mr-2'></i> Lien externe</a></div>",
+            'generatedExternalLink' => "<div><a target='_blank' href='{$this->router->generate('delivery_station_index', ['line' => $deliveryStationLine->getId()])}'><i class='fas fa-external-link-alt mr-2'></i> Lien externe</a></div>",
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [

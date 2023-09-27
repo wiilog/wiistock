@@ -62,7 +62,7 @@ class VariableService
 
     public const CODE_ARTICLE = "codearticle";
     public const REFERENCE = "reference";
-    public const VISIBILITY_GROUP = "groupevisibilité";
+    public const VISIBILITY_GROUP = "groupevisibilite";
 
     public const ALERT_DICTIONARY = [
         self::SENSOR_NAME => "Nom du capteur qui a déclenché l'alerte",

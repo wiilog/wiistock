@@ -96,7 +96,7 @@ class ReferenceArticleRepository extends EntityRepository {
         if($options['visibilityGroup'] ?? false) {
             $queryBuilder
                 ->leftJoin('reference.visibilityGroup', 'visibility_group')
-                ->andWhere('visibility_group.label = :visibilityGroup')
+                ->andWhere('visibility_group.id = :visibilityGroup')
                 ->setParameter('visibilityGroup', $options['visibilityGroup']);
         }
 
@@ -141,12 +141,31 @@ class ReferenceArticleRepository extends EntityRepository {
             $queryBuilder->addSelect('reference.reference AS text');
         }
 
-        if(($options['filterField1'] ?? null) || ($options['filterField2'] ?? null) || ($options['filterField3'] ?? null)) {
-            $options['freeField1'] = "13:CONSOMMABLES";
-            [$id, $value] = explode(':', $options['freeField1']);
-            $queryBuilder->andWhere($queryBuilder->expr()->orX(
-                "JSON_CONTAINS(reference.freeFields, '\"$value\"', '$.\"$id\"') = true"
-            ));
+        if($options['filterFields']) {
+            $filterFields = json_decode($options['filterFields'], true);
+
+            $expression = Stream::from($filterFields)
+                ->filterMap(static function(array $filterField) {
+                    $label = $filterField['label'];
+                    $value = $filterField['value'];
+                    if($value && intval($label)) {
+                        if(is_array($value)) {
+                            return Stream::from($value)
+                                ->map(static fn($item) => "JSON_CONTAINS(reference.freeFields, '\"$item\"', '$.\"$label\"') = true")
+                                ->toArray();
+                        } else {
+                            return "JSON_CONTAINS(reference.freeFields, '\"$value\"', '$.\"$label\"') = true";
+                        }
+                    } else if($value && $label === 'type') {
+                        return "reference.type = $value";
+                    } else {
+                        return null;
+                    }
+                })
+                ->flatten()
+                ->toArray();
+
+            $queryBuilder->andWhere($queryBuilder->expr()->orX(...$expression));
         }
 
         $queryBuilder

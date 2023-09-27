@@ -349,7 +349,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => null,
             ],
             Setting::DELIVERY_STATION_INFORMATION_MESSAGE => [
-                'default' => 'Si vous rencontrez un problème ou une difficulté, merci decontacter GT au 8 45 65.',
+                'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.',
             ],
         ];
 

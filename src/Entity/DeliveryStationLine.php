@@ -11,6 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DeliveryStationLineRepository::class)]
 class DeliveryStationLine
 {
+
+    public const REFERENCE_FIXED_FIELDS = [
+        'type' => [
+            'label' => 'Type',
+            'value' => 'type',
+        ],
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

@@ -1,25 +1,24 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="wrapper wave-container">
+    <div class="wrapper">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center w-100 px-4">
-                <img src="{{ setting_value('FILE_TOP_LEFT_LOGO') ? asset(setting_value('FILE_TOP_LEFT_LOGO')) }}" height="65px">
-                <h1 class="form-header">
-                    Sortie de stock
-                </h1>
-                <img src="{{ setting_value('FILE_TOP_RIGHT_LOGO') ? asset(setting_value('FILE_TOP_RIGHT_LOGO')) }}" height="65px">
+                <img src="{{ setting_value('DELIVERY_STATION_TOP_LEFT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_LEFT_LOGO')) }}" height="65px">
+                {% if form is defined and form %}
+                    <h1 class="form-header">
+                        Sortie de stock
+                    </h1>
+                {% endif %}
+                <img src="{{ setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO')) }}" height="65px">
             </div>
             {% if form is defined and form %}
-                <div class="text-center wii-subtitle">{{ type }} - {{ visibilityGroup }}</div>
+                <div class="text-center wii-subtitle">{{ line.deliveryType.label }} - {{ line.visibilityGroup.label }}</div>
             {% endif %}
             {% block page_content %}{% endblock %}
         </div>
     </div>
-    {#<div class="wave-container">
+    <div class="wave-container">
         <div class="wave"></div>
-    </div>#}
-
-    <input type="hidden" name="type" value="{{ type }}">
-    <input type="hidden" name="visibilityGroup" value="{{ visibilityGroup }}">
+    </div>
 {% endblock %}

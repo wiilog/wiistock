@@ -1,5 +1,11 @@
 @import "../variables";
 
+body {
+    position: relative !important;
+    min-height: 100% !important;
+    height: auto !important;
+}
+
 .wrapper button {
     min-width: 200px !important;
     height: 60px !important;
@@ -62,6 +68,10 @@ label {
             padding: 10px !important;
         }
     }
+
+    .select2.select2-container.select2-container--default .select2-selection.select2-selection.select2-selection--multiple {
+        margin-top: 0 !important;
+    }
 }
 
 .reference-informations {
@@ -123,12 +133,6 @@ label {
     }
 }
 
-.action-buttons {
-    display: flex;
-    justify-content: space-between;
-    width: 90% !important;
-}
-
 .delete-line {
     cursor: pointer;
 }
@@ -147,14 +151,13 @@ label {
 }
 
 .wave-container {
-    background-image: url("../../../public/svg/kiosk/wave.svg");
-    background-repeat: no-repeat;
-    background-position: bottom;
-    z-index: auto !important;
-    position: relative !important;
+    height: 280px !important;
 }
 
 .wrapper {
     height: auto !important;
-    min-height: 100%;
+}
+
+.action-buttons-container {
+    margin-bottom: 200px !important;
 }

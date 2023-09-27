@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
@@ -1279,6 +1280,16 @@ class SettingsController extends AbstractController {
                 self::MENU_TOUCH_TERMINAL => [
                     self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
                         'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                    ],
+                    self::MENU_FAST_DELIVERY_REQUEST => fn() => [
+                        'filterFields' => Stream::from($entityManager->getRepository(FreeField::class)->findByCategory(CategorieCL::REFERENCE_ARTICLE))
+                            ->map(static fn(FreeField $freeField) => [
+                                'label' => $freeField->getLabel(),
+                                'value' => $freeField->getId(),
+                            ])
+                            ->concat(DeliveryStationLine::REFERENCE_FIXED_FIELDS)
+                            ->toArray(),
+                        'deliveryStationLine' => new DeliveryStationLine(),
                     ],
                 ]
             ],

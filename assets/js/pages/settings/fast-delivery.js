@@ -14,7 +14,7 @@ $(function () {
 
 export function initializeFastDeliveryRequest($container) {
     $container.find('.add-row').on('click', function() {
-        Form.create($modalNewDeliveryStationLine).submitTo(`POST`, `delivery_station_line_new`, {
+        Form.create($modalNewDeliveryStationLine, {clearOnOpen: true}).submitTo(`POST`, `delivery_station_line_new`, {
             tables: [deliveryStationTable],
         });
 
@@ -24,6 +24,7 @@ export function initializeFastDeliveryRequest($container) {
 
 function openModalEditDeliveryStationLine($modal, deliveryStationLineId){
     Form.create($modal)
+        .clearOpenListeners()
         .onOpen(() => {
             AJAX.route(AJAX.POST, 'edit_delivery_station_line', {
                 deliveryStationLineId,
