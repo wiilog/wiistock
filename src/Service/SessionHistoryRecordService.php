@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
+use App\Entity\Setting;
 use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
@@ -92,9 +93,12 @@ class SessionHistoryRecordService{
 
     public function closeInactiveSessions(EntityManagerInterface $entityManager): void {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+
+        $sessionLifetime = $settingRepository->getOneParamByLabel(Setting::MAX_SESSION_TIME);
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-        $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType);
+        $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType, $sessionLifetime);
         $now = new DateTime();
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $now);

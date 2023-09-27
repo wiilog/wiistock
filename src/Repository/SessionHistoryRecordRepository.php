@@ -22,17 +22,23 @@ use WiiCommon\Helper\Stream;
  */
 class SessionHistoryRecordRepository extends EntityRepository
 {
-    public function findSessionHistoryRecordToClose(?Type $type): array
+    public function findSessionHistoryRecordToClose(?Type $type, ?int $sessionLifetime): array
     {
         $now = (new DateTime())->getTimestamp();
         $queryBuilder = $this->createQueryBuilder('session_history_record');
+        $exprBuilder = $queryBuilder->expr();
         $queryBuilder
             ->leftJoin(UserSession::class, 'user_session', Join::WITH, 'user_session.id = session_history_record.sessionId')
-            ->andWhere('session_history_record.closedAt IS NULL AND user_session.lifetime < :now')
-            ->orWhere('user_session.id IS NULL AND session_history_record.closedAt IS NULL')
+            ->andWhere('session_history_record.closedAt IS NULL')
+            ->andWhere($exprBuilder->orX(
+                '(UNIX_TIMESTAMP(session_history_record.openedAt) + :sessionLifetime) < :now',
+                'user_session.id IS NULL',
+                'user_session.lifetime < :now',
+            ))
             ->andWhere('session_history_record.type = :type')
             ->setParameter('now', $now)
-            ->setParameter('type', $type);
+            ->setParameter('type', $type)
+            ->setParameter('sessionLifetime', $sessionLifetime ? $sessionLifetime * 60 : 3600);
 
         return $queryBuilder->getQuery()->getResult();
     }
