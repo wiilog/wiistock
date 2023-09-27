@@ -232,8 +232,7 @@ class DeliveryStationController extends AbstractController
                                   LivraisonsManagerService   $deliveryOrderService,
                                   PreparationsManagerService $preparationOrderService,
                                   FreeFieldService           $freeFieldService,
-                                  MouvementStockService      $stockMovementService,
-                                  MailerService              $mailerService): JsonResponse
+                                  MouvementStockService      $stockMovementService): JsonResponse
     {
         $values = $request->query->all();
         $references = json_decode($values['references'], true);

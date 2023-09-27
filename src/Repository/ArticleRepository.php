@@ -1411,8 +1411,6 @@ class ArticleRepository extends EntityRepository {
             $queryBuilder->orderBy("article.expiryDate", Criteria::ASC);
         }
 
-        dump($queryBuilder->getQuery()->getSQL());
-
         return $queryBuilder
             ->setParameter("referenceArticle", $referenceArticle->getId())
             ->setParameter("status", Article::STATUT_ACTIF)
