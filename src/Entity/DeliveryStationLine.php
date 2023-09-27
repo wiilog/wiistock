@@ -45,6 +45,9 @@ class DeliveryStationLine
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
     private Collection $receivers;
 
+    #[ORM\Column(type: 'string')]
+    private ?string $token = null;
+
     public function __construct()
     {
         $this->receivers = new ArrayCollection();
@@ -148,6 +151,18 @@ class DeliveryStationLine
         foreach ($receivers ?? [] as $receiver) {
             $this->addReceiver($receiver);
         }
+
+        return $this;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+
+    public function setToken(string $token): self
+    {
+        $this->token = $token;
 
         return $this;
     }

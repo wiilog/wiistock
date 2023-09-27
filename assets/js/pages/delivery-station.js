@@ -8,8 +8,10 @@ let freeFields = [];
 let referenceValues = {};
 
 const $timeline = $(`.timeline-container`);
+const $formHeader = $(`.form-header`);
+const $formHeaderSubtitle = $(`.form-header-subtitle`);
 
-const $homeContainer = $(`.home`);
+const $loginContainer = $(`.login-container`);
 const $stockExitContainer = $(`.stock-exit-container`);
 const $referenceChoiceContainer = $(`.reference-choice-container`);
 const $quantityChoiceContainer = $(`.quantity-choice-container`);
@@ -105,7 +107,7 @@ $(function () {
                                             updateSummaryTable();
                                             toggleSummaryButtons();
                                         } else {
-                                            getFreeFields($current, $currentTimelineEvent);
+                                            wrapLoadingOnActionButton($(`body`), () => getFreeFields($current, $currentTimelineEvent));
                                         }
                                     } else {
                                         showGenericModal(msg);
@@ -181,12 +183,14 @@ $(function () {
 
         const parsedReferences = JSON.stringify(references);
         const parsedFreeFields = JSON.stringify(freeFields);
-        const line = $(`[name=line]`).val();
+        const token = $(`[name=token]`).val();
+        const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
         wrapLoadingOnActionButton($validateButton, () => (
             AJAX.route(AJAX.POST, `delivery_station_submit_request`, {
                 references: parsedReferences,
                 freeFields: parsedFreeFields,
-                line,
+                token,
+                mobileLoginKey,
             })
                 .json()
                 .then(({success, msg}) => {
@@ -306,9 +310,7 @@ $(function () {
             $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
         });
 
-    //$(window).on(`beforeunload`, (e) => e.preventDefault());
-
-    $(`.filter-fields-container .data`).on(`change focusout`, () => {
+    $(`.filter-fields-container .data`).on(`change`, () => {
         const $elements = $(`.filter-fields-container .data`);
         let values = [];
         $elements.each(function () {
@@ -350,7 +352,7 @@ function backPreviousPage() {
     const $current = $(`.active`)
     const $currentTimelineEvent = $timeline.find(`.current`);
 
-    if ($current.prev().exists() && !$current.prev().first().is(`body`)) {
+    if ($current.prev().exists() && !$current.prev().is(`.login-container`) && !$current.prev().first().is(`body`)) {
         $currentTimelineEvent.addClass(`future`).removeClass(`current`);
         $($currentTimelineEvent.prev()[0]).addClass(`current`).removeClass(`future`);
         $current.removeClass(`active`).addClass(`d-none`);
@@ -422,7 +424,7 @@ function renderReferenceLine($summaryContainer, lineIndex, reference) {
             <td class="wii-body-text">@barcode</td>
             <td class="wii-body-text">@pickedQuantity</td>
             <td class="wii-body-text">
-                <i class="wii-icon wii-icon-trash wii-icon-25px-danger delete-line" data-line-index="${lineIndex}"></i>
+                <i class="wii-icon wii-icon-trash wii-icon-25px-danger delete-line pointer" data-line-index="${lineIndex}"></i>
             </td>
         </tr>
     `;
@@ -460,21 +462,28 @@ function showGenericModal(message) {
 }
 
 function backToHome() {
-    const line = $(`[name=line]`).val();
-    window.location.href = Routing.generate(`delivery_station_index`, {line});
+    const token = $(`[name=token]`).val();
+    window.location.href = Routing.generate(`delivery_station_form`, {token});
 }
 
 function processLogin($loadingContainer = undefined) {
     const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
-    const line = $(`[name=line]`).val();
+    const token = $(`[name=token]`).val();
 
     if (mobileLoginKey) {
         wrapLoadingOnActionButton($loadingContainer || $(`.home .login`), () => (
-            AJAX.route(AJAX.POST, `delivery_station_login`, {mobileLoginKey, line})
+            AJAX.route(AJAX.GET, `delivery_station_check_mobile_login_key`, {mobileLoginKey, token})
                 .json()
                 .then(({success, msg}) => {
-                    if (success) {
-                        window.location.href = Routing.generate(`delivery_station_form`, {mobileLoginKey, line});
+                    if(success) {
+                        $backButton
+                            .add($searchButton)
+                            .add($timeline)
+                            .add($formHeader)
+                            .add($formHeaderSubtitle)
+                            .removeClass(`d-none`);
+
+                        pushNextPage($loginContainer);
                     } else {
                         showGenericModal(msg);
                     }
@@ -503,12 +512,10 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
                     updateTimeline($currentTimelineEvent);
                     updateReferenceInformations();
 
-                    if (!referenceValues.isReferenceByArticle) {
-                        $quantityChoiceContainer
-                            .find(`[name=barcode]`)
-                            .val(referenceValues.barcode)
-                            .trigger(`blur`);
-                    }
+                    $quantityChoiceContainer
+                        .find(`[name=barcode]`)
+                        .val(referenceValues.barcode)
+                        .trigger(`blur`);
 
                     $searchButton.addClass(`d-none`);
                     $nextButton.removeClass(`d-none`);
@@ -552,12 +559,11 @@ function processBarcodeEntering(barcode) {
 }
 
 function toggleAutofocus($element = undefined) {
-    const $activeContainer = $stockExitContainer.exists()
-        ? $stockExitContainer.find(`.active`)
-        : $homeContainer;
+    const $activeContainer = $stockExitContainer.find(`.active`)
 
-    $element = $activeContainer
-        .find($element || `input, select`)
+    $element = $activeContainer.find(`.trigger-autofocus`).exists()
+        ? $activeContainer.find(`.autofocus`)
+        : $activeContainer.find($element || `input, select`)
         .not(`.filtered-field`)
         .first();
 
@@ -571,9 +577,9 @@ function toggleAutofocus($element = undefined) {
 }
 
 function getFreeFields($current, $currentTimelineEvent) {
-    const line = $(`[name=line]`).val();
+    const token = $(`[name=token]`).val();
     //wrapLoadingOnActionButton($nextButton, () => ( // TODO Faire en sorte d'exécuter cet appel en même temps que la vérification de quantité
-    AJAX.route(AJAX.GET, `delivery_station_get_free_fields`, {line})
+    AJAX.route(AJAX.GET, `delivery_station_get_free_fields`, {token})
         .json()
         .then(({template}) => {
             pushNextPage($current);

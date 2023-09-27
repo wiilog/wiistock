@@ -56,13 +56,17 @@ class DeliveryStationLineService {
         $destinationLocation = $locationRepository->find($data->get('destinationLocation'));
         $receivers = $data->has('receivers') ? $userRepository->findBy(['id' => explode(',', $data->get('receivers'))]) : null;
         $filterFields = $data->has('filterFields') ? explode(',', $data->get('filterFields')) : null;
+
+        $token = bin2hex(random_bytes(30));
+
         $deliveryStationLine
             ->setWelcomeMessage($data->get('welcomeMessage'))
             ->setDeliveryType($deliveryType)
             ->setVisibilityGroup($visibilityGroup)
             ->setDestinationLocation($destinationLocation)
             ->setReceivers($receivers)
-            ->setFilters($filterFields);
+            ->setFilters($filterFields)
+            ->setToken($token);
 
         return $deliveryStationLine;
     }
@@ -77,7 +81,7 @@ class DeliveryStationLineService {
             'receivers' => Stream::from($deliveryStationLine->getReceivers())
                 ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver, "", true))
                 ->join(', '),
-            'generatedExternalLink' => "<div><a target='_blank' href='{$this->router->generate('delivery_station_index', ['line' => $deliveryStationLine->getId()])}'><i class='fas fa-external-link-alt mr-2'></i> Lien externe</a></div>",
+            'generatedExternalLink' => "<div><a target='_blank' href='{$this->router->generate('delivery_station_form', ['token' => $deliveryStationLine->getToken()])}'><i class='fas fa-external-link-alt mr-2'></i> Lien externe</a></div>",
             'actions' => $this->templating->render('utils/action-buttons/dropdown.html.twig', [
                 'actions' => [
                     [

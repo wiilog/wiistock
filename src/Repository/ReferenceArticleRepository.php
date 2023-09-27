@@ -144,17 +144,21 @@ class ReferenceArticleRepository extends EntityRepository {
         if($options['filterFields']) {
             $filterFields = json_decode($options['filterFields'], true);
 
-            $expression = Stream::from($filterFields)
-                ->filterMap(static function(array $filterField) {
+            $expression = Stream::from($filterFields ?: [])
+                ->filterMap(static function(array $filterField) use ($queryBuilder) {
                     $label = $filterField['label'];
                     $value = $filterField['value'];
                     if($value && intval($label)) {
                         if(is_array($value)) {
-                            return Stream::from($value)
-                                ->map(static fn($item) => "JSON_CONTAINS(reference.freeFields, '\"$item\"', '$.\"$label\"') = true")
-                                ->toArray();
+                            return $queryBuilder
+                                ->expr()
+                                ->orX(
+                                    ...Stream::from($value)
+                                    ->map(static fn($item) => "(JSON_EXTRACT(reference.freeFields, '$.\"$label\"') LIKE '%$item%')")
+                                    ->toArray()
+                                );
                         } else {
-                            return "JSON_CONTAINS(reference.freeFields, '\"$value\"', '$.\"$label\"') = true";
+                            return "JSON_EXTRACT(reference.freeFields, '$.\"$label\"') LIKE '%$value%'";
                         }
                     } else if($value && $label === 'type') {
                         return "reference.type = $value";
@@ -162,10 +166,11 @@ class ReferenceArticleRepository extends EntityRepository {
                         return null;
                     }
                 })
-                ->flatten()
                 ->toArray();
 
-            $queryBuilder->andWhere($queryBuilder->expr()->orX(...$expression));
+            if(!empty($expression)) {
+                $queryBuilder->andWhere($queryBuilder->expr()->andX(...$expression));
+            }
         }
 
         $queryBuilder

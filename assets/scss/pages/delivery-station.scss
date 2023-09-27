@@ -106,8 +106,6 @@ label {
 }
 
 .kiosk-modal-content {
-    width: 70vw !important;
-
     .content {
         max-width: none !important;
     }
@@ -131,10 +129,6 @@ label {
     img {
         cursor: pointer;
     }
-}
-
-.delete-line {
-    cursor: pointer;
 }
 
 .edit-free-fields-button {

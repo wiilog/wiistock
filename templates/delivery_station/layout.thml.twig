@@ -3,17 +3,17 @@
 {% block body %}
     <div class="wrapper">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center w-100 px-4">
+            <div class="d-flex justify-content-between align-items-center w-100 px-4 pt-3">
                 <img src="{{ setting_value('DELIVERY_STATION_TOP_LEFT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_LEFT_LOGO')) }}" height="65px">
-                {% if form is defined and form %}
-                    <h1 class="form-header">
-                        Sortie de stock
-                    </h1>
-                {% endif %}
+                <h1 class="form-header d-none">
+                    Sortie de stock
+                </h1>
                 <img src="{{ setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO')) }}" height="65px">
             </div>
-            {% if form is defined and form %}
-                <div class="text-center wii-subtitle">{{ line.deliveryType.label }} - {{ line.visibilityGroup.label }}</div>
+            {% if invalidToken is not defined %}
+                <div class="text-center wii-subtitle form-header-subtitle d-none">
+                    {{ line.deliveryType.label }} - {{ line.visibilityGroup.label }}
+                </div>
             {% endif %}
             {% block page_content %}{% endblock %}
         </div>

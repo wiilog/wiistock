@@ -5,18 +5,16 @@ namespace App\Controller\DeliveryStation;
 use App\Controller\AbstractController;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryStationLine;
-use App\Entity\Emplacement;
 use App\Entity\FreeField;
 use App\Entity\ReferenceArticle;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
+use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use DateTime;
@@ -25,6 +23,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -32,26 +31,14 @@ use WiiCommon\Helper\Stream;
 class DeliveryStationController extends AbstractController
 {
 
-    #[Route("/index/{line}", name: "delivery_station_index", options: ["expose" => true])]
-    public function index(DeliveryStationLine $line): Response
+    #[Route("/check-mobile-login-key", name: "delivery_station_check_mobile_login_key", options: ["expose" => true], methods: "GET")]
+    public function login(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $type = $line->getDeliveryType();
-        $visibilityGroup = $line->getVisibilityGroup();
-        $message = str_replace("@groupevisibilite", "<strong>{$visibilityGroup->getLabel()}</strong>",
-            str_replace("@typelivraison", "<strong>{$type->getLabel()}</strong>", $line->getWelcomeMessage()));
+        $mobileLoginKey = $request->query->get('mobileLoginKey');
+        $token = $request->query->get('token');
 
-        return $this->render('delivery_station/home.html.twig', [
-            'homeMessage' => $message,
-            'line' => $line->getId(),
-        ]);
-    }
-
-    #[Route("/login/{mobileLoginKey}", name: "delivery_station_login", options: ["expose" => true], methods: "POST")]
-    public function login(string $mobileLoginKey, Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
+        $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $token]);
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $mobileLoginKey]);
-
         if($user) {
             if($user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
                 return $this->json([
@@ -71,20 +58,34 @@ class DeliveryStationController extends AbstractController
         }
     }
 
-    #[Route("/formulaire", name: "delivery_station_form", options: ["expose" => true])]
-    public function form(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route("/formulaire/{token}", name: "delivery_station_form", options: ["expose" => true])]
+    public function form(string $token, Request $request, EntityManagerInterface $entityManager): Response
     {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
-        $filterFields = Stream::from($line->getFilters())
-            ->map(static fn(string $filterField) => intval($filterField) ? $freeFieldRepository->find($filterField) : $filterField)
-            ->toArray();
-        return $this->render('delivery_station/form.html.twig', [
-            'filterFields' => $filterFields,
-            'form' => true,
-            'line' => $line,
-        ]);
+        $mobileLoginKey = $request->query->get('mobileLoginKey');
+        $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $token]);
+
+        if($line) {
+            $filterFields = Stream::from($line->getFilters())
+                ->map(static fn(string $filterField) => intval($filterField) ? $freeFieldRepository->find($filterField) : $filterField)
+                ->toArray();
+
+            $homeMessage = str_replace("@groupevisibilite", "<strong>{$line->getVisibilityGroup()->getLabel()}</strong>",
+                str_replace("@typelivraison", "<strong>{$line->getDeliveryType()->getLabel()}</strong>", $line->getWelcomeMessage()));
+
+            return $this->render('delivery_station/form.html.twig', [
+                'filterFields' => $filterFields,
+                'form' => true,
+                'line' => $line,
+                'mobileLoginKey' => $mobileLoginKey,
+                'homeMessage' => $homeMessage,
+            ]);
+        } else {
+            return $this->render('delivery_station/invalidToken.html.twig', [
+                'invalidToken' => true,
+            ]);
+        }
     }
 
     #[Route("/get-informations", name: "delivery_station_get_informations", options: ["expose" => true], methods: "GET")]
@@ -176,10 +177,13 @@ class DeliveryStationController extends AbstractController
             }
         } else {
             $isReferenceByArticle = $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-            $locationByStockManagement = null;
+            $location = null;
+            $articleBarcode = null;
             if($isReferenceByArticle && $initialReference->getStockManagement()) {
                 $articleRepository = $entityManager->getRepository(Article::class);
-                $locationByStockManagement = $articleRepository->findOneByReferenceAndStockManagement($initialReference)?->getEmplacement()->getLabel();
+                $article = $articleRepository->findOneByReferenceAndStockManagement($initialReference);
+                $location = $this->formatService->location($article->getEmplacement());
+                $articleBarcode = $article->getBarCode();
             }
 
             $values = [
@@ -187,12 +191,12 @@ class DeliveryStationController extends AbstractController
                 'reference' => $initialReference->getReference(),
                 'label' => $initialReference->getLibelle(),
                 'stockQuantity' => $initialReference->getQuantiteDisponible(),
-                'barcode' => $initialReference->getBarCode(),
+                'barcode' => $articleBarcode ?: $initialReference->getBarCode(),
                 'image' => $initialReference->getImage()
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
                 'isReferenceByArticle' => $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
-                'location' => $locationByStockManagement,
+                'location' => $location,
             ];
         }
 
@@ -205,7 +209,7 @@ class DeliveryStationController extends AbstractController
     #[Route("/get-free-fields", name: "delivery_station_get_free_fields", options: ["expose" => true], methods: "GET")]
     public function getFreeFields(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        $line = $entityManager->find(DeliveryStationLine::class, $request->query->get('line'));
+        $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $request->query->get('token')]);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($line->getDeliveryType(), CategorieCL::DEMANDE_LIVRAISON);
 
         return $this->json([
@@ -228,7 +232,8 @@ class DeliveryStationController extends AbstractController
                                   LivraisonsManagerService   $deliveryOrderService,
                                   PreparationsManagerService $preparationOrderService,
                                   FreeFieldService           $freeFieldService,
-                                  MouvementStockService      $stockMovementService): JsonResponse
+                                  MouvementStockService      $stockMovementService,
+                                  MailerService              $mailerService): JsonResponse
     {
         $values = $request->query->all();
         $references = json_decode($values['references'], true);
@@ -240,11 +245,13 @@ class DeliveryStationController extends AbstractController
         $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
         $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
+        $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $line = $deliveryStationLineRepository->find($values['line']);
+        $line = $deliveryStationLineRepository->findOneBy(['token' => $values['token']]);
+        $user = $userRepository->findOneBy(['mobileLoginKey' => $values['mobileLoginKey']]);
         $data = [
             'type' => $line->getDeliveryType()->getId(),
-            'demandeur' => $this->getUser(),
+            'demandeur' => $user,
             'destination' => $line->getDestinationLocation()->getId(),
             'disabledFieldChecking' => true,
         ];
@@ -277,7 +284,7 @@ class DeliveryStationController extends AbstractController
             } else {
                 $article = $articleRepository->findOneBy(['barCode' => $barcode]);
 
-                if($article->isAvailable()) {
+                if(!$article->isAvailable()) {
                     return $this->json([
                         'success' => false,
                         'msg' => "L'article <strong>{$article->getLabel()}</strong> n'est pas disponible.",
@@ -318,7 +325,7 @@ class DeliveryStationController extends AbstractController
                 $outMovement = $preparationOrderService->createMovementLivraison(
                     $entityManager,
                     $article->getQuantite(),
-                    $this->getUser(),
+                    $user,
                     $deliveryOrder,
                     false,
                     $article,
@@ -330,10 +337,10 @@ class DeliveryStationController extends AbstractController
                 $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
             }
 
-            $preparationOrderService->treatPreparation($preparation, $this->getUser(), $deliveryRequest->getDestination());
+            $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination());
 
             $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
-            $deliveryOrderService->finishLivraison($this->getUser(), $deliveryOrder, $date, $deliveryRequest->getDestination());
+            $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination());
 
             $entityManager->flush();
         } else {

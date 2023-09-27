@@ -11,7 +11,7 @@
 {% block page_content %}
     <div class="main-page-container d-flex flex-column justify-content-between">
         <div>
-            <div class="timeline-container">
+            <div class="timeline-container d-none">
                 <span class="wii-field-text current">Choix de la référence</span>
                 <span class="wii-field-text future">Choix de la quantité</span>
                 <span class="wii-field-text future">Autres informations</span>
@@ -19,7 +19,30 @@
             </div>
             <div class="form-content">
                 <div class="stock-exit-container">
-                    <div class="reference-choice-container active">
+                    <div class="login-container home-page-wrapper active">
+                        <div class="page-content home">
+                            <h1 class="home">
+                                Sortie de stock
+                            </h1>
+                            <p>{{ homeMessage|raw }}</p>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label class="w-100">
+                                        Clé de connexion nomade
+                                        <input type="password" class="data w-100" required autofocus name="mobileLoginKey">
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="row mt-5">
+                                <div class="col-12 d-flex justify-content-center">
+                                    <button class="login">
+                                        Connexion
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reference-choice-container d-none">
                         <div class="row filter-fields-container">
                             {% if filterFields is not empty %}
                                 {% for filterField in filterFields %}
@@ -50,7 +73,7 @@
                         <div class="mt-5">
                             {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
                                 type: 'reference',
-                                inputClass: 'w-50',
+                                inputClass: 'w-50 trigger-autofocus',
                                 labelClass: 'd-flex flex-column',
                                 includeParams: '[name=multipleFields],[name=visibilityGroup],[name=filterFields]',
                                 includeParamsParent: '.reference-choice-container',
@@ -154,7 +177,7 @@
                         <button class="btn next-button d-none" data-loader-size="normal" disabled>
                             Suivant
                         </button>
-                        <button class="btn search-button" data-loader-size="normal">
+                        <button class="btn search-button d-none" data-loader-size="normal">
                             Rechercher
                         </button>
                         <button class="outline edit-free-fields-button mr-3 d-none" data-loader-size="normal">
@@ -165,7 +188,7 @@
             </div>
         </div>
         <div class="corner position-absolute left-0 bottom-0 p-4">
-            <button class="outline back-button">
+            <button class="outline back-button d-none">
                 Retour
             </button>
             <button class="outline danger give-up-button d-none">
@@ -177,7 +200,8 @@
      <div class="corner position-absolute right-0 bottom-0 p-4 information-button">
         <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
     </div>
-    <input type="hidden" name="line" value="{{ line.id }}">
+    <input type="hidden" name="token" value="{{ line.token }}">
+    <input type="hidden" name="mobileLoginKey" value="{{ mobileLoginKey }}">
 
     {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}
