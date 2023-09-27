@@ -35,6 +35,9 @@
                 <div class="col-12 my-1">
                     {{ form.checkbox(setting('INCLUDE_PROJECT_IN_LABEL'), "Afficher le " ~ (trans('Référentiel', 'Projet', "Projet", false) | lower), false, setting_value('INCLUDE_PROJECT_IN_LABEL')) }}
                 </div>
+                <div class="col-12 my-1">
+                    {{ form.checkbox(setting('INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL'), "Afficher la date et l'heure d'un arrivage UL", false, setting_value('INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL')) }}
+                </div>
             </div>
         </div>
         <div class="col-12 col-md-6">

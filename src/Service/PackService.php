@@ -512,10 +512,15 @@ class PackService {
                                          ?array       $firstCustomIconConfig = null,
                                          ?array       $secondCustomIconConfig = null,
                                          ?bool        $businessUnitParam = false,
-                                         ?bool $projectParam = false,
+                                         ?bool        $projectParam = false,
+                                         ?bool        $showDateAndHourArrivalUl = false,
     ): array {
 
         $arrival = $pack->getArrivage();
+
+        $dateAndHour = $arrival->getDate()
+            ? $arrival->getDate()->format('d/m/Y H:i')
+            : '';
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
@@ -590,6 +595,10 @@ class PackService {
 
         if($projectParam) {
             $labels[] = $project;
+        }
+
+        if($showDateAndHourArrivalUl) {
+            $labels[] = $dateAndHour;
         }
 
         if ($packLabel) {
