@@ -178,12 +178,10 @@ class DeliveryStationController extends AbstractController
         } else {
             $isReferenceByArticle = $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
             $location = null;
-            $articleBarcode = null;
             if($isReferenceByArticle && $initialReference->getStockManagement()) {
                 $articleRepository = $entityManager->getRepository(Article::class);
                 $article = $articleRepository->findOneByReferenceAndStockManagement($initialReference);
                 $location = $this->formatService->location($article->getEmplacement());
-                $articleBarcode = $article->getBarCode();
             }
 
             $values = [
@@ -191,7 +189,7 @@ class DeliveryStationController extends AbstractController
                 'reference' => $initialReference->getReference(),
                 'label' => $initialReference->getLibelle(),
                 'stockQuantity' => $initialReference->getQuantiteDisponible(),
-                'barcode' => $articleBarcode ?: $initialReference->getBarCode(),
+                'barcode' => $initialReference->getBarCode(),
                 'image' => $initialReference->getImage()
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
@@ -305,48 +303,62 @@ class DeliveryStationController extends AbstractController
             $entityManager->persist($line);
         }
 
-        $response = $deliveryRequestService->validateDLAfterCheck(
+        $entityManager->flush();
+
+        $deliveryRequestService->checkDLStockAndValidate(
             $entityManager,
-            $deliveryRequest,
+            ['demande' => $deliveryRequest],
             false,
-            true,
-            true,
+            $freeFieldService,
             false,
-            ['sendNotification' => false]
+            true
         );
 
-        if ($response['success']) {
-            $preparation = $deliveryRequest->getPreparations()->first();
-            $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager);
+        $preparation = $deliveryRequest->getPreparations()->first();
+        $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager);
 
-            foreach ($deliveryRequest->getArticleLines() as $articleLine) {
-                $article = $articleLine->getArticle();
-                $outMovement = $preparationOrderService->createMovementLivraison(
-                    $entityManager,
-                    $article->getQuantite(),
-                    $user,
-                    $deliveryOrder,
-                    false,
-                    $article,
-                    $preparation,
-                    true,
-                    $article->getEmplacement()
-                );
+        foreach ($deliveryRequest->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            $outMovement = $preparationOrderService->createMovementLivraison(
+                $entityManager,
+                $articleLine->getPickedQuantity(),
+                $user,
+                $deliveryOrder,
+                false,
+                $article,
+                $preparation,
+                true,
+                $article->getEmplacement()
+            );
 
-                $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
-            }
-
-            $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination());
-
-            $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
-            $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination());
-
-            $entityManager->flush();
-        } else {
-            return $this->json([
-                'success' => false,
-            ]);
+            $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
         }
+
+        foreach ($deliveryRequest->getReferenceLines() as $referenceLine) {
+            $reference = $referenceLine->getReference();
+            $outMovement = $preparationOrderService->createMovementLivraison(
+                $entityManager,
+                $referenceLine->getPickedQuantity(),
+                $user,
+                $deliveryOrder,
+                true,
+                $reference,
+                $preparation,
+                true,
+                $reference->getEmplacement()
+            );
+
+            $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
+        }
+
+        $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination(), [
+            "entityManager" => $entityManager,
+            "changeArticleLocation" => false,
+        ]);
+
+        $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
+        $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination());
+        $entityManager->flush();
 
         return $this->json([
             'success' => true,

@@ -512,10 +512,12 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
                     updateTimeline($currentTimelineEvent);
                     updateReferenceInformations();
 
-                    $quantityChoiceContainer
-                        .find(`[name=barcode]`)
-                        .val(referenceValues.barcode)
-                        .trigger(`blur`);
+                    if(!referenceValues.isReferenceByArticle) {
+                        $quantityChoiceContainer
+                            .find(`[name=barcode]`)
+                            .val(referenceValues.barcode)
+                            .trigger(`blur`);
+                    }
 
                     $searchButton.addClass(`d-none`);
                     $nextButton.removeClass(`d-none`);
