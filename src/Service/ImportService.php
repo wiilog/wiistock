@@ -1124,13 +1124,15 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
-        $dangerousGoods = (
-            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
-            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
-        );
+        if(isset($data['dangerousGoods'])){
+            $dangerousGoods = (
+                    filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+                );
 
-        $refArt
-            ->setDangerousGoods($dangerousGoods);
+            $refArt
+                ->setDangerousGoods($dangerousGoods);
+        }
 
         if (isset($data['onuCode'])) {
             $refArt->setOnuCode($data['onuCode'] ?: null);
