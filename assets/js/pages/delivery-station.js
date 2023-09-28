@@ -252,7 +252,7 @@ $(function () {
         }
     });
 
-    $quantityChoiceContainer.find(`[name=pickedQuantity]`).on(`keyup`, function () {
+    $quantityChoiceContainer.find(`[name=pickedQuantity]`).on(`keyup change`, function () {
         const pickedQuantity = Number($(this).val());
         const $barcode = $quantityChoiceContainer.find(`[name=barcode]`);
 
