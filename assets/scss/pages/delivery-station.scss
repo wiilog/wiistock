@@ -157,6 +157,12 @@ body {
                 }
             }
 
+            .summary-container .table-container {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
             .treated-delivery-container {
                 .wii-title {
                     color: $black !important;

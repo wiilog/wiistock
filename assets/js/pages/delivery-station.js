@@ -564,10 +564,10 @@ function toggleAutofocus($element = undefined) {
     const $activeContainer = $stockExitContainer.find(`.active`)
 
     $element = $activeContainer.find(`.trigger-autofocus`).exists()
-        ? $activeContainer.find(`.autofocus`)
+        ? $activeContainer.find(`.trigger-autofocus`)
         : $activeContainer.find($element || `input, select`)
-        .not(`.filtered-field`)
-        .first();
+            .not(`.filtered-field`)
+            .first();
 
     setTimeout(() => {
         if ($element.is(`.select2-hidden-accessible`)) {
@@ -580,7 +580,6 @@ function toggleAutofocus($element = undefined) {
 
 function getFreeFields($current, $currentTimelineEvent) {
     const token = $(`[name=token]`).val();
-    //wrapLoadingOnActionButton($nextButton, () => ( // TODO Faire en sorte d'exécuter cet appel en même temps que la vérification de quantité
     AJAX.route(AJAX.GET, `delivery_station_get_free_fields`, {token})
         .json()
         .then(({template}) => {
@@ -591,6 +590,5 @@ function getFreeFields($current, $currentTimelineEvent) {
             $otherInformationsContainer.html(template);
 
             toggleAutofocus();
-        })
-    //));
+        });
 }

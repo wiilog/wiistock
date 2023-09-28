@@ -452,7 +452,10 @@ class DeliveryRequestService
                     $simple,
                     $flush,
                     $settingNeedPlanningValidation,
-                    ['requester' => $demandeArray['demandeur'] ?? null]
+                    [
+                        'requester' => $demandeArray['demandeur'] ?? null,
+                        'directDelivery' => $demandeArray['directDelivery'] ?? false,
+                    ]
                 );
             }
         } else {
@@ -483,6 +486,7 @@ class DeliveryRequestService
 
         $date = new DateTime('now');
 
+        $isDirectDelivery = isset($options['directDelivery']) && $options['directDelivery'];
         $preparedUponValidation = $this->treatSetting_preparedUponValidation($entityManager, $demande);
 
         $preparation = new Preparation();
@@ -516,10 +520,14 @@ class DeliveryRequestService
         $refArticleToUpdateQuantities = [];
         $this->persistPreparationLine($entityManager, $preparation, !$settingNeedPlanningValidation, $refArticleToUpdateQuantities, $date);
 
-        $sendNotification = $options['sendNotification']??true;
+        $sendNotification = $options['sendNotification'] ?? true;
         try {
-            if ($flush) $entityManager->flush();
-            if ($demande->getType()->isNotificationsEnabled()
+            if ($flush) {
+                $entityManager->flush();
+            }
+
+            if (!$isDirectDelivery
+                && $demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
                 && $sendNotification
                 && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
@@ -575,7 +583,7 @@ class DeliveryRequestService
             $response['demande'] = $demande;
         }
 
-        if($preparedUponValidation) {
+        if(!$isDirectDelivery && $preparedUponValidation) {
             foreach($preparation->getArticleLines() as $articleLine) {
                 $articleLine->setPickedQuantity($articleLine->getQuantityToPick());
             }

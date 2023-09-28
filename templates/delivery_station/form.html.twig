@@ -29,7 +29,12 @@
                                 <div class="col-12">
                                     <label class="w-100">
                                         Clé de connexion nomade
-                                        <input type="password" class="data w-100" required autofocus name="mobileLoginKey">
+                                        <input type="password"
+                                               class="data w-100"
+                                               required
+                                               autofocus
+                                               autocomplete="new-password"
+                                               name="mobileLoginKey">
                                     </label>
                                 </div>
                                 <div class="col-12 d-flex justify-content-center mt-4">
@@ -94,7 +99,7 @@
                                             <strong>Référence:</strong>
                                             <span class="reference wii-field-text"></span>
                                         </div>
-                                        <div class="wii-field-name">Libellé:
+                                        <div class="wii-field-name text-break">Libellé:
                                             <span class="label wii-field-text"></span>
                                         </div>
                                         <div class="wii-field-name">Quantité disponible:
@@ -135,18 +140,20 @@
                     </div>
                     <div class="other-informations-container d-none"></div>
                     <div class="summary-container d-none">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col" class="wii-field-name">Référence</th>
-                                <th scope="col" class="wii-field-name">Libellé</th>
-                                <th scope="col" class="wii-field-name">Code barre</th>
-                                <th scope="col" class="wii-field-name">Quantité prise</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th scope="col" class="wii-field-name">Référence</th>
+                                    <th scope="col" class="wii-field-name">Libellé</th>
+                                    <th scope="col" class="wii-field-name">Code barre</th>
+                                    <th scope="col" class="wii-field-name">Quantité prise</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                         <div class="add-reference-container">
                             <span class='wii-icon wii-icon-plus wii-icon-30px-primary mr-3'></span>
                             <span class="add-reference">Ajouter une référence</span>

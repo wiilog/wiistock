@@ -123,7 +123,7 @@ class DeliveryStationController extends AbstractController
                         } else {
                             return $this->json([
                                 'success' => false,
-                                'msg' => "L'article renseigné n'est pas lié à la référence sélectionée.",
+                                'msg' => "L'article renseigné n'est pas lié à la référence sélectionnée.",
                             ]);
                         }
                     } else {
@@ -313,7 +313,10 @@ class DeliveryStationController extends AbstractController
         $entityManager->flush();
         $response = $deliveryRequestService->checkDLStockAndValidate(
             $entityManager,
-            ['demande' => $deliveryRequest],
+            [
+                'demande' => $deliveryRequest,
+                'directDelivery' => true,
+            ],
             false,
             $freeFieldService,
             false,
@@ -328,6 +331,8 @@ class DeliveryStationController extends AbstractController
 
         $preparation = $deliveryRequest->getPreparations()->first();
         $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager);
+
+        $articlesToKeep = $preparationOrderService->createMouvementsPrepaAndSplit($preparation, $user, $entityManager);
 
         foreach ($deliveryRequest->getArticleLines() as $articleLine) {
             $article = $articleLine->getArticle();
@@ -366,6 +371,7 @@ class DeliveryStationController extends AbstractController
         $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination(), [
             "entityManager" => $entityManager,
             "changeArticleLocation" => false,
+            "articleLinesToKeep" => $articlesToKeep,
         ]);
 
         $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
