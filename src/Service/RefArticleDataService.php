@@ -514,7 +514,7 @@ class RefArticleDataService
 
                 $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
-            } else {
+            } else if ($data->getBoolean('deletedSheetFile')) {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
