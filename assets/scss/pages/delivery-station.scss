@@ -171,14 +171,22 @@ body {
     }
 }
 
-.delivery-station-modal-content {
-    width: 100% !important;
+.modal {
+    padding-left: 0 !important;
 
-    .content {
-        max-width: none !important;
-    }
+    .kiosk-modal-content {
+        width: 50vw !important;
 
-    .modal-footer {
-        justify-content: space-evenly !important;
+        @media (max-width: $responsive-breakpoint) {
+            width: 100% !important;
+        }
+
+        .content {
+            max-width: none !important;
+        }
+
+        .modal-footer {
+            justify-content: space-evenly !important;
+        }
     }
 }
