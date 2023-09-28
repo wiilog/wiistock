@@ -310,7 +310,8 @@ class DeliveryStationController extends AbstractController
             $entityManager->persist($line);
         }
 
-        $deliveryRequestService->checkDLStockAndValidate(
+        $entityManager->flush();
+        $response = $deliveryRequestService->checkDLStockAndValidate(
             $entityManager,
             ['demande' => $deliveryRequest],
             false,
@@ -318,6 +319,12 @@ class DeliveryStationController extends AbstractController
             false,
             true
         );
+
+        if (!$response['success']) {
+            $entityManager->remove($request);
+            $entityManager->flush();
+            return $this->json($response);
+        }
 
         $preparation = $deliveryRequest->getPreparations()->first();
         $deliveryOrder = $deliveryOrderService->createLivraison($date, $preparation, $entityManager);
