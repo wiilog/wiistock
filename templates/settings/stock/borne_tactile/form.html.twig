@@ -32,7 +32,7 @@
         }) }}
     </div>
     <div class="form-group col-6 mb-2 w-100">
-        {{ form.select('receivers', 'Destinataire mail information', false, {
+        {{ form.select('receivers', 'Utilisateur(s) mail information', false, {
             type: 'user',
             multiple: true,
             items: deliveryStationLineReceivers ?? [],

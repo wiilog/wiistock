@@ -20,21 +20,19 @@
             <div class="form-content">
                 <div class="stock-exit-container">
                     <div class="login-container home-page-wrapper active">
-                        <div class="page-content home">
-                            <h1 class="home">
-                                Sortie de stock
-                            </h1>
-                            <p>{{ homeMessage|raw }}</p>
+                        <div class="page-content">
                             <div class="row">
+                                <h1 class="col-12 home-title">
+                                    Sortie de stock
+                                </h1>
+                                <div class="col-12 home-message">{{ homeMessage|raw }}</div>
                                 <div class="col-12">
                                     <label class="w-100">
                                         Clé de connexion nomade
                                         <input type="password" class="data w-100" required autofocus name="mobileLoginKey">
                                     </label>
                                 </div>
-                            </div>
-                            <div class="row mt-5">
-                                <div class="col-12 d-flex justify-content-center">
+                                <div class="col-12 d-flex justify-content-center mt-4">
                                     <button class="login">
                                         Connexion
                                     </button>
@@ -52,10 +50,10 @@
                                             freeFieldValues: null,
                                             actionType: "new",
                                             disabledNeeded: true,
-                                            containerClasses: 'col-4 w-100',
+                                            containerClasses: 'col-md-4 col-12 w-100',
                                         } %}
                                     {% elseif filterField == 'type' %}
-                                        <div class="col-4 w-100 my-2">
+                                        <div class="col-md-4 col-12 w-100 my-2">
                                             {{ form.select('type', 'Type', false, {
                                                 type: 'types',
                                                 includeParams: '[name=categoryType]',
@@ -88,7 +86,7 @@
                     </div>
                     <div class="quantity-choice-container d-none">
                         <div class="row">
-                            <div class="reference-informations col-6">
+                            <div class="reference-informations col-md-6 col-12">
                                 <div class="d-flex">
                                     <img class="image mr-3" width="150px" src="">
                                     <div class="d-flex flex-column justify-content-around py-2">
@@ -109,7 +107,7 @@
                                     <span class="wii-small-text italic">Code barre requis pour afficher le(s) code(s) fournisseur(s).</span>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-md-6 col-12">
                                 <div class="d-flex align-items-center">
                                     <img src="{{ asset('svg/reference_article/location.svg') }}" width="50px">
                                     <div class="wii-field-name">Emplacement:

@@ -57,7 +57,7 @@ class DeliveryStationLineService {
         $receivers = $data->has('receivers') ? $userRepository->findBy(['id' => explode(',', $data->get('receivers'))]) : null;
         $filterFields = $data->has('filterFields') ? explode(',', $data->get('filterFields')) : null;
 
-        $token = bin2hex(random_bytes(30));
+        $token = $deliveryStationLine->getToken() ?: bin2hex(random_bytes(30));
 
         $deliveryStationLine
             ->setWelcomeMessage($data->get('welcomeMessage'))

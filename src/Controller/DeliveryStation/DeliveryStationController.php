@@ -142,6 +142,13 @@ class DeliveryStationController extends AbstractController
                 $reference = $referenceArticleRepository->findOneBy(['barCode' => $barcode]);
                 if ($reference) {
                     if ($reference->getId() === $initialReference->getId()) {
+                        if($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                            return $this->json([
+                                'success' => false,
+                                'msg' => "Cette référence est gérée à l'article, vous ne pouvez pas l'ajouter dans la demande. Sélectionnez un article disponible pour continuer.",
+                            ]);
+                        }
+
                         if($pickedQuantity) {
                             $isAvailable = $pickedQuantity <= $reference->getQuantiteDisponible();
                             return $this->json([
@@ -244,12 +251,12 @@ class DeliveryStationController extends AbstractController
         $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $line = $deliveryStationLineRepository->findOneBy(['token' => $values['token']]);
+        $deliveryStationLine = $deliveryStationLineRepository->findOneBy(['token' => $values['token']]);
         $user = $userRepository->findOneBy(['mobileLoginKey' => $values['mobileLoginKey']]);
         $data = [
-            'type' => $line->getDeliveryType()->getId(),
+            'type' => $deliveryStationLine->getDeliveryType()->getId(),
             'demandeur' => $user,
-            'destination' => $line->getDestinationLocation()->getId(),
+            'destination' => $deliveryStationLine->getDestinationLocation()->getId(),
             'disabledFieldChecking' => true,
         ];
         $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
@@ -303,8 +310,6 @@ class DeliveryStationController extends AbstractController
             $entityManager->persist($line);
         }
 
-        $entityManager->flush();
-
         $deliveryRequestService->checkDLStockAndValidate(
             $entityManager,
             ['demande' => $deliveryRequest],
@@ -357,7 +362,12 @@ class DeliveryStationController extends AbstractController
         ]);
 
         $preparationOrderService->updateRefArticlesQuantities($preparation, $entityManager);
-        $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination());
+        $deliveryOrderService->finishLivraison($user, $deliveryOrder, $date, $deliveryRequest->getDestination(), [
+            'deliveryStationLineReceivers' => Stream::from($deliveryStationLine->getReceivers())
+                ->map(static fn(Utilisateur $receiver) => $receiver->getEmail())
+                ->toArray(),
+        ]);
+
         $entityManager->flush();
 
         return $this->json([

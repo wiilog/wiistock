@@ -353,8 +353,8 @@ class DeliveryRequestService
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
                                             FreeFieldService       $champLibreService,
-                                            bool $flush = true,
-                                            bool $simple = false): array
+                                            bool                   $flush = true,
+                                            bool                   $simple = false): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -390,7 +390,9 @@ class DeliveryRequestService
                 return $demande;
             }
         } else {
-            $demande = $demandeRepository->find($demandeArray['demande']);
+            $demande = $demandeArray['demande'] instanceof Demande
+                ? $demandeArray['demande']
+                : $demandeRepository->find($demandeArray['demande']);
         }
 
         if ($demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON) {

@@ -407,7 +407,7 @@ function renderFreeField($freeFieldsContainer, label, value) {
         <div class="col-4 d-flex align-items-center mt-5">
             <span class="wii-icon wii-icon-document wii-icon-40px-primary mr-2"></span>
             <div class="d-flex flex-column">
-                <span class="wii-field-name">${label}</span>
+                <span class="wii-field-name">${label.replace(`*`, ``)}</span>
                 <span class="wii-field-text">${value || `-`}</span>
             </div>
         </div>
