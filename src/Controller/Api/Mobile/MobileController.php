@@ -3473,6 +3473,7 @@ class MobileController extends AbstractApiController
                     TrackingMovement::TYPE_EMPTY_ROUND,
                     [
                         'commentaire' => $emptyRound['comment'] ?? null,
+                        'quantity' => 1
                     ]
                 );
 
