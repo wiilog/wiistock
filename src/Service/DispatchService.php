@@ -1398,7 +1398,7 @@ class DispatchService {
 
         $nakedFileName = uniqid();
 
-        $waybillOutdir = "{$projectDir}/public/uploads/attachements";
+        $waybillOutdir = "{$projectDir}/public/uploads/attachments";
         $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
         rename($tmpDocxPath, $docxPath);
         $this->PDFGeneratorService->generateFromDocx($docxPath, $waybillOutdir);
@@ -1516,7 +1516,7 @@ class DispatchService {
 
         $nakedFileName = uniqid();
 
-        $reportOutdir = "{$projectDir}/public/uploads/attachements";
+        $reportOutdir = "{$projectDir}/public/uploads/attachments";
         $docxPath = "{$reportOutdir}/{$nakedFileName}.docx";
         rename($tmpDocxPath, $docxPath);
         $this->PDFGeneratorService->generateFromDocx($docxPath, $reportOutdir);
@@ -1526,7 +1526,7 @@ class DispatchService {
         $reportAttachment
             ->setDispatch($dispatch)
             ->setFileName($nakedFileName . '.pdf')
-            ->setFullPath('/uploads/attachements/' . $nakedFileName . '.pdf')
+            ->setFullPath('/uploads/attachments/' . $nakedFileName . '.pdf')
             ->setOriginalName($customGroupedSignatureTitle . '.pdf');
 
         $entityManager->persist($reportAttachment);
@@ -1617,7 +1617,7 @@ class DispatchService {
             ->setComment($data['comment'] ?? null)
             ->setAdr(isset($data['adr']) && boolval($data['adr']));
 
-        $attachments = $this->attachmentService->createAttachements($data['files']);
+        $attachments = $this->attachmentService->createAttachments($data['files']);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $dispatchReferenceArticle->addAttachment($attachment);
@@ -1944,13 +1944,13 @@ class DispatchService {
             $photos = json_decode($data['photos'], true);
             foreach ($photos as $index => $photo) {
                 $name = uniqid();
-                $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                file_put_contents($path, file_get_contents($photo));
+                $this->attachmentService->createFile("$name.jpeg", file_get_contents($photo));
+
                 $attachment = new Attachment();
                 $attachment
                     ->setOriginalName($reference->getReference() . "_photo". $index . "_". $name .".jpeg")
                     ->setFileName("$name.jpeg")
-                    ->setFullPath("/uploads/attachements/$name.jpeg");
+                    ->setFullPath("/uploads/attachments/$name.jpeg");
 
                 $entityManager->persist($attachment);
                 $reference->addAttachment($attachment);
@@ -2014,13 +2014,13 @@ class DispatchService {
             $photoFile = $data["photo_$fileCounter"] ?? [];
             if (!empty($photoFile)) {
                 $name = uniqid();
-                $path = "{$this->kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                file_put_contents($path, file_get_contents($photoFile));
+                $this->attachmentService->createFile("$name.jpeg", file_get_contents($photoFile));
+
                 $attachment = new Attachment();
                 $attachment
                     ->setOriginalName("photo_$fileCounter.jpeg")
                     ->setFileName("$name.jpeg")
-                    ->setFullPath("/uploads/attachements/$name.jpeg");
+                    ->setFullPath("/uploads/attachments/$name.jpeg");
 
                 $dispatchReferenceArticle->addAttachment($attachment);
                 $entityManager->persist($attachment);

@@ -134,7 +134,7 @@ class NotificationService {
             $source = $notification->getSource();
         }
         if (isset($config['image']) && !empty($config['image'])) {
-            $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
+            $src = $_SERVER['APP_URL'] . '/uploads/attachments/' . $config['image'];
         }
         return [
             'content' => $this->templating->render('notifications/datatableNotificationRow.html.twig', [

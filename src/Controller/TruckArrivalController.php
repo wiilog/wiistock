@@ -225,7 +225,7 @@ class TruckArrivalController extends AbstractController
             $files = $request->files->all();
             $truckArrival->clearAttachments();
 
-            $attachments = $attachmentService->createAttachements($files);
+            $attachments = $attachmentService->createAttachments($files);
             foreach ($attachments as $attachment) {
                 $entityManager->persist($attachment);
                 $truckArrival->addAttachment($attachment);

@@ -369,7 +369,7 @@ class SettingsService {
             $setting = $this->getSetting($settings, $key);
             if (isset($setting)) {
                 $fileName = $this->attachmentService->saveFile($value, $key);
-                $setting->setValue("uploads/attachements/" . $fileName[array_key_first($fileName)]);
+                $setting->setValue("uploads/attachments/" . $fileName[array_key_first($fileName)]);
                 $updated[] = $key;
             }
         }
@@ -724,7 +724,7 @@ class SettingsService {
                     ->setColor($data["color"] ?? null);
 
                 if (isset($files["logo"])) {
-                    $type->setLogo($this->attachmentService->createAttachements([$files["logo"]])[0]);
+                    $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
                 } else {
                     if (isset($data["keep-logo"]) && !$data["keep-logo"]) {
                         $type->setLogo(null);

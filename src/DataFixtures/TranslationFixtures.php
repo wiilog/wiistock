@@ -1130,6 +1130,16 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "LU arrival number",
                         "tooltip" => "Zone liste - Nom de colonnes",
                     ],
+                    [
+                        "fr" => "Code article interne",
+                        "en" => "Internal article code",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
+                    [
+                        "fr" => "Code article fournisseur",
+                        "en" => "Supplier article code",
+                        "tooltip" => "Modale modifier une urgence\nModale Créer une nouvelle urgence",
+                    ],
                 ],
             ],
             "Unités logistiques" => [

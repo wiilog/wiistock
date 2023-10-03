@@ -320,7 +320,7 @@ class LivraisonService
 
         $nakedFileName = uniqid();
 
-        $waybillOutdir = "{$projectDir}/public/uploads/attachements";
+        $waybillOutdir = "{$projectDir}/public/uploads/attachments";
         $docxPath = "{$waybillOutdir}/{$nakedFileName}.docx";
         rename($tmpDocxPath, $docxPath);
 

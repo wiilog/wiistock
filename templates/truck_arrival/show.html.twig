@@ -8,6 +8,7 @@
 {% block page_content %}
 
     {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_RESERVES')) %}
+    {% set hasRightAddNumTrack = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
 
     {{ form.input('truckArrival', '', false, truckArrival.id, {
         type: 'hidden'
@@ -39,8 +40,7 @@
                         <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associé :</span> {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
-                        {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
-                        {% if hasRightEditReserve %}
+                        {% if hasRightAddNumTrack %}
                             <div style="text-align: right">
                                 {% include "utils/action-buttons/header-buttons.html.twig" with {
                                     actions: [

@@ -35,7 +35,7 @@
                     <div class="col-md-4 col-12 p-0">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
-                             ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ reference.image.fileName)
+                             ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachments/' ~ reference.image.fileName)
                              : asset('svg/reference_article/product.svg') }});
                                  background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
                                  background-size: {{ reference.image ? 'cover' : '50%' }}">

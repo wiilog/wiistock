@@ -80,6 +80,8 @@ class UrgenceService
                 'urgence' => $urgence
             ]),
             'type' => $urgence->getType(),
+            'internalArticleCode' => $urgence->getInternalArticleCode() ?? '',
+            'supplierArticleCode' => $urgence->getSupplierArticleCode() ?? '',
         ];
     }
 
@@ -129,6 +131,14 @@ class UrgenceService
 
         if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_TYPE, $data)) {
             $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, $data)) {
+            $emergency->setInternalArticleCode($data[FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, $data)) {
+            $emergency->setSupplierArticleCode($data[FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE]);
         }
 
         return $emergency;

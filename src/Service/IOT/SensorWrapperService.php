@@ -5,7 +5,7 @@ namespace App\Service\IOT;
 
 use App\Entity\IOT\SensorMessage;
 use App\Entity\IOT\SensorWrapper;
-use App\Helper\FormatHelper;
+use App\Service\FormatService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
@@ -18,8 +18,10 @@ class SensorWrapperService
     #[Required]
     public EntityManagerInterface $em;
 
-    public function getDataForDatatable($params = null)
-    {
+    #[Required]
+    public FormatService $formatService;
+
+    public function getDataForDatatable($params = null): array {
         $sensorWrapperRepository = $this->em->getRepository(SensorWrapper::class);
         $queryResult = $sensorWrapperRepository->findByParams($params);
 
@@ -37,20 +39,21 @@ class SensorWrapperService
         ];
     }
 
-    public function dataRowSensorWrapper(SensorWrapper $sensorWrapper) {
+    public function dataRowSensorWrapper(SensorWrapper $sensorWrapper): array {
         /** @var SensorMessage $lastLift */
         $lastLift = $sensorWrapper->getSensor() ? $sensorWrapper->getSensor()->getLastMessage() : null;
 
         $sensor = $sensorWrapper->getSensor();
         return [
             'id' => $sensorWrapper->getId(),
-            'type' => $sensor ? FormatHelper::type($sensor->getType()) : '',
+            'type' => $sensor ? $this->formatService->type($sensor->getType()) : '',
             'profile' => $sensor && $sensor->getProfile() ? $sensor->getProfile()->getName() : '',
             'name' => $sensorWrapper->getName() ?? '',
             'code' => $sensor ? $sensor->getCode() : '',
-            'lastLift' => $lastLift ? FormatHelper::datetime($lastLift->getDate()) : '',
+            'cloverMac' => $sensor?->getCloverMac() ?? '',
+            'lastLift' => $lastLift ? $this->formatService->datetime($lastLift->getDate()) : '',
             'battery' => $sensor ? ($sensor->getBattery() === -1 ? 'Inconnu (regarder sur l\'objet)' : $sensor->getBattery() . '%') : '',
-            'manager' => FormatHelper::user($sensorWrapper->getManager()),
+            'manager' => $this->formatService->user($sensorWrapper->getManager()),
             'actions' => $this->templating->render('IOT/sensor_wrapper/actions.html.twig', [
                 'sensor_wrapper' => $sensorWrapper,
             ]),
