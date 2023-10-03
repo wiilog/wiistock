@@ -1,5 +1,8 @@
-const user= Cypress.config('user');
+const user = Cypress.config('user');
 describe('Add and edit components in Referentiel > Fournisseur', () => {
+    before(() => {
+        cy.resetDatabase('BDD_scratch.cypress.sql')
+    })
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
         cy.login(user);
@@ -29,7 +32,7 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
         });
     })
 
-    it ('should edit a supplier', () => {
+    it('should edit a supplier', () => {
         cy.intercept('POST', 'fournisseur/modifier').as('supplier_edit');
         cy.wait('@supplier_api');
         cy.get('#supplierTable_id tbody td').contains('FOURNISSEUR').click();
@@ -80,7 +83,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         });
     })
 
-    it ('should edit a location', () => {
+    it('should edit a location', () => {
         cy.intercept('POST', 'emplacement/edit').as('emplacement_edit');
         cy.wait('@emplacement_api');
         cy.get('#locationsTable tbody td').contains('EMPLACEMENT').click();
@@ -119,7 +122,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         });
     })
 
-    it ('should edit a group', () => {
+    it('should edit a group', () => {
         cy.intercept('POST', 'emplacements/groupes/modifier').as('location_group_edit');
         cy.get('.nav-item').eq(1).click();
         cy.wait('@emplacements_groupes_api');
@@ -165,7 +168,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         });
     })
 
-    it ('should edit an area', () => {
+    it('should edit an area', () => {
         cy.intercept('POST', 'zones/modifier').as('zone_edit');
         cy.get('.nav-item').eq(2).click();
         cy.wait('@zones_api');
@@ -213,7 +216,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         });
     })
 
-    it ('should edit a driver', () => {
+    it('should edit a driver', () => {
         cy.intercept('POST', 'chauffeur/modifier').as('chauffeur_edit');
         cy.get('#tableChauffeur_id tbody td').contains('Chauffeur').click();
         cy.get('#modalEditChauffeur').should('be.visible');
@@ -262,7 +265,7 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
         });
     })
 
-    it ('should edit a transporter', () => {
+    it('should edit a transporter', () => {
         cy.intercept('POST', 'transporteur/save?*').as('transporteur_save_edit');
         cy.wait('@transporteur_api');
         cy.get('#tableTransporteur_id tbody td').contains('TRANSPORTEUR').click();
@@ -306,7 +309,7 @@ describe('Add and edit components in Referentiel > Nature', () => {
         });
     })
 
-    it ('should edit a nature', () => {
+    it('should edit a nature', () => {
         cy.intercept('POST', 'nature-unite-logistique/modifier').as('nature_edit');
         cy.wait('@nature_api');
         cy.get('#tableNatures tbody td').contains('NATURE').click();
@@ -348,7 +351,7 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
         });
     })
 
-    it ('should edit a vehicle', () => {
+    it('should edit a vehicle', () => {
         cy.intercept('POST', 'vehicule/edit').as('vehicle_edit');
         cy.wait('@vehicule_api');
         cy.get('#vehicleTable_id tbody td').contains('VEHICULE').click();
@@ -390,7 +393,7 @@ describe('Add and edit components in Referentiel > Projet', () => {
         });
     })
 
-    it ('should edit a project', () => {
+    it('should edit a project', () => {
         cy.intercept('POST', 'project/edit').as('project_edit');
         cy.wait('@project_api');
         cy.get('#projectTable_id tbody td').contains('PROJET').click();
@@ -446,7 +449,7 @@ describe('Add and edit components in Referentiel > Clients', () => {
         });
     })
 
-    it ('should edit a customer', () => {
+    it('should edit a customer', () => {
         cy.intercept('POST', 'clients/edit').as('customer_edit');
         cy.wait('@customer_api');
         cy.get('#customerTable tbody td').contains('Client').click();

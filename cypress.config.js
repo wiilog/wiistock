@@ -2,6 +2,7 @@ const {defineConfig} = require("cypress");
 
 
 module.exports = defineConfig({
+    video: true,
     e2e: {
         // To show all files in Cypress UI
         specPattern: "cypress/e2e/**/*.*",
