@@ -404,7 +404,7 @@ class RefArticleDataService
 
         $typeId = $data->getInt('type');
         $type = $typeId ? $typeRepository->find($typeId) : null;
-        if ($type) {
+        if (!$refArticle->getId() && $type) {
             $refArticle->setType($type);
         }
 
@@ -419,7 +419,8 @@ class RefArticleDataService
 
         if($data->has('buyer')) {
             $buyerId = $data->getInt('buyer');
-            $refArticle->setBuyer($userRepository->find($buyerId));
+            $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+            $refArticle->setBuyer($buyer);
         }
 
         if($data->has('visibility-group')) {
@@ -429,17 +430,36 @@ class RefArticleDataService
             $refArticle->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
 
-        if($data->has('limitWarning')) {
-            $refArticle->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null);
+        if ($data->has('limitWarning')) {
+            $limitWarning = $data->get('limitWarning');
+            $refArticle
+                ->setLimitWarning($limitWarning >= 0 ? $limitWarning : null);
         }
 
-        if($data->has('limitSecurity')) {
-            $refArticle->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null);
+        if ($data->has('limitWarning')) {
+            $limitSecurity = $data->get('limitWarning');
+            $refArticle
+                ->setLimitSecurity($limitSecurity >= 0 ? $limitSecurity : null);
         }
 
-        $isUrgent = $data->getBoolean('urgence');
+        if ($data->has('prix')) {
+            $unitPrice = $data->get('prix');
+            $refArticle
+                ->setPrixUnitaire(($unitPrice !== null && $unitPrice >= 0) ? max(0, $unitPrice) : null);
+        }
 
-        $mobileSync= $data->getBoolean('mobileSync');
+        if ($data->has('urgence')) {
+            $isUrgent = $data->getBoolean('urgence');
+            $emergencyQuantity = $data->get('emergencyQuantity');
+            $refArticle
+                ->setIsUrgent($isUrgent)
+                ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
+                ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
+                ->setEmergencyQuantity(($isUrgent && $emergencyQuantity >= 0) ? $emergencyQuantity : null);
+        }
+
+
+        $mobileSync = $data->getBoolean('mobileSync');
         if ($mobileSync) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $syncCount = $referenceArticleRepository->count(['needsMobileSync' => true]);
@@ -453,18 +473,15 @@ class RefArticleDataService
 
         $refArticle
             ->setReference($data->get('reference'))
-            ->setIsUrgent($isUrgent)
-            ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-            ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
-            ->setEmergencyQuantity($isUrgent ? ($data->getInt('emergencyQuantity') >= 0) ? $data->getInt('emergencyQuantity') : null : null)
-            ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
             ->setStockManagement($data->get('stockManagement'))
             ->setNdpCode($data->get('ndpCode'))
             ->setDangerousGoods($data->getBoolean('security'))
             ->setOnuCode($data->get('onuCode'))
-            ->setProductClass($data->get('productClass'));
+            ->setProductClass($data->get('productClass'))
+            ->setEditedBy($user)
+            ->setEditedAt(new DateTime('now'));;
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
@@ -484,10 +501,6 @@ class RefArticleDataService
             $entityManager->persist($mvtStock);
         }
 
-        $refArticle
-            ->setEditedBy($user)
-            ->setEditedAt(new DateTime('now'));
-
         $entityManager->persist($refArticle);
         //modification ou création des champsLibres
         $this->freeFieldService->manageFreeFields($refArticle, $data->all(), $entityManager);
@@ -499,7 +512,7 @@ class RefArticleDataService
 
                 $refArticle->setImage($attachments[0]);
                 $fileBag->remove('image');
-            } elseif ($data->getBoolean('deletedImage')) {
+            } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -514,7 +527,7 @@ class RefArticleDataService
 
                 $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
-            } else if ($data->getBoolean('deletedSheetFile')) {
+            } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);

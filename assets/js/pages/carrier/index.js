@@ -1,11 +1,8 @@
 import Modal from "@app/modal";
-
 import Form from '@app/form';
-import AJAX, {GET, POST} from "@app/ajax";
-import Flash from "@app/flash";
+import AJAX, {POST} from "@app/ajax";
 
 let tableTransporteur = null;
-let $modalCarrier = $("#modalTransporteur");
 
 global.displayCarrierModal = displayCarrierModal;
 global.deleteCarrier = deleteCarrier;
@@ -16,6 +13,7 @@ $(document).ready(() => {
 });
 
 function createForm() {
+    let $modalCarrier = $("#modalTransporteur");
     Form.create($modalCarrier)
         .on('change', '[name=is-recurrent]', () => {
             let $recurrentSpan = $modalCarrier.find(".logo-container").find('label').find('.field-label');
@@ -93,6 +91,7 @@ function initTransporteurTable() {
 }
 
 function displayCarrierModal(carrierId) {
+    let $modalCarrier = $("#modalTransporteur");
     $modalCarrier.modal(`show`);
     const params = carrierId
         ? {carrier: carrierId}
