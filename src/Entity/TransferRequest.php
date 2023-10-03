@@ -18,6 +18,7 @@ class TransferRequest implements Serializable {
     const DRAFT = "Brouillon";
     const TO_TREAT = "À traiter";
     const TREATED = "Traité";
+
     use CleanedCommentTrait;
 
     #[ORM\Id]
