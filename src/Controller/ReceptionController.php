@@ -771,8 +771,9 @@ class ReceptionController extends AbstractController {
                 $now = new DateTime('now');
 
                 if($diffReceivedQuantity != 0) {
-                    $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
-                    if($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
+                    $newStockQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
+                    $newAvailableQuantity = $referenceArticle->getQuantiteDisponible() + $diffReceivedQuantity;
+                    if($newStockQuantity - $referenceArticle->getQuantiteReservee() < 0) {
                         return new JsonResponse([
                             'success' => false,
                             'msg' =>
@@ -815,7 +816,9 @@ class ReceptionController extends AbstractController {
 
                         $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                        $referenceArticle->setQuantiteStock($newRefQuantity);
+                        $referenceArticle
+                            ->setQuantiteStock($newStockQuantity)
+                            ->setQuantiteDisponible($newAvailableQuantity);
                         $entityManager->persist($createdMvt);
                     }
                 }
