@@ -436,8 +436,8 @@ class RefArticleDataService
                 ->setLimitWarning($limitWarning >= 0 ? $limitWarning : null);
         }
 
-        if ($data->has('limitWarning')) {
-            $limitSecurity = $data->get('limitWarning');
+        if ($data->has('limitSecurity')) {
+            $limitSecurity = $data->get('limitSecurity');
             $refArticle
                 ->setLimitSecurity($limitSecurity >= 0 ? $limitSecurity : null);
         }
