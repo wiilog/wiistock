@@ -811,6 +811,10 @@ class ImportService
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
+        if(!isset($this->entityCache['receptions'])) {
+            $this->entityCache['receptions'] = [];
+        }
+
         if ($user) {
             $user = $userRepository->find($user->getId());
         }
@@ -820,11 +824,9 @@ class ImportService
             'expectedDate' => $data['expectedDate'] ?? null,
         ];
 
-        $receptionsWithCommand = $this->entityCache['receptions'] ?? [];
-
         $reception = $this->receptionService->getAlreadySavedReception(
             $this->entityManager,
-            $receptionsWithCommand,
+            $this->entityCache['receptions'],
             $uniqueReceptionConstraint
         );
 
@@ -845,7 +847,7 @@ class ImportService
 
             if (!empty($receptions)) {
                 $reception = $receptions[0];
-                $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
                 $this->updateStats($stats, false);
             }
         }
@@ -854,7 +856,7 @@ class ImportService
         try {
             if ($newEntity) {
                 $reception = $this->receptionService->persistReception($this->entityManager, $user, $data, ['import' => true]);
-                $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
             }
             else {
                 $this->receptionService->updateReception($this->entityManager, $reception, $data, [
