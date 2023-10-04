@@ -772,7 +772,6 @@ class ReceptionController extends AbstractController {
 
                 if($diffReceivedQuantity != 0) {
                     $newStockQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
-                    $newAvailableQuantity = $referenceArticle->getQuantiteDisponible() + $diffReceivedQuantity;
                     if($newStockQuantity - $referenceArticle->getQuantiteReservee() < 0) {
                         return new JsonResponse([
                             'success' => false,
@@ -817,8 +816,7 @@ class ReceptionController extends AbstractController {
                         $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
                         $referenceArticle
-                            ->setQuantiteStock($newStockQuantity)
-                            ->setQuantiteDisponible($newAvailableQuantity);
+                            ->setQuantiteStock($newStockQuantity);
                         $entityManager->persist($createdMvt);
                     }
                 }
@@ -828,6 +826,12 @@ class ReceptionController extends AbstractController {
                 $articleFournisseur = $articleFournisseurRepository->find($data['articleFournisseur']);
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
+
+            // Le double flush est nécessaire. Dans le cas contraire, la quantité disponible de la référence ne se recalcule pas.
+            // Déclenchement de deux triggers :
+            //      - RefArticleQuantityNotifier (premier flush)
+            //      - RefArticleStateNotifier (second flush)
+            $entityManager->flush();
 
             $reception->setStatut($receptionService->getNewStatus($reception));
 
