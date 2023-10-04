@@ -820,9 +820,11 @@ class ImportService
             'expectedDate' => $data['expectedDate'] ?? null,
         ];
 
+        $receptionsWithCommand = $this->entityCache['receptions'] ?? [];
+
         $reception = $this->receptionService->getAlreadySavedReception(
             $this->entityManager,
-            $this->entityCache['receptions'],
+            $receptionsWithCommand,
             $uniqueReceptionConstraint
         );
 
@@ -843,7 +845,7 @@ class ImportService
 
             if (!empty($receptions)) {
                 $reception = $receptions[0];
-                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
                 $this->updateStats($stats, false);
             }
         }
@@ -852,7 +854,7 @@ class ImportService
         try {
             if ($newEntity) {
                 $reception = $this->receptionService->persistReception($this->entityManager, $user, $data, ['import' => true]);
-                $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
+                $this->receptionService->setAlreadySavedReception($receptionsWithCommand, $uniqueReceptionConstraint, $reception);
             }
             else {
                 $this->receptionService->updateReception($this->entityManager, $reception, $data, [
