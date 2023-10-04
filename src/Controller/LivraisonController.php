@@ -118,8 +118,7 @@ class LivraisonController extends AbstractController {
                         $user,
                         $livraison,
                         $dateEnd,
-                        $livraison->getDemande()->getDestination(),
-                        false,
+                        $livraison->getDemande()->getDestination()
                     );
                     $entityManager->flush();
                 }
