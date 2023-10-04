@@ -385,11 +385,12 @@
     {% set oneLineWysiwyg = options.oneLineWysiwyg ?? false %}
 
     {% if label %}
-        <label class="wii-subtitle">{{ _self.label(label, required, inline, labelOptions) }}</label>
+        <label class="wii-subtitle data">{{ _self.label(label, required, inline, labelOptions) }}</label>
     {% endif %}
     {{ _self.tooltip(options.tooltip ?? null, inline) }}
     <div class="data {{ oneLineWysiwyg ? 'wii-one-line-wysiwyg ql-editor' }} {{ options.inputClass ?? '' }}"
-         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>
+         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}
+         name="{{ name }}">
             {{- value | raw -}}
     </div>
 {% endmacro %}
