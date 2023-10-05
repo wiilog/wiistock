@@ -48,3 +48,4 @@ yarn-error.log
 /certs/
 /config/packages/google_apiclient.yaml
 /rector.php
+/cypress/screenshots/
