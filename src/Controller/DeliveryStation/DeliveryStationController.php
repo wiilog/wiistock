@@ -14,7 +14,6 @@ use App\Entity\Utilisateur;
 use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
-use App\Service\MailerService;
 use App\Service\MouvementStockService;
 use App\Service\PreparationsManagerService;
 use DateTime;
@@ -23,7 +22,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use App\Entity\Article;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
@@ -100,6 +98,7 @@ class DeliveryStationController extends AbstractController
         $pickedQuantity = $request->query->has('pickedQuantity')
             ? $request->query->get('pickedQuantity')
             : null;
+        $isScannedBarcode = $request->query->has('isScannedBarcode') && $request->query->getBoolean('isScannedBarcode');
 
         if ($barcode) {
             if (str_starts_with($barcode, Article::BARCODE_PREFIX)) {
@@ -208,6 +207,7 @@ class DeliveryStationController extends AbstractController
         return $this->json([
             'success' => true,
             'values' => $values,
+            'prefill' => $isScannedBarcode && $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE,
         ]);
     }
 
@@ -253,6 +253,14 @@ class DeliveryStationController extends AbstractController
 
         $deliveryStationLine = $deliveryStationLineRepository->findOneBy(['token' => $values['token']]);
         $user = $userRepository->findOneBy(['mobileLoginKey' => $values['mobileLoginKey']]);
+
+        if(!$user) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Une erreur est survenue lors de l'enregistrement, la clé de connexion nomade n'est pas valide.",
+            ]);
+        }
+
         $data = [
             'type' => $deliveryStationLine->getDeliveryType()->getId(),
             'demandeur' => $user,
