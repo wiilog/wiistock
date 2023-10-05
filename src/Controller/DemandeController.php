@@ -140,60 +140,63 @@ class DemandeController extends AbstractController
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $projectRepository = $entityManager->getRepository(Project::class);
 
-            $demande = $demandeRepository->find($data->getInt('demandeId'));
-            if (!$demande) {
+            $deliveryRequest = $demandeRepository->find($data->getInt('demandeId'));
+            if (!$deliveryRequest) {
                 throw new FormException();
             }
 
             $typeId = $data->get('type');
             if ($typeId) {
-                $demande->setType($typeRepository->find($typeId));
+                $deliveryRequest->setType($typeRepository->find($typeId));
             }
 
             if ($data->has('demandeur')) {
-                $demandeurId = $data->get('demandeur');
-                $utilisateur = $demandeurId ? $utilisateurRepository->find($demandeurId) : null;
-                if (!$utilisateur) {
+                $requesterId = $data->get('demandeur');
+                $requester = $requesterId ? $utilisateurRepository->find($requesterId) : null;
+                if (!$requester) {
                     throw new FormException();
                 } else {
-                    $demande->setUtilisateur($utilisateur);
+                    $deliveryRequest->setUtilisateur($requester);
                 }
             }
 
 
             if ($data->has('demandeReceiver')) {
-                $receiver = $utilisateurRepository->find($data->getInt('demandeReceiver'));
-                $demande->setReceiver($receiver);
+                $receiverId = $data->getInt('demandeReceiver');
+                $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                $deliveryRequest->setReceiver($receiver);
             }
 
             if ($data->has('destination')) {
-                $emplacement = $emplacementRepository->find($data->getInt('destination'));
-                $demande->setDestination($emplacement);
+                $destinationId = $data->getInt('destination');
+                $destination = $destinationId ? $emplacementRepository->find($data->getInt('destination')) : null;
+                $deliveryRequest->setDestination($destination);
             }
 
             if ($data->has('project')) {
-                $project = $projectRepository->find($data->getInt('project'));
-                $demande->setProject($project);
+                $projectId = $data->getInt('project');
+                $project = $projectId ? $projectRepository->find($projectId) : null;
+                $deliveryRequest->setProject($project);
             }
 
             if ($data->has('expectedAt')) {
                 $expectedAt = $formatService->parseDatetime($data->get('expectedAt'));
-                $demande->setExpectedAt($expectedAt);
+                $deliveryRequest->setExpectedAt($expectedAt);
             }
 
             if ($data->has('commentaire')) {
-                $demande->setCommentaire($data->get('commentaire'));
+                $deliveryRequest->setCommentaire($data->get('commentaire'));
             }
 
             $entityManager->flush();
-            $champLibreService->manageFreeFields($demande, $data->all(), $entityManager);
+            $champLibreService->manageFreeFields($deliveryRequest, $data->all(), $entityManager);
             $entityManager->flush();
             $response = [
                 'success' => true,
                 'header' => $this->renderView('demande/demande-show-header.html.twig', [
-                    'demande' => $demande,
-                    'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                    'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
+                    'demande' => $deliveryRequest,
+                    'modifiable' => $deliveryRequest->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
+                    'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($deliveryRequest)
                 ]),
             ];
 
