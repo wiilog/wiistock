@@ -264,7 +264,11 @@ class ArticleDataService
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         }
 
-        $refArticle = $referenceArticleRepository->find($data->getInt('refArticle'));
+        $refArticleId = $data->getInt('refArticle');
+        $refArticle = $referenceArticleRepository->find($refArticleId);
+        if (!$refArticle) {
+            throw new FormException();
+        }
         if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
             || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
             throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
@@ -327,11 +331,13 @@ class ArticleDataService
             }
 
             if ($data->has('nativeCountry')) {
-                $existing->setNativeCountry($entityManager->find(NativeCountry::class, $data->getInt('nativeCountry')));
+                $nativeCountryId = $data->getInt('nativeCountry');
+                $existing->setNativeCountry($nativeCountryId ? $entityManager->find(NativeCountry::class, $data->getInt('nativeCountry')) : null);
             }
         } else {
             if ($data->has('emplacement')) {
-                $location = $emplacementRepository->find($data->get('emplacement'));
+                $locationId = $data->getInt('emplacement');
+                $location = $locationId ? $emplacementRepository->find($locationId) : null;
             } else {
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {
@@ -342,6 +348,8 @@ class ArticleDataService
                 $location->setIsActive(true);
             }
 
+            $articleFournisseurId = $data->getInt('articleFournisseur');
+
             $article = (new Article())
                 ->setLabel($data->get('libelle') ?? $refArticle->getLibelle())
                 ->setConform($data->getBoolean('conform', true))
@@ -351,7 +359,7 @@ class ArticleDataService
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
                 ->setEmplacement($location)
-                ->setArticleFournisseur($articleFournisseurRepository->find($data->getInt('articleFournisseur')))
+                ->setArticleFournisseur($articleFournisseurId ? $articleFournisseurRepository->find($articleFournisseurId) : null)
                 ->setType($type)
                 ->setBarCode($data->getInt('barcode') ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
