@@ -361,7 +361,7 @@ class ArticleDataService
                 ->setEmplacement($location)
                 ->setArticleFournisseur($articleFournisseurId ? $articleFournisseurRepository->find($articleFournisseurId) : null)
                 ->setType($type)
-                ->setBarCode($data->getInt('barcode') ?? $this->generateBarcode($excludeBarcodes))
+                ->setBarCode($data->get('barcode') ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
                 ->setDeliveryNote($data->get('deliveryNoteLine'))
                 ->setProductionDate($this->formatService->parseDatetime($data->get('productionDate'), ['Y-m-d', 'd/m/Y']))
