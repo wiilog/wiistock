@@ -107,7 +107,7 @@ class PreparationsManagerService
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-        $mouvements = $mouvementRepository->findByPreparation($preparation);
+        $mouvements = $preparation->getMouvements()->toArray();
 
         foreach ($mouvements as $mouvement) {
             if (!$mouvement->getEmplacementTo()) {
@@ -602,12 +602,14 @@ class PreparationsManagerService
                                 ->setArticle($insertedArticle);
 
                             $entityManager->persist($newArticleLine);
+
                             if ($line->getQuantityToPick() > $line->getPickedQuantity()) {
                                 $line->setQuantityToPick($line->getQuantityToPick() - $line->getPickedQuantity());
                                 $line->setPickedQuantity(0);
                                 $splitArticleLineIds[] = $line->getId();
                             } else {
                                 $preparation->removeArticleLine($line);
+                                $line->setArticle(null); // To remove "A new entity was found through the relationship" error for Article entity
                                 $entityManager->remove($line);
                                 $article->setStatut($articleActiveStatus);
                             }

@@ -478,7 +478,7 @@ class OrdreCollecteController extends AbstractController
                 : null;
         }, $ordreCollecteReferences);
 
-        $barCodes = array_merge($barCodesArticles, !$forceTagEmpty ? [] : array_filter($barCodesReferences , function ($value) {
+        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences , function ($value) {
             return $value !== null;
         }));
         $barCodesCount = count($barCodes);

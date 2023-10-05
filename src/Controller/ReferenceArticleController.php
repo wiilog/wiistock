@@ -959,7 +959,8 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->render("reference_article/form/new.html.twig", [
-            "new_reference" => new ReferenceArticle(),
+            "new_reference" => (new ReferenceArticle())
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_REFERENCE),
             "submit_route" => "reference_article_new",
             "submit_params" =>  json_encode([
                 "from" => $request->query->get("from"),

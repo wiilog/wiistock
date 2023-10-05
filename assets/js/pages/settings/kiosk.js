@@ -24,7 +24,7 @@ $(function () {
     });
 });
 
-export function initializeTouchTerminal($container){
+export function initializeCollectRequestAndCreateRef($container){
     Select2Old.init($container.find('select[name=referenceType]'));
     Select2Old.init($container.find('select[name=collectType]'));
     Select2Old.init($container.find('select[name=location]'));

@@ -24,8 +24,10 @@ use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\FormatService;
 use App\Service\FormService;
 use App\Service\RefArticleDataService;
 use App\Service\DeliveryRequestService;
@@ -115,67 +117,81 @@ class DemandeController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "demande_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "demande_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request                $request,
                          FreeFieldService       $champLibreService,
                          DeliveryRequestService $demandeLivraisonService,
-                         EntityManagerInterface $entityManager): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
+                         FormatService          $formatService,
+                         EntityManagerInterface $entityManager): Response {
+        $data = $request->request;
+        if ($data->count()) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $typeRepository = $entityManager->getRepository(Type::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
-            $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $projectRepository = $entityManager->getRepository(Project::class);
 
-            $demande = $demandeRepository->find($data['demandeId']);
-            if(isset($data['type'])) {
-                $type = $typeRepository->find(intval($data['type']));
-            } else {
-                $type = $demande->getType();
+            $deliveryRequest = $demandeRepository->find($data->getInt('demandeId'));
+            if (!$deliveryRequest) {
+                throw new FormException();
             }
 
-            // vérification des champs Libres obligatoires
-            $requiredEdit = true;
-            $CLRequired = $champLibreRepository->getByTypeAndRequiredEdit($type);
-            foreach ($CLRequired as $CL) {
-                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-                    $requiredEdit = false;
+            $typeId = $data->get('type');
+            if ($typeId) {
+                $deliveryRequest->setType($typeRepository->find($typeId));
+            }
+
+            if ($data->has('demandeur')) {
+                $requesterId = $data->get('demandeur');
+                $requester = $requesterId ? $utilisateurRepository->find($requesterId) : null;
+                if (!$requester) {
+                    throw new FormException();
+                } else {
+                    $deliveryRequest->setUtilisateur($requester);
                 }
             }
 
-            if ($requiredEdit) {
-                $utilisateur = $utilisateurRepository->find(intval($data['demandeur']));
-                $receiver = isset($data['demandeReceiver']) ? $utilisateurRepository->find($data['demandeReceiver']) : null;
-                $emplacement = $emplacementRepository->find(intval($data['destination']));
-                $project = $projectRepository->find(isset($data['project']) ? intval($data['project']) : -1);
-                $expectedAt = FormatHelper::parseDatetime($data['expectedAt'] ?? '');
-                $demande
-                    ->setUtilisateur($utilisateur)
-                    ->setDestination($emplacement)
-                    ->setProject($project)
-                    ->setExpectedAt($expectedAt)
-                    ->setType($type)
-                    ->setReceiver($receiver)
-                    ->setCommentaire($data['commentaire'] ?? null);
-                $entityManager->flush();
-                $champLibreService->manageFreeFields($demande, $data, $entityManager);
-                $entityManager->flush();
-                $response = [
-                    'success' => true,
-                    'entete' => $this->renderView('demande/demande-show-header.html.twig', [
-                        'demande' => $demande,
-                        'modifiable' => $demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
-                        'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($demande)
-                    ]),
-                ];
 
-            } else {
-                $response['success'] = false;
-                $response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
+            if ($data->has('demandeReceiver')) {
+                $receiverId = $data->getInt('demandeReceiver');
+                $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
+                $deliveryRequest->setReceiver($receiver);
             }
+
+            if ($data->has('destination')) {
+                $destinationId = $data->getInt('destination');
+                $destination = $destinationId ? $emplacementRepository->find($data->getInt('destination')) : null;
+                $deliveryRequest->setDestination($destination);
+            }
+
+            if ($data->has('project')) {
+                $projectId = $data->getInt('project');
+                $project = $projectId ? $projectRepository->find($projectId) : null;
+                $deliveryRequest->setProject($project);
+            }
+
+            if ($data->has('expectedAt')) {
+                $expectedAt = $formatService->parseDatetime($data->get('expectedAt'));
+                $deliveryRequest->setExpectedAt($expectedAt);
+            }
+
+            if ($data->has('commentaire')) {
+                $deliveryRequest->setCommentaire($data->get('commentaire'));
+            }
+
+            $entityManager->flush();
+            $champLibreService->manageFreeFields($deliveryRequest, $data->all(), $entityManager);
+            $entityManager->flush();
+            $response = [
+                'success' => true,
+                'header' => $this->renderView('demande/demande-show-header.html.twig', [
+                    'demande' => $deliveryRequest,
+                    'modifiable' => $deliveryRequest->getStatut()?->getCode() === Demande::STATUT_BROUILLON,
+                    'showDetails' => $demandeLivraisonService->createHeaderDetailsConfig($deliveryRequest)
+                ]),
+            ];
+
 
             return new JsonResponse($response);
         }

@@ -8,7 +8,7 @@
     <div class="col-12 col-md-6">
         <div class="form-group">
             <label class="wii-field-name" for="utilisateur">Demandeur</label>
-            <select disabled class="form-control select2 data" name="demandeur">
+            <select disabled class="form-control select2 data w-100" name="demandeur">
                 {% if demande.utilisateur %}
                     <option selected value="{{ demande.utilisateur.id }}">{{ demande.utilisateur.username }}</option>
                 {% endif %}
@@ -42,8 +42,8 @@
     </div>
 
     {% set fieldCodeReceiver = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE') %}
-    {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedCreate') %}
-        {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredCreate') %}
+    {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedEdit') %}
+        {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredEdit') %}
         <div class="col-12 col-md-6">
             {{ form.select('demandeReceiver', 'Destinataire', fieldRequired, {
                 type: 'user',

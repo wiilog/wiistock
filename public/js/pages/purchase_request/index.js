@@ -14,10 +14,8 @@ $(function() {
 
     if (val && val.length > 0) {
         let valuesStr = val.split(',');
-        let valuesInt = [];
-        valuesStr.forEach((value) => {
-            valuesInt.push(parseInt(value));
-        })
+        let valuesInt = valuesStr.map((value) => parseInt(value));
+
         $statusSelector.val(valuesInt).select2();
     } else {
         // sinon, filtres enregistrés en base pour chaque utilisateur
@@ -32,7 +30,7 @@ $(function() {
 
     Form
         .create($modalNewPurchaseRequest, {clearOnOpen: true})
-        .submitTo( AJAX.POST, 'purchase_request_new', {
+        .submitTo(AJAX.POST, 'purchase_request_new', {
             success: ({redirect}) => {
                 window.location.href = redirect;
             }

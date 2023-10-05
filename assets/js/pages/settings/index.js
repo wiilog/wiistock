@@ -7,7 +7,7 @@ import {initializeLicencesPage} from "./users/licences";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
-import {initializeTouchTerminal} from "./kiosk";
+import {initializeCollectRequestAndCreateRef} from "./kiosk";
 import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
@@ -31,6 +31,7 @@ import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resour
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
+import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -84,7 +85,8 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
-    stock_borne_tactile: initializeTouchTerminal,
+    stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
+    stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     trace_acheminements_statuts: initializeDispatchStatuses,

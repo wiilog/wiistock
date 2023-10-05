@@ -1691,7 +1691,10 @@ class MobileController extends AbstractApiController
         $entityManager->flush();
         $response = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
-            ['demande' => $request],
+            [
+                'demande' => $request,
+                'directDelivery' => true,
+            ],
             false,
             $freeFieldService,
             false,
@@ -3470,6 +3473,7 @@ class MobileController extends AbstractApiController
                     TrackingMovement::TYPE_EMPTY_ROUND,
                     [
                         'commentaire' => $emptyRound['comment'] ?? null,
+                        'quantity' => 1
                     ]
                 );
 

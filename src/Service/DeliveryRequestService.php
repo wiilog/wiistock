@@ -281,10 +281,11 @@ class DeliveryRequestService
         $projectRepository = $entityManager->getRepository(Project::class);
 
         $isManual = $data['isManual'] ?? false;
+        $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
-        if (!$fromNomade) {
+        if (!$fromNomade && !$disabledFieldsChecking) {
             $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
             foreach ($CLRequired as $CL) {
@@ -352,8 +353,8 @@ class DeliveryRequestService
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
                                             FreeFieldService       $champLibreService,
-                                            bool $flush = true,
-                                            bool $simple = false): array
+                                            bool                   $flush = true,
+                                            bool                   $simple = false): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -389,7 +390,9 @@ class DeliveryRequestService
                 return $demande;
             }
         } else {
-            $demande = $demandeRepository->find($demandeArray['demande']);
+            $demande = $demandeArray['demande'] instanceof Demande
+                ? $demandeArray['demande']
+                : $demandeRepository->find($demandeArray['demande']);
         }
 
         if ($demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON) {
@@ -449,7 +452,10 @@ class DeliveryRequestService
                     $simple,
                     $flush,
                     $settingNeedPlanningValidation,
-                    ['requester' => $demandeArray['demandeur'] ?? null]
+                    [
+                        'requester' => $demandeArray['demandeur'] ?? null,
+                        'directDelivery' => $demandeArray['directDelivery'] ?? false,
+                    ]
                 );
             }
         } else {
@@ -480,6 +486,7 @@ class DeliveryRequestService
 
         $date = new DateTime('now');
 
+        $isDirectDelivery = isset($options['directDelivery']) && $options['directDelivery'];
         $preparedUponValidation = $this->treatSetting_preparedUponValidation($entityManager, $demande);
 
         $preparation = new Preparation();
@@ -513,10 +520,14 @@ class DeliveryRequestService
         $refArticleToUpdateQuantities = [];
         $this->persistPreparationLine($entityManager, $preparation, !$settingNeedPlanningValidation, $refArticleToUpdateQuantities, $date);
 
-        $sendNotification = $options['sendNotification']??true;
+        $sendNotification = $options['sendNotification'] ?? true;
         try {
-            if ($flush) $entityManager->flush();
-            if ($demande->getType()->isNotificationsEnabled()
+            if ($flush) {
+                $entityManager->flush();
+            }
+
+            if (!$isDirectDelivery
+                && $demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
                 && $sendNotification
                 && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
@@ -572,7 +583,7 @@ class DeliveryRequestService
             $response['demande'] = $demande;
         }
 
-        if($preparedUponValidation) {
+        if(!$isDirectDelivery && $preparedUponValidation) {
             foreach($preparation->getArticleLines() as $articleLine) {
                 $articleLine->setPickedQuantity($articleLine->getQuantityToPick());
             }
@@ -1136,9 +1147,9 @@ class DeliveryRequestService
     }
 
     public function getDeliveryRequestLineComment(DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
-        $request = $requestLine->getRequest();
-        $receiver = $request->getReceiver();
-        $project = $requestLine->getProject();
+        $request = $requestLine?->getRequest();
+        $receiver = $request?->getReceiver();
+        $project = $requestLine?->getProject();
         $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
         if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
             $settingRepository = $this->entityManager->getRepository(Setting::class);

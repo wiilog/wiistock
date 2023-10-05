@@ -572,7 +572,7 @@ class TransportController extends AbstractApiController
             true,
             TrackingMovement::TYPE_EMPTY_ROUND,
             [
-                'quantity' => 0
+                'quantity' => 1
             ]
         );
         $manager->persist($trackingMovement);

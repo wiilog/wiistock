@@ -47,3 +47,4 @@ doctrine:
                 STR_TO_DATE: DoctrineExtensions\Query\Mysql\StrToDate
                 IF: DoctrineExtensions\Query\Mysql\IfElse
                 DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
+                CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs

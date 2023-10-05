@@ -126,7 +126,7 @@ class FreeFieldService {
                     [$userLanguage, $this->languageService->getDefaultSlug()],
                     Language::FRENCH_SLUG,
                     $freeField,
-                    $value === "null" ? "" : $value
+                    $value
                 );
 
                 break;

@@ -10,6 +10,7 @@ use App\Entity\CollecteReference;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Project;
 use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
@@ -182,8 +183,10 @@ class CartService {
         }
         else if ($data['addOrCreate'] === "create") {
             $statutRepository = $manager->getRepository(Statut::class);
+            $projectRepository = $manager->getRepository(Project::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
+            $project = $data['project'] ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(
@@ -206,17 +209,13 @@ class CartService {
                 ->setCreatedAt(new DateTime('now'))
                 ->setDestination($destination)
                 ->setCommentaire($data['comment'] ?? null)
+                ->setProject($project)
                 ->setStatut($draft);
 
             $this->freeFieldService->manageFreeFields($deliveryRequest, $data, $manager);
             $manager->persist($deliveryRequest);
 
             if ($isLogisticUnitCart) {
-                /** @var Article $firstArticle */
-                $firstArticle = $userCart->getArticles()->first();
-                $project = $firstArticle->getTrackingPack()?->getProject();
-                $deliveryRequest->setProject($project);
-
                 $this->addCartArticlesToRequest($manager, $user, $deliveryRequest);
             }
             else {

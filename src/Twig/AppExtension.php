@@ -244,7 +244,7 @@ class AppExtension extends AbstractExtension {
 
     public function isInstanceOf($entity, string $class): bool {
         $reflexionClass = new ReflectionClass($class);
-        return $reflexionClass->isInstance($entity);
+        return is_object($entity) && $reflexionClass->isInstance($entity);
     }
 
     public function flip(array $array): array {

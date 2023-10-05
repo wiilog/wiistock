@@ -92,6 +92,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             setting::INCLUDE_PROJECT_IN_LABEL => [
                 'default' => false,
             ],
+            setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL => [
+                'default' => false,
+            ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],
@@ -341,6 +344,15 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DISPATCH_NUMBER_FORMAT => [
                 'default' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
+            ],
+            Setting::DELIVERY_STATION_TOP_LEFT_LOGO => [
+                'default' => Setting::DEFAULT_TOP_LEFT_VALUE,
+            ],
+            Setting::DELIVERY_STATION_TOP_RIGHT_LOGO => [
+                'default' => null,
+            ],
+            Setting::DELIVERY_STATION_INFORMATION_MESSAGE => [
+                'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.',
             ],
         ];
 

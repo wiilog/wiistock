@@ -210,6 +210,7 @@
                                 {% if options.includeParams is defined %}data-include-params="{{ options.includeParams }}"{% endif %}
                                 {% if options.includeParamsParent is defined %}data-include-params-parent="{{ options.includeParamsParent }}"{% endif %}
                                 {% if options.minLength is defined %}data-min-length="{{ options.minLength }}"{% endif %}
+                                {% if options.maxSelectionLength is defined %}data-max-selection-length="{{ options.maxSelectionLength }}"{% endif %}
                             {% endif %}
                             {% if options.keepOpen is defined %}data-keep-open{% endif %}
                             {% for attribute in options.additionalAttributes ?? [] %}
@@ -389,7 +390,8 @@
     {% endif %}
     {{ _self.tooltip(options.tooltip ?? null, inline) }}
     <div class="data {{ oneLineWysiwyg ? 'wii-one-line-wysiwyg ql-editor' }} {{ options.inputClass ?? '' }}"
-         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>
+         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}
+         name="{{ name }}">
             {{- value | raw -}}
     </div>
 {% endmacro %}

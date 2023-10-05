@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
@@ -201,7 +202,16 @@ class SettingsController extends AbstractController {
                 self::MENU_TOUCH_TERMINAL => [
                     "label" => "Borne tactile",
                     "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
-                    "save" => true,
+                    "menus" => [
+                        self::MENU_COLLECT_REQUEST_AND_CREATE_REF => [
+                            "label" => "Demande collecte et création référence",
+                            "save" => true,
+                        ],
+                        self::MENU_FAST_DELIVERY_REQUEST => [
+                            "label" => "Demande livraison rapide",
+                            "save" => true,
+                        ],
+                    ],
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
@@ -632,6 +642,9 @@ class SettingsController extends AbstractController {
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
     public const MENU_ALERTS = "alertes";
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
+
+    public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "demande_collecte_et_creation_reference";
+    public const MENU_FAST_DELIVERY_REQUEST = "demande_livraison_rapide";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_INVENTORY_CONFIGURATION = "configuration";
@@ -1260,9 +1273,21 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
-                self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
-                ],
+                self::MENU_TOUCH_TERMINAL => [
+                    self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
+                        'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                    ],
+                    self::MENU_FAST_DELIVERY_REQUEST => fn() => [
+                        'filterFields' => Stream::from($entityManager->getRepository(FreeField::class)->findByCategory(CategorieCL::REFERENCE_ARTICLE))
+                            ->map(static fn(FreeField $freeField) => [
+                                'label' => $freeField->getLabel(),
+                                'value' => $freeField->getId(),
+                            ])
+                            ->concat(DeliveryStationLine::REFERENCE_FIXED_FIELDS)
+                            ->toArray(),
+                        'deliveryStationLine' => new DeliveryStationLine(),
+                    ],
+                ]
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [

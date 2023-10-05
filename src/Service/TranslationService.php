@@ -328,7 +328,7 @@ class TranslationService {
     public function translateFreeFieldListValues(Language|string|array $sources,
                                                  Language|string       $target,
                                                  FreeField             $freeField,
-                                                 array|string          $values,
+                                                 array|string|null     $values,
                                                  bool                  $keepDefault = false,
                                                  bool                  $clearSources = true): array|string|null {
 

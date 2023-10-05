@@ -11,21 +11,17 @@ $(function() {
 
 function initializeNewModal(table) {
     Form.create(`#modalNewProject`, {clearOnOpen: true})
-        .submitTo(`POST`, `project_new`, {
-            table
-        })
+        .submitTo(`POST`, `project_new`, {tables: [table]})
 }
 
 function initializeEditModal(table) {
-    Form.create(`#modalEditProject`).submitTo(`POST`, `project_edit`, {
-        table
-    })
+    Form.create(`#modalEditProject`)
+        .submitTo(`POST`, `project_edit`, {tables: [table]})
 }
 
 function initializeDeleteModal(table) {
-    Form.create(`#modalDeleteProject`).submitTo(`POST`, `project_delete`, {
-        table
-    })
+    Form.create(`#modalDeleteProject`)
+        .submitTo(`POST`, `project_delete`, {tables: [table]})
 }
 
 function initProjectTable() {
