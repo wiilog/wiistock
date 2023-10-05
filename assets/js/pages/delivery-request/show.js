@@ -1,4 +1,5 @@
 import AJAX from "@app/ajax";
+import {POST} from "../../ajax";
 
 let tables = [];
 let editableTableArticles = null;
@@ -253,7 +254,18 @@ function initPageModals() {
 
 function initDeliveryRequestModal() {
     const $modal = $('#modalEditDemande');
-    InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true), { tables: [editableTableArticles]});
+    Form
+        .create($('#modalEditDemande'))
+        .submitTo(
+            POST,
+            'demande_edit',
+            {
+                tables: [editableTableArticles],
+                success: ({header}) => {
+                    $('.zone-entete').html(header);
+                }
+            }
+        )
     toggleLocationSelect($modal.find('[name="type"]'));
 }
 
