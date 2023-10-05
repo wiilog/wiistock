@@ -1,7 +1,7 @@
 const user = Cypress.config('user');
 describe('Add and edit components in Referentiel > Fournisseur', () => {
     before(() => {
-        cy.resetDatabase('BDD_scratch.cypress.sql')
+        cy.resetDatabase('BDD_scratch_mig.cypress.sql')
     })
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');

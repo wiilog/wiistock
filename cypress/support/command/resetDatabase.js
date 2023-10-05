@@ -6,11 +6,16 @@ Cypress.Commands.add('resetDatabase', (sqlFileName = 'BDD_scratch.cypress.sql', 
     cy.curlDatabase(sqlFileName);
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P $MYSQL_PORT $MYSQL_DATABASE < ${pathToFile}/${sqlFileName}`,
         { failOnNonZeroExit: false});
+    cy.doctrineMakeMigration();
 })
 
 Cypress.Commands.add('curlDatabase', (sqlFileName) => {
     cy.exec(`cd cypress/fixtures && curl -LO https://ftp.wiilog.fr/cypress/${sqlFileName} && cd ../..`);
 })
 
-// todo : run d:m:m after resetDatabase
+Cypress.Commands.add('doctrineMakeMigration', () => {
+    cy.exec('sshpass -p root ssh root@174.20.128.2')
+    cy.exec(`cd /var/www && php bin/console d:m:m --no-interaction`);
+})
+
 // mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P $MYSQL_PORT $MYSQL_DATABASE < /var/www/cypress/fixtures/BDD_scratch.cypress.sql
