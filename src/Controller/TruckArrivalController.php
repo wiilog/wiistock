@@ -211,16 +211,16 @@ class TruckArrivalController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $now = new DateTime();
-        $data = $request->request->all();
-        $truckArrival = isset($data['truckArrivalId']) ? $truckArrivalRepository->find($data['truckArrivalId']) : null;
-        $driver = isset($data['driver']) ? $driverRepository->find($data['driver']) : null;
+        $data = $request->request;
+        $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
+
 
         if (!$truckArrival) {
-            $carrier = isset($data['carrier']) ? $carrierRepository->find($data['carrier']) : null;
+            $carrier = $data->has('carrier') ? $carrierRepository->find($data->get('carrier')) : null;
             $unloadingLocationSetting = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
 
-            $location = isset($data['unloadingLocation'])
-                ? $locationRepository->find($data['unloadingLocation'])
+            $location = $data->has('unloadingLocation')
+                ? $locationRepository->find($data->get('unloadingLocation'))
                 : ($unloadingLocationSetting
                     ? $locationRepository->find($unloadingLocationSetting)
                     : null);
@@ -244,34 +244,41 @@ class TruckArrivalController extends AbstractController
         }
 
         $truckArrival
-            ->setDriver($driver)
-            ->setRegistrationNumber($data['registrationNumber'] ?? null)
             ->setCreationDate($now)
             ->setOperator($this->getUser());
 
+        if($data->has('driver')){
+            $driver = $driverRepository->find($data->get('driver'));
+            $truckArrival->setDriver($driver ?? null);
+        }
+
+        if($data->has('registrationNumber')){
+            $truckArrival->setRegistrationNumber($data->get('registrationNumber') );
+        }
+
         $entityManager->persist($truckArrival);
 
-        if ($data['hasGeneralReserve'] ?? false) {
+        if ($data->has('hasGeneralReserve') ?? false) {
             $generalReserve = new Reserve();
             $generalReserve
-                ->setComment($data['generalReserveComment'] ?? null)
+                ->setComment($data->has('generalReserveComment') ? $data->get('generalReserveComment') : null)
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_GENERAL);
             $entityManager->persist($generalReserve);
         }
 
-        if ($data['hasQuantityReserve'] ?? false) {
+        if ($data->has('hasQuantityReserve') ?? false) {
             $quantityReserve = new Reserve();
             $quantityReserve
-                ->setComment($data['quantityReserveComment'] ?? null)
+                ->setComment($data->has('quantityReserveComment') ? $data->get('quantityReserveComment') : null)
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_QUANTITY)
-                ->setQuantity($data['reserveQuantity'] ?? null)
-                ->setQuantityType($data['reserveType'] ?? null);
+                ->setQuantity($data->has('reserveQuantity') ? $data->get('reserveQuantity') : null)
+                ->setQuantityType($data->has('reserveType') ? $data->get('reserveType') : null);
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
+        foreach (explode(',', $data->has('trackingNumbers') ?? '') as $lineNumber) {
             if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
@@ -294,7 +301,7 @@ class TruckArrivalController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'truckArrivalId' => $truckArrival->getId(),
-            'redirect' => isset($data['goToArrivalButton']) && boolval($data['goToArrivalButton'])
+            'redirect' => $data->has('goToArrivalButton') && boolval($data->get('goToArrivalButton'))
                             ? $this->generateUrl('arrivage_index', [
                                 'truckArrivalId' => $truckArrival->getId()
                             ])
