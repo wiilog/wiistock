@@ -1220,7 +1220,7 @@ class MobileController extends AbstractApiController
                     if ($location) {
                         // flush auto at the end
                         $livraisonsManager->setEntityManager($entityManager);
-                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
+                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
                         $entityManager->flush();
 
                         $resData['success'][] = [
