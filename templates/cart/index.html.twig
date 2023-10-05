@@ -144,10 +144,10 @@
                                 {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
                                 {% if deliveryFieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                                     <div class="col-md-6 col-12">
-                                        <label class="box-item">
-                                            <span class="wii-field-name">{{ trans('Référentiel', 'Projet', "Projet", false) }}</span>
-                                            <span class="wii-body-text">{{ project ?? '' }}</span>
-                                        </label>
+                                        {% set fieldRequired = deliveryFieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                                        {{ form.select('project', trans('Référentiel', 'Projet', 'Projet'), fieldRequired, {
+                                            type: 'project',
+                                        }) }}
                                     </div>
                                 {% endif %}
                                 <div class="col-12">
