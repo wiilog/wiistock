@@ -341,7 +341,7 @@ class DisputeService {
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord
             ->setDate(new DateTime('now'))
-            ->setComment($comment ?: null)
+            ->setComment(empty($comment) ? $dispute->getStatus()?->getComment() : $comment)
             ->setDispute($dispute)
             ->setUser($user);
 
