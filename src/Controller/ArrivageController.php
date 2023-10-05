@@ -1214,6 +1214,7 @@ class ArrivageController extends AbstractController {
         $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
         $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
+        $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1256,6 +1257,7 @@ class ArrivageController extends AbstractController {
                     $packIdsFilter,
                     $businessUnitParam,
                     $projectParam,
+                    $showDateAndHourArrivalUl,
                     $forceTagEmpty ? null :$tagTemplate,
                     $forceTagEmpty
                 );
@@ -1291,6 +1293,7 @@ class ArrivageController extends AbstractController {
                 $secondCustomIconConfig,
                 $businessUnitParam,
                 $projectParam,
+                $showDateAndHourArrivalUl,
             );
         }
 
@@ -1330,20 +1333,21 @@ class ArrivageController extends AbstractController {
         return $this->printArrivagePackBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter, $template, $forceTagEmpty);
     }
 
-    private function getBarcodeConfigPrintAllPacks(Arrivage    $arrivage,
-                                                   PackService $packService,
-                                                   ?bool       $typeArrivalParamIsDefined = false,
-                                                   ?bool       $usernameParamIsDefined = false,
-                                                   ?bool       $dropzoneParamIsDefined = false,
-                                                   ?bool       $packCountParamIsDefined = false,
-                                                   ?bool       $commandAndProjectNumberIsDefined = false,
-                                                   ?array      $firstCustomIconConfig = null,
-                                                   ?array      $secondCustomIconConfig = null,
-                                                   array       $packIdsFilter = [],
-                                                   ?bool       $businessUnitParam = false,
-                                                   ?bool $projectParam = false,
+    private function getBarcodeConfigPrintAllPacks(Arrivage     $arrivage,
+                                                   PackService  $packService,
+                                                   ?bool        $typeArrivalParamIsDefined = false,
+                                                   ?bool        $usernameParamIsDefined = false,
+                                                   ?bool        $dropzoneParamIsDefined = false,
+                                                   ?bool        $packCountParamIsDefined = false,
+                                                   ?bool        $commandAndProjectNumberIsDefined = false,
+                                                   ?array       $firstCustomIconConfig = null,
+                                                   ?array       $secondCustomIconConfig = null,
+                                                   array        $packIdsFilter = [],
+                                                   ?bool        $businessUnitParam = false,
+                                                   ?bool        $projectParam = false,
+                                                   ?bool        $showDateAndHourArrivalUl = false,
                                                    ?TagTemplate $tagTemplate = null,
-                                                   bool $forceTagEmpty = false,
+                                                   bool         $forceTagEmpty = false,
     ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
@@ -1367,6 +1371,7 @@ class ArrivageController extends AbstractController {
                     $secondCustomIconConfig,
                     $businessUnitParam,
                     $projectParam,
+                    $showDateAndHourArrivalUl,
                 );
             }
         }

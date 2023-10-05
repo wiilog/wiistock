@@ -92,6 +92,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             setting::INCLUDE_PROJECT_IN_LABEL => [
                 'default' => false,
             ],
+            setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL => [
+                'default' => false,
+            ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],
