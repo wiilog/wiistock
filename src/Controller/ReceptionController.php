@@ -155,27 +155,27 @@ class ReceptionController extends AbstractController {
             $reception->setStatut($statut);
 
             if ($data->has('fournisseur')) {
-                $fournisseur = $fournisseurRepository->find($data->getInt('fournisseur'));
+                $fournisseur = $data->getInt('fournisseur') ? $fournisseurRepository->find($data->getInt('fournisseur')) : null;
                 $reception->setFournisseur($fournisseur);
             }
 
             if ($data->has('utilisateur')) {
-                $utilisateur = $transporteurRepository->find($data->getInt('utilisateur'));
+                $utilisateur = $data->getInt('utilisateur') ? $utilisateurRepository->find($data->getInt('utilisateur')) : null;
                 $reception->setUtilisateur($utilisateur);
             }
 
             if ($data->has('transporteur')) {
-                $transporteur = $transporteurRepository->find($data->getInt('transporteur'));
+                $transporteur = $data->getInt('transporteur') ? $transporteurRepository->find($data->getInt('transporteur')) : null;
                 $reception->setTransporteur($transporteur);
             }
 
             if ($data->has('location')) {
-                $location = $emplacementRepository->find($data->getInt('location'));
+                $location = $data->getInt('location') ? $emplacementRepository->find($data->getInt('location')) : null;
                 $reception->setLocation($location);
             }
 
             if ($data->has('storageLocation')) {
-                $storageLocation = $emplacementRepository->find($data->getInt('storageLocation'));
+                $storageLocation = $data->getInt('storageLocation') ? $emplacementRepository->find($data->getInt('storageLocation')) : null;
                 $reception->setStorageLocation($storageLocation);
             }
 
@@ -185,7 +185,7 @@ class ReceptionController extends AbstractController {
             }
 
             if ($data->has('orderNumber')) {
-                $orderNumber = explode(",",$data->get('orderNumber'));
+                $orderNumber = explode(",", $data->get('orderNumber'));
                 $reception->setOrderNumber($orderNumber);
             }
 
