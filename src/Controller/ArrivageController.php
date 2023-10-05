@@ -544,22 +544,22 @@ class ArrivageController extends AbstractController {
         }
 
         if($post->has('fournisseur')){
-            $fournisseur = $fournisseurRepository->find($post->get('fournisseur'));
+            $fournisseur = $post->get('fournisseur') ? $fournisseurRepository->find($post->get('fournisseur')) : null;
             $arrivage->setFournisseur($fournisseur);
         }
 
         if($post->has('transporteur')){
-            $transporteur = $transporteurRepository->find($post->get('transporteur'));
+            $transporteur = $post->get('transporteur') ? $transporteurRepository->find($post->get('transporteur')) : null;
             $arrivage->setTransporteur($transporteur);
         }
 
         if($post->has('chauffeur')){
-            $chauffeur = $chauffeurRepository->find($post->get('chauffeur'));
+            $chauffeur = $post->get('chauffeur') ? $chauffeurRepository->find($post->get('chauffeur')) : null;
             $arrivage->setChauffeur($chauffeur);
         }
 
         if($post->has('statut')){
-            $statut = $statutRepository->find($post->get('statut'));
+            $statut = $post->get('statut') ? $statutRepository->find($post->get('statut')) : null;
             $arrivage->setStatut($statut);
         }
 
@@ -584,7 +584,7 @@ class ArrivageController extends AbstractController {
         }
 
         if($post->has('type')){
-            $type = $typeRepository->find($post->get('type'));
+            $type = $post->get('type') ? $typeRepository->find($post->get('type')) : null;
             $arrivage->setType($type);
         }
 
@@ -592,7 +592,7 @@ class ArrivageController extends AbstractController {
 
 
         if($post->has('acheteurs')){
-            $acheteursEntities = $utilisateurRepository->findBy(['username' => explode(',', $post->get('acheteurs'))]);
+            $acheteursEntities = $post->get('acheteurs') ? $utilisateurRepository->findBy(['username' => explode(',', $post->get('acheteurs'))]) : null;
 
             $arrivage->removeAllAcheteur();
             if (!empty($post->get('acheteurs'))) {
