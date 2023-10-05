@@ -518,54 +518,90 @@ class ArrivageController extends AbstractController {
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
-        $fournisseurId = $post->get('fournisseur');
-        $transporteurId = $post->get('transporteur');
-        $destinataireId = $post->get('destinataire');
-        $statutId = $post->get('statut');
-        $dropLocationId = $post->get('dropLocation');
-        $chauffeurId = $post->get('chauffeur');
-        $type = $post->get('type');
-        $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
+        $newDestinataire = $post->has('destinataire') ? $utilisateurRepository->find($post->get('destinataire')) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
-        $numeroCommadeListStr = $post->get('numeroCommandeList');
+
         $dropLocation = $post->has('dropLocation')
-            ? ($dropLocationId ? $emplacementRepository->find($dropLocationId) : null)
+            ? $emplacementRepository->find($post->get('dropLocation'))
             : $arrivage->getDropLocation();
 
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
-        $arrivage
-            ->setCommentaire($post->get('commentaire'))
-            ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-            ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
-            ->setDropLocation($dropLocation)
-            ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
-            ->setTransporteur($transporteurId ? $transporteurRepository->find($transporteurId) : null)
-            ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
-            ->setStatut($statutId ? $statutRepository->find($statutId) : null)
-            ->setCustoms($post->get('customs') == 'true')
-            ->setFrozen($post->get('frozen') == 'true')
-            ->setDestinataire($newDestinataire)
-            ->setBusinessUnit($post->get('businessUnit') ?? null)
-            ->setProjectNumber($post->get('noProject') ?? null)
-            ->setType($typeRepository->find($type));
+        $arrivage->setDropLocation($dropLocation);
+
+        if($post->has('commentaire')){
+            $arrivage->setCommentaire($post->get('commentaire'));
+        }
+
+        if($post->has('noTracking')){
+            $arrivage->setNoTracking(substr($post->get('noTracking'), 0, 64));
+        }
+
+        if($post->has('numeroCommandeList')){
+            $arrivage->setNumeroCommandeList(explode(',', $post->get('numeroCommandeList')));
+        }
+
+        if($post->has('fournisseur')){
+            $fournisseur = $fournisseurRepository->find($post->get('fournisseur'));
+            $arrivage->setFournisseur($fournisseur);
+        }
+
+        if($post->has('transporteur')){
+            $transporteur = $transporteurRepository->find($post->get('transporteur'));
+            $arrivage->setTransporteur($transporteur);
+        }
+
+        if($post->has('chauffeur')){
+            $chauffeur = $chauffeurRepository->find($post->get('chauffeur'));
+            $arrivage->setChauffeur($chauffeur);
+        }
+
+        if($post->has('statut')){
+            $statut = $statutRepository->find($post->get('statut'));
+            $arrivage->setStatut($statut);
+        }
+
+        if($post->has('customs')){
+            $arrivage->setCustoms($post->getBoolean('customs'));
+        }
+
+        if($post->has('frozen')){
+            $arrivage->setFrozen($post->getBoolean('frozen'));
+        }
+
+        if($post->has('destinataire')){
+            $arrivage->setDestinataire($newDestinataire);
+        }
+
+        if($post->has('businessUnit')){
+            $arrivage->setBusinessUnit($post->get('businessUnit'));
+        }
+
+        if($post->has('noProject')){
+            $arrivage->setProjectNumber($post->get('noProject'));
+        }
+
+        if($post->has('type')){
+            $type = $typeRepository->find($post->get('type'));
+            $arrivage->setType($type);
+        }
 
         $newSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
-        $acheteurs = $post->get('acheteurs');
 
-        $acheteursEntities = array_map(function ($acheteur) use ($utilisateurRepository) {
-            return $utilisateurRepository->findOneBy(['username' => $acheteur]);
-        }, explode(',', $acheteurs));
+        if($post->has('acheteurs')){
+            $acheteursEntities = $utilisateurRepository->findBy(['username' => explode(',', $post->get('acheteurs'))]);
 
-        $arrivage->removeAllAcheteur();
-        if (!empty($acheteurs)) {
-            foreach ($acheteursEntities as $acheteursEntity) {
-                $arrivage->addAcheteur($acheteursEntity);
+            $arrivage->removeAllAcheteur();
+            if (!empty($post->get('acheteurs'))) {
+                foreach ($acheteursEntities as $acheteursEntity) {
+                    $arrivage->addAcheteur($acheteursEntity);
+                }
             }
         }
+
         $entityManager->flush();
         if ($sendMail && $destinataireChanged) {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
