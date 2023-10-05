@@ -211,6 +211,19 @@ class ReceptionService
                 ->setLocation($location);
         }
 
+        if(!empty($data['storageLocation'])) {
+            if($fromImport) {
+                $location = $emplacementRepository->findOneBy(['label' => $data['storageLocation']]);
+                if (!isset($location)) {
+                    throw new InvalidArgumentException(self::INVALID_LOCATION);
+                }
+            } else {
+                $location = $emplacementRepository->find(intval($data['storageLocation']));
+            }
+            $reception
+                ->setStorageLocation($location);
+        }
+
         if(!empty($data['transporteur'])) {
             if ($fromImport) {
                 $carrier = $transporteurRepository->findOneBy(['code' => $data['transporteur']]);
