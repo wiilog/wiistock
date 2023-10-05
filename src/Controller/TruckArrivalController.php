@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
@@ -213,25 +214,30 @@ class TruckArrivalController extends AbstractController
         $now = new DateTime();
         $data = $request->request;
         $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
-
+        if (!$truckArrival) {
+            throw new FormException();
+        }
 
         if (!$truckArrival) {
-            $carrier = $data->has('carrier') ? $carrierRepository->find($data->get('carrier')) : null;
-            $unloadingLocationSetting = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+            if ($data->has('carrier')) {
+                $carrierId = $data->getInt('carrier');
+                $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
+                $truckArrival->setCarrier($carrier);
+            }
 
-            $location = $data->has('unloadingLocation')
-                ? $locationRepository->find($data->get('unloadingLocation'))
-                : ($unloadingLocationSetting
-                    ? $locationRepository->find($unloadingLocationSetting)
-                    : null);
+            if ($data->has('unloadingLocation')) {
+                $locationId = $data->getInt('unloadingLocation');
+                $location = $locationId ? $locationRepository->find($locationId) : null;
+                $truckArrival->setUnloadingLocation($location);
+            } else {
+                $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+                $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
+                $truckArrival->setUnloadingLocation($defaultLocation);
+            }
 
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
             $truckArrival = new TruckArrival();
-            $truckArrival
-                ->setNumber($number)
-                ->setUnloadingLocation($location)
-                ->setCarrier($carrier);
-
+            $truckArrival->setNumber($number);
         } else {
             $files = $request->files->all();
             $truckArrival->clearAttachments();
@@ -248,7 +254,8 @@ class TruckArrivalController extends AbstractController
             ->setOperator($this->getUser());
 
         if($data->has('driver')){
-            $driver = $driverRepository->find($data->get('driver'));
+            $driverId = $data->get('driver');
+            $driver = $driverId ? $driverRepository->find($driverId) : null;
             $truckArrival->setDriver($driver ?? null);
         }
 
@@ -261,7 +268,7 @@ class TruckArrivalController extends AbstractController
         if ($data->has('hasGeneralReserve') ?? false) {
             $generalReserve = new Reserve();
             $generalReserve
-                ->setComment($data->has('generalReserveComment') ? $data->get('generalReserveComment') : null)
+                ->setComment($data->get('generalReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_GENERAL);
             $entityManager->persist($generalReserve);
@@ -270,15 +277,15 @@ class TruckArrivalController extends AbstractController
         if ($data->has('hasQuantityReserve') ?? false) {
             $quantityReserve = new Reserve();
             $quantityReserve
-                ->setComment($data->has('quantityReserveComment') ? $data->get('quantityReserveComment') : null)
+                ->setComment($data->get('quantityReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_QUANTITY)
-                ->setQuantity($data->has('reserveQuantity') ? $data->get('reserveQuantity') : null)
-                ->setQuantityType($data->has('reserveType') ? $data->get('reserveType') : null);
+                ->setQuantity($data->get('reserveQuantity'))
+                ->setQuantityType($data->get('reserveType'));
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (explode(',', $data->has('trackingNumbers') ?? '') as $lineNumber) {
+        foreach (explode(',', $data->get('trackingNumbers') ?? '') as $lineNumber) {
             if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
