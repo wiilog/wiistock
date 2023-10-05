@@ -214,9 +214,6 @@ class TruckArrivalController extends AbstractController
         $now = new DateTime();
         $data = $request->request;
         $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
-        if (!$truckArrival) {
-            throw new FormException();
-        }
 
         if (!$truckArrival) {
             if ($data->has('carrier')) {
