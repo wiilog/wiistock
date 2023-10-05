@@ -1171,8 +1171,7 @@ class ImportService
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
                 ->filter()
-                ->toArray()
-            : [];
+            : Stream::from([]);
 
         if (!empty($volume) && !is_numeric($volume)) {
             $this->throwError('Champ volume non valide.');
@@ -1181,7 +1180,7 @@ class ImportService
             $this->throwError('Champ poids non valide.');
         }
 
-        $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
+        $invalidAssociatedDocumentType = $associatedDocumentTypes
             ->find(fn(string $type) => !in_array($type, $this->scalarCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
         if (!empty($invalidAssociatedDocumentType)) {
             $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
@@ -1192,7 +1191,7 @@ class ImportService
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,
-            "associatedDocumentTypes" => $associatedDocumentTypes,
+            "associatedDocumentTypes" => $associatedDocumentTypes->join(','),
         ];
         $refArt
             ->setDescription($description);
