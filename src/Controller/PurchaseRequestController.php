@@ -504,7 +504,7 @@ class PurchaseRequestController extends AbstractController
             ->setRequester($requester)
             ->setSupplier($supplier ?? null);
 
-        $purchaseRequest->removeIfNotIn($data['files'] ?? []);
+        $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
 
         $entityManager->flush();

@@ -42,6 +42,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -137,8 +138,10 @@ class ReceptionController extends AbstractController {
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
                          AttachmentService $attachmentService,
+                         FormatService $formatService,
                          Request $request): Response {
-        if($data = $request->request->all()) {
+        $data = $request->request;
+        if($data->all()) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -146,51 +149,67 @@ class ReceptionController extends AbstractController {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            $reception = $receptionRepository->find($data['receptionId']);
+            $reception = $receptionRepository->find($data->getInt('receptionId'));
 
-            $statut = $statutRepository->find(intval($data['statut']));
+            $statut = $statutRepository->find($data->getInt('statut'));
             $reception->setStatut($statut);
 
-            $fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
-            $reception->setFournisseur($fournisseur);
+            if ($data->has('fournisseur')) {
+                $fournisseur = $data->getInt('fournisseur') ? $fournisseurRepository->find($data->getInt('fournisseur')) : null;
+                $reception->setFournisseur($fournisseur);
+            }
 
-            $utilisateur = !empty($data['utilisateur']) ? $utilisateurRepository->find($data['utilisateur']) : null;
-            $reception->setUtilisateur($utilisateur);
+            if ($data->has('utilisateur')) {
+                $utilisateur = $data->getInt('utilisateur') ? $utilisateurRepository->find($data->getInt('utilisateur')) : null;
+                $reception->setUtilisateur($utilisateur);
+            }
 
-            $transporteur = !empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null;
-            $reception->setTransporteur($transporteur);
+            if ($data->has('transporteur')) {
+                $transporteur = $data->getInt('transporteur') ? $transporteurRepository->find($data->getInt('transporteur')) : null;
+                $reception->setTransporteur($transporteur);
+            }
 
-            $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
-            $reception->setLocation($location);
+            if ($data->has('location')) {
+                $location = $data->getInt('location') ? $emplacementRepository->find($data->getInt('location')) : null;
+                $reception->setLocation($location);
+            }
 
-            $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
-            $reception->setStorageLocation($storageLocation);
+            if ($data->has('storageLocation')) {
+                $storageLocation = $data->getInt('storageLocation') ? $emplacementRepository->find($data->getInt('storageLocation')) : null;
+                $reception->setStorageLocation($storageLocation);
+            }
 
-            $emergency = !empty($data['emergency'])
-                ? (
-                    $data['emergency'] === "false"
-                    ? null
-                    : $data['emergency']
-                )
-                : null;
-            $reception->setManualUrgent($emergency);
-            $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
-                ->setDateAttendue(
-                    !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
-                        : null)
-                ->setDateCommande(
-                    !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']))
-                        : null)
-                ->setCommentaire($data['commentaire'] ?? null);
+            if ($data->has('emergency')) {
+                $emergency = $data->getBoolean('emergency');
+                $reception->setManualUrgent($emergency);
+            }
 
-            $reception->removeIfNotIn($data['files'] ?? []);
+            if ($data->has('orderNumber')) {
+                $orderNumber = explode(",", $data->get('orderNumber'));
+                $reception->setOrderNumber($orderNumber);
+            }
+
+            if ($data->has('dateAttendue')) {
+                $dateAttendue = $formatService->parseDatetime($data->get('dateAttendue'));
+                $reception->setDateAttendue($dateAttendue);
+            }
+
+            if ($data->has('dateCommande')) {
+                $dateCommande = $formatService->parseDatetime($data->get('dateCommande'));
+                $reception->setDateCommande($dateCommande);
+            }
+
+            if ($data->has('commentaire')) {
+                $reception->setCommentaire($data->get('commentaire'));
+            }
+
+            if ($data->has('files')) {
+                $reception->removeIfNotIn($data->get('files') ?: []);
+            }
 
             $entityManager->flush();
 
-            $champLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();

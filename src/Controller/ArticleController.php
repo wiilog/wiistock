@@ -331,44 +331,41 @@ class ArticleController extends AbstractController
      */
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         TranslationService     $translation): Response
-    {
-        if ($data = $request->request->all()) {
-            $article = $entityManager->getRepository(Article::class)->find($data['id']);
-                try {
-                    $article = $this->articleDataService->newArticle($entityManager, $data, [
-                        "existing" => $article,
-                    ]);
-                    $response = [
-                        'success' => true,
-                        'articleId' => $data['id'],
-                        'barcode' => $article->getBarCode(),
-                    ];
-                    $entityManager->flush();
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(ArticleNotAvailableException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
-                    ];
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(RequestNeedToBeProcessedException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
-                    ];
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch (UniqueConstraintViolationException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Le tag RFID {$data['rfidTag']} est déja utilisé.",
-                    ];
-                }
+                         TranslationService     $translation): Response {
+        $data = $request->request;
+        if ($data->all()) {
+            $article = $entityManager->getRepository(Article::class)->find($data->get('id'));
+            try {
+                $article = $this->articleDataService->newArticle($entityManager, $data, [
+                    "existing" => $article,
+                ]);
+                $response = [
+                    'success' => true,
+                    'articleId' => $data->get('id'),
+                    'barcode' => $article->getBarCode(),
+                ];
+                $entityManager->flush();
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (ArticleNotAvailableException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
+                ];
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (RequestNeedToBeProcessedException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
+                ];
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Le tag RFID {$data->get('rfidTag')} est déja utilisé.",
+                ];
+            }
 
-                return new JsonResponse($response);
+            return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }

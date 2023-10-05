@@ -390,7 +390,8 @@
     {% endif %}
     {{ _self.tooltip(options.tooltip ?? null, inline) }}
     <div class="data {{ oneLineWysiwyg ? 'wii-one-line-wysiwyg ql-editor' }} {{ options.inputClass ?? '' }}"
-         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}>
+         data-wysiwyg="{{ name }}" {{ required ? 'data-required' }}
+         name="{{ name }}">
             {{- value | raw -}}
     </div>
 {% endmacro %}

@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
@@ -211,27 +212,30 @@ class TruckArrivalController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $now = new DateTime();
-        $data = $request->request->all();
-        $truckArrival = isset($data['truckArrivalId']) ? $truckArrivalRepository->find($data['truckArrivalId']) : null;
-        $driver = isset($data['driver']) ? $driverRepository->find($data['driver']) : null;
+        $data = $request->request;
+        $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
 
         if (!$truckArrival) {
-            $carrier = isset($data['carrier']) ? $carrierRepository->find($data['carrier']) : null;
-            $unloadingLocationSetting = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+            $truckArrival = new TruckArrival();
+            if ($data->has('carrier')) {
+                $carrierId = $data->getInt('carrier');
+                $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
+                $truckArrival->setCarrier($carrier);
+            }
 
-            $location = isset($data['unloadingLocation'])
-                ? $locationRepository->find($data['unloadingLocation'])
-                : ($unloadingLocationSetting
-                    ? $locationRepository->find($unloadingLocationSetting)
-                    : null);
+            if ($data->has('unloadingLocation')) {
+                $locationId = $data->getInt('unloadingLocation');
+                $location = $locationId ? $locationRepository->find($locationId) : null;
+                $truckArrival->setUnloadingLocation($location);
+            } else {
+                $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+                $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
+                $truckArrival->setUnloadingLocation($defaultLocation);
+            }
 
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
-            $truckArrival = new TruckArrival();
-            $truckArrival
-                ->setNumber($number)
-                ->setUnloadingLocation($location)
-                ->setCarrier($carrier);
 
+            $truckArrival->setNumber($number);
         } else {
             $files = $request->files->all();
             $truckArrival->clearAttachments();
@@ -244,34 +248,42 @@ class TruckArrivalController extends AbstractController
         }
 
         $truckArrival
-            ->setDriver($driver)
-            ->setRegistrationNumber($data['registrationNumber'] ?? null)
             ->setCreationDate($now)
             ->setOperator($this->getUser());
 
+        if($data->has('driver')){
+            $driverId = $data->get('driver');
+            $driver = $driverId ? $driverRepository->find($driverId) : null;
+            $truckArrival->setDriver($driver ?? null);
+        }
+
+        if($data->has('registrationNumber')){
+            $truckArrival->setRegistrationNumber($data->get('registrationNumber') );
+        }
+
         $entityManager->persist($truckArrival);
 
-        if ($data['hasGeneralReserve'] ?? false) {
+        if ($data->has('hasGeneralReserve') ?? false) {
             $generalReserve = new Reserve();
             $generalReserve
-                ->setComment($data['generalReserveComment'] ?? null)
+                ->setComment($data->get('generalReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_GENERAL);
             $entityManager->persist($generalReserve);
         }
 
-        if ($data['hasQuantityReserve'] ?? false) {
+        if ($data->has('hasQuantityReserve') ?? false) {
             $quantityReserve = new Reserve();
             $quantityReserve
-                ->setComment($data['quantityReserveComment'] ?? null)
+                ->setComment($data->get('quantityReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_QUANTITY)
-                ->setQuantity($data['reserveQuantity'] ?? null)
-                ->setQuantityType($data['reserveType'] ?? null);
+                ->setQuantity($data->get('reserveQuantity'))
+                ->setQuantityType($data->get('reserveType'));
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
+        foreach (explode(',', $data->get('trackingNumbers') ?? '') as $lineNumber) {
             if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
@@ -294,7 +306,7 @@ class TruckArrivalController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'truckArrivalId' => $truckArrival->getId(),
-            'redirect' => isset($data['goToArrivalButton']) && boolval($data['goToArrivalButton'])
+            'redirect' => $data->has('goToArrivalButton') && boolval($data->get('goToArrivalButton'))
                             ? $this->generateUrl('arrivage_index', [
                                 'truckArrivalId' => $truckArrival->getId()
                             ])
