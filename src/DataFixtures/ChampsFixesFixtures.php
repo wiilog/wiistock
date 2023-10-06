@@ -92,10 +92,10 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL => [
-                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
-                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
-                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
-                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onNomade' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onNomade' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onNomade' => true, 'default' => false],
+                ['code' => FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FieldsParam::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onNomade' => true, 'default' => true],
             ],
 
             FieldsParam::ENTITY_CODE_ARTICLE => [

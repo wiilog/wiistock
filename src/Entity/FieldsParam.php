@@ -262,6 +262,12 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_PROJECT
     ];
 
+    public const ON_NOMADE_FILEDS = [
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
+        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+    ];
+
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
         FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
@@ -309,6 +315,9 @@ class FieldsParam {
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $elementsType = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
+    private ?bool $onNomade = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -428,6 +437,18 @@ class FieldsParam {
     public function setElementsType(?string $elementsType): self
     {
         $this->elementsType = $elementsType;
+
+        return $this;
+    }
+
+    public function isOnNomade(): ?bool
+    {
+        return $this->onNomade;
+    }
+
+    public function setOnNomade(?bool $onNomade): self
+    {
+        $this->onNomade = $onNomade;
 
         return $this;
     }
