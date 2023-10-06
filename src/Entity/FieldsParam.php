@@ -317,7 +317,7 @@ class FieldsParam {
     private ?string $elementsType = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
-    private ?bool $onNomade = null;
+    private ?bool $onMobile = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -441,14 +441,14 @@ class FieldsParam {
         return $this;
     }
 
-    public function isOnNomade(): ?bool
+    public function isOnMobile(): ?bool
     {
-        return $this->onNomade;
+        return $this->onMobile;
     }
 
-    public function setOnNomade(?bool $onNomade): self
+    public function setOnMobile(?bool $onMobile): self
     {
-        $this->onNomade = $onNomade;
+        $this->onMobile = $onMobile;
 
         return $this;
     }

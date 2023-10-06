@@ -1264,7 +1264,7 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
-            {data: `onNomade`, title: `Sur le nomade`},
+            {data: `onMobile`, title: `Sur le nomade`},
         ],
     });
     initializeType();

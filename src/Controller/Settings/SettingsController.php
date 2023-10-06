@@ -2650,8 +2650,8 @@ class SettingsController extends AbstractController {
             $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory() ? "checked" : "";
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
-            $onNomade = $field->isOnNomade() ? "checked" : "";
-            $onNomadeDisabled = !in_array($field->getFieldCode(), FieldsParam::ON_NOMADE_FILEDS) ? "disabled" : "";
+            $onMobile = $field->isOnMobile() ? "checked" : "";
+            $onMobileDisabled = !in_array($field->getFieldCode(), FieldsParam::ON_NOMADE_FILEDS) ? "disabled" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
             $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
@@ -2681,7 +2681,7 @@ class SettingsController extends AbstractController {
                 }
 
                 if($entity === FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL){
-                    $row["onNomade"] = "<input type='checkbox' name='onNomade' class='$class' $onNomade $onNomadeDisabled/>";
+                    $row["onMobile"] = "<input type='checkbox' name='onMobile' class='$class' $onMobile $onMobileDisabled/>";
                 }
 
                 $rows[] = $row;
@@ -2700,7 +2700,7 @@ class SettingsController extends AbstractController {
                 }
 
                 if($entity === "truckArrvials") {
-                    $row["onNomade"] = $field->isOnNomade() ? "Oui" : "Non";
+                    $row["onMobile"] = $field->isOnMobile() ? "Oui" : "Non";
                 }
 
                 $rows[] = $row;
