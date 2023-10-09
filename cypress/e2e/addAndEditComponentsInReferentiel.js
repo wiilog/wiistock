@@ -1,7 +1,11 @@
 const user = Cypress.config('user');
+const oldDatabaseName = Cypress.env('OLD_DATABASE_NAME');
 describe('Add and edit components in Referentiel > Fournisseur', () => {
     before(() => {
-        cy.resetDatabase('BDD_scratch_mig.cypress.sql')
+        cy.startingCypressEnvironnement('https://ftp.wiilog.fr/cypress/BDD_scratch_mig.cypress.sql')
+    })
+    after(() => {
+        cy.changeDatabase(oldDatabaseName);
     })
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
