@@ -402,6 +402,7 @@ class TruckArrivalController extends AbstractController
             if($edit) {
                 $isDefaultReserveType = $reserveType->isDefaultReserveType() ? 'checked' : '';
                 $isActive = $reserveType->isActive() ? 'checked' : '';
+                $isDisableTrackingNumber = $reserveType->isDisableTrackingNumber() ? 'checked' : '';
                 $userOptions = Stream::from($reserveType->getNotifiedUsers())
                     ->map(fn(Utilisateur $user) => "<option value='{$user->getId()}' selected>{$user->getUsername()}</option>")
                     ->join("");
@@ -412,7 +413,8 @@ class TruckArrivalController extends AbstractController
                     "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required data-global-error='Libellé'/>",
                     "emails" => "<select class='form-control data select2' name='emails' multiple data-s2='user'>$userOptions</select>",
                     "defaultReserveType" => "<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data' {$isDefaultReserveType}/></div>",
-                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>"
+                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>",
+                    "disableTrackingNumber" => "<div class='checkbox-container'><input type='checkbox' name='disableTrackingNumber' class='form-control data' {$isDisableTrackingNumber}/></div>"
                 ];
             } else {
                 $emails = Stream::from($reserveType->getNotifiedUsers())
@@ -426,6 +428,7 @@ class TruckArrivalController extends AbstractController
                     "emails" => implode(', ', $emails),
                     "defaultReserveType" => $this->formatService->bool($reserveType->isDefaultReserveType()),
                     "active" => $this->formatService->bool($reserveType->isActive()),
+                    "disableTrackingNumber" => $this->formatService->bool($reserveType->isDisableTrackingNumber()),
                 ];
             }
         }
@@ -436,6 +439,7 @@ class TruckArrivalController extends AbstractController
             "emails" => "",
             "defaultReserveType" => "",
             "active" => "",
+            "disableTrackingNumber" => "",
         ];
 
         return $this->json([
