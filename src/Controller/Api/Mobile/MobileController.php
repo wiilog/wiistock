@@ -2728,8 +2728,6 @@ class MobileController extends AbstractApiController
             ->keymap(fn($strDate, $locationId) => [$locationId, $formatService->parseDatetime($strDate)])
             ->toArray();
 
-        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
-
         $now = new DateTime('now');
         $validator = $this->getUser();
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
@@ -2738,26 +2736,25 @@ class MobileController extends AbstractApiController
 
         $inventoryService->clearInventoryZone($mission);
 
-        $zonesData = Stream::from($mission->getInventoryLocationMissions())
-            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId())
-            ->reduce(function($carry, InventoryLocationMission $inventoryLocationMission) use ($validatedAtDates) {
+        $zonesData = [];
+        foreach ($mission->getInventoryLocationMissions() as $inventoryLocationMission) {
+            if ($inventoryLocationMission->getLocation()?->getId()) {
                 $zoneId = $inventoryLocationMission->getLocation()->getZone()?->getId();
                 $locationId = $inventoryLocationMission->getLocation()?->getId();
-                if (!isset($carry[$zoneId])) {
-                    $carry[$zoneId] = [
+                if (!isset($zonesData[$zoneId])) {
+                    $zonesData[$zoneId] = [
                         "zone" => $inventoryLocationMission->getLocation()->getZone(),
                         "lines" => [],
                         "validatedAt" => null
                     ];
                 }
 
-                $carry[$zoneId]["lines"][] = $inventoryLocationMission;
-                $carry[$zoneId]["validatedAt"] = $carry[$zoneId]["validatedAt"]
+                $zonesData[$zoneId]["lines"][] = $inventoryLocationMission;
+                $zonesData[$zoneId]["validatedAt"] = $zonesData[$zoneId]["validatedAt"]
                     ?? $validatedAtDates[$locationId]
                     ?? null;
-
-                return $carry;
-            }, []);
+            }
+        }
 
         // save sta
         foreach ($zonesData as $zoneDatum) {
@@ -2768,6 +2765,7 @@ class MobileController extends AbstractApiController
             $validatedAt = $zoneDatum["validatedAt"] ?? null;
             if ($zone && $lines) {
                 ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
+
                 foreach ($lines as $line) {
                     $line->setDone(true);
                     if ($line->getLocation()) {
@@ -2782,6 +2780,9 @@ class MobileController extends AbstractApiController
             }
         }
 
+        $entityManager->flush();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
         // change article states
         /** @var Article $article */
