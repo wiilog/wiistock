@@ -178,3 +178,18 @@ class Entity {
 
 ## Selects in datatables
 Select2 should have the attribute `data-parent="body"` when used in datatables
+
+
+## Best practices for Cypress
+In order to have a clean database for each test, we need to reset the database before each test. You need to include the following code in your tests files.
+
+```js
+const oldDatabaseName = Cypress.env('OLD_DATABASE_NAME');
+
+before(() => {
+    cy.startingCypressEnvironnement('https://ftp.wiilog.fr/cypress/BDD_scratch_mig.cypress.sql')
+})
+after(() => {
+    cy.changeDatabase(oldDatabaseName);
+})
+```
