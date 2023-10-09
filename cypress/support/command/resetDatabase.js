@@ -39,9 +39,9 @@ Cypress.Commands.add('changeDatabase', (newDatabaseName) => {
 })
 
 Cypress.Commands.add('buildAndInstallDependencies', () => {
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && composer install'`);
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn'`);
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`);
+    cy.exec(`${SSH_ON_APP} 'cd /var/www && composer install'`, {timeout: 120000});
+    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn'`, {timeout: 120000});
+    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
 })
 
 Cypress.Commands.add('dropAndRecreateDatabase', () => {
