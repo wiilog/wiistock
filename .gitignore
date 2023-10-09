@@ -24,6 +24,7 @@ yarn-error.log
 ###> wiilog/wiistock ###
 /.vs-code/
 /.idea/
+/public/uploads/attachments/
 /public/uploads/attachements/
 /public/generated/
 /config/generated.yaml

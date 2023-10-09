@@ -811,6 +811,10 @@ class ImportService
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
+        if(!isset($this->entityCache['receptions'])) {
+            $this->entityCache['receptions'] = [];
+        }
+
         if ($user) {
             $user = $userRepository->find($user->getId());
         }
@@ -1124,13 +1128,15 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
-        $dangerousGoods = (
-            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
-            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
-        );
+        if(isset($data['dangerousGoods'])){
+            $dangerousGoods = (
+                    filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+                );
 
-        $refArt
-            ->setDangerousGoods($dangerousGoods);
+            $refArt
+                ->setDangerousGoods($dangerousGoods);
+        }
 
         if (isset($data['onuCode'])) {
             $refArt->setOnuCode($data['onuCode'] ?: null);
@@ -1165,8 +1171,7 @@ class ImportService
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
                 ->filter()
-                ->toArray()
-            : [];
+            : Stream::from([]);
 
         if (!empty($volume) && !is_numeric($volume)) {
             $this->throwError('Champ volume non valide.');
@@ -1175,7 +1180,7 @@ class ImportService
             $this->throwError('Champ poids non valide.');
         }
 
-        $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
+        $invalidAssociatedDocumentType = $associatedDocumentTypes
             ->find(fn(string $type) => !in_array($type, $this->scalarCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
         if (!empty($invalidAssociatedDocumentType)) {
             $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
@@ -1186,7 +1191,7 @@ class ImportService
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,
-            "associatedDocumentTypes" => $associatedDocumentTypes,
+            "associatedDocumentTypes" => $associatedDocumentTypes->join(','),
         ];
         $refArt
             ->setDescription($description);
@@ -1224,6 +1229,7 @@ class ImportService
                 $message = "Veuillez saisir la référence de l'article de référence.";
                 $this->throwError($message);
             }
+
             $article = new Article();
             $isNewEntity = true;
         }

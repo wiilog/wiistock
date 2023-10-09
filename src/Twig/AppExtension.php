@@ -58,7 +58,7 @@ class AppExtension extends AbstractExtension {
 
     private array $settingsCache = [];
 
-    public function getFunctions() {
+    public function getFunctions(): array {
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
@@ -86,7 +86,7 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getFilters() {
+    public function getFilters(): array {
         return [
             new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
             new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
@@ -102,7 +102,7 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getTests() {
+    public function getTests(): array {
         return [
             new TwigTest('instanceof', [$this, 'isInstanceOf']),
         ];
@@ -244,7 +244,7 @@ class AppExtension extends AbstractExtension {
 
     public function isInstanceOf($entity, string $class): bool {
         $reflexionClass = new ReflectionClass($class);
-        return $reflexionClass->isInstance($entity);
+        return is_object($entity) && $reflexionClass->isInstance($entity);
     }
 
     public function flip(array $array): array {

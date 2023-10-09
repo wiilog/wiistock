@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategoryType;
 use App\Entity\SessionHistoryRecord;
+use App\Entity\Setting;
 use App\Entity\Type;
 use App\Entity\UserSession;
 use App\Entity\Utilisateur;
@@ -24,7 +25,7 @@ class SessionHistoryRecordService{
     public const MAX_SESSIONS_POSSIBLE = 2000;
 
     public function newSessionHistoryRecord(EntityManagerInterface $entityManager,
-                                            ?Utilisateur           $user,
+                                            Utilisateur            $user,
                                             DateTime               $date,
                                             Type                   $type,
                                             Request|string         $request): bool {
@@ -51,16 +52,14 @@ class SessionHistoryRecordService{
         return true;
     }
 
-    public function isLoginPossible(EntityManagerInterface $entityManager): bool {
+    public function isLoginPossible(EntityManagerInterface $entityManager, Utilisateur $user): bool {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $openedSessionLimit = intval($_SERVER["SESSION_LIMIT"] ?? self::UNLIMITED_SESSIONS);
 
-        if ($openedSessionLimit === self::UNLIMITED_SESSIONS) {
+        if ($openedSessionLimit === self::UNLIMITED_SESSIONS || $user->isWiilogUser()) {
             return true;
         } else {
-            $openedSessionsHistory = $sessionHistoryRepository->count([
-                'closedAt' => null,
-            ]);
+            $openedSessionsHistory = $sessionHistoryRepository->countOpenedSessions();
             return $openedSessionsHistory < $openedSessionLimit;
         }
     }
@@ -94,9 +93,12 @@ class SessionHistoryRecordService{
 
     public function closeInactiveSessions(EntityManagerInterface $entityManager): void {
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
         $typeRepository = $entityManager->getRepository(Type::class);
+
+        $sessionLifetime = $settingRepository->getOneParamByLabel(Setting::MAX_SESSION_TIME);
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_WEB_SESSION_HISTORY);
-        $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType);
+        $sessionsToClose = $sessionHistoryRepository->findSessionHistoryRecordToClose($sessionType, $sessionLifetime);
         $now = new DateTime();
         foreach ($sessionsToClose as $sessionToClose) {
             $this->closeSessionHistoryRecord($entityManager, $sessionToClose, $now);

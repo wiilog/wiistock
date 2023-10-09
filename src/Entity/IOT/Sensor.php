@@ -17,6 +17,7 @@ class Sensor {
     const ACTION = 'Action';
     const TEMPERATURE_HYGROMETRY = 'Température & Hygrométrie';
     const HYGROMETRY = 'Hygrométrie';
+    const EXTENDER = 'Extender';
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
         self::TEMPERATURE_HYGROMETRY => 'iot-temperature-hygrometry',
@@ -48,6 +49,9 @@ class Sensor {
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     private ?string $code = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $cloverMac = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'sensors')]
     #[ORM\JoinColumn(nullable: false)]
@@ -245,6 +249,18 @@ class Sensor {
         if($type) {
             $type->addSensor($this);
         }
+        return $this;
+    }
+
+    public function getCloverMac(): ?string
+    {
+        return $this->cloverMac;
+    }
+
+    public function setCloverMac(?string $cloverMac): self
+    {
+        $this->cloverMac = $cloverMac;
+
         return $this;
     }
 

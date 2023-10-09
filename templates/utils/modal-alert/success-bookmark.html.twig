@@ -1,4 +1,6 @@
-<div class="sa bookmark-icon bookmark-success m-auto d-none">
+{% set show = show is defined and show ? '' : 'd-none' %}
+
+<div class="sa bookmark-icon bookmark-success m-auto {{ show }}">
     <div class="sa-wrapper sa-success">
         <div class="sa-success-tip"></div>
         <div class="sa-success-long"></div>

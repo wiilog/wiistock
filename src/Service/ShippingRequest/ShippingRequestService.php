@@ -425,8 +425,8 @@ class ShippingRequestService {
             null,
             TrackingMovement::TYPE_DEPOSE,
             [
-                'from'=>$shippingRequest,
-                'shippingRequest'=>$shippingRequest
+                'from' => $shippingRequest,
+                'shippingRequest' => $shippingRequest,
             ]
         );
         $entityManager->persist($trackingMovement);
@@ -644,7 +644,7 @@ class ShippingRequestService {
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "$projectDir/public/uploads/attachements";
+        $deliverySlipOutdir = "$projectDir/public/uploads/attachments";
         $docxPath = "$deliverySlipOutdir/$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);

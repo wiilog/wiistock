@@ -205,23 +205,21 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-            if (value !== null && value !== "") {
-                if($input.is('[data-intl-tel-input]')){
-                    $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+            if($input.is('[data-intl-tel-input]')){
+                $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+            }
+            const $multipleKey = $input.closest(`[data-multiple-key]`);
+            if ($multipleKey.exists()) {
+                const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
+                if (!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
+                    multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                 }
-                const $multipleKey = $input.closest(`[data-multiple-key]`);
-                if ($multipleKey.exists()) {
-                    const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
-                    if (!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
-                        multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
-                    }
 
-                    const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
-                    multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
-                    data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
-                } else {
-                    data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
-                }
+                const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
+                multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = serializeFormValue(value);
+                data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
+            } else {
+                data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), serializeFormValue(value));
             }
         });
 
@@ -589,5 +587,11 @@ export function formatIconSelector(state) {
             ${state.text}
         </span>
     `);
+}
+
+function serializeFormValue(value) {
+    return (value === null || value === undefined)
+        ? '' // value for clear the field
+        : value;
 }
 

@@ -1,5 +1,8 @@
 import Form from "@app/form";
-import AJAX, {POST} from "@app/ajax";
+import Modal from "@app/modal";
+import {DELETE, POST} from "@app/ajax";
+
+global.deleteCustomer = deleteCustomer;
 
 let customerTable;
 
@@ -37,27 +40,27 @@ function initCustomerTable() {
 
 function initializeNewModal(table) {
     Form.create(`#modalNewCustomer`, {clearOnOpen: true})
-        .submitTo(`POST`, `customer_new`, {
-            table
+        .submitTo(POST, `customer_new`, {
+            tables: [table]
         })
 }
 
 function initializeEditModal(table) {
-    Form.create(`#modalEditCustomer`).submitTo(`POST`, `customer_edit`, {
-        table
+    Form.create(`#modalEditCustomer`).submitTo(POST, `customer_edit`, {
+        tables: [table]
     })
 }
 
 function initializeDeleteModal(table) {
-    Form.create(`#modalDeleteCustomer`).submitTo(`POST`, `customer_delete`, {
-        table
+    Form.create(`#modalDeleteCustomer`).submitTo(POST, `customer_delete`, {
+        tables: [table]
     })
 }
 
 function deleteCustomer(id){
     Modal.confirm({
         ajax: {
-            method: 'DELETE',
+            method: DELETE,
             route: 'customer_delete',
             params: { 'customer' : id },
         },
@@ -70,4 +73,3 @@ function deleteCustomer(id){
         table: customerTable,
     })
 }
-global.deleteCustomer = deleteCustomer;

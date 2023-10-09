@@ -518,54 +518,90 @@ class ArrivageController extends AbstractController {
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
-        $fournisseurId = $post->get('fournisseur');
-        $transporteurId = $post->get('transporteur');
-        $destinataireId = $post->get('destinataire');
-        $statutId = $post->get('statut');
-        $dropLocationId = $post->get('dropLocation');
-        $chauffeurId = $post->get('chauffeur');
-        $type = $post->get('type');
-        $newDestinataire = $destinataireId ? $utilisateurRepository->find($destinataireId) : null;
+        $newDestinataire = $post->has('destinataire') ? $utilisateurRepository->find($post->get('destinataire')) : null;
         $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
-        $numeroCommadeListStr = $post->get('numeroCommandeList');
+
         $dropLocation = $post->has('dropLocation')
-            ? ($dropLocationId ? $emplacementRepository->find($dropLocationId) : null)
+            ? $emplacementRepository->find($post->get('dropLocation'))
             : $arrivage->getDropLocation();
 
         $sendMail = $settingRepository->getOneParamByLabel(Setting::SEND_MAIL_AFTER_NEW_ARRIVAL);
 
         $oldSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
-        $arrivage
-            ->setCommentaire($post->get('commentaire'))
-            ->setNoTracking(substr($post->get('noTracking'), 0, 64))
-            ->setNumeroCommandeList(explode(',', $numeroCommadeListStr))
-            ->setDropLocation($dropLocation)
-            ->setFournisseur($fournisseurId ? $fournisseurRepository->find($fournisseurId) : null)
-            ->setTransporteur($transporteurId ? $transporteurRepository->find($transporteurId) : null)
-            ->setChauffeur($chauffeurId ? $chauffeurRepository->find($chauffeurId) : null)
-            ->setStatut($statutId ? $statutRepository->find($statutId) : null)
-            ->setCustoms($post->get('customs') == 'true')
-            ->setFrozen($post->get('frozen') == 'true')
-            ->setDestinataire($newDestinataire)
-            ->setBusinessUnit($post->get('businessUnit') ?? null)
-            ->setProjectNumber($post->get('noProject') ?? null)
-            ->setType($typeRepository->find($type));
+        $arrivage->setDropLocation($dropLocation);
+
+        if($post->has('commentaire')){
+            $arrivage->setCommentaire($post->get('commentaire'));
+        }
+
+        if($post->has('noTracking')){
+            $arrivage->setNoTracking(substr($post->get('noTracking'), 0, 64));
+        }
+
+        if($post->has('numeroCommandeList')){
+            $arrivage->setNumeroCommandeList(explode(',', $post->get('numeroCommandeList')));
+        }
+
+        if($post->has('fournisseur')){
+            $fournisseur = $post->get('fournisseur') ? $fournisseurRepository->find($post->get('fournisseur')) : null;
+            $arrivage->setFournisseur($fournisseur);
+        }
+
+        if($post->has('transporteur')){
+            $transporteur = $post->get('transporteur') ? $transporteurRepository->find($post->get('transporteur')) : null;
+            $arrivage->setTransporteur($transporteur);
+        }
+
+        if($post->has('chauffeur')){
+            $chauffeur = $post->get('chauffeur') ? $chauffeurRepository->find($post->get('chauffeur')) : null;
+            $arrivage->setChauffeur($chauffeur);
+        }
+
+        if($post->has('statut')){
+            $statut = $post->get('statut') ? $statutRepository->find($post->get('statut')) : null;
+            $arrivage->setStatut($statut);
+        }
+
+        if($post->has('customs')){
+            $arrivage->setCustoms($post->getBoolean('customs'));
+        }
+
+        if($post->has('frozen')){
+            $arrivage->setFrozen($post->getBoolean('frozen'));
+        }
+
+        if($post->has('destinataire')){
+            $arrivage->setDestinataire($newDestinataire);
+        }
+
+        if($post->has('businessUnit')){
+            $arrivage->setBusinessUnit($post->get('businessUnit'));
+        }
+
+        if($post->has('noProject')){
+            $arrivage->setProjectNumber($post->get('noProject'));
+        }
+
+        if($post->has('type')){
+            $type = $post->get('type') ? $typeRepository->find($post->get('type')) : null;
+            $arrivage->setType($type);
+        }
 
         $newSupplierId = $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getId() : null;
 
-        $acheteurs = $post->get('acheteurs');
 
-        $acheteursEntities = array_map(function ($acheteur) use ($utilisateurRepository) {
-            return $utilisateurRepository->findOneBy(['username' => $acheteur]);
-        }, explode(',', $acheteurs));
+        if($post->has('acheteurs')){
+            $acheteursEntities = $post->get('acheteurs') ? $utilisateurRepository->findBy(['username' => explode(',', $post->get('acheteurs'))]) : null;
 
-        $arrivage->removeAllAcheteur();
-        if (!empty($acheteurs)) {
-            foreach ($acheteursEntities as $acheteursEntity) {
-                $arrivage->addAcheteur($acheteursEntity);
+            $arrivage->removeAllAcheteur();
+            if (!empty($post->get('acheteurs'))) {
+                foreach ($acheteursEntities as $acheteursEntity) {
+                    $arrivage->addAcheteur($acheteursEntity);
+                }
             }
         }
+
         $entityManager->flush();
         if ($sendMail && $destinataireChanged) {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
@@ -1012,7 +1048,6 @@ class ArrivageController extends AbstractController {
      * @Route("/api-modifier-litige", name="litige_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      */
     public function apiEditLitige(Request $request,
-                                  UserService $userService,
                                   EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -1021,7 +1056,6 @@ class ArrivageController extends AbstractController {
             $disputeRepository = $entityManager->getRepository(Dispute::class);
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $attachmentRepository = $entityManager->getRepository(Attachment::class);
-            $usersRepository = $entityManager->getRepository(Utilisateur::class);
 
             $dispute = $disputeRepository->find($data['disputeId']);
 
@@ -1032,19 +1066,17 @@ class ArrivageController extends AbstractController {
 
             $arrivage = $arrivageRepository->find($data['arrivageId']);
 
-            $hasRightToTreatLitige = $userService->hasRightFunction(Menu::QUALI, Action::TREAT_DISPUTE);
-
             $disputeStatuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::DISPUTE_ARR, 'displayOrder'))
                 ->map(fn(Statut $statut) => [
                     'id' => $statut->getId(),
                     'type' => $statut->getType(),
                     'nom' => $this->getFormatter()->status($statut),
+                    'treated' => $statut->isTreated(),
                 ])
                 ->toArray();
 
             $html = $this->renderView('arrivage/modalEditLitigeContent.html.twig', [
                 'dispute' => $dispute,
-                'hasRightToTreatLitige' => $hasRightToTreatLitige,
                 'disputeTypes' => $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]),
                 'disputeStatuses' => $disputeStatuses,
                 'attachments' => $attachmentRepository->findBy(['dispute' => $dispute]),
@@ -1218,6 +1250,7 @@ class ArrivageController extends AbstractController {
         $printTwiceIfCustoms = $settingRepository->getOneParamByLabel(Setting::PRINT_TWICE_CUSTOMS);
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
         $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
+        $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1260,6 +1293,7 @@ class ArrivageController extends AbstractController {
                     $packIdsFilter,
                     $businessUnitParam,
                     $projectParam,
+                    $showDateAndHourArrivalUl,
                     $forceTagEmpty ? null :$tagTemplate,
                     $forceTagEmpty
                 );
@@ -1295,6 +1329,7 @@ class ArrivageController extends AbstractController {
                 $secondCustomIconConfig,
                 $businessUnitParam,
                 $projectParam,
+                $showDateAndHourArrivalUl,
             );
         }
 
@@ -1334,20 +1369,21 @@ class ArrivageController extends AbstractController {
         return $this->printArrivagePackBarCodes($arrivage, $request, $entityManager, $PDFGeneratorService, $packService, null, $packIdsFilter, $template, $forceTagEmpty);
     }
 
-    private function getBarcodeConfigPrintAllPacks(Arrivage    $arrivage,
-                                                   PackService $packService,
-                                                   ?bool       $typeArrivalParamIsDefined = false,
-                                                   ?bool       $usernameParamIsDefined = false,
-                                                   ?bool       $dropzoneParamIsDefined = false,
-                                                   ?bool       $packCountParamIsDefined = false,
-                                                   ?bool       $commandAndProjectNumberIsDefined = false,
-                                                   ?array      $firstCustomIconConfig = null,
-                                                   ?array      $secondCustomIconConfig = null,
-                                                   array       $packIdsFilter = [],
-                                                   ?bool       $businessUnitParam = false,
-                                                   ?bool $projectParam = false,
+    private function getBarcodeConfigPrintAllPacks(Arrivage     $arrivage,
+                                                   PackService  $packService,
+                                                   ?bool        $typeArrivalParamIsDefined = false,
+                                                   ?bool        $usernameParamIsDefined = false,
+                                                   ?bool        $dropzoneParamIsDefined = false,
+                                                   ?bool        $packCountParamIsDefined = false,
+                                                   ?bool        $commandAndProjectNumberIsDefined = false,
+                                                   ?array       $firstCustomIconConfig = null,
+                                                   ?array       $secondCustomIconConfig = null,
+                                                   array        $packIdsFilter = [],
+                                                   ?bool        $businessUnitParam = false,
+                                                   ?bool        $projectParam = false,
+                                                   ?bool        $showDateAndHourArrivalUl = false,
                                                    ?TagTemplate $tagTemplate = null,
-                                                   bool $forceTagEmpty = false,
+                                                   bool         $forceTagEmpty = false,
     ): array {
         $total = $arrivage->getPacks()->count();
         $packs = [];
@@ -1371,6 +1407,7 @@ class ArrivageController extends AbstractController {
                     $secondCustomIconConfig,
                     $businessUnitParam,
                     $projectParam,
+                    $showDateAndHourArrivalUl,
                 );
             }
         }
@@ -1402,7 +1439,7 @@ class ArrivageController extends AbstractController {
 
     private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
-        $attachments = $attachmentService->createAttachements($request->files);
+        $attachments = $attachmentService->createAttachments($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachment($attachment);

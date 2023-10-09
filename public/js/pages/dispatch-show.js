@@ -171,26 +171,38 @@ function generateDispatchLabel($button, dispatchId) {
         .then(() => window.location.reload())
 }
 
-function forbiddenPhoneNumberValidator(data, errors, $form) {
+function forbiddenPhoneNumberValidator($form, data = undefined, errors = undefined) {
     const $inputs = $form.find(".forbidden-phone-numbers");
     const numbers = ($('#forbiddenPhoneNumbers').val() || '')
         .split(';')
         .map((number) => number.replace(/[^0-9]/g, ''));
 
+    const $invalidElements = [];
+    const errorMessages = [];
     $inputs.each(function() {
         const $input = $(this);
         const rawValue = ($input.val() || '');
         const value = rawValue.replace(/[^0-9]/g, '');
 
         if(value && numbers.indexOf(value) !== -1) {
-            errors.push({
-                message: `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`,
-                global: true,
-            });
+            const message = `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`;
+            if(errors || data) {
+                errors.push({
+                    message,
+                    global: true,
+                });
+            } else {
+                errorMessages.push(message);
+                $invalidElements.push($input);
+            }
         }
     });
 
-    return errors;
+    return errors || {
+        success: $invalidElements.length === 0,
+        errorMessages,
+        $isInvalidElements: $invalidElements,
+    };
 }
 
 function openValidateDispatchModal() {
@@ -267,7 +279,7 @@ function initDeliveryNoteModal(dispatchId) {
     const $modalBody = $modal.find(`.modal-body`);
 
     Form.create($modal)
-        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator(data, errors, $form))
+        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator($form, data, errors))
         .submitTo(AJAX.POST, `delivery_note_dispatch`, {
             success: ({attachmentId, headerDetailsConfig}) => {
                 $(`.zone-entete`).html(headerDetailsConfig);
@@ -391,6 +403,7 @@ function savePackLine(dispatchId, $row, async = true) {
                     }
 
                     $row.data(`data`, JSON.stringify(data));
+                    $row.find('[name=height]').trigger('change');
                 },
             });
 
@@ -448,9 +461,15 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const isStillInSelect = ($relatedTarget.is('input') || $relatedTarget.is('select'))
+                    && ($target.closest('label').find('select[name=width]').exists()
+                        || $target.closest('label').find('select[name=length]').exists()
+                        || $target.closest('label').find('select[name=height]').exists());
+
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-pack-row`)
-                    || wasPackSelect) {
+                    || wasPackSelect
+                    || isStillInSelect) {
                     return;
                 }
 
@@ -836,11 +855,11 @@ function selectUlChanged($select){
 
 function registerVolumeCompute() {
     $(document).arrive(`[name=height], [name=width], [name=length]`, function() {
-        $(this).on(`select2:close`, function() {
+        $(this).on(`select2:close change`, function() {
             const $line = $(this).closest(`tr`);
             const $fields = $line.find(`[name=height], [name=width], [name=length]`);
             const $volume = $line.find(`[name=volume]`);
-            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null)) {
+            if(Array.from($fields).some((element) => isNaN($(element).val()) || $(element).val() === null || $(element).val() === '')) {
                 $volume.val(null);
             } else {
                 const value = Array.from($fields).reduce((acc, element) => acc * Number($(element).val()), 1);

@@ -226,8 +226,6 @@ class HandlingController extends AbstractController {
             ->setEmergency($post->get('emergency'))
             ->setCarriedOutOperationCount(is_numeric($carriedOutOperationCount) ? ((int) $carriedOutOperationCount) : null);
 
-
-        $exceptionLoggerService->sendLog(new \Exception(mb_detect_encoding($post->get('comment'))), $request);
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
         ]);
@@ -259,7 +257,7 @@ class HandlingController extends AbstractController {
                     $attachmentService->saveFile($file)
                 );
             }
-            $attachments = $attachmentService->createAttachements($fileNames);
+            $attachments = $attachmentService->createAttachments($fileNames);
             foreach ($attachments as $attachment) {
                 $entityManager->persist($attachment);
                 $handling->addAttachment($attachment);
@@ -271,16 +269,17 @@ class HandlingController extends AbstractController {
             $entityManager->flush();
             if (($handling->getStatus()->getState() == Statut::NOT_TREATED)
                 && $handling->getType()
-                && ($handling->getType()->isNotificationsEnabled() || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
+                && (($handling->getType()->isNotificationsEnabled() && !$handling->getType()->getNotificationsEmergencies())
+                    || $handling->getType()->isNotificationsEmergency($handling->getEmergency()))) {
                 $notificationService->toTreat($handling);
             }
         }
         /** @noinspection PhpRedundantCatchClauseInspection */
-        catch (UniqueConstraintViolationException | ConnectException $e) {
+        catch (UniqueConstraintViolationException|ConnectException $e) {
             if ($e instanceof UniqueConstraintViolationException) {
                 $message = $translation->translate('Demande', 'Services', null, 'Une autre demande de service est en cours de création, veuillez réessayer.', false);
             } else if ($e instanceof ConnectException) {
-                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notifiation de cette demande de service. Veuillez réessayer.');
+                $message = $translation->translate('Demande', 'Services', null, 'Une erreur s\'est produite lors de l`\'envoi de la notification de cette demande de service. Veuillez réessayer.');
             }
             if (!empty($message)) {
                 return new JsonResponse([
@@ -378,7 +377,7 @@ class HandlingController extends AbstractController {
 
     private function persistAttachments(Handling $entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
-        $attachments = $attachmentService->createAttachements($request->files);
+        $attachments = $attachmentService->createAttachments($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachment($attachment);

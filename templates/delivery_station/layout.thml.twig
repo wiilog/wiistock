@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="wrapper">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center w-100 px-4 pt-3">
+                <img src="{{ setting_value('DELIVERY_STATION_TOP_LEFT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_LEFT_LOGO')) }}" height="65px">
+                <h1 class="form-header d-none">
+                    Sortie de stock
+                </h1>
+                <img src="{{ setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO') ? asset(setting_value('DELIVERY_STATION_TOP_RIGHT_LOGO')) }}" height="65px">
+            </div>
+            {% if invalidToken is not defined %}
+                <div class="text-center wii-subtitle form-header-subtitle d-none">
+                    {{ line.deliveryType.label }} - {{ line.visibilityGroup.label }}
+                </div>
+            {% endif %}
+            {% block page_content %}{% endblock %}
+        </div>
+    </div>
+    <div class="wave-container">
+        <div class="wave"></div>
+    </div>
+{% endblock %}

@@ -469,7 +469,18 @@ class TransportController extends AbstractApiController
             $pack->getTransportDeliveryOrderPack()?->setState(TransportDeliveryOrderPack::LOADED_STATE);
 
             $trackingMovement = $trackingMovementService
-                ->createTrackingMovement($pack, $location, $user, $now, true, true, TrackingMovement::TYPE_DEPOSE);
+                ->createTrackingMovement(
+                    $pack,
+                    $location,
+                    $user,
+                    $now,
+                    true,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
+                );
             $manager->persist($trackingMovement);
         }
 
@@ -515,7 +526,10 @@ class TransportController extends AbstractApiController
                     $now,
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $manager->persist($trackingMovement);
@@ -556,7 +570,10 @@ class TransportController extends AbstractApiController
             $now,
             true,
             true,
-            TrackingMovement::TYPE_EMPTY_ROUND
+            TrackingMovement::TYPE_EMPTY_ROUND,
+            [
+                'quantity' => 1
+            ]
         );
         $manager->persist($trackingMovement);
 
@@ -768,8 +785,8 @@ class TransportController extends AbstractApiController
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
 
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
@@ -827,7 +844,10 @@ class TransportController extends AbstractApiController
                                 $now,
                                 true,
                                 true,
-                                TrackingMovement::TYPE_DEPOSE);
+                                TrackingMovement::TYPE_DEPOSE,
+                            [
+                                'quantity' =>  $line->getPack()->getQuantity()
+                            ]);
                         $manager->persist($trackingMovement);
                     }
                 }
@@ -970,8 +990,8 @@ class TransportController extends AbstractApiController
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
 
         if ($signatureAttachment) {
             $order->setSignature($signatureAttachment);
@@ -1171,7 +1191,10 @@ class TransportController extends AbstractApiController
                     new DateTime(),
                     true,
                     true,
-                    TrackingMovement::TYPE_DEPOSE
+                    TrackingMovement::TYPE_DEPOSE,
+                    [
+                        'quantity' => $pack->getQuantity()
+                    ]
                 );
 
                 $transport = $pack->getTransportDeliveryOrderPack()->getOrder();
@@ -1226,7 +1249,10 @@ class TransportController extends AbstractApiController
                         new DateTime(),
                         true,
                         true,
-                        TrackingMovement::TYPE_DEPOSE
+                        TrackingMovement::TYPE_DEPOSE,
+                        [
+                            'quantity' => $createdPack->getQuantity()
+                        ]
                     );
 
                     $manager->persist($createdPack);

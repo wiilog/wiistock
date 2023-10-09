@@ -26,6 +26,7 @@ use App\Entity\CategorieCL;
 use App\Exceptions\FormException;
 use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -245,8 +246,8 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(EntityManagerInterface $entityManager, array $data, array $options = []): Article {
-
+    public function newArticle(EntityManagerInterface $entityManager, ParameterBag|array $data, array $options = []): Article {
+        $data = !($data instanceof ParameterBag) ? New ParameterBag($data) : $data;
         /** @var Article|null $existing */
         $existing = $options['existing'] ?? null;
         $excludeBarcodes = $options['excludeBarcodes'] ?? [];
@@ -257,13 +258,17 @@ class ArticleDataService
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $statusLabel = $data['statut'] ?? Article::STATUT_ACTIF;
+        $statusLabel = $data->get('statut') ?? Article::STATUT_ACTIF;
         $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
         if (!isset($statut)) {
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         }
 
-        $refArticle = $referenceArticleRepository->find($data['refArticle']);
+        $refArticleId = $data->getInt('refArticle');
+        $refArticle = $referenceArticleRepository->find($refArticleId);
+        if (!$refArticle) {
+            throw new FormException();
+        }
         if($refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE
             || $refArticle->getStatut()?->getCode() !== ReferenceArticle::STATUT_ACTIF) {
             throw new FormException('Impossible de créer un article pour une référence de type ' . $refArticle->getTypeQuantite() . ' ou dont le statut est ' . $refArticle->getStatut()?->getNom());
@@ -281,71 +286,100 @@ class ArticleDataService
         $i = $highestCpt + 1;
         $cpt = sprintf('%05u', $i);
 
-        if (isset($data['emplacement'])) {
-            $location = $emplacementRepository->find($data['emplacement']);
-        } else {
-            $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
-            if (!$location) {
-                $location = $this->emplacementDataService->persistLocation([
-                    "Label" => Emplacement::LABEL_A_DETERMINER,
-                ], $entityManager);
-            }
-            $location->setIsActive(true);
-        }
-
         $type = $refArticle->getType();
-        $quantity = max((int)($data['quantite'] ?? -1), 0); // protection contre quantités négatives
+        $quantity = max(($data->getInt('quantite', 0)), 0); // protection contre quantités négatives
 
         if ($existing) {
-            $existing
-                ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setExpiryDate(isset($data['expiry']) ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
-                ->setCommentaire($data['commentaire'] ?? null)
-                ->setConform($data['conform'] ?? true)
-                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
-                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
-                ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setBatch($data['batch'] ?? null);
+            if ($data->has('rfidTag')) {
+                $existing->setRFIDtag($data->get('rfidTag'));
+            }
 
-            if(isset($data['nativeCountry'])) {
-                $existing->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
+            if ($data->has('expiry')) {
+                $existing->setExpiryDate($this->formatService->parseDatetime($data->get('expiry'), ['Y-m-d', 'd/m/Y']));
+            }
+
+            if ($data->has('prix')) {
+                $existing->setPrixUnitaire(max(0, $data->getInt('prix')));
+            }
+
+            if ($data->has('commentaire')) {
+                $existing->setCommentaire($data->get('commentaire'));
+            }
+
+            if ($data->has('conform')) {
+                $existing->setConform($data->getBoolean('conform', true));
+            }
+
+            if ($data->has('purchaseOrderLine')) {
+                $existing->setPurchaseOrder($data->get('purchaseOrderLine'));
+            }
+
+            if ($data->has('deliveryNoteLine')) {
+                $existing->setDeliveryNote($data->get('deliveryNoteLine'));
+            }
+
+            if ($data->has('productionDate')) {
+                $existing->setProductionDate($this->formatService->parseDatetime($data->get('productionDate'), ['Y-m-d', 'd/m/Y']));
+            }
+
+            if ($data->has('manufacturedAt')) {
+                $existing->setManufacturedAt($this->formatService->parseDatetime($data->get('manufacturedAt'), ['Y-m-d', 'd/m/Y']));
+            }
+
+            if ($data->has('batch')) {
+                $existing->setBatch($data->get('batch'));
+            }
+
+            if ($data->has('nativeCountry')) {
+                $nativeCountryId = $data->getInt('nativeCountry');
+                $existing->setNativeCountry($nativeCountryId ? $entityManager->find(NativeCountry::class, $data->getInt('nativeCountry')) : null);
             }
         } else {
+            if ($data->has('emplacement')) {
+                $locationId = $data->getInt('emplacement');
+                $location = $locationId ? $emplacementRepository->find($locationId) : null;
+            } else {
+                $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
+                if (!$location) {
+                    $location = $this->emplacementDataService->persistLocation([
+                        "Label" => Emplacement::LABEL_A_DETERMINER,
+                    ], $entityManager);
+                }
+                $location->setIsActive(true);
+            }
+
+            $articleFournisseurId = $data->getInt('articleFournisseur');
+
             $article = (new Article())
-                ->setLabel($data['libelle'] ?? $refArticle->getLibelle())
-                ->setConform($data['conform'] ?? true)
+                ->setLabel($data->get('libelle') ?? $refArticle->getLibelle())
+                ->setConform($data->getBoolean('conform', true))
                 ->setStatut($statut)
-                ->setCommentaire($data['commentaire'] ?? null)
-                ->setPrixUnitaire(isset($data['prix']) ? max(0, $data['prix']) : null)
+                ->setCommentaire($data->get('commentaire'))
+                ->setPrixUnitaire($data->has('prix') ? max(0, $data->getInt('prix')) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
                 ->setEmplacement($location)
-                ->setArticleFournisseur($articleFournisseurRepository->find($data['articleFournisseur']))
+                ->setArticleFournisseur($articleFournisseurId ? $articleFournisseurRepository->find($articleFournisseurId) : null)
                 ->setType($type)
-                ->setBarCode($data['barcode'] ?? $this->generateBarcode($excludeBarcodes))
+                ->setBarCode($data->get('barcode') ?? $this->generateBarcode($excludeBarcodes))
                 ->setStockEntryDate(new DateTime("now"))
-                ->setDeliveryNote($data['deliveryNoteLine'] ?? null)
-                ->setProductionDate(isset($data['productionDate']) ? $this->formatService->parseDatetime($data['productionDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setManifacturingDate(isset($data['manufactureDate']) ? $this->formatService->parseDatetime($data['manufactureDate'], ['Y-m-d', 'd/m/Y']) : null)
-                ->setPurchaseOrder($data['purchaseOrderLine'] ?? null)
-                ->setRFIDtag($data['rfidTag'] ?? null)
-                ->setBatch($data['batch'] ?? null)
-                ->setCurrentLogisticUnit($data['currentLogisticUnit'] ?? null);
+                ->setDeliveryNote($data->get('deliveryNoteLine'))
+                ->setProductionDate($data->has('productionDate') ? $this->formatService->parseDatetime($data->get('productionDate'), ['Y-m-d', 'd/m/Y']) : null)
+                ->setManufacturedAt($data->has('manufacturedAt') ? $this->formatService->parseDatetime($data->get('manufacturedAt'), ['Y-m-d', 'd/m/Y']) : null)
+                ->setPurchaseOrder($data->get('purchaseOrderLine'))
+                ->setRFIDtag($data->get('rfidTag'))
+                ->setBatch($data->get('batch'))
+                ->setCurrentLogisticUnit($data->get('currentLogisticUnit'))
+                ->setExpiryDate($this->formatService->parseDatetime($data->get('expiry'), ['Y-m-d', 'd/m/Y']));
 
-            if(isset($data['nativeCountry'])) {
-                $article->setNativeCountry($entityManager->find(NativeCountry::class, $data['nativeCountry']));
-            }
-
-            if (isset($data['expiry'])) {
-                $article->setExpiryDate($data['expiry'] ? $this->formatService->parseDatetime($data['expiry'], ['Y-m-d', 'd/m/Y']) : null);
+            if($nativeCountryId = $data->get('nativeCountry')) {
+                $article->setNativeCountry($entityManager->find(NativeCountry::class, $nativeCountryId));
             }
 
             $entityManager->persist($article);
         }
 
-        $this->freeFieldService->manageFreeFields($existing ?? $article, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($existing ?? $article, $data->all(), $entityManager);
 
         return $existing ?? $article;
     }
@@ -451,13 +485,12 @@ class ArticleDataService
                 'lu' => $ul,
             ]),
             'project' => $article->getCurrentLogisticUnit()?->getProject()?->getCode() ?? '',
-            "manufactureDate" => $this->formatService->date($article->getManifacturingDate()),
+            "manufacturedAt" => $this->formatService->date($article->getManufacturedAt()),
             "productionDate" => $this->formatService->date($article->getProductionDate()),
             "deliveryNoteLine" => $article->getDeliveryNote() ?: '',
             "purchaseOrderLine" => $article->getPurchaseOrder() ?: '',
             "nativeCountry" => $article->getNativeCountry() ? $article->getNativeCountry()->getLabel() : '',
             'RFIDtag' => $article->getRFIDtag(),
-            'manifacturingDate' => $article->getManifacturingDate() ? $article ->getManifacturingDate()->format('d/m/Y') : '',
             'purchaseOrder' => $article->getPurchaseOrder(),
         ];
 
@@ -646,7 +679,7 @@ class ArticleDataService
             ["title" => "Commentaire", "name" => "comment", 'searchable' => true],
             ["title" => $this->translation->translate('Référentiel', 'Projet', 'Projet', false), "name" => "project", 'searchable' => true],
             ["title" => "Tag RFID", "name" => "RFIDtag", 'searchable' => true],
-            ["title" => "Date de fabrication", "name" => "manufactureDate", 'searchable' => true],
+            ["title" => "Date de fabrication", "name" => "manufacturedAt", 'searchable' => true],
             ["title" => "Date de production", "name" => "productionDate", 'searchable' => true],
             ["title" => "Ligne bon de livraison", "name" => "deliveryNoteLine", 'searchable' => true],
             ["title" => "Ligne commande d'achat", "name" => "purchaseOrderLine", 'searchable' => true],
@@ -658,7 +691,7 @@ class ArticleDataService
 
     public function putArticleLine($handle,
                                    array $article,
-                                   array $freeFieldsConfig) {
+                                   array $freeFieldsConfig): void {
         $line = [
             $article['reference'],
             $article['label'],
@@ -683,7 +716,7 @@ class ArticleDataService
             $article['purchaseOrder'],
             $article['deliveryNote'],
             $article['nativeCountryLabel'],
-            $article['manifacturingDate'] ? $article['manifacturingDate']->format('d/m/Y') : '',
+            $article['manufacturedAt'] ? $article['manufacturedAt']->format('d/m/Y') : '',
             $article['productionDate'] ? $article['productionDate']->format('d/m/Y') : '',
         ];
 

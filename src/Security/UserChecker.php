@@ -31,8 +31,8 @@ class UserChecker implements UserCheckerInterface
             throw new CustomUserMessageAccountStatusException('Votre compte est désactivé. Veuillez contacter votre administrateur.', [], self::ACCOUNT_DISABLED_CODE);
         }
         $this->sessionService->closeInactiveSessions($this->entityManager);
-        if (!$this->sessionService->isLoginPossible($this->entityManager)) {
-            throw new CustomUserMessageAccountStatusException('Le nombre de licence utilisés en cours sur cette instance a déjà été atteint. ', [], self::NO_MORE_SESSION_AVAILABLE);
+        if (!$this->sessionService->isLoginPossible($this->entityManager, $user)) {
+            throw new CustomUserMessageAccountStatusException('Le nombre de licences utilisées en cours sur cette instance a déjà été atteint.', [], self::NO_MORE_SESSION_AVAILABLE);
         }
     }
 

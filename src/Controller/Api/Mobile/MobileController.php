@@ -60,6 +60,7 @@ use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GroupService;
 use App\Service\HandlingService;
@@ -137,11 +138,11 @@ class MobileController extends AbstractApiController
         if (!empty($loggedUser)) {
             if($userService->hasRightFunction(Menu::NOMADE, Action::ACCESS_NOMADE_LOGIN, $loggedUser)) {
                 $sessionHistoryRecordService->closeInactiveSessions($entityManager);
-                if($sessionHistoryRecordService->isLoginPossible($entityManager)){
+                if($sessionHistoryRecordService->isLoginPossible($entityManager, $loggedUser)){
                     $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
                     $apiKey = $this->apiKeyGenerator();
                     $sessionHistoryRecordService->closeOpenedSessionsByUserAndType($entityManager, $loggedUser, $sessionType);
-                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager,$loggedUser, new DateTime('now'), $sessionType, $apiKey);
+                    $sessionHistoryRecordService->newSessionHistoryRecord($entityManager, $loggedUser, new DateTime('now'), $sessionType, $apiKey);
                     $entityManager->flush();
 
                     $rights = $userService->getMobileRights($loggedUser);
@@ -636,7 +637,7 @@ class MobileController extends AbstractApiController
                                 if (!empty($photoFile)) {
                                     $fileNames = array_merge($fileNames, $attachmentService->saveFile($photoFile));
                                 }
-                                $attachments = $attachmentService->createAttachements($fileNames);
+                                $attachments = $attachmentService->createAttachments($fileNames);
                                 foreach ($attachments as $attachment) {
                                     $entityManager->persist($attachment);
                                     $packMvt->addAttachment($attachment);
@@ -653,7 +654,6 @@ class MobileController extends AbstractApiController
                             }
 
                             $options += $trackingMovementService->treatTrackingData($mvt, $request->files, $index);
-
                             $createdMvt = $trackingMovementService->createTrackingMovement(
                                 //either reference or article
                                 $mvt["ref_article"],
@@ -897,7 +897,7 @@ class MobileController extends AbstractApiController
                                     [
                                         'mouvementStock' => $movement,
                                         'preparation' => $preparation,
-                                    ],
+                                    ]
                                 );
 
                                 $entityManager->persist($trackingMovementDrop);
@@ -906,6 +906,7 @@ class MobileController extends AbstractApiController
                             }
                         }
                         if (isset($ulToMove)){
+                            /** @var Pack $lu */
                             foreach (array_unique($ulToMove) as $lu) {
                                 if ($lu != null){
                                     $pickTrackingMovement = $trackingMovementService->createTrackingMovement(
@@ -916,8 +917,9 @@ class MobileController extends AbstractApiController
                                         true,
                                         true,
                                         TrackingMovement::TYPE_PRISE,
-                                        ['preparation' => $preparation]
-
+                                        [
+                                            'preparation' => $preparation,
+                                        ]
                                     );
                                     $DropTrackingMovement = $trackingMovementService->createTrackingMovement(
                                         $lu,
@@ -927,7 +929,9 @@ class MobileController extends AbstractApiController
                                         true,
                                         true,
                                         TrackingMovement::TYPE_DEPOSE,
-                                        ['preparation' => $preparation]
+                                        [
+                                            'preparation' => $preparation,
+                                        ]
                                     );
                                     $entityManager->persist($pickTrackingMovement);
                                     $entityManager->persist($DropTrackingMovement);
@@ -1140,7 +1144,7 @@ class MobileController extends AbstractApiController
             do {
                 $photoFile = $request->files->get("photo_$fileCounter");
                 if (!empty($photoFile)) {
-                    $attachments = $attachmentService->createAttachements([$photoFile]);
+                    $attachments = $attachmentService->createAttachments([$photoFile]);
                     if (!empty($attachments)) {
                         $handling->addAttachment($attachments[0]);
                         $entityManager->persist($attachments[0]);
@@ -1217,7 +1221,7 @@ class MobileController extends AbstractApiController
                     if ($location) {
                         // flush auto at the end
                         $livraisonsManager->setEntityManager($entityManager);
-                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location, true);
+                        $livraisonsManager->finishLivraison($nomadUser, $livraison, $dateEnd, $location);
                         $entityManager->flush();
 
                         $resData['success'][] = [
@@ -1339,7 +1343,7 @@ class MobileController extends AbstractApiController
         $movementsStr = $request->request->get('mouvements');
         $movements = json_decode($movementsStr, true);
 
-        $finishedMovements = ($trackingMode === 'drop');
+        $isMovementFinished = ($trackingMode === 'drop');
         $movementType = $trackingMode === 'drop' ? TrackingMovement::TYPE_DEPOSE : TrackingMovement::TYPE_PRISE;
 
         $groupsArray = Stream::from($movements)
@@ -1377,13 +1381,13 @@ class MobileController extends AbstractApiController
 
                     $options = ['disableUngrouping' => true];
 
-                    if ($finishedMovements) {
+                    if ($isMovementFinished) {
                         $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($parent->getLastTracking());
                     }
 
                     /** @var Pack $child */
                     foreach ($parent->getChildren() as $child) {
-                        if ($finishedMovements) {
+                        if ($isMovementFinished) {
                             $res['finishedMovements'][] = $trackingMovementService->finishTrackingMovement($child->getLastTracking());
                         }
 
@@ -1393,9 +1397,13 @@ class MobileController extends AbstractApiController
                             $operator,
                             $serializedGroup['date'],
                             true,
-                            $finishedMovements,
+                            $isMovementFinished,
                             $movementType,
-                            array_merge(['parent' => $parent], $options)
+                            array_merge(
+                                [
+                                    'parent' => $parent,
+                                ],
+                                $options)
                         );
 
                         $newMovements[] = $trackingMovement;
@@ -1410,7 +1418,7 @@ class MobileController extends AbstractApiController
                         $operator,
                         $serializedGroup['date'],
                         true,
-                        $finishedMovements,
+                        $isMovementFinished,
                         $movementType,
                         $options
                     );
@@ -1431,7 +1439,7 @@ class MobileController extends AbstractApiController
                     }
 
                     foreach ($newMovements as $movement) {
-                        $attachments = $attachmentService->createAttachements($fileNames);
+                        $attachments = $attachmentService->createAttachments($fileNames);
                         foreach ($attachments as $attachment) {
                             $entityManager->persist($attachment);
                             $movement->addAttachment($attachment);
@@ -1684,7 +1692,10 @@ class MobileController extends AbstractApiController
         $entityManager->flush();
         $response = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
-            ['demande' => $request],
+            [
+                'demande' => $request,
+                'directDelivery' => true,
+            ],
             false,
             $freeFieldService,
             false,
@@ -1715,7 +1726,10 @@ class MobileController extends AbstractApiController
                     false,
                     TrackingMovement::TYPE_PICK_LU,
                     false,
-                    ["delivery" => $deliveryOrder]
+                    [
+                        "delivery" => $deliveryOrder,
+                        "stockAction" => true,
+                    ]
                 );
             }
         }
@@ -2137,7 +2151,7 @@ class MobileController extends AbstractApiController
             ->setDeliveryNote($deliveryLineStr)
             ->setNativeCountry($countryFrom)
             ->setProductionDate($productionDate)
-            ->setManifacturingDate($manufacturingDate)
+            ->setManufacturedAt($manufacturingDate)
             ->setPurchaseOrder($commandNumberStr)
             ->setRFIDtag($rfidTag)
             ->setBatch($batchStr)
@@ -2170,8 +2184,8 @@ class MobileController extends AbstractApiController
             true,
             TrackingMovement::TYPE_DEPOSE,
             [
-                "refOrArticle" => $article,
-                "mouvementStock" => $stockMovement,
+                'refOrArticle' => $article,
+                'mouvementStock' => $stockMovement,
             ]
         );
 
@@ -2396,7 +2410,7 @@ class MobileController extends AbstractApiController
                     return [
                         'handlingId' => $attachment['handlingId'],
                         'fileName' => $attachment['originalName'],
-                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachements/' . $attachment['fileName'],
+                        'href' => $request->getSchemeAndHttpHost() . '/uploads/attachments/' . $attachment['fileName'],
                     ];
                 },
                 $attachmentRepository->getMobileAttachmentForHandling($handlingIds)
@@ -2426,7 +2440,7 @@ class MobileController extends AbstractApiController
                     $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
                     $logo = null;
                     if ($attachment && $transporteur->isRecurrent()) {
-                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
                         if (file_exists($path)) {
                             $type = pathinfo($path, PATHINFO_EXTENSION);
                             $type = ($type === 'svg' ? 'svg+xml' : $type);
@@ -2665,17 +2679,19 @@ class MobileController extends AbstractApiController
 
 
         $rfidTagsStr = $request->request->get('rfidTags');
-        $rfidTags = json_decode($rfidTagsStr ?: '[]', true) ?: [];
+
+        $data = $inventoryService->summarizeLocationInventory(
+            $entityManager,
+            $inventoryMission,
+            $zone,
+            json_decode($rfidTagsStr ?: '[]', true) ?: []
+        );
+
+        unset($data['inventoryData']);
 
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->summarizeLocationInventory(
-                $entityManager,
-                $inventoryMission,
-                $zone,
-                $rfidTags,
-                $this->getUser()
-            )
+            "data" => $data
         ]);
     }
 
@@ -2687,24 +2703,29 @@ class MobileController extends AbstractApiController
      */
     public function finishMission(Request                $request,
                                   EntityManagerInterface $entityManager,
+                                  InventoryService       $inventoryService,
                                   MailerService          $mailerService,
+                                  FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $missionRepository = $entityManager->getRepository(InventoryMission::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $zoneRepository = $entityManager->getRepository(Zone::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
 
         $mission = $missionRepository->find($request->request->get('mission'));
-        $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
-        $locations = $locationRepository->findByMissionAndZone($zones, $mission);
+        $locations = $mission->getInventoryLocationMissions()
+            ->map(fn(InventoryLocationMission $line) => $line->getLocation())
+            ->toArray();
 
         $tags = Stream::from(json_decode($request->request->get('tags')))
             ->filter(fn(string $tag) => str_starts_with($tag, $rfidPrefix))
+            ->toArray();
+
+        $validatedAtDates = Stream::from(json_decode($request->request->get('validatedAtDates'), true))
+            ->keymap(fn($strDate, $locationId) => [$locationId, $formatService->parseDatetime($strDate)])
             ->toArray();
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
@@ -2714,6 +2735,55 @@ class MobileController extends AbstractApiController
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
+
+        $inventoryService->clearInventoryZone($mission);
+
+        $zonesData = Stream::from($mission->getInventoryLocationMissions())
+            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId())
+            ->reduce(function($carry, InventoryLocationMission $inventoryLocationMission) use ($validatedAtDates) {
+                $zoneId = $inventoryLocationMission->getLocation()->getZone()?->getId();
+                $locationId = $inventoryLocationMission->getLocation()?->getId();
+                if (!isset($carry[$zoneId])) {
+                    $carry[$zoneId] = [
+                        "zone" => $inventoryLocationMission->getLocation()->getZone(),
+                        "lines" => [],
+                        "validatedAt" => null
+                    ];
+                }
+
+                $carry[$zoneId]["lines"][] = $inventoryLocationMission;
+                $carry[$zoneId]["validatedAt"] = $carry[$zoneId]["validatedAt"]
+                    ?? $validatedAtDates[$locationId]
+                    ?? null;
+
+                return $carry;
+            }, []);
+
+        // save sta
+        foreach ($zonesData as $zoneDatum) {
+            /** @var InventoryLocationMission[] $lines */
+            $lines = $zoneDatum["lines"] ?? [];
+            /** @var Zone $zone */
+            $zone = $zoneDatum["zone"] ?? null;
+            $validatedAt = $zoneDatum["validatedAt"] ?? null;
+            if ($zone && $lines) {
+                ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
+                foreach ($lines as $line) {
+                    $line->setDone(true);
+                    if ($line->getLocation()) {
+                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()];
+                        $line
+                            ->setOperator($validator)
+                            ->setScannedAt(isset($inventoryDatum) ? ($validatedAt ?? $now) : null)
+                            ->setPercentage(isset($inventoryDatum) ? $inventoryDatum["ratio"] : null)
+                            ->setArticles(isset($inventoryDatum) ? $inventoryDatum["articles"] : []);
+                    }
+                }
+            }
+        }
+
+
+        // change article states
         /** @var Article $article */
         foreach ($articlesOnLocations as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
@@ -3159,7 +3229,9 @@ class MobileController extends AbstractApiController
                     true,
                     true,
                     TrackingMovement::TYPE_GROUP,
-                    ["parent" => $parentPack]
+                    [
+                        'parent' => $parentPack,
+                    ]
                 );
 
                 $entityManager->persist($groupingTrackingMovement);
@@ -3344,7 +3416,7 @@ class MobileController extends AbstractApiController
                                     $photoFile = $request->files->get("{$code}_{$photoName}");
                                     if ($photoFile) {
                                         $fileName = $attachmentService->saveFile($photoFile);
-                                        $attachments = $attachmentService->createAttachements($fileName);
+                                        $attachments = $attachmentService->createAttachments($fileName);
                                         foreach ($attachments as $attachment) {
                                             $entityManager->persist($attachment);
                                             $dispatch->addAttachment($attachment);
@@ -3456,7 +3528,10 @@ class MobileController extends AbstractApiController
                     true,
                     true,
                     TrackingMovement::TYPE_EMPTY_ROUND,
-                    ['commentaire' => $emptyRound['comment'] ?? null]
+                    [
+                        'commentaire' => $emptyRound['comment'] ?? null,
+                        'quantity' => 1
+                    ]
                 );
 
                 $manager->persist($trackingMovement);
@@ -3515,7 +3590,7 @@ class MobileController extends AbstractApiController
         $data = $request->request->all();
         $wayBillAttachment = $dispatchService->generateWayBill($loggedUser, $dispatch, $manager, $data);
         $manager->flush();
-        $file = '/uploads/attachements/' . $wayBillAttachment->getFileName();
+        $file = '/uploads/attachments/' . $wayBillAttachment->getFileName();
 
         return $this->json([
             'filePath' => $file,
@@ -3724,7 +3799,7 @@ class MobileController extends AbstractApiController
             if ($ref) {
                 $photos = Stream::from($ref->getAttachments())
                     ->map(function(Attachment $attachment) use ($kernel) {
-                        $path = $kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName();
+                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
                         $type = pathinfo($path, PATHINFO_EXTENSION);
                         $data = file_get_contents($path);
 
@@ -3753,30 +3828,6 @@ class MobileController extends AbstractApiController
         }
 
         return $this->json($data);
-    }
-
-    /**
-     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
-    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $zoneId = $request->request->getInt('zone');
-        $missionId = $request->request->get('mission');
-        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
-        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
-        $inventoryLocationMissions = Stream::from($queryResult)
-            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
-            ->toArray();
-
-        foreach ($inventoryLocationMissions as $inventoryLocationMission){
-            $inventoryLocationMission->setDone(true);
-        }
-        $entityManager->flush();
-        return $this->json([
-            'success' => true
-        ]);
     }
 
     /**
@@ -3824,8 +3875,8 @@ class MobileController extends AbstractApiController
     public function finishTruckArrival(Request                $request,
                                        EntityManagerInterface $entityManager,
                                        UniqueNumberService    $uniqueNumberService,
-                                       KernelInterface        $kernel,
-                                       ReserveService         $reserveService): Response {
+                                       ReserveService         $reserveService,
+                                       AttachmentService $attachmentService): Response {
         $data = $request->request;
 
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -3866,7 +3917,7 @@ class MobileController extends AbstractApiController
 
         foreach($truckArrivalReserves as $truckArrivalReserve){
             $reserve = (new Reserve())
-                ->setKind($truckArrivalReserve['type'])
+                ->setKind($truckArrivalReserve['kind'])
                 ->setComment($truckArrivalReserve['comment'] ?? null)
                 ->setQuantity($truckArrivalReserve['quantity'] ?? null)
                 ->setQuantityType($truckArrivalReserve['quantityType'] ?? null);
@@ -3893,13 +3944,13 @@ class MobileController extends AbstractApiController
                 if($truckArrivalLine['reserve']['photos']){
                     foreach($truckArrivalLine['reserve']['photos'] as $photo){
                         $name = uniqid();
-                        $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-                        file_put_contents($path, file_get_contents($photo));
+                        $attachmentService->createFile("$name.jpeg", file_get_contents($photo));
+
                         $attachment = new Attachment();
                         $attachment
                             ->setOriginalName("$name.jpeg")
                             ->setFileName("$name.jpeg")
-                            ->setFullPath("/uploads/attachements/$name.jpeg");
+                            ->setFullPath("/uploads/attachments/$name.jpeg");
 
                         $lineReserve->addAttachment($attachment);
                         $entityManager->persist($attachment);
@@ -3919,13 +3970,13 @@ class MobileController extends AbstractApiController
 
         foreach($signatures as $signature){
             $name = uniqid();
-            $path = "{$kernel->getProjectDir()}/public/uploads/attachements/$name.jpeg";
-            file_put_contents($path, file_get_contents($signature));
+            $attachmentService->createFile("$name.jpeg", file_get_contents($signature));
+
             $attachment = new Attachment();
             $attachment
                 ->setOriginalName($truckArrival->getNumber()."_signature_". array_search($signature, $signatures) .".jpeg")
                 ->setFileName("$name.jpeg")
-                ->setFullPath("/uploads/attachements/$name.jpeg");
+                ->setFullPath("/uploads/attachments/$name.jpeg");
 
             $truckArrival->addAttachment($attachment);
             $entityManager->persist($attachment);

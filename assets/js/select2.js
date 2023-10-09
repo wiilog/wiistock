@@ -145,6 +145,10 @@ export default class Select2 {
                     config.closeOnSelect = false;
                 }
 
+                if ($element.is(`[data-max-selection-length]`)) {
+                    config.maximumSelectionLength = Number($element.data('max-selection-length'));
+                }
+
                 $element.select2({
                     placeholder: $element.data(`placeholder`) || '',
                     tags: editable,
@@ -154,6 +158,7 @@ export default class Select2 {
                         inputTooShort: () => Translation.of(`Général`, '', 'Zone filtre', 'Veuillez entrer au moins {1} caractère{2}.', {1: '1', 2: ''}, false),
                         noResults: () => Translation.of(`Général`, '', 'Zone filtre', 'Aucun résultat.', false),
                         searching: () => Translation.of(`Général`, '', 'Zone filtre', 'Recherche en cours...', false),
+                        maximumSelected: ({maximum}) => `Vous ne pouvez sélectionner que ${maximum} éléments.`,
                     },
                     escapeMarkup: markup => markup,
                     templateResult: (data, container) => {

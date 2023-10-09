@@ -1,0 +1,22 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalNewDeliveryStationLine" role="dialog" aria-labelledby="modalNewDeliveryStationLine"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter un lien externe"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'settings/stock/borne_tactile/form.html.twig' %}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

@@ -45,7 +45,7 @@ class SpecificService
         self::CLIENT_AIA_CUERS => 'AIA Cuers',
     ];
 
-	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';
+	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT COLIS';
 
     public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
         self::CLIENT_SAFRAN_MC,

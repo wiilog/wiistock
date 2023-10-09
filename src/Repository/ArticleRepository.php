@@ -56,7 +56,7 @@ class ArticleRepository extends EntityRepository {
         "lastAvailableDate",
         "expiryDate",
         "stockEntryDate",
-        "manifacturingDate",
+        "manufacturedAt",
         "productionDate"
     ];
 
@@ -166,7 +166,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.prixUnitaire')
             ->addSelect('article.purchaseOrder')
             ->addSelect('article.deliveryNote')
-            ->addSelect('article.manifacturingDate')
+            ->addSelect('article.manufacturedAt')
             ->addSelect('nativeCountry.label AS nativeCountryLabel')
             ->addSelect('article.productionDate')
             ->addSelect('article.RFIDtag')
@@ -1392,5 +1392,30 @@ class ArticleRepository extends EntityRepository {
             ->setParameter("article", $article)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findOneByReferenceAndStockManagement(ReferenceArticle $referenceArticle): ?Article {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            && !in_array($referenceArticle->getStockManagement(), [ReferenceArticle::STOCK_MANAGEMENT_FIFO, ReferenceArticle::STOCK_MANAGEMENT_FEFO])) {
+            return null;
+        }
+
+        $queryBuilder = $this->createQueryBuilder("article")
+            ->innerJoin("article.statut", "status", Join::WITH, "status.code = :status")
+            ->innerJoin("article.articleFournisseur", "supplier_article")
+            ->innerJoin("supplier_article.referenceArticle", "reference_article", Join::WITH, "reference_article = :referenceArticle");
+
+        if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+            $queryBuilder->orderBy("article.stockEntryDate", Criteria::ASC);
+        } else if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+            $queryBuilder->orderBy("article.expiryDate", Criteria::ASC);
+        }
+
+        return $queryBuilder
+            ->setParameter("referenceArticle", $referenceArticle->getId())
+            ->setParameter("status", Article::STATUT_ACTIF)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

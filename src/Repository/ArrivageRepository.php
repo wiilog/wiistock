@@ -263,8 +263,8 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case 'noTracking':
                     $qb
-                        ->leftJoin('arrival.truckArrivalLines', 'lines')
-                        ->andWhere('arrival.noTracking LIKE :noTracking OR lines.number LIKE :noTracking')
+                        ->leftJoin('arrival.truckArrivalLines', 'truckArrivalLines')
+                        ->andWhere('arrival.noTracking LIKE :noTracking OR truckArrivalLines.number LIKE :noTracking')
                         ->setParameter('noTracking', '%'.$filter['value'].'%');
                     break;
             }

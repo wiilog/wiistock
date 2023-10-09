@@ -321,7 +321,7 @@ class DisputeService {
     public function createDisputeAttachments(Dispute                $dispute,
                                              Request                $request,
                                              EntityManagerInterface $entityManager): void {
-        $attachments = $this->attachmentService->createAttachements($request->files);
+        $attachments = $this->attachmentService->createAttachments($request->files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
             $dispute->addAttachment($attachment);
@@ -341,7 +341,7 @@ class DisputeService {
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord
             ->setDate(new DateTime('now'))
-            ->setComment($comment ?: null)
+            ->setComment(empty($comment) ? $dispute->getStatus()?->getComment() : $comment)
             ->setDispute($dispute)
             ->setUser($user);
 

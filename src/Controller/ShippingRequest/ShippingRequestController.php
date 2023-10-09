@@ -927,7 +927,8 @@ class ShippingRequestController extends AbstractController {
                     TrackingMovement::TYPE_PRISE,
                     [
                         'from' => $shippingRequest,
-                        'shippingRequest' => $shippingRequest
+                        'shippingRequest' => $shippingRequest,
+                        'quantity' => $logisticUnitParent->getQuantity()
                     ]
                 );
                 $entityManager->persist($trackingMovement);
@@ -943,6 +944,7 @@ class ShippingRequestController extends AbstractController {
                     TrackingMovement::TYPE_DEPOSE,
                     [
                         'from' => $shippingRequest,
+                        'quantity' => $logisticUnitParent->getQuantity()
                     ]
                 );
                 $entityManager->persist($trackingMovement);
@@ -1051,7 +1053,7 @@ class ShippingRequestController extends AbstractController {
     public function printDeliverySlip(Attachment      $attachment,
                                       KernelInterface $kernel): Response {
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
 
         return $response;

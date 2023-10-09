@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Pack;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Livraison;
@@ -106,7 +107,7 @@ class PreparationsManagerService
     {
         $mouvementRepository = $this->entityManager->getRepository(MouvementStock::class);
 
-        $mouvements = $mouvementRepository->findByPreparation($preparation);
+        $mouvements = $preparation->getMouvements()->toArray();
 
         foreach ($mouvements as $mouvement) {
             if (!$mouvement->getEmplacementTo()) {
@@ -187,8 +188,8 @@ class PreparationsManagerService
                     TrackingMovement::TYPE_PRISE,
                     [
                         'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                        'mouvementStock' => $movement,
+                    ]
                 );
                 $this->entityManager->persist($trackingMovementPick);
 
@@ -206,8 +207,8 @@ class PreparationsManagerService
                     TrackingMovement::TYPE_DEPOSE,
                     [
                         'preparation' => $preparation,
-                        'mouvementStock' => $movement
-                    ],
+                        'mouvementStock' => $movement,
+                    ]
                 );
                 $this->entityManager->persist($trackingMovementDrop);
                 if ($articleEntity instanceof Article) {
@@ -219,6 +220,7 @@ class PreparationsManagerService
         }
 
         if (!empty($ulToMove)){
+            /** @var Pack $lu */
             foreach (array_unique($ulToMove) as $lu) {
                 if ($lu != null){
                     $pickTrackingMovement = $this->trackingMovementService->createTrackingMovement(
@@ -229,8 +231,9 @@ class PreparationsManagerService
                         false,
                         true,
                         TrackingMovement::TYPE_PRISE,
-                        ['preparation' => $preparation]
-
+                        [
+                            'preparation' => $preparation,
+                        ]
                     );
                     $DropTrackingMovement = $this->trackingMovementService->createTrackingMovement(
                         $lu,
@@ -240,7 +243,9 @@ class PreparationsManagerService
                         false,
                         true,
                         TrackingMovement::TYPE_DEPOSE,
-                        ['preparation' => $preparation]
+                        [
+                            'preparation' => $preparation,
+                        ]
                     );
                     $this->entityManager->persist($pickTrackingMovement);
                     $this->entityManager->persist($DropTrackingMovement);
@@ -597,12 +602,14 @@ class PreparationsManagerService
                                 ->setArticle($insertedArticle);
 
                             $entityManager->persist($newArticleLine);
+
                             if ($line->getQuantityToPick() > $line->getPickedQuantity()) {
                                 $line->setQuantityToPick($line->getQuantityToPick() - $line->getPickedQuantity());
                                 $line->setPickedQuantity(0);
                                 $splitArticleLineIds[] = $line->getId();
                             } else {
                                 $preparation->removeArticleLine($line);
+                                $line->setArticle(null); // To remove "A new entity was found through the relationship" error for Article entity
                                 $entityManager->remove($line);
                                 $article->setStatut($articleActiveStatus);
                             }

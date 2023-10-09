@@ -270,7 +270,7 @@ class DispatchController extends AbstractController {
                     $attachmentService->saveFile($file)
                 );
             }
-            $attachments = $attachmentService->createAttachements($fileNames);
+            $attachments = $attachmentService->createAttachments($fileNames);
             foreach($attachments as $attachment) {
                 $entityManager->persist($attachment);
                 $dispatch->addAttachment($attachment);
@@ -411,21 +411,6 @@ class DispatchController extends AbstractController {
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
 
-        if(isset($fileBag)) {
-            $fileNames = [];
-            foreach($fileBag->all() as $file) {
-                $fileNames = array_merge(
-                    $fileNames,
-                    $attachmentService->saveFile($file)
-                );
-            }
-            $attachments = $attachmentService->createAttachements($fileNames);
-            foreach($attachments as $attachment) {
-                $entityManager->persist($attachment);
-                $dispatch->addAttachment($attachment);
-            }
-        }
-
         if(!empty($packs)) {
             $dispatchService->manageDispatchPacks($dispatch, $packs, $entityManager);
         }
@@ -552,7 +537,7 @@ class DispatchController extends AbstractController {
     public function printDispatchStateSheet(TranslationService $translationService,
                                             Dispatch           $dispatch,
                                             DispatchService    $dispatchService,
-                                            KernelInterface    $kernel): ?Response
+                                            AttachmentService  $attachmentService): ?Response
     {
         if($dispatch->getDispatchPacks()->isEmpty()) {
             return $this->json([
@@ -565,11 +550,7 @@ class DispatchController extends AbstractController {
 
         $dispatchSheet = $dispatch->getAttachments()->last();
 
-        $fileName = $dispatchSheet->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($dispatchSheet->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchSheet->getOriginalName());
@@ -586,11 +567,13 @@ class DispatchController extends AbstractController {
     {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $transporterRepository = $entityManager->getRepository(Transporteur::class);
+        $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $post = $request->request;
-        $dispatch = $dispatchRepository->find($post->get('id'));
+        $dispatch = $post->get('id') ? $dispatchRepository->find($post->get('id')) : null;
+
+        $now = new DateTime();
 
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT) ||
             $dispatch->getStatut()->isDraft() && !$this->userService->hasRightFunction(Menu::DEM, Action::EDIT_DRAFT_DISPATCH) ||
@@ -612,91 +595,134 @@ class DispatchController extends AbstractController {
 
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false);
 
-        $startDateRaw = $post->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH);
-        $endDateRaw = $post->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH);
-        $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
-        $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
-
         $type = $dispatch->getType();
 
-        $locationTake = $post->get(FieldsParam::FIELD_CODE_LOCATION_PICK)
-            ? ($emplacementRepository->find($post->get(FieldsParam::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
-            : $type->getPickLocation();
-        $locationDrop = $post->get(FieldsParam::FIELD_CODE_LOCATION_DROP)
-            ? ($emplacementRepository->find($post->get(FieldsParam::FIELD_CODE_LOCATION_DROP)) ?: $type->getDropLocation())
-            : $type->getDropLocation();
-
-        $destination = $post->get(FieldsParam::FIELD_CODE_DESTINATION);
-
-        if(!$locationTake || !$locationDrop) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.", false)
-            ]);
-        }
-
-        if($startDate && $endDate && $startDate > $endDate) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', "La date de fin d'échéance est inférieure à la date de début.", false)
-            ]);
-        }
 
         $requesterData = $post->get(FieldsParam::FIELD_CODE_REQUESTER_DISPATCH);
-        $carrierData = $post->get(FieldsParam::FIELD_CODE_CARRIER_DISPATCH);
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
         $requester = $requester ?? $dispatch->getRequester() ?? $this->getUser();
 
-        $carrier = $carrierData ? $transporterRepository->find($carrierData) : null;
-
-        $transporterTrackingNumber = $post->get(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH);
-        $commandNumber = $post->get(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH);
-        $projectNumber = $post->get(FieldsParam::FIELD_CODE_PROJECT_NUMBER);
-        $businessUnit = $post->get(FieldsParam::FIELD_CODE_BUSINESS_UNIT);
-
-        $receiversids = $post->get(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH)
-            ? explode(",", $post->get(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH) ?? '')
-            : [];
-
-        $emails = $post->get(FieldsParam::FIELD_CODE_EMAILS)
-            ? explode(",", $post->get(FieldsParam::FIELD_CODE_EMAILS) ?? '')
-            : [];
-
-        $existingReceivers = $dispatch->getReceivers();
-        foreach($existingReceivers as $receiver) {
-            $dispatch->removeReceiver($receiver);
+        if ($post->has(FieldsParam::FIELD_CODE_LOCATION_PICK)) {
+            $locationPickData = $post->get(FieldsParam::FIELD_CODE_LOCATION_PICK);
+            $locationPick = $locationPickData
+                ? $emplacementRepository->find($locationPickData)
+                : $type->getPickLocation();
+            $dispatch->setLocationPick($locationPick);
         }
-        foreach ($receiversids as $receiverId) {
-            if (!empty($receiverId)) {
-                $receiver = $receiverId ? $utilisateurRepository->find($receiverId) : null;
-                if ($receiver) {
-                    $dispatch->addReceiver($receiver);
+        if ($post->has(FieldsParam::FIELD_CODE_LOCATION_DROP)) {
+            $locationDropData = $post->get(FieldsParam::FIELD_CODE_LOCATION_DROP);
+            $locationDrop = $locationDropData
+                ? $emplacementRepository->find($locationDropData)
+                : $type->getDropLocation();
+            $dispatch->setLocationDrop($locationDrop);
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_START_DATE_DISPATCH)) {
+            $startDateRaw = $post->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH);
+            $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
+            $dispatch->setStartDate($startDate);
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)) {
+            $endDateRaw = $post->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH);
+            $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
+            $dispatch->setEndDate($endDate);
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CARRIER_DISPATCH)) {
+            $carrierId = $post->get(FieldsParam::FIELD_CODE_CARRIER_DISPATCH);
+            $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
+            $dispatch->setCarrier($carrier);
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH)) {
+            $dispatch->setCarrierTrackingNumber($post->get(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH)) {
+            $dispatch->setCommandNumber($post->get(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_BUSINESS_UNIT)) {
+            $dispatch->setBusinessUnit($post->get(FieldsParam::FIELD_CODE_BUSINESS_UNIT));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_DESTINATION)) {
+            $dispatch->setDestination($post->get(FieldsParam::FIELD_CODE_DESTINATION));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_PROJECT_NUMBER)) {
+            $dispatch->setProjectNumber($post->get(FieldsParam::FIELD_CODE_PROJECT_NUMBER));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_COMMENT_DISPATCH)) {
+            $dispatch->setCommentaire($post->get(FieldsParam::FIELD_CODE_COMMENT_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_EMERGENCY)) {
+            $dispatch->setEmergency($post->get(FieldsParam::FIELD_CODE_EMERGENCY));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH)) {
+            $dispatch->setCustomerName($post->get(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH)) {
+            $dispatch->setCustomerPhone($post->get(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
+            $dispatch->setCustomerRecipient($post->get(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
+            $dispatch->setCustomerAddress($post->get(FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_EMAILS)) {
+            $emails = Stream::explode(",", $post->get(FieldsParam::FIELD_CODE_EMAILS) ?? '')
+                ->filter()
+                ->toArray();
+            $dispatch->setEmails($emails);
+        }
+
+        if ($post->has(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH)) {
+            $receiversIds = Stream::explode(",", $post->get(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH) ?: '')
+                ->filter()
+                ->toArray();
+            $existingReceivers = $dispatch->getReceivers();
+            foreach($existingReceivers as $receiver) {
+                $dispatch->removeReceiver($receiver);
+            }
+            foreach ($receiversIds as $receiverId) {
+                if (!empty($receiverId)) {
+                    $receiver = $utilisateurRepository->find($receiverId);
+                    if ($receiver) {
+                        $dispatch->addReceiver($receiver);
+                    }
                 }
             }
         }
-        $emergency = $post->get(FieldsParam::FIELD_CODE_EMERGENCY);
+
         $dispatch
-            ->setStartDate($startDate)
-            ->setEndDate($endDate)
-            ->setUpdatedAt(new DateTime())
-            ->setBusinessUnit($businessUnit)
-            ->setCarrier($carrier)
-            ->setCarrierTrackingNumber($transporterTrackingNumber)
-            ->setCommandNumber($commandNumber)
-            ->setRequester($requester)
-            ->setEmergency(!empty($emergency) ? $emergency : null)
-            ->setLocationFrom($locationTake)
-            ->setLocationTo($locationDrop)
-            ->setProjectNumber($projectNumber)
-            ->setCommentaire($post->get(FieldsParam::FIELD_CODE_COMMENT_DISPATCH))
-            ->setDestination($destination)
-            ->setEmails($emails)
-            ->setCustomerName($post->get(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH))
-            ->setCustomerPhone($post->get(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH))
-            ->setCustomerRecipient($post->get(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
-            ->setCustomerAddress($post->get(FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));;
+            ->setUpdatedAt($now)
+            ->setRequester($requester);
 
         $freeFieldService->manageFreeFields($dispatch, $post->all(), $entityManager);
+
+        if(!$dispatch->getLocationTo() || !$dispatch->getLocationFrom()) {
+            throw new FormException(
+                $translationService->translate('Demande', 'Acheminements', 'Général', "Il n'y a aucun emplacement de prise ou de dépose paramétré pour ce type.Veuillez en paramétrer ou rendre les champs visibles à la création et/ou modification.", false)
+            );
+        }
+
+        if ($dispatch->getStartDate()
+            && $dispatch->getEndDate()
+            && $dispatch->getStartDate() > $dispatch->getEndDate()) {
+            throw new FormException(
+                $translationService->translate('Demande', 'Acheminements', 'Général', "La date de fin d'échéance est inférieure à la date de début.", false)
+            );
+        }
 
         $entityManager->flush();
 
@@ -807,7 +833,7 @@ class DispatchController extends AbstractController {
                                         AttachmentService $attachmentService,
                                         Request $request,
                                         EntityManagerInterface $entityManager): void {
-        $attachments = $attachmentService->createAttachements($request->files);
+        $attachments = $attachmentService->createAttachments($request->files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachment($attachment);
@@ -1292,7 +1318,7 @@ class DispatchController extends AbstractController {
     public function printDeliveryNote(TranslationService $translationService,
                                       Dispatch           $dispatch,
                                       DispatchService    $dispatchService,
-                                      KernelInterface    $kernel): Response
+                                      AttachmentService  $attachmentService): Response
     {
         if(!$dispatch->getDeliveryNoteData()) {
             return $this->json([
@@ -1305,11 +1331,7 @@ class DispatchController extends AbstractController {
 
         $deliveryNote = $dispatch->getAttachments()->last();
 
-        $fileName = $deliveryNote->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($deliveryNote->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $deliveryNote->getOriginalName());
@@ -1386,7 +1408,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
         return $response;
     }
@@ -1429,18 +1451,14 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::GENERATE_OVERCONSUMPTION_BILL])]
     public function printOverconsumptionBill(Dispatch        $dispatch,
                                              DispatchService $dispatchService,
-                                             KernelInterface $kernel): Response
+                                             AttachmentService $attachmentService): Response
     {
 
         $data = $dispatchService->getOverconsumptionBillData($dispatch);
 
         $overConsumptionBill = $dispatch->getAttachments()->last();
 
-        $fileName = $overConsumptionBill->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($overConsumptionBill->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $overConsumptionBill->getOriginalName());
@@ -1774,17 +1792,13 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
     public function printDispatchLabel(Dispatch          $dispatch,
                                        DispatchService   $dispatchService,
-                                       KernelInterface   $kernel): Response
+                                       AttachmentService $attachmentService): Response
     {
         $data = $dispatchService->getDispatchLabelData($dispatch);
 
         $dispatchLabel = $dispatch->getAttachments()->last();
 
-        $fileName = $dispatchLabel->getFileName();
-
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
-
-        file_put_contents($filePath, $data['file']);
+        $filePath = $attachmentService->createFile($dispatchLabel->getFileName(), $data['file']);
 
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());
