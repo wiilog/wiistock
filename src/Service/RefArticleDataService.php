@@ -343,7 +343,7 @@ class RefArticleDataService
                         'label' => $supplierReferenceLine['labelFournisseur'],
                         'reference' => $referenceArticleFournisseur,
                         'visible' => $isVisible
-                    ]);
+                    ], false, $entityManager);
 
                     $entityManager->persist($supplierArticle);
                 } catch (Exception $exception) {

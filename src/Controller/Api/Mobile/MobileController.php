@@ -2701,7 +2701,8 @@ class MobileController extends AbstractApiController
     public function finishMission(Request                $request,
                                   EntityManagerInterface $entityManager,
                                   MailerService          $mailerService,
-                                  Twig_Environment       $templating): Response
+                                  Twig_Environment       $templating,
+                                  MouvementStockService  $stockMovementService): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $missionRepository = $entityManager->getRepository(InventoryMission::class);
@@ -2732,15 +2733,12 @@ class MobileController extends AbstractApiController
             if (in_array($article->getRFIDtag(), $tags)) {
                 $presentArticle = $article;
                 if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
-                    $correctionMovement = new MouvementStock();
-                    $correctionMovement
-                        ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
-                        ->setArticle($presentArticle)
-                        ->setDate($now)
-                        ->setQuantity($presentArticle->getQuantite())
-                        ->setEmplacementFrom($presentArticle->getEmplacement())
-                        ->setEmplacementTo($presentArticle->getEmplacement())
-                        ->setUser($validator);
+                    $location = $presentArticle->getEmplacement();
+                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
+                        'date' => $now,
+                        'locationTo' => $location,
+                    ]);
+
                     $entityManager->persist($correctionMovement);
                 }
                 $presentArticle
@@ -2752,15 +2750,12 @@ class MobileController extends AbstractApiController
             else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                    $correctionMovement = new MouvementStock();
-                    $correctionMovement
-                        ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
-                        ->setArticle($missingArticle)
-                        ->setDate($now)
-                        ->setQuantity($missingArticle->getQuantite())
-                        ->setEmplacementFrom($missingArticle->getEmplacement())
-                        ->setEmplacementTo($missingArticle->getEmplacement())
-                        ->setUser($validator);
+                    $location = $missingArticle->getEmplacement();
+                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
+                        'date' => $now,
+                        'locationTo' => $location,
+                    ]);
+
                     $entityManager->persist($correctionMovement);
                     $missingArticle
                         ->setFirstUnavailableDate($now);

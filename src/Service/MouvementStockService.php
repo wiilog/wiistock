@@ -189,13 +189,23 @@ class MouvementStockService
             if($type === MouvementStock::TYPE_SORTIE) {
                 $article->setInactiveSince(new DateTime());
             }
-        }
-        else { // if($article instanceof ReferenceArticle) {
+        } else { // if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
+        }
+
+        $reference = $article instanceof Article ? $article->getReferenceArticle() : $article;
+        $now = new DateTime();
+
+        if ($type === MouvementStock::TYPE_SORTIE) {
+            $reference->setLastStockExit($now);
+        }
+        else if ($type === MouvementStock::TYPE_ENTREE) {
+            $reference->setLastStockEntry($now);
         }
 
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
+        $comment = $options['comment'] ?? null;
         $date = $options['date'] ?? null;
 
         if ($from) {
@@ -231,6 +241,10 @@ class MouvementStockService
 
         if ($locationTo) {
             $newMouvement->setEmplacementTo($locationTo);
+        }
+
+        if ($comment) {
+            $newMouvement->setComment($comment);
         }
 
         return $newMouvement;
