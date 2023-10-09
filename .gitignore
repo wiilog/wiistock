@@ -51,6 +51,7 @@ yarn-error.log
 /rector.php
 
 ###> symfony/cypress ###
+/cypress/downloads
 /cypress/videos
 /cypress/screenshots
 /cypress/logs
