@@ -86,8 +86,7 @@ class InvMissionService {
             : ((($nbArtInMission + $nbRefInMission) != 0)
                 ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
                 : 0);
-        dump($mission->getName());
-        dump($lines);
+
         return [
             'name' => $mission->getName() ?? '',
             'start' => $this->formatService->date($mission->getStartPrevDate()),
