@@ -113,6 +113,10 @@ class TruckArrivalLineRepository extends EntityRepository
     public function iterateAll(){
         return $this->createQueryBuilder('truck_arrival_line')
             ->select('truck_arrival_line.number')
+            ->addSelect('truck_arrival_line.id')
+            ->addSelect('reserveType.disableTrackingNumber')
+            ->leftJoin('truck_arrival_line.reserve', 'reserve')
+            ->leftJoin('reserve.reserveType', 'reserveType')
             ->getQuery()
             ->getArrayResult();
     }
