@@ -480,7 +480,7 @@ class TransportService {
         foreach ($lines as $line) {
             $selected = (bool) ($line['selected'] ?? false);
             $natureId = $line['natureId'] ?? null;
-            $quantity = $line['quantity'] ?? null;
+            $quantity = ($line['quantity'] ?? null) ?: null;
             $temperatureId = $line['temperature'] ?? null;
             $nature = $natureId ? $natureRepository->find($natureId) : null;
             if ($selected && $nature) {
