@@ -104,7 +104,7 @@ class TruckArrivalService
             'number' => $truckArrival->getNumber(),
             'trackingLinesNumber' => Stream::from($truckArrival->getTrackingLines())
                 ->map(fn(TruckArrivalLine $line) =>
-                    ($line->getReserve()?->getReserveType()->isDisableTrackingNumber() ? '<img src="/svg/cancel-black.svg" alt="Désactivé" width="15px">' : '') . $line->getNumber())
+                    ($line->getReserve()?->getReserveType()->isDisableTrackingNumber() ? '<img src="/svg/exclamation.svg" alt="Désactivé" width="15px">' : '') . $line->getNumber())
                 ->unique()
                 ->filter()
                 ->join(', '),
@@ -112,7 +112,9 @@ class TruckArrivalService
                     ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                     ->count()
                 . '/'
-                . $truckArrival->getTrackingLines()->count(),
+                . $truckArrival->getTrackingLines()
+                    ->filter(fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()->isDisableTrackingNumber())
+                    ->count(),
             'operator' => $formatService->user($truckArrival->getOperator()),
             'reserves' => $reserves->isEmpty() && !$lineHasReserve ? 'non' : 'oui',
             'trackingLinesReserves' =>  Stream::from($truckArrival->getTrackingLines())

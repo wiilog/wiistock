@@ -74,7 +74,7 @@ class TruckArrivalLineService
                 ],
             ]),
             'id' => $truckArrivalLine->getId(),
-            'disableTrackingNumber' => $truckArrivalLine?->getReserve()?->getReserveType()?->isDisableTrackingNumber() ? '<img src="/svg/cancel-black.svg" alt="Désactivé" width="15px" title="Désactivé">' : '',
+            'disableTrackingNumber' => $truckArrivalLine?->getReserve()?->getReserveType()?->isDisableTrackingNumber() ? '<img src="/svg/exclamation.svg" alt="Désactivé" width="15px" title="Désactivé">' : '',
             'lineNumber' =>  $truckArrivalLine->getNumber(),
             'associatedToUL' => $this->formatService->bool(!$truckArrivalLine->getArrivals()->isEmpty()),
             'arrivalLinks' => !$truckArrivalLine->getArrivals()->isEmpty()
