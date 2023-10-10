@@ -284,7 +284,9 @@ class TruckArrivalController extends AbstractController
         }
 
         foreach (explode(',', $data->get('trackingNumbers') ?? '') as $lineNumber) {
-            if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
+            /** @var TruckArrivalLine $lines */
+            $lines = $lineNumberRepository->findBy(['number' => $lineNumber]);
+            if ($lineNumber && !empty($lines) && end($lines)?->getReserve()?->getReserveType()?->isDisableTrackingNumber()) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
                     ->setTruckArrival($truckArrival)
@@ -356,8 +358,8 @@ class TruckArrivalController extends AbstractController
         $trackingNumbers = explode(',', $data['trackingNumbers']);
 
         foreach ($trackingNumbers as $trackingNumber) {
-            $truckArrivalLine = $truckArrivalLineRepository->findOneBy(['number' => $trackingNumber]);
-            if ($trackingNumber && !$truckArrivalLine) {
+            $truckArrivalLine = $truckArrivalLineRepository->findBy(['number' => $trackingNumber]);
+            if ($trackingNumber && !empty($truckArrivalLine) && end($truckArrivalLine)?->getReserve()?->getReserveType()?->isDisableTrackingNumber()) {
 
                 $line = (new TruckArrivalLine())
                 ->setNumber($trackingNumber);
@@ -367,7 +369,7 @@ class TruckArrivalController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'trackingNumber' => $trackingNumber,
-                    'msg' => "Le numéro de tracking transporteur " . $truckArrivalLine->getNumber() . " existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
+                    'msg' => "Le numéro de tracking transporteur " . $trackingNumber . " existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
                 ]);
             }
         }
