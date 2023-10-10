@@ -102,7 +102,12 @@ class TruckArrivalService
             'unloadingLocation' => $formatService->location($truckArrival->getUnloadingLocation()),
             'registrationNumber' => $truckArrival->getRegistrationNumber(),
             'number' => $truckArrival->getNumber(),
-            'trackingLinesNumber' => $formatService->truckArrivalLines($truckArrival->getTrackingLines()),
+            'trackingLinesNumber' => Stream::from($truckArrival->getTrackingLines())
+                ->map(fn(TruckArrivalLine $line) =>
+                    ($line->getReserve()?->getReserveType()->isDisableTrackingNumber() ? '<img src="/svg/cancel-black.svg" alt="Désactivé" width="15px">' : '') . $line->getNumber())
+                ->unique()
+                ->filter()
+                ->join(', '),
             'countTrackingLines' => $truckArrival->getTrackingLines()
                     ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                     ->count()

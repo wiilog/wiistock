@@ -123,8 +123,9 @@ class TruckArrivalLineRepository extends EntityRepository
 
     public function getForSelect(?string $term, $option = []): array {
         $qb = $this
-            ->createQueryBuilder('truck_arrival_line')
-            ->select("truck_arrival_line.id AS id")
+            ->createQueryBuilder('truck_arrival_line');
+
+        $qb->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
             ->addSelect("truck_arrival.id AS truck_arrival_id")
@@ -133,9 +134,15 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addSelect("driver.nom AS driver_last_name")
             ->addSelect("MAX(arrivals.id) AS arrivals_id")
             ->andWhere("truck_arrival_line.number LIKE :term")
+            ->andWhere($qb->expr()->orX(
+                "reserveType.disableTrackingNumber IS NULL",
+                "reserveType.disableTrackingNumber = 0"
+            ))
             ->join('truck_arrival_line.truckArrival', 'truck_arrival')
             ->leftJoin('truck_arrival.driver', 'driver')
             ->leftJoin('truck_arrival_line.arrivals', 'arrivals')
+            ->leftJoin('truck_arrival_line.reserve', 'reserve')
+            ->leftJoin('reserve.reserveType', 'reserveType')
             ->setParameter('term', "%$term%");
 
 

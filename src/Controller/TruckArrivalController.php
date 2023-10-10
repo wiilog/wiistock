@@ -358,11 +358,10 @@ class TruckArrivalController extends AbstractController
         $trackingNumbers = explode(',', $data['trackingNumbers']);
 
         foreach ($trackingNumbers as $trackingNumber) {
-            $truckArrivalLine = $truckArrivalLineRepository->findBy(['number' => $trackingNumber]);
-            if ($trackingNumber && !empty($truckArrivalLine) && end($truckArrivalLine)?->getReserve()?->getReserveType()?->isDisableTrackingNumber()) {
-
+            $truckArrivalLines = $truckArrivalLineRepository->findBy(['number' => $trackingNumber]);
+            if ($trackingNumber && (empty($truckArrivalLines) || end($truckArrivalLines)?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
                 $line = (new TruckArrivalLine())
-                ->setNumber($trackingNumber);
+                    ->setNumber($trackingNumber);
                 $truckArrival->addTrackingLine($line);
                 $entityManager->persist($line);
             } else {
