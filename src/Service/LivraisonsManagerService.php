@@ -268,7 +268,7 @@ class LivraisonsManagerService
             // on termine les mouvements de livraison
             $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
             foreach ($movements as $pickingMovement) {
-                $pickingMovement->setDate($dateEnd);
+                $this->mouvementStockService->updateMovementDates($pickingMovement, $dateEnd);
                 if (isset($nextLocation)) {
                     $pickingMovement->setEmplacementTo($nextLocation);
                 }

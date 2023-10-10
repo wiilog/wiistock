@@ -193,20 +193,14 @@ class MouvementStockService
             $newMouvement->setRefArticle($article);
         }
 
-        $reference = $article instanceof Article ? $article->getReferenceArticle() : $article;
-        $now = new DateTime();
-
-        if ($type === MouvementStock::TYPE_SORTIE) {
-            $reference->setLastStockExit($now);
-        }
-        else if ($type === MouvementStock::TYPE_ENTREE) {
-            $reference->setLastStockEntry($now);
-        }
-
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
         $comment = $options['comment'] ?? null;
         $date = $options['date'] ?? null;
+
+        if($date){
+            $this->updateMovementDates($newMouvement, $date);
+        }
 
         if ($from) {
             if ($from instanceof Preparation) {
@@ -235,10 +229,6 @@ class MouvementStockService
             }
         }
 
-        if ($date) {
-            $newMouvement->setDate($date);
-        }
-
         if ($locationTo) {
             $newMouvement->setEmplacementTo($locationTo);
         }
@@ -253,9 +243,9 @@ class MouvementStockService
     public function finishMouvementStock(MouvementStock $mouvementStock,
                                          DateTime $date,
                                          ?Emplacement $locationTo): void {
-        $mouvementStock
-            ->setDate($date)
-            ->setEmplacementTo($locationTo);
+        $mouvementStock->setEmplacementTo($locationTo);
+
+        $this->updateMovementDates($mouvementStock, $date);
     }
 
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
@@ -289,5 +279,19 @@ class MouvementStockService
             $mouvement['operator'] ?? ''
         ];
         $CSVExportService->putLine($handle, $data);
+    }
+
+    public function updateMovementDates(MouvementStock $mouvementStock, DateTime $date): void
+    {
+        $type = $mouvementStock->getType();
+        $reference = $mouvementStock->getRefArticle() ?: $mouvementStock->getArticle()->getReferenceArticle();
+
+        $mouvementStock->setDate($date);
+
+        if ($type === MouvementStock::TYPE_SORTIE) {
+            $reference->setLastStockExit($date);
+        } else if ($type === MouvementStock::TYPE_ENTREE) {
+            $reference->setLastStockEntry($date);
+        }
     }
 }
