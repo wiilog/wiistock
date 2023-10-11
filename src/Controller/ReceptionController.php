@@ -563,7 +563,7 @@ class ReceptionController extends AbstractController {
 
                 $stockMovement->setReceptionOrder($reception);
                 $date = new DateTime('now');
-                $mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+                $mouvementStockService->finishStockMovement($stockMovement, $date, $reception->getLocation());
                 $entityManager->persist($stockMovement);
             }
 
@@ -810,7 +810,7 @@ class ReceptionController extends AbstractController {
                         );
                         $mouvementStock->setReceptionOrder($reception);
 
-                        $mouvementStockService->finishMouvementStock(
+                        $mouvementStockService->finishStockMovement(
                             $mouvementStock,
                             $now,
                             $receptionLocation
@@ -1802,7 +1802,7 @@ class ReceptionController extends AbstractController {
                             $locationEndPreparation = $demande->getDestination();
 
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+                            $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
 
                                 $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
                                 $mouvements = $mouvementRepository->findByPreparation($preparation);
@@ -1958,7 +1958,7 @@ class ReceptionController extends AbstractController {
                 );
                 $mouvementStock->setReceptionOrder($reception);
 
-                $mouvementStockService->finishMouvementStock($mouvementStock, $now, $receptionLocation);
+                $mouvementStockService->finishStockMovement($mouvementStock, $now, $receptionLocation);
 
                 $entityManager->persist($mouvementStock);
 
