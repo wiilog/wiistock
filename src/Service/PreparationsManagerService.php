@@ -103,16 +103,13 @@ class PreparationsManagerService
         return $this;
     }
 
-    public function closePreparationMouvement(Preparation $preparation, DateTime $date, Emplacement $emplacement = null): void
+    public function closePreparationMovements(Preparation $preparation, DateTime $date, Emplacement $location = null): void
     {
-        $mouvements = $preparation->getMouvements()->toArray();
+        $movements = $preparation->getMouvements()->toArray();
 
-        foreach ($mouvements as $mouvement) {
-            if (!$mouvement->getEmplacementTo()) {
-                $mouvement->setDate($date);
-                if (isset($emplacement)) {
-                    $mouvement->setEmplacementTo($emplacement);
-                }
+        foreach ($movements as $movement) {
+            if (!$movement->getEmplacementTo()) {
+                $this->stockMovementService->finishStockMovement($movement, $date, $location);
             }
         }
     }

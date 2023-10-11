@@ -956,7 +956,7 @@ class MobileController extends AbstractApiController
                         }
 
                         if ($emplacementPrepa) {
-                            $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
+                            $preparationsManager->closePreparationMovements($preparation, $dateEnd, $emplacementPrepa);
                         } else {
                             throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                         }
@@ -1747,7 +1747,7 @@ class MobileController extends AbstractApiController
                 $article->getEmplacement()
             );
             $entityManager->persist($outMovement);
-            $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
+            $mouvementStockService->finishStockMovement($outMovement, $now, $request->getDestination());
         }
         $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
             "entityManager" => $entityManager,
@@ -2166,7 +2166,7 @@ class MobileController extends AbstractApiController
             MouvementStock::TYPE_ENTREE
         );
 
-        $mouvementStockService->finishMouvementStock(
+        $mouvementStockService->finishStockMovement(
             $stockMovement,
             $now,
             $article->getEmplacement()

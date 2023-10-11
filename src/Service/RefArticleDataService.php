@@ -493,7 +493,7 @@ class RefArticleDataService
                 $refArticle,
                 MouvementStock::TYPE_ENTREE
             );
-            $this->mouvementStockService->finishMouvementStock(
+            $this->mouvementStockService->finishStockMovement(
                 $mvtStock,
                 new DateTime('now'),
                 $refArticle->getEmplacement()

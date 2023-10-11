@@ -2115,7 +2115,7 @@ class ImportService
 
             $emplacement = $refOrArt->getEmplacement();
             $mvtStock = $this->mouvementStockService->createMouvementStock($this->currentImport->getUser(), $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
-            $this->mouvementStockService->finishMouvementStock($mvtStock, new DateTime('now'), $emplacement);
+            $this->mouvementStockService->finishStockMovement($mvtStock, new DateTime('now'), $emplacement);
             $mvtStock->setImport($this->currentImport);
             $this->entityManager->persist($mvtStock);
         }

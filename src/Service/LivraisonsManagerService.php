@@ -419,7 +419,7 @@ class LivraisonsManagerService
             $movementType
         );
 
-        $this->mouvementStockService->finishMouvementStock(
+        $this->mouvementStockService->finishStockMovement(
             $mouvementStock,
             $date,
             $destination

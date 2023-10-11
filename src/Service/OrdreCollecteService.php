@@ -436,7 +436,7 @@ class OrdreCollecteService
             $this->entityManager->persist($createdMvt);
 
             // On fini le mouvement de stock
-            $this->mouvementStockService->finishMouvementStock($mouvementStock, $deposeDate, $locationTo);
+            $this->mouvementStockService->finishStockMovement($mouvementStock, $deposeDate, $locationTo);
         }
     }
 

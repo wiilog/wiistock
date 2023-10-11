@@ -240,9 +240,9 @@ class MouvementStockService
         return $newMouvement;
     }
 
-    public function finishMouvementStock(MouvementStock $mouvementStock,
-                                         DateTime $date,
-                                         ?Emplacement $locationTo): void {
+    public function finishStockMovement(MouvementStock $mouvementStock,
+                                        DateTime       $date,
+                                        ?Emplacement   $locationTo): void {
         $mouvementStock->setEmplacementTo($locationTo);
 
         $this->updateMovementDates($mouvementStock, $date);
@@ -281,8 +281,7 @@ class MouvementStockService
         $CSVExportService->putLine($handle, $data);
     }
 
-    public function updateMovementDates(MouvementStock $mouvementStock, DateTime $date): void
-    {
+    public function updateMovementDates(MouvementStock $mouvementStock, DateTime $date): void {
         $type = $mouvementStock->getType();
         $reference = $mouvementStock->getRefArticle() ?: $mouvementStock->getArticle()->getReferenceArticle();
 
