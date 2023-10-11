@@ -1291,6 +1291,7 @@ function initializeTruckArrivalReserves() {
             {data: `emails`, title: `Boites email de notifications`},
             {data: `defaultReserveType`, title: `Réserve par défaut`},
             {data: `active`, title: `Actif`},
+            {data: `disableTrackingNumber`, title: `Désactivation n° tracking`},
         ],
         form: {
             actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
@@ -1298,6 +1299,7 @@ function initializeTruckArrivalReserves() {
             emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
             defaultReserveType: `<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data'/></div>`,
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+            disableTrackingNumber: `<div class='checkbox-container'><input type='checkbox' name='disableTrackingNumber' class='form-control data'/></div>`,
         },
     });
 }
