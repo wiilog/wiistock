@@ -14,10 +14,10 @@ use Symfony\Contracts\Service\Attribute\Required;
 class VisibleColumnService {
     public const FREE_FIELD_NAME_PREFIX = 'free_field';
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
-    /** @Required  */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     #[Required]
@@ -26,12 +26,6 @@ class VisibleColumnService {
     #[Required]
     public LanguageService $languageService;
 
-    /**
-     * @param array $fields
-     * @param FreeField[] $freeFields
-     * @param string[] $columnsVisible
-     * @return array
-     */
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
                                    array $columnsVisible = []): array
@@ -123,12 +117,12 @@ class VisibleColumnService {
                     $lowerSearchValue = strtolower($search);
                     if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                         $booleanValue = $lowerSearchValue === "oui" ? '1' : '0';
-                        $condition->add("JSON_SEARCH(${queryBuilderAlias}.freeFields, 'one', :boolean_value, NULL, '$.\"${id}\"') IS NOT NULL");
+                        $condition->add("JSON_SEARCH({$queryBuilderAlias}.freeFields, 'one', :boolean_value, NULL, '$.\"{$id}\"') IS NOT NULL");
                         $qb->setParameter("boolean_value", $booleanValue);
                     }
                 }
-                $condition->add("JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
-                $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT(${queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
+                $condition->add("JSON_EXTRACT({$queryBuilderAlias}.freeFields, '$.\"$id\"') LIKE :search_value");
+                $condition->add("DATE_FORMAT(STR_TO_DATE(TRIM('\"' FROM JSON_EXTRACT({$queryBuilderAlias}.freeFields, '$.\"$id\"')), '%Y-%m-%dT%H:%i'), '%d/%m/%Y %H:%i') LIKE :search_value");
             } else if(isset($conditions[$column])) {
                 $condition->add($conditions[$column]);
             }

@@ -97,6 +97,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
 use Twig\Environment as Twig_Environment;
@@ -105,13 +106,13 @@ use Twig\Environment as Twig_Environment;
 class MobileController extends AbstractApiController
 {
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
-    /** @Required */
+    #[Required]
     public MobileApiService $mobileApiService;
 
-    /** @Required */
+    #[Required]
     public TrackingMovementService $trackingMovementService;
 
     /**
@@ -123,8 +124,7 @@ class MobileController extends AbstractApiController
                                EntityManagerInterface       $entityManager,
                                UserService                  $userService,
                                SessionHistoryRecordService  $sessionHistoryRecordService,
-                               DispatchService              $dispatchService)
-    {
+                               DispatchService              $dispatchService) : JsonResponse {
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
@@ -218,7 +218,7 @@ class MobileController extends AbstractApiController
      * @Wii\RestVersionChecked()
      */
     public function logout(EntityManagerInterface $entityManager,
-                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse{
+                           SessionHistoryRecordService $sessionHistoryRecordService): JsonResponse {
         $typeRepository = $entityManager->getRepository(Type::class);
         $nomadUser = $this->getUser();
         $sessionType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::SESSION_HISTORY, Type::LABEL_NOMADE_SESSION_HISTORY);
@@ -957,7 +957,7 @@ class MobileController extends AbstractApiController
                         }
 
                         if ($emplacementPrepa) {
-                            $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $emplacementPrepa);
+                            $preparationsManager->closePreparationMovements($preparation, $dateEnd, $emplacementPrepa);
                         } else {
                             throw new Exception(PreparationsManagerService::MOUVEMENT_DOES_NOT_EXIST_EXCEPTION);
                         }
@@ -1748,7 +1748,7 @@ class MobileController extends AbstractApiController
                 $article->getEmplacement()
             );
             $entityManager->persist($outMovement);
-            $mouvementStockService->finishMouvementStock($outMovement, $now, $request->getDestination());
+            $mouvementStockService->finishStockMovement($outMovement, $now, $request->getDestination());
         }
         $preparationsManagerService->treatPreparation($preparationOrder, $nomadUser, $request->getDestination(), [
             "entityManager" => $entityManager,
@@ -2087,18 +2087,18 @@ class MobileController extends AbstractApiController
             $articleSupplier = $supplierArticleRepository->find($request->request->get('supplier_reference'));
         }
         if (!$ref) {
-            throw new FormException("Référence scannée (${referenceStr}) inconnue.");
+            throw new FormException("Référence scannée ({$referenceStr}) inconnue.");
         } else if ($fromMatrix) {
             $type = $ref->getType();
             if ($ref->getArticlesFournisseur()->isEmpty()) {
-                throw new FormException("La référence scannée (${referenceStr}) n'a pas d'article fournisseur paramétré.");
+                throw new FormException("La référence scannée ({$referenceStr}) n'a pas d'article fournisseur paramétré.");
             } else {
                 $articleSupplier = $ref->getArticlesFournisseur()->first();
             }
         }
         $refTypeLabel = $ref->getType()->getLabel();
         if ($ref->getType()?->getId() !== $type?->getId()) {
-            throw new FormException("Le type selectionné est différent de celui de la référence (${refTypeLabel})");
+            throw new FormException("Le type selectionné est différent de celui de la référence ({$refTypeLabel})");
         }
 
         if (!$articleSupplier) {
@@ -2167,7 +2167,7 @@ class MobileController extends AbstractApiController
             MouvementStock::TYPE_ENTREE
         );
 
-        $mouvementStockService->finishMouvementStock(
+        $mouvementStockService->finishStockMovement(
             $stockMovement,
             $now,
             $article->getEmplacement()
@@ -2705,6 +2705,7 @@ class MobileController extends AbstractApiController
                                   EntityManagerInterface $entityManager,
                                   InventoryService       $inventoryService,
                                   MailerService          $mailerService,
+                                  MouvementStockService  $stockMovementService,
                                   FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
@@ -2728,8 +2729,6 @@ class MobileController extends AbstractApiController
             ->keymap(fn($strDate, $locationId) => [$locationId, $formatService->parseDatetime($strDate)])
             ->toArray();
 
-        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
-
         $now = new DateTime('now');
         $validator = $this->getUser();
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
@@ -2738,26 +2737,25 @@ class MobileController extends AbstractApiController
 
         $inventoryService->clearInventoryZone($mission);
 
-        $zonesData = Stream::from($mission->getInventoryLocationMissions())
-            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId())
-            ->reduce(function($carry, InventoryLocationMission $inventoryLocationMission) use ($validatedAtDates) {
+        $zonesData = [];
+        foreach ($mission->getInventoryLocationMissions() as $inventoryLocationMission) {
+            if ($inventoryLocationMission->getLocation()?->getId()) {
                 $zoneId = $inventoryLocationMission->getLocation()->getZone()?->getId();
                 $locationId = $inventoryLocationMission->getLocation()?->getId();
-                if (!isset($carry[$zoneId])) {
-                    $carry[$zoneId] = [
+                if (!isset($zonesData[$zoneId])) {
+                    $zonesData[$zoneId] = [
                         "zone" => $inventoryLocationMission->getLocation()->getZone(),
                         "lines" => [],
                         "validatedAt" => null
                     ];
                 }
 
-                $carry[$zoneId]["lines"][] = $inventoryLocationMission;
-                $carry[$zoneId]["validatedAt"] = $carry[$zoneId]["validatedAt"]
+                $zonesData[$zoneId]["lines"][] = $inventoryLocationMission;
+                $zonesData[$zoneId]["validatedAt"] = $zonesData[$zoneId]["validatedAt"]
                     ?? $validatedAtDates[$locationId]
                     ?? null;
-
-                return $carry;
-            }, []);
+            }
+        }
 
         // save sta
         foreach ($zonesData as $zoneDatum) {
@@ -2768,6 +2766,7 @@ class MobileController extends AbstractApiController
             $validatedAt = $zoneDatum["validatedAt"] ?? null;
             if ($zone && $lines) {
                 ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
+
                 foreach ($lines as $line) {
                     $line->setDone(true);
                     if ($line->getLocation()) {
@@ -2782,6 +2781,9 @@ class MobileController extends AbstractApiController
             }
         }
 
+        $entityManager->flush();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
         // change article states
         /** @var Article $article */
@@ -2789,15 +2791,12 @@ class MobileController extends AbstractApiController
             if (in_array($article->getRFIDtag(), $tags)) {
                 $presentArticle = $article;
                 if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
-                    $correctionMovement = new MouvementStock();
-                    $correctionMovement
-                        ->setType(MouvementStock::TYPE_INVENTAIRE_ENTREE)
-                        ->setArticle($presentArticle)
-                        ->setDate($now)
-                        ->setQuantity($presentArticle->getQuantite())
-                        ->setEmplacementFrom($presentArticle->getEmplacement())
-                        ->setEmplacementTo($presentArticle->getEmplacement())
-                        ->setUser($validator);
+                    $location = $presentArticle->getEmplacement();
+                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
+                        'date' => $now,
+                        'locationTo' => $location,
+                    ]);
+
                     $entityManager->persist($correctionMovement);
                 }
                 $presentArticle
@@ -2809,15 +2808,12 @@ class MobileController extends AbstractApiController
             else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                    $correctionMovement = new MouvementStock();
-                    $correctionMovement
-                        ->setType(MouvementStock::TYPE_INVENTAIRE_SORTIE)
-                        ->setArticle($missingArticle)
-                        ->setDate($now)
-                        ->setQuantity($missingArticle->getQuantite())
-                        ->setEmplacementFrom($missingArticle->getEmplacement())
-                        ->setEmplacementTo($missingArticle->getEmplacement())
-                        ->setUser($validator);
+                    $location = $missingArticle->getEmplacement();
+                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
+                        'date' => $now,
+                        'locationTo' => $location,
+                    ]);
+
                     $entityManager->persist($correctionMovement);
                     $missingArticle
                         ->setFirstUnavailableDate($now);

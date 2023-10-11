@@ -12,31 +12,29 @@ use App\Service\WiilockService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 use App\Entity\Dashboard;
 
+#[AsCommand(
+    name: 'app:feed:dashboards',
+    description: 'Feeds the dashboard data.'
+)]
 class DashboardFeedCommand extends Command {
-
-    protected static $defaultName = 'app:feed:dashboards';
-
-    private $entityManager;
-    private $dashboardService;
-    private $wiilockService;
+    private EntityManagerInterface $entityManager;
+    private DashboardService $dashboardService;
+    private WiilockService $wiilockService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 DashboardService $dashboardService,
                                 WiilockService $wiilockService) {
-        parent::__construct(self::$defaultName);
+        parent::__construct();
         $this->entityManager = $entityManager;
         $this->dashboardService = $dashboardService;
         $this->wiilockService = $wiilockService;
-    }
-
-    protected function configure() {
-        $this->setDescription('This command feeds the dashboard data.');
     }
 
     /**
@@ -46,7 +44,7 @@ class DashboardFeedCommand extends Command {
      * @throws ORMException
      * @throws Throwable
      */
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output): int {
         $entityManager = $this->getEntityManager();
         if(!$this->wiilockService->dashboardNeedsFeeding($entityManager)) {
             $output->writeln("Dashboards are being fed, aborting");

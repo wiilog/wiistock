@@ -356,7 +356,7 @@ class DeliveryStationController extends AbstractController
                 $article->getEmplacement()
             );
 
-            $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
+            $stockMovementService->finishStockMovement($outMovement, $date, $deliveryRequest->getDestination());
         }
 
         foreach ($deliveryRequest->getReferenceLines() as $referenceLine) {
@@ -373,7 +373,7 @@ class DeliveryStationController extends AbstractController
                 $reference->getEmplacement()
             );
 
-            $stockMovementService->finishMouvementStock($outMovement, $date, $deliveryRequest->getDestination());
+            $stockMovementService->finishStockMovement($outMovement, $date, $deliveryRequest->getDestination());
         }
 
         $preparationOrderService->treatPreparation($preparation, $user, $deliveryRequest->getDestination(), [

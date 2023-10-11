@@ -33,7 +33,7 @@ final class Version20221222113502 extends AbstractMigration
                 "reception" => Utilisateur::DEFAULT_RECEPTION_VISIBLE_COLUMNS
             ];
 
-            $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = ${user['id']}", ['columns' => json_encode($defaultVisibleColumns)]);
+            $this->addSql("UPDATE utilisateur SET visible_columns = :columns WHERE id = {$user['id']}", ['columns' => json_encode($defaultVisibleColumns)]);
         }
     }
 }

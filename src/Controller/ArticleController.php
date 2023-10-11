@@ -287,7 +287,7 @@ class ArticleController extends AbstractController
                     MouvementStock::TYPE_ENTREE
                 );
 
-                $mouvementStockService->finishMouvementStock(
+                $mouvementStockService->finishStockMovement(
                     $stockMovement,
                     new DateTime('now'),
                     $article->getEmplacement()

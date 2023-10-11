@@ -86,7 +86,7 @@ class PreparationController extends AbstractController
 
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
 
-        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+        $preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
         $entityManager->flush();
         $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
@@ -749,7 +749,7 @@ class PreparationController extends AbstractController
             $number = $sensorWrapper->getName();
             return $this->json([
                 'success' => true,
-                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+                'msg' => "L'assocation avec le capteur <strong>{$number}</strong> a bien été créée"
             ]);
         }
 

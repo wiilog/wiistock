@@ -343,7 +343,7 @@ class RefArticleDataService
                         'label' => $supplierReferenceLine['labelFournisseur'],
                         'reference' => $referenceArticleFournisseur,
                         'visible' => $isVisible
-                    ]);
+                    ], false, $entityManager);
 
                     $entityManager->persist($supplierArticle);
                 } catch (Exception $exception) {
@@ -493,7 +493,7 @@ class RefArticleDataService
                 $refArticle,
                 MouvementStock::TYPE_ENTREE
             );
-            $this->mouvementStockService->finishMouvementStock(
+            $this->mouvementStockService->finishStockMovement(
                 $mvtStock,
                 new DateTime('now'),
                 $refArticle->getEmplacement()

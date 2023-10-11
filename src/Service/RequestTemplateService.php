@@ -14,17 +14,18 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\StringHelper;
 
 class RequestTemplateService {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
-    /** @Required */
+    #[Required]
     public FreeFieldService $freeFieldService;
 
     public function getType(int $type): ?Type {

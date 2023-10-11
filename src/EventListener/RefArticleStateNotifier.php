@@ -11,14 +11,15 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class RefArticleStateNotifier {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refService;
 
     public function postPersist($entity) {

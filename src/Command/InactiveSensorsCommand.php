@@ -5,28 +5,27 @@ namespace App\Command;
 use App\Entity\IOT\SensorWrapper;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
-
+#[AsCommand(
+    name: 'app:iot:check-sensors-inactivity',
+    description: 'This command checks inactive pairings.'
+)]
 class InactiveSensorsCommand extends Command {
 
-    protected static $defaultName = "app:iot:check-sensors-inactivity";
-
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public MailerService $mailerService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
-
-    protected function configure() {
-        $this->setDescription("Checks inactive pairings");
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $wrapperRepository = $this->entityManager->getRepository(SensorWrapper::class);

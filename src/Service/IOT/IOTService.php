@@ -125,25 +125,25 @@ class IOTService
         self::DATA_TYPE_HYGROMETRY => '%',
     ];
 
-    #[Required]
+    #[required]
     public DeliveryRequestService $demandeLivraisonService;
 
-    #[Required]
+    #[required]
     public UniqueNumberService $uniqueNumberService;
 
-    #[Required]
+    #[required]
     public AlertService $alertService;
 
-    #[Required]
+    #[required]
     public NotificationService $notificationService;
 
-    #[Required]
+    #[required]
     public MailerService $mailerService;
 
-    #[Required]
+    #[required]
     public Twig_Environment $templating;
 
-    #[Required]
+    #[required]
     public HttpService $client;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false): void {

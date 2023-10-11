@@ -15,10 +15,10 @@ use Twig\Environment as Twig_Environment;
 
 class PairingService
 {
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $twigEnvironment;
 
     #[Required]

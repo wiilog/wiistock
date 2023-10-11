@@ -34,7 +34,7 @@ use WiiCommon\Helper\Stream;
 use App\Repository\TrackingMovementRepository;
 use DateTime;
 use Exception;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
@@ -888,7 +888,7 @@ class TrackingMovementService extends AbstractController
                     MouvementStock::TYPE_TRANSFER
                 );
 
-                $mouvementStockService->finishMouvementStock($stockMovement, new DateTime(), $location);
+                $mouvementStockService->finishStockMovement($stockMovement, new DateTime(), $location);
                 $article->setEmplacement($location);
 
                 $entityManager->persist($stockMovement);
@@ -994,7 +994,7 @@ class TrackingMovementService extends AbstractController
                 } else {
                     $options['mouvementStock'] = $mouvementStockPrise;
                     $options['quantity'] = $mouvementStockPrise->getQuantity();
-                    $this->stockMovementService->finishMouvementStock($mouvementStockPrise, $date, $location);
+                    $this->stockMovementService->finishStockMovement($mouvementStockPrise, $date, $location);
 
                     if ($article instanceof Article) {
                         $status = $this->stockStatuses['activeArticleStatus']
@@ -1486,7 +1486,7 @@ class TrackingMovementService extends AbstractController
                     ['from' => $options['from'] ?? null]
                 );
 
-                $this->stockMovementService->finishMouvementStock($stockMovement, $trackingDate, $dropLocation);
+                $this->stockMovementService->finishStockMovement($stockMovement, $trackingDate, $dropLocation);
                 $article->setEmplacement($dropLocation);
 
                 $drop->setMouvementStock($stockMovement);

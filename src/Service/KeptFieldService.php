@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\FieldsParam;
 use App\Entity\KeptFieldValue;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 

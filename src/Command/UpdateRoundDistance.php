@@ -7,12 +7,17 @@ namespace App\Command;
 use App\Entity\Transport\TransportRound;
 use App\Service\Transport\TransportRoundService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:update:round:distance',
+    description: 'Update round distance'
+)]
 class UpdateRoundDistance extends Command {
 
     #[Required]
@@ -21,9 +26,8 @@ class UpdateRoundDistance extends Command {
     #[Required]
     public TransportRoundService $transportRoundService;
 
-    protected function configure() {
+    protected function configure(): void {
         $this
-            ->setName('app:update:round:distance')
             ->addArgument('rounds', InputArgument::IS_ARRAY, '"rounds to update"');
     }
 

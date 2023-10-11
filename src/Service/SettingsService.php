@@ -1139,7 +1139,8 @@ class SettingsService {
                         ->setLabel($reserveTypeData['label'])
                         ->setNotifiedUsers(!empty($notifiedUsers) ? $notifiedUsers : null)
                         ->setDefaultReserveType($reserveTypeData['defaultReserveType'])
-                        ->setActive($reserveTypeData['active']);
+                        ->setActive($reserveTypeData['active'])
+                        ->setDisableTrackingNumber($reserveTypeData['disableTrackingNumber']);
 
                     $this->manager->persist($reserveType);
                 }

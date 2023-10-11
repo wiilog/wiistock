@@ -476,7 +476,7 @@ class DashboardSettingsService {
                 ];
                 $lastKey = "1";
                 foreach ($segments as $segment) {
-                    $segmentsLabels[] = "${lastKey}h - ${segment}h";
+                    $segmentsLabels[] = "{$lastKey}h - {$segment}h";
                     $lastKey = $segment;
                 }
             } else {
