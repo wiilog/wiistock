@@ -186,7 +186,7 @@ class CartService {
             $projectRepository = $manager->getRepository(Project::class);
             $destination = $manager->find(Emplacement::class, $data['location']);
             $type = $manager->find(Type::class, $data['deliveryType']);
-            $project = $data['project'] ? $projectRepository->find($data['project']) : null;
+            $project = isset($data['project']) ? $projectRepository->find($data['project']) : null;
             $expectedAt = $this->formatService->parseDatetime($data['expectedAt'] ?? null);
 
             $draft = $statutRepository->findOneByCategorieNameAndStatutCode(

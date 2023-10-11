@@ -184,8 +184,7 @@ class InventoryService {
     public function summarizeLocationInventory(EntityManagerInterface $entityManager,
                                                InventoryMission       $mission,
                                                Zone                   $zone,
-                                               array                  $rfidTags,
-                                               Utilisateur            $user): array {
+                                               array                  $rfidTags): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -207,18 +206,15 @@ class InventoryService {
 
         $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
 
-        $now = new DateTime('now');
-
         $minStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN);
         $maxStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX);
         $min = $minStr ? intval($minStr) : null;
         $max = $maxStr ? intval($maxStr) : null;
 
-        $this->clearInventoryZone($mission, $zone);
-
         $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
 
         $locationsData = [];
+        $inventoryData = [];
         $result = [];
         $numScannedObjects = 0;
 
@@ -267,27 +263,19 @@ class InventoryService {
 
         // calculate percentage and save in inventory stats and scanned articles
         foreach($locationsData as $locationRow) {
-            /** @var InventoryLocationMission $linkedLine */
-            $linkedLine = $mission
-                ->getInventoryLocationMissions()
-                ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationRow["locationId"])
-                ->first() ?: null;
+            $ratio = $zoneInventoryIndicator
+                ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                : 0;
 
-            if ($linkedLine) {
-                $ratio = $zoneInventoryIndicator
-                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
-                    : 0;
-
-                $linkedLine
-                    ->setOperator($user)
-                    ->setScannedAt($now)
-                    ->setPercentage($ratio)
-                    ->setArticles($locationRow["articles"] ?? []);
-            }
+            $inventoryData[$locationRow["locationId"]] = [
+                "locationId" => $locationRow["locationId"],
+                "ratio" => $ratio,
+                "articles" => $locationRow["articles"] ?? [],
+            ];
 
             $result[] = [
                 "location" => $locationRow['location'],
-                "ratio" => $ratio ?? 0,
+                "ratio" => $ratio,
             ];
         }
 
@@ -301,26 +289,22 @@ class InventoryService {
             ))
             ->values();
 
-        $entityManager->flush();
-
         return [
             "numScannedObjects" => $numScannedObjects,
             "lines" => $locationsData,
+            "inventoryData" => $inventoryData
         ];
     }
 
 
-    public function clearInventoryZone(InventoryMission $mission,
-                                       Zone             $zone): void {
+    public function clearInventoryZone(InventoryMission $mission): void {
         $inventoryLocationMissionArray = $mission->getInventoryLocationMissions();
         foreach ($inventoryLocationMissionArray as $inventoryLocationMission) {
-            if ($inventoryLocationMission->getLocation()?->getZone()?->getId() === $zone->getId()) {
-                $inventoryLocationMission
-                    ->setOperator(null)
-                    ->setScannedAt(null)
-                    ->setPercentage(null)
-                    ->setArticles([]);
-            }
+            $inventoryLocationMission
+                ->setOperator(null)
+                ->setScannedAt(null)
+                ->setPercentage(null)
+                ->setArticles([]);
         }
     }
 

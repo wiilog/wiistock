@@ -86,6 +86,7 @@ class InvMissionService {
             : ((($nbArtInMission + $nbRefInMission) != 0)
                 ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
                 : 0);
+
         return [
             'name' => $mission->getName() ?? '',
             'start' => $this->formatService->date($mission->getStartPrevDate()),
@@ -160,7 +161,7 @@ class InvMissionService {
                         ? $this->templating->render("utils/action-buttons/dropdown.html.twig", [
                             "actions" => [
                                 [
-                                    "title" => "Annuler la planification",
+                                    "title" => "Voir les articles",
                                     "actionOnClick" => true,
                                     "attributes" => [
                                         "data-id" => $inventoryLocation->getId(),
@@ -169,7 +170,7 @@ class InvMissionService {
                                 ],
                                 [
                                     "title" => "Voir les articles",
-                                    "icon" => "bg-black fas fa-eye",
+                                    "icon" => "fas fa-eye",
                                     "attributes" => [
                                         "class" => "pointer",
                                         "data-id" => $inventoryLocation->getId(),

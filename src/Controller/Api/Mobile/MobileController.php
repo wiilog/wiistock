@@ -60,6 +60,7 @@ use App\Service\DeliveryRequestService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GroupService;
 use App\Service\HandlingService;
@@ -2678,17 +2679,19 @@ class MobileController extends AbstractApiController
 
 
         $rfidTagsStr = $request->request->get('rfidTags');
-        $rfidTags = json_decode($rfidTagsStr ?: '[]', true) ?: [];
+
+        $data = $inventoryService->summarizeLocationInventory(
+            $entityManager,
+            $inventoryMission,
+            $zone,
+            json_decode($rfidTagsStr ?: '[]', true) ?: []
+        );
+
+        unset($data['inventoryData']);
 
         return $this->json([
             "success" => true,
-            "data" => $inventoryService->summarizeLocationInventory(
-                $entityManager,
-                $inventoryMission,
-                $zone,
-                $rfidTags,
-                $this->getUser()
-            )
+            "data" => $data
         ]);
     }
 
@@ -2700,34 +2703,89 @@ class MobileController extends AbstractApiController
      */
     public function finishMission(Request                $request,
                                   EntityManagerInterface $entityManager,
+                                  InventoryService       $inventoryService,
                                   MailerService          $mailerService,
-                                  Twig_Environment       $templating,
-                                  MouvementStockService  $stockMovementService): Response
+                                  MouvementStockService  $stockMovementService,
+                                  FormatService          $formatService,
+                                  Twig_Environment       $templating): Response
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $missionRepository = $entityManager->getRepository(InventoryMission::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $zoneRepository = $entityManager->getRepository(Zone::class);
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX) ?: '';
 
         $mission = $missionRepository->find($request->request->get('mission'));
-        $zones = $zoneRepository->findBy(["id" => json_decode($request->request->get('zones'))]);
-        $locations = $locationRepository->findByMissionAndZone($zones, $mission);
+        $locations = $mission->getInventoryLocationMissions()
+            ->map(fn(InventoryLocationMission $line) => $line->getLocation())
+            ->toArray();
 
         $tags = Stream::from(json_decode($request->request->get('tags')))
             ->filter(fn(string $tag) => str_starts_with($tag, $rfidPrefix))
             ->toArray();
 
-        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
+        $validatedAtDates = Stream::from(json_decode($request->request->get('validatedAtDates'), true))
+            ->keymap(fn($strDate, $locationId) => [$locationId, $formatService->parseDatetime($strDate)])
+            ->toArray();
 
         $now = new DateTime('now');
         $validator = $this->getUser();
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
+
+        $inventoryService->clearInventoryZone($mission);
+
+        $zonesData = [];
+        foreach ($mission->getInventoryLocationMissions() as $inventoryLocationMission) {
+            if ($inventoryLocationMission->getLocation()?->getId()) {
+                $zoneId = $inventoryLocationMission->getLocation()->getZone()?->getId();
+                $locationId = $inventoryLocationMission->getLocation()?->getId();
+                if (!isset($zonesData[$zoneId])) {
+                    $zonesData[$zoneId] = [
+                        "zone" => $inventoryLocationMission->getLocation()->getZone(),
+                        "lines" => [],
+                        "validatedAt" => null
+                    ];
+                }
+
+                $zonesData[$zoneId]["lines"][] = $inventoryLocationMission;
+                $zonesData[$zoneId]["validatedAt"] = $zonesData[$zoneId]["validatedAt"]
+                    ?? $validatedAtDates[$locationId]
+                    ?? null;
+            }
+        }
+
+        // save sta
+        foreach ($zonesData as $zoneDatum) {
+            /** @var InventoryLocationMission[] $lines */
+            $lines = $zoneDatum["lines"] ?? [];
+            /** @var Zone $zone */
+            $zone = $zoneDatum["zone"] ?? null;
+            $validatedAt = $zoneDatum["validatedAt"] ?? null;
+            if ($zone && $lines) {
+                ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
+
+                foreach ($lines as $line) {
+                    $line->setDone(true);
+                    if ($line->getLocation()) {
+                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()];
+                        $line
+                            ->setOperator($validator)
+                            ->setScannedAt(isset($inventoryDatum) ? ($validatedAt ?? $now) : null)
+                            ->setPercentage(isset($inventoryDatum) ? $inventoryDatum["ratio"] : null)
+                            ->setArticles(isset($inventoryDatum) ? $inventoryDatum["articles"] : []);
+                    }
+                }
+            }
+        }
+
+        $entityManager->flush();
+
+        $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
+
+        // change article states
         /** @var Article $article */
         foreach ($articlesOnLocations as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
@@ -3766,30 +3824,6 @@ class MobileController extends AbstractApiController
         }
 
         return $this->json($data);
-    }
-
-    /**
-     * @Rest\Post("/api/inventory-mission-validate-zone", name="api_inventory_mission_validate_zone", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
-    public function postInventoryMissionValidateZone(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        $zoneId = $request->request->getInt('zone');
-        $missionId = $request->request->get('mission');
-        $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
-        $queryResult = $inventoryLocationMissionRepository->getInventoryLocationMissionsByMission($missionId);
-        $inventoryLocationMissions = Stream::from($queryResult)
-            ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()->getZone() && $inventoryLocationMission->getLocation()->getZone()->getId() === $zoneId)
-            ->toArray();
-
-        foreach ($inventoryLocationMissions as $inventoryLocationMission){
-            $inventoryLocationMission->setDone(true);
-        }
-        $entityManager->flush();
-        return $this->json([
-            'success' => true
-        ]);
     }
 
     /**
