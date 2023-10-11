@@ -14,6 +14,7 @@ use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,7 +35,7 @@ class TransferOrderService {
     private $mouvementStockService;
     private $uniqueNumberService;
 
-    /** @Required */
+    #[Required]
     public NotificationService $notificationService;
 
     public function __construct(TokenStorageInterface $tokenStorage,

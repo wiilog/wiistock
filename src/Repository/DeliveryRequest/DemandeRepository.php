@@ -291,8 +291,8 @@ class DemandeRepository extends EntityRepository
                                MAX(preparation.date) AS date
                         FROM demande AS sub_demande
                         INNER JOIN preparation ON preparation.demande_id = sub_demande.id
-                        WHERE sub_demande.type_id IN (${typesStr})
-                          AND sub_demande.statut_id IN (${statusesStr})
+                        WHERE sub_demande.type_id IN ({$typesStr})
+                          AND sub_demande.statut_id IN ({$statusesStr})
                         GROUP BY sub_demande.id
                     ) AS preparation_date ON preparation_date.demande_id = demande.id
                     ORDER BY preparation_date.date ASC

@@ -8,27 +8,25 @@ use App\Service\ScheduledExportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:launch:scheduled-exports',
+    description: 'This command executes scheduled export.'
+)]
 class ScheduledExportCommand extends Command
 {
 
-    private const DEFAULT_NAME = "app:launch:scheduled-exports";
 
     #[Required]
     public EntityManagerInterface $em;
 
     #[Required]
     public ScheduledExportService $exportService;
-
-    protected function configure()
-    {
-        $this->setName(self::DEFAULT_NAME)
-            ->setDescription("This command executes scheduled export.");
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

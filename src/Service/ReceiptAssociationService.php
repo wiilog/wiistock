@@ -12,7 +12,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use DateTime;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;

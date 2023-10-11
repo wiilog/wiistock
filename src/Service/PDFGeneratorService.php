@@ -129,8 +129,8 @@ class PDFGeneratorService {
                 'landscape' => $landscape
             ]),
             [
-                'page-height' => "${height}mm",
-                'page-width' => "${width}mm",
+                'page-height' => "{$height}mm",
+                'page-width' => "{$width}mm",
                 'margin-top' => 0,
                 'margin-right' => 0,
                 'margin-bottom' => 0,
@@ -343,8 +343,8 @@ class PDFGeneratorService {
                 'barcodeConfigs' => $barcodeConfigsToTwig,
             ]),
             [
-                'page-height' => "${height}mm",
-                'page-width' => "${width}mm",
+                'page-height' => "{$height}mm",
+                'page-width' => "{$width}mm",
                 'margin-top' => 0,
                 'margin-right' => 0,
                 'margin-bottom' => 0,

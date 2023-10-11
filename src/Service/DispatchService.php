@@ -34,7 +34,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -1390,7 +1390,7 @@ class DispatchService {
         }
 
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$waybillTemplatePath",
+            "{$projectDir}/public/$waybillTemplatePath",
             $variables,
             ["barcodes" => ["qrcodenumach"],]
         );
@@ -1509,7 +1509,7 @@ class DispatchService {
             })
             ->toArray();
         $tmpDocxPath = $this->wordTemplateDocument->generateDocx(
-            "${projectDir}/public/$reportTemplatePath",
+            "{$projectDir}/public/$reportTemplatePath",
             $variables,
             ["barcodes" => ["qrcodenumach"],]
         );

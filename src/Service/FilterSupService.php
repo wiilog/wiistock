@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\FiltreSup;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 
 class FilterSupService

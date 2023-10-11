@@ -974,7 +974,7 @@ class ImportService
         if(isset($data['visibilityGroups'])) {
             $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroups']]);
             if(!isset($visibilityGroup)) {
-                $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
+                $this->throwError("Le groupe de visibilité {$data['visibilityGroups']} n'existe pas");
             }
             $refArt->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
@@ -1350,7 +1350,7 @@ class ImportService
         if($role) {
             $user->setRole($role);
         } else {
-            $this->throwError("Le rôle ${data['role']} n'existe pas");
+            $this->throwError("Le rôle {$data['role']} n'existe pas");
         }
 
         if(isset($data['username'])) {
@@ -1394,7 +1394,7 @@ class ImportService
 
             if(strlen($data['mobileLoginKey']) < UserService::MIN_MOBILE_KEY_LENGTH
                 || strlen($data['mobileLoginKey']) > UserService::MAX_MOBILE_KEY_LENGTH) {
-                $this->throwError("La clé de connexion doit faire entre ${minMobileKeyLength} et ${maxMobileKeyLength} caractères");
+                $this->throwError("La clé de connexion doit faire entre {$minMobileKeyLength} et {$maxMobileKeyLength} caractères");
             }
 
             $userWithExistingKey = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
@@ -1501,7 +1501,7 @@ class ImportService
             if($dropzone) {
                 $user->setDropzone($dropzone);
             } else {
-                $this->throwError("La dropzone ${data['dropzone']} n'existe pas");
+                $this->throwError("La dropzone {$data['dropzone']} n'existe pas");
             }
         }
         foreach ($user->getVisibilityGroups() as $visibilityGroup) {

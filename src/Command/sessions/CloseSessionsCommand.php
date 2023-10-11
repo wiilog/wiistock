@@ -31,7 +31,7 @@ class CloseSessionsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure() {
+    protected function configure(): void {
         $this
             ->setName("app:sessions:close")
             ->setDescription("Close sessions History Records")
@@ -39,8 +39,7 @@ class CloseSessionsCommand extends Command
 
     }
 
-    public function execute(InputInterface $input, OutputInterface $output)
-    {
+    public function execute(InputInterface $input, OutputInterface $output): int {
         $sessionHistoryRecordRepository = $this->entityManager->getRepository(SessionHistoryRecord::class);
         $ids = $input->getArgument('ids');
         $now = new DateTime();

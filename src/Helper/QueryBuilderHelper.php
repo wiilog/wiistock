@@ -36,7 +36,7 @@ class QueryBuilderHelper
             $qb
                 ->select("COUNT(entity)")
                 ->from($entity, 'entity')
-                ->innerJoin("entity.${statusProperty}", 'status')
+                ->innerJoin("entity.{$statusProperty}", 'status')
                 ->innerJoin("entity.type", 'type')
                 ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
@@ -63,7 +63,7 @@ class QueryBuilderHelper
             $qb
                 ->select("COUNT(entity)")
                 ->from($entity, 'entity')
-                ->innerJoin("entity.${statusProperty}", 'status')
+                ->innerJoin("entity.{$statusProperty}", 'status')
                 ->andWhere('status IN (:statuses)')
                 ->setParameter('statuses', $statuses);
 

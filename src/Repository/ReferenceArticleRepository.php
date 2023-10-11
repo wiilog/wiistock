@@ -373,7 +373,7 @@ class ReferenceArticleRepository extends EntityRepository {
     {
         $queryBuilder = $this->createQueryBuilder('reference')
             ->select('reference.id')
-            ->addSelect("reference.${field} as text")
+            ->addSelect("reference.{$field} as text")
             ->addSelect('reference.typeQuantite as typeQuantity')
             ->addSelect('reference.isUrgent as urgent')
             ->addSelect('reference.emergencyComment as emergencyComment')
@@ -383,7 +383,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.quantiteDisponible')
             ->leftJoin('reference.emplacement', 'join_location')
             ->leftJoin('reference.statut', 'join_draft_status')
-            ->where("reference.${field} LIKE :search")
+            ->where("reference.{$field} LIKE :search")
             ->andWhere("join_draft_status.code <> :draft")
             ->setParameter('search', '%' . $search . '%')
             ->setParameter('draft', ReferenceArticle::DRAFT_STATUS);
@@ -632,7 +632,7 @@ class ReferenceArticleRepository extends EntityRepository {
                                 $item = "1";
                                 $conditionType = ' IS NULL';
                             }
-                            return "JSON_SEARCH(ra.freeFields, 'one', '${item}', NULL, '$.\"${clId}\"')" . $conditionType;
+                            return "JSON_SEARCH(ra.freeFields, 'one', '{$item}', NULL, '$.\"{$clId}\"')" . $conditionType;
                         })
                         ->toArray();
 
@@ -733,7 +733,7 @@ class ReferenceArticleRepository extends EntityRepository {
 
                                     if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                                         $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                        $query[] = "JSON_SEARCH(ra.freeFields, 'one', :search, NULL, '$.\"{$freeFieldId}\"') IS NOT NULL";
                                         $queryBuilder->setParameter("search", $booleanValue);
                                     }
                                 }

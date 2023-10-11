@@ -108,7 +108,7 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel) {
+    public function hasRightFunction(string $menuCode, string $actionLabel): bool {
         return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
 
@@ -116,11 +116,11 @@ class AppExtension extends AbstractExtension {
      * @param string[]|string $clientName
      * @return bool
      */
-    public function isCurrentClientNameFunction($clientName) {
+    public function isCurrentClientNameFunction($clientName): bool {
         return $this->specificService->isCurrentClientNameFunction($clientName);
     }
 
-    public function withoutExtensionFilter(string $filename) {
+    public function withoutExtensionFilter(string $filename): string {
         $array = explode('.', $filename);
         return $array[0];
     }
@@ -129,7 +129,7 @@ class AppExtension extends AbstractExtension {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
     }
 
-    public function base64(string $relativePath) {
+    public function base64(string $relativePath): string {
         $absolutePath = $this->kernel->getProjectDir() . "/$relativePath";
         if (file_exists($absolutePath)) {
             $type = pathinfo($absolutePath, PATHINFO_EXTENSION);
@@ -179,7 +179,7 @@ class AppExtension extends AbstractExtension {
         }
     }
 
-    public function wordwrap(string $value, int $length) {
+    public function wordwrap(string $value, int $length): string|Markup {
         if(strlen($value) > $length) {
             return new Markup(implode("<br>", str_split($value, $length)), "UTF-8");
         } else {

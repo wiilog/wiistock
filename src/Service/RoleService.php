@@ -8,6 +8,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\Utilisateur;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,10 +19,10 @@ class RoleService
     public const PERMISSIONS_CACHE_PREFIX = 'permissions';
     public const MENU_CACHE_PREFIX = 'menu';
 
-    /** @Required  */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required  */
+    #[Required]
     public CacheService $cacheService;
 
     public function getPermissions(Utilisateur $user, $bool = false): array {
@@ -67,7 +68,7 @@ class RoleService
             if ($labelCount > 0) {
                 return [
                     "success" => false,
-                    "message" => "Le rôle <strong>${label}</strong> existe déjà, veuillez choisir un autre libellé"
+                    "message" => "Le rôle <strong>{$label}</strong> existe déjà, veuillez choisir un autre libellé"
                 ];
             }
         }
