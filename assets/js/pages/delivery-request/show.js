@@ -20,7 +20,10 @@ $(function () {
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
+        minQuantity: (
+            Boolean($('input[name=managePreparationWithPlanning]').val())
+            || Boolean($('input[name=manageDeliveriesWithoutStockQuantity]').val())
+        ) ? 0 : 1,
     });
 
     initPageModals();
