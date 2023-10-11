@@ -2809,7 +2809,7 @@ class MobileController extends AbstractApiController
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $location = $missingArticle->getEmplacement();
-                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
+                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
                         'date' => $now,
                         'locationTo' => $location,
                     ]);
