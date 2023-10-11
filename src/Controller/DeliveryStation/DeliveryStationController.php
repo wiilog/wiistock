@@ -38,7 +38,7 @@ class DeliveryStationController extends AbstractController
         $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $token]);
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $mobileLoginKey]);
         if($user) {
-            if($user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
+            if($user->getVisibilityGroups()->isEmpty() || $user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
                 return $this->json([
                     'success' => true,
                 ]);
@@ -51,7 +51,7 @@ class DeliveryStationController extends AbstractController
         } else {
             return $this->json([
                 'success' => false,
-                'msg' => "Aucun utilisateur n'est lié à cette clé de connexion nomade."
+                'msg' => "Aucun utilisateur n'est associé à cette clé de connexion nomade."
             ]);
         }
     }
@@ -59,6 +59,10 @@ class DeliveryStationController extends AbstractController
     #[Route("/formulaire/{token}", name: "delivery_station_form", options: ["expose" => true])]
     public function form(string $token, Request $request, EntityManagerInterface $entityManager): Response
     {
+        if(!$this->getUser()) {
+            return $this->redirectToRoute("login");
+        }
+
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $mobileLoginKey = $request->query->get('mobileLoginKey');
@@ -266,6 +270,7 @@ class DeliveryStationController extends AbstractController
             'demandeur' => $user,
             'destination' => $deliveryStationLine->getDestinationLocation()->getId(),
             'disabledFieldChecking' => true,
+            'isFastDelivery' => true,
         ];
         $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
         $entityManager->persist($deliveryRequest);

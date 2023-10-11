@@ -12,6 +12,12 @@ body {
             min-width: 200px !important;
             height: 60px !important;
             font-size: 20px !important;
+            padding: 10px !important;
+
+            &.go-to-summary-button {
+                padding-right: 20px !important;
+                padding-left: 20px !important;
+            }
         }
     }
 

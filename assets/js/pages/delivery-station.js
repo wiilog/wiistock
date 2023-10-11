@@ -20,6 +20,8 @@ const $summaryContainer = $(`.summary-container`);
 const $addReferenceContainer = $(`.add-reference-container`);
 const $otherInformationsContainer = $(`.other-informations-container`);
 const $treatedDeliveryContainer = $(`.treated-delivery-container`);
+const $multipleFieldFieldsContainer = $(`.multiple-filter-fields-container`);
+const $filterFieldsContainer = $(`.filter-fields-container`);
 
 const $loginButton = $(`button.login`);
 const $validateButton = $(`.validate-button`);
@@ -31,6 +33,7 @@ const $searchButton = $(`.search-button`);
 const $backButton = $(`.back-button`);
 const $backToHomeButton = $(`.back-to-home-button`);
 const $editFreeFieldsButton = $(`.edit-free-fields-button`);
+const $goToSummaryButton = $(`.go-to-summary-button`);
 
 const $modalGeneric = $(`.modal-generic`);
 const $modalInformation = $(`#modal-information`);
@@ -105,6 +108,8 @@ $(function () {
                                                 .removeClass(`d-none`)
                                                 .addClass(`active`);
 
+                                            $goToSummaryButton.addClass(`d-none`);
+
                                             updateTimeline($currentTimelineEvent);
                                             updateTimeline($timeline.find(`.current`));
                                             updateSummaryTable();
@@ -155,6 +160,8 @@ $(function () {
                             values[$(freeField).find(`.field-label`).text().trim()] = $(freeField).find(`input, select`).val();
                         });
 
+                    $goToSummaryButton.addClass(`d-none`);
+
                     pushNextPage($current);
                     updateTimeline($currentTimelineEvent);
                     updateSummaryTable();
@@ -173,25 +180,85 @@ $(function () {
         backPreviousPage();
     });
 
+    $(`.free-field select[multiple]`).on(`change`, function() {
+        $referenceChoiceContainer.find(`[name=reference]`).val(null).trigger(SELECT2_TRIGGER_CHANGE);
+
+        const label = $(this).siblings(`.field-label`).text().trim();
+        const id = $(this).attr(`name`);
+        const $fields = $(this).val().map((value) => {
+            return $(`
+                <div class="filter-parent mr-2 mb-2" data-removable="removable">
+                    <div class="btn filter has-tooltip">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <span class="bold">${value}</span>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-times pointer remove-filter" data-free-field-value="${value}"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `)});
+
+        const $fieldContainer = $multipleFieldFieldsContainer.find(`*[data-free-field-id="${id}"]`);
+        if(!$fieldContainer.exists()) {
+            $multipleFieldFieldsContainer.append($(`
+                <div class="fields-list wii-small-text font-weight-bold mt-2" data-free-field-id="${id}">
+                    <div class="name">${label} :</div>
+                    <div class="fields d-flex flex-wrap"></div>
+                </div>
+            `));
+        }
+
+        $multipleFieldFieldsContainer.find(`*[data-free-field-id="${id}"] .fields`).html($fields);
+
+        if(!$(this).val() || $(this).val().length === 0) {
+            $(`*[data-free-field-id="${id}"]`).remove();
+        }
+    });
+
+    $(document).on(`click`, `.remove-filter`, function () {
+        const freeFieldId = $(this).closest(`.fields-list`).data(`free-field-id`);
+        const freeFieldValue = $(this).data(`free-field-value`);
+
+        const $select = $filterFieldsContainer.find(`[name="${freeFieldId}"]`);
+        const index = $select.val().findIndex((value) => value === freeFieldValue);
+
+        const values = $select.val().filter((v, i) => i !== index);
+        $select.val(values).trigger(`change`);
+        $(this).closest(`.filter-parent`).remove();
+
+        if(!$select.val() || $select.val().length === 0) {
+            $(`*[data-free-field-id="${freeFieldId}"]`).remove();
+        }
+    });
+
     $editFreeFieldsButton.on(`click`, () => {
         backPreviousPage();
 
-        $editFreeFieldsButton.addClass(`d-none`);
-        $backButton.addClass(`d-none`);
-        $giveUpButton.removeClass(`d-none`);
+        $editFreeFieldsButton
+            .add($backButton)
+            .addClass(`d-none`);
+
+        $giveUpButton
+            .add($goToSummaryButton)
+            .removeClass(`d-none`);
+
+        $nextButton.prop(`disabled`, false);
     });
 
     $validateButton.on(`click`, () => {
         const $current = $stockExitContainer.find(`.active`);
 
-        const parsedReferences = JSON.stringify(references);
-        const parsedFreeFields = JSON.stringify(freeFields);
+        const stringifiedReferences = JSON.stringify(references);
+        const stringifiedFreeFields = JSON.stringify(freeFields);
         const token = $(`[name=token]`).val();
         const mobileLoginKey = $(`[name=mobileLoginKey]`).val();
         wrapLoadingOnActionButton($validateButton, () => (
             AJAX.route(AJAX.POST, `delivery_station_submit_request`, {
-                references: parsedReferences,
-                freeFields: parsedFreeFields,
+                references: stringifiedReferences,
+                freeFields: stringifiedFreeFields,
                 token,
                 mobileLoginKey,
             })
@@ -216,10 +283,7 @@ $(function () {
 
     $giveUpButton.on(`click`, () => {
         let list = [];
-        references.forEach(({
-                                reference,
-                                location
-                            }) => list.push(`<li><strong>${reference}</strong> à son emplacement d'origine <strong>${location}</strong></li>`));
+        references.forEach(({reference, location}) => list.push(`<li><strong>${reference}</strong> à son emplacement d'origine <strong>${location}</strong></li>`));
 
         const message = `
             <div>
@@ -234,6 +298,30 @@ $(function () {
         $modalGeneric.find(`.submit`).removeClass(`d-none`);
 
         showGenericModal(message);
+    });
+
+    $goToSummaryButton.on(`click`, () => {
+        $stockExitContainer
+            .find(`.active`)
+            .removeClass(`active`)
+            .addClass(`d-none`);
+
+        $summaryContainer
+            .removeClass(`d-none`)
+            .addClass(`active`);
+
+        $timeline.find(`span`).removeClass(`current future`);
+
+        $timeline
+            .find(`span`)
+            .last()
+            .addClass(`current`);
+
+        updateSummaryTable();
+        toggleSummaryButtons();
+        $goToSummaryButton
+            .add($searchButton)
+            .addClass(`d-none`);
     });
 
     $submitGiveUpStockExit
@@ -265,7 +353,10 @@ $(function () {
     $(document).arrive(`.delete-line`, function () {
         $(this).on(`click`, function () {
             const lineIndex = $(this).data(`line-index`);
-            $modalDeleteLine.find(`.submit`).attr(`data-line-index`, lineIndex);
+            $modalDeleteLine
+                .find(`.submit`)
+                .data(`line-index`, lineIndex)
+                .attr(`data-line-index`, lineIndex);
 
             const {reference, location} = references[lineIndex];
             const message = `Si oui, pensez à remettre la référence <strong>${reference}</strong> à son emplacement d'origine <strong>${location}.</strong>`;
@@ -281,9 +372,11 @@ $(function () {
 
     $modalDeleteLine.find(`.submit`).on(`click`, function () {
         const lineIndex = $(this).data(`line-index`);
+
         references.splice(lineIndex, 1);
         $summaryContainer
-            .find(`tbody tr`)[lineIndex]
+            .find(`tbody tr`)
+            .get(lineIndex)
             .closest(`tr`)
             .remove();
 
@@ -294,6 +387,7 @@ $(function () {
 
     $addReferenceContainer.on(`click`, () => {
         Array(3).fill(0).forEach(() => backPreviousPage());
+        $goToSummaryButton.removeClass(`d-none`);
         $quantityChoiceContainer.find(`.suppliers li`).remove();
         $quantityChoiceContainer.find(`.suppliers`).siblings(`span`).removeClass(`d-none`);
         $quantityChoiceContainer.find(`.location`).text(``);
@@ -313,8 +407,8 @@ $(function () {
             $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
         });
 
-    $(`.filter-fields-container .data`).on(`change`, () => {
-        const $elements = $(`.filter-fields-container .data`);
+    $filterFieldsContainer.find(`.data`).on(`change`, () => {
+        const $elements = $filterFieldsContainer.find(`.data`);
         let values = [];
         $elements.each(function () {
             values.push({label: $(this).attr(`name`), value: $(this).val()})
@@ -426,24 +520,22 @@ function renderFreeField($freeFieldsContainer, label, value) {
     $freeFieldsContainer.append($wrapper);
 }
 
-function renderReferenceLine($summaryContainer, lineIndex, reference) {
-    let line = `
+function renderReferenceLine($summaryContainer, lineIndex, {reference, label, barcode, pickedQuantity}) {
+    let $line = $(`
         <tr>
-            <td class="wii-body-text">@reference</td>
-            <td class="wii-body-text">@label</td>
-            <td class="wii-body-text">@barcode</td>
-            <td class="wii-body-text">@pickedQuantity</td>
+            <td class="wii-body-text">${reference}</td>
+            <td class="wii-body-text">${label}</td>
+            <td class="wii-body-text">${barcode}</td>
+            <td class="wii-body-text">${pickedQuantity}</td>
             <td class="wii-body-text">
                 <i class="wii-icon wii-icon-trash wii-icon-25px-danger delete-line pointer" data-line-index="${lineIndex}"></i>
             </td>
         </tr>
-    `;
+    `);
 
-    for (const [index, value] of Object.entries(reference)) {
-        line = line.replace(`@${index}`, value);
-    }
-
-    $summaryContainer.find(`tbody`).append(line);
+    $summaryContainer
+        .find(`tbody`)
+        .append($line);
 }
 
 function toggleSummaryButtons() {
@@ -515,13 +607,17 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
                     isScannedBarcode = false;
                     referenceValues = values;
                     $referenceChoiceContainer
-                        .find(`[name=reference]`)
+                        .find(`[name=reference], .free-field input, .free-field select`)
                         .val(null)
                         .trigger(`change`);
 
                     pushNextPage($current);
                     updateTimeline($currentTimelineEvent);
                     updateReferenceInformations();
+
+                    if(references.length > 0) {
+                        $goToSummaryButton.removeClass(`d-none`);
+                    }
 
                     if(prefill && !referenceValues.isReferenceByArticle) {
                         $quantityChoiceContainer
