@@ -435,7 +435,6 @@ class PreparationsManagerService
         }
 
         $movement = $this->stockMovementService->createMouvementStock($userNomade, $emplacementFrom, $quantity, $refArticle ?? $article, MouvementStock::TYPE_SORTIE, [
-            'date' => $now,
             'from' => $livraison,
         ]);
 

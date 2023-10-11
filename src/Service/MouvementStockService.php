@@ -281,11 +281,11 @@ class MouvementStockService
         $CSVExportService->putLine($handle, $data);
     }
 
-    public function updateMovementDates(MouvementStock $mouvementStock, DateTime $date): void {
-        $type = $mouvementStock->getType();
-        $reference = $mouvementStock->getRefArticle() ?: $mouvementStock->getArticle()->getReferenceArticle();
+    public function updateMovementDates(MouvementStock $stockMovement, DateTime $date): void {
+        $type = $stockMovement->getType();
+        $reference = $stockMovement->getRefArticle() ?: $stockMovement->getArticle()->getReferenceArticle();
 
-        $mouvementStock->setDate($date);
+        $stockMovement->setDate($date);
 
         if ($type === MouvementStock::TYPE_SORTIE) {
             $reference->setLastStockExit($date);
