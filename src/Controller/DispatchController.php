@@ -607,14 +607,14 @@ class DispatchController extends AbstractController {
             $locationPick = $locationPickData
                 ? $emplacementRepository->find($locationPickData)
                 : $type->getPickLocation();
-            $dispatch->setLocationPick($locationPick);
+            $dispatch->setLocationFrom($locationPick);
         }
         if ($post->has(FieldsParam::FIELD_CODE_LOCATION_DROP)) {
             $locationDropData = $post->get(FieldsParam::FIELD_CODE_LOCATION_DROP);
             $locationDrop = $locationDropData
                 ? $emplacementRepository->find($locationDropData)
                 : $type->getDropLocation();
-            $dispatch->setLocationDrop($locationDrop);
+            $dispatch->setLocationTo($locationDrop);
         }
 
         if ($post->has(FieldsParam::FIELD_CODE_START_DATE_DISPATCH)) {
