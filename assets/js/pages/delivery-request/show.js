@@ -19,11 +19,14 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
+
+    const disableQuantityCheck = (
+        Boolean($('input[name=managePreparationWithPlanning]').val())
+        || Boolean($('input[name=manageDeliveriesWithoutStockQuantity]').val())
+    );
+
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: (
-            Boolean($('input[name=managePreparationWithPlanning]').val())
-            || Boolean($('input[name=manageDeliveriesWithoutStockQuantity]').val())
-        ) ? 0 : 1,
+        minQuantity: disableQuantityCheck ? 0 : 1,
     });
 
     initPageModals();
