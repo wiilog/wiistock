@@ -604,12 +604,12 @@ class DeliveryRequestService
 
             $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa);
-            $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
+            $this->preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
             $entityManager->flush();
             $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
-            $this->preparationsManager->updateRefArticlesQuantities($preparation);
+            $this->preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => false,

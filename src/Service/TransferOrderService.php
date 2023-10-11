@@ -178,7 +178,7 @@ class TransferOrderService {
                 ]
             );
             $entityManager->persist($trackingPick);
-            $this->mouvementStockService->finishMouvementStock($newMouvementStock, new DateTime(), $locationTo);
+            $this->mouvementStockService->finishStockMovement($newMouvementStock, new DateTime(), $locationTo);
             $trackingDrop = $this->mouvementTracaService->createTrackingMovement(
                 $trackingPick->getPack(),
                 $locationTo,

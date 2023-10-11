@@ -214,11 +214,9 @@ class TruckArrivalController extends AbstractController
         $now = new DateTime();
         $data = $request->request;
         $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
-        if (!$truckArrival) {
-            throw new FormException();
-        }
 
         if (!$truckArrival) {
+            $truckArrival = new TruckArrival();
             if ($data->has('carrier')) {
                 $carrierId = $data->getInt('carrier');
                 $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
@@ -236,7 +234,7 @@ class TruckArrivalController extends AbstractController
             }
 
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
-            $truckArrival = new TruckArrival();
+
             $truckArrival->setNumber($number);
         } else {
             $files = $request->files->all();

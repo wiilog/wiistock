@@ -86,7 +86,7 @@ class PreparationController extends AbstractController
 
         $preparationsManager->treatPreparation($preparation, $this->getUser(), $locationEndPrepa, ["articleLinesToKeep" => $articlesNotPicked]);
 
-        $preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+        $preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
         $entityManager->flush();
         $preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);

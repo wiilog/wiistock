@@ -142,7 +142,13 @@ body {
                 }
             }
 
-            .other-informations-container {
+            .summary-container {
+                .table-container {
+                    display: block;
+                    overflow-x: auto;
+                    white-space: nowrap;
+                }
+
                 .add-reference-container {
                     display: flex;
                     align-items: center;
@@ -155,12 +161,6 @@ body {
                         font-weight: 600;
                     }
                 }
-            }
-
-            .summary-container .table-container {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
             }
 
             .treated-delivery-container {

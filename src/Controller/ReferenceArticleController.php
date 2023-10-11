@@ -322,7 +322,7 @@ class ReferenceArticleController extends AbstractController
                     $refArticle,
                     MouvementStock::TYPE_ENTREE
                 );
-                $mouvementStockService->finishMouvementStock(
+                $mouvementStockService->finishStockMovement(
                     $mvtStock,
                     new DateTime('now'),
                     $emplacement

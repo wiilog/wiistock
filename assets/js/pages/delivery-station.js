@@ -6,6 +6,7 @@ const REDIRECT_TO_HOME_DELAY = 15000;
 let references = [];
 let freeFields = [];
 let referenceValues = {};
+let isScannedBarcode = false;
 
 const $timeline = $(`.timeline-container`);
 const $formHeader = $(`.form-header`);
@@ -47,11 +48,13 @@ $(function () {
     });
 
     // catching DataWedge barcode event
-    $(document).on(`keypress`, (event) => {
+    $(document).on(`keyup`, (event) => {
         if (event.originalEvent.key === 'Enter') {
             const $target = $(event.target);
             if ($target.is(`.login`)) {
                 processLogin();
+            } else if ($target.closest(`.select2-container`).siblings(`select`).is(`[name=reference]`)) {
+                isScannedBarcode = $target.val().startsWith(`REF`);
             } else if ($target.is(`[name=barcode]`)) {
                 processBarcodeEntering($target.val());
             }
@@ -363,6 +366,13 @@ function backPreviousPage() {
             $nextButton.addClass(`d-none`);
         }
 
+        if ($current.is($quantityChoiceContainer)) {
+            $quantityChoiceContainer
+                .find(`[name=barcode], [name=pickedQuantity]`)
+                .val(null)
+                .trigger(`change`);
+        }
+
         toggleSummaryButtons();
     } else {
         $modalGiveUpStockExit.modal(`show`);
@@ -499,9 +509,10 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
 
     if (reference) {
         wrapLoadingOnActionButton($loadingContainer, () => (
-            AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference: reference.trim()})
+            AJAX.route(AJAX.GET, `delivery_station_get_informations`, {reference: reference.trim(), isScannedBarcode})
                 .json()
-                .then(({values}) => {
+                .then(({values, prefill}) => {
+                    isScannedBarcode = false;
                     referenceValues = values;
                     $referenceChoiceContainer
                         .find(`[name=reference]`)
@@ -512,7 +523,7 @@ function processReferenceChoice($current, $loadingContainer, $currentTimelineEve
                     updateTimeline($currentTimelineEvent);
                     updateReferenceInformations();
 
-                    if(!referenceValues.isReferenceByArticle) {
+                    if(prefill && !referenceValues.isReferenceByArticle) {
                         $quantityChoiceContainer
                             .find(`[name=barcode]`)
                             .val(referenceValues.barcode)
