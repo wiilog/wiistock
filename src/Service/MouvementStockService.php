@@ -189,14 +189,18 @@ class MouvementStockService
             if($type === MouvementStock::TYPE_SORTIE) {
                 $article->setInactiveSince(new DateTime());
             }
-        }
-        else { // if($article instanceof ReferenceArticle) {
+        } else { // if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
         }
 
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
+        $comment = $options['comment'] ?? null;
         $date = $options['date'] ?? null;
+
+        if($date){
+            $this->updateMovementDates($newMouvement, $date);
+        }
 
         if ($from) {
             if ($from instanceof Preparation) {
@@ -225,23 +229,23 @@ class MouvementStockService
             }
         }
 
-        if ($date) {
-            $newMouvement->setDate($date);
-        }
-
         if ($locationTo) {
             $newMouvement->setEmplacementTo($locationTo);
+        }
+
+        if ($comment) {
+            $newMouvement->setComment($comment);
         }
 
         return $newMouvement;
     }
 
-    public function finishMouvementStock(MouvementStock $mouvementStock,
-                                         DateTime $date,
-                                         ?Emplacement $locationTo): void {
-        $mouvementStock
-            ->setDate($date)
-            ->setEmplacementTo($locationTo);
+    public function finishStockMovement(MouvementStock $mouvementStock,
+                                        DateTime       $date,
+                                        ?Emplacement   $locationTo): void {
+        $mouvementStock->setEmplacementTo($locationTo);
+
+        $this->updateMovementDates($mouvementStock, $date);
     }
 
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
@@ -275,5 +279,18 @@ class MouvementStockService
             $mouvement['operator'] ?? ''
         ];
         $CSVExportService->putLine($handle, $data);
+    }
+
+    public function updateMovementDates(MouvementStock $mouvementStock, DateTime $date): void {
+        $type = $mouvementStock->getType();
+        $reference = $mouvementStock->getRefArticle() ?: $mouvementStock->getArticle()->getReferenceArticle();
+
+        $mouvementStock->setDate($date);
+
+        if ($type === MouvementStock::TYPE_SORTIE) {
+            $reference->setLastStockExit($date);
+        } else if ($type === MouvementStock::TYPE_ENTREE) {
+            $reference->setLastStockEntry($date);
+        }
     }
 }
