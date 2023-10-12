@@ -6,26 +6,26 @@ use App\Entity\Wiilock;
 use App\Service\SettingsService;
 use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:initialize',
+    description: 'This command initializes the application'
+)]
 class InitializeCommand extends Command {
 
-    protected static $defaultName = "app:initialize";
-
-    /** @Required */
+    #[Required]
     public SettingsService $settingsService;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public WiilockService $wiilockService;
-
-    protected function configure(): void {
-        $this->setDescription("Initializes the application");
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output): ?int {
         if ($this->wiilockService->dashboardIsBeingFed($this->entityManager)) {

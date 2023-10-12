@@ -89,7 +89,7 @@ class FieldsParam {
     const FIELD_LABEL_ARRIVAL_CREATOR = 'Utilisateur'; // not in settings table
     const FIELD_LABEL_PROJECT = 'Projet';
 
-    const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrivals';
+    const ENTITY_CODE_TRUCK_ARRIVAL = 'truckArrival';
     const FIELD_CODE_TRUCK_ARRIVAL_CARRIER = 'truckCarrier';
     const FIELD_CODE_TRUCK_ARRIVAL_DRIVER = 'driver';
     const FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER = 'registrationNumber';

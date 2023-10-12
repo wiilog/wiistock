@@ -16,29 +16,27 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-class ImportCommand extends Command
-{
-    protected static $defaultName = 'app:launch:imports';
+#[AsCommand(
+    name: 'app:launch:imports',
+    description: 'This command executes planified in next 30 minutes imports.'
+)]
+class ImportCommand extends Command {
 
-    private $em;
-    private $importService;
+    private EntityManagerInterface $em;
+    private ImportService $importService;
 
     public function __construct(EntityManagerInterface $entityManager,
                                 ImportService $importService)
     {
-        parent::__construct(self::$defaultName);
+        parent::__construct();
         $this->em = $entityManager;
         $this->importService = $importService;
-    }
-
-    protected function configure()
-    {
-        $this->setDescription('This command executes planified in next 30 minutes imports.');
     }
 
     /**

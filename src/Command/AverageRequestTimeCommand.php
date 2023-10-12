@@ -11,6 +11,7 @@ use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
+use Symfony\Component\Console\Attribute\AsCommand;
 use WiiCommon\Helper\Stream;
 use App\Service\DateService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,21 +20,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 
+#[AsCommand(
+    name: 'app:feed:average:requests',
+    description: 'Feeds the average request processing time'
+)]
 class AverageRequestTimeCommand extends Command {
 
-    protected static $defaultName = "app:feed:average:requests";
-
-    private $entityManager;
-    private $dateService;
+    private EntityManagerInterface $entityManager;
+    private DateService $dateService;
 
     public function __construct(EntityManagerInterface $entityManager, DateService $dateService) {
-        parent::__construct(self::$defaultName);
+        parent::__construct();
         $this->entityManager = $entityManager;
         $this->dateService = $dateService;
-    }
-
-    protected function configure() {
-        $this->setDescription("Feeds the average request processing time");
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {

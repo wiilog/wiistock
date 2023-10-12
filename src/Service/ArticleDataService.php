@@ -264,8 +264,13 @@ class ArticleDataService
             $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
         }
 
-        $refArticleId = $data->getInt('refArticle');
-        $refArticle = $referenceArticleRepository->find($refArticleId);
+        $refArticle = $data->get('refArticle');
+        $refArticle = $refArticle instanceof ReferenceArticle
+            ? $refArticle
+            : (intval($refArticle)
+                ? $referenceArticleRepository->find($refArticle)
+                : null
+            );
         if (!$refArticle) {
             throw new FormException();
         }

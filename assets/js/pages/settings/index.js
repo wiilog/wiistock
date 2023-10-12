@@ -1246,7 +1246,7 @@ function deleteTemplate($elem) {
 
 function initializeTruckArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
+        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrival`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
@@ -1264,7 +1264,7 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
-            {data: `onMobile`, title: `Sur le nomade`},
+            {data: `onMobile`, title: `Afficher`},
         ],
     });
     initializeType();

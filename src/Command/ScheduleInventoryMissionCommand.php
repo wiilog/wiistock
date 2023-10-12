@@ -9,15 +9,18 @@ use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:inventory:generate-mission',
+    description: 'This command executes scheduled export.'
+)]
 class ScheduleInventoryMissionCommand extends Command
 {
-
-    private const DEFAULT_NAME = "app:inventory:generate-mission";
 
     #[Required]
     public EntityManagerInterface $em;
@@ -27,12 +30,6 @@ class ScheduleInventoryMissionCommand extends Command
 
     #[Required]
     public InvMissionService $invMissionService;
-
-    protected function configure()
-    {
-        $this->setName(self::DEFAULT_NAME)
-            ->setDescription("This command executes scheduled export.");
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

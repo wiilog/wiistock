@@ -13,12 +13,17 @@ use App\Service\MailerService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:mails-litiges',
+    description: 'envoi de mails aux acheteurs pour les litiges non soldés'
+)]
 class MailsLitigesComand extends Command
 {
 
@@ -44,13 +49,7 @@ class MailsLitigesComand extends Command
         parent::__construct();
     }
 
-    protected function configure() {
-        $this->setName("app:mails-litiges");
-        $this->setDescription("envoi de mails aux acheteurs pour les litiges non soldés");
-    }
-
-    public function execute(InputInterface $input, OutputInterface $output)
-    {
+    public function execute(InputInterface $input, OutputInterface $output): int {
         $disputeRepository = $this->entityManager->getRepository(Dispute::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 

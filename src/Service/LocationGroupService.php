@@ -4,14 +4,15 @@ namespace App\Service;
 
 use App\Entity\LocationGroup;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 
 class LocationGroupService {
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public Environment $template;
 
     public function getDataForDatatable($params = null) {

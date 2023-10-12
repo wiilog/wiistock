@@ -9,6 +9,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\Entity;
 use Exception;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class UniqueNumberService
 {
@@ -24,7 +25,7 @@ class UniqueNumberService
         TransportRequest::class
     ];
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     /**

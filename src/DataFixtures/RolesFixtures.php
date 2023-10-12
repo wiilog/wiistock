@@ -13,12 +13,11 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentFixtureInterface {
 
-    /**
-     * @Required
-     */
+    #[Required]
     public CacheService $cacheService;
 
     /**

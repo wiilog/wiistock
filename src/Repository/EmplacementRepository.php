@@ -195,7 +195,7 @@ class EmplacementRepository extends EntityRepository
                             break;
                         default:
                             if(property_exists(Emplacement::class, $field)) {
-                                $queryBuilder->addOrderBy("location.${field}", $order);
+                                $queryBuilder->addOrderBy("location.{$field}", $order);
                             }
                             break;
                     }

@@ -8,18 +8,19 @@ use App\Helper\PostHelper;
 use App\Service\AttachmentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use RuntimeException;
 
 class AlertTemplateService
 {
-    /** @Required */
+    #[Required]
     public Environment $templating;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
-    /** @Required */
+    #[Required]
     public AttachmentService $attachmentService;
 
     public function updateAlertTemplate(Request $request, $entityManager, AlertTemplate $alertTemplate) {

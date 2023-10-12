@@ -957,7 +957,7 @@ class DispatchController extends AbstractController {
             if($isNotInDispatch) {
                 return $this->json([
                     "success" => false,
-                    "msg" => "L'unité logistique <strong>${packCode}</strong> existe déjà en base de données"
+                    "msg" => "L'unité logistique <strong>{$packCode}</strong> existe déjà en base de données"
                 ]);
             }
         }

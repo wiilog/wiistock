@@ -29,7 +29,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class UserService
 {
