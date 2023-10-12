@@ -29,7 +29,7 @@ class ReserveType
     #[ORM\Column(type: "boolean", nullable: true, options: ["default" => true])]
     private ?bool $active = null;
 
-    #[ORM\Column(type: "boolean")]
+    #[ORM\Column(type: "boolean", nullable: true)]
     private ?bool $disableTrackingNumber = null;
 
     public function __construct() {
