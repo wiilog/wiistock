@@ -2646,8 +2646,9 @@ class SettingsController extends AbstractController {
             $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory() ? "checked" : "";
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
+            $onMobile = $field->isOnMobile() ? "checked" : "";
+            $onMobileDisabled = !in_array($field->getFieldCode(), FieldsParam::ON_NOMADE_FILEDS) ? "disabled" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
-            $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
 
 
@@ -2674,33 +2675,35 @@ class SettingsController extends AbstractController {
                     $row["keptInMemory"] = "<input type='checkbox' name='keptInMemory' class='$class' $keptInMemory $keptInMemoryDisabled/>";
                 }
 
-                $rows[] = $row;
+                if($entity === FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL){
+                    $row["onMobile"] = "<input type='checkbox' name='onMobile' class='$class' $onMobile $onMobileDisabled/>";
+                }
+
             } else {
                 $row = [
                     "label" => "<span class='font-weight-bold'>$label</span>",
-                    "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
-                    "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
-                    "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
-                    "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
-                    "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
+                    "displayedCreate" => $this->formatService->bool($field->isDisplayedCreate()),
+                    "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit()),
+                    "requiredCreate" => $this->formatService->bool($field->isRequiredCreate()),
+                    "requiredEdit" => $this->formatService->bool($field->isRequiredEdit()),
+                    "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()),
                 ];
 
-                if($entity === "arrival") {
-                    $row["keptInMemory"] = $field->isKeptInMemory() ? "Oui" : "Non";
+                if($entity === FieldsParam::ENTITY_CODE_ARRIVAGE) {
+                    $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory());
                 }
 
-                $rows[] = $row;
+                if($entity === FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL) {
+                    $row["onMobile"] = $this->formatService->bool($field->isOnMobile());
+                }
+
             }
+            $rows[] = $row;
         }
 
         return $this->json([
             "data" => $rows,
         ]);
-    }
-
-
-    private function canEdit(): bool {
-        return $this->userService->hasRightFunction(Menu::PARAM, Action::EDIT);
     }
 
     private function canDelete(): bool {

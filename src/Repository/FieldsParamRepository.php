@@ -30,6 +30,7 @@ class FieldsParamRepository extends EntityRepository
                 "displayedEdit" =>$field->isDisplayedEdit(),
                 "displayedFilters" => $field->isDisplayedFilters(),
                 "keptInMemory" => $field->isKeptInMemory(),
+                "onMobile" => $field->isOnMobile(),
             ]])
             ->toArray();
     }
