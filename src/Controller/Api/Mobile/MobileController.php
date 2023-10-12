@@ -3887,11 +3887,9 @@ class MobileController extends AbstractApiController
 
 
         $carrier = $carrierRepository->find($data->get('carrierId'));
-        $driver = null;
-        if ($data->get('driverId')){
-            $driver = $driverRepository->find($data->get('driverId'));
-        }
-        $unloadingLocation = $locationRepository->find($data->get('truckArrivalUnloadingLocationId'));
+
+        $driver = $data->get('driverId') ? $driverRepository->find($data->get('driverId')) : null;
+        $unloadingLocation = $data->get('truckArrivalUnloadingLocationId') ? $locationRepository->find($data->get('truckArrivalUnloadingLocationId')) : null;
 
         try {
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, new DateTime(), [$carrier->getCode()]);

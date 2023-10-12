@@ -102,12 +102,18 @@ class TruckArrivalService
             'unloadingLocation' => $formatService->location($truckArrival->getUnloadingLocation()),
             'registrationNumber' => $truckArrival->getRegistrationNumber(),
             'number' => $truckArrival->getNumber(),
-            'trackingLinesNumber' => $formatService->truckArrivalLines($truckArrival->getTrackingLines()),
+            'trackingLinesNumber' => Stream::from($truckArrival->getTrackingLines())
+                ->map(fn(TruckArrivalLine $line) =>
+                    ($line->getReserve()?->getReserveType()->isDisableTrackingNumber() ? '<img src="/svg/exclamation.svg" alt="Désactivé" width="15px">' : '') . $line->getNumber())
+                ->filter()
+                ->join(', '),
             'countTrackingLines' => $truckArrival->getTrackingLines()
                     ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                     ->count()
                 . '/'
-                . $truckArrival->getTrackingLines()->count(),
+                . $truckArrival->getTrackingLines()
+                    ->filter(fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()->isDisableTrackingNumber())
+                    ->count(),
             'operator' => $formatService->user($truckArrival->getOperator()),
             'reserves' => $reserves->isEmpty() && !$lineHasReserve ? 'non' : 'oui',
             'trackingLinesReserves' =>  Stream::from($truckArrival->getTrackingLines())
@@ -130,10 +136,10 @@ class TruckArrivalService
             ['title' => 'Immatriculation', 'name' => 'registrationNumber'],
             ['title' => 'Numéro d\'arrivage camion', 'name' => 'number'],
             ['title' => 'N° de tracking transporteur', 'name' => 'trackingLinesNumber', 'orderable' => false,],
-            ['title' => 'Nombre de n° de tracking associé', 'name' => 'countTrackingLines', 'orderable' => false,],
+            ['title' => 'Nombre de n° de tracking associés', 'name' => 'countTrackingLines', 'orderable' => false,],
             ['title' => 'Opérateur', 'name' => 'operator'],
             ['title' => 'Réserve(s)', 'name' => 'reserves'],
-            ['title' => 'Réserve sur n°tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
+            ['title' => 'Réserve sur n° tracking', 'name' => 'trackingLinesReserves', 'orderable' => false,],
             ['title' => 'Transporteur', 'name' => 'carrier'],
         ];
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
