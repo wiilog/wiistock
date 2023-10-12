@@ -571,7 +571,10 @@ class DispatchController extends AbstractController {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
 
         $post = $request->request;
-        $dispatch = $post->get('id') ? $dispatchRepository->find($post->get('id')) : null;
+        /** @var Dispatch|null $dispatch */
+        $dispatch = $post->get('id')
+            ? $dispatchRepository->find($post->get('id'))
+            : null;
 
         $now = new DateTime();
 
