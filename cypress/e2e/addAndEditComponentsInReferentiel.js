@@ -1,12 +1,13 @@
 const user = Cypress.config('user');
-const oldDatabaseName = Cypress.env('OLD_DATABASE_NAME');
+
+describe('Setup the environment', () => {
+    it('Reset the db', () => {
+        cy.startingCypressEnvironnement()
+    });
+})
+
+
 describe('Add and edit components in Referentiel > Fournisseur', () => {
-    before(() => {
-        cy.startingCypressEnvironnement('https://ftp.wiilog.fr/cypress/BDD_scratch_mig.cypress.sql')
-    })
-    after(() => {
-        cy.changeDatabase(oldDatabaseName);
-    })
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
         cy.login(user);
@@ -15,44 +16,110 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
     })
 
     it('should add a new supplier', () => {
+
+        const suplier = {
+            name: 'RENAULT',
+            code: 'RENAULT',
+            possibleCustoms: true,
+            urgent: true,
+        }
+
         cy.intercept('POST', 'fournisseur/creer').as('supplier_new');
+        // ouvre la modal
         cy.get(`button[data-target='#modalNewFournisseur']`).click();
-        cy.get('#modalNewFournisseur').should('be.visible', {timeout: 8000}).then(() => {
+        cy.get('#modalNewFournisseur').should('be.visible', {timeout: 4000}).then(() => {
             cy.get('#modalNewFournisseur input[name=name]').should('be.visible').then(() => {
-                cy.get('#modalNewFournisseur input[name=name]').type('RENAULT');
-                cy.get('#modalNewFournisseur input[name=code]').type('RENAULT');
-                cy.get('#modalNewFournisseur input[name=possibleCustoms]').check();
-                cy.get('#modalNewFournisseur input[name=urgent]').check();
-                cy.get('button#submitNewFournisseur').click().wait(['@supplier_new', '@supplier_api']);
+                cy.get('#modalNewFournisseur input[name=name]').type(suplier.name);
+                cy.get('#modalNewFournisseur input[name=code]').type(suplier.code);
+                const possibleCustomsInput = cy.get('#modalNewFournisseur input[name=possibleCustoms]');
+                suplier.possibleCustoms
+                    ? possibleCustomsInput.check()
+                    : possibleCustomsInput.uncheck();
+
+                const urgentInput = cy.get('#modalNewFournisseur input[name=urgent]');
+                suplier.urgent
+                    ? urgentInput.check()
+                    : urgentInput.uncheck();
+
+                // soumet le formulaire et verifie que les requetes sont bien passées (pas de 500)
+                cy.get('button#submitNewFournisseur').click().wait('@supplier_new').then(
+                    (xhr) => {
+                        expect(xhr.response.statusCode).to.not.equal(500);
+                    }
+                )
+                cy.get('#modalNewFournisseur').should('not.be.visible');
             })
         })
-        cy.get('#modalNewFournisseur').should('not.be.visible');
-        cy.wait('@supplier_api');
-        cy.get('#supplierTable_id tbody td').contains('RENAULT').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('RENAULT');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('RENAULT');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('oui');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('oui');
+
+
+        // test du datatable
+        // verifie que les requetes sont bien passées (pas de 500)
+        cy.wait('@supplier_api').then(
+            (xhr) => {
+                expect(xhr.response.statusCode).to.not.equal(500);
+            }
+        ) ;
+        cy.get('#supplierTable_id tbody td').contains(suplier.name).then((td) => {
+
+            // TODO TROUVER UNE SOLUTION PLUS PERENNE POUR LES INDEX DES COLONNES
+
+            cy.wrap(td).parent('tr').find('td').eq(1).contains(suplier.name);
+            cy.wrap(td).parent('tr').find('td').eq(2).contains(suplier.code);
+            cy.wrap(td).parent('tr').find('td').eq(3).contains(suplier.possibleCustoms ? 'oui' : 'non');
+            cy.wrap(td).parent('tr').find('td').eq(4).contains(suplier.urgent ? 'oui' : 'non');
         });
     })
 
     it('should edit a supplier', () => {
+
+        const supliersToEdit = [{
+            name : 'FOURNISSEUR',
+            newCode : 'IKEA',
+            newName : 'IKEA',
+            newIsUrgent : true,
+            newIsPossibleCustoms : true,
+        },
+        {
+            name : 'GREGZAAR',
+            newCode : 'GREGZER',
+            newName : 'GREGZaaER',
+            newIsUrgent : false,
+            newIsPossibleCustoms : false,
+        }]
+
         cy.intercept('POST', 'fournisseur/modifier').as('supplier_edit');
         cy.wait('@supplier_api');
-        cy.get('#supplierTable_id tbody td').contains('FOURNISSEUR').click();
-        cy.get('#modalEditFournisseur').should('be.visible');
-        cy.get('#modalEditFournisseur input[name=name]').click().clear().type('IKEA');
-        cy.get('#modalEditFournisseur input[name=code]').click().clear().type('IKEA');
-        cy.get('#modalEditFournisseur input[name=possibleCustoms]').check();
-        cy.get('#modalEditFournisseur input[name=urgent]').check();
-        cy.get('button#submitEditFournisseur').click().wait('@supplier_edit');
-        cy.get('#modalEditFournisseur').should('not.be.visible');
-        cy.wait('@supplier_api');
-        cy.get('#supplierTable_id tbody td').contains('IKEA').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('IKEA');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('IKEA');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('oui');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('oui');
+
+        supliersToEdit.forEach((suplierToEdit) => {
+            // on trouve le fournisseur à éditer et on clique dessus
+            cy.get('#supplierTable_id tbody td').contains(suplierToEdit.name).click();
+            cy.get('#modalEditFournisseur').should('be.visible');
+            cy.get('#modalEditFournisseur input[name=name]').click().clear().type(suplierToEdit.newName);
+            cy.get('#modalEditFournisseur input[name=code]').click().clear().type(suplierToEdit.newCode);
+            const possibleCustomsInput = cy.get('#modalEditFournisseur input[name=possibleCustoms]');
+            suplierToEdit.newIsPossibleCustoms
+                ? possibleCustomsInput.check()
+                : possibleCustomsInput.uncheck();
+
+            const urgentInput = cy.get('#modalEditFournisseur input[name=urgent]');
+            suplierToEdit.newIsUrgent
+                ? urgentInput.check()
+                : urgentInput.uncheck();
+
+            cy.get('button#submitEditFournisseur').click().wait('@supplier_edit').then(
+                (xhr) => {
+                    expect(xhr.response.statusCode).to.not.equal(500);
+                });
+            cy.get('#modalEditFournisseur').should('not.be.visible');
+
+            // on attend que le tableau soit rechargé
+            cy.wait('@supplier_api');
+            cy.get('#supplierTable_id tbody td').contains(suplierToEdit.newCode).then((td) => {
+                cy.wrap(td).parent('tr').find('td').eq(1).contains(suplierToEdit.newName);
+                cy.wrap(td).parent('tr').find('td').eq(2).contains(suplierToEdit.newCode);
+                cy.wrap(td).parent('tr').find('td').eq(3).contains(suplierToEdit.newIsPossibleCustoms ? 'oui' : 'non');
+                cy.wrap(td).parent('tr').find('td').eq(4).contains(suplierToEdit.newIsUrgent ? 'oui' : 'non');
+            });
         });
     })
 })
@@ -62,6 +129,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.intercept('POST', 'emplacement/api').as('emplacement_api');
         cy.intercept('POST', 'emplacements/groupes/api').as('emplacements_groupes_api');
         cy.intercept('POST', 'zones/api').as('zones_api');
+
         cy.login(user);
         cy.visit('/');
         cy.navigateInNavMenu('referentiel', 'emplacement_index');
@@ -70,20 +138,40 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     it('should add a new location', () => {
         cy.intercept('POST', 'emplacement/creer').as('emplacement_new');
         cy.intercept('GET', 'emplacement/api-new').as('location_api_new');
-        cy.get(`button[data-toggle='modal']`).filter(':visible').click().wait('@location_api_new');
-        cy.get('#modalNewEmplacement').should('be.visible', {timeout: 8000}).then(() => {
-            cy.get('#modalNewEmplacement input[name=label]').should('be.visible').then(() => {
-                cy.get('#modalNewEmplacement input[name=label]').type('STOCK');
-                cy.get('#modalNewEmplacement input[name=description]').type('Non défini');
-                cy.select2Ajax('zone', 'Activité Standard')
-                cy.get('button#submitNewEmplacement').click().wait(['@emplacement_new', '@emplacement_api']);
-            })
+        cy.get(`button[data-cy-name="new-location-button"]`).should('be.visible')
+            .click()
+            .wait('@location_api_new');
+
+        const newLocation = {
+            label: 'STOCK',
+            description: 'Non défini',
+            zone: 'Activité Standard',
+        }
+
+        cy.get('#modalNewEmplacement').should('be.visible', {timeout: 4000}).then(() => {
+            cy.get('#modalNewEmplacement input[name=label]').type(newLocation.label);
+            cy.get('#modalNewEmplacement input[name=description]').type(newLocation.description);
+            cy.select2Ajax('zone', newLocation.zone)
+            cy.get('button#submitNewEmplacement').click().wait(['@emplacement_new', '@emplacement_api']).then((xhr) => {
+                expect(xhr[0].response.statusCode).to.not.equal(500);
+                expect(xhr[1].response.statusCode).to.not.equal(500);
+            });
         })
+
+
+        // TODO VOIR AVEC CP SI ON FAIT TOUT LES CHAMPS DU FORMULAIRE
+
+
         cy.get('#modalNewEmplacement').should('not.be.visible');
         cy.wait('@emplacement_api');
-        cy.get('#locationsTable tbody td').contains('STOCK').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('STOCK');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('Non défini');
+        cy.get('#locationsTable tbody td').contains(newLocation.label).then((td) => {
+
+            // TODO TROUVER UNE SOLUTION PLUS PERENNE POUR LES INDEX DES COLONNES
+
+
+            cy.wrap(td).parent('tr').find('td').eq(2).contains(newLocation.label);
+            cy.wrap(td).parent('tr').find('td').eq(3).contains(newLocation.description);
+            // TODO VERIF ZONE
         });
     })
 

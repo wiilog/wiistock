@@ -3,27 +3,43 @@ let SSH_ON_APP = 'sshpass -p $SSH_ROOT_PASSWORD ssh -o StrictHostKeyChecking=no 
 
 Cypress.Commands.add(
     'startingCypressEnvironnement',
-    (urlToCurl,
-     newDatabaseName = 'cypress_dev',
+    (urlToCurl = undefined,
      sqlFileName = 'BDD_cypress.sql',
      pathToFile = '/etc/sqlscripts') => {
 
-        // change .env
-        cy.changeDatabase(newDatabaseName);
-        //delete and recreate database
-        cy.dropAndRecreateDatabase();
-        //curl sql file
-        cy.curlDatabase('https://ftp.wiilog.fr/cypress/BDD_scratch_mig.cypress.sql', pathToFile, sqlFileName);
-        //run sql file
-        cy.runDatabaseScript(sqlFileName, pathToFile)
-        //make migration
-        cy.doctrineMakeMigration();
-        //update schema
-        cy.doctrineSchemaUpdate();
-        //load fixtures
-        cy.doctrineFixturesLoad();
-        // yarn & yarn build & composer install
-        cy.buildAndInstallDependencies();
+        //get the shema of db in .env.local file
+        cy.exec(`grep DATABASE_URL .env.local`, {failOnNonZeroExit: false}).then((result) => {
+            if (result.stdout.includes('DATABASE_URL')) {
+                const currentLine = result.stdout.trim();
+                const currentDatabaseName = currentLine.split('/').pop();
+                Cypress.env('OLD_DATABASE_NAME', currentDatabaseName);
+
+                // print the current database name
+                cy.log(`Current database name: ${currentDatabaseName}`);
+
+                //delete and recreate database
+                cy.dropAndRecreateDatabase(currentDatabaseName);
+
+                //curl sql file
+                if (urlToCurl !== undefined) {
+                    cy.curlDatabase(urlToCurl, pathToFile, sqlFileName);
+                } else {
+                    // if the is no url to curl, we use the sql file in the project
+                    pathToFile = 'cypress/fixtures/';
+                    sqlFileName = 'dev-script.sql';
+                }
+                //run sql file
+                cy.runDatabaseScript(sqlFileName, pathToFile, currentDatabaseName);
+                //make migration
+                cy.doctrineMakeMigration();
+                //update schema
+                cy.doctrineSchemaUpdate();
+                //load fixtures
+                cy.doctrineFixturesLoad();
+                // yarn & yarn build & composer install
+                cy.buildAndInstallDependencies();
+            }
+        });
     })
 
 Cypress.Commands.add('changeDatabase', (newDatabaseName) => {
@@ -44,18 +60,17 @@ Cypress.Commands.add('buildAndInstallDependencies', () => {
     cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
 })
 
-Cypress.Commands.add('dropAndRecreateDatabase', () => {
+Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
     // run sql files to drop and recreate database
-    cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P $MYSQL_PORT < /var/www/cypress/fixtures/drop_and_recreate_database.sql`);
+    cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 --execute="DROP DATABASE IF EXISTS ${databaseName}; CREATE DATABASE ${databaseName};"`);
 })
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
     cy.exec(`curl -o ${pathToFile}/${fileName} ${urlToFTP}`);
 })
 
-Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile) => {
-    cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P $MYSQL_PORT $MYSQL_DATABASE_CYPRESS < ${pathToFile}/${sqlFileName}`,
-        {failOnNonZeroExit: false});
+Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {
+    cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 ${databaseName} < ${pathToFile}/${sqlFileName}`);
 })
 
 Cypress.Commands.add('doctrineMakeMigration', () => {
