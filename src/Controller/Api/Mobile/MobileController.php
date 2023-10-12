@@ -3887,8 +3887,8 @@ class MobileController extends AbstractApiController
 
 
         $carrier = $carrierRepository->find($data->get('carrierId'));
-        $driver = $data->get('driverId') ? $driverRepository->find($data->get('driverId')) : null;
 
+        $driver = $data->get('driverId') ? $driverRepository->find($data->get('driverId')) : null;
         $unloadingLocation = $data->get('truckArrivalUnloadingLocationId') ? $locationRepository->find($data->get('truckArrivalUnloadingLocationId')) : null;
 
         try {

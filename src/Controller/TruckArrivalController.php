@@ -283,10 +283,11 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (explode(',', $data->get('trackingNumbers') ?? '') as $lineNumber) {
-            /** @var TruckArrivalLine $lines */
-            $lines = $lineNumberRepository->findBy(['number' => $lineNumber]);
-            if ($lineNumber && !empty($lines) && end($lines)?->getReserve()?->getReserveType()?->isDisableTrackingNumber()) {
+        $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
+        foreach ($trackingNumbers as $lineNumber) {
+            $line = $lineNumberRepository->findBy(['number' => $lineNumber], ['id' => 'DESC'], 1)[0] ?? null;
+
+            if ($lineNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
                     ->setTruckArrival($truckArrival)
@@ -356,10 +357,10 @@ class TruckArrivalController extends AbstractController
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
         $trackingNumbers = explode(',', $data['trackingNumbers']);
-
         foreach ($trackingNumbers as $trackingNumber) {
-            $truckArrivalLines = $truckArrivalLineRepository->findBy(['number' => $trackingNumber]);
-            if ($trackingNumber && (empty($truckArrivalLines) || end($truckArrivalLines)?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
+            $line = $truckArrivalLineRepository->findBy(['number' => $trackingNumber], ['id' => 'DESC'], 1)[0] ?? null;
+
+            if ($trackingNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
                 $line = (new TruckArrivalLine())
                     ->setNumber($trackingNumber);
                 $truckArrival->addTrackingLine($line);
@@ -368,13 +369,12 @@ class TruckArrivalController extends AbstractController
                 return new JsonResponse([
                     'success' => false,
                     'trackingNumber' => $trackingNumber,
-                    'msg' => "Le numéro de tracking transporteur " . $trackingNumber . " existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
+                    'msg' => "Le numéro de tracking transporteur $trackingNumber existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
                 ]);
             }
         }
 
         $entityManager->flush();
-
 
         return new JsonResponse([
             'success' => true,

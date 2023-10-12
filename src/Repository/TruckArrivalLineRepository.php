@@ -110,22 +110,20 @@ class TruckArrivalLineRepository extends EntityRepository
         ];
     }
 
-    public function iterateAll(){
+    public function iterateAll(): array {
         return $this->createQueryBuilder('truck_arrival_line')
-            ->select('truck_arrival_line.number')
-            ->addSelect('truck_arrival_line.id')
-            ->addSelect('reserveType.disableTrackingNumber')
-            ->leftJoin('truck_arrival_line.reserve', 'reserve')
-            ->leftJoin('reserve.reserveType', 'reserveType')
+            ->select('truck_arrival_line.number AS number')
+            ->addSelect('truck_arrival_line.id AS id')
+            ->addSelect('join_reserve_type.disableTrackingNumber AS disableTrackingNumber')
+            ->leftJoin('truck_arrival_line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserve_type')
             ->getQuery()
             ->getArrayResult();
     }
 
     public function getForSelect(?string $term, $option = []): array {
-        $qb = $this
-            ->createQueryBuilder('truck_arrival_line');
-
-        $qb->select("truck_arrival_line.id AS id")
+        $qb = $this->createQueryBuilder('truck_arrival_line')
+            ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
             ->addSelect("truck_arrival.id AS truck_arrival_id")
@@ -171,7 +169,9 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addGroupBy('driver.prenom')
             ->addGroupBy('driver.nom');
 
-        return $qb->getQuery()->getArrayResult();
+        return $qb
+            ->getQuery()
+            ->getArrayResult();
     }
 
     public function getForReserve(?int $truckArrivalId): array {
