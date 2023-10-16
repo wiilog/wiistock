@@ -1300,7 +1300,10 @@ class ArrivageController extends AbstractController {
             }
 
             if (empty($barcodeConfigs) && $printPacks) {
-                throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Aucune étiquette à imprimer'
+                ]);
             }
 
             if ($printArrivage) {
@@ -1341,7 +1344,10 @@ class ArrivageController extends AbstractController {
         }
 
         if (empty($barcodeConfigs)) {
-            throw new BadRequestHttpException('Vous devez imprimer au moins une étiquette');
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Aucune étiquette à imprimer'
+            ]);
         }
 
         $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'arrivage', $tagTemplate ? $tagTemplate->getPrefix() : 'ETQ');

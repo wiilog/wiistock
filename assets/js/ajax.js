@@ -1,4 +1,4 @@
-import Flash, {ERROR, SUCCESS} from "./flash";
+import Flash, {ERROR, INFO, SUCCESS} from "./flash";
 
 export const GET = `GET`;
 export const POST = `POST`;
@@ -111,7 +111,12 @@ export default class AJAX {
                     throw new Error('printing error');
                 }
                 return response.blob().then((blob) => {
-                    const fileName = response.headers.get("content-disposition").split("filename=")[1];
+                    const responseContend = response.headers.get("content-disposition")
+                    if (!responseContend) {
+                        console.warn('aucun fichier à télécharger');
+                        return;
+                    }
+                    const fileName = responseContend.split("filename=")[1];
                     const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
 
                     saveAs(blob, cleanedFileName);
