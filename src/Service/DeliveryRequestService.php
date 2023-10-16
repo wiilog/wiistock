@@ -533,7 +533,7 @@ class DeliveryRequestService
                 && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
-        } /** @noinspection PhpRedundantCatchClauseInspection */
+        }
         catch (UniqueConstraintViolationException $e) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
@@ -937,6 +937,11 @@ class DeliveryRequestService
                 // create PreparationOrderArticleLine
                 $this->treatSetting_manageDeliveryWithoutStockQuantity($entityManager, $preparation, $requestReferenceLine, $defaultLocationReception, $date, $createdBarcodes);
             }
+        }
+
+        foreach ($preparation->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
         }
     }
 
