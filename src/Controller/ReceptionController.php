@@ -1439,26 +1439,23 @@ class ReceptionController extends AbstractController {
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $articleIds = json_decode($request->query->get('articleIds'), true);
-        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
-        $tag = $forceTagEmpty
-            ? null
-            : ($request->query->get('template')
+        $tag = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
-                : null);
+                : null;
         if(empty($articleIds)) {
             $barcodeConfigs = Stream::from($reception->getReceptionReferenceArticles())
-                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag, $forceTagEmpty) {
+                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
-                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $forceTagEmpty) {
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                         return [$refArticleDataService->getBarcodeConfig($referenceArticle)];
                     } else {
                         $articlesReception = $recepRef->getArticles()->toArray();
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
-                                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                                ->filter(function(Article $article) use ($tag) {
                                     return
-                                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                                        $article->getType()?->getTags()?->isEmpty() &&
                                         (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
                                 })
                                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
@@ -1472,9 +1469,9 @@ class ReceptionController extends AbstractController {
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
-                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                ->filter(function(Article $article) use ($tag) {
                     return
-                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                        $article->getType()?->getTags()?->isEmpty() &&
                         (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
                 })
                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
