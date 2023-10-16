@@ -1167,7 +1167,7 @@ class SettingsService {
     }
 
     public function changeClient(string $client) {
-        $configPath = "/etc/php8/php-fpm.conf";
+        $configPath = "/etc/php82/php-fpm.conf";
 
         //if we're not on a kubernetes pod => file doesn't exist => ignore
         if (!file_exists($configPath)) {
