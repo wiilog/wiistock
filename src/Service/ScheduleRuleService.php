@@ -144,11 +144,12 @@ class ScheduleRuleService
         $ignoreCurrentMonth = !($instant && $isDayEqual && $isTimeEqual) && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore));
 
         $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function() use ($rule, &$year) {
-                return $rule->getMonths()[0];
-            });
+            ->filter(fn($month) => $ignoreCurrentMonth ? ($month > $currentMonth) : ($month >= $currentMonth))
+            ->firstOr(fn() => $rule->getMonths()[0]);
 
+        if($month < $currentMonth || $month === $currentMonth && $day < $currentDay){
+            $year++;
+        }
         return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
     }
 
