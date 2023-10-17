@@ -122,8 +122,9 @@ class TruckArrivalLineRepository extends EntityRepository
     }
 
     public function getForSelect(?string $term, $option = []): array {
-        $qb = $this->createQueryBuilder('truck_arrival_line')
-            ->select("truck_arrival_line.id AS id")
+        $qb = $this->createQueryBuilder('truck_arrival_line');
+
+        $qb ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
             ->addSelect("truck_arrival.id AS truck_arrival_id")

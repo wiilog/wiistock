@@ -68,7 +68,9 @@ class TruckArrivalController extends AbstractController
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
             . '/'
-            . $truckArrival->getTrackingLines()->count();
+            . $truckArrival->getTrackingLines()
+                ->filter(fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()->isDisableTrackingNumber())
+                ->count();
         $carrier = $truckArrival->getCarrier();
         $minTrackingNumber = $carrier->getMinTrackingNumberLength();
         $maxTrackingNumber = $carrier->getMaxTrackingNumberLength();
