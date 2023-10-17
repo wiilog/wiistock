@@ -583,7 +583,7 @@ class ImportService
         } catch (Throwable $throwable) {
             // On réinitialise l'entity manager car il a été fermé
             if (!$this->entityManager->isOpen()) {
-                $this->entityManager = EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+                $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
                 $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
             }
 

@@ -446,7 +446,7 @@ class MobileController extends AbstractApiController
             } catch (Throwable $throwable) {
                 if (!$entityManager->isOpen()) {
                     /** @var EntityManagerInterface $entityManager */
-                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                    $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                     $statutRepository = $entityManager->getRepository(Statut::class);
@@ -717,7 +717,7 @@ class MobileController extends AbstractApiController
             } catch (Throwable $throwable) {
                 if (!$entityManager->isOpen()) {
                     /** @var EntityManagerInterface $entityManager */
-                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                    $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                     $entityManager->clear();
                     $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
                     $statutRepository = $entityManager->getRepository(Statut::class);
@@ -977,7 +977,7 @@ class MobileController extends AbstractApiController
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
                         /** @var EntityManagerInterface $entityManager */
-                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                        $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                         $preparationsManager->setEntityManager($entityManager);
                     }
                     $message = (
@@ -1234,7 +1234,7 @@ class MobileController extends AbstractApiController
                 } catch (Throwable $throwable) {
                     // we create a new entity manager because transactional() can call close() on it if transaction failed
                     if (!$entityManager->isOpen()) {
-                        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                        $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                         $livraisonsManager->setEntityManager($entityManager);
                     }
 
@@ -1600,7 +1600,7 @@ class MobileController extends AbstractApiController
             } catch (Throwable $throwable) {
                 // we create a new entity manager because transactional() can call close() on it if transaction failed
                 if (!$entityManager->isOpen()) {
-                    $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+                    $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
                     $ordreCollecteService->setEntityManager($entityManager);
 
                     $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);

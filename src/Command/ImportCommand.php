@@ -106,6 +106,6 @@ class ImportCommand extends Command {
     {
         return $this->em->isOpen()
             ? $this->em
-            : EntityManager::Create($this->em->getConnection(), $this->em->getConfiguration());
+            : new EntityManager($this->em->getConnection(), $this->em->getConfiguration());
     }
 }

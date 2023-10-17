@@ -237,7 +237,7 @@ class DispatchController extends AbstractApiController
 
     public function closeAndReopenEntityManager(EntityManagerInterface $entityManager){
         $entityManager->close();
-        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+        $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
