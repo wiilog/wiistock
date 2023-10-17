@@ -1,6 +1,5 @@
 import Select2 from "../../select2";
 
-// this file is used only for the //TODO
 $(function () {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
 
