@@ -263,7 +263,7 @@ class TruckArrivalController extends AbstractController
 
         $entityManager->persist($truckArrival);
 
-        if ($data->has('hasGeneralReserve') ?? false) {
+        if ($data->has('hasGeneralReserve') && $data->getBoolean('hasGeneralReserve')) {
             $generalReserve = new Reserve();
             $generalReserve
                 ->setComment($data->get('generalReserveComment'))
@@ -272,7 +272,7 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($generalReserve);
         }
 
-        if ($data->has('hasQuantityReserve') ?? false) {
+        if ($data->has('hasQuantityReserve') && $data->getBoolean('hasQuantityReserve')) {
             $quantityReserve = new Reserve();
             $quantityReserve
                 ->setComment($data->get('quantityReserveComment'))
