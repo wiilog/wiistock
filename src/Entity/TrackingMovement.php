@@ -25,6 +25,7 @@ class TrackingMovement {
     const TYPE_EMPTY_ROUND = 'passage à vide';
     const TYPE_DROP_LU = 'dépose dans UL';
     const TYPE_PICK_LU = 'prise dans UL';
+    const DEFAULT_TYPE = self::TYPE_PRISE_DEPOSE;
 
     const DISPATCH_ENTITY = 'dispatch';
     const ARRIVAL_ENTITY = 'arrival';

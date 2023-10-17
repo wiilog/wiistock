@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewMvtTraca" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
@@ -37,21 +39,23 @@
                                 </div>
                                 <div class="form-group col-12">
                                     {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-                                    <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Mouvements', 'Action', false) }}*</label>
-                                    <select class="form-control data needed w-100"
-                                            id="type"
-                                            name="type"
-                                            onchange="switchMvtCreationType($(this))">
-                                        <option disabled selected></option>
-                                        {% for statut in form_statuses %}
-                                            {% if statut.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP') %}
-                                                <option class="{{ statut.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and not hasEmptyRoundRight ? 'd-none' }}"
-                                                        value="{{ statut.id }}">
-                                                    {{ trans('Traçabilité', 'Mouvements', statut.nom) }}
-                                                </option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
+                                    {{ form.select('type', trans('Traçabilité', 'Mouvements', 'Action', false), true, {
+                                        type: '',
+                                        inputClass: 'no-clear',
+                                        additionalAttributes: [
+                                            { name: 'onchange', value: 'switchMvtCreationType($(this))' },
+                                        ],
+                                        items : form_statuses
+                                            |filter(status =>
+                                                status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
+                                                or status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight
+                                            )
+                                            |map(status => ({
+                                                value: status.id,
+                                                label: status.nom,
+                                                selected: status.nom == constant('App\\Entity\\TrackingMovement::DEFAULT_TYPE')
+                                            }))
+                                    }) }}
                                 </div>
                                 <div class="more-body-new-mvt-traca col-12">
                                 </div>
