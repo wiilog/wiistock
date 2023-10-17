@@ -811,6 +811,10 @@ class ImportService
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
+        if(!isset($this->entityCache['receptions'])) {
+            $this->entityCache['receptions'] = [];
+        }
+
         if ($user) {
             $user = $userRepository->find($user->getId());
         }
@@ -970,7 +974,7 @@ class ImportService
         if(isset($data['visibilityGroups'])) {
             $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroups']]);
             if(!isset($visibilityGroup)) {
-                $this->throwError("Le groupe de visibilité ${data['visibilityGroups']} n'existe pas");
+                $this->throwError("Le groupe de visibilité {$data['visibilityGroups']} n'existe pas");
             }
             $refArt->setProperties(['visibilityGroup' => $visibilityGroup]);
         }
@@ -1124,13 +1128,15 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
-        $dangerousGoods = (
-            filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
-            || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
-        );
+        if(isset($data['dangerousGoods'])){
+            $dangerousGoods = (
+                    filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+                    || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+                );
 
-        $refArt
-            ->setDangerousGoods($dangerousGoods);
+            $refArt
+                ->setDangerousGoods($dangerousGoods);
+        }
 
         if (isset($data['onuCode'])) {
             $refArt->setOnuCode($data['onuCode'] ?: null);
@@ -1165,8 +1171,7 @@ class ImportService
         $associatedDocumentTypes = $associatedDocumentTypesStr
             ? Stream::explode(',', $associatedDocumentTypesStr)
                 ->filter()
-                ->toArray()
-            : [];
+            : Stream::from([]);
 
         if (!empty($volume) && !is_numeric($volume)) {
             $this->throwError('Champ volume non valide.');
@@ -1175,7 +1180,7 @@ class ImportService
             $this->throwError('Champ poids non valide.');
         }
 
-        $invalidAssociatedDocumentType = Stream::from($associatedDocumentTypes)
+        $invalidAssociatedDocumentType = $associatedDocumentTypes
             ->find(fn(string $type) => !in_array($type, $this->scalarCache[Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES]));
         if (!empty($invalidAssociatedDocumentType)) {
             $this->throwError("Le type de document n'est pas valide : $invalidAssociatedDocumentType");
@@ -1186,7 +1191,7 @@ class ImportService
             "manufacturerCode" => $data['manufacturerCode'] ?? $original['manufacturerCode'] ?? null,
             "volume" => $volume,
             "weight" => $weight,
-            "associatedDocumentTypes" => $associatedDocumentTypes,
+            "associatedDocumentTypes" => $associatedDocumentTypes->join(','),
         ];
         $refArt
             ->setDescription($description);
@@ -1345,7 +1350,7 @@ class ImportService
         if($role) {
             $user->setRole($role);
         } else {
-            $this->throwError("Le rôle ${data['role']} n'existe pas");
+            $this->throwError("Le rôle {$data['role']} n'existe pas");
         }
 
         if(isset($data['username'])) {
@@ -1389,7 +1394,7 @@ class ImportService
 
             if(strlen($data['mobileLoginKey']) < UserService::MIN_MOBILE_KEY_LENGTH
                 || strlen($data['mobileLoginKey']) > UserService::MAX_MOBILE_KEY_LENGTH) {
-                $this->throwError("La clé de connexion doit faire entre ${minMobileKeyLength} et ${maxMobileKeyLength} caractères");
+                $this->throwError("La clé de connexion doit faire entre {$minMobileKeyLength} et {$maxMobileKeyLength} caractères");
             }
 
             $userWithExistingKey = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
@@ -1496,7 +1501,7 @@ class ImportService
             if($dropzone) {
                 $user->setDropzone($dropzone);
             } else {
-                $this->throwError("La dropzone ${data['dropzone']} n'existe pas");
+                $this->throwError("La dropzone {$data['dropzone']} n'existe pas");
             }
         }
         foreach ($user->getVisibilityGroups() as $visibilityGroup) {
@@ -2110,7 +2115,7 @@ class ImportService
 
             $emplacement = $refOrArt->getEmplacement();
             $mvtStock = $this->mouvementStockService->createMouvementStock($this->currentImport->getUser(), $emplacement, abs($diffQuantity), $refOrArt, $typeMvt);
-            $this->mouvementStockService->finishMouvementStock($mvtStock, new DateTime('now'), $emplacement);
+            $this->mouvementStockService->finishStockMovement($mvtStock, new DateTime('now'), $emplacement);
             $mvtStock->setImport($this->currentImport);
             $this->entityManager->persist($mvtStock);
         }

@@ -33,6 +33,9 @@ class InventoryService {
     #[Required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public MouvementStockService $stockMovementService;
+
     public function doTreatAnomaly(int         $idEntry,
                                    string      $barCode,
                                    bool        $isRef,
@@ -77,39 +80,30 @@ class InventoryService {
                 throw new RequestNeedToBeProcessedException();
             }
 
-            $mvt = new MouvementStock();
-            $mvt
-                ->setUser($user)
-                ->setDate(new DateTime('now'))
-                ->setComment($comment)
-                ->setQuantity(abs($diff));
-
+            $type = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
             $emplacement = $refOrArt->getEmplacement();
-            $mvt->setEmplacementFrom($emplacement);
-            $mvt->setEmplacementTo($emplacement);
+            $now = new DateTime();
+            $mvt = $this->stockMovementService->createMouvementStock($user, $emplacement, abs($diff), $refOrArt, $type, [
+                'date' => $now,
+                'locationTo' => $emplacement,
+                'comment' => $comment,
+            ]);
+
             if ($isRef) {
-                $mvt->setRefArticle($refOrArt);
                 //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantiteStock($newQuantity);
-            }
-            else {
-                $mvt->setArticle($refOrArt);
+            } else {
                 //TODO à supprimer quand la quantité sera calculée directement via les mouvements de stock
                 $refOrArt->setQuantite($newQuantity);
                 if ($newQuantity === 0) {
                     $refOrArt
                         ->setStatut($consumedStatus);
 
-                    $articleLeave = new MouvementStock();
-                    $articleLeave
-                        ->setUser($user)
-                        ->setArticle($refOrArt)
-                        ->setEmplacementFrom($emplacement)
-                        ->setEmplacementTo($emplacement)
-                        ->setDate(new DateTime('now'))
-                        ->setComment($comment)
-                        ->setType(MouvementStock::TYPE_SORTIE)
-                        ->setQuantity(abs($diff));
+                    $articleLeave = $this->stockMovementService->createMouvementStock($user, $emplacement, abs($diff), $refOrArt, MouvementStock::TYPE_SORTIE, [
+                        'date' => $now,
+                        'locationTo' => $emplacement,
+                        'comment' => $comment,
+                    ]);
 
                     $this->entityManager->persist($articleLeave);
                     $this->entityManager->flush();
@@ -123,7 +117,7 @@ class InventoryService {
                             $refOrArt->getBarCode(),
                             $emplacement,
                             $user,
-                            new DateTime('now'),
+                            $now,
                             true,
                             TrackingMovement::TYPE_PICK_LU,
                             false,
@@ -141,9 +135,6 @@ class InventoryService {
                     }
                 }
             }
-
-            $typeMvt = $diff < 0 ? MouvementStock::TYPE_INVENTAIRE_SORTIE : MouvementStock::TYPE_INVENTAIRE_ENTREE;
-            $mvt->setType($typeMvt);
 
             $this->entityManager->persist($mvt);
             $quantitiesAreEqual = false;
@@ -193,8 +184,7 @@ class InventoryService {
     public function summarizeLocationInventory(EntityManagerInterface $entityManager,
                                                InventoryMission       $mission,
                                                Zone                   $zone,
-                                               array                  $rfidTags,
-                                               Utilisateur            $user): array {
+                                               array                  $rfidTags): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -216,18 +206,15 @@ class InventoryService {
 
         $storageRules = $storageRuleRepository->findBy(['location' => $locations]);
 
-        $now = new DateTime('now');
-
         $minStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MIN);
         $maxStr = $settingRepository->getOneParamByLabel(Setting::RFID_KPI_MAX);
         $min = $minStr ? intval($minStr) : null;
         $max = $maxStr ? intval($maxStr) : null;
 
-        $this->clearInventoryZone($mission, $zone);
-
         $zoneInventoryIndicator = $zone->getInventoryIndicator() ?: 1;
 
         $locationsData = [];
+        $inventoryData = [];
         $result = [];
         $numScannedObjects = 0;
 
@@ -276,27 +263,19 @@ class InventoryService {
 
         // calculate percentage and save in inventory stats and scanned articles
         foreach($locationsData as $locationRow) {
-            /** @var InventoryLocationMission $linkedLine */
-            $linkedLine = $mission
-                ->getInventoryLocationMissions()
-                ->filter(fn(InventoryLocationMission $inventoryLocationMission) => $inventoryLocationMission->getLocation()?->getId() === $locationRow["locationId"])
-                ->first() ?: null;
+            $ratio = $zoneInventoryIndicator
+                ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
+                : 0;
 
-            if ($linkedLine) {
-                $ratio = $zoneInventoryIndicator
-                    ? floor(($locationRow['articleCounter'] / ($locationRow['storageRuleCounter'] * $zoneInventoryIndicator)) * 100)
-                    : 0;
-
-                $linkedLine
-                    ->setOperator($user)
-                    ->setScannedAt($now)
-                    ->setPercentage($ratio)
-                    ->setArticles($locationRow["articles"] ?? []);
-            }
+            $inventoryData[$locationRow["locationId"]] = [
+                "locationId" => $locationRow["locationId"],
+                "ratio" => $ratio,
+                "articles" => $locationRow["articles"] ?? [],
+            ];
 
             $result[] = [
                 "location" => $locationRow['location'],
-                "ratio" => $ratio ?? 0,
+                "ratio" => $ratio,
             ];
         }
 
@@ -310,26 +289,22 @@ class InventoryService {
             ))
             ->values();
 
-        $entityManager->flush();
-
         return [
             "numScannedObjects" => $numScannedObjects,
             "lines" => $locationsData,
+            "inventoryData" => $inventoryData
         ];
     }
 
 
-    public function clearInventoryZone(InventoryMission $mission,
-                                       Zone             $zone): void {
+    public function clearInventoryZone(InventoryMission $mission): void {
         $inventoryLocationMissionArray = $mission->getInventoryLocationMissions();
         foreach ($inventoryLocationMissionArray as $inventoryLocationMission) {
-            if ($inventoryLocationMission->getLocation()?->getZone()?->getId() === $zone->getId()) {
-                $inventoryLocationMission
-                    ->setOperator(null)
-                    ->setScannedAt(null)
-                    ->setPercentage(null)
-                    ->setArticles([]);
-            }
+            $inventoryLocationMission
+                ->setOperator(null)
+                ->setScannedAt(null)
+                ->setPercentage(null)
+                ->setArticles([]);
         }
     }
 

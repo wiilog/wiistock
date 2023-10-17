@@ -24,6 +24,7 @@ yarn-error.log
 ###> wiilog/wiistock ###
 /.vs-code/
 /.idea/
+/public/uploads/attachments/
 /public/uploads/attachements/
 /public/generated/
 /config/generated.yaml
@@ -48,3 +49,4 @@ yarn-error.log
 /certs/
 /config/packages/google_apiclient.yaml
 /rector.php
+/cypress/screenshots/

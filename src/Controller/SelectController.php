@@ -258,7 +258,10 @@ class SelectController extends AbstractController {
             'status' => $request->query->get('status'),
             'ignoredDeliveryRequest' => $request->query->get('ignored-delivery-request'),
             'ignoredShippingRequest' => $request->query->get('ignored-shipping-request'),
-            'minQuantity'  => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+            'minQuantity' => $request->query->get('min-quantity'), // TODO WIIS-9607 : a supprimer ?
+            'multipleFields' => $request->query->getBoolean('multipleFields'),
+            'visibilityGroup' => $request->query->get('visibilityGroup'),
+            'filterFields' => $request->query->get('filterFields'),
         ];
 
         $results = Stream::from($referenceArticleRepository->getForSelect($request->query->get("term"), $user, $options));

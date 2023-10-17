@@ -152,7 +152,7 @@ class CartController extends AbstractController
             $referenceLabel = $reference->getReference();
             return $this->json([
                 'success' => false,
-                'msg' => "La référence <strong>${referenceLabel}</strong> est déjà présente dans votre panier"
+                'msg' => "La référence <strong>{$referenceLabel}</strong> est déjà présente dans votre panier"
             ]);
         }
         $cart->addReference($reference);

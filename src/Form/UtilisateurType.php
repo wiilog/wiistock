@@ -21,8 +21,7 @@ class UtilisateurType extends AbstractType
     #[Required]
     public EntityManagerInterface $entityManager;
 
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
+    public function buildForm(FormBuilderInterface $builder, array $options): void {
         $languages = $this->entityManager->getRepository(Language::class)->findBy(['hidden' => false]);
         $languageChoices = Stream::from($languages)
             ->keyMap(fn(Language $language) =>[$language->getLabel(), $language])
@@ -88,8 +87,7 @@ class UtilisateurType extends AbstractType
             ]);
     }
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
+    public function configureOptions(OptionsResolver $resolver): void {
         $resolver->setDefaults([
             'data_class' => Utilisateur::class,
         ]);

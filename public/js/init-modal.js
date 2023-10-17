@@ -416,7 +416,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         if (!$formGroupLabel.exists()) {
             $formGroupLabel = $input.closest('label').find('.wii-field-name');
         }
-        const $editorContainer = $input.siblings('.ql-container');
+        const $editorContainer = $input.hasClass('ql-container') ? $input : $input.siblings('.ql-container');
         const $qlEditor = $editorContainer.length > 0
             ? $editorContainer.find('.ql-editor')
             : undefined;

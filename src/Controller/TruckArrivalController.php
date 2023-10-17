@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
@@ -23,6 +24,7 @@ use App\Service\TruckArrivalLineService;
 use App\Service\TruckArrivalService;
 use App\Service\UniqueNumberService;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -82,7 +84,7 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/api-columns', name: 'truck_arrival_api_columns', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function apiColumns(EntityManagerInterface $entityManager, TruckArrivalService $truckArrivalService): Response {
+    public function apiColumns(TruckArrivalService $truckArrivalService): Response {
         return new JsonResponse(
             $truckArrivalService->getVisibleColumns($this->getUser())
         );
@@ -136,8 +138,9 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/supprimer-ligne', name: 'truck_arrival_lines_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER], mode: HasPermission::IN_JSON)]
-    public function deleteLine(Request $request,
-                           EntityManagerInterface $entityManager): Response {
+    public function deleteLine(Request                $request,
+                               EntityManagerInterface $entityManager): Response
+    {
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $truckArrivalLine = $truckArrivalLineRepository->find($request->query->get('truckArrivalLineId'));
 
@@ -196,36 +199,48 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/formulaire', name: 'truck_arrival_form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
-    public function new(Request $request,
-                        EntityManagerInterface $entityManager,
-                        UniqueNumberService $uniqueNumberService,
-                        AttachmentService $attachmentService): Response {
+    public function submit(Request                $request,
+                           EntityManagerInterface $entityManager,
+                           UniqueNumberService    $uniqueNumberService,
+                           AttachmentService      $attachmentService): Response
+    {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
         $lineNumberRepository = $entityManager->getRepository(TruckArrivalLine::class);
-        $now = new \DateTime();
-        $data = $request->request->all();
-        $truckArrival = isset($data['truckArrivalId']) ? $truckArrivalRepository->find($data['truckArrivalId']) : null;
-        $driver = isset($data['driver']) ? $driverRepository->find($data['driver']) : null;
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $now = new DateTime();
+        $data = $request->request;
+        $truckArrival = $data->get('truckArrivalId') ? $truckArrivalRepository->find($data->get('truckArrivalId')) : null;
 
         if (!$truckArrival) {
-            $carrier = isset($data['carrier']) ? $carrierRepository->find($data['carrier']) : null;
-            $location = isset($data['unloadingLocation']) ? $locationRepository->find($data['unloadingLocation']) : null;
+            $truckArrival = new TruckArrival();
+            if ($data->has('carrier')) {
+                $carrierId = $data->getInt('carrier');
+                $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
+                $truckArrival->setCarrier($carrier);
+            }
+
+            if ($data->has('unloadingLocation')) {
+                $locationId = $data->getInt('unloadingLocation');
+                $location = $locationId ? $locationRepository->find($locationId) : null;
+                $truckArrival->setUnloadingLocation($location);
+            } else {
+                $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::TRUCK_ARRIVALS_DEFAULT_UNLOADING_LOCATION);
+                $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
+                $truckArrival->setUnloadingLocation($defaultLocation);
+            }
 
             $number = $uniqueNumberService->create($entityManager, null, TruckArrival::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRUCK_ARRIVAL, $now, [$carrier->getCode()]);
-            $truckArrival = new TruckArrival();
-            $truckArrival
-                ->setNumber($number)
-                ->setUnloadingLocation($location)
-                ->setCarrier($carrier);
 
+            $truckArrival->setNumber($number);
         } else {
             $files = $request->files->all();
             $truckArrival->clearAttachments();
 
-            $attachments = $attachmentService->createAttachements($files);
+            $attachments = $attachmentService->createAttachments($files);
             foreach ($attachments as $attachment) {
                 $entityManager->persist($attachment);
                 $truckArrival->addAttachment($attachment);
@@ -233,35 +248,46 @@ class TruckArrivalController extends AbstractController
         }
 
         $truckArrival
-            ->setDriver($driver)
-            ->setRegistrationNumber($data['registrationNumber'] ?? null)
             ->setCreationDate($now)
             ->setOperator($this->getUser());
 
+        if($data->has('driver')){
+            $driverId = $data->get('driver');
+            $driver = $driverId ? $driverRepository->find($driverId) : null;
+            $truckArrival->setDriver($driver ?? null);
+        }
+
+        if($data->has('registrationNumber')){
+            $truckArrival->setRegistrationNumber($data->get('registrationNumber') );
+        }
+
         $entityManager->persist($truckArrival);
 
-        if ($data['hasGeneralReserve'] ?? false) {
+        if ($data->has('hasGeneralReserve') ?? false) {
             $generalReserve = new Reserve();
             $generalReserve
-                ->setComment($data['generalReserveComment'] ?? null)
+                ->setComment($data->get('generalReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_GENERAL);
             $entityManager->persist($generalReserve);
         }
 
-        if ($data['hasQuantityReserve'] ?? false) {
+        if ($data->has('hasQuantityReserve') ?? false) {
             $quantityReserve = new Reserve();
             $quantityReserve
-                ->setComment($data['quantityReserveComment'] ?? null)
+                ->setComment($data->get('quantityReserveComment'))
                 ->setTruckArrival($truckArrival)
                 ->setKind(Reserve::KIND_QUANTITY)
-                ->setQuantity($data['reserveQuantity'] ?? null)
-                ->setQuantityType($data['reserveType'] ?? null);
+                ->setQuantity($data->get('reserveQuantity'))
+                ->setQuantityType($data->get('reserveType'));
             $entityManager->persist($quantityReserve);
         }
 
-        foreach (explode(',', $data['trackingNumbers'] ?? '') as $lineNumber) {
-            if ($lineNumber && empty($lineNumberRepository->findOneBy(['number' => $lineNumber]))) {
+        $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
+        foreach ($trackingNumbers as $lineNumber) {
+            $line = $lineNumberRepository->findBy(['number' => $lineNumber], ['id' => 'DESC'], 1)[0] ?? null;
+
+            if ($lineNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
                     ->setTruckArrival($truckArrival)
@@ -283,7 +309,7 @@ class TruckArrivalController extends AbstractController
         return new JsonResponse([
             'success' => true,
             'truckArrivalId' => $truckArrival->getId(),
-            'redirect' => isset($data['goToArrivalButton']) && boolval($data['goToArrivalButton'])
+            'redirect' => $data->has('goToArrivalButton') && boolval($data->get('goToArrivalButton'))
                             ? $this->generateUrl('arrivage_index', [
                                 'truckArrivalId' => $truckArrival->getId()
                             ])
@@ -293,8 +319,7 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/{truckArrival}/delete', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS])]
-    public function delete(Request $request,
-                           TruckArrival $truckArrival,
+    public function delete(TruckArrival $truckArrival,
                            EntityManagerInterface $entityManager): Response {
 
         $hasLinesAssociatedToArrival = $truckArrival->getTrackingLines()->count() > 0
@@ -332,26 +357,24 @@ class TruckArrivalController extends AbstractController
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
         $trackingNumbers = explode(',', $data['trackingNumbers']);
-
         foreach ($trackingNumbers as $trackingNumber) {
-            $truckArrivalLine = $truckArrivalLineRepository->findOneBy(['number' => $trackingNumber]);
-            if ($trackingNumber && !$truckArrivalLine) {
+            $line = $truckArrivalLineRepository->findBy(['number' => $trackingNumber], ['id' => 'DESC'], 1)[0] ?? null;
 
+            if ($trackingNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
                 $line = (new TruckArrivalLine())
-                ->setNumber($trackingNumber);
+                    ->setNumber($trackingNumber);
                 $truckArrival->addTrackingLine($line);
                 $entityManager->persist($line);
             } else {
                 return new JsonResponse([
                     'success' => false,
                     'trackingNumber' => $trackingNumber,
-                    'msg' => "Le numéro de tracking transporteur " . $truckArrivalLine->getNumber() . " existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
+                    'msg' => "Le numéro de tracking transporteur $trackingNumber existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
                 ]);
             }
         }
 
         $entityManager->flush();
-
 
         return new JsonResponse([
             'success' => true,
@@ -380,6 +403,7 @@ class TruckArrivalController extends AbstractController
             if($edit) {
                 $isDefaultReserveType = $reserveType->isDefaultReserveType() ? 'checked' : '';
                 $isActive = $reserveType->isActive() ? 'checked' : '';
+                $isDisabledTrackingNumber = $reserveType->isDisableTrackingNumber() ? 'checked' : '';
                 $userOptions = Stream::from($reserveType->getNotifiedUsers())
                     ->map(fn(Utilisateur $user) => "<option value='{$user->getId()}' selected>{$user->getUsername()}</option>")
                     ->join("");
@@ -390,7 +414,8 @@ class TruckArrivalController extends AbstractController
                     "label" => "<input type='text' name='label' class='$class' value='{$reserveType->getLabel()}' required data-global-error='Libellé'/>",
                     "emails" => "<select class='form-control data select2' name='emails' multiple data-s2='user'>$userOptions</select>",
                     "defaultReserveType" => "<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data' {$isDefaultReserveType}/></div>",
-                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>"
+                    "active" => "<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data' {$isActive}/></div>",
+                    "disableTrackingNumber" => "<div class='checkbox-container'><input type='checkbox' name='disableTrackingNumber' class='form-control data' {$isDisabledTrackingNumber}/></div>"
                 ];
             } else {
                 $emails = Stream::from($reserveType->getNotifiedUsers())
@@ -404,6 +429,7 @@ class TruckArrivalController extends AbstractController
                     "emails" => implode(', ', $emails),
                     "defaultReserveType" => $this->formatService->bool($reserveType->isDefaultReserveType()),
                     "active" => $this->formatService->bool($reserveType->isActive()),
+                    "disableTrackingNumber" => $this->formatService->bool($reserveType->isDisableTrackingNumber()),
                 ];
             }
         }
@@ -414,6 +440,7 @@ class TruckArrivalController extends AbstractController
             "emails" => "",
             "defaultReserveType" => "",
             "active" => "",
+            "disableTrackingNumber" => "",
         ];
 
         return $this->json([
@@ -423,7 +450,7 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/reserves/supprimer/{entity}', name: 'settings_reserve_type_delete', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
-    public function deleteReserveType(EntityManagerInterface $manager, ReserveType $entity) {
+    public function deleteReserveType(EntityManagerInterface $manager, ReserveType $entity): JsonResponse {
         $reserveTypeRepository = $manager->getRepository(ReserveType::class);
         if (count($reserveTypeRepository->findAll()) === 1) {
             return new JsonResponse([

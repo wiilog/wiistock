@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
@@ -114,6 +115,12 @@ class SettingsController extends AbstractController {
     #[Required]
     public SessionHistoryRecordService $sessionHistoryRecordService;
 
+    #[Required]
+    public SettingsService $service;
+
+    #[Required]
+    public UserService $userService;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
@@ -195,7 +202,16 @@ class SettingsController extends AbstractController {
                 self::MENU_TOUCH_TERMINAL => [
                     "label" => "Borne tactile",
                     "right" => Action::SETTINGS_DISPLAY_TOUCH_TERMINAL,
-                    "save" => true,
+                    "menus" => [
+                        self::MENU_COLLECT_REQUEST_AND_CREATE_REF => [
+                            "label" => "Demande collecte et création référence",
+                            "save" => true,
+                        ],
+                        self::MENU_FAST_DELIVERY_REQUEST => [
+                            "label" => "Demande livraison rapide",
+                            "save" => true,
+                        ],
+                    ],
                 ],
                 self::MENU_REQUESTS => [
                     "label" => "Demandes",
@@ -626,6 +642,9 @@ class SettingsController extends AbstractController {
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
     public const MENU_ALERTS = "alertes";
     public const MENU_TOUCH_TERMINAL = "borne_tactile";
+
+    public const MENU_COLLECT_REQUEST_AND_CREATE_REF = "demande_collecte_et_creation_reference";
+    public const MENU_FAST_DELIVERY_REQUEST = "demande_livraison_rapide";
     public const MENU_INVENTORIES = "inventaires";
     public const MENU_FREQUENCIES = "frequences";
     public const MENU_INVENTORY_CONFIGURATION = "configuration";
@@ -697,16 +716,6 @@ class SettingsController extends AbstractController {
 
     public const MENU_NATIVE_COUNTRY = "pays_d_origine";
     public const MENU_NOMADE_RFID_CREATION = "creation_nomade_rfid";
-
-    /**
-     * @Required
-     */
-    public SettingsService $service;
-
-    /**
-     * @Required
-     */
-    public UserService $userService;
 
     /**
      * @Route("/", name="settings_index")
@@ -927,7 +936,7 @@ class SettingsController extends AbstractController {
             $language = new Language;
             $flagCustom = $file->get('flagCustom');
             if ($flagCustom) {
-                $flagFile = $attachmentService->createAttachements($file);
+                $flagFile = $attachmentService->createAttachments($file);
                 $languageFile = $flagFile[0]->getFullPath();
             }
             else {
@@ -1264,9 +1273,21 @@ class SettingsController extends AbstractController {
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
                     ],
                 ],
-                self::MENU_TOUCH_TERMINAL => fn() => [
-                    'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
-                ],
+                self::MENU_TOUCH_TERMINAL => [
+                    self::MENU_COLLECT_REQUEST_AND_CREATE_REF => fn() => [
+                        'alreadyUnlinked' => empty($entityManager->getRepository(KioskToken::class)->findAll()),
+                    ],
+                    self::MENU_FAST_DELIVERY_REQUEST => fn() => [
+                        'filterFields' => Stream::from($entityManager->getRepository(FreeField::class)->findByCategory(CategorieCL::REFERENCE_ARTICLE))
+                            ->map(static fn(FreeField $freeField) => [
+                                'label' => $freeField->getLabel(),
+                                'value' => $freeField->getId(),
+                            ])
+                            ->concat(DeliveryStationLine::REFERENCE_FIXED_FIELDS)
+                            ->toArray(),
+                        'deliveryStationLine' => new DeliveryStationLine(),
+                    ],
+                ]
             ],
             self::CATEGORY_TRACING => [
                 self::MENU_DISPATCHES => [
@@ -2625,8 +2646,9 @@ class SettingsController extends AbstractController {
             $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory() ? "checked" : "";
             $displayedEdit = $field->isDisplayedEdit() ? "checked" : "";
             $requiredEdit = $field->isRequiredEdit() ? "checked" : "";
+            $onMobile = $field->isOnMobile() ? "checked" : "";
+            $onMobileDisabled = !in_array($field->getFieldCode(), FieldsParam::ON_NOMADE_FILEDS) ? "disabled" : "";
             $filtersDisabled = !in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) ? "disabled" : "";
-            $editDisabled = in_array($field->getFieldCode(), FieldsParam::NOT_EDITABLE_FIELDS) ? "disabled" : "";
             $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters() ? "checked" : "";
 
 
@@ -2653,33 +2675,35 @@ class SettingsController extends AbstractController {
                     $row["keptInMemory"] = "<input type='checkbox' name='keptInMemory' class='$class' $keptInMemory $keptInMemoryDisabled/>";
                 }
 
-                $rows[] = $row;
+                if($entity === FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL){
+                    $row["onMobile"] = "<input type='checkbox' name='onMobile' class='$class' $onMobile $onMobileDisabled/>";
+                }
+
             } else {
                 $row = [
                     "label" => "<span class='font-weight-bold'>$label</span>",
-                    "displayedCreate" => $field->isDisplayedCreate() ? "Oui" : "Non",
-                    "displayedEdit" => $field->isDisplayedEdit() ? "Oui" : "Non",
-                    "requiredCreate" => $field->isRequiredCreate() ? "Oui" : "Non",
-                    "requiredEdit" => $field->isRequiredEdit() ? "Oui" : "Non",
-                    "displayedFilters" => (in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()) ? "Oui" : "Non",
+                    "displayedCreate" => $this->formatService->bool($field->isDisplayedCreate()),
+                    "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit()),
+                    "requiredCreate" => $this->formatService->bool($field->isRequiredCreate()),
+                    "requiredEdit" => $this->formatService->bool($field->isRequiredEdit()),
+                    "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FieldsParam::FILTERED_FIELDS) && $field->isDisplayedFilters()),
                 ];
 
-                if($entity === "arrival") {
-                    $row["keptInMemory"] = $field->isKeptInMemory() ? "Oui" : "Non";
+                if($entity === FieldsParam::ENTITY_CODE_ARRIVAGE) {
+                    $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory());
                 }
 
-                $rows[] = $row;
+                if($entity === FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL) {
+                    $row["onMobile"] = $this->formatService->bool($field->isOnMobile());
+                }
+
             }
+            $rows[] = $row;
         }
 
         return $this->json([
             "data" => $rows,
         ]);
-    }
-
-
-    private function canEdit(): bool {
-        return $this->userService->hasRightFunction(Menu::PARAM, Action::EDIT);
     }
 
     private function canDelete(): bool {

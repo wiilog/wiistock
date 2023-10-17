@@ -1,0 +1,54 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    {{ form.input('deliveryStationLineId', '', false, deliveryStationLine ? deliveryStationLine.id : null, {
+        type: 'hidden'
+    }) }}
+    <div class="form-group col-12 mb-2 w-100">
+        {{ form.textarea('welcomeMessage', "Message d'accueil", true, welcomeMessage ?? '') }}
+    </div>
+    <div class="form-group col-6 mb-2 w-100">
+        {{ form.select('deliveryType', 'Type de livraison', true, {
+            type: 'deliveryType',
+            items: deliveryType is defined ? [deliveryType] : [],
+            placeholder: 'Sélectionnez un type',
+            search: false,
+            disabled: deliveryStationLine.id ?? false,
+        }) }}
+    </div>
+    <div class="form-group col-6 mb-2 w-100">
+        {{ form.select('visibilityGroup', 'Groupe de visibilité', true, {
+            type: 'visibilityGroup',
+            items: visibilityGroup is defined ? [visibilityGroup] : [],
+            placeholder: 'Sélectionnez un groupe de visibilité',
+            disabled: deliveryStationLine.id ?? false,
+        }) }}
+    </div>
+    <div class="form-group col-6 mb-2 w-100">
+        {{ form.select('destinationLocation', 'Emplacement de destination', true, {
+            type: 'location',
+            items: destinationLocation is defined ? [destinationLocation] : [],
+            includeParams: '[name=deliveryType]',
+        }) }}
+    </div>
+    <div class="form-group col-6 mb-2 w-100">
+        {{ form.select('receivers', 'Utilisateur(s) mail information', false, {
+            type: 'user',
+            multiple: true,
+            items: deliveryStationLineReceivers ?? [],
+            placeholder: 'Sélectionnez un utilisateur',
+        }) }}
+    </div>
+    <div class="form-group col-6 mb-2 w-100">
+        {{ form.select('filterFields', 'Champs filtres (max 3)', false, {
+            type: '',
+            multiple: true,
+            items: filterFields,
+            placeholder: 'Sélectionnez un ou plusieurs champs',
+            maxSelectionLength: 3,
+        }) }}
+    </div>
+    <div class="form-group col-12 mb-2 w-100">
+        {% include 'variables_dictionary.html.twig' with {dictionary: 'FAST_DELIVERY_REQUEST'} %}
+    </div>
+</div>

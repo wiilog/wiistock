@@ -31,10 +31,10 @@ class TriggerActionRepository extends EntityRepository
                         ->leftJoin('trigger_action.alertTemplate', 'search_alert_template')
                         ->leftJoin('trigger_action.requestTemplate', 'search_request_template')
                         ->andWhere($exprBuilder->orX(
-                            'search_sensorWrapper.name LIKE :value',
-                            "IFNULL(search_alert_template.name, search_request_template.name) LIKE :value"
+                            "search_sensorWrapper.name LIKE :value",
+                            "IFNULL(search_alert_template.name, search_request_template.name) LIKE :value",
+                            "trigger_action.lastTrigger LIKE :value"
                         ))
-                        ->orWhere('trigger_action.lastTrigger LIKE :value')
                         ->leftJoin('trigger_action.sensorWrapper', 'search_sensorWrapper')
                         ->setParameter('value', "%$search%");
                 }

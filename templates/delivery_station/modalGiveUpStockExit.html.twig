@@ -1,0 +1,19 @@
+<div class="modal fade modal-give-up-stock-exit" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="kiosk-modal-content">
+            <div class="modal-body">
+                {% include 'utils/modal-alert/warning-bookmark.html.twig' %}
+                <div class="mt-4 content field-text text-center" id="stock-error-message">
+                    Souhaitez-vous abandonner cette demande de livraison ?
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'outline', dismiss: true, text: 'Annuler'},
+                    {classes: '', dismiss: true, text: 'Abandonner', id: 'submitGiveUpStockExit'},
+                ],
+                renderErrorContainer: false
+            } %}
+        </div>
+    </div>
+</div>

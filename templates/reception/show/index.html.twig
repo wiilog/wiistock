@@ -50,17 +50,28 @@
                                 } %}
 
                                 {% include 'utils/action-buttons/header-buttons.html.twig' with {
-                                    actions: [{
-                                        buttonClass: "btn btn-primary",
-                                        title: "Ajouter une référence",
-                                        hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
-                                        icon: "wii-icon wii-icon-new-article",
-                                        attributes: {
-                                            "data-target": "#modalNewReceptionReferenceArticle",
-                                            "data-toggle": "modal",
-                                            onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle')",
+                                    actions: [
+                                        {
+                                            buttonClass: "btn btn-primary",
+                                            title: "Ajouter une référence",
+                                            hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
+                                            icon: "wii-icon wii-icon-new-article",
+                                            attributes: {
+                                                "data-target": "#modalNewReceptionReferenceArticle",
+                                                "data-toggle": "modal",
+                                                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle')",
+                                            },
                                         },
-                                    }]
+                                        {
+                                            buttonClass: "btn btn-primary",
+                                            title: "Générer les étiquettes",
+                                            icon: "wii-icon wii-icon-printer-black",
+                                            attributes: {
+                                                id: "buttonPrintMultipleBarcodes",
+                                            },
+                                            href: path('reception_bar_codes_print', {reception: reception.id}),
+                                        }
+                                    ]
                                 } %}
                             </div>
                         </div>

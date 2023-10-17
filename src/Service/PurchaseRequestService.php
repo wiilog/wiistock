@@ -227,7 +227,7 @@ class PurchaseRequestService
             $number = $purchaseRequest->getNumber();
             $processingDate = $this->formatService->datetime($purchaseRequest->getProcessingDate(), "", true);
             $title = $status->isTreated()
-                ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
+                ? "Demande d'achat {$number} traitée le {$processingDate} avec le statut {$statusName}"
                 : ($status->isNotTreated()
                     ? 'Une demande d\'achat vous concerne'
                     : 'Changement de statut d\'une demande d\'achat vous concernant');

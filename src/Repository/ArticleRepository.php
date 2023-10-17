@@ -240,11 +240,11 @@ class ArticleRepository extends EntityRepository {
 
         $queryBuilder
             ->select('article.id AS id')
-            ->addSelect("article.${field} AS text")
+            ->addSelect("article.{$field} AS text")
             ->addSelect('location.label AS locationLabel')
             ->addSelect('article.quantite AS quantity')
             ->leftJoin('article.emplacement', 'location')
-            ->andWhere("article.${field} LIKE :search")
+            ->andWhere("article.{$field} LIKE :search")
             ->setParameter('search', '%' . $search . '%');
 
         if ($activeOnly) {
@@ -511,7 +511,7 @@ class ArticleRepository extends EntityRepository {
                                             $lowerSearchValue = strtolower($searchValue);
                                             if (($lowerSearchValue === "oui") || ($lowerSearchValue === "non")) {
                                                 $booleanValue = $lowerSearchValue === "oui" ? 1 : 0;
-                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"${freeFieldId}\"') IS NOT NULL";
+                                                $query[] = "JSON_SEARCH(article.freeFields, 'one', :search, NULL, '$.\"{$freeFieldId}\"') IS NOT NULL";
                                                 $queryBuilder->setParameter("search", $booleanValue);
                                             }
                                         } else {
@@ -1392,5 +1392,30 @@ class ArticleRepository extends EntityRepository {
             ->setParameter("article", $article)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findOneByReferenceAndStockManagement(ReferenceArticle $referenceArticle): ?Article {
+        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
+            && !in_array($referenceArticle->getStockManagement(), [ReferenceArticle::STOCK_MANAGEMENT_FIFO, ReferenceArticle::STOCK_MANAGEMENT_FEFO])) {
+            return null;
+        }
+
+        $queryBuilder = $this->createQueryBuilder("article")
+            ->innerJoin("article.statut", "status", Join::WITH, "status.code = :status")
+            ->innerJoin("article.articleFournisseur", "supplier_article")
+            ->innerJoin("supplier_article.referenceArticle", "reference_article", Join::WITH, "reference_article = :referenceArticle");
+
+        if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+            $queryBuilder->orderBy("article.stockEntryDate", Criteria::ASC);
+        } else if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+            $queryBuilder->orderBy("article.expiryDate", Criteria::ASC);
+        }
+
+        return $queryBuilder
+            ->setParameter("referenceArticle", $referenceArticle->getId())
+            ->setParameter("status", Article::STATUT_ACTIF)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

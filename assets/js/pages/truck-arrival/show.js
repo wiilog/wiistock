@@ -90,6 +90,7 @@ function initTruckArrivalLinesTable() {
         },
         columns: [
             {data: `actions`, title: ``, className: `noVis`, orderable: false},
+            {data: `disableTrackingNumber`, title: ``, className: `noVis`, orderable: false},
             {data: `lineNumber`, title: `N° tracking transporteur`},
             {data: `associatedToUL`, title: `Associé à un arrivage UL`},
             {data: `arrivalLinks`, title: `Lien(s) arrivage UL`},

@@ -15,16 +15,19 @@ use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
+#[AsCommand(
+    name: 'app:launch:scheduled-purchase-request',
+    description: 'This command executes scheduled purchase resquests.'
+)]
 class ScheduledPurchaseRequestCommand extends Command
 {
-
-    private const DEFAULT_NAME = "app:launch:scheduled-purchase-request";
 
     #[Required]
     public EntityManagerInterface $em;
@@ -34,12 +37,6 @@ class ScheduledPurchaseRequestCommand extends Command
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
-
-    protected function configure()
-    {
-        $this->setName(self::DEFAULT_NAME)
-            ->setDescription("This command executes scheduled purchase resquests.");
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -62,12 +59,4 @@ class ScheduledPurchaseRequestCommand extends Command
 
         return 0;
     }
-
-    private function getEntityManager(): EntityManagerInterface
-    {
-        return $this->em->isOpen()
-            ? $this->em
-            : EntityManager::create($this->em->getConnection(), $this->em->getConfiguration());
-    }
-
 }

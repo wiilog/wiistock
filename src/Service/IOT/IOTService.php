@@ -125,43 +125,40 @@ class IOTService
         self::DATA_TYPE_HYGROMETRY => '%',
     ];
 
-    #[Required]
+    #[required]
     public DeliveryRequestService $demandeLivraisonService;
 
-    #[Required]
+    #[required]
     public UniqueNumberService $uniqueNumberService;
 
-    #[Required]
+    #[required]
     public AlertService $alertService;
 
-    #[Required]
+    #[required]
     public NotificationService $notificationService;
 
-    #[Required]
+    #[required]
     public MailerService $mailerService;
 
-    #[Required]
+    #[required]
     public Twig_Environment $templating;
 
-    #[Required]
+    #[required]
     public HttpService $client;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local);
         foreach ($messages as $message) {
             if($message){
-                $this->linkWithSubEntities($message,
-                    $entityManager->getRepository(Pack::class),
-                    $entityManager->getRepository(Article::class),
-                );
+                $this->linkWithSubEntities($entityManager, $message);
                 $entityManager->flush();
-                $this->treatTriggers($message, $entityManager);
+                $this->treatTriggers($entityManager, $message);
                 $entityManager->flush();
             }
         }
     }
 
-    private function treatTriggers(SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
+    private function treatTriggers(EntityManagerInterface $entityManager, SensorMessage $sensorMessage) {
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
@@ -230,6 +227,7 @@ class IOTService
             $wanted = intval($config['buttonIndex']);
             $needsTrigger = ($button === $wanted);
         }
+
         if ($needsTrigger) {
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
@@ -529,7 +527,11 @@ class IOTService
         return $messages;
     }
 
-    public function linkWithSubEntities(SensorMessage $sensorMessage, PackRepository $packRepository, ArticleRepository $articleRepository) {
+    public function linkWithSubEntities(EntityManagerInterface $entityManager,
+                                        SensorMessage $sensorMessage) {
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $articleRepository = $entityManager->getRepository(Article::class);
+
         $sensor = $sensorMessage->getSensor();
         $wrapper = $sensor->getAvailableSensorWrapper();
         if ($wrapper) {
@@ -665,8 +667,10 @@ class IOTService
                 return [self::DATA_TYPE_ACTION => $this->extractEventTypeFromMessage($config, $profile)];
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
-                if (isset($config['payload_cleartext'])) {
-                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+                // TODO WIIS-10287 check $config['payload_cleartext']
+                if (isset($config['value']['payload'])) {
+                    // TODO WIIS-10287 check $config['payload_cleartext']
+                    $value = hexdec(substr($config['value']['payload'], 0, 2));
                     $event =  $value & ~($value >> 3 << 3);
                     return [self::DATA_TYPE_ACTION => $event === 0 ? self::ACS_PRESENCE : (self::ACS_EVENT . " (" . $event . ")")];
                 }
@@ -738,8 +742,10 @@ class IOTService
                 break;
             case IOTService::SYMES_ACTION_SINGLE:
             case IOTService::SYMES_ACTION_MULTI:
-                if (isset($config['payload_cleartext'])) {
-                    $value = hexdec(substr($config['payload_cleartext'], 0, 2));
+            // TODO WIIS-10287 check $config['payload_cleartext']
+                if (isset($config['value']['payload'])) {
+                    // TODO WIIS-10287 check $config['payload_cleartext']
+                    $value = hexdec(substr($config['value']['payload'], 0, 2));
                     $event =  $value & ~($value >> 3 << 3);
                     return $event === 0 ? self::ACS_PRESENCE : self::ACS_EVENT;
                 }
@@ -778,13 +784,18 @@ class IOTService
                 break;
             case IOTService::SYMES_ACTION_MULTI:
             case IOTService::SYMES_ACTION_SINGLE:
-                $tensionBites = substr($config['payload_cleartext'], 20, 2);
-                $level = hexdec($tensionBites) >> 1;
-                $minVoltage = 2400;
-                $maxVoltage = 3700;
-                $incertitudeLevel = 10;
-                $currentVoltage = $level * $incertitudeLevel + $minVoltage;
-                return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
+            // TODO WIIS-10287 check $config['payload_cleartext']
+                if (isset($config['value']['payload'])) {
+                    // TODO WIIS-10287 check $config['payload_cleartext']
+                    $tensionBites = substr($config['value']['payload'], 20, 2);
+                    $level = hexdec($tensionBites) >> 1;
+                    $minVoltage = 2400;
+                    $maxVoltage = 3700;
+                    $incertitudeLevel = 10;
+                    $currentVoltage = $level * $incertitudeLevel + $minVoltage;
+                    return (($currentVoltage - $minVoltage) / ($maxVoltage - $minVoltage)) * 100;
+                }
+                break;
             case IOTService::INEO_INS_EXTENDER:
                 $frame = $config['value']['payload'];
                 if (str_starts_with($frame, '49')) {

@@ -237,7 +237,7 @@ class MouvementStockController extends AbstractController
 
                 if ($response['success']) {
                     $newMvtStock = $mouvementStockService->createMouvementStock($loggedUser, $emplacementFrom, $quantity, $chosenArticleToMove, $chosenMvtType);
-                    $mouvementStockService->finishMouvementStock($newMvtStock, $now, $emplacementTo);
+                    $mouvementStockService->finishStockMovement($newMvtStock, $now, $emplacementTo);
                     if ($associatedDropTracaMvt && $associatedPickTracaMvt) {
                         $associatedPickTracaMvt->setMouvementStock($newMvtStock);
                         $associatedDropTracaMvt->setMouvementStock($newMvtStock);

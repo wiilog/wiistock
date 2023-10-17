@@ -532,7 +532,7 @@ class OrdreCollecteController extends AbstractController
             $number = $sensorWrapper->getName();
             return $this->json([
                 'success' => true,
-                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+                'msg' => "L'assocation avec le capteur <strong>{$number}</strong> a bien été créée"
             ]);
         }
 

@@ -54,7 +54,7 @@
                 {% set linkBaseHref = app.request is not null ? app.request.getSchemeAndHttpHost() : app_url %}
                 {% for attachment in arrival.attachments %}
                     <li><a target="_blank"
-                           href="{{ linkBaseHref ~ '/uploads/attachements/' ~ attachment.fileName }}"
+                           href="{{ linkBaseHref ~ '/uploads/attachments/' ~ attachment.fileName }}"
                            download="{{ attachment.originalName }}">
                             {{ attachment.originalName }}
                         </a></li>

@@ -3,14 +3,14 @@ function displayRequiredChampsFixesByTypeQuantiteReferenceArticle(typeQuantite, 
     const $location = $modal.find('[name="emplacement"]');
     const $quantity = $modal.find('[name="quantite"]');
 
-    if (typeQuantite === 'reference') {
+    if (typeQuantite === 'article') {
         $quantity.addClass('needed');
         $location.addClass('needed');
-        $modal.find('.type_quantite').val('reference');
+        $modal.find('.type_quantite').val('article');
     } else {
         $quantity.removeClass('needed');
         $location.removeClass('needed');
-        $modal.find('.type_quantite').val('article');
+        $modal.find('.type_quantite').val('reference');
     }
 }
 

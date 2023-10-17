@@ -200,10 +200,11 @@ function getAppropriateRowCallback({needsColor, classField, color, dataToCheck, 
 }
 
 function overrideSearch($input, table, callback = null) {
-    $input.off();
-    $input.on('keyup', function (e) {
+    $input
+        .off()
+        .on('keyup', function (e) {
         if (e.key === 'Enter') {
-            table.search(this.value).draw();
+            table.search(this.value.trim()).draw();
             if (callback) {
                 callback($input);
             }

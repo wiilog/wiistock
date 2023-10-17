@@ -10,32 +10,24 @@ use App\Entity\ReferenceArticle;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Twig\Environment as Twig_Environment;
 
 
 class InventoryEntryService
 {
-    /**
-     * @var Twig_Environment
-     */
-    private $templating;
 
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    private Twig_Environment $templating;
 
-	/**
-	 * @var UserService
-	 */
-    private $userService;
+    private RouterInterface $router;
 
-    private $security;
+    private UserService $userService;
 
-    private $entityManager;
+    private Security $security;
 
-    private $CSVExportService;
+    private EntityManagerInterface $entityManager;
+
+    private CSVExportService $CSVExportService;
 
     public function __construct(UserService $userService,
                                 RouterInterface $router,
@@ -58,8 +50,7 @@ class InventoryEntryService
 	 * @return array
 	 * @throws \Exception
 	 */
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $inventoryEntryRepository = $this->entityManager->getRepository(InventoryEntry::class);
 
@@ -80,12 +71,7 @@ class InventoryEntryService
 		];
     }
 
-	/**
-	 * @param InventoryEntry $entry
-	 * @return array
-	 */
-    public function dataRowInvEntry(InventoryEntry $entry): array
-    {
+    public function dataRowInvEntry(InventoryEntry $entry): array {
         $article = $entry->getArticle();
         $refArticle = $entry->getRefArticle();
 
@@ -117,13 +103,8 @@ class InventoryEntryService
         ];
     }
 
-    /**
-     * @param InventoryEntry $entry
-     * @param $handle
-     */
     public function putEntryLine(InventoryEntry $entry,
-                                 $handle)
-    {
+                                 $handle): void {
         $article = $entry->getArticle();
         $referenceArticle = $entry->getRefArticle();
 

@@ -1,5 +1,8 @@
 let tableMvt;
 
+global.resetNewModal = resetNewModal;
+global.switchMvtCreationType = switchMvtCreationType;
+global.clearURL = clearURL;
 $(function () {
     $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
@@ -287,7 +290,8 @@ function switchMvtCreationType($input) {
                 tokenizer: (input, selection, callback) => {
                     return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
                 },
-            });
+            }).trigger('ready');
+            $modal.find(`input[name=pack]`).trigger('ready');
         }
     });
 }

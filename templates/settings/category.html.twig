@@ -11,7 +11,7 @@
 
 {% block page_content %}
     <div class="settings row">
-        <aside class="col-xl-3 col-4 d-flex">
+        <aside class="col-xl-3 col-md-4 col-12 d-flex">
             <div class="wii-box flex-fill">
                 {% for key, item in parent.menus %}
                     {% if item.right is not defined or hasRight(constant('App\\Entity\\Menu::PARAM'), item.right)  %}
@@ -32,7 +32,7 @@
             </div>
         </aside>
 
-        <main class="col-xl-9 col-8" style="padding-bottom: 175px;">
+        <main class="col-xl-9 col-md-8 col-12" style="padding-bottom: 175px;">
             {% for key, item in parent.menus %}
                 {% if item.menus is not defined
                       and item.route is not defined

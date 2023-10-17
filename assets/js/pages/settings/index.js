@@ -7,7 +7,7 @@ import {initializeLicencesPage} from "./users/licences";
 import {initializeExports, initializeImports} from "./data/imports.js";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
-import {initializeTouchTerminal} from "./kiosk";
+import {initializeCollectRequestAndCreateRef} from "./kiosk";
 import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
@@ -31,6 +31,7 @@ import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resour
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
+import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -84,7 +85,8 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
-    stock_borne_tactile: initializeTouchTerminal,
+    stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
+    stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
     trace_acheminements_statuts: initializeDispatchStatuses,
@@ -1244,7 +1246,7 @@ function deleteTemplate($elem) {
 
 function initializeTruckArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
+        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrival`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
@@ -1262,6 +1264,7 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+            {data: `onMobile`, title: `Afficher`},
         ],
     });
     initializeType();
@@ -1289,6 +1292,7 @@ function initializeTruckArrivalReserves() {
             {data: `emails`, title: `Boites email de notifications`},
             {data: `defaultReserveType`, title: `Réserve par défaut`},
             {data: `active`, title: `Actif`},
+            {data: `disableTrackingNumber`, title: `Désactivation n° tracking`},
         ],
         form: {
             actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
@@ -1296,6 +1300,7 @@ function initializeTruckArrivalReserves() {
             emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
             defaultReserveType: `<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data'/></div>`,
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+            disableTrackingNumber: `<div class='checkbox-container'><input type='checkbox' name='disableTrackingNumber' class='form-control data'/></div>`,
         },
     });
 }

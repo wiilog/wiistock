@@ -24,7 +24,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -512,10 +512,15 @@ class PackService {
                                          ?array       $firstCustomIconConfig = null,
                                          ?array       $secondCustomIconConfig = null,
                                          ?bool        $businessUnitParam = false,
-                                         ?bool $projectParam = false,
+                                         ?bool        $projectParam = false,
+                                         ?bool        $showDateAndHourArrivalUl = false,
     ): array {
 
         $arrival = $pack->getArrivage();
+
+        $dateAndHour = $arrival->getDate()
+            ? $arrival->getDate()->format('d/m/Y H:i')
+            : '';
 
         $businessUnit = $businessUnitParam
             ? $arrival->getBusinessUnit()
@@ -590,6 +595,10 @@ class PackService {
 
         if($projectParam) {
             $labels[] = $project;
+        }
+
+        if($showDateAndHourArrivalUl) {
+            $labels[] = $dateAndHour;
         }
 
         if ($packLabel) {

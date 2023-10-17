@@ -35,7 +35,7 @@
                     <div class="col-md-4 col-12 p-0">
                         <div class="image-container"
                              style="background-image: url({{ reference.image
-                             ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachements/' ~ reference.image.fileName)
+                             ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ '/uploads/attachments/' ~ reference.image.fileName)
                              : asset('svg/reference_article/product.svg') }});
                                  background-color: {{ reference.image ? "#FFFFFF" : "#F5F5F7" }};
                                  background-size: {{ reference.image ? 'cover' : '50%' }}">
@@ -115,7 +115,7 @@
                                         },
                                         {
                                             label: 'Inactif',
-                                            value: constant('App\\Entity\\ReferenceArticle::DRAFT_STATUS'),
+                                            value: constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
                                             checked: reference.statut and reference.statut.code == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF'),
                                             additionalAttributes: statusesSwitchAttributes,
                                         }
@@ -298,22 +298,21 @@
                         <div class="wii-switch needed" data-title="Statut">
                             <input type="radio"
                                    name="type_quantite"
-                                   value="article"
-                                   content="Article"
-                                   data-title="article"
-                                   onclick="onTypeQuantityChange($(this))"
-                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
-
-
-                            <input type="radio"
-                                   name="type_quantite"
                                    value="reference"
                                    content="Référence"
                                    data-title="reference"
                                    onclick="onTypeQuantityChange($(this))"
                                 {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
-                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
+                                {{ not reference.typeQuantite or reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') ? 'checked' }}>
+
+                            <input type="radio"
+                                   name="type_quantite"
+                                   value="article"
+                                   content="Article"
+                                   data-title="article"
+                                   onclick="onTypeQuantityChange($(this))"
+                                {{ reference.id ? 'class="type_quantite" disabled' : 'class="type_quantite data"' }}
+                                {{ reference.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') ? 'checked' }}>
 
                         </div>
                     {% endif %}
@@ -358,14 +357,14 @@
                                             </div>
                                         {% endif %}
                                     {% else %}
-                                        <div class="col-12 col-md-6 reference mt-3 {{ not reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-6 reference mt-3 {{ reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <label class="w-100">
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/location.svg') }}" class="icon" alt="Image emplacement">
                                                     Emplacement*
                                                 </span>
                                                 <select name="emplacement"
-                                                        class="form-control w-100 data"
+                                                        class="form-control w-100 data needed"
                                                         data-s2="location"
                                                     {% if defaultLocation is defined and defaultLocation %}
                                                         data-draft-default-value="{{ defaultLocation.id }}"
@@ -379,7 +378,7 @@
                                                 </select>
                                             </label>
                                         </div>
-                                        <div class="col-12 col-md-4 reference mt-3 {{ not reference.id and reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-4 reference mt-3">
                                             <label>
                                                 <span class="icon wii-field-name">
                                                     <img src="{{ asset('svg/reference_article/stock.svg') }}" class="icon" alt="Image quantité">
@@ -390,7 +389,7 @@
                                                     <input type="number"
                                                            data-no-arrow
                                                            name="quantite"
-                                                           class="form-control data w-50"
+                                                           class="form-control data w-50 needed"
                                                            min="0"
                                                            value="{{ hasRightCreateDraft ? 0 : '' }}"
                                                         {{ hasRightCreateDraft ? 'disabled' }}>
@@ -461,7 +460,7 @@
                                 <div class="row">
                                     {% if not partialEdit %}
                                         <div class="col-12 col-md-4 mt-3">
-                                            <div class="reference {{ not reference.id or reference.typeQuantite != 'reference' ? 'd-none' }}">
+                                            <div class="reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/euro.svg') }}" class="icon" alt="Image euro">
@@ -471,7 +470,7 @@
                                                            value="{{ reference.prixUnitaire }}" min="0">
                                                 </label>
                                             </div>
-                                            <div class="article {{ reference.id and reference.typeQuantite != 'article' ? 'd-none' }}">
+                                            <div class="article {{ reference.typeQuantite != 'article' ? 'd-none' }}">
                                                 <label>
                                                     <span class="icon wii-field-name">
                                                         <img src="{{ asset('svg/reference_article/stock-management.svg') }}"
@@ -493,7 +492,7 @@
                                             </div>
                                         </div>
                                     {% else %}
-                                        <div class="col-12 col-md-4 mt-3 reference {{ reference.typeQuantite == 'reference' ? 'd-none' }}">
+                                        <div class="col-12 col-md-4 mt-3 reference {{ reference.typeQuantite != 'reference' ? 'd-none' }}">
                                             <div class="">
                                                 <label>
                                                     <span class="icon wii-field-name">
@@ -517,7 +516,7 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-8 col-md-8 mt-2">
-                                <div class="article {{ reference.typeQuantite and reference.typeQuantite != 'article' ? 'd-none' }}">
+                                <div class="article {{ reference.typeQuantite != 'article' ? 'd-none' }}">
                                     <label class="with-checkbox">
                                         <input type="checkbox"
                                                name="urgence"

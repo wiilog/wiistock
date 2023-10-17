@@ -21,7 +21,7 @@
                             multiple: true,
                             editable: true,
                         }) }}
-                        <div class="warning-message wii-warning-text d-none mt-2">
+                        <div class="warning-message wii-warning-text mt-2" hidden>
                             Les numéros de tracking doivent faire entre <span class="min-length"></span> et <span class="max-length"></span> caractères.
                         </div>
                     </div>
@@ -30,7 +30,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'},
                 ],
             } %}
         </div>

@@ -41,7 +41,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -644,7 +644,7 @@ class ShippingRequestService {
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "$projectDir/public/uploads/attachements";
+        $deliverySlipOutdir = "$projectDir/public/uploads/attachments";
         $docxPath = "$deliverySlipOutdir/$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);

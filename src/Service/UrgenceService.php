@@ -13,7 +13,7 @@ use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use DateTime;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -80,6 +80,8 @@ class UrgenceService
                 'urgence' => $urgence
             ]),
             'type' => $urgence->getType(),
+            'internalArticleCode' => $urgence->getInternalArticleCode() ?? '',
+            'supplierArticleCode' => $urgence->getSupplierArticleCode() ?? '',
         ];
     }
 
@@ -129,6 +131,14 @@ class UrgenceService
 
         if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_TYPE, $data)) {
             $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, $data)) {
+            $emergency->setInternalArticleCode($data[FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE]);
+        }
+
+        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, $data)) {
+            $emergency->setSupplierArticleCode($data[FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE]);
         }
 
         return $emergency;

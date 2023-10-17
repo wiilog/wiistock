@@ -36,7 +36,7 @@
                                 "data-target": "#modalNewMvtTraca",
                                 "data-backdrop": "static",
                                 "data-keyboard": "false",
-                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"
+                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca')), switchMvtCreationType($('#modalNewMvtTraca [name=type]'))"
                             },
                         },
                         {
@@ -99,5 +99,8 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/tracking_movement.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('tracking-movement') }}
+    {% if setting_value('DISPLAY_WARNING_WRONG_LOCATION') %}
+        {{ encore_entry_script_tags('tracking-movement-wrong-location-warning') }}
+    {% endif %}
 {% endblock %}

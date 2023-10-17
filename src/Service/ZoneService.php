@@ -2,20 +2,11 @@
 
 namespace App\Service;
 
-use App\Entity\Emplacement;
-use App\Entity\FiltreSup;
-use App\Entity\LocationGroup;
-use App\Entity\Pack;
-use App\Entity\TrackingMovement;
-use App\Entity\Utilisateur;
 use App\Entity\Zone;
-use App\Repository\PackRepository;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\StringHelper;
 
 class ZoneService {
 
@@ -31,7 +22,7 @@ class ZoneService {
     #[Required]
     public FormatService $formatService;
 
-    public function getDataForDatatable($params = null) {
+    public function getDataForDatatable($params = null): array {
         $zoneRepository = $this->manager->getRepository(Zone::class);
         $queryResult = $zoneRepository->findByParamsAndFilters($params);
 

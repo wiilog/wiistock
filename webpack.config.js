@@ -51,6 +51,9 @@ Encore
     .addEntry('delivery-request-show', './assets/js/pages/delivery-request/show.js')
     .addEntry('shipping-request-index', './assets/js/pages/shipping-request/index.js')
     .addEntry('shipping-request-show', './assets/js/pages/shipping-request/show.js')
+    .addEntry('delivery-station', './assets/js/pages/delivery-station.js')
+    .addEntry('tracking-movement', './assets/js/pages/tracking-movement/tracking-movement.js')
+    .addEntry('tracking-movement-wrong-location-warning', './assets/js/pages/tracking-movement/wrong-location-warning.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

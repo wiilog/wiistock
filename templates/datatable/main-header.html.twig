@@ -18,6 +18,13 @@
             <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2" alt="Filtres">Sur les filtres
         </div>
     </th>
+    {% if needsOnMobileColumn is defined and needsOnMobileColumn %}
+        <th class="datatable-main-header" colspan="1">
+            <div class="d-flex align-items-center">
+                <img src="{{ asset('svg/menu-terminal-mobile.svg') }}" width="17px" class="mr-2" alt="Sur le noamde">Sur le nomade
+            </div>
+        </th>
+    {% endif %}
 </tr>
 <tr>
     {% for i in 0..(cells - 1) %}

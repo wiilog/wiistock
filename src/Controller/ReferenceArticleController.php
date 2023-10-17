@@ -59,6 +59,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -70,19 +71,19 @@ use WiiCommon\Helper\StringHelper;
 class ReferenceArticleController extends AbstractController
 {
 
-    /** @Required */
+    #[Required]
     public RefArticleDataService $refArticleDataService;
 
-    /** @Required */
+    #[Required]
     public ArticleDataService $articleDataService;
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public SpecificService $specificService;
 
     /**
@@ -321,7 +322,7 @@ class ReferenceArticleController extends AbstractController
                     $refArticle,
                     MouvementStock::TYPE_ENTREE
                 );
-                $mouvementStockService->finishMouvementStock(
+                $mouvementStockService->finishStockMovement(
                     $mvtStock,
                     new DateTime('now'),
                     $emplacement
@@ -351,7 +352,7 @@ class ReferenceArticleController extends AbstractController
 
             $files = $request->files;
             if($files->has('image')) {
-                $attachments = $attachmentService->createAttachements([$files->get('image')]);
+                $attachments = $attachmentService->createAttachments([$files->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
@@ -359,7 +360,7 @@ class ReferenceArticleController extends AbstractController
             }
 
             if($files->has('fileSheet')) {
-                $attachments = $attachmentService->createAttachements([$files->get('fileSheet')]);
+                $attachments = $attachmentService->createAttachments([$files->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
@@ -958,7 +959,8 @@ class ReferenceArticleController extends AbstractController
         }
 
         return $this->render("reference_article/form/new.html.twig", [
-            "new_reference" => new ReferenceArticle(),
+            "new_reference" => (new ReferenceArticle())
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_REFERENCE),
             "submit_route" => "reference_article_new",
             "submit_params" =>  json_encode([
                 "from" => $request->query->get("from"),

@@ -153,7 +153,7 @@ class PackController extends AbstractController
     }
 
     /**
-     * @Route("/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
+     * @Route("/pack-intel/{packCode}", name="get_pack_intel", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
      */
     public function getPackIntel(EntityManagerInterface $entityManager,
                                  string $packCode): JsonResponse
@@ -400,5 +400,16 @@ class PackController extends AbstractController
             $render,
             $fileName
         );
+    }
+
+    #[Route("/get-location", name: "pack_get_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getLocation(Request                 $request,
+                                EntityManagerInterface  $entityManager): JsonResponse {
+        $pack = $entityManager->getRepository(Pack::class)->findOneBy(['code' => $request->query->get('pack')]);
+        $location = $pack?->getLastDrop()?->getEmplacement();
+        return $this->json([
+            'success' => true,
+            'location' => $location?->getId(),
+        ]);
     }
 }

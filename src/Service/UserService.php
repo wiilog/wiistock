@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\DeliveryStationLine;
 use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
@@ -28,7 +29,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class UserService
 {
@@ -129,6 +130,7 @@ class UserService
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
         $statusHistoryRepository = $entityManager->getRepository(StatusHistory::class);
         $shippingRequestRepository = $entityManager->getRepository(ShippingRequest::class);
+        $deliveryStationLineRepository = $entityManager->getRepository(DeliveryStationLine::class);
 
         $isUsedInRequests = $demandeRepository->countByUser($user);
         $isUsedInCollects = $collecteRepository->countByUser($user);
@@ -155,6 +157,7 @@ class UserService
         $hasShippingRequest = $shippingRequestRepository->count(['createdBy' => $user->getId()]) + $shippingRequestRepository->count(['validatedBy' => $user->getId()])
             + $shippingRequestRepository->count(['plannedBy' => $user->getId()]) + $shippingRequestRepository->count(['treatedBy' => $user->getId()])
             + $shippingRequestRepository->countByRequesters($user->getId());
+        $hasExternalLinks = $deliveryStationLineRepository->countByUser($user);
 
         return [
             mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) => $isUsedInRequests,
@@ -173,6 +176,7 @@ class UserService
             "planification(s) de demande d'achat" => $hasPurchaseRequestScheduleRules,
             "historique(s) de statut" => $hasStatusHistory,
             "demande(s) d'expédition" => $hasShippingRequest,
+            "lien(s) externe" => $hasExternalLinks,
         ];
 	}
 

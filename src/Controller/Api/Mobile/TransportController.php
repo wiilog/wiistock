@@ -572,7 +572,7 @@ class TransportController extends AbstractApiController
             true,
             TrackingMovement::TYPE_EMPTY_ROUND,
             [
-                'quantity' => 0
+                'quantity' => 1
             ]
         );
         $manager->persist($trackingMovement);
@@ -785,8 +785,8 @@ class TransportController extends AbstractApiController
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
 
         $locationRepository = $manager->getRepository(Emplacement::class);
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
@@ -990,8 +990,8 @@ class TransportController extends AbstractApiController
         $signature = $files->get('signature');
         $photo = $files->get('photo');
 
-        $signatureAttachment = $signature ? $attachmentService->createAttachements([$signature])[0] : null;
-        $photoAttachment = $photo ? $attachmentService->createAttachements([$photo])[0] : null;
+        $signatureAttachment = $signature ? $attachmentService->createAttachments([$signature])[0] : null;
+        $photoAttachment = $photo ? $attachmentService->createAttachments([$photo])[0] : null;
 
         if ($signatureAttachment) {
             $order->setSignature($signatureAttachment);
