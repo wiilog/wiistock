@@ -190,9 +190,17 @@ class TruckArrivalLineRepository extends EntityRepository
     }
 
     public function getUnassociatedLines() {
-        return $this->createQueryBuilder('line')
+        $qb = $this->createQueryBuilder('line');
+
+        return $qb
             ->andWhere('arrivals.id IS NULL')
+            ->andWhere($qb->expr()->orX(
+                "join_reserveType.disableTrackingNumber IS NULL",
+                "join_reserveType.disableTrackingNumber = 0"
+            ))
             ->leftJoin('line.arrivals', 'arrivals')
+            ->leftJoin('line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
             ->getQuery()
             ->getResult();
     }
