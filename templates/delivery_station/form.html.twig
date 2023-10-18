@@ -209,13 +209,13 @@
                 </button>
             </div>
             <div class="p-4 information-button ml-5">
-                <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
+                <i class="wii-icon wii-icon-question-mark wii-icon-45px-primary"></i>
             </div>
         </div>
 
     </div>
-    <input type="hidden" name="token" value="{{ line.token }}">
-    <input type="hidden" name="mobileLoginKey" value="{{ mobileLoginKey }}">
+    {{ form.hidden("token", line.token) }}
+    {{ form.hidden("mobileLoginKey", mobileLoginKey) }}
 
     {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}

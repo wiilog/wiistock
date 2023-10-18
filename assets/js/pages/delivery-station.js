@@ -401,7 +401,7 @@ $(function () {
     });
 
     $informationButton
-        .find(`img`)
+        .find(`i`)
         .on(`click`, function () {
             $modalInformation.modal(`show`);
             $modalInformation.find(`.bookmark-icon`).removeClass(`d-none`);
