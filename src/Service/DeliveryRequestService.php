@@ -282,6 +282,7 @@ class DeliveryRequestService
 
         $isManual = $data['isManual'] ?? false;
         $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
+        $isFastDelivery = $data['isFastDelivery'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -332,7 +333,8 @@ class DeliveryRequestService
             ->setManual($isManual)
             ->setCommentaire($data['commentaire'] ?? null)
             ->setReceiver($receiver)
-            ->setVisibleColumns($visibleColumns);
+            ->setVisibleColumns($visibleColumns)
+            ->setFastDelivery($isFastDelivery);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 

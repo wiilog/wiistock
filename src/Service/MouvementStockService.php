@@ -123,13 +123,17 @@ class MouvementStockService
             ];
         }
         else if ($mouvement->getPreparationOrder()) {
-            $from = 'préparation';
+            $from = $mouvement->getPreparationOrder()->getDemande()->isFastDelivery()
+                ? 'préparation de livraison rapide'
+                : 'préparation';
             $path = 'preparation_show';
             $pathParams = [
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
+            $from = $mouvement->getLivraisonOrder()->getDemande()->isFastDelivery()
+                ? "ordre de livraison rapide"
+                : mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()

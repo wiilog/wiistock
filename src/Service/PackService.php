@@ -246,7 +246,8 @@ class PackService {
             ->setComment($comment);
     }
 
-    public function createPack(EntityManager $entityManager, array $options = []): Pack
+    public function createPack(EntityManagerInterface $entityManager,
+                               array $options = []): Pack
     {
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
