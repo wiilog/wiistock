@@ -225,6 +225,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
                 "default" => json_encode(["provider", "commande"]),
             ],
+            Setting::CONFIRM_EMERGENCY_ON_ARRIVAL => [
+                'default' => false,
+            ],
             Setting::LABEL_LOGO => [],
             Setting::EMERGENCY_ICON => [],
             Setting::CUSTOM_ICON => [],
