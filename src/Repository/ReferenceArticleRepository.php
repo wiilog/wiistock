@@ -87,6 +87,13 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->setParameter('typeQuantity', $options['type-quantity']);
         }
 
+        if ($options['active-only'] ?? false) {
+            $queryBuilder
+                ->leftJoin('reference.statut', 'join_status')
+                ->andWhere('join_status.nom = :activeStatus')
+                ->setParameter('activeStatus', ReferenceArticle::STATUT_ACTIF);
+        }
+
         if($options['status'] ?? false) {
             $queryBuilder
                 ->andWhere('status.code = :status')
@@ -181,7 +188,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.barCode AS barCode')
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
-            ->orHaving("text LIKE :term",)
+            ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
             ->leftJoin("reference.emplacement", "emplacement")
