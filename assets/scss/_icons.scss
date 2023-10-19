@@ -165,6 +165,14 @@ $icon-colors: (
             height: #{$size}px;
             background: $val;
         }
+
+        .wii-icon-min-#{$size}px-#{$key} {
+            display: inline-block;
+            min-width: #{$size}px;
+            min-height: #{$size}px;
+            background: $val;
+        }
+
     }
 }
 
