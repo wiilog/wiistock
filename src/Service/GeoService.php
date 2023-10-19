@@ -118,7 +118,7 @@ class GeoService
         try {
             $request = $this->httpService->request("GET", $url, [
                 "f" => "json",
-                "token" => $_SERVER["ARCGIS_API_KEY"],
+                "token" => $_SERVER["ARCGIS_API_KEY"]."ihkjhgbv",
                 "returnRoutes" => false,
                 "stops" => json_encode([
                     "spatialReference" => [
@@ -137,7 +137,8 @@ class GeoService
                     "end" => $coordinates[$routeIndex+1],
                 ];
             }
-        } catch (Exception) {
+        } catch (Exception $e) {
+            throw $e;
             throw new GeoException('Erreur lors de la récupération des informations GPS');
         }
         return $stopsData;
