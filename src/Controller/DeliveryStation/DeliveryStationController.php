@@ -96,13 +96,9 @@ class DeliveryStationController extends AbstractController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $initialReference = $referenceArticleRepository->find($request->query->get('reference'));
-        $barcode = $request->query->has('barcode')
-            ? $request->query->get('barcode')
-            : null;
-        $pickedQuantity = $request->query->has('pickedQuantity')
-            ? $request->query->get('pickedQuantity')
-            : null;
-        $isScannedBarcode = $request->query->has('isScannedBarcode') && $request->query->getBoolean('isScannedBarcode');
+        $barcode = $request->query->get('barcode');
+        $pickedQuantity = $request->query->get('pickedQuantity');
+        $isScannedBarcode = $request->query->getBoolean('isScannedBarcode');
 
         if ($barcode) {
             if (str_starts_with($barcode, Article::BARCODE_PREFIX)) {
@@ -187,13 +183,15 @@ class DeliveryStationController extends AbstractController
             }
         } else {
             $isReferenceByArticle = $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-            $location = null;
-            if($isReferenceByArticle && $initialReference->getStockManagement()) {
+            if ($isReferenceByArticle) {
                 $articleRepository = $entityManager->getRepository(Article::class);
                 $article = $articleRepository->findOneByReferenceAndStockManagement($initialReference);
-                $location = $this->formatService->location($article->getEmplacement());
+                $location = $article->getEmplacement();
+            } else {
+                $location = $initialReference->getEmplacement();
             }
 
+            $location = $location ? $this->formatService->location($location) : null;
             $values = [
                 'id' => $initialReference->getId(),
                 'reference' => $initialReference->getReference(),

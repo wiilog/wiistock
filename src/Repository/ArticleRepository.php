@@ -23,6 +23,7 @@ use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use RuntimeException;
@@ -1395,24 +1396,24 @@ class ArticleRepository extends EntityRepository {
     }
 
     public function findOneByReferenceAndStockManagement(ReferenceArticle $referenceArticle): ?Article {
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE
-            && !in_array($referenceArticle->getStockManagement(), [ReferenceArticle::STOCK_MANAGEMENT_FIFO, ReferenceArticle::STOCK_MANAGEMENT_FEFO])) {
+        if ($referenceArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
             return null;
         }
+        $stockManagement = $referenceArticle->getStockManagement() ?? ReferenceArticle::DEFAULT_STOCK_MANAGEMENT;
 
         $queryBuilder = $this->createQueryBuilder("article")
             ->innerJoin("article.statut", "status", Join::WITH, "status.code = :status")
             ->innerJoin("article.articleFournisseur", "supplier_article")
             ->innerJoin("supplier_article.referenceArticle", "reference_article", Join::WITH, "reference_article = :referenceArticle");
 
-        if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
+        if ($stockManagement === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
             $queryBuilder->orderBy("article.stockEntryDate", Criteria::ASC);
-        } else if ($referenceArticle->getStockManagement() === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+        } else if ($stockManagement === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
             $queryBuilder->orderBy("article.expiryDate", Criteria::ASC);
         }
 
         return $queryBuilder
-            ->setParameter("referenceArticle", $referenceArticle->getId())
+            ->setParameter("referenceArticle", $referenceArticle)
             ->setParameter("status", Article::STATUT_ACTIF)
             ->setMaxResults(1)
             ->getQuery()
