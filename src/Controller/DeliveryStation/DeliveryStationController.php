@@ -201,7 +201,12 @@ class DeliveryStationController extends AbstractController
                 'image' => $initialReference->getImage()
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
-                'isReferenceByArticle' => $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                'suppliers' => !$isReferenceByArticle
+                    ? Stream::from($initialReference->getArticlesFournisseur())
+                        ->map(static fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur()->getCodeReference())
+                        ->join(',')
+                    : '',
+                'isReferenceByArticle' => $isReferenceByArticle,
                 'location' => $location,
             ];
         }
