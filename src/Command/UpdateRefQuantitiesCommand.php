@@ -24,22 +24,17 @@ use Symfony\Contracts\Service\Attribute\Required;
 )]
 class UpdateRefQuantitiesCommand extends Command
 {
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    private EntityManagerInterface $em;
-    private RefArticleDataService $refArticleService;
+    #[Required]
+    public RefArticleDataService $refArticleService;
 
     #[Required]
     public FormatService $formatService;
 
     #[Required]
     public TranslationService $translation;
-
-    public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService)
-    {
-        parent::__construct();
-        $this->em = $entityManager;
-        $this->refArticleService = $refArticleDataService;
-    }
 
     protected function configure(): void
     {
@@ -55,7 +50,7 @@ class UpdateRefQuantitiesCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): null|int|string|bool {
         $refToUpdate = $input->getArgument('ref');
-        $referenceArticleRepository = $this->em->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $referenceArticleToUpdate = $referenceArticleRepository->findOneBy(['reference' => $refToUpdate]);
         $output
             ->writeln('Quantité disponible avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
@@ -69,10 +64,10 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('..........Mise à jour..........');
         $output
             ->writeln('');
-        $this->refArticleService->updateRefArticleQuantities($this->em, $referenceArticleToUpdate, true);
-        $this->em->flush();
-        $this->refArticleService->treatAlert($this->em, $referenceArticleToUpdate);
-        $this->em->flush();
+        $this->refArticleService->updateRefArticleQuantities($this->entityManager, $referenceArticleToUpdate, true);
+        $this->entityManager->flush();
+        $this->refArticleService->treatAlert($this->entityManager, $referenceArticleToUpdate);
+        $this->entityManager->flush();
         $output
             ->writeln('Quantité disponible après mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
         $output

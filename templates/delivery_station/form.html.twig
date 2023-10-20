@@ -56,6 +56,7 @@
                                             actionType: "new",
                                             disabledNeeded: true,
                                             containerClasses: 'col-md-4 col-12 w-100',
+                                            labelSmallText: " (facultatif)",
                                         } %}
                                     {% elseif filterField == 'type' %}
                                         <div class="col-md-4 col-12 w-100 my-2">
@@ -72,6 +73,9 @@
                             {% else %}
                                 <div class="wii-small-text text-center w-100">Aucun champ filtre n'a été paramétré pour cette session de caisse automatique.</div>
                             {% endif %}
+                        </div>
+                        <div class="multiple-filter-fields-container mt-3">
+                            <div class="wii-field-name">Champs filtres multiples sélectionnés :</div>
                         </div>
                         <div class="mt-5">
                             {{ form.select('reference', 'Référence ou libellé ou Référence founisseur ou Code barre', false, {
@@ -175,7 +179,7 @@
                             </button>
                         </div>
                     </div>
-                     <div class="d-flex flex-row-reverse action-buttons-container mt-5">
+                    <div class="d-flex flex-row-reverse action-buttons-container mt-5">
                         <button class="validate-button d-none" data-loader-size="normal">
                             Valider
                         </button>
@@ -192,21 +196,25 @@
                 </div>
             </div>
         </div>
-        <div class="corner position-absolute left-0 bottom-0 p-4">
-            <button class="outline back-button d-none">
-                Retour
-            </button>
-            <button class="outline danger give-up-button d-none">
-                Abandonner
-            </button>
+        <div class="d-flex align-items-center justify-content-between corner w-100 position-absolute left-0 bottom-0 p-4">
+            <div class="d-flex align-items-center">
+                <button class="outline back-button d-none">
+                    Retour
+                </button>
+                <button class="outline danger give-up-button d-none">
+                    Abandonner
+                </button>
+                <button class="go-to-summary-button d-none">
+                    Aller au récapitulatif
+                </button>
+            </div>
+            <div class="p-4 information-button ml-5">
+                <i class="wii-icon wii-icon-question-mark wii-icon-min-45px-primary"></i>
+            </div>
         </div>
-
     </div>
-     <div class="corner position-absolute right-0 bottom-0 p-4 information-button">
-        <img src="{{ asset('svg/question-mark.svg') }}" height="45px">
-    </div>
-    <input type="hidden" name="token" value="{{ line.token }}">
-    <input type="hidden" name="mobileLoginKey" value="{{ mobileLoginKey }}">
+    {{ form.hidden("token", line.token) }}
+    {{ form.hidden("mobileLoginKey", mobileLoginKey) }}
 
     {% include 'delivery_station/modalInformation.html.twig' %}
     {% include 'delivery_station/modalGiveUpStockExit.html.twig' %}

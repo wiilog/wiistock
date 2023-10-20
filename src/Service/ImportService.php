@@ -43,6 +43,7 @@ use Closure;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -50,6 +51,7 @@ use InvalidArgumentException;
 use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Psr\Log\NullLogger;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -282,7 +284,7 @@ class ImportService
     public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService)
     {
         $this->entityManager = $entityManager;
-        $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
@@ -650,8 +652,8 @@ class ImportService
         } catch (Throwable $throwable) {
             // On réinitialise l'entity manager car il a été fermé
             if (!$this->entityManager->isOpen()) {
-                $this->entityManager = EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-                $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+                $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+                $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
             }
 
             $this->clearEntityManagerAndRetrieveImport();

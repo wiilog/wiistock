@@ -116,7 +116,7 @@ class ArticleQuantityNotifier {
     private function getEntityManager(bool $cleaned = false): EntityManagerInterface {
         return $this->entityManager->isOpen() && !$cleaned
             ? $this->entityManager
-            : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 
     private function treatAlert(EntityManagerInterface $entityManager,

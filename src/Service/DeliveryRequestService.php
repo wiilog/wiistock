@@ -282,6 +282,7 @@ class DeliveryRequestService
 
         $isManual = $data['isManual'] ?? false;
         $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
+        $isFastDelivery = $data['isFastDelivery'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
@@ -332,7 +333,8 @@ class DeliveryRequestService
             ->setManual($isManual)
             ->setCommentaire($data['commentaire'] ?? null)
             ->setReceiver($receiver)
-            ->setVisibleColumns($visibleColumns);
+            ->setVisibleColumns($visibleColumns)
+            ->setFastDelivery($isFastDelivery);
 
         $champLibreService->manageFreeFields($demande, $data, $entityManager);
 
@@ -533,7 +535,7 @@ class DeliveryRequestService
                 && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
-        } /** @noinspection PhpRedundantCatchClauseInspection */
+        }
         catch (UniqueConstraintViolationException $e) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
@@ -937,6 +939,11 @@ class DeliveryRequestService
                 // create PreparationOrderArticleLine
                 $this->treatSetting_manageDeliveryWithoutStockQuantity($entityManager, $preparation, $requestReferenceLine, $defaultLocationReception, $date, $createdBarcodes);
             }
+        }
+
+        foreach ($preparation->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
         }
     }
 

@@ -12,6 +12,12 @@ body {
             min-width: 200px !important;
             height: 60px !important;
             font-size: 20px !important;
+            padding: 10px !important;
+
+            &.go-to-summary-button {
+                padding-right: 20px !important;
+                padding-left: 20px !important;
+            }
         }
     }
 
@@ -39,7 +45,6 @@ body {
         .select2.select2-container.select2-container--default .select2-selection.select2-selection .select2-selection__rendered {
             height: 50px !important;
             font-size: 15px !important;
-            padding: 10px !important;
         }
 
         .select2-container.select2-container--default.select2-container--open .select2-dropdown.select2-dropdown--below .select2-results ul.select2-results__options {
@@ -67,7 +72,7 @@ body {
     align-items: center;
     justify-content: end;
 
-    img {
+    i {
         cursor: pointer;
     }
 }

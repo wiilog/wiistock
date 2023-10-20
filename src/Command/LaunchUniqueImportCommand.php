@@ -10,12 +10,15 @@ use App\Entity\Statut;
 use App\Exceptions\ImportException;
 use App\Service\ImportService;
 use DateTime;
+use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use Psr\Log\NullLogger;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -70,8 +73,7 @@ class LaunchUniqueImportCommand extends Command
         foreach ($importsToLaunch as $import) {
             $this->importService->treatImport($this->getEntityManager(), $import, ImportService::IMPORT_MODE_RUN);
         }
-
-        $this->getEntityManager()->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->getEntityManager()->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->getEntityManager()->flush();
 
         // nettoyage des éventuels imports en brouillon
@@ -90,6 +92,6 @@ class LaunchUniqueImportCommand extends Command
     {
         return $this->entityManager->isOpen()
             ? $this->entityManager
-            : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 }

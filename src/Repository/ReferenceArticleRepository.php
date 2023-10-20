@@ -1199,24 +1199,21 @@ class ReferenceArticleRepository extends EntityRepository {
                 ->getQuery()
                 ->getSingleScalarResult();
             $articleReservedQuantity = $this->createQueryBuilder('referenceArticle')
-                ->select('SUM(preparationOrderLine.quantityToPick)')
+                ->select('SUM(COALESCE(preparationOrderLine.quantityToPick, article.quantite))')
                 ->join('referenceArticle.articlesFournisseur', 'supplierArticles')
                 ->join('supplierArticles.articles', 'article')
                 ->join('article.statut', 'articleStatus')
                 ->join('article.preparationOrderLines', 'preparationOrderLine')
                 ->join('preparationOrderLine.preparation', 'preparation')
-                ->leftJoin('preparation.livraison', 'delivery')
                 ->join('preparation.statut', 'preparationStatus')
+                ->leftJoin('preparation.livraison', 'delivery')
                 ->leftJoin('delivery.statut', 'deliveryStatus')
-                ->andWhere('(preparationStatus.nom IN (:inProgressPreparationStatus) OR deliveryStatus.nom IN (:inProgressDeliveryStatus))')
                 ->andWhere('articleStatus.nom = :transitArticleStatus')
                 ->andWhere('referenceArticle = :referenceArticle')
                 ->setMaxResults(1)
                 ->setParameters([
                     'referenceArticle' => $referenceArticle,
                     'transitArticleStatus' => Article::STATUT_EN_TRANSIT,
-                    'inProgressPreparationStatus' => [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION],
-                    'inProgressDeliveryStatus' => [Livraison::STATUT_A_TRAITER],
                 ])
                 ->getQuery()
                 ->getSingleScalarResult();

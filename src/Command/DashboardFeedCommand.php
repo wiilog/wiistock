@@ -153,7 +153,7 @@ class DashboardFeedCommand extends Command {
     private function getEntityManager(): EntityManagerInterface {
         return $this->entityManager->isOpen()
             ? $this->entityManager
-            : EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+            : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
     }
 
 }
