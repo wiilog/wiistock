@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Helper\FileSystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class CacheService
@@ -16,10 +17,12 @@ class CacheService
     public const EXPORTS = "exports";
 
     private FileSystem $filesystem;
+    private string $absoluteCachePath;
 
     public function __construct(KernelInterface $kernel)
     {
-        $this->filesystem = new FileSystem($kernel->getProjectDir() . self::CACHE_FOLDER);
+        $this->absoluteCachePath = $kernel->getProjectDir() . self::CACHE_FOLDER;
+        $this->filesystem = new FileSystem($this->absoluteCachePath);
     }
 
     public function get(string $namespace, string $key, ?callable $callback = null): mixed
@@ -54,8 +57,20 @@ class CacheService
     public function clear(): void
     {
         if ($this->filesystem->exists()) {
-            $this->filesystem->remove();
-            $this->filesystem->mkdir();
+
+            $dirFinder = new Finder();
+            $dirFinder
+                ->depth('== 0')
+                ->ignoreDotFiles(true)
+                ->in($this->absoluteCachePath);
+
+            if ($dirFinder->hasResults()) {
+                foreach ($dirFinder as $directory) {
+                    $fs = new FileSystem($directory);
+                    $fs->remove();
+                }
+            }
+
         }
     }
 
