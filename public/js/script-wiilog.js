@@ -219,7 +219,6 @@ function editRow(button, path, modal, submit, setMaxQuantity = false, afterLoadi
             json.ref = ref;
         }
 
-        console.log(modal.find(submit));
         modal.find(submit).attr('value', id);
         params = JSON.stringify(json);
     }

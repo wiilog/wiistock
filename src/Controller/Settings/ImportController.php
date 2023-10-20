@@ -237,13 +237,10 @@ class ImportController extends AbstractController
 
         $importTypeLabel = $this->formatService->type($import->getType());
         if ($importTypeLabel === Type::LABEL_SCHEDULED_IMPORT) {
-            dump('scheduled');
             $import
                 ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
             $entityManager->flush();
 
-            dump($import);
-            dump($import->getScheduleRule());
             $importService->saveScheduledImportsCache($entityManager);
             $responseData['msg'] = "L'import planifié a bien été modifié.";
         } else {

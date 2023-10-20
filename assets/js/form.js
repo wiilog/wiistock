@@ -106,9 +106,7 @@ export default class Form {
                 () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
-                        console.log(response);
                         if(response.success) {
-                            console.log(options.keepModal);
                             if(!options.keepModal) {
                                 this.element.modal(`hide`);
                             }
@@ -488,7 +486,6 @@ function treatInputError($input, errors, form) {
                 });
             }
         } else {
-            console.log($input);
             let valueIsEmpty;
             if ($input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`)) { // for wysuwyg fields
                 valueIsEmpty = !$input.find(`.ql-editor`).text();
