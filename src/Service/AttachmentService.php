@@ -65,7 +65,7 @@ class AttachmentService {
         return [$file->getClientOriginalName() => $filename];
     }
 
-	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity): void
+	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity = null): void
 	{
 		if ($entity) {
             $entity->removeAttachment($attachment);

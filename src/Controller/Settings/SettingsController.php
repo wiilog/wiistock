@@ -1667,15 +1667,17 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
-                self::MENU_IMPORTS => fn() => [
-                    "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
+                self::MENU_IMPORTS => function () use ($typeRepository, $statusRepository) {
+                    $statuses = $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,
-                        [
-                            Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED,
-                            Import::STATUS_FINISHED,
-                        ]
-                    ),
-                ],
+                        [Import::STATUS_UPCOMING, Import::STATUS_SCHEDULED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                    );
+                    $types = $typeRepository->findByCategoryLabels([CategoryType::IMPORT]);
+                    return [
+                        "statuts" => $statuses,
+                        "types" => $types,
+                    ];
+                },
             ],
             self::CATEGORY_NOTIFICATIONS => [
                 self::MENU_ALERTS => function() use ($alertTemplateRepository) {

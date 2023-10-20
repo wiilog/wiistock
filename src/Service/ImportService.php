@@ -12,11 +12,14 @@ use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Import;
+use App\Entity\ImportScheduleRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
@@ -30,12 +33,10 @@ use App\Entity\Role;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
-use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
-use App\Exceptions\FormException;
 use App\Exceptions\ImportException;
 use App\Repository\ZoneRepository;
 use Closure;
@@ -46,7 +47,9 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
+use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -261,6 +264,12 @@ class ImportService
     #[Required]
     public UserPasswordHasherInterface $encoder;
 
+    #[Required]
+    public CacheService $cacheService;
+
+    #[Required]
+    public FTPService $FTPService;
+
     private EmplacementDataService $emplacementDataService;
 
     private Import $currentImport;
@@ -270,14 +279,15 @@ class ImportService
 
     private array $entityCache = [];
 
-    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService) {
+    public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService)
+    {
         $this->entityManager = $entityManager;
         $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
         $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
 
-    public function getDataForDatatable(Utilisateur $user, $params = null)
+    public function getDataForDatatable(Utilisateur $user, $params = null): array
     {
         $importRepository = $this->entityManager->getRepository(Import::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -300,74 +310,80 @@ class ImportService
         ];
     }
 
-    public function dataRowImport(Import $import)
+    public function dataRowImport(Import $import): array
     {
         $importId = $import->getId();
         $url['edit'] = $this->router->generate('supplier_edit', ['id' => $importId]);
 
-        $importStatus = $import->getStatus();
-        $statusLabel = isset($importStatus) ? $this->formatService->status($importStatus) : null;
-        $statusCode = $importStatus?->getCode();
-        $statusTitle = $statusCode === Import::STATUS_PLANNED
-            ? ($import->isForced() ? 'L\'import sera réalisé dans moins de 30 min' : 'L\'import sera réalisé la nuit suivante')
-            : '';
+        $status = $import->getStatus();
+        $statusLabel = $this->formatService->status($status);
+        $typeLabel = $this->formatService->type($import->getType());
 
-        $statusClass = "user-select-none status-$importStatus cursor-default";
+        $statusTitle = '';
+        if ($typeLabel === Type::LABEL_UNIQUE_IMPORT && $statusLabel === Import::STATUS_UPCOMING) {
+            $statusTitle = $import->isForced()
+                ? "L'import sera réalisé dans moins de 30 minutes."
+                : "L'import sera réalisé la nuit suivante.";
+        }
+
+        $statusClass = "user-select-none status-$statusLabel cursor-default";
         if (!empty($statusTitle)) {
             $statusClass .= ' has-tooltip';
         }
 
+        $nextExecutionDate = ($typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED)
+            ? $import->getNextExecutionDate()
+            : null;
+
+        $frequencyToString = [
+            ImportScheduleRule::ONCE => 'une fois',
+            ImportScheduleRule::DAILY => 'chaque jour',
+            ImportScheduleRule::WEEKLY => 'chaque semaine',
+            ImportScheduleRule::MONTHLY => 'chaque mois',
+            ImportScheduleRule::HOURLY => 'chaque minutes/heures'
+        ];
+
         return [
             'id' => $import->getId(),
-            'startDate' => $import->getStartDate() ? $import->getStartDate()->format('d/m/Y H:i') : '',
-            'endDate' => $import->getEndDate() ? $import->getEndDate()->format('d/m/Y H:i') : '',
+            'unableToConnect' => ($import->getFTPConfig()['unableToConnect'] ?? false)
+                ? '<img src="/svg/urgence.svg" alt="Erreur" width="15px" title="Une erreur est survenue lors de la connexion au serveur FTP. Veuillez vérifier vos paramétres de connexion.">'
+                : "",
+            'createdAt' => $this->formatService->datetime($import->getCreateAt()),
+            'startDate' => $this->formatService->datetime($import->getStartDate()),
+            'endDate' => $this->formatService->datetime($import->getEndDate()),
+            'frequency' => $frequencyToString[$import->getScheduleRule()?->getFrequency()] ?? '',
             'label' => $import->getLabel(),
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => '<span class="' . $statusClass . '" data-id="' . $importId . '" title="' . $statusTitle . '">' . $statusLabel . '</span>',
-            'user' => $import->getUser() ? $import->getUser()->getUsername() : '',
+            'status' => "<span class='$statusClass' data-id='$importId' title='$statusTitle'>$statusLabel</span>",
+            'user' => $this->formatService->user($import->getUser()),
+            'type' => $typeLabel,
+            "nextExecutionDate" => $this->formatService->datetime($nextExecutionDate),
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
-            'actions' => $this->templating->render('settings/donnees/import/datatableImportRow.html.twig', [
+            'actions' => $this->templating->render('settings/donnees/import/row.html.twig', [
                 'url' => $url,
-                'importId' => $importId,
+                'import' => $import,
                 'fournisseurId' => $importId,
-                'canCancel' => ($statusCode === Import::STATUS_PLANNED),
-                'logFile' => $import->getLogFile() ? $import->getLogFile()->getFileName() : null,
+                'canEditOrDelete' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED,
+                'canForce' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED && !$import->isForced(),
+                'canCancel' => $typeLabel === Type::LABEL_UNIQUE_IMPORT && $statusLabel === Import::STATUS_UPCOMING,
+                'logFile' => $import->getLogFile()?->getFileName()
             ]),
         ];
     }
 
-    public function getImportConfig(Attachment $attachment)
-    {
-        $path = $this->attachmentService->getServerPath($attachment);
-
-        $file = fopen($path, "r");
-
-        $headers = fgetcsv($file, 0, ";");
-        $firstRow = fgetcsv($file, 0, ";");
-
-        if ($headers && $firstRow) {
-            $csvContent = file_get_contents($path);
-            $res = [
-                'headers' => $headers,
-                'firstRow' => $firstRow,
-                'isUtf8' => mb_check_encoding($csvContent, 'UTF-8'),
-            ];
-        } else {
-            $res = null;
-        }
-
-        fclose($file);
-
-        return $res;
-    }
-
-    public function treatImport(Import $import, int $mode = self::IMPORT_MODE_PLAN): int
+    public function treatImport(EntityManagerInterface $entityManager,
+                                Import                 $import,
+                                int                    $mode = self::IMPORT_MODE_PLAN): int
     {
         $this->currentImport = $import;
+        $this->entityManager = $entityManager;
         $this->resetCache();
+
         $csvFile = $this->currentImport->getCsvFile();
+        $importModeChosen = $mode;
+
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
 
@@ -376,164 +392,215 @@ class ImportService
             throw new Exception('Invalid import mode');
         }
 
-        $path = $this->attachmentService->getServerPath($csvFile);
-        $file = fopen($path, "r");
+        ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
+        $logFileMapper = $this->getLogFileMapper();
 
-        $columnsToFields = $this->currentImport->getColumnToField();
-        $corresp = array_flip($columnsToFields);
-        $colChampsLibres = array_filter($corresp, function ($elem) {
-            return is_int($elem);
-        }, ARRAY_FILTER_USE_KEY);
-        $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $corresp);
+        if ($import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            $absoluteFilePath = $import->getScheduleRule()->getFilePath();
 
-        $headers = null;
-        $refToUpdate = [];
+            $name = uniqid() . ".csv";
+            $path = "/tmp/$name";
+            $FTPConfig = $import->getFTPConfig();
+
+            if(!is_bool($this->FTPService->try($FTPConfig))) {
+                throw new UnableToConnectException();
+            }
+
+            $data = $this->FTPService->get([
+                'host' => $FTPConfig['host'],
+                'port' => $FTPConfig['port'],
+                'user' => $FTPConfig['user'],
+                'pass' => $FTPConfig['pass'],
+            ], $absoluteFilePath);
+            file_put_contents($path, $data);
+        } else {
+            $path = $this->attachmentService->getServerPath($csvFile);
+        }
+
+        try {
+            $file = fopen($path, "r");
+            if (!$file) {
+                $logRow = ["Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path"];
+                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                $file = false;
+            }
+            else if (is_dir($path)) {
+                $logRow = ["Le chemin enregistré dans l'import indique un répertoire : $path"];
+                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                $file = false;
+            }
+        } catch (Exception) {
+            $logRow = ["Le fichier source n'existe pas, veuillez vérifier le chemin suivant : $path"];
+            $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+            $file = false;
+        }
+
         $stats = [
             'news' => 0,
             'updates' => 0,
             'errors' => 0,
         ];
 
-        $rowCount = 0;
-        $firstRows = [];
+        if($file) {
+            $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
 
-        while (($row = fgetcsv($file, 0, ';')) !== false
-            && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
+            $columnsToFields = $this->currentImport->getColumnToField();
+            $matches = array_flip($columnsToFields);
+            $colChampsLibres = array_filter($matches, function ($elem) {
+                return is_int($elem);
+            }, ARRAY_FILTER_USE_KEY);
+            $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $matches);
 
-            if (empty($headers)) {
-                $headers = $row;
-                $headersLog = [...$headers, 'Statut import'];
-            } else {
-                $firstRows[] = $row;
-                $rowCount++;
+            $headers = null;
+
+            $refToUpdate = [];
+
+            $rowCount = 0;
+            $firstRows = [];
+
+            while (($row = fgetcsv($file, 0, ';')) !== false
+                && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
+
+                if (empty($headers)) {
+                    $headers = $row;
+                    $logRow = [...$headers, 'Statut import'];
+                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                } else {
+                    $firstRows[] = $row;
+                    $rowCount++;
+                }
             }
-        }
 
-        // le fichier fait moins de MAX_LINES_FLASH_IMPORT lignes
-        $smallFile = ($rowCount <= self::MAX_LINES_FLASH_IMPORT);
+            // le fichier fait moins de MAX_LINES_FLASH_IMPORT lignes
+            $smallFile = ($rowCount <= self::MAX_LINES_FLASH_IMPORT);
 
-        // si + de MAX_LINES_FLASH_IMPORT lignes
-        // ET que c'est pas un import planifié
-        if (!$smallFile
-            && ($mode !== self::IMPORT_MODE_RUN)) {
-            if (!$this->currentImport->isFlash() && !$this->currentImport->isForced()) {
-                $importForced = (
-                    ($rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT)
-                    || ($mode === self::IMPORT_MODE_FORCE_PLAN)
-                );
-                $importModeChoosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
-                $this->currentImport->setForced($importForced);
+            if (!$smallFile
+                && ($mode !== self::IMPORT_MODE_RUN)) {
+                if (!$this->currentImport->isFlash() && !$this->currentImport->isForced()) {
+                    $importForced = (
+                        ($rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT)
+                        || ($mode === self::IMPORT_MODE_FORCE_PLAN)
+                    );
+                    $importModeChosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
+                    $this->currentImport->setForced($importForced);
 
-                $statutRepository = $this->entityManager->getRepository(Statut::class);
-                $statusPlanned = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_PLANNED);
-                $this->currentImport->setStatus($statusPlanned);
+                    $statusRepository = $this->entityManager->getRepository(Statut::class);
+                    $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
+                    $this->currentImport->setStatus($statusPlanned);
+                    $this->entityManager->flush();
+                } else {
+                    $importModeChosen = self::IMPORT_MODE_NONE;
+                }
+            } else {
+                $importModeChosen = self::IMPORT_MODE_RUN;
+                if ($smallFile) {
+                    $this->currentImport->setFlash(true);
+                }
+                // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
+                $index = 0;
+                ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
+                $logFileMapper = $this->getLogFileMapper();
+
+                if (isset($headersLog)) {
+                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
+                }
+
+                $import->setStartDate(new DateTime());
                 $this->entityManager->flush();
-            } else {
-                $importModeChoosen = self::IMPORT_MODE_NONE;
-            }
-        } else {
-            $importModeChoosen = self::IMPORT_MODE_RUN;
-            if ($smallFile) {
-                $this->currentImport->setFlash(true);
-            }
-            // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
-            $index = 0;
 
-            ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
-            $logFileMapper = $this->getLogFileMapper();
+                $this->eraseGlobalDataBefore();
 
-            if (isset($headersLog)) {
-                $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
-            }
-
-            $import->setStartDate(new DateTime());
-            $this->entityManager->flush();
-
-            $this->eraseGlobalDataBefore();
-
-            foreach ($firstRows as $row) {
-                $headersLog = $this->treatImportRow(
-                    $row,
-                    $headers,
-                    $dataToCheck,
-                    $colChampsLibres,
-                    $refToUpdate,
-                    $stats,
-                    false,
-                    $index
-                );
-                $index++;
-
-                $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
-            }
-            $this->clearEntityManagerAndRetrieveImport();
-            if (!$smallFile) {
-                while (($row = fgetcsv($file, 0, ';')) !== false) {
-                    $headersLog = $this->treatImportRow(
+                foreach ($firstRows as $row) {
+                    $logRow = $this->treatImportRow(
                         $row,
                         $headers,
                         $dataToCheck,
                         $colChampsLibres,
                         $refToUpdate,
                         $stats,
-                        ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
-                        $index
+                        false,
+                        $index,
                     );
                     $index++;
-                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
+                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
                 }
+
+                $this->clearEntityManagerAndRetrieveImport();
+                if (!$smallFile) {
+                    while (($row = fgetcsv($file, 0, ';')) !== false) {
+                        $logRow = $this->treatImportRow(
+                            $row,
+                            $headers,
+                            $dataToCheck,
+                            $colChampsLibres,
+                            $refToUpdate,
+                            $stats,
+                            ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
+                            $index,
+                        );
+                        $index++;
+                        $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                    }
+                }
+
+                $this->eraseGlobalDataAfter();
+                $this->entityManager->flush();
+
+                fclose($logFile);
+
+                // mise à jour des quantités sur références par article
+                foreach ($refToUpdate as $ref) {
+                    $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
+                }
+
+                $this->entityManager->flush();
             }
 
-            $this->eraseGlobalDataAfter();
-            $this->entityManager->flush();
-
-            fclose($logFile);
-
-            // mise à jour des quantités sur références par article
-            foreach ($refToUpdate as $ref) {
-                $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
+            if($import->isScheduled()) {
+                unlink($path);
+            } else {
+                fclose($file);
             }
+        }
 
-            // flush update quantities
-            $this->entityManager->flush();
+        // création du fichier de log
+        $logAttachment = $this->persistLogAttachment($logFileName);
 
-            // création du fichier de log
-            $logAttachment = $this->persistLogAttachment($logFileName);
+        $statusRepository = $this->entityManager->getRepository(Statut::class);
+        $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
+        $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
 
-            $statutRepository = $this->entityManager->getRepository(Statut::class);
-            $statusFinished = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
-
+        if ($this->currentImport->getStatus() && $this->currentImport->getStatus() !== $statusPlanned) {
             $this->currentImport
                 ->setLogFile($logAttachment)
                 ->setNewEntries($stats['news'])
                 ->setUpdatedEntries($stats['updates'])
                 ->setNbErrors($stats['errors'])
                 ->setStatus($statusFinished)
-                ->setEndDate(new DateTime('now'));
+                ->setForced(false)
+                ->setEndDate(new DateTime());
             $this->entityManager->flush();
         }
 
-        fclose($file);
-
-        return $importModeChoosen;
+        return $importModeChosen;
     }
 
     private function treatImportRow(array $row,
                                     array $headers,
-                                    $dataToCheck,
-                                    $colChampsLibres,
+                                          $dataToCheck,
+                                          $colChampsLibres,
                                     array &$refToUpdate,
                                     array &$stats,
-                                    bool $needsUnitClear,
-                                    int $rowIndex,
-                                    int $retry = 0): array
+                                    bool  $needsUnitClear,
+                                    int   $rowIndex,
+                                    int   $retry = 0): array
     {
         try {
             $emptyCells = count(array_filter($row, fn(string $value) => $value === ""));
-            if($emptyCells !== count($row)) {
+            if ($emptyCells !== count($row)) {
                 $verifiedData = $this->checkFieldsAndFillArrayBeforeImporting($this->currentImport->getEntity(), $dataToCheck, $row, $headers);
                 $data = array_map('trim', $verifiedData);
-                switch($this->currentImport->getEntity()) {
+                switch ($this->currentImport->getEntity()) {
                     case Import::ENTITY_FOU:
                         $this->importFournisseurEntity($data, $stats);
                         break;
@@ -624,11 +691,10 @@ class ImportService
             $headersLength = count($headers);
             $rowLength = count($row);
             $placeholdersColumns = ($rowLength < $headersLength)
-                ? array_fill (0, $headersLength - $rowLength, '')
+                ? array_fill(0, $headersLength - $rowLength, '')
                 : [];
             $resRow = array_merge($row, $placeholdersColumns, [$message]);
-        }
-        else {
+        } else {
             $resRow = $row;
         }
 
@@ -648,7 +714,8 @@ class ImportService
             ->toArray();
     }
 
-    private function fopenLogFile() {
+    private function fopenLogFile()
+    {
         $fileName = uniqid() . '.csv';
         $completeFileName = $this->attachmentService->getAttachmentDirectory() . '/' . $fileName;
         return [
@@ -657,7 +724,8 @@ class ImportService
         ];
     }
 
-    private function getLogFileMapper(): Closure {
+    private function getLogFileMapper(): Closure
+    {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
 
@@ -687,7 +755,7 @@ class ImportService
             $fieldName = Import::FIELDS_ENTITY[$entity][$column]
                 ?? Import::FIELDS_ENTITY['default'][$column]
                 ?? $column;
-            if(is_array($fieldName)) {
+            if (is_array($fieldName)) {
                 $fieldName = $this->translationService->translate(...$fieldName);
             }
 
@@ -698,7 +766,7 @@ class ImportService
                 $columnIndex = $headers[$originalDataToCheck['value']];
                 $message = "La valeur renseignée pour le champ $fieldName dans la colonne $columnIndex ne peut être vide.";
                 $this->throwError($message);
-            } else if(isset($row[$originalDataToCheck['value']]) && strlen($row[$originalDataToCheck['value']])) {
+            } else if (isset($row[$originalDataToCheck['value']]) && strlen($row[$originalDataToCheck['value']])) {
                 $data[$column] = $row[$originalDataToCheck['value']];
             }
         }
@@ -716,20 +784,20 @@ class ImportService
 
         $supplier = $existingSupplier ?? new Fournisseur();
 
-        if(!$supplier->getId()) {
+        if (!$supplier->getId()) {
             $supplier->setCodeReference($data['codeReference']);
         }
 
         $allowedValues = ['oui', 'non'];
         $possibleCustoms = isset($data["possibleCustoms"]) ? strtolower($data["possibleCustoms"]) : null;
-        if(isset($data["possibleCustoms"]) && !in_array($possibleCustoms, $allowedValues)) {
+        if (isset($data["possibleCustoms"]) && !in_array($possibleCustoms, $allowedValues)) {
             $this->throwError("La valeur du champ Douane possible n'est pas correcte (oui ou non)");
         } else {
             $supplier->setPossibleCustoms($possibleCustoms === 'oui');
         }
 
         $urgent = isset($data["urgent"]) ? strtolower($data["urgent"]) : null;
-        if(isset($data["urgent"]) && !in_array($urgent, $allowedValues)) {
+        if (isset($data["urgent"]) && !in_array($urgent, $allowedValues)) {
             $this->throwError("La valeur du champ Urgent n'est pas correcte (oui ou non)");
         } else {
             $supplier->setUrgent($urgent === 'oui');
@@ -801,17 +869,19 @@ class ImportService
         $this->updateStats($stats, $newEntity);
     }
 
-    public function throwError($message) {
+    public function throwError($message)
+    {
         throw new ImportException($message);
     }
 
     private function importReceptionEntity(array        $data,
                                            ?Utilisateur $user,
-                                           array        &$stats): void {
+                                           array        &$stats): void
+    {
         $refArtRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
 
-        if(!isset($this->entityCache['receptions'])) {
+        if (!isset($this->entityCache['receptions'])) {
             $this->entityCache['receptions'] = [];
         }
 
@@ -857,8 +927,7 @@ class ImportService
             if ($newEntity) {
                 $reception = $this->receptionService->persistReception($this->entityManager, $user, $data, ['import' => true]);
                 $this->receptionService->setAlreadySavedReception($this->entityCache['receptions'], $uniqueReceptionConstraint, $reception);
-            }
-            else {
+            } else {
                 $this->receptionService->updateReception($this->entityManager, $reception, $data, [
                     'import' => true,
                     'update' => true,
@@ -912,8 +981,7 @@ class ImportService
                     ->setQuantiteAR($data['quantité à recevoir'])
                     ->setQuantite(0);
                 $this->entityManager->persist($receptionRefArticle);
-            }
-            else {
+            } else {
                 $this->throwError("La ligne de réception existe déjà pour cette référence et ce numéro de commande");
             }
 
@@ -971,9 +1039,9 @@ class ImportService
             }
         }
 
-        if(isset($data['visibilityGroups'])) {
+        if (isset($data['visibilityGroups'])) {
             $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => $data['visibilityGroups']]);
-            if(!isset($visibilityGroup)) {
+            if (!isset($visibilityGroup)) {
                 $this->throwError("Le groupe de visibilité {$data['visibilityGroups']} n'existe pas");
             }
             $refArt->setProperties(['visibilityGroup' => $visibilityGroup]);
@@ -986,7 +1054,7 @@ class ImportService
                 ->toArray();
 
             $managers = $userRepository->findByUsernames($usernames);
-            foreach($managers as $manager) {
+            foreach ($managers as $manager) {
                 $refArt->addManager($manager);
             }
         }
@@ -1027,11 +1095,11 @@ class ImportService
             $refArt->setPrixUnitaire($data['prixUnitaire']);
         }
 
-        if(isset($dataToCheck["limitSecurity"]) && $dataToCheck["limitSecurity"]["value"] !== null) {
+        if (isset($dataToCheck["limitSecurity"]) && $dataToCheck["limitSecurity"]["value"] !== null) {
             $limitSecurity = $data['limitSecurity'] ?? null;
-            if($limitSecurity === "") {
+            if ($limitSecurity === "") {
                 $refArt->setLimitSecurity(null);
-            } else if($limitSecurity !== null && !is_numeric($limitSecurity)) {
+            } else if ($limitSecurity !== null && !is_numeric($limitSecurity)) {
                 $message = 'Le seuil de sécurité doit être un nombre.';
                 $this->throwError($message);
             } else {
@@ -1039,11 +1107,11 @@ class ImportService
             }
         }
 
-        if(isset($dataToCheck["limitWarning"]) && $dataToCheck["limitWarning"]["value"] !== null) {
+        if (isset($dataToCheck["limitWarning"]) && $dataToCheck["limitWarning"]["value"] !== null) {
             $limitWarning = $data['limitWarning'] ?? null;
-            if($limitWarning === "") {
+            if ($limitWarning === "") {
                 $refArt->setLimitWarning(null);
-            } else if($limitWarning !== null && !is_numeric($limitWarning)) {
+            } else if ($limitWarning !== null && !is_numeric($limitWarning)) {
                 $message = 'Le seuil d\'alerte doit être un nombre. ';
                 $this->throwError($message);
             } else {
@@ -1075,8 +1143,7 @@ class ImportService
                 ->setIsUrgent(false)
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setType($type);
-        }
-        else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
+        } else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
             $this->throwError("La modification du type d'une référence n'est pas autorisée");
         }
 
@@ -1128,11 +1195,11 @@ class ImportService
                 $refArt->setQuantiteDisponible($refArt->getQuantiteStock() - $refArt->getQuantiteReservee());
             }
         }
-        if(isset($data['dangerousGoods'])){
+        if (isset($data['dangerousGoods'])) {
             $dangerousGoods = (
-                    filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
-                    || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
-                );
+                filter_var($data['dangerousGoods'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['dangerousGoods'], self::POSITIVE_ARRAY)
+            );
 
             $refArt
                 ->setDangerousGoods($dangerousGoods);
@@ -1158,7 +1225,7 @@ class ImportService
         $original = $refArt->getDescription() ?? [];
 
         $outFormatEquipmentData = isset($data['outFormatEquipment'])
-            ? (int) (
+            ? (int)(
                 filter_var($data['outFormatEquipment'], FILTER_VALIDATE_BOOLEAN)
                 || in_array($data['outFormatEquipment'], self::POSITIVE_ARRAY)
             )
@@ -1206,7 +1273,7 @@ class ImportService
                                          array $colChampsLibres,
                                          array $row,
                                          array &$stats,
-                                         int $rowIndex): ReferenceArticle
+                                         int   $rowIndex): ReferenceArticle
     {
         $refArticle = null;
         if (!empty($data['barCode'])) {
@@ -1253,7 +1320,7 @@ class ImportService
         }
 
         if (isset($data['expiryDate'])) {
-            if(str_contains($data['expiryDate'], ' ')) {
+            if (str_contains($data['expiryDate'], ' ')) {
                 $date = DateTime::createFromFormat("d/m/Y H:i", $data['expiryDate']);
             } else {
                 $date = DateTime::createFromFormat("d/m/Y", $data['expiryDate']);
@@ -1263,7 +1330,7 @@ class ImportService
         }
 
         if (isset($data['stockEntryDate'])) {
-            if(str_contains($data['stockEntryDate'], ' ')) {
+            if (str_contains($data['stockEntryDate'], ' ')) {
                 $date = DateTime::createFromFormat("d/m/Y H:i", $data['stockEntryDate']);
             } else {
                 $date = DateTime::createFromFormat("d/m/Y", $data['stockEntryDate']);
@@ -1281,11 +1348,11 @@ class ImportService
         }
 
         $articleFournisseurReference = $data['articleFournisseurReference'] ?? null;
-        if(!$refArticle && empty($articleFournisseurReference)){
+        if (!$refArticle && empty($articleFournisseurReference)) {
             $this->throwError('La colonne référence article de référence ou la colonne référence article fournisseur doivent être renseignées.');
         }
 
-        if(!$refArticle || !empty($articleFournisseurReference)){
+        if (!$refArticle || !empty($articleFournisseurReference)) {
             try {
                 $articleFournisseur = $this->checkAndCreateArticleFournisseur(
                     $data['articleFournisseurReference'] ?? null,
@@ -1293,8 +1360,8 @@ class ImportService
                     $refArticle
                 );
                 $article->setArticleFournisseur($articleFournisseur);
-            } catch(Exception $exception){
-                if($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS){
+            } catch (Exception $exception) {
+                if ($exception->getMessage() === ArticleFournisseurService::ERROR_REFERENCE_ALREADY_EXISTS) {
                     $this->throwError('La référence article fournisseur existe déjà');
                 } else {
                     throw $exception;
@@ -1331,7 +1398,8 @@ class ImportService
         return $refArticle;
     }
 
-    private function importUserEntity(array $data, array &$stats): void {
+    private function importUserEntity(array $data, array &$stats): void
+    {
 
         $userAlreadyExists = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['email' => $data['email']]);
         $visibilityGroupRepository = $this->entityManager->getRepository(VisibilityGroup::class);
@@ -1347,18 +1415,18 @@ class ImportService
         }
 
         $role = $this->entityManager->getRepository(Role::class)->findOneBy(['label' => $data['role']]);
-        if($role) {
+        if ($role) {
             $user->setRole($role);
         } else {
             $this->throwError("Le rôle {$data['role']} n'existe pas");
         }
 
-        if(isset($data['username'])) {
+        if (isset($data['username'])) {
             $user->setUsername($data['username']);
         }
 
-        if(!isset($userAlreadyExists)) {
-            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        if (!isset($userAlreadyExists)) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $this->throwError('Le format de l\'adresse email est incorrect');
             }
             $user
@@ -1366,53 +1434,53 @@ class ImportService
                 ->setPassword("");
         }
 
-        if(isset($data['secondaryEmail']) && isset($data['lastEmail'])) {
-            if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)
+        if (isset($data['secondaryEmail']) && isset($data['lastEmail'])) {
+            if (!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)
                 && !filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
                 $this->throwError('Le format des adresses email 2 et 3 est incorrect');
             }
             $user->setSecondaryEmails([$data['secondaryEmail'], $data['lastEmail']]);
-        } else if(isset($data['secondaryEmail'])) {
-            if(!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)) {
+        } else if (isset($data['secondaryEmail'])) {
+            if (!filter_var($data['secondaryEmail'], FILTER_VALIDATE_EMAIL)) {
                 $this->throwError('Le format de l\'adresse email 2 est incorrect');
             }
             $user->setSecondaryEmails([$data['secondaryEmail']]);
-        } else if(isset($data['lastEmail'])) {
-            if(!filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
+        } else if (isset($data['lastEmail'])) {
+            if (!filter_var($data['lastEmail'], FILTER_VALIDATE_EMAIL)) {
                 $this->throwError('Le format de l\'adresse email 3 est incorrect');
             }
             $user->setSecondaryEmails([$data['lastEmail']]);
         }
 
-        if(isset($data['phone'])) {
+        if (isset($data['phone'])) {
             $user->setPhone($data['phone']);
         }
 
-        if(isset($data['mobileLoginKey'])) {
+        if (isset($data['mobileLoginKey'])) {
             $minMobileKeyLength = UserService::MIN_MOBILE_KEY_LENGTH;
             $maxMobileKeyLength = UserService::MAX_MOBILE_KEY_LENGTH;
 
-            if(strlen($data['mobileLoginKey']) < UserService::MIN_MOBILE_KEY_LENGTH
+            if (strlen($data['mobileLoginKey']) < UserService::MIN_MOBILE_KEY_LENGTH
                 || strlen($data['mobileLoginKey']) > UserService::MAX_MOBILE_KEY_LENGTH) {
                 $this->throwError("La clé de connexion doit faire entre {$minMobileKeyLength} et {$maxMobileKeyLength} caractères");
             }
 
             $userWithExistingKey = $this->entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $data['mobileLoginKey']]);
-            if(!isset($userWithExistingKey) || $userWithExistingKey->getId() === $user->getId()) {
+            if (!isset($userWithExistingKey) || $userWithExistingKey->getId() === $user->getId()) {
                 $user->setMobileLoginKey($data['mobileLoginKey']);
             } else {
                 $this->throwError('Cette clé de connexion est déjà utilisée par un autre utilisateur');
             }
-        } else if(!isset($userAlreadyExists)) {
+        } else if (!isset($userAlreadyExists)) {
             $mobileLoginKey = $this->userService->createUniqueMobileLoginKey($this->entityManager);
             $user->setMobileLoginKey($mobileLoginKey);
         }
 
-        if(isset($data['address'])) {
+        if (isset($data['address'])) {
             $user->setAddress($data['address']);
         }
 
-        if(!empty($data['deliverer'])) {
+        if (!empty($data['deliverer'])) {
             $value = strtolower($data['deliverer']);
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour le champ Livreur est invalide (autorisé : "oui" ou "non")');
@@ -1421,7 +1489,7 @@ class ImportService
             }
         }
 
-        if(isset($data['deliveryTypes'])) {
+        if (isset($data['deliveryTypes'])) {
             $deliveryTypesRaw = array_map('trim', explode(',', $data['deliveryTypes']));
             $deliveryCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_LIVRAISON]);
             $deliveryTypes = $this->entityManager->getRepository(Type::class)->findBy([
@@ -1431,7 +1499,7 @@ class ImportService
 
             $deliveryTypesLabel = Stream::from($deliveryTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
             $invalidTypes = Stream::diff($deliveryTypesLabel, $deliveryTypesRaw, false, true)->toArray();
-            if(!empty($invalidTypes)) {
+            if (!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de " . mb_strtolower($this->translationService->translate("Demande", "Livraison", "Demande de livraison", false)) . " suivants sont invalides : $invalidTypesStr");
             }
@@ -1445,7 +1513,7 @@ class ImportService
             }
         }
 
-        if(isset($data['dispatchTypes'])) {
+        if (isset($data['dispatchTypes'])) {
             $dispatchTypesRaw = array_map('trim', explode(',', $data['dispatchTypes']));
             $dispatchCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
             $dispatchTypes = $this->entityManager->getRepository(Type::class)->findBy([
@@ -1455,7 +1523,7 @@ class ImportService
 
             $dispatchTypesLabel = Stream::from($dispatchTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
             $invalidTypes = Stream::diff($dispatchTypesLabel, $dispatchTypesRaw, false, true)->toArray();
-            if(!empty($invalidTypes)) {
+            if (!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types d'acheminements suivants sont invalides : $invalidTypesStr");
             }
@@ -1469,7 +1537,7 @@ class ImportService
             }
         }
 
-        if(isset($data['handlingTypes'])) {
+        if (isset($data['handlingTypes'])) {
             $handlingTypesRaw = array_map('trim', explode(',', $data['handlingTypes']));
             $handlingCategory = $this->entityManager->getRepository(CategoryType::class)->findOneBy(['label' => CategoryType::DEMANDE_HANDLING]);
             $handlingTypes = $this->entityManager->getRepository(Type::class)->findBy([
@@ -1479,7 +1547,7 @@ class ImportService
 
             $handlingTypesLabel = Stream::from($handlingTypes)->map(fn(Type $type) => $type->getLabel())->toArray();
             $invalidTypes = Stream::diff($handlingTypesLabel, $handlingTypesRaw, false, true)->toArray();
-            if(!empty($invalidTypes)) {
+            if (!empty($invalidTypes)) {
                 $invalidTypesStr = implode(", ", $invalidTypes);
                 $this->throwError("Les types de services suivants sont invalides : $invalidTypesStr");
             }
@@ -1493,12 +1561,12 @@ class ImportService
             }
         }
 
-        if(isset($data['dropzone'])) {
+        if (isset($data['dropzone'])) {
             $locationRepository = $this->entityManager->getRepository(Emplacement::class);
             $locationGroupRepository = $this->entityManager->getRepository(LocationGroup::class);
             $dropzone = $locationRepository->findOneBy(['label' => $data['dropzone']])
                 ?: $locationGroupRepository->findOneBy(['label' => $data['dropzone']]);
-            if($dropzone) {
+            if ($dropzone) {
                 $user->setDropzone($dropzone);
             } else {
                 $this->throwError("La dropzone {$data['dropzone']} n'existe pas");
@@ -1511,7 +1579,7 @@ class ImportService
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
                 ->unique()
                 ->map(fn(string $visibilityGroup) => trim($visibilityGroup))
-                ->map(function($label) use ($visibilityGroupRepository) {
+                ->map(function ($label) use ($visibilityGroupRepository) {
                     $visibilityGroup = $visibilityGroupRepository->findOneBy(['label' => ltrim($label)]);
                     if (!$visibilityGroup) {
                         $this->throwError('Le groupe de visibilité ' . $label . ' n\'existe pas.');
@@ -1519,13 +1587,13 @@ class ImportService
                     return $visibilityGroup;
                 })
                 ->toArray();
-            foreach($visibilityGroups as $visibilityGroup) {
+            foreach ($visibilityGroups as $visibilityGroup) {
                 $user->addVisibilityGroup($visibilityGroup);
             }
         }
 
-        if(isset($data['status'])) {
-            if(!in_array(strtolower($data['status']), ['actif', 'inactif']) ) {
+        if (isset($data['status'])) {
+            if (!in_array(strtolower($data['status']), ['actif', 'inactif'])) {
                 $this->throwError('La valeur du champ Statut est incorrecte (actif ou inactif)');
             }
             $status = strtolower($data['status']) === 'actif' ? 1 : 0;
@@ -1547,7 +1615,8 @@ class ImportService
         $this->updateStats($stats, !$user->getId());
     }
 
-    private function importCustomerEntity(array $data, array &$stats) {
+    private function importCustomerEntity(array $data, array &$stats)
+    {
 
         $customerAlreadyExists = $this->entityManager->getRepository(Customer::class)->findOneBy(['name' => $data['name']]);
         $customer = $customerAlreadyExists ?? new Customer();
@@ -1590,12 +1659,13 @@ class ImportService
         $this->updateStats($stats, !$customerAlreadyExists);
     }
 
-    private function importDeliveryEntity(array $data,
-                                          array &$stats,
+    private function importDeliveryEntity(array       $data,
+                                          array       &$stats,
                                           Utilisateur $utilisateur,
-                                          array &$refsToUpdate,
-                                          array $colChampsLibres,
-                                          $row): ?Demande {
+                                          array       &$refsToUpdate,
+                                          array       $colChampsLibres,
+                                                      $row): ?Demande
+    {
         $users = $this->entityManager->getRepository(Utilisateur::class);
         $locations = $this->entityManager->getRepository(Emplacement::class);
         $types = $this->entityManager->getRepository(Type::class);
@@ -1621,11 +1691,11 @@ class ImportService
 
         $showTargetLocationPicking = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
         $targetLocationPicking = null;
-        if($showTargetLocationPicking) {
-            if(isset($data['targetLocationPicking'])) {
+        if ($showTargetLocationPicking) {
+            if (isset($data['targetLocationPicking'])) {
                 $targetLocationPickingStr = $data['targetLocationPicking'];
                 $targetLocationPicking = $locations->findOneBy(['label' => $targetLocationPickingStr]);
-                if(!$targetLocationPicking) {
+                if (!$targetLocationPicking) {
                     $this->throwError("L'emplacement cible picking $targetLocationPickingStr n'existe pas.");
                 }
             }
@@ -1858,7 +1928,7 @@ class ImportService
         }
 
         if (isset($data['allowedCollectTypes'])) {
-            $elements =  Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
             $allowedCollectTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_COLLECTE], $elements);
             $allowedCollectTypesLabels = Stream::from($allowedCollectTypes)
                 ->map(fn(Type $type) => $type->getLabel())
@@ -1896,7 +1966,7 @@ class ImportService
         }
 
         if (!empty($data['email'])) {
-            if(!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
                 $this->throwError('Le format de l\'adresse email est incorrect');
             }
             $location->setEmail($data['email']);
@@ -1906,8 +1976,7 @@ class ImportService
             $value = strtolower($data['isActive']);
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour Actif est invalide (autorisé : "oui" ou "non")');
-            }
-            else {
+            } else {
                 $location->setIsActive($value === 'oui');
             }
         }
@@ -1921,7 +1990,8 @@ class ImportService
         return $location;
     }
 
-    private function importProjectEntity(array $data, array &$stats) {
+    private function importProjectEntity(array $data, array &$stats)
+    {
         $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
         $project = $projectAlreadyExists ?? new Project();
 
@@ -1951,8 +2021,7 @@ class ImportService
             $value = strtolower($data['isActive']);
             if ($value !== 'oui' && $value !== 'non') {
                 $this->throwError('La valeur saisie pour Actif est invalide (autorisé : "oui" ou "non")');
-            }
-            else {
+            } else {
                 $project->setActive($data['isActive']);
             }
         }
@@ -1962,7 +2031,8 @@ class ImportService
         $this->updateStats($stats, !$projectAlreadyExists);
     }
 
-    private function importRefLocationEntity(array $data, array &$stats): void {
+    private function importRefLocationEntity(array $data, array &$stats): void
+    {
         $refLocationAlreadyExists = $this->entityManager->getRepository(StorageRule::class)->findOneByReferenceAndLocation($data['reference'], $data['location']);
         $refLocation = $refLocationAlreadyExists ?? new StorageRule();
 
@@ -2007,7 +2077,7 @@ class ImportService
 
     private function checkAndSetChampsLibres(array $colChampsLibres,
                                                    $freeFieldEntity,
-                                             bool $isNewEntity,
+                                             bool  $isNewEntity,
                                              array $row)
     {
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
@@ -2143,7 +2213,7 @@ class ImportService
     }
 
     private function checkAndCreateEmplacement(array $data,
-                                               $articleOrRef): void
+                                                     $articleOrRef): void
     {
         if (empty($data['emplacement'])) {
             $message = 'La valeur saisie pour l\'emplacement ne peut être vide.';
@@ -2172,8 +2242,8 @@ class ImportService
         }
     }
 
-    private function checkAndCreateArticleFournisseur(?string $articleFournisseurReference,
-                                                      ?string $fournisseurReference,
+    private function checkAndCreateArticleFournisseur(?string           $articleFournisseurReference,
+                                                      ?string           $fournisseurReference,
                                                       ?ReferenceArticle $referenceArticle): ?ArticleFournisseur
     {
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
@@ -2259,7 +2329,8 @@ class ImportService
         $this->currentImport = $this->entityManager->find(Import::class, $this->currentImport->getId());
     }
 
-    public function createPreselection(array $headers, array $fieldsToCheck, ?array $sourceColumnToField) {
+    public function createPreselection(array $headers, array $fieldsToCheck, ?array $sourceColumnToField)
+    {
         $preselection = [];
         foreach ($headers as $headerIndex => $header) {
             $closestIndex = null;
@@ -2286,8 +2357,7 @@ class ImportService
                     $preselection[$header] = $fieldsToCheck[$closestIndex];
                     unset($fieldsToCheck[$closestIndex]);
                 }
-            }
-            else {
+            } else {
                 if (!empty($sourceColumnToField[$headerIndex])) {
                     $preselection[$header] = $sourceColumnToField[$headerIndex];
                 }
@@ -2297,7 +2367,8 @@ class ImportService
     }
 
     public function getFieldsToAssociate(EntityManagerInterface $entityManager,
-                                         string $entityCode): array {
+                                         string                 $entityCode): array
+    {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -2314,7 +2385,7 @@ class ImportService
             ->keymap(fn(string $key) => [
                 $key,
                 Import::FIELDS_ENTITY[$entityCode][$key]
-                    ?? Import::FIELDS_ENTITY['default'][$key]
+                ?? Import::FIELDS_ENTITY['default'][$key]
                     ?? $key,
             ])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
@@ -2338,7 +2409,8 @@ class ImportService
         return $fieldsToAssociate;
     }
 
-    public function resetCache(): void {
+    public function resetCache(): void
+    {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $associatedDocumentTypesStr = $settingRepository->getOneParamByLabel(Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES);
         $associatedDocumentTypes = $associatedDocumentTypesStr
@@ -2353,7 +2425,8 @@ class ImportService
         ];
     }
 
-    private function treatLocationZone(Array $data, Emplacement $location, ZoneRepository $zoneRepository): void {
+    private function treatLocationZone(array $data, Emplacement $location, ZoneRepository $zoneRepository): void
+    {
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
@@ -2377,7 +2450,8 @@ class ImportService
         }
     }
 
-    private function eraseGlobalDataBefore(): void {
+    private function eraseGlobalDataBefore(): void
+    {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_REF_LOCATION:
@@ -2390,7 +2464,8 @@ class ImportService
         }
     }
 
-    private function eraseGlobalDataAfter(): void {
+    private function eraseGlobalDataAfter(): void
+    {
         if ($this->currentImport->isEraseData()) {
             switch ($this->currentImport->getEntity()) {
                 case Import::ENTITY_ART_FOU:
@@ -2407,6 +2482,330 @@ class ImportService
                     break;
             }
         }
+    }
+
+    public function calculateNextExecutionDate(Import $import): ?DateTime
+    {
+        $now = new DateTime();
+        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
+        $rule = $import->getScheduleRule();
+        $now = new DateTime();
+        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
+
+        $executionDate = match ($rule->getFrequency()) {
+            ImportScheduleRule::ONCE => $this->calculateOnce($rule, $now),
+            ImportScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
+            ImportScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
+            ImportScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
+            ImportScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
+            default => throw new \RuntimeException('Invalid schedule rule frequency'),
+        };
+
+        if ($import->isForced()) {
+            $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
+            $executionDate = min($now, $executionDate);
+        }
+        return $executionDate;
+    }
+
+    public function calculateOnce(ImportScheduleRule $rule, DateTime $now): ?DateTime
+    {
+        return $now <= $rule->getBegin()
+            ? $rule->getBegin()
+            : null;
+    }
+
+    public function calculateFromDailyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
+    {
+        $start = $rule->getBegin();
+        // set time to 0
+        $start->setTime(0, 0);
+        $period = $rule->getPeriod();
+        [$hour, $minute] = explode(":", $rule->getIntervalTime());
+
+        if ($now >= $start) {
+            $nextOccurrence = clone $start;
+            $daysDifferential = $now->diff($start)->days;
+
+            $add = $daysDifferential - $daysDifferential % $period;
+            if ($add < $daysDifferential) {
+                $add += $period;
+            }
+            $nextOccurrence->modify("+$add day");
+            $nextOccurrence->setTime($hour, $minute);
+
+            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
+                $nextOccurrence->modify("+1 day");
+            }
+        } else {
+            $nextOccurrence = clone $start;
+            $nextOccurrence->setTime($hour, $minute);
+        }
+
+        return $nextOccurrence;
+    }
+
+    public function calculateFromWeeklyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
+    {
+        $DAY_LABEL = [
+            1 => "monday",
+            2 => "tuesday",
+            3 => "wednesday",
+            4 => "thursday",
+            5 => "friday",
+            6 => "saturday",
+            7 => "sunday",
+        ];
+
+        [$hour, $minute] = explode(":", $rule->getIntervalTime());
+        $nextOccurrence = clone $rule->getBegin();
+
+        $weeksDifferential = floor($now->diff($rule->getBegin())->days / 7);
+        $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
+        $nextOccurrence->modify("+$add weeks");
+
+        $goToNextWeek = false;
+        if ($now->format("W") != $nextOccurrence->format("W")) {
+            $day = $rule->getWeekDays()[0];
+        } else {
+            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
+            $currentDay = $now->format("N");
+
+            $day = Stream::from($rule->getWeekDays())
+                ->filter(fn($day) => $isTimeEqualOrBefore ? $day > $currentDay : $day >= $currentDay)
+                ->firstOr(function () use ($rule, &$goToNextWeek) {
+                    $goToNextWeek = true;
+                    return $rule->getWeekDays()[0];
+                });
+        }
+
+        if ($goToNextWeek) {
+            $nextOccurrence->modify("+{$rule->getPeriod()} week");
+        }
+
+        $dayAsString = $DAY_LABEL[$day];
+        $nextOccurrence->modify("$dayAsString this week");
+        $nextOccurrence->setTime($hour, $minute);
+
+        return $nextOccurrence;
+    }
+
+    public function calculateFromHourlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
+    {
+        $start = clone $rule->getBegin();
+        $start->setTime(0, 0, 0, 0);
+        $intervalPeriod = $rule->getIntervalPeriod();
+
+        if ($intervalPeriod) {
+            if ($now >= $start) {
+                $nextOccurrence = clone $now;
+                $hours = (int)$now->format('H');
+                $minutes = 0;
+                $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
+                $nextOccurrence->setTime($hours, $minutes);
+            } else {
+                $nextOccurrence = $this->calculateOnce($rule, $now);
+            }
+
+            return $nextOccurrence;
+        }
+        return null;
+    }
+
+    public function calculateFromMonthlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
+    {
+        $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
+        $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
+
+        $year = $start->format("Y");
+        $currentMonth = $start->format("n");
+        $currentDay = (int)$start->format("j");
+        $currentLastDayMonth = (int)(clone $start)
+            ->modify('last day this month')
+            ->format("j");
+
+        $day = Stream::from($rule->getMonthDays())
+            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay) {
+                $day = $day === Import::LAST_DAY_OF_WEEK ? 32 : $day;
+                return $isTimeEqualOrBefore
+                    ? $day > $currentDay
+                    : $day >= $currentDay;
+            })
+            ->firstOr(fn() => $rule->getMonthDays()[0]);
+
+        $day = $day !== Import::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
+        $isDayEqual = $day == $currentDay;
+        $isDayBefore = $day < $currentDay;
+
+        $ignoreCurrentMonth = $isDayBefore || ($isDayEqual && $isTimeEqualOrBefore);
+
+        $month = Stream::from($rule->getMonths())
+            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
+            ->firstOr(function () use ($rule, &$year) {
+                $year += 1;
+                return $rule->getMonths()[0];
+            });
+
+        return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
+    }
+
+    private function isTimeEqualOrBefore(string $time, DateTime $date): string
+    {
+        [$hour, $minute] = explode(":", $time);
+        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
+    }
+
+    public function updateScheduleRules(ImportScheduleRule $importScheduleRule,
+                                        ParameterBag       $request): void
+    {
+        $importScheduleRule
+            ->setFilePath($request->get('path-import-file'))
+            ->setFrequency($request->get("frequency"))
+            ->setBegin($this->formatService->parseDatetime($request->get("startDate")))
+            ->setPeriod($request->get("repeatPeriod"))
+            ->setIntervalPeriod($request->get("intervalPeriod"))
+            ->setIntervalTime($request->get("intervalTime"))
+            ->setMonths($request->get("months") ? explode(",", $request->get("months")) : null)
+            ->setMonthDays($request->get("monthDays") ? explode(",", $request->get("monthDays")) : null)
+            ->setWeekDays($request->get("weekDays") ? explode(",", $request->get("weekDays")) : null);
+    }
+
+    public function getImportSecondModalConfig(EntityManagerInterface $entityManager,
+                                               ParameterBag           $post,
+                                               Import                 $import): array
+    {
+
+        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $importRepository = $entityManager->getRepository(Import::class);
+
+        $fileImportConfig = $this->getFileImportConfig($import->getCsvFile());
+
+        if ($post->get('importId')) {
+            $copiedImport = $importRepository->find($post->get('importId'));
+            $columnsToFields = $copiedImport->getColumnToField();
+        }
+
+        $entity = $import->getEntity();
+        $fieldsToAssociate = $this->getFieldsToAssociate($entityManager, $entity);
+        natcasesort($fieldsToAssociate);
+
+        $preselection = [];
+        if (isset($fileImportConfig['headers'])) {
+            $headers = $fileImportConfig['headers'];
+
+            $fieldsToCheck = array_merge($fieldsToAssociate);
+            $sourceImportId = $post->get('sourceImport');
+            if (isset($sourceImportId)) {
+                $sourceImport = $importRepository->find($sourceImportId);
+                if (isset($sourceImport)) {
+                    $sourceColumnToField = $sourceImport->getColumnToField();
+                }
+            }
+
+            $preselection = $this->createPreselection($headers, $fieldsToCheck, $sourceColumnToField ?? null);
+        }
+        $fieldsNeeded = Import::FIELDS_NEEDED[$entity];
+
+        if ($entity === Import::ENTITY_RECEPTION) {
+            foreach ($fieldsToAssociate as $field) {
+                $fieldParamCode = Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field] ?? null;
+                if ($fieldParamCode) {
+                    $fieldParam = $fieldsParamRepository->findOneBy([
+                        'fieldCode' => $fieldParamCode,
+                        'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                    ]);
+                    if ($fieldParam && $fieldParam->getRequiredCreate()) {
+                        $fieldsNeeded[] = $field;
+                    }
+                }
+            }
+        }
+
+        return [
+            'data' => $fileImportConfig,
+            'fields' => $fieldsToAssociate ?? [],
+            'preselection' => $preselection ?? [],
+            'fieldsNeeded' => $fieldsNeeded,
+            'fieldPK' => Import::FIELD_PK[$entity],
+            'columnsToFields' => $columnsToFields ?? null,
+            'fromExistingImport' => !empty($sourceColumnToField)
+        ];
+    }
+
+    public function getImport(): ?Import {
+        return $this->currentImport;
+    }
+
+    public function getFileImportConfig(Attachment $attachment): ?array
+    {
+        $path = $this->attachmentService->getServerPath($attachment);
+
+        $file = fopen($path, "r");
+
+        $headers = fgetcsv($file, 0, ";");
+        $firstRow = fgetcsv($file, 0, ";");
+
+        $res = null;
+        if ($headers && $firstRow) {
+            $csvContent = file_get_contents($path);
+            $res = [
+                'headers' => $headers,
+                'firstRow' => $firstRow,
+                'isUtf8' => mb_check_encoding($csvContent, 'UTF-8')
+            ];
+        }
+
+        fclose($file);
+
+        return $res;
+    }
+
+    public function validateImportAttachment(?array $fileConfig, bool $isUnique): array
+    {
+        if (!$fileConfig) {
+            $success = false;
+            if ($isUnique) {
+                $message = 'Format du fichier incorrect. Il doit au moins contenir une ligne d\'en-tête et une ligne à importer.';
+            } else {
+                $message = 'Format du fichier incorrect. Il doit au moins contenir une ligne d\'en-tête et une ligne d\'exemple.';
+            }
+        } else if (!$fileConfig["isUtf8"]) {
+            $success = false;
+            $message = 'Veuillez charger un fichier encodé en UTF-8';
+        } else {
+            $success = true;
+        }
+
+        return [
+            'success' => $success,
+            'msg' => $message ?? ''
+        ];
+    }
+
+    private function buildScheduledImportsCache(EntityManagerInterface $entityManager): array
+    {
+        return Stream::from($entityManager->getRepository(Import::class)->findScheduledImports())
+            ->keymap(fn(Import $import) => [$import->getId(), $this->calculateNextExecutionDate($import)])
+            ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
+            ->map(fn(DateTime $date) => $this->getScheduleImportKeyCache($date))
+            ->reduce(function ($accumulator, $date, $id) {
+                $accumulator[$date][] = $id;
+                return $accumulator;
+            }, []);
+    }
+
+    public function saveScheduledImportsCache(EntityManagerInterface $entityManager): void
+    {
+        $this->cacheService->set(CacheService::IMPORTS, "scheduled", $this->buildScheduledImportsCache($entityManager));
+    }
+
+    public function getScheduleImportKeyCache(DateTime $dateTime): string
+    {
+        return $dateTime->format("Y-m-d-H-i");
+    }
+
+    public function getScheduledCache(EntityManagerInterface $entityManager): array {
+        return $this->cacheService->get(CacheService::IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
     }
 
 }

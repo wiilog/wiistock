@@ -136,7 +136,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 PurchaseRequest::NOT_TREATED => Statut::NOT_TREATED,
             ],
             CategorieStatut::IMPORT => [
-                Import::STATUS_PLANNED => Statut::NOT_TREATED,
+                Import::STATUS_UPCOMING => Statut::NOT_TREATED,
                 Import::STATUS_FINISHED => Statut::TREATED,
                 Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
                 Import::STATUS_CANCELLED => Statut::NOT_TREATED,

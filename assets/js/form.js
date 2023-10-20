@@ -106,8 +106,12 @@ export default class Form {
                 () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
+                        console.log(response);
                         if(response.success) {
-                            this.element.modal(`hide`);
+                            console.log(options.keepModal);
+                            if(!options.keepModal) {
+                                this.element.modal(`hide`);
+                            }
 
                             if(options.success) {
                                 options.success(response);
@@ -172,10 +176,14 @@ export default class Form {
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait
      * @param {boolean} endLoading default to true
+     * @param {boolean} closeModal default to false
      */
-    loading(action, endLoading = true) {
+    loading(action, endLoading = true, closeModal = false) {
         const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
+        if(closeModal) {
+            this.element.modal(`hide`);
+        }
     }
 
     static getFieldNames(form, config = {}) {
@@ -314,7 +322,7 @@ export default class Form {
         if($field.is(`[data-wysiwyg]`)) {
             $parent = $field.parent();
         } else {
-            $parent = $field.closest(`label, .wii-checkbox, .wii-radio-container`);
+            $parent = $field.closest(`label, .wii-checkbox, .wii-radio-container, .dropFrame`);
         }
 
         $field.addClass(`is-invalid`);
@@ -334,7 +342,7 @@ export default class Form {
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
             if (message) {
-                $parent.append(`<span class="invalid-feedback">${message}</span>`);
+                $parent.append(`<span class="invalid-feedback d-inline-block">${message}</span>`);
             }
         }
     }
@@ -480,6 +488,7 @@ function treatInputError($input, errors, form) {
                 });
             }
         } else {
+            console.log($input);
             let valueIsEmpty;
             if ($input.is(`[data-wysiwyg]:not(.wii-one-line-wysiwyg)`)) { // for wysuwyg fields
                 valueIsEmpty = !$input.find(`.ql-editor`).text();

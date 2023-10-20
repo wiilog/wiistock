@@ -8,7 +8,7 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn btn-primary d-flex align-items-center"
-                     onclick="displayFirstModal()">
+                     onclick="displayFirstModal($(this))">
                     <span class="wii-icon wii-icon-plus mr-2"></span>
                     Ajouter un import
                 </div>
@@ -21,7 +21,9 @@
             </div>
         </div>
     </div>
-    {% include 'settings/donnees/import/modalNewImport.html.twig' %}
-    {% include 'settings/donnees/import/modalConfirmCancel.html.twig' %}
-    {% include 'settings/donnees/import/modalLaunchPlanifiedImport.html.twig' %}
+    {% include 'settings/donnees/import/edit.html.twig' %}
+    {% include 'settings/donnees/import/new/new.html.twig' %}
+    {% include 'settings/donnees/import/cancel.html.twig' %}
+    {% include 'settings/donnees/import/scheduled.html.twig' %}
+    {% include 'settings/donnees/import/force.html.twig' %}
 </div>

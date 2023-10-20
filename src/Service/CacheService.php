@@ -14,6 +14,7 @@ class CacheService
     public const TRANSLATIONS = "translations";
     public const LANGUAGES = "languages";
     public const EXPORTS = "exports";
+    public const IMPORTS = "imports";
 
     private FileSystem $filesystem;
 

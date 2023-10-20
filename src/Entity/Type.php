@@ -37,6 +37,8 @@ class Type {
     const LABEL_NOMADE_SESSION_HISTORY = 'session mobile';
     const LABEL_WEB_SESSION_HISTORY = 'session web';
 
+    const LABEL_SCHEDULED_IMPORT = 'Import planifié';
+    const LABEL_UNIQUE_IMPORT = 'Import unique';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -145,6 +147,12 @@ class Type {
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'types')]
     private Collection $tags;
 
+    /**
+     * @ORM\OneToMany(targetEntity=Import::class, mappedBy="type")
+     */
+    #[ORM\OneToMany(targetEntity: Import::class, mappedBy: "type")]
+    private Collection $imports;
+
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
@@ -164,6 +172,7 @@ class Type {
         $this->requestTypeTemplates = new ArrayCollection();
         $this->sensors = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->imports = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -873,6 +882,29 @@ class Type {
             $this->suggestedPickLocations[] = $suggestedPickLocation;
         }
 
+        return $this;
+    }
+
+    public function getImports(): Collection {
+        return $this->imports;
+    }
+
+    public function addImport(Import $import): self {
+        if (!$this->imports->contains($import)) {
+            $this->imports[] = $import;
+            $import->setType($this);
+        }
+        return $this;
+    }
+
+    public function removeImport(Import $import): self {
+        if ($this->imports->contains($import)) {
+            $this->imports->removeElement($import);
+            // set the owning side to null (unless already changed)
+            if ($import->getType() === $this) {
+                $import->setType(null);
+            }
+        }
         return $this;
     }
 }

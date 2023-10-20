@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Import;
+use App\Entity\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -15,61 +16,66 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class ImportRepository extends EntityRepository
 {
-	public function findByParamsAndFilters(InputBag $params, $filters)
+	public function findByParamsAndFilters(InputBag $params, $filters): array
 	{
-		$qb = $this->createQueryBuilder('i')
-            ->join('i.status', 's')
-            ->where('s.nom != :draft')
+		$qb = $this->createQueryBuilder('import')
+            ->innerJoin('import.status', 'join_status')
+            ->andWhere('join_status.nom != :draft')
             ->setParameter('draft', Import::STATUS_DRAFT)
-            ->orderBy('i.createdAt', 'DESC');
+            ->orderBy('import.createdAt', 'DESC');
 
-		$countTotal = QueryBuilderHelper::count($qb, 'i');
+		$countTotal = QueryBuilderHelper::count($qb, 'import');
 
-		// filtres sup
 		foreach ($filters as $filter) {
 			switch ($filter['field']) {
 				case 'statut':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('i.status', 's_filter')
-						->andWhere('s_filter.id in (:status)')
+						->innerJoin('import.status', 'join_status_filter')
+						->andWhere('join_status_filter.id IN (:status)')
 						->setParameter('status', $value);
 					break;
 				case 'utilisateurs':
 					$value = explode(',', $filter['value']);
 					$qb
-						->join('i.user', 'u_filter')
-						->andWhere('u_filter.id in (:user)')
+						->innerJoin('import.user', 'join_user_filter')
+						->andWhere('join_user_filter.id IN (:user)')
 						->setParameter('user', $value);
 					break;
 				case 'dateMin':
 					$qb
-						->andWhere('i.startDate >= :dateMin OR i.endDate >= :dateMin')
-						->setParameter('dateMin', $filter['value'] . " 00:00:00");
+						->andWhere('import.startDate >= :dateMin OR import.endDate >= :dateMin')
+						->setParameter('dateMin', "{$filter['value']} 00:00:00");
 					break;
 				case 'dateMax':
 					$qb
-						->andWhere('i.startDate <= :dateMax OR i.endDate <= :dateMax')
-						->setParameter('dateMax', $filter['value'] . " 23:59:59");
+						->andWhere('import.startDate <= :dateMax OR import.endDate <= :dateMax')
+						->setParameter('dateMax', "{$filter['value']} 23:59:59");
 					break;
+                case 'type':
+                    $qb
+                        ->innerJoin('import.type', 'join_type_filter')
+                        ->andWhere('join_type_filter.label IN (:type)')
+                        ->setParameter('type', $filter['value']);
 			}
 		}
 
-		//Filter search
 		if (!empty($params)) {
 			if (!empty($params->all('search'))) {
 				$search = $params->all('search')['value'];
 				if (!empty($search)) {
 					$exprBuilder = $qb->expr();
 					$qb
-						->leftJoin('i.status', 's_search')
-						->leftJoin('i.user', 'u_search')
+						->leftJoin('import.status', 'join_status_search')
+						->leftJoin('import.user', 'join_user_search')
+                        ->leftJoin('import.type', 'join_type_search')
 						->andWhere($exprBuilder->orX(
-							'i.label LIKE :value',
-							's_search.nom LIKE :value',
-							'u_search.username LIKE :value'
+							'import.label LIKE :value',
+							'join_status_search.nom LIKE :value',
+							'join_user_search.username LIKE :value',
+                            'join_type_search.label LIKE :value'
 						))
-						->setParameter('value', '%' . $search . '%');
+						->setParameter('value', "%$search%");
 				}
 			}
 
@@ -80,54 +86,68 @@ class ImportRepository extends EntityRepository
 					switch ($column) {
 						case 'status':
 							$qb
-								->leftJoin('i.status', 's_order')
-								->orderBy('s_order.nom', $order);
+								->leftJoin('import.status', 'join_status_order')
+								->orderBy('join_status_order.nom', $order);
 							break;
 						case 'user':
 							$qb
-								->leftJoin('i.user', 'i_order')
-								->orderBy('i_order.username', $order);
+								->leftJoin('import.user', 'join_user_order')
+								->orderBy('join_user_order.username', $order);
 							break;
+                        case 'type':
+                            $qb
+                                ->leftJoin('import.type', 'join_type_order')
+                                ->orderBy('join_type_order.label', $order);
+                            break;
+                        case 'frequency':
+                            $qb
+                                ->leftJoin('import.scheduleRule', 'join_schedule_rule_order')
+                                ->orderBy('join_schedule_rule_order.frequency', $order);
+                            break;
 						default:
-							$qb->orderBy('i.' . $column, $order);
+							$qb->orderBy('import.' . $column, $order);
 					}
 				}
 			}
 		}
 
-		// compte éléments filtrés
-		$countFiltered = QueryBuilderHelper::count($qb, 'i');
+		$countFiltered = QueryBuilderHelper::count($qb, 'import');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
+
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
 
 		$query = $qb->getQuery();
 
 		return [
-			'data' => $query ? $query->getResult() : null,
+			'data' => $query?->getResult(),
 			'count' => $countFiltered,
 			'total' => $countTotal
 		];
 	}
 
-    /**
-     * @param string $statusLabel
-     * @return Import[]
-     */
-	public function findByStatusLabel($statusLabel)
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
+	public function findByStatusLabel($statusLabel): array {
+        return $this->createQueryBuilder("import")
+            ->leftJoin("import.status", "join_status")
+            ->andWhere("join_status.code = :status")
+            ->setParameter("status", $statusLabel)
+            ->getQuery()
+            ->getResult();
+    }
 
-        $qb
-            ->select('i')
-            ->from('App:Import', 'i')
-            ->leftJoin('i.status', 's')
-            ->where('s.nom = :statut')
-            ->setParameter('statut', $statusLabel);
-
-        $query = $qb->getQuery();
-
-        return $query->execute();
+    public function findScheduledImports(): array {
+        return $this->createQueryBuilder("import")
+            ->innerJoin("import.type", "type")
+            ->innerJoin("import.status", "status")
+            ->andWhere("type.label = :type")
+            ->andWhere("status.nom = :status")
+            ->setParameter("type", Type::LABEL_SCHEDULED_IMPORT)
+            ->setParameter("status", Import::STATUS_SCHEDULED)
+            ->getQuery()
+            ->getResult();
     }
 }

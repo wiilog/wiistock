@@ -1,10 +1,5 @@
-<div
-      class="modal fade"
-      id="modalNewImport"
-      role="dialog"
-      aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg"
-         role="document">
+<div class="modal fade" id="modalNewImport" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: "Import d'un fichier"
@@ -16,10 +11,9 @@
                 elements: [
                     {input: true, name: 'importId', classes: 'data'},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "deleteImport($(this))"},
-                    {classes: 'btn btn-success', text: 'Valider', id: 'submitNewImport'}
+                    {classes: 'btn btn-success', text: 'Valider', type: 'submit'}
                 ],
             } %}
-
         </div>
     </div>
 </div>
