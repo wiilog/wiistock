@@ -152,8 +152,7 @@ class EmplacementRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false)
-    {
+    public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false): array {
         $countTotal = $this->countAll();
 
         $queryBuilder = $this->createQueryBuilder('location');
@@ -202,10 +201,6 @@ class EmplacementRepository extends EntityRepository
                 }
             }
             $queryBuilder->select('count(location)');
-            $countQuery = (int) $queryBuilder->getQuery()->getSingleScalarResult();
-        }
-        else {
-            $countQuery = $countTotal;
         }
 
         $queryBuilder
@@ -215,8 +210,10 @@ class EmplacementRepository extends EntityRepository
         if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
 
         $query = $queryBuilder->getQuery();
+        $data = $query?->getResult();
+        $countQuery = sizeof($data);
         return [
-            'data' => $query ? $query->getResult() : null,
+            'data' => $data,
             'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
             'count' => $countQuery,
             'total' => $countTotal
