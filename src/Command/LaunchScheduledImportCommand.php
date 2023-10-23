@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Entity\CategorieStatut;
 use App\Entity\Import;
 use App\Entity\ImportScheduleRule;
+use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\ImportService;
@@ -63,7 +64,7 @@ class LaunchScheduledImportCommand extends Command {
 
         $rule = $import->getScheduleRule();
 
-        if ($rule->getFrequency() === ImportScheduleRule::ONCE) {
+        if ($rule->getFrequency() === ScheduleRule::ONCE) {
             $clones = $this->expandSingleImport($import);
         } else {
             $clones = $this->expandScheduledImport($import);

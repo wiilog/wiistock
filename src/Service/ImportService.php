@@ -12,7 +12,6 @@ use App\Entity\Customer;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
@@ -30,6 +29,7 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
+use App\Entity\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
@@ -50,6 +50,7 @@ use Exception;
 use InvalidArgumentException;
 use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Psr\Log\NullLogger;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -246,9 +247,6 @@ class ImportService
     public UserService $userService;
 
     #[Required]
-    public FormService $formService;
-
-    #[Required]
     public UniqueNumberService $uniqueNumberService;
 
     #[Required]
@@ -338,17 +336,17 @@ class ImportService
             : null;
 
         $frequencyToString = [
-            ImportScheduleRule::ONCE => 'une fois',
-            ImportScheduleRule::DAILY => 'chaque jour',
-            ImportScheduleRule::WEEKLY => 'chaque semaine',
-            ImportScheduleRule::MONTHLY => 'chaque mois',
-            ImportScheduleRule::HOURLY => 'chaque minutes/heures'
+            ScheduleRule::ONCE => 'une fois',
+            ScheduleRule::DAILY => 'chaque jour',
+            ScheduleRule::WEEKLY => 'chaque semaine',
+            ScheduleRule::MONTHLY => 'chaque mois',
+            ScheduleRule::HOURLY => 'chaque heure'
         ];
 
         return [
             'id' => $import->getId(),
             'unableToConnect' => ($import->getFTPConfig()['unableToConnect'] ?? false)
-                ? '<img src="/svg/urgence.svg" alt="Erreur" width="15px" title="Une erreur est survenue lors de la connexion au serveur FTP. Veuillez vérifier vos paramétres de connexion.">'
+                ? '<img src="/svg/urgence.svg" alt="Erreur" width="15px" title="Une erreur est survenue lors de la dernière tentative de connexion au serveur FTP. Veuillez vérifier vos paramétres de connexion.">'
                 : "",
             'createdAt' => $this->formatService->datetime($import->getCreateAt()),
             'startDate' => $this->formatService->datetime($import->getStartDate()),
@@ -444,8 +442,6 @@ class ImportService
         ];
 
         if($file) {
-            $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-
             $columnsToFields = $this->currentImport->getColumnToField();
             $matches = array_flip($columnsToFields);
             $colChampsLibres = array_filter($matches, function ($elem) {
@@ -2495,12 +2491,12 @@ class ImportService
         $now->setTime($now->format('H'), $now->format('i'), 0, 0);
 
         $executionDate = match ($rule->getFrequency()) {
-            ImportScheduleRule::ONCE => $this->calculateOnce($rule, $now),
-            ImportScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
-            ImportScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
-            ImportScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
-            ImportScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
-            default => throw new \RuntimeException('Invalid schedule rule frequency'),
+            ScheduleRule::ONCE => $this->calculateOnce($rule, $now),
+            ScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
+            ScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
+            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
+            ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
+            default => throw new RuntimeException('Invalid schedule rule frequency'),
         };
 
         if ($import->isForced()) {

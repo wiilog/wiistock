@@ -29,18 +29,18 @@ final class Version20231017092551 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $categoryTypeId = $this->connection->executeQuery("SELECT id FROM category_type WHERE label = :category_type", [
-            "category_type" => CategoryType::IMPORT,
-        ])->fetchFirstColumn()[0];
+        if(!$schema->getTable("import")->hasColumn("type")) {
+            $this->addSql("ALTER TABLE import ADD COLUMN type_id INT NOT NULL");
+            $this->addSql("INSERT INTO category_type (label) VALUE (:category_type)", [
+                "category_type" => CategoryType::IMPORT,
+            ]);
 
-        $typeId = $this->connection->executeQuery("SELECT id FROM type WHERE label = :type AND category_id = :category_type", [
-            "type" => Type::LABEL_UNIQUE_IMPORT,
-            "category_type" => $categoryTypeId,
-        ])->fetchFirstColumn()[0];
+            $this->addSql("INSERT INTO type (category_id, label) VALUE ((SELECT LAST_INSERT_ID()), :type)", [
+                "type" => Type::LABEL_UNIQUE_IMPORT,
+            ]);
 
-        $this->addSql("UPDATE import SET type_id = :type_id", [
-            "type_id" => $typeId,
-        ]);
+            $this->addSql("UPDATE import SET type_id = (SELECT LAST_INSERT_ID())");
+        }
     }
 
     public function down(Schema $schema): void

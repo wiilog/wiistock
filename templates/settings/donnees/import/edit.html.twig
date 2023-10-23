@@ -5,15 +5,7 @@
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
                 title: "Modifier un import",
-                onManualDismiss: "deleteImport($(this))"
             } %}
-           {# <div class="modal-header">
-                <h5 class="modal-title">Modifier un import</h5>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true" onclick="deleteImport($(this))">&times;</span>
-                </button>
-            </div>#}
 
             <div class="modal-body modal-input container-fluid"></div>
 
@@ -24,13 +16,6 @@
                     {classes: 'btn btn-success', text: 'Sauvegarder', type: 'submit'},
                 ],
             } %}
-            {#<div class="modal-footer">
-                <input hidden name="importId" class="data">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary data submit-button" name="id">
-                    Sauvegarder
-                </button>
-            </div>#}
         </div>
     </div>
 </div>

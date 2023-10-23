@@ -2,7 +2,8 @@
     <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Import d'un fichier"
+                title: "Nouvel import",
+                onManualDismiss: "deleteImport($(this))",
             } %}
 
             <div class="modal-body modal-input container-fluid">
@@ -11,7 +12,7 @@
                 elements: [
                     {input: true, name: 'importId', classes: 'data'},
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler', event: "deleteImport($(this))"},
-                    {classes: 'btn btn-success', text: 'Valider', type: 'submit'}
+                    {classes: 'btn btn-success submit-form', text: 'Valider', type: 'submit'}
                 ],
             } %}
         </div>

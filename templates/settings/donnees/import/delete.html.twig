@@ -1,13 +1,13 @@
-<div class="modal fade" id="modalCancelImport" role="dialog"
-    aria-hidden="true">
+<div class="modal fade" id="modalDeleteImport" role="dialog"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Annulation de l'import"
+                title: "Suppression de l'import"
             } %}
 
             <div class="modal-body">
-                Voulez-vous réellement annuler cet import ?
+                Voulez-vous réellement supprimer cet import ?
             </div>
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [

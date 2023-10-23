@@ -543,13 +543,7 @@ class Import {
     }
 
     public function setType(?Type $type): self {
-        if ($this->getType() && $this->getType() !== $type) {
-            $this->type->removeImport($this);
-        }
-
         $this->type = $type;
-
-        $type?->addImport($this);
 
         return $this;
     }
@@ -566,5 +560,9 @@ class Import {
 
     public function isScheduled(): bool {
         return $this->type->getLabel() === Import::STATUS_SCHEDULED;
+    }
+
+    public function isDraft(): bool {
+        return $this->status->getCode() === Import::STATUS_DRAFT;
     }
 }
