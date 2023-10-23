@@ -567,7 +567,13 @@ CREATE TABLE dw_article
     date_assignation_projet     timestamp(0),
     code_ul                     varchar(255),
     prix_unitaire               integer,
-    anomalie                    varchar(255)
+    anomalie                    varchar(255),
+    tag_rfid                    varchar(255),
+    type                        varchar(255),
+    numero_commande             varchar(255),
+    numero_bon_livraison        varchar(255),
+    pays_origine                varchar(255),
+    date_fabrication            timestamp(0)
 );
 
 CREATE TABLE dw_unite_logistique
