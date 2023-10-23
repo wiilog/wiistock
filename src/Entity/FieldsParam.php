@@ -269,10 +269,22 @@ class FieldsParam {
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
-        // Acheminements
-        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
-        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
+        FieldsParam::ENTITY_CODE_DISPATCH => [
+            FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
+        ],
+        FieldsParam::ENTITY_CODE_DEMANDE => [
+            FieldsParam::FIELD_CODE_TYPE_DEMANDE,
+            FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
+        ],
+        FieldsParam::ENTITY_CODE_RECEPTION => [
+            FieldsParam::FIELD_CODE_EMPLACEMENT,
+        ],
+    ];
+
+    public const ALWAYS_DISPLAYED_FIELDS = [
+        FieldsParam::ENTITY_CODE_RECEPTION => [
+            FieldsParam::FIELD_CODE_EMPLACEMENT,
+        ],
     ];
 
     #[ORM\Id]
