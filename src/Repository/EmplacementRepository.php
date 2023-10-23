@@ -210,7 +210,7 @@ class EmplacementRepository extends EntityRepository
 
         $query = $queryBuilder->getQuery();
         $data = $query?->getResult();
-        $countQuery = sizeof($data);
+        $countQuery = count($data);
         return [
             'data' => $data,
             'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
