@@ -297,14 +297,8 @@ class FixedFieldStandard extends FixedField {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $displayedFilters = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $elements = [];
-
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
-
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $elementsType = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
     private ?bool $onMobile = null;
@@ -371,33 +365,12 @@ class FixedFieldStandard extends FixedField {
         return $this;
     }
 
-    public function getElements(): ?array {
-        return $this->elements;
-    }
-
-    public function setElements(?array $elements): self {
-        $this->elements = $elements;
-        return $this;
-    }
-
     public function getFieldRequiredHidden(): ?bool {
         return $this->fieldRequiredHidden;
     }
 
     public function setFieldRequiredHidden(?bool $fieldRequiredHidden): self {
         $this->fieldRequiredHidden = $fieldRequiredHidden;
-
-        return $this;
-    }
-
-    public function getElementsType(): ?string
-    {
-        return $this->elementsType;
-    }
-
-    public function setElementsType(?string $elementsType): self
-    {
-        $this->elementsType = $elementsType;
 
         return $this;
     }
