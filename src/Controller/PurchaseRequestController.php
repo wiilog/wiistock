@@ -7,7 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
@@ -381,8 +381,8 @@ class PurchaseRequestController extends AbstractController
                 $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
                 $purchaseRequestLine = $purchaseRequestLineRepository->find($data['id']);
 
-                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+                $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
                 $html = $this->renderView('purchase_request/line/edit_content_modal.html.twig', [
                     'line' => $purchaseRequestLine,
                     'fieldsParam' => $fieldsParam

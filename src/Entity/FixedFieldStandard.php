@@ -7,7 +7,7 @@ use App\Repository\FieldsParamRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
-class FieldsParam extends FixedField{
+class FieldsParam extends FixedField {
 
     const ELEMENTS_TYPE_FREE = 'FREE';
     const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';

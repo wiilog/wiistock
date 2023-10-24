@@ -11,7 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
@@ -395,10 +395,10 @@ class LivraisonController extends AbstractController {
             []
         );
 
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'fromDelivery' => $request->query->getBoolean('fromDelivery'),
             'deliveryOrder' => $deliveryOrder->getId(),
         ]));

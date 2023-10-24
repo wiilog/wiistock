@@ -156,33 +156,33 @@
                 </div>
                 {% set descriptionsFields = [
                     {
-                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE'),
-                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedCreate'),
-                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedEdit'),
+                        'label': constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_ARTICLE_DELIVERY_NOTE_LINE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE'), 'displayedEdit'),
                         'value': article.deliveryNote
                     },
                     {
-                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_MANUFACTURED_AT'),
-                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURED_AT'), 'displayedCreate'),
-                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_MANUFACTURED_AT'), 'displayedEdit'),
+                        'label': constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_ARTICLE_MANUFACTURED_AT'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT'), 'displayedEdit'),
                         'value': article.manufacturedAt ? article.manufacturedAt|format_helper('longDate')
                     },
                     {
-                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_PRODUCTION_DATE'),
-                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedCreate'),
-                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedEdit'),
+                        'label': constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_ARTICLE_PRODUCTION_DATE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE'), 'displayedEdit'),
                         'value': article.productionDate ? article.productionDate|format_helper('longDate')
                     },
                     {
-                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE'),
-                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedCreate'),
-                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedEdit'),
+                        'label': constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_ARTICLE_PURCHASE_ORDER_LINE'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE'), 'displayedEdit'),
                         'value': article.purchaseOrder
                     },
                     {
-                        'label': constant('App\\Entity\\FieldsParam::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY'),
-                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedCreate'),
-                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FieldsParam::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedEdit'),
+                        'label': constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_ARTICLE_NATIVE_COUNTRY'),
+                        'isOnCreate': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedCreate'),
+                        'isOnEdit': fieldsParam|isFieldRequired(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY'), 'displayedEdit'),
                         'value': article.nativeCountry ? article.nativeCountry.label : null
                     },
                 ] %}

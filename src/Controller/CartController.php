@@ -8,7 +8,7 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Menu;
@@ -43,7 +43,7 @@ class CartController extends AbstractController
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
         $settingRepository = $manager->getRepository(Setting::class);
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
@@ -128,7 +128,7 @@ class CartController extends AbstractController
             "deliveryFreeFieldsTypes" => $deliveryFreeFields,
             "collectFreeFieldsTypes" => $collectFreeFields,
             "referencesByBuyer" => $referencesByBuyer,
-            "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+            "deliveryFieldsParam" => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "showTargetLocationPicking" => $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             "restrictedCollectLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_COLLECTE_DROPDOWN_LIST),
             "restrictedDeliveryLocations" => $settingRepository->getOneParamByLabel(Setting::MANAGE_LOCATION_DELIVERY_DROPDOWN_LIST),

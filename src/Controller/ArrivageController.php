@@ -12,7 +12,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Chauffeur;
 use App\Entity\Pack;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Dispute;
 use App\Entity\Menu;
@@ -90,7 +90,7 @@ class ArrivageController extends AbstractController {
                           TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -113,7 +113,7 @@ class ArrivageController extends AbstractController {
         $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
 
         $statuses = $statutRepository->findStatusByType(CategorieStatut::ARRIVAGE);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $pageLength = $user->getPageLengthForArrivage() ?: 10;
         $request->request->add(['length' => $pageLength]);
@@ -189,21 +189,21 @@ class ArrivageController extends AbstractController {
             ? $emplacementRepository->find($data['dropLocation'])
             : null;
 
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_COMMENTAIRE, $data["commentaire"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE, filter_var($data["frozen"] ?? false, FILTER_VALIDATE_BOOLEAN));
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_TARGET_ARRIVAGE, $data["destinataire"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE, filter_var($data["customs"] ?? false, FILTER_VALIDATE_BOOLEAN));
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, $data["dropLocation"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_FOURNISSEUR, $data["fournisseur"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, filter_var($data["printArrivage"] ?? false, FILTER_VALIDATE_BOOLEAN));
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE, $data["numeroCommandeList"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
-        $keptFieldService->save(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT, $data["project"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_COMMENTAIRE, $data["commentaire"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE, filter_var($data["frozen"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE, $data["destinataire"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE, filter_var($data["customs"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE, $data["dropLocation"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_FOURNISSEUR, $data["fournisseur"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE, filter_var($data["printArrivage"] ?? false, FILTER_VALIDATE_BOOLEAN));
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE, $data["numeroCommandeList"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, $data["noProject"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE, $data["noTracking"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE, $data["transporteur"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PROJECT, $data["project"] ?? null);
 
         $arrivage = new Arrivage();
         $arrivage
@@ -376,7 +376,7 @@ class ArrivageController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             if ($this->userService->hasRightFunction(Menu::TRACA, Action::EDIT)) {
                 $arrivageRepository = $entityManager->getRepository(Arrivage::class);
-                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+                $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
                 $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
                 $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
                 $attachmentRepository = $entityManager->getRepository(Attachment::class);
@@ -391,7 +391,7 @@ class ArrivageController extends AbstractController {
                 foreach ($arrivage->getAcheteurs() as $acheteur) {
                     $acheteursUsernames[] = $acheteur->getUsername();
                 }
-                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
                 $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE, $arrivage->getType()))
                     ->map(fn(Statut $statut) => [
@@ -410,7 +410,7 @@ class ArrivageController extends AbstractController {
                     'chauffeurs' => $chauffeurRepository->findAllSorted(),
                     'statuts' => $statuses,
                     'fieldsParam' => $fieldsParam,
-                    'businessUnits' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT)
+                    'businessUnits' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT)
                 ]);
             }
 
@@ -790,7 +790,7 @@ class ArrivageController extends AbstractController {
         $printArrivage = $request->query->get('printArrivage');
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $projectRepository = $entityManager->getRepository(Project::class);
@@ -799,7 +799,7 @@ class ArrivageController extends AbstractController {
             $acheteursNames[] = $user->getUsername();
         }
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $defaultDisputeStatus = $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
 
@@ -1511,7 +1511,7 @@ class ArrivageController extends AbstractController {
 
         $defaultDisputeStatus = $statusRepository->getIdDefaultsByCategoryName(CategorieStatut::DISPUTE_ARR);
         $disputeTypes = $typeRepository->findByCategoryLabels([CategoryType::DISPUTE]);
-        $fixedFields = $manager->getRepository(FieldsParam::class)->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fixedFields = $manager->getRepository(FixedFieldStandard::class)->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $buyers = Stream::from($arrival->getAcheteurs())->map(fn(Utilisateur $buyer) => $buyer->getUsername())->join(',');
         $orderNumers = Stream::from($arrival->getNumeroCommandeList())->join(',');

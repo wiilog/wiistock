@@ -2,15 +2,15 @@
 
 namespace App\Repository;
 
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
 /**
- * @method FieldsParam|null find($id, $lockMode = null, $lockVersion = null)
- * @method FieldsParam|null findOneBy(array $criteria, array $orderBy = null)
- * @method FieldsParam[]    findAll()
- * @method FieldsParam[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method FixedFieldStandard|null find($id, $lockMode = null, $lockVersion = null)
+ * @method FixedFieldStandard|null findOneBy(array $criteria, array $orderBy = null)
+ * @method FixedFieldStandard[]    findAll()
+ * @method FixedFieldStandard[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class FieldsParamRepository extends EntityRepository
 {
@@ -23,7 +23,7 @@ class FieldsParamRepository extends EntityRepository
             ->getResult();
 
         return Stream::from($fields)
-            ->keymap(fn(FieldsParam $field) => [$field->getFieldCode(), [
+            ->keymap(fn(FixedFieldStandard $field) => [$field->getFieldCode(), [
                 "requiredCreate" => $field->isRequiredCreate(),
                 "requiredEdit" => $field->isRequiredEdit(),
                 "displayedCreate" => $field->isDisplayedCreate(),
@@ -52,7 +52,7 @@ class FieldsParamRepository extends EntityRepository
         $query = $em
             ->createQuery(
                 "SELECT f.fieldCode
-                FROM App\Entity\FieldsParam f
+                FROM App\Entity\FixedFieldStandard f
                 WHERE f.entityCode = :entity AND f.displayedCreate = 0 AND f.displayedEdit = 0"
             )
             ->setParameter('entity', $entity);
@@ -69,7 +69,7 @@ class FieldsParamRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByEntityAndCode(string $entity, string $field): ?FieldsParam {
+    public function findByEntityAndCode(string $entity, string $field): ?FixedFieldStandard {
         return $this->createQueryBuilder("f")
             ->where("f.entityCode = :entity")
             ->andWhere("f.fieldCode = :field")

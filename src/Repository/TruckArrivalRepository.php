@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;

@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\Attachment;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 
@@ -199,12 +199,12 @@ class LivraisonService
             [
                 'label' => 'Date attendue',
                 'value' => $this->formatService->date($deliveryOrder?->getDemande()->getExpectedAt()),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT]
             ],
             [
                 'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($deliveryOrder?->getDemande()?->getProject()),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
             [
                 'label' => 'Commentaire',

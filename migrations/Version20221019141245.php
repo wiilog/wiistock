@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
@@ -23,9 +23,9 @@ final class Version20221019141245 extends AbstractMigration
         if (!$schema->getTable('fields_param')->hasColumn('modal_type')) {
             $this->addSql("ALTER TABLE fields_param ADD modal_type VARCHAR(255) DEFAULT NULL");
         }
-        $this->addSql("UPDATE fields_param SET modal_type = '" . FieldsParam::ELEMENTS_TYPE_FREE . "' WHERE elements IS NOT NULL");
-        $this->addSql("UPDATE fields_param SET modal_type = '" . FieldsParam::ELEMENTS_TYPE_USER . "' WHERE field_code = 'receivers'");
-        $this->addSql("UPDATE fields_param SET elements = '[]' WHERE modal_type = '" . FieldsParam::ELEMENTS_TYPE_USER . "' AND elements is NULL");
+        $this->addSql("UPDATE fields_param SET modal_type = '" . FixedFieldStandard::ELEMENTS_TYPE_FREE . "' WHERE elements IS NOT NULL");
+        $this->addSql("UPDATE fields_param SET modal_type = '" . FixedFieldStandard::ELEMENTS_TYPE_USER . "' WHERE field_code = 'receivers'");
+        $this->addSql("UPDATE fields_param SET elements = '[]' WHERE modal_type = '" . FixedFieldStandard::ELEMENTS_TYPE_USER . "' AND elements is NULL");
     }
 
     public function down(Schema $schema): void

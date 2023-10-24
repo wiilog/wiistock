@@ -8,7 +8,7 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -80,7 +80,7 @@ class DemandeController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $settingRepository = $entityManager->getRepository(Setting::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -106,7 +106,7 @@ class DemandeController extends AbstractController
                     'value' => $demande->getReceiver()?->getId(),
                     'selected' => true,
                 ] : [],
-                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -245,19 +245,19 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
@@ -281,7 +281,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
             'fields' => $fields,
             'filterStatus' => $filter,
@@ -840,8 +840,8 @@ class DemandeController extends AbstractController
                                     Demande                $delivery,
                                     Pack                   $logisticUnit,
                                     TranslationService     $translation): JsonResponse {
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $projectRequired = $projectField->isDisplayedCreate() && $projectField->isRequiredCreate()
             || $projectField->isDisplayedEdit() && $projectField->isRequiredEdit();
@@ -903,25 +903,25 @@ class DemandeController extends AbstractController
                                         TranslationService     $translation){
         $typeRepository = $entityManager->getRepository(Type::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
-        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
+        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];

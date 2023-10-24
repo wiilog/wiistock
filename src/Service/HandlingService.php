@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Handling;
@@ -173,8 +173,8 @@ class HandlingService {
                     : ['Demande', 'Services', 'Emails', 'Une demande de service vous concernant a changé de statut', false];
             }
 
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
 
             $this->mailerService->sendMail(
                 $subject,

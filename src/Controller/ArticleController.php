@@ -8,7 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -148,11 +148,11 @@ class ArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
@@ -219,10 +219,10 @@ class ArticleController extends AbstractController
     #[Route("/nouveau-page", name: "article_new_page", options: ["expose" => true])]
     public function newTemplate(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         $barcode = $articleDataService->generateBarcode();
 
@@ -810,7 +810,7 @@ class ArticleController extends AbstractController
     public function editTemplate(EntityManagerInterface $manager, Article $article) {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
@@ -820,7 +820,7 @@ class ArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/form/edit.html.twig", [
             "article" => $article,

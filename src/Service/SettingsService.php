@@ -8,7 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
@@ -820,18 +820,18 @@ class SettingsService {
         if (isset($tables["fixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["fixedFields"]);
 
-            $fieldsParamRepository = $this->manager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $this->manager->getRepository(FixedFieldStandard::class);
             $fieldsParams = Stream::from($fieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FieldsParam $subLineFieldParam */
+                /** @var FixedFieldStandard $subLineFieldParam */
                 $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($subLineFieldParam) {
                     $code = $subLineFieldParam->getFieldCode();
-                    $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
+                    $alwaysRequired = in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS);
                     $subLineFieldParam
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
@@ -1281,9 +1281,9 @@ class SettingsService {
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
         $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
@@ -1322,9 +1322,9 @@ class SettingsService {
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
         $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];

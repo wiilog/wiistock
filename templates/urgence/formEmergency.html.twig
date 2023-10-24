@@ -19,7 +19,7 @@
     </div>
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -29,7 +29,7 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -39,7 +39,7 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_BUYER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -56,7 +56,7 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -73,7 +73,7 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_CARRIER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -90,7 +90,7 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -100,8 +100,8 @@
     {% endif %}
 
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_TYPE') %}
-    {% set fieldLabel = constant('App\\Entity\\FieldsParam::FIELD_LABEL_EMERGENCY_TYPE') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE') %}
+    {% set fieldLabel = constant('App\\Entity\\FixedFieldStandard::FIELD_LABEL_EMERGENCY_TYPE') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -117,7 +117,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -126,7 +126,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE') %}
+    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">

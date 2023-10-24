@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\CSVExportService;
@@ -31,12 +31,12 @@ class UrgencesController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_URGE])]
     public function index(EntityManagerInterface $entityManager)
     {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         return $this->render('urgence/index.html.twig', [
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_EMERGENCY),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
             'newEmergency' => new Urgence(),
-            'types' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE)
+            'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
         ]);
     }
 
@@ -57,7 +57,7 @@ class UrgencesController extends AbstractController
                         UrgenceService $urgenceService,
                         FieldsParamService $fieldsParamService,
                         FormatService $formatService): Response {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FieldsParam::ENTITY_CODE_EMERGENCY, true)->all();
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, true)->all();
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
 
@@ -116,15 +116,15 @@ class UrgencesController extends AbstractController
     public function editApi(Request $request,
                             EntityManagerInterface $entityManager): Response
     {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         if ($data = json_decode($request->getContent(), true)) {
             $urgenceRepository = $entityManager->getRepository(Urgence::class);
             $urgence = $urgenceRepository->find($data['id']);
             $json = $this->renderView('urgence/formEmergency.html.twig', [
                 'emergency' => $urgence,
-                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_EMERGENCY),
-                'types' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_EMERGENCY, FieldsParam::FIELD_CODE_EMERGENCY_TYPE)
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_EMERGENCY),
+                'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE)
             ]);
 
             return new JsonResponse($json);
@@ -140,7 +140,7 @@ class UrgencesController extends AbstractController
                          FieldsParamService $fieldsParamService,
                          FormatService $formatService): Response
     {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FieldsParam::ENTITY_CODE_EMERGENCY, false)->all();
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, false)->all();
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
         $urgence = $urgenceRepository->find($data['id']);
         $response = [];

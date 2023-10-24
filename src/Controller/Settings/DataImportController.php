@@ -3,7 +3,7 @@
 namespace App\Controller\Settings;
 
 use App\Entity\CategorieStatut;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Import;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
@@ -45,7 +45,7 @@ class DataImportController extends AbstractController
         $post = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $importRepository = $entityManager->getRepository(Import::class);
 
         /** @var Utilisateur $loggedUser */
@@ -133,7 +133,7 @@ class DataImportController extends AbstractController
                             if ($fieldParamCode) {
                                 $fieldParam = $fieldsParamRepository->findOneBy([
                                     'fieldCode' => $fieldParamCode,
-                                    'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                                    'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                                 ]);
                                 if ($fieldParam && $fieldParam->isRequiredCreate()) {
                                     $fieldsNeeded[] = $field;

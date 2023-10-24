@@ -9,7 +9,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\ReceptionReferenceArticle;
@@ -341,8 +341,8 @@ class ReceptionService
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
@@ -427,7 +427,7 @@ class ReceptionService
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         return array_merge(
             $configFiltered,

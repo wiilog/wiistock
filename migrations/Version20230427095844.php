@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\Setting;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -23,7 +23,7 @@ final class Version20230427095844 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $fieldCode = FieldsParam::FIELD_CODE_DESTINATION_DEMANDE;
+        $fieldCode = FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE;
         $oldSetting = $this->connection->executeQuery("
             SELECT setting.value
             FROM setting
@@ -43,10 +43,10 @@ final class Version20230427095844 extends AbstractMigration
                 INSERT INTO fields_param(entity_code, field_code, field_label, required_create, required_edit, displayed_create, displayed_edit, displayed_filters, modal_type)
                 VALUES (:entityCode, :fieldCode, :fieldLabel, '1', '1', '1', '1', '1', :modalType)
             ", [
-                'entityCode' => FieldsParam::ENTITY_CODE_DEMANDE,
+                'entityCode' => FixedFieldStandard::ENTITY_CODE_DEMANDE,
                 'fieldCode' => $fieldCode,
-                'fieldLabel' => FieldsParam::FIELD_LABEL_DESTINATION_DEMANDE,
-                'modalType' => FieldsParam::ELEMENTS_LOCATION_BY_TYPE,
+                'fieldLabel' => FixedFieldStandard::FIELD_LABEL_DESTINATION_DEMANDE,
+                'modalType' => FixedFieldStandard::ELEMENTS_LOCATION_BY_TYPE,
             ]);
         }
 

@@ -9,7 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -645,16 +645,16 @@ class DeliveryRequestService
             [
                 'label' => 'Date attendue',
                 'value' => $this->formatService->date($demande->getExpectedAt()),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT]
             ],
             [
                 'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
         ];
 
-        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DEMANDE);
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DEMANDE);
         return array_merge(
             $configFiltered,
             $freeFieldArray,

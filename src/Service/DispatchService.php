@@ -12,7 +12,7 @@ use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Nature;
@@ -222,14 +222,14 @@ class DispatchService {
                                          bool $fromArrival = false,
                                          array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $draftStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::DISPATCH, [Statut::DRAFT]);
         $existingDispatches = $dispatchRepository->findBy([
@@ -240,7 +240,7 @@ class DispatchService {
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
                 $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -329,38 +329,38 @@ class DispatchService {
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false),
                 'value' => $this->formatService->carrier($carrier, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false),
                 'value' => $carrierTrackingNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
             ],
             $receiverDetails ?? [],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° projet', false),
                 'value' => $projectNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
                 'value' => $dispatch->getBusinessUnit() ?? '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
                 'value' => $commandNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
                 'value' => $this->formatService->location($locationFrom, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_LOCATION_PICK]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
                 'value' => $this->formatService->location($locationTo, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', "Dates d'échéance", false),
@@ -370,7 +370,7 @@ class DispatchService {
                         2 => $endDateStr
                     ], false)
                     : '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false),
@@ -379,27 +379,27 @@ class DispatchService {
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
                 'value' => $dispatch->getDestination() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DESTINATION]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
                 'value' => $dispatch->getCustomerName() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
                 'value' => $dispatch->getCustomerPhone() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de', false),
                 'value' => $dispatch->getCustomerRecipient() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
                 'value' => $dispatch->getCustomerAddress() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
         ];
 
@@ -427,7 +427,7 @@ class DispatchService {
             ];
         }
 
-        return $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
+        return $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DISPATCH);
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -2033,23 +2033,23 @@ class DispatchService {
                                        InputBag               $form,
                                        Dispatch               $dispatch,
                                        bool                   $isCreation):InputBag {
-        if ($form->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)){
+        if ($form->get(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH)){
             $form->add([
-                FieldsParam::FIELD_CODE_DEADLINE_DISPATCH => true,
+                FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH => true,
             ]);
         }
         if ($dispatch->getAttachments()->count()){
             $form->add([
-                FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
+                FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
             ]);
         }
         return $this->fieldsParamService->checkForErrors(
             $entityManager,
             $form,
-            FieldsParam::ENTITY_CODE_DISPATCH,
+            FixedFieldStandard::ENTITY_CODE_DISPATCH,
             $isCreation,
             New ParameterBag([
-                FieldsParam::FIELD_CODE_EMERGENCY => true,
+                FixedFieldStandard::FIELD_CODE_EMERGENCY => true,
             ])
         );
     }

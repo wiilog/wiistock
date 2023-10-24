@@ -4,7 +4,7 @@
 namespace App\Service;
 
 
-use App\Entity\FieldsParam;
+use App\Entity\FixedFieldStandard;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -26,7 +26,7 @@ class FieldsParamService
     }
 
     public function filterHeaderConfig(array $config, string $entityCode) {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
 
         $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
 
@@ -44,7 +44,7 @@ class FieldsParamService
                                    string                 $entityCode,
                                    bool                   $isCreation,
                                    ?ParameterBag          $ignoredFields = null ): InputBag {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
 
         $displayAction = $isCreation ? 'displayedCreate' : 'displayedEdit';
