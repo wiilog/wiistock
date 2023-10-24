@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedField;
 use App\Repository\FieldsParamRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
-class FieldsParam {
+class FieldsParam extends FixedField{
 
     const ELEMENTS_TYPE_FREE = 'FREE';
     const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';
@@ -279,16 +280,6 @@ class FieldsParam {
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $entityCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldLabel = null;
-
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
 
@@ -323,26 +314,6 @@ class FieldsParam {
         return $this->id;
     }
 
-    public function getEntityCode(): ?string {
-        return $this->entityCode;
-    }
-
-    public function setEntityCode(string $entityCode): self {
-        $this->entityCode = $entityCode;
-
-        return $this;
-    }
-
-    public function getFieldCode(): ?string {
-        return $this->fieldCode;
-    }
-
-    public function setFieldCode(string $fieldCode): self {
-        $this->fieldCode = $fieldCode;
-
-        return $this;
-    }
-
     public function isRequiredCreate(): ?bool {
         return $this->requiredCreate;
     }
@@ -367,18 +338,9 @@ class FieldsParam {
         return $this->keptInMemory;
     }
 
-    public function setKeptInMemory(?bool $keptInMemory): self {
+    public function setKeptInMemory(?bool $keptInMemory): self
+    {
         $this->keptInMemory = $keptInMemory;
-
-        return $this;
-    }
-
-    public function getFieldLabel(): ?string {
-        return $this->fieldLabel;
-    }
-
-    public function setFieldLabel(string $fieldLabel): self {
-        $this->fieldLabel = $fieldLabel;
 
         return $this;
     }
