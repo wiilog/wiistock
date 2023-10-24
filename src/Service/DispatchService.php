@@ -4,24 +4,24 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Attachment;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
-use App\Entity\FreeField;
-use App\Entity\Dispatch;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
-use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -29,16 +29,15 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class DispatchService {
 

@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Handling;
@@ -13,14 +13,14 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use DateTime;
-use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Contracts\Service\Attribute\Required;
+use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class HandlingService {
 

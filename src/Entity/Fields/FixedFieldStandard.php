@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Fields;
 
-use App\Entity\Fields\FixedField;
 use App\Repository\FixedFieldStandardRepository;
 use Doctrine\ORM\Mapping as ORM;
 

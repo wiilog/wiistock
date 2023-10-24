@@ -3,24 +3,23 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
-use App\Entity\Arrivage;
-use App\Entity\CategorieCL;
-use App\Entity\Dispatch;
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\Attachment;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
-use App\Entity\FreeField;
 use App\Entity\Emplacement;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
-
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\DispatchPack;
 use App\Entity\Setting;
-use App\Entity\Attachment;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\SubLineFieldsParam;
@@ -28,28 +27,25 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Service\DataExportService;
-use App\Service\LanguageService;
-use App\Service\NotificationService;
-use App\Service\RefArticleDataService;
-use App\Service\StatusHistoryService;
-use App\Service\VisibleColumnService;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
+use App\Service\DispatchService;
 use App\Service\FreeFieldService;
+use App\Service\LanguageService;
+use App\Service\NotificationService;
 use App\Service\PackService;
 use App\Service\RedirectService;
+use App\Service\RefArticleDataService;
+use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\DispatchService;
-
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,7 +54,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 #[Route("/acheminements")]

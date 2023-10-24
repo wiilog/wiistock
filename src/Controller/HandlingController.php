@@ -4,51 +4,47 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Handling;
 use App\Entity\Language;
 use App\Entity\Menu;
-use App\Entity\Handling;
-use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
+use App\Service\AttachmentService;
+use App\Service\CSVExportService;
+use App\Service\DateService;
 use App\Service\ExceptionLoggerService;
 use App\Service\FormatService;
+use App\Service\FreeFieldService;
+use App\Service\HandlingService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
+use App\Service\TranslationService;
+use App\Service\UniqueNumberService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use GuzzleHttp\Exception\ConnectException;
-use WiiCommon\Helper\Stream;
-use App\Service\AttachmentService;
-use App\Service\CSVExportService;
-use App\Service\DateService;
-use App\Service\FreeFieldService;
-use App\Service\UniqueNumberService;
-use App\Service\HandlingService;
-
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-
+use GuzzleHttp\Exception\ConnectException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Service\TranslationService;
+use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
-use WiiCommon\Helper\StringHelper;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/services")

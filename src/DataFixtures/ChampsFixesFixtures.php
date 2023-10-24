@@ -3,8 +3,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\FixedFieldStandard;
-
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\SubLineFieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;

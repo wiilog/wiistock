@@ -10,13 +10,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Chauffeur;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
@@ -99,8 +99,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use WiiCommon\Helper\Stream;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 
 class MobileController extends AbstractApiController

@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\CSVExportService;
@@ -14,7 +14,7 @@ use App\Service\FormatService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\UrgenceService;
-use App\Service\UserService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +22,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
 
 #[Route('/urgences')]
 class UrgencesController extends AbstractController

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\FixedFieldStandard;
 use App\Entity\SubLineFieldsParam;
 use App\Service\SpecificService;
 use Doctrine\DBAL\Schema\Schema;

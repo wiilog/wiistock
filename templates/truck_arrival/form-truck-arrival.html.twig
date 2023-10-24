@@ -4,7 +4,7 @@
 {% set requiredAction = truckArrival.id ? 'requiredEdit' : 'requiredCreate' %}
 
 <div class="row fly-form">
-    {% set carrierFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
+    {% set carrierFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(carrierFieldCode, displayAction) %}
     {% if displayOnform %}
         {% set requiredOnform = fieldsParam|isFieldRequired(carrierFieldCode, requiredAction) %}

@@ -3,7 +3,7 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCommand.html.twig' %}
     {% endif %}

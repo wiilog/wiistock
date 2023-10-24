@@ -76,7 +76,7 @@
                                autocomplete="off"/>
                     </div>
 
-                    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         {% set isFieldRequired = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="form-group col-md-6 col-12">
@@ -94,7 +94,7 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_LOADING_ZONE') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
                             <label class="wii-field-name" for="source">{{ trans('Demande', 'Services', 'Modale et détails', 'Chargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
@@ -102,7 +102,7 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
                             <label class="wii-field-name" for="destination">{{ trans('Demande', 'Services', 'Modale et détails', 'Déchargement') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' : '' }}</label>
@@ -110,7 +110,7 @@
                         </div>
                     {% endif %}
 
-                    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
                             <label for="carriedOutOperationCount" class="wii-field-name">{{ trans('Demande', 'Services', 'Modale et détails', 'Nombre d\'opération(s) réalisée(s)') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>
@@ -120,7 +120,7 @@
                                    name="carriedOutOperationCount">
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-md-6 col-12">
                             <label class="wii-field-name">{{ trans('Demande', 'Services', 'Zone liste - Nom de colonnes', 'Destinataires') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') ? '*' }}</label>

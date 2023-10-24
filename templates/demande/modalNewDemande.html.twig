@@ -61,7 +61,7 @@
                             </div>
                         </div>
 
-                        {% set fieldCodeReceiver = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE') %}
+                        {% set fieldCodeReceiver = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE') %}
                         {% if fieldsParam|isFieldRequired(fieldCodeReceiver, 'displayedCreate') %}
                             {% set fieldRequired = fieldsParam|isFieldRequired(fieldCodeReceiver, 'requiredCreate') %}
                             <div class="col-12 col-md-6">

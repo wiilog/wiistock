@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
@@ -52,7 +52,7 @@ class FixedFieldStandardRepository extends EntityRepository
         $query = $em
             ->createQuery(
                 "SELECT f.fieldCode
-                FROM App\Entity\FixedFieldStandard f
+                FROM App\Entity\Fields\FixedFieldStandard f
                 WHERE f.entityCode = :entity AND f.displayedCreate = 0 AND f.displayedEdit = 0"
             )
             ->setParameter('entity', $entity);

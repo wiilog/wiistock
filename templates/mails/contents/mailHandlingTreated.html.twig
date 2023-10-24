@@ -15,7 +15,7 @@
     <div>{{ translateIn(language, 'Demande', 'Général', 'Demandeur', false) }} :
         <strong>{{ handling.requester ? handling.requester.username }}</strong>
     </div>
-    {% set fieldCodeReceiversHandling = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
+    {% set fieldCodeReceiversHandling = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
     {% if (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedCreate')
         or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedEdit')
         or fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedFilters')) %}

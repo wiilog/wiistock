@@ -7,7 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
@@ -17,26 +17,21 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
-use App\Service\PurchaseRequestRuleService;
+use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionLineService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
-use DateTime;
-use App\Service\CSVExportService;
 use App\Service\UserService;
-
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
-
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**

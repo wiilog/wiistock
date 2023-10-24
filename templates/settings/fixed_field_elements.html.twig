@@ -14,7 +14,7 @@
             } %}
             <input type="hidden" name="field" value="{{ field }}"/>
 
-            {% if elementsType == constant('App\\Entity\\FixedFieldStandard::ELEMENTS_TYPE_FREE') %}
+            {% if elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE_FREE') %}
                 <div class="modal-body">
                     {{ form.select('elements', 'Valeurs possibles', false, {
                         type: null,

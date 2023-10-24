@@ -20,7 +20,7 @@
         filterTypes: typesFilter,
         disabled: fromDashboard ? 'disabled',
     } %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
             name: 'requesters',
@@ -28,19 +28,19 @@
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCarrier.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
             name: 'receivers',
@@ -48,19 +48,19 @@
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCommandList.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterDestination.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'pickLocation',
@@ -68,7 +68,7 @@
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'dropLocation',

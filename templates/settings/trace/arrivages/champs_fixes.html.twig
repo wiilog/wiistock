@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT'),
     field: businessUnit.field,
     elementsType: businessUnit.elementsType,
     elements: businessUnit.elements,

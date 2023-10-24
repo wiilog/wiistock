@@ -10,7 +10,7 @@
 <div class="row">
     <div class="col-md-4 col-12">
         {% set uniqueType = typeChampsLibres is defined and typeChampsLibres|length == 1 %}
-        {{ form.select(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
+        {{ form.select(constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
             disabled: dispatch.id,
             additionalAttributes: dispatch.id ? [] :[
                 { name: 'onChange', value: 'onDispatchTypeChange($(this))' },
@@ -33,7 +33,7 @@
         }) }}
     </div>
     <div class="col-md-4 col-12 form-item">
-        {{ form.select(constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH'), trans('Demande', 'Général', 'Statut', false), true, {
+        {{ form.select(constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH'), trans('Demande', 'Général', 'Statut', false), true, {
             disabled: dispatch.id,
             items: dispatch.id and dispatch.statut ? [{
                 value:  dispatch.statut.id,
@@ -65,7 +65,7 @@
     </div>
 
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -83,7 +83,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -103,7 +103,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -123,7 +123,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -136,7 +136,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -156,7 +156,7 @@
     {% endif %}
 
     {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::SHOW_CARRIER_FIELD')) %}
-        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
         {% if displayOnform %}
             <div class="form-group col-md-4 col-12">
@@ -173,7 +173,7 @@
         {% endif %}
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -182,7 +182,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -199,7 +199,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -208,7 +208,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -222,7 +222,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -242,7 +242,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_EMAILS') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMAILS') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -260,7 +260,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
@@ -269,7 +269,7 @@
                 content: [
                     {
                         label: 'Du',
-                        name: constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH'),
+                        name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH'),
                         value: dispatch.startDate ? dispatch.startDate|date('Y-m-d') : null,
                         type: 'date',
                         autocompleteOff: true,
@@ -281,7 +281,7 @@
                     },
                     {
                         label: 'Au',
-                        name: constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH'),
+                        name: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH'),
                         value: dispatch.endDate ? dispatch.endDate|date('Y-m-d') : null,
                         type: 'date',
                         autocompleteOff: true,
@@ -297,7 +297,7 @@
     {% endif %}
 </div>
 <div class="row">
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -317,7 +317,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -326,7 +326,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
@@ -335,7 +335,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col-md-8 col-12">
@@ -369,7 +369,7 @@
         </div>
     </div>
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="form-group col">
@@ -378,7 +378,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}

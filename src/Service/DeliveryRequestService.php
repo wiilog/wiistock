@@ -9,15 +9,14 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\FixedFieldStandard;
-use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\MouvementStock;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
-use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -29,13 +28,12 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class DeliveryRequestService
 {

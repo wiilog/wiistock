@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\FixedFieldStandard;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Setting;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Google\Service\Spanner\Field;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
