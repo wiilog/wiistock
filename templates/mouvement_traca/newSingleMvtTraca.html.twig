@@ -2,8 +2,10 @@
     <div class="form-group col-12">
         <label for="pack" title="UL" class="wii-field-name">{{ trans('Traçabilité', 'Général', 'Unité logistique', false) }}*</label>
         <input type="text" class="form-control data needed" id="pack" name="pack" data-fill-quantity>
-    </div>
-
+        <div class="warning-message wii-warning-text mt-2" hidden>
+            Les unités logistiques scannées ne sont pas réellement présentent sur cet emplacement de prise.
+        </div>
+</div>
     <div class="form-group col-12">
         <label class="my-auto mr-2 wii-field-name">{{ trans('Traçabilité', 'Général', 'Emplacement', false) }}*</label>
         <select name="emplacement" class="form-control ajax-autocomplete-location data needed w-100">
