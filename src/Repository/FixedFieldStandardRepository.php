@@ -12,7 +12,7 @@ use WiiCommon\Helper\Stream;
  * @method FixedFieldStandard[]    findAll()
  * @method FixedFieldStandard[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FieldsParamRepository extends EntityRepository
+class FixedFieldStandardRepository extends EntityRepository
 {
 
     function getByEntity(string $entity): array {

@@ -3,11 +3,11 @@
 namespace App\Entity;
 
 use App\Entity\Fields\FixedField;
-use App\Repository\FieldsParamRepository;
+use App\Repository\FixedFieldStandardRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
-class FieldsParam extends FixedField {
+#[ORM\Entity(repositoryClass: FixedFieldStandardRepository::class)]
+class FixedFieldStandard extends FixedField {
 
     const ELEMENTS_TYPE_FREE = 'FREE';
     const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';
@@ -211,69 +211,69 @@ class FieldsParam extends FixedField {
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+        FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE,
     ];
 
     public const FILTER_ONLY_FIELDS = [
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
-        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
+        FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
+        FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     public const FILTERED_FIELDS = [
         // Arrivages UL
-        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
-        FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
-        FieldsParam::FIELD_CODE_FOURNISSEUR,
-        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
-        FieldsParam::FIELD_CODE_TRANSPORTEUR,
-        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
-        FieldsParam::FIELD_CODE_BUSINESS_UNIT,
-        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_FOURNISSEUR,
+        FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
+        FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
+        FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
+        FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+        FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
 
         // Acheminements
-        FieldsParam::FIELD_CODE_EMERGENCY,
-        FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
-        FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
-        FieldsParam::FIELD_CODE_DESTINATION,
-        FieldsParam::FIELD_CODE_LOCATION_PICK,
-        FieldsParam::FIELD_CODE_LOCATION_DROP,
-        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_CARRIER_DISPATCH,
+        FixedFieldStandard::FIELD_CODE_EMERGENCY,
+        FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
+        FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
+        FixedFieldStandard::FIELD_CODE_DESTINATION,
+        FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+        FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+        FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+        FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
 
         // Services
-        FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
+        FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING,
 
         // Arrivages camion
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
 
         // Livraison
-        FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT
+        FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT
     ];
 
     public const NOT_EDITABLE_FIELDS = [
         // Arrivages
-        FieldsParam::FIELD_CODE_PROJECT
+        FixedFieldStandard::FIELD_CODE_PROJECT
     ];
 
     public const ON_NOMADE_FILEDS = [
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
+        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
-        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
-        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
+        FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+        FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
+        FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
     #[ORM\Id]
