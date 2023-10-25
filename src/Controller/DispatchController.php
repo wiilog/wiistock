@@ -14,7 +14,7 @@ use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
@@ -876,16 +876,16 @@ class DispatchController extends AbstractController {
                 "code" => null,
                 "quantity" => null,
                 "nature" => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => null,
             ];
         }
         return $this->json([
@@ -913,9 +913,9 @@ class DispatchController extends AbstractController {
         $length = $data["length"] ?? null;
 
         $field = match (true) {
-            $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
-            $width !== null && !StringHelper::matchEvery($width, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
-            $length !== null && !StringHelper::matchEvery($length, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
+            $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+            $width !== null && !StringHelper::matchEvery($width, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
+            $length !== null && !StringHelper::matchEvery($length, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
             default => null,
         };
 

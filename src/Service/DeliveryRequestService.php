@@ -12,7 +12,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\MouvementStock;
@@ -955,14 +955,14 @@ class DeliveryRequestService
             $columnsVisible = $request->getVisibleColumns();
         }
 
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
-        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
-        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
-        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
-        $isNotesDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
-        $isNotesRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isNotesDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
+        $isNotesRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
         $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
@@ -996,17 +996,17 @@ class DeliveryRequestService
                                        Demande                                                      $deliveryRequest,
                                        Utilisateur                                                  $currentUser,
                                        DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
-            ?? $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+            ?? $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $subLineFieldsParams = $this->cache['subLineFieldsParams'];
 
-        $commentParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
+        $commentParam = $subLineFieldsParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
         $isCommentRequired = $commentParam['required'] ?? false;
 
-        $projectParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
+        $projectParam = $subLineFieldsParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
         $isProjectRequired = $projectParam['required'] ?? false;
         $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
         $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
@@ -1061,7 +1061,7 @@ class DeliveryRequestService
                 $articleId = $line->getArticle()->getId();
             }
 
-            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
+            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === SubLineFixedField::DISPLAY_CONDITION_REFERENCE_TYPE && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
             $projectItems = $line->getProject()
                 ? [
                     'text' => $this->formatService->project($line->getProject()),

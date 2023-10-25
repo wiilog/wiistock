@@ -2,15 +2,15 @@
 
 namespace App\Repository;
 
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
 /**
- * @method SubLineFieldsParam|null find($id, $lockMode = null, $lockVersion = null)
- * @method SubLineFieldsParam|null findOneBy(array $criteria, array $orderBy = null)
- * @method SubLineFieldsParam[]    findAll()
- * @method SubLineFieldsParam[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method SubLineFixedField|null find($id, $lockMode = null, $lockVersion = null)
+ * @method SubLineFixedField|null findOneBy(array $criteria, array $orderBy = null)
+ * @method SubLineFixedField[]    findAll()
+ * @method SubLineFixedField[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class SubLineFieldsParamRepository extends EntityRepository
 {
@@ -22,7 +22,7 @@ class SubLineFieldsParamRepository extends EntityRepository
             ->getResult();
 
         return Stream::from($fields)
-            ->keymap(fn(SubLineFieldsParam $field) => [$field->getFieldCode(), [
+            ->keymap(fn(SubLineFixedField $field) => [$field->getFieldCode(), [
                 "displayed" => $field->isDisplayed(),
                 "displayedUnderCondition" => $field->isDisplayedUnderCondition(),
                 "conditionFixedField" => $field->getConditionFixedField(),
@@ -41,7 +41,7 @@ class SubLineFieldsParamRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByEntityAndCode(string $entity, string $field): ?SubLineFieldsParam {
+    public function findByEntityAndCode(string $entity, string $field): ?SubLineFixedField {
         return $this->createQueryBuilder("subLineFieldsParam")
             ->where("subLineFieldsParam.entityCode = :entity")
             ->andWhere("subLineFieldsParam.fieldCode = :field")

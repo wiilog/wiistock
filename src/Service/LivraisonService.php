@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\Attachment;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\Pack;
@@ -348,11 +348,11 @@ class LivraisonService
             $entityManager->flush();
             $columnsVisible = $request->getVisibleColumns();
         }
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
-        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
-        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
-        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
-        $isNotesDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isNotesDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
 
         $columns= [
             ['name' => 'Actions', 'title' => '', 'className' => 'noVis', 'orderable' => false, 'alwaysVisible' => true],

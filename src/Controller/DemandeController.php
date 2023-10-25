@@ -12,7 +12,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -345,7 +345,7 @@ class DemandeController extends AbstractController
                          Demande                $deliveryRequest,
                          EntityManagerInterface $manager): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $currentUser = $this->getUser();
 
         $status = $deliveryRequest->getStatut();
@@ -356,7 +356,7 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
-            'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
+            'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
             'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),

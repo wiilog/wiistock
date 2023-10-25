@@ -13,7 +13,7 @@ use App\Entity\DaysWorked;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Import;
@@ -1080,7 +1080,7 @@ class SettingsController extends AbstractController {
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $frequencyRepository = $entityManager->getRepository(InventoryFrequency::class);
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $subLineFieldParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
@@ -1315,16 +1315,16 @@ class SettingsController extends AbstractController {
                         $businessField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
-                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
-                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
+                            'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
                         ]);
                         $dispatchLogisticUnitWidthField = $subLineFieldParamRepository->findOneBy([
-                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
-                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                            'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
                         ]);
                         $dispatchLogisticUnitHeightField = $subLineFieldParamRepository->findOneBy([
-                            'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
-                            'fieldCode' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                            'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                            'fieldCode' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
                         ]);
                         return [
                             "emergency" => [
@@ -1350,7 +1350,7 @@ class SettingsController extends AbstractController {
                                     ->toArray(),
                             ],
                             "dispatchLogisticUnitFixedFields" => [
-                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => [
+                                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => [
                                     "field" => $dispatchLogisticUnitLengthField->getId(),
                                     "elementsType" => FixedFieldStandard::ELEMENTS_TYPE_FREE,
                                     "elements" => Stream::from($dispatchLogisticUnitLengthField->getElements() ?? [])
@@ -1361,7 +1361,7 @@ class SettingsController extends AbstractController {
                                         ])
                                         ->toArray(),
                                 ],
-                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => [
+                                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => [
                                     "field" => $dispatchLogisticUnitWidthField->getId(),
                                     "elementsType" => FixedFieldStandard::ELEMENTS_TYPE_FREE,
                                     "elements" => Stream::from($dispatchLogisticUnitWidthField->getElements() ?? [])
@@ -1372,7 +1372,7 @@ class SettingsController extends AbstractController {
                                         ])
                                         ->toArray(),
                                 ],
-                                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => [
+                                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => [
                                     "field" => $dispatchLogisticUnitHeightField->getId(),
                                     "elementsType" => FixedFieldStandard::ELEMENTS_TYPE_FREE,
                                     "elements" => Stream::from($dispatchLogisticUnitHeightField->getElements() ?? [])
@@ -1735,7 +1735,7 @@ class SettingsController extends AbstractController {
      */
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, int $field): Response {
         $field = $request->query->getBoolean('isSubLine')
-            ? $manager->find(SubLineFieldsParam::class, $field)
+            ? $manager->find(SubLineFixedField::class, $field)
             : $manager->find(FixedFieldStandard::class, $field);
 
         if ($field->getElementsType() == FixedFieldStandard::ELEMENTS_TYPE_FREE) {
@@ -2542,17 +2542,17 @@ class SettingsController extends AbstractController {
      */
     public function subLinesFixedFieldApi(EntityManagerInterface $entityManager, string $entity, FormService $formService): Response
     {
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $rows = Stream::from($subLineFieldsParamRepository->findByEntityForEntity($entity))
-            ->map(function (SubLineFieldsParam $field) use ($formService, $typeRepository) {
+            ->map(function (SubLineFixedField $field) use ($formService, $typeRepository) {
 
                 $label = ucfirst($field->getFieldLabel());
 
                 $fieldEntityCode = $field->getEntityCode();
                 $isDisplayUnderCondition = $field->isDisplayedUnderCondition();
-                $isDisplayUnderConditionDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$fieldEntityCode] ?? []);
-                $isRequiredDisabled = in_array($field->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$fieldEntityCode] ?? []);
+                $isDisplayUnderConditionDisabled = in_array($field->getFieldCode(), SubLineFixedField::DISABLED_DISPLAYED_UNDER_CONDITION[$fieldEntityCode] ?? []);
+                $isRequiredDisabled = in_array($field->getFieldCode(), SubLineFixedField::DISABLED_REQUIRED[$fieldEntityCode] ?? []);
 
                 $isDisplayUnderConditionDisplayed = !$isDisplayUnderConditionDisabled && $isDisplayUnderCondition;
 
@@ -2569,7 +2569,7 @@ class SettingsController extends AbstractController {
                     ])
                     ->toArray();
 
-                $displayConditions = Stream::from(SubLineFieldsParam::DISPLAY_CONDITIONS[$field->getEntityCode()] ?? [])
+                $displayConditions = Stream::from(SubLineFixedField::DISPLAY_CONDITIONS[$field->getEntityCode()] ?? [])
                     ->map(fn(string $condition) => [
                         'value' => $condition,
                         'label' => $condition,
@@ -2578,7 +2578,7 @@ class SettingsController extends AbstractController {
                     ->toArray();
 
                 $labelAttributes = "class='font-weight-bold'";
-                if (in_array($field->getFieldCode(), SubLineFieldsParam::FREE_ELEMENTS_FIELDS[$field->getEntityCode()] ?? [])) {
+                if (in_array($field->getFieldCode(), SubLineFixedField::FREE_ELEMENTS_FIELDS[$field->getEntityCode()] ?? [])) {
                     $modal = strtolower($field->getFieldCode());
                     $labelAttributes = "class='font-weight-bold btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
                 }

@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
-class SubLineFieldsParam extends FixedField {
+class SubLineFixedField extends FixedField {
 
     public const FREE_ELEMENTS_FIELDS = [
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
@@ -72,20 +72,20 @@ class SubLineFieldsParam extends FixedField {
 
     public const DISABLED_DISPLAYED_UNDER_CONDITION = [
         self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
         ],
     ];
 
     public const DISABLED_REQUIRED = [
         self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
         ],
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
         ],
     ];
 

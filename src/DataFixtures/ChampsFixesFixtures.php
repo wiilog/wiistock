@@ -4,7 +4,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -124,27 +124,27 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
         ];
 
         $subLinesFieldCodes = [
-            SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES, 'label' => SubLineFieldsParam::FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' =>  null, 'conditionFixedFieldValue' => [], 'required' => false],
+            SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
+                ['code' => SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT, 'label' => SubLineFixedField::FIELD_LABEL_DEMANDE_REF_ARTICLE_PROJECT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => SubLineFixedField::DISPLAY_CONDITION_REFERENCE_TYPE, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT, 'label' => SubLineFixedField::FIELD_LABEL_DEMANDE_REF_ARTICLE_COMMENT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES, 'label' => SubLineFixedField::FIELD_LABEL_DEMANDE_REF_ARTICLE_NOTES, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' =>  null, 'conditionFixedFieldValue' => [], 'required' => false],
             ],
-            SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_VOLUME, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
-                ['code' => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'label' => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_STATUS, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+            SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'displayed' => false, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE_NUMBER],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_VOLUME, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_COMMENT, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
+                ['code' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'label' => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_STATUS, 'displayed' => true, 'displayedUnderCondition' => false, 'conditionFixedField' => null, 'conditionFixedFieldValue' => [], 'required' => false],
             ],
         ];
 
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
-        $subLineFieldsParamRepository = $manager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $manager->getRepository(SubLineFixedField::class);
         $existingFields = $fieldsParamRepository->findAll();
         $existingSubLinesFields = $subLineFieldsParamRepository->findAll();
 
@@ -171,7 +171,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 }
 
                 if(!$field) {
-                    $field = new SubLineFieldsParam();
+                    $field = new SubLineFixedField();
                     $field
                         ->setEntityCode($fieldEntity)
                         ->setFieldCode($fieldCode['code'])

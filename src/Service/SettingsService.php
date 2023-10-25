@@ -9,7 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\Fields\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
@@ -845,17 +845,17 @@ class SettingsService {
         if (isset($tables["subFixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
 
-            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFixedField::class);
             $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
             foreach (array_filter($tables["subFixedFields"]) as $item) {
-                /** @var SubLineFieldsParam|null $subLineFieldParam */
+                /** @var SubLineFixedField|null $subLineFieldParam */
                 $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($subLineFieldParam) {
-                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
+                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFixedField::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
                     $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition;
                     $conditionFixedFieldValue = Stream::explode(",", $subLineFieldCanBeDisplayedUnderCondition ? ($item["conditionFixedFieldValue"] ?? "") : "")
                         ->filter()
@@ -866,7 +866,7 @@ class SettingsService {
                     }
 
                     $subLineFieldRequired = ($item["required"] ?? false )
-                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
+                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFixedField::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
 
                     $subLineFieldParam
                         ->setDisplayed($item["displayed"] ?? null)
