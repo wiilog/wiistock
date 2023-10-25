@@ -6,8 +6,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
-abstract class FixedField
-{
+abstract class FixedField {
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $entityCode = null;
 

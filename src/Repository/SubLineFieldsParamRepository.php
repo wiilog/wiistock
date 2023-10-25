@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFieldsParam;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 

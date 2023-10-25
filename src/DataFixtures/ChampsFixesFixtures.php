@@ -4,7 +4,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\SubLineFieldsParam;
+use App\Entity\Fields\SubLineFieldsParam;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
