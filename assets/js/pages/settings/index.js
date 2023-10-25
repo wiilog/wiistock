@@ -58,6 +58,7 @@ const initializers = {
     global_jours_non_travailles: initializeOffDays,
     global_apparence_site: initializeSiteAppearance,
     global_etiquettes: initializeGlobalLabels,
+    global_imprimantes: initializePrinters,
     stock_articles_etiquettes: initializeStockArticlesLabels,
     stock_articles_types_champs_libres: initializeStockArticlesTypesFreeFields,
     stock_articles_champs_fixes: initializeArticleFixedFields,
@@ -1394,4 +1395,36 @@ function changeReceiverInput($checkbox) {
     const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
 
     $inputReceiver.attr('disabled', isChecked);
+}
+
+function initializePrinters($container, canEdit) {
+    const table = EditableDatatable.create(`#printersTable`, {
+        route: Routing.generate('settings_printers_api', true),
+        deleteRoute: `settings_printer_delete`,
+        mode: canEdit ? MODE_CLICK_EDIT_AND_ADD : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        needsPagingHide: true,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none')
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none')
+        },
+        columns: [
+            {data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false},
+            {data: `name`, title: `Nom`},
+            {data: `address`, title: `Adresse IP`},
+            {data: `width`, title: `Largeur d'étiquette`},
+            {data: `height`, title: `Hauteur d'étiquette`},
+            {data: `dpi`, title: `DPI (pixels par pouce)`},
+        ],
+        form: {
+            actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
+            name: `<input name='name' class='form-control data needed' data-global-error='Nom'/>`,
+            address: `<input name='address' class='form-control data needed' data-global-error='Adresse'/>`,
+            width: `<input name='width' class='form-control data needed' type='number' step='0.1' data-global-error='Largeur'/>`,
+            height: `<input name='height' class='form-control data needed' type='number' step='0.1' data-global-error='Hauteur'/>`,
+            dpi: `<input name='dpi' class='form-control data needed' type='number' step='1' data-global-error='DPI'/>`,
+        },
+    });
 }

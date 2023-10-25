@@ -146,6 +146,7 @@ class Action {
     const SETTINGS_DISPLAY_WORKING_HOURS = 'afficher heures travaillées';
     const SETTINGS_DISPLAY_NOT_WORKING_DAYS = 'afficher jours non travaillés';
     const SETTINGS_DISPLAY_MAIL_SERVER = 'afficher serveur mail';
+    const SETTINGS_DISPLAY_PRINTERS = 'afficher imprimantes';
 
     const SETTINGS_DISPLAY_CONFIGURATIONS = 'afficher configurations';
     const SETTINGS_DISPLAY_STOCK_ALERTS = 'afficher alertes stock';

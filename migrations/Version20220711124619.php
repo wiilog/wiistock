@@ -59,6 +59,7 @@ final class Version20220711124619 extends AbstractMigration {
                 Action::SETTINGS_DISPLAY_WORKING_HOURS,
                 Action::SETTINGS_DISPLAY_NOT_WORKING_DAYS,
                 Action::SETTINGS_DISPLAY_MAIL_SERVER,
+                Action::SETTINGS_DISPLAY_PRINTERS,
             ],
             ActionsFixtures::SUB_MENU_STOCK => [
                 Action::SETTINGS_DISPLAY_CONFIGURATIONS,

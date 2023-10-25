@@ -34,6 +34,7 @@ use App\Entity\Transport\CollectTimeSlot;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Type;
+use App\Entity\Printer;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\WorkFreeDay;
@@ -1145,6 +1146,27 @@ class SettingsService {
 
                     $this->manager->persist($reserveType);
                 }
+            }
+        }
+
+        if (isset($tables["printersTable"])) {
+            foreach (array_filter($tables["printersTable"]) as $printerData) {
+                $printerRepository = $this->manager->getRepository(Printer::class);
+                $printer = "";
+
+                if (isset($printerData['id'])) {
+                    $printer = $printerRepository->find($printerData['id']);
+                } else {
+                    $printer = new Printer();
+                }
+
+                $printer->setName($printerData['name']);
+                $printer->setAddress($printerData['address']);
+                $printer->setWidth($printerData['width']);
+                $printer->setHeight($printerData['height']);
+                $printer->setDpi($printerData['dpi']);
+
+                $this->manager->persist($printer);
             }
         }
     }
