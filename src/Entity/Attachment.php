@@ -13,6 +13,26 @@ use Doctrine\ORM\Mapping as ORM;
 class Attachment {
 
     const MAIN_PATH = '/uploads/attachments';
+    const  ALLOWED_MIME_EXTENSION = [
+            "bmp" => ["image/bmp"],
+            "csv" => ["text/csv", "text/plain"],
+            "doc" => ["application/msword"],
+            "docx" => ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],
+            "gif" => ["image/gif"],
+            "jpg" => ["image/jpeg"],
+            "jpeg" => ["image/jpeg"],
+            "json" => ["application/json"],
+            "msg" => ["application/vnd.ms-outlook"],
+            "pdf" => ["application/pdf"],
+            "png" => ["image/png"],
+            "ppt" => ["application/vnd.ms-powerpoint"],
+            "pptx" => ["application/vnd.openxmlformats-officedocument.presentationml.presentation"],
+            "svg" => ["image/svg+xml"],
+            "txt" => ["text/plain"],
+            "webp" => ["image/webp"],
+            "xlxs" => ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"],
+            "xml" => ["application/xml"],
+        ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

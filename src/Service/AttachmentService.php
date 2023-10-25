@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Attachment;
+use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -99,7 +100,22 @@ class AttachmentService {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
         $addedAttachments = [];
+
+        $extensionListArray = array_keys(Attachment::ALLOWED_MIME_EXTENSION);
+        $extensionList = preg_replace('/,([^,]*)$/', ' ou$1 ', $extensionListArray);
+
         foreach ($files as $file) {
+            /** @var UploadedFile $file */
+            $fileInfo = pathinfo($file->getClientOriginalName());
+            $fileExtension = strtolower($fileInfo['extension']);
+
+            if (!in_array($fileExtension, $extensionListArray) ){
+            throw new FormException("Le fichier envoyé doit être au format $extensionList");
+            }
+            if (!in_array($file->getMimeType(),Attachment::ALLOWED_MIME_EXTENSION[$fileExtension])) {
+                throw new FormException("Le type MIME du fichier n'est pas autorisé. Veuillez télécharger un fichier avec un type MIME valide.");
+            }
+
             $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
             $attachmentEntity->addAttachment($attachment);
             $addedAttachments[] = $attachment;
