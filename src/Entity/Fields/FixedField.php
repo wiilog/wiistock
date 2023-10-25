@@ -2,10 +2,12 @@
 
 namespace App\Entity\Fields;
 
+use App\Repository\Fields\FixedFieldRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
+#[ORM\Entity(repositoryClass: FixedFieldRepository::class)]
 abstract class FixedField {
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $entityCode = null;

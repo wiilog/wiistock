@@ -27,7 +27,7 @@ class LivraisonRepository extends EntityRepository
 	const DtToDbLabels = [
 		'Numéro' => 'numero',
 		'Statut' => 'statut',
-		'Date' => 'date',
+		'Date' => 'date',//
 		'Opérateur' => 'utilisateur',
 		'Type' => 'type'
 	];

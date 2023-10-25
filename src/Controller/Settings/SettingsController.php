@@ -12,6 +12,7 @@ use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\DeliveryStationLine;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
@@ -1173,10 +1174,10 @@ class SettingsController extends AbstractController {
                         'types' => $this->typeGenerator(CategoryType::DEMANDE_LIVRAISON),
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
-                    self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldRepository, $userRepository) {
-                        $receiver = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
-                        $defaultType = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
-                        $defaultLocationByType = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
+                    self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldStandatrdRepository, $userRepository) {
+                        $receiver = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+                        $defaultType = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+                        $defaultLocationByType = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
                         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
                         return [
@@ -1310,9 +1311,9 @@ class SettingsController extends AbstractController {
                             ])
                             ->toArray(),
                     ],
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository, $subLineFieldParamRepository) {
-                        $emergencyField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
-                        $businessField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandatrdRepository, $subLineFieldParamRepository) {
+                        $emergencyField = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                        $businessField = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
                             'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
@@ -1327,6 +1328,7 @@ class SettingsController extends AbstractController {
                             'fieldCode' => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
                         ]);
                         return [
+                            'types' => $this->typeGenerator(CategoryType::DEMANDE_DISPATCH),
                             "emergency" => [
                                 "field" => $emergencyField->getId(),
                                 "elementsType" => $emergencyField->getElementsType(),
@@ -1403,8 +1405,8 @@ class SettingsController extends AbstractController {
                     },
                 ],
                 self::MENU_ARRIVALS => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
-                        $field = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandatrdRepository) {
+                        $field = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
                         return [
                             "businessUnit" => [
@@ -1439,9 +1441,9 @@ class SettingsController extends AbstractController {
                     },
                 ],
                 self::MENU_HANDLINGS => [
-                    self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldRepository) {
-                        $field = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY);
-                        $receiversField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
+                    self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldStandatrdRepository) {
+                        $field = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                        $receiversField = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
                         $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
                         return [
                             "emergency" => [
@@ -1502,8 +1504,8 @@ class SettingsController extends AbstractController {
                     ],
                 ],
                 self::MENU_EMERGENCIES => [
-                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldRepository) {
-                        $emergencyTypeField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE);
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandatrdRepository) {
+                        $emergencyTypeField = $fixedFieldStandatrdRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE);
                         return [
                             "emergencyType" => [
                                 "field" => $emergencyTypeField->getId(),
@@ -2701,6 +2703,100 @@ class SettingsController extends AbstractController {
 
         return $this->json([
             "data" => $rows,
+        ]);
+    }
+
+    #[Route("/champ-fixe-par-type/{entity}/{type}", name: "settings_fixed_field_by_type_api", options: ['expose' => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    public function fixedFieldByTypeApi(Request                 $request,
+                                        EntityManagerInterface  $entityManager,
+                                        FormService             $formService,
+                                        string                  $entity,
+                                        Type                    $type): JsonResponse {
+
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
+        $fields = $fixedFieldByTypeRepository->findBy(["entityCode" => $entity]);
+        $rows = Stream::from($fields)
+            ->map(function (FixedFieldByType $field) use ($type, $edit, $formService, $entity): array {
+                $label = ucfirst($field->getFieldLabel());
+                $code = $field->getFieldCode();
+
+                $displayedCreate = $field->isDisplayedCreate($type);
+                $requiredCreate = $field->isRequiredCreate($type);
+                $displayedEdit = $field->isDisplayedEdit($type);
+                $requiredEdit = $field->isRequiredEdit($type);
+
+                $keptInMemoryDisabled = in_array($code, FixedFieldStandard::MEMORY_UNKEEPABLE_FIELDS);
+                $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory($type) ;
+
+                $onMobile = $field->isOnMobile($type);
+                $onMobileDisabled = !in_array($code, FixedFieldStandard::ON_NOMADE_FILEDS);
+
+                $filtersDisabled = !in_array($code, FixedFieldStandard::FILTERED_FIELDS);
+                $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
+
+                $filterOnly = in_array($code, FixedFieldStandard::FILTER_ONLY_FIELDS);
+                $requireDisabled = $filterOnly || in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS);
+
+                if ($edit) {
+                    if ($field->getElements() !== null) {
+                        $modal = strtolower($field->getFieldCode());
+                        $labelAttributes = "btn-link pointer' data-target='#modal-fixed-field-$modal' data-toggle='modal'";
+                    }
+
+                    $row = [
+                        "label" => "<span class='font-weight-bold $labelAttributes'>$label</span>".$formService->macro("hidden", "id", $field->getId(), []),
+                        "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayedCreate, [
+                            "disabled" => $filterOnly,
+                        ]),
+                        "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayedEdit, [
+                            "disabled" => $filterOnly,
+                        ]),
+                        "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requiredCreate, [
+                            "disabled" => $requireDisabled,
+                        ]),
+                        "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requiredEdit, [
+                            "disabled" => $requireDisabled,
+                        ]),
+                        "displayedFilters" => $formService->macro("checkbox", "displayedFilters", null, false, $displayedFilters, [
+                            "disabled" => $filtersDisabled,
+                        ]),
+                    ];
+
+                    if($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
+                        $row["keptInMemory"] = $formService->macro("checkbox", "keptInMemory", null, false, $keptInMemory, [
+                            "disabled" => $keptInMemoryDisabled,
+                        ]);
+                    }
+
+                    if($entity === FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL){
+                        $row["onMobile"] = $formService->macro("checkbox", "onMobile", null, false, $onMobile, [
+                            "disabled" => $onMobileDisabled,
+                        ]);
+                    }
+                } else {
+                    $row = [
+                        "label" => "<span class='font-weight-bold'>$label</span>",
+                        "displayedCreate" => $this->formatService->bool($field->isDisplayedCreate()),
+                        "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit()),
+                        "requiredCreate" => $this->formatService->bool($field->isRequiredCreate()),
+                        "requiredEdit" => $this->formatService->bool($field->isRequiredEdit()),
+                        "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FixedFieldStandard::FILTERED_FIELDS) && $field->isDisplayedFilters()),
+                    ];
+
+                    if($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
+                        $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory());
+                    }
+
+                    if($entity === FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL) {
+                        $row["onMobile"] = $this->formatService->bool($field->isOnMobile());
+                    }
+                }
+                return $row;
+            });
+
+        return $this->json([
+            "data" => $rows->toArray(),
         ]);
     }
 

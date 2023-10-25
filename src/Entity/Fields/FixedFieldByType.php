@@ -73,11 +73,24 @@ class FixedFieldByType extends FixedField
         return $this->requiredCreate;
     }
 
+    public function isRequiredCreate(Type $type): bool
+    {
+        return $this->requiredCreate->contains($type);
+    }
+
+
     public function addRequiredCreate(Type $requiredCreate): static
     {
         if (!$this->requiredCreate->contains($requiredCreate)) {
             $this->requiredCreate->add($requiredCreate);
         }
+
+        return $this;
+    }
+
+    public function setRequiredCreate(Collection $requiredCreate): static
+    {
+        $this->requiredCreate = $requiredCreate;
 
         return $this;
     }
@@ -89,12 +102,14 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
     public function getRequiredEdit(): Collection
     {
         return $this->requiredEdit;
+    }
+
+    public function isRequiredEdit(Type $type): bool
+    {
+        return $this->requiredEdit->contains($type);
     }
 
     public function addRequiredEdit(Type $requiredEdit): static
@@ -106,6 +121,13 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
+    public function setRequiredEdit(Collection $requiredEdit): static
+    {
+        $this->requiredEdit = $requiredEdit;
+
+        return $this;
+    }
+
     public function removeRequiredEdit(Type $requiredEdit): static
     {
         $this->requiredEdit->removeElement($requiredEdit);
@@ -113,12 +135,14 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
     public function getKeptInMemory(): Collection
     {
         return $this->keptInMemory;
+    }
+
+    public function isKeptInMemory(Type $type): bool
+    {
+        return $this->keptInMemory->contains($type);
     }
 
     public function addKeptInMemory(Type $keptInMemory): static
@@ -126,6 +150,13 @@ class FixedFieldByType extends FixedField
         if (!$this->keptInMemory->contains($keptInMemory)) {
             $this->keptInMemory->add($keptInMemory);
         }
+
+        return $this;
+    }
+
+    public function setKeptInMemory(Collection $keptInMemory): static
+    {
+        $this->keptInMemory = $keptInMemory;
 
         return $this;
     }
@@ -154,6 +185,13 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
+    public function setDisplayedCreate(Collection $displayedCreate): static
+    {
+        $this->displayedCreate = $displayedCreate;
+
+        return $this;
+    }
+
     public function removeDisplayedCreate(Type $displayedCreate): static
     {
         $this->displayedCreate->removeElement($displayedCreate);
@@ -161,12 +199,19 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
+    public function isDisplayedCreate(Type $type): bool
+    {
+        return $this->displayedCreate->contains($type);
+    }
+
     public function getDisplayedEdit(): Collection
     {
         return $this->displayedEdit;
+    }
+
+    public function isDisplayedEdit(Type $type): bool
+    {
+        return $this->displayedEdit->contains($type);
     }
 
     public function addDisplayedEdit(Type $displayedEdit): static
@@ -178,6 +223,13 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
+    public function setDisplayedEdit(Collection $displayedEdit): static
+    {
+        $this->displayedEdit = $displayedEdit;
+
+        return $this;
+    }
+
     public function removeDisplayedEdit(Type $displayedEdit): static
     {
         $this->displayedEdit->removeElement($displayedEdit);
@@ -185,12 +237,14 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
     public function getDisplayedFilters(): Collection
     {
         return $this->displayedFilters;
+    }
+
+    public function isDisplayedFilters(Type $type): bool
+    {
+        return $this->displayedFilters->contains($type);
     }
 
     public function addDisplayedFilter(Type $displayedFilter): static
@@ -202,6 +256,13 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
+    public function setDisplayedFilters(Collection $displayedFilters): static
+    {
+        $this->displayedFilters = $displayedFilters;
+
+        return $this;
+    }
+
     public function removeDisplayedFilter(Type $displayedFilter): static
     {
         $this->displayedFilters->removeElement($displayedFilter);
@@ -209,12 +270,14 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
     public function getOnMobile(): Collection
     {
         return $this->onMobile;
+    }
+
+    public function isOnMobile(Type $type): bool
+    {
+        return $this->onMobile->contains($type);
     }
 
     public function addOnMobile(Type $onMobile): static
@@ -226,6 +289,13 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
+    public function setOnMobile(Collection $onMobile): static
+    {
+        $this->onMobile = $onMobile;
+
+        return $this;
+    }
+
     public function removeOnMobile(Type $onMobile): static
     {
         $this->onMobile->removeElement($onMobile);
@@ -233,9 +303,6 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    /**
-     * @return Collection<int, Type>
-     */
     public function getOnLabel(): Collection
     {
         return $this->onLabel;
@@ -248,6 +315,18 @@ class FixedFieldByType extends FixedField
         }
 
         return $this;
+    }
+
+    public function setOnLabel(Collection $onLabel): static
+    {
+        $this->onLabel = $onLabel;
+
+        return $this;
+    }
+
+    public function isOnLabel(Type $type): bool
+    {
+        return $this->onLabel->contains($type);
     }
 
     public function removeOnLabel(Type $onLabel): static
