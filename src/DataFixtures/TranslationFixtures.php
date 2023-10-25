@@ -592,7 +592,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Page Arrivages UL :\nFiltre",
                         ],
                         [
-                            "fr" => "Destinataires",
+                            "fr" => "Destinataire(s)",
                             "en" => "Recipients",
                             "tooltip" => "Page Arrivages UL :\nFiltre",
                         ],
@@ -744,7 +744,7 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Détails arrivage UL - Entête\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL",
                         ],
                         [
-                            "fr" => "Destinataire",
+                            "fr" => "Destinataire(s)",
                             "en" => "Addressee",
                             "tooltip" => "Arrivages :\nZone liste - Nom de colonnes\nGestion des colonnes\nModale Nouvel arrivage UL\nModale Modifier arrivage UL\nArrivage UL détails - Entête",
                         ],

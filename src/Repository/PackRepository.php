@@ -674,9 +674,9 @@ class PackRepository extends EntityRepository
             ->join('movement.emplacement', 'movementLocation')
             ->join('movement.type', 'movementType')
             ->leftJoin('movementLocation.locationGroup', 'locationGroup')
+            ->innerJoin("arrival.receivers", "join_receivers")
 
             ->andWhere('arrival IS NOT NULL')
-            ->andWhere('arrival.destinataire IS NOT NULL')
             ->andWhere('dropLocation.isDeliveryPoint = true')
 
             ->andWhere('dropGroupLocation.id IS NULL OR dropGroupLocation.id = locationGroup.id')

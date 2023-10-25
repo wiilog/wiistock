@@ -7,7 +7,7 @@ SELECT arrivage.id,
             AS pack_count ON sub_arrivage.id = pack_count.arrivage_id
         WHERE sub_arrivage.id = arrivage.id)
                                                                                                                                                      AS nb_ul,
-       destinataire.username                                                                                                                         AS destinataire,
+       GROUP_CONCAT(receivers.username SEPARATOR ', ')                                                                                               AS destinataires,
        fournisseur.nom                                                                                                                               AS fournisseur,
        transporteur.label                                                                                                                            AS transporteur,
        chauffeur.nom                                                                                                                                 AS chauffeur,
@@ -26,7 +26,6 @@ SELECT arrivage.id,
        reception.id                                                                                                                                  AS reception_id
 
 FROM arrivage
-         LEFT JOIN utilisateur AS destinataire ON arrivage.destinataire_id = destinataire.id
          LEFT JOIN utilisateur ON arrivage.utilisateur_id = utilisateur.id
          LEFT JOIN fournisseur ON arrivage.fournisseur_id = fournisseur.id
          LEFT JOIN transporteur ON arrivage.transporteur_id = transporteur.id
@@ -34,13 +33,14 @@ FROM arrivage
          LEFT JOIN type ON arrivage.type_id = type.id
          LEFT JOIN statut ON arrivage.statut_id = statut.id
          LEFT JOIN arrivage_utilisateur ON arrivage.id = arrivage_utilisateur.arrivage_id
-         LEFT JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
+         INNER JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
          LEFT JOIN reception ON arrivage.id = reception.arrival_id
+         LEFT JOIN arrival_receiver ON arrivage.id = arrival_receiver.arrival_id
+         INNER JOIN utilisateur AS receivers ON arrival_receiver.user_id = receivers.id
 
 GROUP BY id,
          no_arrivage,
          nb_ul,
-         destinataire,
          fournisseur,
          transporteur,
          chauffeur,
