@@ -194,8 +194,6 @@ $(function() {
             try {
                 form.element.find(`[data-table-processing]`).each(function () {
                     const datatable = EditableDatatable.of(this);
-                    console.log($(this).data('needs-processing'));
-                    console.log(datatable);
                     if (datatable && $(this).data('needs-processing')) {
                         const tableData = datatable.data();
                         tables[$(this).data(`table-processing`)] = tableData;
@@ -694,6 +692,8 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
                     {data: `displayedFilters`, title: `Afficher`},
+                    {data: 'onMobile', title: `Afficher` },
+                    {data: 'onLabel', title: `Afficher` }
                 ],
             });
         })

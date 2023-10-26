@@ -2658,8 +2658,15 @@ class SettingsController extends AbstractController {
                 $keptInMemoryDisabled = in_array($code, FixedFieldStandard::MEMORY_UNKEEPABLE_FIELDS);
                 $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory(...$isParams) ;
 
-                $onMobile = $field->isOnMobile(...$isParams);
-                $onMobileDisabled = !in_array($code, FixedFieldStandard::ON_NOMADE_FILEDS);
+                if(in_array($entity, FixedField::ON_NOMADE_ENTITY)){
+                    $onMobile = $field->isOnMobile(...$isParams);
+                    $onMobileDisabled = !in_array($code, FixedField::ON_NOMADE_FILEDS[$entity] ?? []);
+                }
+
+                if(in_array($entity, FixedField::ON_LABEL_ENTITY)) {
+                    $onLabel = $field->isOnLabel(...$isParams);
+                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FILEDS[$entity] ?? []);
+                }
 
                 $filtersDisabled = !in_array($code, FixedFieldStandard::FILTERED_FIELDS);
                 $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
@@ -2699,27 +2706,37 @@ class SettingsController extends AbstractController {
                         ]);
                     }
 
-                    if($entity === FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL){
+                    if(in_array($entity, FixedField::ON_NOMADE_ENTITY)){
                         $row["onMobile"] = $formService->macro("checkbox", "onMobile", null, false, $onMobile, [
                             "disabled" => $onMobileDisabled,
+                        ]);
+                    }
+
+                    if(in_array($entity, FixedField::ON_LABEL_ENTITY)){
+                        $row["onLabel"] = $formService->macro("checkbox", "onLabel", null, false, $onLabel, [
+                            "disabled" => $onLabelDisabled,
                         ]);
                     }
                 } else {
                     $row = [
                         "label" => "<span class='font-weight-bold'>$label</span>",
-                        "displayedCreate" => $this->formatService->bool($field->isDisplayedCreate()),
-                        "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit()),
-                        "requiredCreate" => $this->formatService->bool($field->isRequiredCreate()),
-                        "requiredEdit" => $this->formatService->bool($field->isRequiredEdit()),
-                        "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FixedFieldStandard::FILTERED_FIELDS) && $field->isDisplayedFilters()),
+                        "displayedCreate" => $this->formatService->bool($field->isDisplayedCreate(...$isParams)),
+                        "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit(...$isParams)),
+                        "requiredCreate" => $this->formatService->bool($field->isRequiredCreate(...$isParams)),
+                        "requiredEdit" => $this->formatService->bool($field->isRequiredEdit(...$isParams)),
+                        "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FixedFieldStandard::FILTERED_FIELDS) && $field->isDisplayedFilters(...$isParams)),
                     ];
 
                     if($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
-                        $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory());
+                        $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory(...$isParams));
                     }
 
-                    if($entity === FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL) {
-                        $row["onMobile"] = $this->formatService->bool($field->isOnMobile());
+                    if(in_array($entity, FixedField::ON_NOMADE_ENTITY)) {
+                        $row["onMobile"] = $this->formatService->bool($field->isOnMobile(...$isParams));
+                    }
+
+                    if(in_array($entity, FixedField::ON_LABEL_ENTITY)) {
+                        $row["onLabel"] = $this->formatService->bool($field->isOnLabel(...$isParams));
                     }
                 }
                 return $row;

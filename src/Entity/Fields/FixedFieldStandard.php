@@ -262,12 +262,6 @@ class FixedFieldStandard extends FixedField {
         FixedFieldStandard::FIELD_CODE_PROJECT
     ];
 
-    public const ON_NOMADE_FILEDS = [
-        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-        FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
-    ];
-
     public const ALWAYS_REQUIRED_FIELDS = [
         // Acheminements
         FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
