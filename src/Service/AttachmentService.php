@@ -102,20 +102,20 @@ class AttachmentService {
         $addedAttachments = [];
 
         $extensionListArray = array_keys(Attachment::ALLOWED_MIME_EXTENSION);
-        $extensionList = preg_replace('/,([^,]*)$/', ' ou$1 ', $extensionListArray);
 
         foreach ($files as $file) {
             /** @var UploadedFile $file */
             $fileInfo = pathinfo($file->getClientOriginalName());
             $fileExtension = strtolower($fileInfo['extension']);
+            $fileName = $fileInfo['basename'];
 
             if (!in_array($fileExtension, $extensionListArray)) {
-                throw new FormException("Le fichier envoyé doit être au format $extensionList");
+                throw new FormException("Le fichier : $fileName n'est pas un fichier autorisé.");
             }
             if (!in_array($file->getMimeType(), Attachment::ALLOWED_MIME_EXTENSION[$fileExtension])) {
-                throw new FormException("Le type MIME du fichier n'est pas autorisé. Veuillez télécharger un fichier avec un type MIME valide.");
+                throw new FormException("Le fichier : $fileName n'est pas autorisé. Veuillez contacter le support de l'application.");
             }
-+
+
             $attachment = $this->saveFileInDedicatedFolder($file, $dedicatedAttachmentFolder);
             $attachmentEntity->addAttachment($attachment);
             $addedAttachments[] = $attachment;
