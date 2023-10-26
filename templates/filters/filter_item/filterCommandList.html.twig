@@ -1,11 +1,18 @@
+{% set disabled = disabled is defined and disabled ? 'disabled' %}
+{% set title = title ?? '' %}
+
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
         <div class="input-group w-100 cursor-default">
-            <select class="form-control select2-free data filter-select2"
+            <select class="form-control data filter-select2"
+                    data-s2
+                    data-editable
+                    data-placeholder="{{ title }}"
+                    title="{{ title }}"
                     name="commandList"
-                    id="commandList"
-                    multiple="multiple" {{ disabled }}>
-            </select>
+                    multiple
+                    {{ disabled }}
+            >z</select>
         </div>
     </div>
 </div>

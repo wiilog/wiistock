@@ -13,7 +13,6 @@ $(function() {
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
     Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), Translation.of('Demande', 'Acheminements', 'Général', 'N° demande', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
-    Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), Translation.of('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
     Select2Old.location(filtersContainer.find('[name=pickLocation]'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes','Emplacement de prise', false));
