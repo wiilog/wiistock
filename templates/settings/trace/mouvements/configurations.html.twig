@@ -10,6 +10,20 @@
         </div>
     </div>
 </div>
+<div class="wii-section-title">Eclatement</div>
+<div class="wii-section">
+    <div class="row align-items-center justify-content-center">
+        <div class="col-lg col-12 my-1">
+            {{ form.checkbox(setting('PACK_SEPARATION_AUTO_DROP_PACK_PARENT_ON_LOCATION'), "Dépose automatique du colis père sur l'emplacement", false, setting_value('PACK_SEPARATION_AUTO_DROP_PACK_PARENT_ON_LOCATION')) }}
+        </div>
+        <div class="col-lg col-12 my-1">
+            {{ form.select(setting('PACK_SEPARATION_AUTO_DROP_LOCATION'), '', false, {
+                type: 'location',
+                value: setting_value('PACK_SEPARATION_AUTO_DROP_LOCATION')
+            }) }}
+        </div>
+    </div>
+</div>
 <div class="wii-section-title">Mails de relance</div>
 <div class="wii-section">
     <div class="row align-items-center justify-content-center">
