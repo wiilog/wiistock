@@ -86,7 +86,11 @@
                                 includeParamsParent: '.reference-choice-container',
                                 attributes: {
                                     'autofocus': 'autofocus'
-                                }
+                                },
+                                additionalAttributes: [{
+                                    name: 'data-other-params-active-only',
+                                    value: true,
+                                }]
                             }) }}
                         </div>
                         <input type="hidden" name="filterFields">
