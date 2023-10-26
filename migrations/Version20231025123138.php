@@ -33,6 +33,7 @@ final class Version20231025123138 extends AbstractMigration implements Container
         $typeRepository = $entityManager->getRepository(Type::class);
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
         $types = new ArrayCollection($types);
+        $emptyCollection = new ArrayCollection([]);
 
         $fieldsStandards = $fixedFieldStandardRepository->findByEntityForEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
         foreach ($fieldsStandards as $field) {
@@ -42,14 +43,14 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setFieldLabel($field->getFieldLabel())
                 ->setElements($field->getElements())
                 ->setElementsType($field->getElementsType())
-                ->setRequiredCreate($types)
-                ->setRequiredEdit($types)
-                ->setKeptInMemory($types)
-                ->setDisplayedCreate($types)
-                ->setDisplayedEdit($types)
-                ->setDisplayedFilters($types)
-                ->setOnMobile($types)
-                ->setOnLabel($types);
+                ->setRequiredCreate($field->isRequiredCreate() ? $types : $emptyCollection)
+                ->setRequiredEdit($field->isRequiredEdit() ? $types : $emptyCollection)
+                ->setKeptInMemory($field->isKeptInMemory() ? $types : $emptyCollection)
+                ->setDisplayedCreate($field->isDisplayedCreate() ? $types : $emptyCollection)
+                ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection)
+                ->setDisplayedFilters($field->isDisplayedFilters() ? $types : $emptyCollection)
+                ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection)
+                ->setOnLabel($field->isOnLabel() ? $types : $emptyCollection);
 
             $entityManager->persist($fieldByType);
             $entityManager->remove($field);

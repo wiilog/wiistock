@@ -89,11 +89,6 @@ class SubLineFixedField extends FixedField {
         ],
     ];
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
-
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayed = null;
 
@@ -108,10 +103,6 @@ class SubLineFixedField extends FixedField {
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $required = null;
-
-    public function getId(): ?int {
-        return $this->id;
-    }
 
     public function isDisplayed(): ?bool {
         return $this->displayed;

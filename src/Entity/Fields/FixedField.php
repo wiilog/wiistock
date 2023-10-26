@@ -2,13 +2,16 @@
 
 namespace App\Entity\Fields;
 
-use App\Repository\Fields\FixedFieldRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
-#[ORM\Entity(repositoryClass: FixedFieldRepository::class)]
 abstract class FixedField {
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
     #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $entityCode = null;
 
@@ -23,6 +26,11 @@ abstract class FixedField {
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $elementsType = null;
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
     public function getEntityCode(): ?string
     {

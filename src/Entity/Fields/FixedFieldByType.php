@@ -11,11 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FixedFieldByTypeRepository::class)]
 class FixedFieldByType extends FixedField
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
     #[ORM\ManyToMany(targetEntity: Type::class)]
     #[ORM\JoinTable(name: 'fixed_field_by_type_required_create')]
     private Collection $requiredCreate;
@@ -60,14 +55,6 @@ class FixedFieldByType extends FixedField
         $this->onLabel = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return Collection<int, Type>
-     */
     public function getRequiredCreate(): Collection
     {
         return $this->requiredCreate;

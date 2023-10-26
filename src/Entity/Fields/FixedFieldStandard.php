@@ -275,10 +275,6 @@ class FixedFieldStandard extends FixedField {
         FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
     ];
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
 
@@ -302,10 +298,6 @@ class FixedFieldStandard extends FixedField {
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
     private ?bool $onMobile = null;
-
-    public function getId(): ?int {
-        return $this->id;
-    }
 
     public function isRequiredCreate(): ?bool {
         return $this->requiredCreate;
