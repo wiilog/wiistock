@@ -303,6 +303,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $dispatchBusinessUnit = null;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -2026,6 +2029,16 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
 
         return in_array($userEmailDomain, $wiilogDomains);
+    }
+
+    public function getDispatchBusinessUnit(): ?string {
+        return $this->dispatchBusinessUnit;
+    }
+
+    public function setDispatchBusinessUnit(?string $businessUnit): self {
+        $this->dispatchBusinessUnit = $businessUnit;
+
+        return $this;
     }
 
 }
