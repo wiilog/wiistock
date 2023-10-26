@@ -2,7 +2,7 @@
 
 namespace App\Entity\Fields;
 
-use App\Repository\FixedFieldStandardRepository;
+use App\Repository\Fields\FixedFieldStandardRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FixedFieldStandardRepository::class)]

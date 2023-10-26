@@ -194,6 +194,8 @@ $(function() {
             try {
                 form.element.find(`[data-table-processing]`).each(function () {
                     const datatable = EditableDatatable.of(this);
+                    console.log($(this).data('needs-processing'));
+                    console.log(datatable);
                     if (datatable && $(this).data('needs-processing')) {
                         const tableData = datatable.data();
                         tables[$(this).data(`table-processing`)] = tableData;
@@ -666,12 +668,15 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    const $typeInput = $container.find(`[name=type]`);
-    $typeInput
+    const $typeInputs = $container.find(`[name=type]`);
+    let fixedFieldsDatatable;
+    $typeInputs
         .on(`change`, function() {
-            console.log(`change`);
-            EditableDatatable.create(`#table-dispatch-fixed-fields`, {
-                route: Routing.generate('settings_fixed_field_by_type_api', {entity: `acheminements`, type: $typeInput.val()}),
+            let $selectedType = $(Array.from($typeInputs).find((input) => $(input).is(`:checked`)));
+            console.log($selectedType.val());
+            EditableDatatable.of('#table-dispatch-fixed-fields')?.destroy();
+            EditableDatatable.create('#table-dispatch-fixed-fields', {
+                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
                 mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
                 save: SAVE_MANUALLY,
                 ordering: false,

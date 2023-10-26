@@ -19,6 +19,7 @@ const datatables = {};
 export default class EditableDatatable {
 
     static of(id) {
+        console.log(datatables)
         return datatables[`#${typeof id === `string` ? id : $(id).attr(`id`)}`];
     }
 

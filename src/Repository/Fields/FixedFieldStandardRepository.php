@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Fields;
 
 use App\Entity\Fields\FixedFieldStandard;
 use Doctrine\ORM\EntityRepository;

@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
@@ -43,6 +44,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use FOS\RestBundle\Request\ParameterBag;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionClass;
 use RuntimeException;
@@ -838,6 +840,25 @@ class SettingsService {
                         ->setDisplayedEdit($item["displayedEdit"] ?? null)
                         ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
+                }
+            }
+        }
+
+        if (isset($tables["fixedFieldsByType"]) && isset($data["type"])) {
+            $typeRepository = $typeRepository ?? $this->manager->getRepository(Type::class);
+            $fixedFieldByTypeRepository = $this->manager->getRepository(FixedFieldByType::class);
+            $type = $typeRepository->find($data["type"]);
+            $paramById =  Stream::from($tables["fixedFieldsByType"])
+                ->keymap(fn($fieldParam) => [$fieldParam["id"], $fieldParam]);
+
+            $fixedField = $fixedFieldByTypeRepository->findBy(["id" => Stream::keys($paramById)->toArray()]);
+            foreach ($fixedField as $field) {
+                $fieldParam = $paramById[$field->getId()];
+                foreach ($fieldParam as $key => $value) {
+                    if ($key !== "id") {
+                        $method = ($value ? 'add' : 'remove') . ucfirst($key);
+                        $field->$method($type);
+                    }
                 }
             }
         }

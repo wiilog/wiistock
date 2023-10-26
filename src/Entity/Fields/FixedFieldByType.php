@@ -234,7 +234,7 @@ class FixedFieldByType extends FixedField
         return $this->displayedFilters->contains($type);
     }
 
-    public function addDisplayedFilter(Type $displayedFilter): static
+    public function addDisplayedFilters(Type $displayedFilter): static
     {
         if (!$this->displayedFilters->contains($displayedFilter)) {
             $this->displayedFilters->add($displayedFilter);
@@ -250,7 +250,7 @@ class FixedFieldByType extends FixedField
         return $this;
     }
 
-    public function removeDisplayedFilter(Type $displayedFilter): static
+    public function removeDisplayedFilters(Type $displayedFilter): static
     {
         $this->displayedFilters->removeElement($displayedFilter);
 
