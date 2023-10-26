@@ -226,6 +226,7 @@ class DispatchService {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -258,6 +259,7 @@ class DispatchService {
                     ],
                     'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                     'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
+                    'isDefault' => $type->isDefault(),
                 ];
             }, $types),
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
