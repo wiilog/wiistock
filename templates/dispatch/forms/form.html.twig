@@ -229,17 +229,18 @@
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% set dispatchBusinessUnit = dispatch.businessUnit %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit', false), requiredOnform, {
-                inputClass: "no-clear",
+                inputClass: "needs-default",
                 items: dispatchBusinessUnits|map((businessUnit) => {
                     value: businessUnit,
                     label: businessUnit,
-                    selected: not dispatch.id
-                        ? app.user.dispatchBusinessUnit == businessUnit
-                        : dispatchBusinessUnit == businessUnit,
+                    selected: dispatchBusinessUnit == businessUnit,
                 }),
                 emptyOption: {
                     selected: not dispatchBusinessUnit,
-                    label: ""
+                    label: "",
+                },
+                attributes: {
+                    'data-init': app.user.dispatchBusinessUnit,
                 }
             }) }}
         </div>
