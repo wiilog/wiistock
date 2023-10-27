@@ -27,6 +27,10 @@ final class Version20231025123138 extends AbstractMigration implements Container
     }
 
     public function up(Schema $schema): void {
+        if (!$schema->hasTable('fixed_field_by_type')) {
+            return;
+        }
+
         $entityManager = $this->container->get('doctrine.orm.entity_manager');
 
         $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
@@ -49,8 +53,7 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setDisplayedCreate($field->isDisplayedCreate() ? $types : $emptyCollection)
                 ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection)
                 ->setDisplayedFilters($field->isDisplayedFilters() ? $types : $emptyCollection)
-                ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection)
-                ->setOnLabel($field->isOnLabel() ? $types : $emptyCollection);
+                ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection);
 
             $entityManager->persist($fieldByType);
             $entityManager->remove($field);

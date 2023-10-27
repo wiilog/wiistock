@@ -3,10 +3,15 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\CategoryType;
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
+use App\Entity\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
@@ -15,6 +20,7 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
 
     public function load(ObjectManager $manager) {
         $output = new ConsoleOutput();
+        $typeRepository = $manager->getRepository(Type::class);
 
         $listEntityFieldCodes = [
             FixedFieldStandard::ENTITY_CODE_RECEPTION => [
@@ -58,28 +64,6 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, 'label' => FixedFieldStandard::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
                 ['code' => FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'label' => FixedFieldStandard::FIELD_LABEL_DROP_LOCATION_ARRIVAGE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_PROJECT, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-            ],
-
-            FixedFieldStandard::ENTITY_CODE_DISPATCH => [
-                ['code' => FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMAILS, 'label' => FixedFieldStandard::FIELD_LABEL_EMAILS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
-                ['code' => FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_COMMENT_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, 'label' => FixedFieldStandard::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
-                ['code' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_PICK, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_PICK, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_DESTINATION, 'label' => FixedFieldStandard::FIELD_LABEL_DESTINATION, 'displayedCreate' => false,'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_REQUESTER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_NAME . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_PHONE . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
             ],
 
             FixedFieldStandard::ENTITY_CODE_HANDLING => [
@@ -143,23 +127,43 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             ],
         ];
 
-        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByType = [
+            FixedFieldStandard::ENTITY_CODE_DISPATCH => [
+                ['code' => FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CARRIER_TRACKING_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_RECEIVER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_DEADLINE_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMAILS, 'label' => FixedFieldStandard::FIELD_LABEL_EMAILS_DISPATCH, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'values' => ['24h'], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
+                ['code' => FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_COMMAND_NUMBER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_COMMENT_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_ATTACHMENTS_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, 'label' => FixedFieldStandard::FIELD_LABEL_BUSINESS_UNIT, 'values' => [], 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
+                ['code' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_PICK, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_PICK, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_DESTINATION, 'label' => FixedFieldStandard::FIELD_LABEL_DESTINATION, 'displayedCreate' => false,'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_REQUESTER_DISPATCH, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_NAME . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_PHONE . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+            ],
+        ];
+
+        $fieldsParamStandardRepository = $manager->getRepository(FixedFieldStandard::class);
+        $fieldsParamByTypeRepository = $manager->getRepository(FixedFieldByType::class);
         $subLineFieldsParamRepository = $manager->getRepository(SubLineFixedField::class);
-        $existingFields = $fieldsParamRepository->findAll();
+        $existingFieldsStandard = $fieldsParamStandardRepository->findAll();
+        $existingFieldsByTypes = $fieldsParamByTypeRepository->findAll();
         $existingSubLinesFields = $subLineFieldsParamRepository->findAll();
 
-        $mappedExistingFields = array_merge(
-            Stream::from($existingFields)
-                ->keymap(function($field) {
-                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
-                })
-                ->toArray(),
-            Stream::from($existingSubLinesFields)
-                ->keymap(function($field) {
-                    return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
-                })
-                ->toArray()
-        );
+
+        $mappedExistingFields = Stream::from($existingFieldsStandard, $existingFieldsByTypes, $existingSubLinesFields)
+            ->keymap(function(FixedField $field) {
+                return [$field->getEntityCode() . '-' . $field->getFieldCode(), $field];
+            })
+            ->toArray();
 
         foreach($subLinesFieldCodes as $fieldEntity => $listFieldCodes) {
             foreach ($listFieldCodes as $fieldCode) {
@@ -226,7 +230,49 @@ class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
             }
         }
 
-        /** @var FixedFieldStandard $field */
+        foreach($fixedFieldByType as $fieldEntity => $listFieldCodes) {
+            $categoryType = $fieldEntity == FixedFieldStandard::ENTITY_CODE_DISPATCH ? CategoryType::DEMANDE_DISPATCH : null;
+
+
+            $typeRepository->findByCategoryLabels([$categoryType]);
+            $entityTypes = $typeRepository->findByCategoryLabels([$fieldEntity]);
+            $entityTypes = new ArrayCollection($entityTypes);
+            $emptyCollection = new ArrayCollection();
+
+            foreach($listFieldCodes as $fieldCode) {
+                $fieldUniqueKey = $fieldEntity . '-' . $fieldCode['code'];
+                $field = $mappedExistingFields[$fieldUniqueKey] ?? null;
+
+                if (isset($field))  {
+                    unset($mappedExistingFields[$fieldUniqueKey]);
+                }
+
+                if(!$field) {
+                    $field = new FixedFieldByType();
+                    $field
+                        ->setEntityCode($fieldEntity)
+                        ->setFieldCode($fieldCode['code'])
+                        ->setElements($fieldCode['values'] ?? null)
+                        ->setDisplayedCreate(($fieldCode['displayedCreate'] ?? false) ? $entityTypes : $emptyCollection)
+                        ->setDisplayedEdit(($fieldCode['displayedEdit']) ? $entityTypes : $emptyCollection)
+                        ->setDisplayedFilters(($fieldCode['displayedFilters']) ? $entityTypes : $emptyCollection)
+                        ->setRequiredEdit(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
+                        ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
+                        ->setOnMobile(($fieldCode['onMobile'] ?? false) ? $entityTypes : $emptyCollection)
+                        ->setOnLabel(($fieldCode['onLabel'] ?? true) ? $entityTypes : $emptyCollection);
+
+                    $manager->persist($field);
+                    $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
+                }
+                $field
+                    ->setFieldLabel($fieldCode['label'])
+                    ->setElementsType($fieldCode['elementsType'] ?? null);
+
+                $manager->flush();
+            }
+        }
+
+        /** @var FixedField $field */
         foreach ($mappedExistingFields as $field) {
             $manager->remove($field);
             $output->writeln('Champ fixe ' . $field->getEntityCode() . ' / ' . $field->getFieldCode() . ' supprimé.');
