@@ -665,18 +665,18 @@ class PackRepository extends EntityRepository
         $subQuery = $this->createQueryBuilder('pack')
             ->addSelect('DATEDIFF(NOW(), IF(dropGroupLocation.id IS NULL, lastDrop.datetime, MIN(movement.datetime))) AS packWaitingDays')
 
-            ->join('pack.lastDrop', 'lastDrop')
-            ->join('pack.arrivage', 'arrival')
-            ->join('lastDrop.emplacement', 'dropLocation')
+            ->innerJoin('pack.lastDrop', 'lastDrop')
+            ->innerJoin('pack.arrivage', 'arrival')
+            ->innerJoin('lastDrop.emplacement', 'dropLocation')
             ->leftJoin('dropLocation.locationGroup', 'dropGroupLocation')
 
-            ->join('pack.trackingMovements', 'movement')
-            ->join('movement.emplacement', 'movementLocation')
-            ->join('movement.type', 'movementType')
+            ->innerJoin('pack.trackingMovements', 'movement')
+            ->innerJoin('movement.emplacement', 'movementLocation')
+            ->innerJoin('movement.type', 'movementType')
             ->leftJoin('movementLocation.locationGroup', 'locationGroup')
+            ->innerJoin("arrival.receivers", "join_receivers")
 
             ->andWhere('arrival IS NOT NULL')
-            ->andWhere('arrival.destinataire IS NOT NULL')
             ->andWhere('dropLocation.isDeliveryPoint = true')
 
             ->andWhere('dropGroupLocation.id IS NULL OR dropGroupLocation.id = locationGroup.id')
