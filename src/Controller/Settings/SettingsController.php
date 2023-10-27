@@ -2057,7 +2057,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if ($categoryLabel === CategoryType::ARTICLE) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
                 $inputId = rand(0, 1000000);
 
                 $data[] = [
@@ -2247,7 +2247,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if ($categoryLabel === CategoryType::ARTICLE) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
