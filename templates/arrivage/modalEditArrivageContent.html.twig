@@ -23,7 +23,7 @@
             </select>
         </div>
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -48,7 +48,7 @@
             }) }}
         </div>
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -64,7 +64,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -76,7 +76,7 @@
                 {{ useTruckArrival ? 'disabled' }}>
         </div>
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired('numeroCommandeList', 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -114,7 +114,7 @@
             {% endfor %}
         </select>
     </div>
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
             <label class="wii-field-name"
@@ -128,7 +128,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -142,7 +142,7 @@
             </select>
         </div>
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group w-100 col-4">
             <label class="wii-field-name"
@@ -160,7 +160,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name"
@@ -171,7 +171,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <label class="wii-field-name">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit') }}{{ fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') ? '*' : '' }}</label>
@@ -189,7 +189,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2 d-flex align-items-end">
             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
@@ -206,7 +206,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-2 d-flex align-items-end">
             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
@@ -236,7 +236,7 @@
 {% endif %}
 
 <div class="row">
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         {% set commentNeeded = fieldsParam|isFieldRequired(fieldCode, 'requiredEdit') %}
         <div class="form-group col-8 h-fit-content">
@@ -249,7 +249,7 @@
             <div class="editor-container-edit" value="{{ arrivage.commentaire }}" data-wysiwyg>{{ arrivage.commentaire|raw }}</div>
         </div>
     {% endif %}
-    {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedEdit') %}
         <div class="form-group col-4">
             <div>

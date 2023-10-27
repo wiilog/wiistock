@@ -110,7 +110,7 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_ANOMALY') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_ANOMALY') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -133,7 +133,7 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_COMMENT') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_COMMENT') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -152,7 +152,7 @@
                         <div class="col-6 mt-2">
                             {{ form.input('rfidTag', 'Tag RFID', false, article.rFIDtag ? article.rFIDtag : null) }}
                         </div>
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_DELIVERY_NOTE_LINE') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -160,7 +160,7 @@
                                 {{ form.input('deliveryNoteLine', 'Ligne bon de ' ~ trans('Demande', 'Livraison', 'Livraison', false) | lower, required, article.id ? article.deliveryNote) }}
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_MANUFACTURED_AT') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -170,7 +170,7 @@
                                 }) }}
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_PRODUCTION_DATE') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -180,7 +180,7 @@
                                 }) }}
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_PURCHASE_ORDER_LINE') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -188,7 +188,7 @@
                                 {{ form.input('purchaseOrderLine', "Ligne commande d'achat", required, article.id ? article.purchaseOrder) }}
                             </div>
                         {% endif %}
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_NATIVE_COUNTRY') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -208,7 +208,7 @@
                 <div class="header wii-title">Gestion de stock</div>
                 <div class="content">
                     <div class="row">
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_BATCH') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_BATCH') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}
@@ -234,7 +234,7 @@
                             </div>
                         {% endif %}
 
-                        {% set fieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_ARTICLE_UNIT_PRICE') %}
+                        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ARTICLE_UNIT_PRICE') %}
                         {% if (not article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedCreate'))
                             or (article.id and fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                             {% set required = fieldsParam|isFieldRequired(fieldCode, article.id ? 'requiredEdit' : 'requiredCreate') %}

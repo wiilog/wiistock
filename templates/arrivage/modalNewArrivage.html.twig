@@ -12,7 +12,7 @@
 
             <div class="modal-body modal-input container-fluid">
                 <div class="row fly-form">
-                    {% set supplierFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
+                    {% set supplierFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
@@ -41,7 +41,7 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    {% set carrierFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE') %}
+                    {% set carrierFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(carrierFieldCode, 'displayedCreate') %}
                         {% set carrierRequired = fieldsParam|isFieldRequired(carrierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
@@ -70,7 +70,7 @@
                         {% endif %}
                     {% endif %}
 
-                    {% set driverFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
+                    {% set driverFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(driverFieldCode, 'displayedCreate') %}
                         {% set driverRequired = fieldsParam|isFieldRequired(driverFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
@@ -175,7 +175,7 @@
                     </div>
                 {% endif %}
                 <div class="row">
-                    {% set trackingNumberFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
+                    {% set trackingNumberFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
                         {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4 noTrackingSection">
@@ -210,7 +210,7 @@
                             {% endif %}
                         </div>
                     {% endif %}
-                    {% set orderNumberFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
+                    {% set orderNumberFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(orderNumberFieldCode, 'displayedCreate') %}
                         {% set orderNumberRequired = fieldsParam|isFieldRequired(orderNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
@@ -288,7 +288,7 @@
                             } %}
                         </div>
                     </div>
-                    {% set dropLocationFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
+                    {% set dropLocationFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(dropLocationFieldCode, 'displayedCreate') %}
                         {% set dropLocationRequired = fieldsParam|isFieldRequired(dropLocationFieldCode, 'requiredCreate') %}
                         <div class="form-group w-100 col-4">
@@ -307,7 +307,7 @@
                         </div>
                     {% endif %}
 
-                    {% set targetFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE') %}
+                    {% set targetFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(targetFieldCode, 'displayedCreate') %}
                         {% set targetRequired = fieldsParam|isFieldRequired(targetFieldCode, 'requiredCreate') %}
                         <div class="col-4">
@@ -328,7 +328,7 @@
                         </div>
                     {% endif %}
 
-                    {% set buyersFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
+                    {% set buyersFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(buyersFieldCode, 'displayedCreate') %}
                         {% set buyersRequired = fieldsParam|isFieldRequired(buyersFieldCode, 'requiredCreate') %}
                         <div class="form-group w-100 col-4">
@@ -349,7 +349,7 @@
                         </div>
                     {% endif %}
 
-                    {% set projectNumberFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+                    {% set projectNumberFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
                     {% if fieldsParam|isFieldRequired(projectNumberFieldCode, 'displayedCreate') %}
                         {% set projectNumberRequired = fieldsParam|isFieldRequired(projectNumberFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
@@ -364,7 +364,7 @@
                         </div>
                     {% endif %}
 
-                    {% set businessUnitFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
+                    {% set businessUnitFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
                     {% if fieldsParam|isFieldRequired(businessUnitFieldCode, 'displayedCreate') %}
                         {% set businessUnitRequired = fieldsParam|isFieldRequired(businessUnitFieldCode, 'requiredCreate') %}
                         <div class="form-group col-4">
@@ -381,7 +381,7 @@
                         </div>
                     {% endif %}
 
-                    {% set customsFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
+                    {% set customsFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
@@ -395,7 +395,7 @@
                             </label>
                         </div>
                     {% endif %}
-                    {% set frozenFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE') %}
+                    {% set frozenFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(frozenFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
@@ -411,7 +411,7 @@
                     {% endif %}
 
                     {% set checked = (autoPrint ? 'checked' : '') %}
-                    {% set printArrivalFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE') %}
+                    {% set printArrivalFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(printArrivalFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
@@ -486,7 +486,7 @@
                     {% endif %}
                 </div>
 
-                {% set projectFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PROJECT') %}
+                {% set projectFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT') %}
                 {% if fieldsParam|isFieldRequired(projectFieldCode, 'displayedCreate') %}
                     {% set projectRequired = fieldsParam|isFieldRequired(projectFieldCode, 'requiredCreate') %}
                     <div class="row">
@@ -519,7 +519,7 @@
                 </div>
 
                 <div class="row">
-                    {% set commentFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
+                    {% set commentFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(commentFieldCode, 'displayedCreate') %}
                         {% set commentRequired = fieldsParam|isFieldRequired(commentFieldCode, 'requiredCreate') %}
                         <div class="form-group col-8 h-fit-content">
@@ -535,7 +535,7 @@
                         </div>
                     {% endif %}
 
-                    {% set attachmentFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}
+                    {% set attachmentFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(attachmentFieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             {% include 'attachment/attachment.html.twig' with {
