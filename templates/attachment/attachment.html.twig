@@ -10,6 +10,8 @@
     {% set name = nameInput is defined and nameInput ? nameInput : null %}
     {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
         and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
+    {% set extensions = constant('App\\Entity\\Attachment::ALLOWED_MIME_EXTENSION')|keys %}
+    {% set formattedExtensions = extensions|map(extension => '.' ~ extension)|join(', ') %}
 
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
@@ -42,14 +44,16 @@
                 </button>
                 {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
                 {% if not name %}
-                    <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
+                    <input type="file"
+                           name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }}
+                           class="d-none fileInput"
                            onchange="saveInputFiles(
-                                        $(this),
-                                        {
-                                            lineClass: '{{ lineClass }}'
-                                        }
-                                    )"
-                    >
+                                   $(this),
+                                   {
+                                        lineClass: '{{ lineClass }}'
+                                   }
+                               )"
+                           accept="{{ formattedExtensions }}">
                 {% else %}
                     <input type="file"
                            name="{{ name }}"
@@ -61,7 +65,7 @@
                                             lineClass: '{{ lineClass }}'
                                         }
                                     )"
-                    >
+                           accept="{{ formattedExtensions }}">
                 {% endif %}
             </div>
         </div>

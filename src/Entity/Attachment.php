@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Attachment {
 
     const MAIN_PATH = '/uploads/attachments';
-    const  ALLOWED_MIME_EXTENSION = [
+    const ALLOWED_MIME_EXTENSION = [
             "csv" => ["text/csv", "text/plain"],
             "doc" => ["application/msword"],
             "docx" => ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"],

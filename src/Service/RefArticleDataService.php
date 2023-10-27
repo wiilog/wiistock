@@ -41,16 +41,15 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class RefArticleDataService
 {
@@ -306,6 +305,13 @@ class RefArticleDataService
         if ($isDangerousGood && (!$fileSheetSubmitted && (!$fileSheetPreviouslySaved || $fileSheetDeleted))) {
             throw new FormException("La fiche sécurité est obligatoire pour les Marchandises dangereuses.");
         }
+
+        if ($fileSheetSubmitted) {
+            /** @var  UploadedFile $file */
+            foreach ($fileBag as $file)
+                $this->attachmentService->checkAttachmentFile($file);
+        }
+
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);
