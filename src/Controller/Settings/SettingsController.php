@@ -1304,6 +1304,8 @@ class SettingsController extends AbstractController {
                                 "value" => $type->getId(),
                                 "label" => $type->getLabel(),
                             ])->toArray(),
+                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES)),
+                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES)),
                     ],
                     self::MENU_OVERCONSUMPTION_BILL => fn() => [
                         "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))

@@ -1427,4 +1427,22 @@ class SettingsService {
         $this->manager->remove($startingHour);
     }
 
+    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting): array {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $settingTypes = $settingRepository->getOneParamByLabel($setting);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $selectOptions = [];
+        foreach ($dispatchTypes as $type){
+            $selectOptions[] = [
+                'value' => $type->getId(),
+                'label' => $type->getLabel(),
+                'selected' => in_array($type->getId(), explode(',', $settingTypes)),
+            ];
+        }
+
+        return $selectOptions;
+    }
+
 }
