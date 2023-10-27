@@ -238,15 +238,29 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
-            $packsNatureNb = [];
             $natures = $entityManager->getRepository(Nature::class)->findAll();
-            foreach ($natures as $nature) {
-                if (isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all') {
-                    $packsNatureNb[$nature->getLabel()] = 0;
-                }
-            }
+            $packsNatureNb = Stream::from($natures)
+                ->filter(static fn(Nature $nature) => isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all')
+                ->keymap(fn(Nature $nature) => [
+                    $nature->getId(),
+                    [
+                        "counter" => 0,
+                        "label" => $this->formatService->nature($nature)
+                    ]
+                ])
+                ->toArray();
+
             foreach ($arrival->getPacks() as $pack) {
-                $packsNatureNb[$pack->getNature()->getLabel()] += 1;
+                $nature = $pack->getNature();
+                $natureId = $nature->getId();
+                if (!isset($packsNatureNb[$natureId])) {
+                    $packsNatureNb[$natureId] = [
+                        "counter" => 0,
+                        "label" => $this->formatService->nature($nature)
+                    ];
+                }
+
+                $packsNatureNb[$natureId]['counter']++;
             }
 
             $this->mailerService->sendMail(
