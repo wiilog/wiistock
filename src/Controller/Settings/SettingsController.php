@@ -2230,7 +2230,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $formService->macro("switch", "isDefault", null, true, [
@@ -2334,7 +2334,7 @@ class SettingsController extends AbstractController {
                 ];
             }
 
-            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type->isDefault()) ?: "Non",

@@ -854,6 +854,7 @@ class ArrivageService {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
             $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
 
@@ -881,6 +882,8 @@ class ArrivageService {
                 $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
             }
 
+            $arrivalCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARRIVAGE]);
+
             $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
                 "keptFields" => $keptFields,
                 "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
@@ -896,6 +899,7 @@ class ArrivageService {
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
+                'defaultType' => $typeRepository->findOneBy(['category' => $arrivalCategoryType, 'defaultType' => true]),
             ]);
         }
 

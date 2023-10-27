@@ -727,7 +727,7 @@ class SettingsService {
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
-                        $alreadyByDefaultType = $typeRepository->findOneBy(['defaultType' => true]);
+                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
                         if($alreadyByDefaultType) {
                             $alreadyByDefaultType->setDefault(false);
                         }

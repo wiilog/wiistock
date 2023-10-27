@@ -79,6 +79,7 @@ class DispatchController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
         $query = $request->query;
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
@@ -105,6 +106,8 @@ class DispatchController extends AbstractController {
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
+        $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
+
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
@@ -122,7 +125,7 @@ class DispatchController extends AbstractController {
             'typesFilter' => $typesFilter,
             'fromDashboard' => $fromDashboard,
             'dispatch' => new Dispatch(),
-            'defaultType' => $typeRepository->findOneBy(['defaultType' => true]),
+            'defaultType' => $typeRepository->findOneBy(['category' => $dispatchCategoryType, 'defaultType' => true]),
         ]);
     }
 
