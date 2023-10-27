@@ -231,17 +231,20 @@
     {% if displayOnform %}
         <div class="form-group col-md-4 col-12">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {% set dispatchBusinessUnit = dispatch.businessUnit %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit', false), requiredOnform, {
+                inputClass: "needs-default",
                 items: dispatchBusinessUnits|map((businessUnit) => {
                     value: businessUnit,
                     label: businessUnit,
-                    selected: dispatchBusinessUnit == businessUnit
+                    selected: dispatch.businessUnit == businessUnit,
                 }),
                 emptyOption: {
-                    selected: not dispatchBusinessUnit,
-                    label: ""
-                }
+                    selected: not dispatch.businessUnit or app.user.dispatchBusinessUnit,
+                    label: "",
+                },
+                attributes: not dispatch.id
+                ? {'data-init': app.user.dispatchBusinessUnit}
+                : {}
             }) }}
         </div>
     {% endif %}
