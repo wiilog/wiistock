@@ -1428,9 +1428,9 @@ function initializePrinters($container, canEdit) {
             actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
             name: `<input name='name' class='form-control data needed' data-global-error='Nom'/>`,
             address: `<input name='address' class='form-control data needed' data-global-error='Adresse'/>`,
-            width: `<input name='width' class='form-control data needed' type='number' step='0.1' data-global-error='Largeur'/>`,
-            height: `<input name='height' class='form-control data needed' type='number' step='0.1' data-global-error='Hauteur'/>`,
-            dpi: `<input name='dpi' class='form-control data needed' type='number' step='1' data-global-error='DPI'/>`,
+            width: `<input name='width' class='form-control data needed' type='number' min='0.1' step='0.1' data-global-error='Largeur'/>`,
+            height: `<input name='height' class='form-control data needed' type='number' min='0.1' step='0.1' data-global-error='Hauteur'/>`,
+            dpi: `<input name='dpi' class='form-control data needed' type='number' min='1' step='1' data-global-error='DPI'/>`,
         },
     });
 }

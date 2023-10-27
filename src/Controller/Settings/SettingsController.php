@@ -122,6 +122,9 @@ class SettingsController extends AbstractController {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public FormService $formService;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
@@ -3496,36 +3499,59 @@ class SettingsController extends AbstractController {
 
         $printerRepository = $manager->getRepository(Printer::class);
 
-        $data = [];
-
-        /** @var Printer $printer */
-        foreach ($printerRepository->findAll() as $printer) {
-            $actions = $this->canDelete()
-                ? "<button class='btn btn-silent delete-row' data-id='{$printer->getId()}'>
+        $data = Stream::from($printerRepository->findAll())
+            ->map(function (Printer $printer) use ($edit, $class) {
+                $actions = $this->canDelete()
+                    ? "<button class='btn btn-silent delete-row' data-id='{$printer->getId()}'>
                    <i class='wii-icon wii-icon-trash text-primary'></i>
                </button>"
-                : "";
+                    : "";
 
-            if ($edit) {
-                $data[] = [
-                    "actions" => $actions,
-                    "name" => "<input name='id' type='hidden' class='$class' value='{$printer->getId()}'><input name='name' class='$class' data-global-error='Nom' value='{$printer->getName()}'/>",
-                    "address" => "<input name='address' class='$class' data-global-error='Adresse' value='{$printer->getAddress()}'/>",
-                    "width" => "<input name='width' type='number' step='0.1' class='$class' data-global-error='Largeur' value='{$printer->getWidth()}'/>",
-                    "height" => "<input name='height' type='number' step='0.1' class='$class' data-global-error='Hauteur' value='{$printer->getHeight()}'/>",
-                    "dpi" => "<input name='dpi' class='$class' type='number' step='1' data-global-error='DPI' value='{$printer->getDpi()}'/>",
-                ];
-            } else {
-                $data[] = [
-                    "actions" => $actions,
-                    "name" => $printer->getName(),
-                    "address" => $printer->getAddress(),
-                    "width" => $printer->getWidth(),
-                    "height" => $printer->getHeight(),
-                    "dpi" => $printer->getDpi(),
-                ];
-            }
-        }
+                if ($edit) {
+
+                    return [
+                        "actions" => $actions,
+                        "name" => "<input name='id' type='hidden' class='$class' value='{$printer->getId()}'>".$this->formService->macro("input", "name", null, true, $printer->getName(), [
+                                "inputClass" => $class,
+                                "error" => 'global',
+                            ]),
+                        "address" => $this->formService->macro("input", "address", null, true, $printer->getAddress(), [
+                            "inputClass" => $class,
+                            "error" => 'global',
+                        ]),
+                        "width" => $this->formService->macro("input", "width", null, true, $printer->getWidth(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 0.1,
+                            "step" => 0.1,
+                            "error" => 'global',
+                        ]),
+                        "height" => $this->formService->macro("input", "height", null, true, $printer->getHeight(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 0.1,
+                            "step" => 0.1,
+                            "error" => 'global',
+                        ]),
+                        "dpi" => $this->formService->macro("input", "dpi", null, true, $printer->getDpi(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 1,
+                            "step" => 1,
+                            "error" => 'global',
+                        ]),
+                    ];
+                } else {
+                    return [
+                        "actions" => $actions,
+                        "name" => $printer->getName(),
+                        "address" => $printer->getAddress(),
+                        "width" => $printer->getWidth(),
+                        "height" => $printer->getHeight(),
+                        "dpi" => $printer->getDpi(),
+                    ];
+                }
+            })->toArray();
 
         $data[] = [
             "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",

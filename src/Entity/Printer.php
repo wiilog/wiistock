@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\PrinterRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PrinterRepository::class)]
@@ -13,19 +14,19 @@ class Printer
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255, nullable: false, type: 'string')]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255, nullable: false, type: 'string')]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $address = null;
 
-    #[ORM\Column(nullable: false, type: 'float')]
+    #[ORM\Column(type: Types::FLOAT, nullable: false)]
     private ?float $width = null;
 
-    #[ORM\Column(nullable: false, type: 'float')]
+    #[ORM\Column(type: Types::FLOAT, nullable: false)]
     private ?float $height = null;
 
-    #[ORM\Column(nullable: false, type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $dpi = null;
 
     public function getId(): ?int

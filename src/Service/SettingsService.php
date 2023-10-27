@@ -1152,7 +1152,6 @@ class SettingsService {
         if (isset($tables["printersTable"])) {
             foreach (array_filter($tables["printersTable"]) as $printerData) {
                 $printerRepository = $this->manager->getRepository(Printer::class);
-                $printer = "";
 
                 if (isset($printerData['id'])) {
                     $printer = $printerRepository->find($printerData['id']);
