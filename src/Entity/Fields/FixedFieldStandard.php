@@ -263,10 +263,22 @@ class FixedFieldStandard extends FixedField {
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
-        // Acheminements
-        FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
-        FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
-        FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
+        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
+            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+        ],
+        FixedFieldStandard::ENTITY_CODE_DEMANDE => [
+            FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
+            FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
+        ],
+        FixedFieldStandard::ENTITY_CODE_RECEPTION => [
+            FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
+        ],
+    ];
+
+    public const ALWAYS_DISPLAYED_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_RECEPTION => [
+            FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
+        ],
     ];
 
     #[ORM\Column(type: 'boolean', nullable: true)]

@@ -2672,7 +2672,9 @@ class SettingsController extends AbstractController {
                 $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
 
                 $filterOnly = in_array($code, FixedFieldStandard::FILTER_ONLY_FIELDS);
-                $requireDisabled = $filterOnly || in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS);
+                $requireDisabled = $filterOnly || in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS[$entity] ?? []);
+                $displayDisabled = $filterOnly || in_array($field->getFieldCode(), FixedFieldStandard::ALWAYS_DISPLAYED_FIELDS[$entity] ?? []);
+
 
                 if ($edit) {
                     $labelAttributes = "";
@@ -2684,10 +2686,10 @@ class SettingsController extends AbstractController {
                     $row = [
                         "label" => "<span class='font-weight-bold $labelAttributes'>$label</span>".$formService->macro("hidden", "id", $field->getId(), []),
                         "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayedCreate, [
-                            "disabled" => $filterOnly,
+                            "disabled" => $filterOnly || $displayDisabled,
                         ]),
                         "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayedEdit, [
-                            "disabled" => $filterOnly,
+                            "disabled" => $filterOnly || $displayDisabled,
                         ]),
                         "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requiredCreate, [
                             "disabled" => $requireDisabled,
