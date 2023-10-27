@@ -33,7 +33,6 @@ SELECT arrivage.id,
        reception.id                                             AS reception_id
 
 FROM arrivage
-         LEFT JOIN utilisateur AS destinataire ON arrivage.destinataire_id = destinataire.id
          LEFT JOIN utilisateur ON arrivage.utilisateur_id = utilisateur.id
          LEFT JOIN fournisseur ON arrivage.fournisseur_id = fournisseur.id
          LEFT JOIN transporteur ON arrivage.transporteur_id = transporteur.id
@@ -41,10 +40,10 @@ FROM arrivage
          LEFT JOIN type ON arrivage.type_id = type.id
          LEFT JOIN statut ON arrivage.statut_id = statut.id
          LEFT JOIN arrivage_utilisateur ON arrivage.id = arrivage_utilisateur.arrivage_id
-         INNER JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
+         LEFT JOIN utilisateur AS acheteurs ON arrivage_utilisateur.utilisateur_id = acheteurs.id
          LEFT JOIN reception ON arrivage.id = reception.arrival_id
          LEFT JOIN arrival_receiver ON arrivage.id = arrival_receiver.arrival_id
-         INNER JOIN utilisateur AS receivers ON arrival_receiver.user_id = receivers.id
+         LEFT JOIN utilisateur AS receivers ON arrival_receiver.user_id = receivers.id
          LEFT JOIN truck_arrival_line_arrivage ON arrivage.id = truck_arrival_line_arrivage.arrivage_id
          LEFT JOIN truck_arrival_line ON truck_arrival_line_arrivage.truck_arrival_line_id = truck_arrival_line.id
          LEFT JOIN truck_arrival ON truck_arrival_line.truck_arrival_id = truck_arrival.id

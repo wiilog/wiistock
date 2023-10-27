@@ -501,20 +501,21 @@ class PackService {
         return $trackingPack;
     }
 
-    public function getBarcodePackConfig(Pack                        $pack,
-                                         Utilisateur|array|null      $receivers = null,
-                                         ?string                     $packIndex = '',
-                                         ?bool                       $typeArrivalParamIsDefined = false,
-                                         ?bool                       $usernameParamIsDefined = false,
-                                         ?bool                       $dropzoneParamIsDefined = false,
-                                         ?bool                       $packCountParamIsDefined = false,
-                                         ?bool                       $commandAndProjectNumberIsDefined = false,
-                                         ?array                      $firstCustomIconConfig = null,
-                                         ?array                      $secondCustomIconConfig = null,
-                                         ?bool                       $businessUnitParam = false,
-                                         ?bool                       $projectParam = false,
-                                         ?bool                       $showDateAndHourArrivalUl = false,
-    ): array {
+    public function getBarcodePackConfig(Pack                   $pack,
+                                         Utilisateur|array|null $receivers = null,
+                                         ?string                $packIndex = '',
+                                         ?bool                  $typeArrivalParamIsDefined = false,
+                                         ?bool                  $usernameParamIsDefined = false,
+                                         ?bool                  $dropzoneParamIsDefined = false,
+                                         ?bool                  $packCountParamIsDefined = false,
+                                         ?bool                  $commandAndProjectNumberIsDefined = false,
+                                         ?array                 $firstCustomIconConfig = null,
+                                         ?array                 $secondCustomIconConfig = null,
+                                         ?bool                  $businessUnitParam = false,
+                                         ?bool                  $projectParam = false,
+                                         ?bool                  $showDateAndHourArrivalUl = false,
+    ): array
+    {
 
         $arrival = $pack->getArrivage();
 

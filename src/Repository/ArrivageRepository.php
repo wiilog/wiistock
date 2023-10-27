@@ -185,7 +185,7 @@ class ArrivageRepository extends EntityRepository
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->leftJoin('arrival.receivers', 'filter_receivers')
+                        ->innerJoin('arrival.receivers', 'filter_receivers')
                         ->andWhere('filter_receivers.id IN (:userId)')
                         ->setParameter('userId', $value);
                     break;
@@ -405,11 +405,16 @@ class ArrivageRepository extends EntityRepository
     }
 
     public function countByUser($user): int {
-        return $this->createQueryBuilder("arrival")
+        $qb = $this->createQueryBuilder("arrival");
+
+        $qb
             ->select("COUNT(arrival)")
-            ->andWhere("arrival.utilisateur = :user")
-            ->orWhere(":user MEMBER OF arrival.receivers")
-            ->setParameter('user', $user)
+            ->andWhere($qb->expr()->orX("
+                :user MEMBER OF arrival.receivers
+            "))
+            ->setParameter('user', $user);
+
+        return $qb
             ->getQuery()
             ->getSingleScalarResult();
     }

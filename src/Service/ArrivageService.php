@@ -223,7 +223,7 @@ class ArrivageService {
                 []
             );
         } else if (!$arrival->getReceivers()->isEmpty()) {
-            $finalRecipients = Stream::from($arrival->getReceivers())->toArray();
+            $finalRecipients = $arrival->getReceivers()->toArray();
         }
 
         if (!empty($finalRecipients)) {
