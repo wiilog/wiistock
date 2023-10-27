@@ -243,7 +243,7 @@
                             {% else %}
                                 <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Type à choisir...') }}</option>
                                 {% for type in typesArrival %}
-                                    <option value="{{ type.id }}">
+                                    <option value="{{ type.id }}" {{ (defaultType and defaultType.id == type.id) ? 'selected'  }}>
                                         {{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: type.label }}
                                     </option>
                                 {% endfor %}

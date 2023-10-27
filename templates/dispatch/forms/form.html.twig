@@ -11,6 +11,7 @@
     <div class="col-md-4 col-12">
         {% set uniqueType = typeChampsLibres is defined and typeChampsLibres|length == 1 %}
         {{ form.select(constant('App\\Entity\\FieldsParam::FIELD_CODE_TYPE_DISPATCH'), trans('Demande', 'Général', 'Type', false), true, {
+            inputClass: 'needs-default',
             disabled: dispatch.id,
             additionalAttributes: dispatch.id ? [] :[
                 { name: 'onChange', value: 'onDispatchTypeChange($(this))' },
@@ -30,6 +31,9 @@
                 'suggested-drop-locations': type.suggestedDropLocations,
                 'suggested-pick-locations': type.suggestedDropLocations,
             })),
+            attributes: {
+                'data-init': (defaultType ?? false) ? defaultType.id,
+            }
         }) }}
     </div>
     <div class="col-md-4 col-12 form-item">

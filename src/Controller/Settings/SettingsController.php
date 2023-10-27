@@ -2229,6 +2229,16 @@ class SettingsController extends AbstractController {
                     ]),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+                $data[] = [
+                    "label" => "Par défaut",
+                    "value" => $formService->macro("switch", "isDefault", null, true, [
+                        ["label" => "Oui", "value" => 1, "checked" => $type->isDefault()],
+                        ["label" => "Non", "value" => 0, "checked" => !$type->isDefault()],
+                    ]),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2321,6 +2331,13 @@ class SettingsController extends AbstractController {
                     "value" => $type?->getLogo()
                         ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
                         : "",
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+                $data[] = [
+                    "label" => "Par défaut",
+                    "value" => $this->formatService->bool($type->isDefault()) ?: "Non",
                 ];
             }
         }
