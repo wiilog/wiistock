@@ -409,9 +409,10 @@ class ArrivageRepository extends EntityRepository
 
         $qb
             ->select("COUNT(arrival)")
-            ->andWhere($qb->expr()->orX("
-                :user MEMBER OF arrival.receivers
-            "))
+            ->andWhere($qb->expr()->orX(
+                "arrival.utilisateur = :user",
+                ":user MEMBER OF arrival.receivers"
+            ))
             ->setParameter('user', $user);
 
         return $qb
