@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
@@ -831,7 +832,7 @@ class SettingsService {
 
                 if ($subLineFieldParam) {
                     $code = $subLineFieldParam->getFieldCode();
-                    $alwaysRequired = in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS);
+                    $alwaysRequired = in_array($code, FixedField::ALWAYS_REQUIRED_FIELDS);
                     $subLineFieldParam
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))

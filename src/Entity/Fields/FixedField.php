@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
 abstract class FixedField {
-
     public const ON_NOMADE_ENTITY = [
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL,
         FixedFieldStandard::ENTITY_CODE_DISPATCH,
@@ -74,6 +73,82 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
             FixedFieldStandard::FIELD_CODE_DESTINATION,
             FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
+        ],
+    ];
+
+    public const MEMORY_UNKEEPABLE_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_ARRIVAGE => [
+            FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+            FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE,
+        ],
+    ];
+
+    public const FILTER_ONLY_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_ARRIVAGE => [
+            FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        ],
+        FixedFieldStandard::ENTITY_CODE_DEMANDE => [
+            FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
+            FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
+        ],
+    ];
+
+    public const FILTERED_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_ARRIVAGE => [
+            FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_FOURNISSEUR,
+            FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
+            FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
+            FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
+            FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
+            FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
+        ],
+        FixedFieldStandard::ENTITY_CODE_HANDLING => [
+            FixedFieldStandard::FIELD_CODE_EMERGENCY,
+            FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING,
+        ],
+        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
+            FixedFieldStandard::FIELD_CODE_EMERGENCY,
+            FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_DESTINATION,
+            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
+        ],
+
+        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
+        ],
+        FixedFieldStandard::ENTITY_CODE_DEMANDE => [
+            FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT
+        ],
+    ];
+
+    public const ALWAYS_REQUIRED_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
+            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+        ],
+        FixedFieldStandard::ENTITY_CODE_DEMANDE => [
+            FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
+            FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
+        ],
+        FixedFieldStandard::ENTITY_CODE_RECEPTION => [
+            FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
+        ],
+    ];
+
+    public const ALWAYS_DISPLAYED_FIELDS = [
+        FixedFieldStandard::ENTITY_CODE_RECEPTION => [
+            FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
         ],
     ];
 

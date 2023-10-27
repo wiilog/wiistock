@@ -2655,7 +2655,7 @@ class SettingsController extends AbstractController {
                 $displayedEdit = $field->isDisplayedEdit(...$isParams);
                 $requiredEdit = $field->isRequiredEdit(...$isParams);
 
-                $keptInMemoryDisabled = in_array($code, FixedFieldStandard::MEMORY_UNKEEPABLE_FIELDS);
+                $keptInMemoryDisabled = in_array($code, FixedField::MEMORY_UNKEEPABLE_FIELDS[$entity] ?? []);
                 $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory(...$isParams) ;
 
                 if(in_array($entity, FixedField::ON_NOMADE_ENTITY)){
@@ -2668,12 +2668,12 @@ class SettingsController extends AbstractController {
                     $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FILEDS[$entity] ?? []);
                 }
 
-                $filtersDisabled = !in_array($code, FixedFieldStandard::FILTERED_FIELDS);
+                $filtersDisabled = !in_array($code, FixedField::FILTERED_FIELDS[$entity] ?? []);
                 $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
 
-                $filterOnly = in_array($code, FixedFieldStandard::FILTER_ONLY_FIELDS);
-                $requireDisabled = $filterOnly || in_array($code, FixedFieldStandard::ALWAYS_REQUIRED_FIELDS[$entity] ?? []);
-                $displayDisabled = $filterOnly || in_array($field->getFieldCode(), FixedFieldStandard::ALWAYS_DISPLAYED_FIELDS[$entity] ?? []);
+                $filterOnly = in_array($code, FixedField::FILTER_ONLY_FIELDS);
+                $requireDisabled = $filterOnly || in_array($code, FixedField::ALWAYS_REQUIRED_FIELDS[$entity] ?? []);
+                $displayDisabled = $filterOnly || in_array($field->getFieldCode(), FixedField::ALWAYS_DISPLAYED_FIELDS[$entity] ?? []);
 
 
                 if ($edit) {
@@ -2726,7 +2726,7 @@ class SettingsController extends AbstractController {
                         "displayedEdit" => $this->formatService->bool($field->isDisplayedEdit(...$isParams)),
                         "requiredCreate" => $this->formatService->bool($field->isRequiredCreate(...$isParams)),
                         "requiredEdit" => $this->formatService->bool($field->isRequiredEdit(...$isParams)),
-                        "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FixedFieldStandard::FILTERED_FIELDS) && $field->isDisplayedFilters(...$isParams)),
+                        "displayedFilters" => $this->formatService->bool(in_array($field->getFieldCode(), FixedField::FILTERED_FIELDS[$entity] ?? []) && $field->isDisplayedFilters(...$isParams)),
                     ];
 
                     if($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
