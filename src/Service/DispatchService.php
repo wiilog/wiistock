@@ -171,6 +171,7 @@ class DispatchService {
                 ->join(', ');
         }
 
+        $typeColor = $dispatch->getType()->getColor();
         $row = [
             'id' => $dispatch->getId() ?? 'Non défini',
             'number' => $dispatch->getNumber() ?? '',
@@ -186,7 +187,12 @@ class DispatchService {
             'locationTo' => $this->formatService->location($dispatch->getLocationTo()),
             'destination' => $dispatch->getDestination() ?? '',
             'nbPacks' => $dispatch->getDispatchPacks()->count(),
-            'type' => $this->formatService->type($dispatch->getType()),
+            'type' => "
+                <div class='d-flex align-items-center'>
+                    <span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>
+                    {$this->formatService->type($dispatch->getType())}
+                </div>
+            ",
             'status' => $this->formatService->status($dispatch->getStatut()),
             'emergency' => $dispatch->getEmergency() ?? 'Non',
             'treatedBy' => $this->formatService->user($dispatch->getTreatedBy()),
@@ -226,6 +232,7 @@ class DispatchService {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
         $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
 
@@ -258,6 +265,7 @@ class DispatchService {
                     ],
                     'suggestedDropLocations' => implode(',', $type->getSuggestedDropLocations() ?? []),
                     'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
+                    'isDefault' => $type->isDefault(),
                 ];
             }, $types),
             'notTreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, null, [Statut::DRAFT]),
@@ -322,10 +330,6 @@ class DispatchService {
         }
 
         $config = [
-            [
-                'label' => $this->translationService->translate('Demande', 'Général', 'Type', false),
-                'value' => $this->formatService->type($type),
-            ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false),
                 'value' => $this->formatService->carrier($carrier, '-'),

@@ -49,7 +49,7 @@ class FieldsParam {
     const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
     const FIELD_CODE_NUM_COMMANDE_ARRIVAGE = 'numeroCommandeList';
     const FIELD_CODE_DROP_LOCATION_ARRIVAGE = 'dropLocationArrival';
-    const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_CODE_RECEIVERS = 'receivers';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
@@ -71,7 +71,7 @@ class FieldsParam {
     const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE = 'numéro tracking transporteur';
     const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande / BL';
-    const FIELD_LABEL_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_LABEL_RECEIVERS = 'destinataire(s)';
     const FIELD_LABEL_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
@@ -228,7 +228,7 @@ class FieldsParam {
         FieldsParam::FIELD_CODE_FOURNISSEUR,
         FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
         FieldsParam::FIELD_CODE_TRANSPORTEUR,
-        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
+        FieldsParam::FIELD_CODE_RECEIVERS,
         FieldsParam::FIELD_CODE_BUSINESS_UNIT,
         FieldsParam::FIELD_CODE_PROJECT_NUMBER,
         FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
