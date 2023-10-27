@@ -366,6 +366,18 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::PACK_SEPARATION_AUTO_DROP_LOCATION => [
                 'default' => null,
             ],
+            Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION => [
+                'default' => false,
+            ],
+            Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES => [
+                'default' => null,
+            ],
+            Setting::AUTO_UNGROUP => [
+                'default' => false,
+            ],
+            Setting::AUTO_UNGROUP_TYPES => [
+                'default' => null,
+            ],
         ];
 
         $appClient = $this->specificService->getAppClient();
