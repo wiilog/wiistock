@@ -122,6 +122,7 @@ class DispatchController extends AbstractController {
             'typesFilter' => $typesFilter,
             'fromDashboard' => $fromDashboard,
             'dispatch' => new Dispatch(),
+            'defaultType' => $typeRepository->findOneBy(['defaultType' => true]),
         ]);
     }
 
