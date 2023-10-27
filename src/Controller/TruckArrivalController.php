@@ -9,6 +9,7 @@ use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Printer;
 use App\Entity\Reserve;
 use App\Entity\ReserveType;
 use App\Entity\Setting;
@@ -475,6 +476,18 @@ class TruckArrivalController extends AbstractController
         return $this->json([
             "success" => true,
             "msg" => "Un type de réserve a bien été supprimé",
+        ]);
+    }
+
+    #[Route('/printer/supprimer/{entity}', name: 'settings_printer_delete', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
+    public function deletePrinter(EntityManagerInterface $manager, Printer $entity): JsonResponse {
+        $manager->remove($entity);
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "Une imprimante a bien été supprimé",
         ]);
     }
 }

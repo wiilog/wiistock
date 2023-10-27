@@ -26,6 +26,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
+use App\Entity\Printer;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
 use App\Entity\ScheduleRule;
@@ -121,6 +122,9 @@ class SettingsController extends AbstractController {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public FormService $formService;
+
     public const SETTINGS = [
         self::CATEGORY_GLOBAL => [
             "label" => "Global",
@@ -153,6 +157,11 @@ class SettingsController extends AbstractController {
                 self::MENU_MAIL_SERVER => [
                     "label" => "Serveur email",
                     "right" => Action::SETTINGS_DISPLAY_MAIL_SERVER,
+                    "save" => true,
+                ],
+                self::MENU_PRINTERS => [
+                    "label" => "Imprimantes",
+                    "right" => Action::SETTINGS_DISPLAY_PRINTERS,
                     "save" => true,
                 ],
             ],
@@ -637,6 +646,7 @@ class SettingsController extends AbstractController {
     public const MENU_OFF_DAYS = "jours_non_travailles";
     public const MENU_LABELS = "etiquettes";
     public const MENU_MAIL_SERVER = "serveur_email";
+    public const MENU_PRINTERS = "imprimantes";
 
     public const MENU_CONFIGURATIONS = "configurations";
     public const MENU_VISIBILITY_GROUPS = "groupes_visibilite";
@@ -3479,5 +3489,83 @@ class SettingsController extends AbstractController {
                 "msg" => "Ce pays d'origine est lié à des articles. Vous ne pouvez pas le supprimer.",
             ]);
         }
+    }
+
+    #[Route('/imprimantes-api', name: 'settings_printers_api', options: ['expose' => true])]
+    #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_WORKING_HOURS])]
+    public function printersApi(Request $request, EntityManagerInterface $manager) {
+        $edit = filter_var($request->query->get("edit"), FILTER_VALIDATE_BOOLEAN);
+        $class = "form-control data";
+
+        $printerRepository = $manager->getRepository(Printer::class);
+
+        $data = Stream::from($printerRepository->findAll())
+            ->map(function (Printer $printer) use ($edit, $class) {
+                $actions = $this->canDelete()
+                    ? "<button class='btn btn-silent delete-row' data-id='{$printer->getId()}'>
+                   <i class='wii-icon wii-icon-trash text-primary'></i>
+               </button>"
+                    : "";
+
+                if ($edit) {
+
+                    return [
+                        "actions" => $actions,
+                        "name" => "<input name='id' type='hidden' class='$class' value='{$printer->getId()}'>".$this->formService->macro("input", "name", null, true, $printer->getName(), [
+                                "inputClass" => $class,
+                                "error" => 'global',
+                            ]),
+                        "address" => $this->formService->macro("input", "address", null, true, $printer->getAddress(), [
+                            "inputClass" => $class,
+                            "error" => 'global',
+                        ]),
+                        "width" => $this->formService->macro("input", "width", null, true, $printer->getWidth(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 0.1,
+                            "step" => 0.1,
+                            "error" => 'global',
+                        ]),
+                        "height" => $this->formService->macro("input", "height", null, true, $printer->getHeight(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 0.1,
+                            "step" => 0.1,
+                            "error" => 'global',
+                        ]),
+                        "dpi" => $this->formService->macro("input", "dpi", null, true, $printer->getDpi(), [
+                            "type" => "number",
+                            "inputClass" => $class,
+                            "min" => 1,
+                            "step" => 1,
+                            "error" => 'global',
+                        ]),
+                    ];
+                } else {
+                    return [
+                        "actions" => $actions,
+                        "name" => $printer->getName(),
+                        "address" => $printer->getAddress(),
+                        "width" => $printer->getWidth(),
+                        "height" => $printer->getHeight(),
+                        "dpi" => $printer->getDpi(),
+                    ];
+                }
+            })->toArray();
+
+        $data[] = [
+            "actions" => "<span class='d-flex justify-content-start align-items-center add-row'><span class='wii-icon wii-icon-plus'></span></span>",
+            "name" => "",
+            "address" => "",
+            "width" => "",
+            "height" => "",
+            "dpi" => "",
+        ];
+
+        return $this->json([
+            "data" => $data,
+            "recordsTotal" => count($data),
+            "recordsFiltered" => count($data),
+        ]);
     }
 }
