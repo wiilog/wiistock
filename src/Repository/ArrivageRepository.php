@@ -196,6 +196,22 @@ class ArrivageRepository extends EntityRepository
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
                     break;
+                case 'commandList':
+                    $values = Stream::explode(',', $filter['value'])
+                        ->map(static fn(string $value) => explode(':', $value)[0])
+                        ->toArray();
+
+                    if (!empty($values)) {
+                        $expr = $qb->expr()->orX();
+                        foreach ($values as $value) {
+                            $keyParameter = "search_order_number_{$expr->count()}";
+                            $expr->add("JSON_CONTAINS(arrival.numeroCommandeList, :$keyParameter, '$') = true");
+                            $qb->setParameter($keyParameter, "\"$value\"");
+                        }
+
+                        $qb->andWhere($expr);
+                    }
+                    break;
                 case 'emplacement':
                     $value = explode(',', $filter['value']);
                     $qb
