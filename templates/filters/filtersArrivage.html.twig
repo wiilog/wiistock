@@ -60,4 +60,11 @@
             title: trans('Traçabilité', 'Arrivages UL', 'Divers', 'Numéro de tracking', false)
         } %}
     {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterCommandList.html.twig' with {
+            title: trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false)
+        } %}
+    {% endif %}
 {% endblock %}

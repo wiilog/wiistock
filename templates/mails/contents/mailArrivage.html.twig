@@ -98,7 +98,7 @@
             Votre unité logistique est disponible auprès du magasin.
         </p>
     {% endif %}
-    {%  if packsNatureNb is not empty %}
+    {% if packsNatureNb is not empty %}
         <p>
             Unités logistiques réceptionnées :
         </p>
@@ -114,13 +114,13 @@
                 </tr>
             </thead>
             <tbody>
-                {% for nature, packNb in packsNatureNb %}
+                {% for nature in packsNatureNb %}
                     <tr>
                         <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
-                            {{ nature }}
+                            {{ nature.label }}
                         </td>
                         <td class="td" style="border: 1px solid black; padding: 10px; text-align: left;">
-                            {{ packNb }}
+                            {{ nature.counter }}
                         </td>
                     </tr>
                 {% endfor %}

@@ -1711,6 +1711,7 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
+                    "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
@@ -2069,7 +2070,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if ($categoryLabel === CategoryType::ARTICLE) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
                 $inputId = rand(0, 1000000);
 
                 $data[] = [
@@ -2241,6 +2242,16 @@ class SettingsController extends AbstractController {
                     ]),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+                $data[] = [
+                    "label" => "Par défaut",
+                    "value" => $formService->macro("switch", "isDefault", null, true, [
+                        ["label" => "Oui", "value" => 1, "checked" => $type->isDefault()],
+                        ["label" => "Non", "value" => 0, "checked" => !$type->isDefault()],
+                    ]),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2249,7 +2260,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if ($categoryLabel === CategoryType::ARTICLE) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
@@ -2333,6 +2344,13 @@ class SettingsController extends AbstractController {
                     "value" => $type?->getLogo()
                         ? "<img src='{$type?->getLogo()?->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
                         : "",
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH, CategoryType::ARRIVAGE])) {
+                $data[] = [
+                    "label" => "Par défaut",
+                    "value" => $this->formatService->bool($type->isDefault()) ?: "Non",
                 ];
             }
         }

@@ -243,7 +243,7 @@
                             {% else %}
                                 <option value="">{{ trans('Traçabilité', 'Arrivages UL', 'Modale création nouvel arrivage UL', 'Type à choisir...') }}</option>
                                 {% for type in typesArrival %}
-                                    <option value="{{ type.id }}">
+                                    <option value="{{ type.id }}" {{ (defaultType and defaultType.id == type.id) ? 'selected'  }}>
                                         {{ type.labelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug) ?: type.label }}
                                     </option>
                                 {% endfor %}
@@ -307,24 +307,19 @@
                         </div>
                     {% endif %}
 
-                    {% set targetFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(targetFieldCode, 'displayedCreate') %}
-                        {% set targetRequired = fieldsParam|isFieldRequired(targetFieldCode, 'requiredCreate') %}
+                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
                         <div class="col-4">
-                            <div class="row">
-                                <div class="form-group col-12 w-100">
-                                    <label class="wii-field-name">
-                                        {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
-                                    </label>
-                                    <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
-                                            name="destinataire">
-                                        <option selected disabled>&nbsp;</option>
-                                        {% for user in users %}
-                                            <option value="{{ user.id }}" {{ keptFields[targetFieldCode] ?? null == user.id ? 'selected' }}>{{ user.username }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
+                            {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'), required, {
+                                type: "user",
+                                multiple: true,
+                                items: (keptFields[fieldCode] ?? [])|map((user) => {
+                                    label: user.username,
+                                    value: user.id,
+                                    selected: true,
+                                }),
+                            }) }}
                         </div>
                     {% endif %}
 
