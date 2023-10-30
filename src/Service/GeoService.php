@@ -117,8 +117,8 @@ class GeoService
 
         try {
             $request = $this->httpService->request("GET", $url, [
-                "f" => "jsonoooooooooooooooooooo",
-                "token" => $_SERVER["ARCGIS_API_KEY"],
+                "f" => "json",
+                "token" => $_SERVER["ARCGIS_API_KEY"]."ihkjhgbv",
                 "returnRoutes" => false,
                 "stops" => json_encode([
                     "spatialReference" => [
