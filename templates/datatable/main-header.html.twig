@@ -13,11 +13,13 @@
             <img src="{{ asset('svg/form-edit.svg') }}" width="17px" class="mr-2" alt="Formulaire édition">Formulaire d'édition
         </div>
     </th>
-    <th class="datatable-main-header" colspan="{{ filtersColumns ?? 1 }}">
-        <div class="d-flex align-items-center">
-            <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2" alt="Filtres">Sur les filtres
-        </div>
-    </th>
+    {% if needsMobileColumn is defined and needsMobileColumn %}
+        <th class="datatable-main-header" colspan="{{ filtersColumns ?? 1 }}">
+            <div class="d-flex align-items-center">
+                <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2" alt="Filtres">Sur les filtres
+            </div>
+        </th>
+    {% endif %}
     {% if needsOnMobileColumn is defined and needsOnMobileColumn %}
         <th class="datatable-main-header" colspan="1">
             <div class="d-flex align-items-center">

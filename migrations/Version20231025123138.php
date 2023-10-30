@@ -7,6 +7,7 @@ namespace DoctrineMigrations;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Setting;
 use App\Entity\Type;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Schema\Schema;
@@ -40,6 +41,7 @@ final class Version20231025123138 extends AbstractMigration implements Container
         $emptyCollection = new ArrayCollection([]);
 
         $fieldsStandards = $fixedFieldStandardRepository->findByEntityForEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
+        $onFilerFields = [];
         foreach ($fieldsStandards as $field) {
             $fieldByType = (new FixedFieldByType())
                 ->setEntityCode($field->getEntityCode())
@@ -52,12 +54,21 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setKeptInMemory($field->isKeptInMemory() ? $types : $emptyCollection)
                 ->setDisplayedCreate($field->isDisplayedCreate() ? $types : $emptyCollection)
                 ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection)
-                ->setDisplayedFilters($field->isDisplayedFilters() ? $types : $emptyCollection)
                 ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection);
 
+            if ($field->isDisplayedFilters()) {
+                $onFilerFields[] = $fieldByType->getId();
+            }
             $entityManager->persist($fieldByType);
             $entityManager->remove($field);
         }
+
+        $onFilerFieldsSetting = (new Setting())
+            ->setLabel(Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS)
+            ->setValue(implode(',', $onFilerFields));
+
+        $entityManager->persist($onFilerFieldsSetting);
+
         $entityManager->flush();
     }
 

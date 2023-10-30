@@ -691,7 +691,6 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `requiredCreate`, title: `Obligatoire`},
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
-                    {data: `displayedFilters`, title: `Afficher`},
                     {data: 'onMobile', title: `Afficher` },
                     {data: 'onLabel', title: `Afficher` }
                 ],

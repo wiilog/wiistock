@@ -32,10 +32,6 @@ class FixedFieldByType extends FixedField
     private Collection $displayedEdit;
 
     #[ORM\ManyToMany(targetEntity: Type::class)]
-    #[ORM\JoinTable(name: 'fixed_field_by_type_displayed_filters')]
-    private Collection $displayedFilters;
-
-    #[ORM\ManyToMany(targetEntity: Type::class)]
     #[ORM\JoinTable(name: 'fixed_field_by_type_on_mobile')]
     private Collection $onMobile;
 
@@ -220,39 +216,6 @@ class FixedFieldByType extends FixedField
     public function removeDisplayedEdit(Type $displayedEdit): static
     {
         $this->displayedEdit->removeElement($displayedEdit);
-
-        return $this;
-    }
-
-    public function getDisplayedFilters(): Collection
-    {
-        return $this->displayedFilters;
-    }
-
-    public function isDisplayedFilters(Type $type): bool
-    {
-        return $this->displayedFilters->contains($type);
-    }
-
-    public function addDisplayedFilters(Type $displayedFilter): static
-    {
-        if (!$this->displayedFilters->contains($displayedFilter)) {
-            $this->displayedFilters->add($displayedFilter);
-        }
-
-        return $this;
-    }
-
-    public function setDisplayedFilters(Collection $displayedFilters): static
-    {
-        $this->displayedFilters = $displayedFilters;
-
-        return $this;
-    }
-
-    public function removeDisplayedFilters(Type $displayedFilter): static
-    {
-        $this->displayedFilters->removeElement($displayedFilter);
 
         return $this;
     }
