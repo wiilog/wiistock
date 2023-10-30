@@ -34,8 +34,11 @@ class Arrivage {
     #[ORM\Column(type: 'json')]
     private ?array $numeroCommandeList = [];
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesDestinataire')]
-    private ?Utilisateur $destinataire = null;
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'receivedArrivals')]
+    #[ORM\JoinTable("arrival_receiver")]
+    #[ORM\JoinColumn(name: "arrival_id", referencedColumnName: "id")]
+    #[ORM\InverseJoinColumn(name: "user_id", referencedColumnName: "id")]
+    private Collection $receivers;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'arrivagesAcheteur')]
     private Collection $acheteurs;
@@ -49,19 +52,19 @@ class Arrivage {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $date = null;
 
-    #[ORM\Column(type: 'string', length: 32, nullable: true, unique: true)]
+    #[ORM\Column(type: 'string', length: 32, unique: true, nullable: true)]
     private ?string $numeroArrivage = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesUtilisateur')]
     private ?Utilisateur $utilisateur = null;
 
-    #[ORM\OneToMany(targetEntity: Pack::class, mappedBy: 'arrivage')]
+    #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: Pack::class)]
     private Collection $packs;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\OneToMany(targetEntity: 'Attachment', mappedBy: 'arrivage')]
+    #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: 'Attachment')]
     private Collection $attachements;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -70,7 +73,7 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'arrivages')]
     private ?Statut $statut = null;
 
-    #[ORM\OneToMany(targetEntity: Urgence::class, mappedBy: 'lastArrival')]
+    #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Urgence::class)]
     private Collection $urgences;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
@@ -104,6 +107,7 @@ class Arrivage {
         $this->urgences = new ArrayCollection();
         $this->numeroCommandeList = [];
         $this->truckArrivalLines = new ArrayCollection();
+        $this->receivers = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -175,16 +179,6 @@ class Arrivage {
         if($index !== false) {
             array_splice($this->numeroCommandeList, $index, 1);
         }
-
-        return $this;
-    }
-
-    public function getDestinataire(): ?Utilisateur {
-        return $this->destinataire;
-    }
-
-    public function setDestinataire(?Utilisateur $destinataire): self {
-        $this->destinataire = $destinataire;
 
         return $this;
     }
@@ -544,6 +538,29 @@ class Arrivage {
         $this->reception = $reception;
         if($this->reception && $this->reception->getArrival() !== $this) {
             $this->reception->setArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function getReceivers(): Collection {
+        return $this->receivers;
+    }
+
+    public function addReceiver(Utilisateur $receiver): self {
+        if(!$this->receivers->contains($receiver)) {
+            $this->receivers[] = $receiver;
+            if(!$receiver->getReceivedArrivals()->contains($this)) {
+                $receiver->addReceivedArrival($this);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeReceiver(Utilisateur $receiver): self {
+        if($this->receivers->removeElement($receiver)) {
+            $receiver->removeReceivedArrival($this);
         }
 
         return $this;

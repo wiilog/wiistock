@@ -726,6 +726,17 @@ class SettingsService {
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
+                if(isset($data["isDefault"])) {
+                    if($data["isDefault"]) {
+                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
+                        if($alreadyByDefaultType) {
+                            $alreadyByDefaultType->setDefault(false);
+                        }
+                    }
+
+                    $type->setDefault($data["isDefault"]);
+                }
+
                 if (isset($files["logo"])) {
                     $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
                 } else {

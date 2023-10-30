@@ -193,7 +193,7 @@ class ArrivageController extends AbstractController {
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_COMMENTAIRE, $data["commentaire"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE, filter_var($data["frozen"] ?? false, FILTER_VALIDATE_BOOLEAN));
-        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE, $data["destinataire"] ?? null);
+        $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_RECEIVERS, $data["receivers"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE, filter_var($data["customs"] ?? false, FILTER_VALIDATE_BOOLEAN));
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE, $data["dropLocation"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_FOURNISSEUR, $data["fournisseur"] ?? null);
@@ -259,8 +259,13 @@ class ArrivageController extends AbstractController {
             $arrivage->setNumeroCommandeList($numeroCommandeList);
         }
 
-        if (!empty($data['destinataire'])) {
-            $arrivage->setDestinataire($userRepository->find($data['destinataire']));
+        if (!empty($data['receivers'])) {
+            $ids = explode("," , $data['receivers']);
+
+            $receivers = $userRepository->findBy(['id' => $ids]);
+            foreach ($receivers as $receiver) {
+                $arrivage->addReceiver($receiver);
+            }
         }
 
         if (!empty($data['businessUnit'])) {
@@ -517,8 +522,12 @@ class ArrivageController extends AbstractController {
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
-        $newDestinataire = $post->has('destinataire') ? $utilisateurRepository->find($post->get('destinataire')) : null;
-        $destinataireChanged = $newDestinataire && $newDestinataire !== $arrivage->getDestinataire();
+        $receivers = Stream::from($arrivage->getReceivers())
+            ->map(static fn(Utilisateur $receiver) => $receiver->getId())
+            ->toArray();
+        $postedReceivers = $post->has('receivers')
+            ? explode(",", $post->get('receivers'))
+            : [];
 
         $dropLocation = $post->has('dropLocation')
             ? $emplacementRepository->find($post->get('dropLocation'))
@@ -570,8 +579,20 @@ class ArrivageController extends AbstractController {
             $arrivage->setFrozen($post->getBoolean('frozen'));
         }
 
-        if($post->has('destinataire')){
-            $arrivage->setDestinataire($newDestinataire);
+        if($post->has('receivers')) {
+            $ids = $post->get('receivers')
+                ? explode(",", $post->get('receivers') ?? '')
+                : [];
+
+            $existingReceivers = $arrivage->getReceivers();
+            foreach ($existingReceivers as $receiver) {
+                $arrivage->removeReceiver($receiver);
+            }
+
+            $receivers = $utilisateurRepository->findBy(['id' => $ids]);
+            foreach ($receivers as $receiver) {
+                $arrivage->addReceiver($receiver);
+            }
         }
 
         if($post->has('businessUnit')){
@@ -602,7 +623,9 @@ class ArrivageController extends AbstractController {
         }
 
         $entityManager->flush();
-        if ($sendMail && $destinataireChanged) {
+
+        $hasNewReceivers = !Stream::diff($postedReceivers, $receivers, true)->isEmpty();
+        if ($sendMail && $hasNewReceivers) {
             $arrivageDataService->sendArrivalEmails($entityManager, $arrivage);
         }
 
@@ -1320,7 +1343,7 @@ class ArrivageController extends AbstractController {
 
             $barcodeConfigs[] = $packService->getBarcodePackConfig(
                 $pack,
-                $arrivage->getDestinataire(),
+                $arrivage->getReceivers()->toArray(),
                 "$position/$total",
                 $typeArrivalParamIsDefined,
                 $usernameParamIsDefined,
@@ -1401,7 +1424,7 @@ class ArrivageController extends AbstractController {
             ) {
                 $packs[] = $packService->getBarcodePackConfig(
                     $pack,
-                    $arrivage->getDestinataire(),
+                    $arrivage->getReceivers()->toArray(),
                     "$position/$total",
                     $typeArrivalParamIsDefined,
                     $usernameParamIsDefined,
