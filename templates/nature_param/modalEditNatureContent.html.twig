@@ -109,7 +109,7 @@
                         {{ entity }}
                     </label>
                 </div>
-                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
+                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') and index != constant('App\\Entity\\Nature::BURSTED')%}
                     <div class="input-group row no-gutters">
                         <div class="col-6 types-container">
                             <select name="{{ index }}Types"

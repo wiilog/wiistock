@@ -15,13 +15,15 @@ class Nature {
     public const ARRIVAL_CODE = 'arrival';
     public const TRANSPORT_COLLECT_CODE = 'transportCollect';
     public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
+    public const BURSTED = 'Bursted';
 
     private const ARRIVAL_LABEL = 'Arrivage';
     private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
     private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
-
+    private const BURSTED_LABEL = 'Éclatement';
     public const ENTITIES = [
         self::ARRIVAL_CODE => self::ARRIVAL_LABEL,
+        self::BURSTED => self::BURSTED_LABEL,
         self::TRANSPORT_COLLECT_CODE => self::TRANSPORT_COLLECT_LABEL,
         self::TRANSPORT_DELIVERY_CODE => self::TRANSPORT_DELIVERY_LABEL,
     ];
