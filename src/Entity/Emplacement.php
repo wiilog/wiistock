@@ -14,6 +14,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\Vehicle;
 use App\Repository\EmplacementRepository;
@@ -28,6 +29,7 @@ use Doctrine\ORM\Mapping\OneToMany;
 class Emplacement implements PairedEntity {
 
     use SensorMessageTrait;
+    use LitePropertiesSetterTrait;
 
     const LABEL_A_DETERMINER = 'A DETERMINER';
 
