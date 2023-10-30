@@ -35,6 +35,8 @@ use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\TagTemplateService;
 use App\Service\VisibleColumnService;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\ArrivageService;
@@ -1553,19 +1555,25 @@ class ArrivageController extends AbstractController {
 
     #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
-    public function apiDeliveryNoteFile(Request                $request,
+    public function apiDeliveryNoteFile(Request                 $request,
                                          AttachmentService      $attachmentService,
+                                         KernelInterface        $kernel,
                                          EntityManagerInterface $entityManager): JsonResponse
     {
-//        il faudrait enregistrer le fichier envoyé par l'api
-//
-//        if($request->files->has('file')) {
-//            $file = $request->files->get('file');
-//            $originalName = $file->getClientOriginalName();
-//            $fileName = $attachmentService->saveFile($file);
-//        }
-//
-//        $entityManager->flush();
+        if ($request->files->has('file')) {
+            $uploadedFile = $request->files->get('file');
+            $originalUploadedFileName = $uploadedFile->getClientOriginalName();
+            $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
+            // the api output will be a base64 image, to fake it we encode the one uploaded
+            $projectDir = $kernel->getProjectDir();
+            $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
+            $pattern = '/(.+)\.\w{3}/';
+            preg_match($pattern, $originalUploadedFileName, $matches);
+            $downloadedFileName = $matches[1] . '-annotated.png';
+            $filepath = $attachmentService->createFile($downloadedFileName, base64_decode($encodedFile));
+        }
+
+        $entityManager->flush();
 
         $apiOutput = [
             'values' => [
@@ -1590,7 +1598,7 @@ class ArrivageController extends AbstractController {
                     'score' => 0.68,
                 ]
             ],
-            'file' => $fileName ?? null,
+            'file' => $filepath ?? null,
         ];
 
         return $this->json($apiOutput);

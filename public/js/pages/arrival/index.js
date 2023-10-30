@@ -446,7 +446,6 @@ function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
 }
 
 function scanDeliveryNoteFile($input) {
-    // si pas de pj message erreur
     let files = $input[0].files;
     let file = files[0];
     let formData = new FormData();
@@ -460,6 +459,9 @@ function scanDeliveryNoteFile($input) {
         dataType: 'json',
         success: function (data) {
             console.log(data);
-        }
+        },
+        error: () => {
+            Flash.add('danger', 'Il y a eu une erreur lors de l\'import et/ou traitement du fichier');
+        },
     })
 }
