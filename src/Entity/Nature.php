@@ -22,10 +22,22 @@ class Nature {
     private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
     private const BURSTED_LABEL = 'Éclatement';
     public const ENTITIES = [
-        self::ARRIVAL_CODE => self::ARRIVAL_LABEL,
-        self::BURSTED => self::BURSTED_LABEL,
-        self::TRANSPORT_COLLECT_CODE => self::TRANSPORT_COLLECT_LABEL,
-        self::TRANSPORT_DELIVERY_CODE => self::TRANSPORT_DELIVERY_LABEL,
+        self::ARRIVAL_CODE => [
+            'label' => self::ARRIVAL_LABEL,
+            'showTypes' => false,
+        ],
+        self::BURSTED => [
+            'label' => self::BURSTED_LABEL,
+            'showTypes' => false,
+        ],
+        self::TRANSPORT_COLLECT_CODE => [
+            'label' => self::TRANSPORT_COLLECT_LABEL,
+            'showTypes' => true,
+        ],
+        self::TRANSPORT_DELIVERY_CODE => [
+            'label' => self::TRANSPORT_DELIVERY_LABEL,
+            'showTypes' => true,
+        ],
     ];
 
     #[ORM\Id]
