@@ -360,6 +360,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DELIVERY_STATION_INFORMATION_MESSAGE => [
                 'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.',
             ],
+            Setting::USE_AI_ARRIVALS => [
+                'default' => false,
+            ],
+            Setting::DISPLAY_SCANNED_DELIVERY_NOTE => [
+                'default' => false,
+            ]
         ];
 
         $appClient = $this->specificService->getAppClient();

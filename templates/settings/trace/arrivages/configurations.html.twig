@@ -18,6 +18,16 @@
         <div class="col-md-6 col-12 my-1">
             {{ form.checkbox(setting('USE_TRUCK_ARRIVALS'), 'Utilisation des arrivages camion', false, setting_value('USE_TRUCK_ARRIVALS')) }}
         </div>
+        <div class="col-md-6 col-12 my-1">
+            <div class="row">
+                {{ form.checkbox(setting('USE_AI_ARRIVALS'), 'Utilisation IA pour remplissage automatique', false, setting_value('USE_AI_ARRIVALS'), {
+                    containerClass : 'col-6 my-1'
+                }) }}
+                {{ form.checkbox(setting('DISPLAY_SCANNED_DELIVERY_NOTE'), 'Affichage automatique du BL scanné', false, setting_value('DISPLAY_SCANNED_DELIVERY_NOTE'), {
+                    containerClass : 'col-6 my-1'
+                }) }}
+            </div>
+        </div>
     </div>
     <div class="row mt-3">
         <div class="col-md-6 col-12 my-1">
