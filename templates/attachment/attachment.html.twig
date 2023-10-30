@@ -10,6 +10,8 @@
     {% set name = nameInput is defined and nameInput ? nameInput : null %}
     {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
         and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
+    {% set buttonTitle = buttonTitle is defined and buttonTitle ? buttonTitle : null %}
+    {% set formats = formats is defined and formats ? formats : null %}
 
     <input type="hidden" name="isAttachmentForm" value="1"/>
     <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
@@ -35,9 +37,9 @@
                 <button onclick="openFileExplorer($(this))" class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}" type="button" {{ disabled ? 'disabled' }}>
                     <i class="fa fa-folder-open mr-2"></i>
                     {% if buttonOnly %}
-                        Importer
+                        {{ buttonTitle ? : 'Importer' }}
                     {% else %}
-                        {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
+                        {{ trans('Général', null, 'Modale', buttonTitle ? : 'Parcourir vos fichiers') }}
                     {% endif %}
                 </button>
                 {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
@@ -49,6 +51,9 @@
                                             lineClass: '{{ lineClass }}'
                                         }
                                     )"
+                           {% if formats %}
+                               accept="{{ formats }}"
+                           {% endif %}
                     >
                 {% else %}
                     <input type="file"
@@ -61,6 +66,9 @@
                                             lineClass: '{{ lineClass }}'
                                         }
                                     )"
+                        {% if formats %}
+                            accept="{{ formats }}"
+                        {% endif %}
                     >
                 {% endif %}
             </div>

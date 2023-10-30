@@ -1550,4 +1550,49 @@ class ArrivageController extends AbstractController {
         $columns = $packService->getColumnVisibleConfig($currentUser);
         return new JsonResponse($columns);
     }
+
+    #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::CREATE])]
+    public function apiDeliveryNoteFile(Request                $request,
+                                         AttachmentService      $attachmentService,
+                                         EntityManagerInterface $entityManager): JsonResponse
+    {
+//        il faudrait enregistrer le fichier envoyé par l'api
+//
+//        if($request->files->has('file')) {
+//            $file = $request->files->get('file');
+//            $originalName = $file->getClientOriginalName();
+//            $fileName = $attachmentService->saveFile($file);
+//        }
+//
+//        $entityManager->flush();
+
+        $apiOutput = [
+            'values' => [
+                'supplier' => [
+                    'value' => '4030',
+                    'score' => 0.78,
+                ],
+                'numeroCommandeList' => [
+                    'value' => '123456789/P7T30',
+                    'score' => 0.62,
+                ],
+                'noTracking' => [
+                    'value' => 'SEY-BEL-610 230',
+                    'score' => 0.85,
+                ],
+                'recipient' => [
+                    'value' => 'MONIN Raphaël',
+                    'score' => 0.95,
+                ],
+                'comment' => [
+                    'value' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+                    'score' => 0.68,
+                ]
+            ],
+            'file' => $fileName ?? null,
+        ];
+
+        return $this->json($apiOutput);
+    }
 }

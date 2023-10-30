@@ -121,6 +121,10 @@ $(function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
 
+    $(document).on('change', `input[name='uploadAndScan']`, function () {
+        scanDeliveryNoteFile($(this));
+    })
+
 });
 
 function initTableArrival(dispatchMode = false) {
@@ -439,4 +443,23 @@ function toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer) {
 
     $dispatchModeContainer.find(`.validate`).prop(`disabled`, !atLeastOneChecked);
     $(`.check-all`).prop(`checked`, ($allDispatchCheckboxes.filter(`:checked`).length) === $allDispatchCheckboxes.length);
+}
+
+function scanDeliveryNoteFile($input) {
+    // si pas de pj message erreur
+    let files = $input[0].files;
+    let file = files[0];
+    let formData = new FormData();
+    formData.append("file", file)
+    $.ajax({
+        url: Routing.generate('api_delivery_note_file', true),
+        data: formData,
+        type: 'POST',
+        contentType: false,
+        processData: false,
+        dataType: 'json',
+        success: function (data) {
+            console.log(data);
+        }
+    })
 }
