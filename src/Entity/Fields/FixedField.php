@@ -101,7 +101,7 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_FOURNISSEUR,
             FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
             FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
-            FixedFieldStandard::FIELD_CODE_TARGET_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_RECEIVERS,
             FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
             FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
             FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
