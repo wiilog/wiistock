@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Helper\FormatHelper;
 use App\Repository\ReceiptAssociationRepository;
 use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ReceiptAssociationRepository::class)]
@@ -12,19 +13,19 @@ class ReceiptAssociation {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $creationDate = null;
 
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'receptionsTraca')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $user = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $packCode = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $receptionNumber = null;
 
     public function getId(): ?int {
