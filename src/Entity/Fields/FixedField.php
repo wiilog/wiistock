@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
 abstract class FixedField {
-    public const ON_NOMADE_ENTITY = [
+    public const ON_MOBILE_ENTITY = [
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL,
         FixedFieldStandard::ENTITY_CODE_DISPATCH,
     ];
@@ -16,7 +16,7 @@ abstract class FixedField {
         FixedFieldStandard::ENTITY_CODE_DISPATCH,
     ];
 
-    public const ON_NOMADE_FILEDS = [
+    public const ON_MOBILE_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,

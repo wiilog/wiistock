@@ -670,8 +670,7 @@ function initializeDispatchFixedFields($container, canEdit) {
     const selectorTable = `#table-dispatch-fixed-fields`;
     $typeInputs
         .on(`change`, function() {
-            let $selectedType = $(Array.from($typeInputs).find((input) => $(input).is(`:checked`)));
-            console.log($selectedType.val());
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
             $container.find(selectorTable).DataTable().destroy();
             EditableDatatable.create(selectorTable, {
                 route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),

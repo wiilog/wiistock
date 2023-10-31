@@ -2678,9 +2678,9 @@ class SettingsController extends AbstractController {
                 $keptInMemoryDisabled = in_array($code, FixedField::MEMORY_UNKEEPABLE_FIELDS[$entity] ?? []);
                 $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory(...$isParams);
 
-                if (in_array($entity, FixedField::ON_NOMADE_ENTITY)) {
+                if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
                     $onMobile = $field->isOnMobile(...$isParams);
-                    $onMobileDisabled = !in_array($code, FixedField::ON_NOMADE_FILEDS[$entity] ?? []);
+                    $onMobileDisabled = !in_array($code, FixedField::ON_MOBILE_FIELDS[$entity] ?? []);
                 }
 
                 if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
@@ -2734,7 +2734,7 @@ class SettingsController extends AbstractController {
                         ]);
                     }
 
-                    if (in_array($entity, FixedField::ON_NOMADE_ENTITY)) {
+                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
                         $row["onMobile"] = $formService->macro("checkbox", "onMobile", null, false, $onMobile, [
                             "disabled" => $onMobileDisabled,
                         ]);
@@ -2759,7 +2759,7 @@ class SettingsController extends AbstractController {
                         $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory(...$isParams));
                     }
 
-                    if (in_array($entity, FixedField::ON_NOMADE_ENTITY)) {
+                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
                         $row["onMobile"] = $this->formatService->bool($field->isOnMobile(...$isParams));
                     }
 
