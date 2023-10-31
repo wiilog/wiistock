@@ -745,4 +745,22 @@ class RoundController extends AbstractController {
             "{$transportRound->getNumber()}-bon-transport.pdf"
         );
     }
+
+    #[Route("/last-deliverer-position/{transportRound}", name: "transport_round_last_deliverer_position", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function getLastDelivererPosition(TransportRound         $transportRound,
+                                             EntityManagerInterface $entityManager): JsonResponse {
+        $delivererPosition = $transportRound?->getBeganAt()
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+                $transportRound->getVehicle(),
+                $transportRound->getBeganAt(),
+                $transportRound->getEndedAt(),
+                Sensor::GPS)
+            : null;
+
+        return new JsonResponse([
+            "success" => true,
+            "position" => $delivererPosition["content"] ?? null,
+        ]);
+    }
 }

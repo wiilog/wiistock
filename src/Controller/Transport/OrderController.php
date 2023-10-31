@@ -144,15 +144,6 @@ class OrderController extends AbstractController {
 
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
-        $delivererPosition = $delivererPosition =  $round?->getBeganAt()
-            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
-                $round->getVehicle(),
-                $round->getBeganAt(),
-                $round->getEndedAt(),
-                Sensor::GPS)
-            : null;
-
-        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
         if ($round) {
             if(!$round->getEndedAt()) {
                 $end = clone ($round->getBeganAt() ?? new DateTime("now"));
@@ -172,8 +163,8 @@ class OrderController extends AbstractController {
             'round' => $round,
             'timeSlots' => $timeSlots,
             'contactPosition' => $contactPosition,
-            'delivererPosition' => $delivererPosition,
             'urls' => $urls ?? null,
+            'roundId' => $round?->getId() ?? '',
         ]);
     }
 
