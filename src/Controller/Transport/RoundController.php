@@ -750,7 +750,7 @@ class RoundController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
     public function getLastDelivererPosition(TransportRound         $transportRound,
                                              EntityManagerInterface $entityManager): JsonResponse {
-        $delivererPosition = $delivererPosition =  $transportRound?->getBeganAt()
+        $delivererPosition = $transportRound?->getBeganAt()
             ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $transportRound->getVehicle(),
                 $transportRound->getBeganAt(),
