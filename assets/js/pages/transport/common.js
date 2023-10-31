@@ -1,5 +1,5 @@
 import {Map} from "@app/map";
-import AJAX, {GET} from "../../ajax";
+import AJAX, {GET} from "@app/ajax";
 
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin', 'DD/MM/YYYY', {

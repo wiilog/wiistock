@@ -167,7 +167,7 @@ class RequestController extends AbstractController {
             "hasRejectedPacks" => $hasRejectedPacks,
             "contactPosition" => $contactPosition,
             'urls' => $urls ?? null,
-            'roundId' => $round?->getId() ?? '',
+            'roundId' => $round?->getId() ?? null,
         ]);
     }
 
