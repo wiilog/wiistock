@@ -758,8 +758,6 @@ class RoundController extends AbstractController {
                 Sensor::GPS)
             : null;
 
-        dump($delivererPosition);
-
         return new JsonResponse([
             "succes" => true,
             "position" => $delivererPosition["content"] ?? null,

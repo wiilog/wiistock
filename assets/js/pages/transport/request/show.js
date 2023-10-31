@@ -38,7 +38,7 @@ $(function () {
 
     const map = initMap(contactPosition)
 
-    if(roundId){
+    if (roundId) {
         displayLastDelivererPosition(map, roundId);
     }
 });

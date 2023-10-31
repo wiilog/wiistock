@@ -105,7 +105,7 @@ export function displayLastDelivererPosition(map, roundId) {
         .route(
             GET,
             'transport_round_last_deliverer_position',
-            {transportRound : roundId }
+            {transportRound: roundId}
         )
         .json()
         .then(({position}) => {

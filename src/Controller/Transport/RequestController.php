@@ -168,7 +168,6 @@ class RequestController extends AbstractController {
             "contactPosition" => $contactPosition,
             'urls' => $urls ?? null,
             'roundId' => $round?->getId() ?? '',
-
         ]);
     }
 
