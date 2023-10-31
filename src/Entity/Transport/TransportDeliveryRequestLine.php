@@ -2,12 +2,14 @@
 
 namespace App\Entity\Transport;
 
+use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\Transport\TransportDeliveryRequestLineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransportDeliveryRequestLineRepository::class)]
 class TransportDeliveryRequestLine extends TransportRequestLine {
 
+    use LitePropertiesSetterTrait;
     #[ORM\ManyToOne(targetEntity: TemperatureRange::class, inversedBy: 'transportDeliveryRequestNatures')]
     private ?TemperatureRange $temperatureRange = null;
 
