@@ -124,7 +124,9 @@ class TransportRoundService
             $end = min((clone ($transportRound->getBeganAt()))->setTime(23, 59), $transportRound->getEndedAt());
         }
 
-        $messages = $vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $end, Sensor::GPS);
+        $messages = $vehicle->getSensorMessagesBetween($transportRound->getBeganAt(), $end, [
+            "sensorType" => Sensor::GPS
+        ]);
         if (!empty($messages)) {
             $coordinates = $transportRound->getCoordinates();
             $initialDistance = $this->geoService->directArcgisQuery(
