@@ -115,8 +115,7 @@ class GeoService
             ];
         }
 
-        try {
-            $request = $this->httpService->request("GET", $url, [
+        $url .= "?".http_build_query([
                 "f" => "json",
                 "token" => $_SERVER["ARCGIS_API_KEY"],
                 "returnRoutes" => false,
@@ -127,6 +126,9 @@ class GeoService
                     "features" => $stops,
                 ]),
             ]);
+
+        try {
+            $request = $this->httpService->request("GET", $url);
             $result = json_decode($request->getContent(), true);
             foreach ($result['directions'] as $direction) {
                 preg_match("^Route (\d+) to \d+$^", $direction["routeName"], $matches);

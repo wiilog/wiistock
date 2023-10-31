@@ -176,6 +176,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
             ],
+            Setting::DISPLAY_WARNING_WRONG_LOCATION => [
+                'default' => false,
+            ],
             Setting::USES_UTF8 => [
                 'default' => true,
             ],
@@ -228,6 +231,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DROP_OFF_LOCATION_IF_EMERGENCY => [],
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
                 "default" => json_encode(["provider", "commande"]),
+            ],
+            Setting::CONFIRM_EMERGENCY_ON_ARRIVAL => [
+                'default' => false,
             ],
             Setting::LABEL_LOGO => [],
             Setting::EMERGENCY_ICON => [],

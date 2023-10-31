@@ -14,5 +14,7 @@
         titleFilterStatut : 'Urgence ?'
     } %}
     {% include 'filters/filter_item/filterExpectedDate.html.twig' %}
-    {% include 'filters/filter_item/filterCommandList.html.twig' %}
+    {% include 'filters/filter_item/filterCommandList.html.twig' with {
+        title: "N° de commande",
+    } %}
 {% endblock %}

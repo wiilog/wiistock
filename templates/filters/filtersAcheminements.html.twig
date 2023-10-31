@@ -52,6 +52,7 @@
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCommandList.html.twig' with {
             disabled: fromDashboard ? 'disabled',
+            title: trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}

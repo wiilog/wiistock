@@ -16,21 +16,23 @@
             additionalAttributes: dispatch.id ? [] :[
                 { name: 'onChange', value: 'onDispatchTypeChange($(this))' },
             ],
-            items: dispatch.id and dispatch.type ? [{
-                value: dispatch.type.id,
-                label:  dispatch.type|format_helper('type'),
-                selected: true,
-            }] : typeChampsLibres|map(type => ({
-                value: type.typeId,
-                label: type.typeLabel,
-                selected: uniqueType,
-                'pick-location-id': type.pickLocation.id,
-                'pick-location-label': type.pickLocation.label,
-                'drop-location-id': type.dropLocation.id,
-                'drop-location-label': type.dropLocation.label,
-                'suggested-drop-locations': type.suggestedDropLocations,
-                'suggested-pick-locations': type.suggestedDropLocations,
-            })),
+            items: dispatch.id and dispatch.type
+                ? [{
+                    value: dispatch.type.id,
+                    label:  dispatch.type|format_helper('type'),
+                    selected: true,
+                }]
+                : typeChampsLibres|map(type => ({
+                    value: type.typeId,
+                    label: type.typeLabel,
+                    selected: uniqueType,
+                    'pick-location-id': type.pickLocation.id,
+                    'pick-location-label': type.pickLocation.label,
+                    'drop-location-id': type.dropLocation.id,
+                    'drop-location-label': type.dropLocation.label,
+                    'suggested-drop-locations': type.suggestedDropLocations,
+                    'suggested-pick-locations': type.suggestedDropLocations,
+                })),
             attributes: {
                 'data-init': (defaultType ?? false) ? defaultType.id,
             }

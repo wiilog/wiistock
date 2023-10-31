@@ -368,6 +368,29 @@ export default class Select2 {
         }
         return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
+
+    static initSelectMultipleWarning($element, $warningMessage, check, options = {}) {
+        $element.off('change.Check').on('change.Check', function () {
+            let $options = $(this).find('option:selected')
+            $warningMessage.prop('hidden', true);
+
+            // Wait for select2 to render the options
+            setTimeout(function () {
+                $options.each(async function () {
+                    let $option = $(this);
+                    let value = $option.val();
+
+                    if (await check($option)) {
+                        $option.removeClass('invalid');
+                    } else {
+                        $options.closest('label').find('.select2-container ul.select2-selection__rendered li.select2-selection__choice[title="' + value + '"]').addClass('warning');
+                        $warningMessage.prop('hidden', false);
+                        options.onWarning && options.onWarning();
+                    }
+                });
+            }, 10);
+        })
+    }
 }
 
 $(document).ready(() => $(`[data-s2]`).each((id, elem) => {
