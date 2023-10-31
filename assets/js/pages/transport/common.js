@@ -1,4 +1,5 @@
 import {Map} from "@app/map";
+import AJAX, {GET} from "../../ajax";
 
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin', 'DD/MM/YYYY', {
@@ -97,4 +98,19 @@ export function placeDeliverer(map , delivererPosition , name = null) {
             name: "Deliverer",
         });
     }
+}
+
+export function displayLastDelivererPosition(map, roundId) {
+    AJAX
+        .route(
+            GET,
+            'transport_round_last_deliverer_position',
+            {transportRound : roundId }
+        )
+        .json()
+        .then(({position}) => {
+            if (position) {
+                placeDeliverer(map, position);
+            }
+        });
 }

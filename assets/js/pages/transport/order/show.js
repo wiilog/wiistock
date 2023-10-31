@@ -1,12 +1,12 @@
 import '@styles/pages/transport/show.scss';
-import {getPacks, getStatusHistory, getTransportHistory, placeDeliverer, initMap} from "@app/pages/transport/common";
+import {getPacks, getStatusHistory, getTransportHistory, displayLastDelivererPosition, initMap} from "@app/pages/transport/common";
 
 $(function () {
     const $modalCollectTimeSlot = $("#modalCollectTimeSlot");
     const transportId = Number($(`input[name=transportId]`).val());
     const transportType = $(`input[name=transportType]`).val();
-    const delivererPosition= $(`input[name=delivererPosition]`).val();
     const contactPosition = JSON.parse($(`input[name=contactPosition]`).val());
+    const roundId = Number($(`input[name=roundId]`).val());
 
     InitModal(
         $modalCollectTimeSlot,
@@ -22,8 +22,8 @@ $(function () {
     getPacks(transportId, transportType);
     const map = initMap(contactPosition)
 
-    if (delivererPosition) {
-        placeDeliverer(map , delivererPosition)
+    if(roundId){
+        displayLastDelivererPosition(map, roundId);
     }
 });
 

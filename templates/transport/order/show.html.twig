@@ -356,7 +356,7 @@
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
     <input type="hidden" value="{{ contactPosition | json_encode }}" name="contactPosition">
-    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+    <input type="hidden" value="{{ roundId }}" name="roundId">
 
 {% endblock %}
 

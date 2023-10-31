@@ -150,17 +150,7 @@ class RequestController extends AbstractController {
             $round = null;
         }
 
-        $delivererPosition =  $round?->getBeganAt()
-            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
-                $round->getVehicle(),
-                $round->getBeganAt(),
-                $round->getEndedAt(),
-                Sensor::GPS)
-            : null;
-        $delivererPosition = $delivererPosition ? $delivererPosition["content"] : null;
-
         if ($round) {
-
             if(!$round->getEndedAt()) {
                 $end = clone ($round->getBeganAt() ?? new DateTime("now"));
                 $end->setTime(23, 59);
@@ -176,8 +166,9 @@ class RequestController extends AbstractController {
             "packsCount" => $packsCount,
             "hasRejectedPacks" => $hasRejectedPacks,
             "contactPosition" => $contactPosition,
-            "delivererPosition" => $delivererPosition,
             'urls' => $urls ?? null,
+            'roundId' => $round?->getId() ?? '',
+
         ]);
     }
 
