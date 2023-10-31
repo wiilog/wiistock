@@ -26,7 +26,10 @@ trait SensorMessageTrait {
     /**
      * @return SensorMessage[]
      */
-    public function getSensorMessagesBetween($start, $end, string $type = null): array {
+    public function getSensorMessagesBetween($start, $end, ?array $options = []): array {
+        $sensorType = $options['sensorType'] ?? null;
+        $messageContentType = $options['messageContentType'] ?? null;
+
         $criteria = Criteria::create();
         if($start) {
             if (!($start instanceof DateTime)) {
@@ -42,12 +45,16 @@ trait SensorMessageTrait {
             $criteria->andWhere(Criteria::expr()->lte("date", $end));
         }
 
+        if($messageContentType) {
+            $criteria->andWhere(Criteria::expr()->eq("contentType", $messageContentType));
+        }
+
         $criteria->orderBy(['date' => Criteria::ASC]);
 
         $messages = $this->getSensorMessages()->matching($criteria);
-        if($type) {
+        if($sensorType) {
             $messages = $messages
-                ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $type));
+                ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $sensorType));
         }
 
         return $messages->toArray();

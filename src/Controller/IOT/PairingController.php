@@ -238,7 +238,7 @@ class PairingController extends AbstractController
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $start,
             $now,
-            Sensor::GPS
+            ["sensorType" => Sensor::GPS]
         );
         $data = [];
         foreach ($associatedMessages as $message) {
@@ -270,7 +270,7 @@ class PairingController extends AbstractController
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
-            $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
+            ["sensorType" => $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())]
         );
 
         return new JsonResponse($pairingService->buildChartDataFromMessages($associatedMessages));
