@@ -168,7 +168,6 @@ class RequestController extends AbstractController {
                 $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
             }
             $urls = $transportService->getTemperatureChartConfig($round);
-            dump($urls);
         }
 
         return $this->render('transport/request/show.html.twig', [

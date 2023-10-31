@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 class TransportDeliveryRequestLine extends TransportRequestLine {
 
     use LitePropertiesSetterTrait;
+
     #[ORM\ManyToOne(targetEntity: TemperatureRange::class, inversedBy: 'transportDeliveryRequestNatures')]
     private ?TemperatureRange $temperatureRange = null;
 
