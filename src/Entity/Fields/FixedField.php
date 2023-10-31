@@ -2,6 +2,7 @@
 
 namespace App\Entity\Fields;
 
+use App\Entity\FieldsParam;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -106,6 +107,7 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
             FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE,
             FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
+            FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE,
         ],
         FixedFieldStandard::ENTITY_CODE_HANDLING => [
             FixedFieldStandard::FIELD_CODE_EMERGENCY,
