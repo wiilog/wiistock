@@ -121,9 +121,9 @@ class OrderController extends AbstractController {
 
     #[Route("/voir/{transport}", name: "transport_order_show", methods: "GET")]
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT])]
-    public function show(TransportOrder $transport,
+    public function show(TransportOrder         $transport,
                          EntityManagerInterface $entityManager,
-                         RouterInterface $router): Response {
+                         TransportService       $transportService): Response {
         $transportRequest = $transport->getRequest();
 
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
@@ -144,7 +144,7 @@ class OrderController extends AbstractController {
 
         $contactPosition = [$transportRequest->getContact()->getAddressLatitude(), $transportRequest->getContact()->getAddressLongitude()];
 
-        $delivererPosition =  $round?->getBeganAt()
+        $delivererPosition = $delivererPosition =  $round?->getBeganAt()
             ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
                 $round->getVehicle(),
                 $round->getBeganAt(),
@@ -161,62 +161,7 @@ class OrderController extends AbstractController {
                 $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
             }
 
-            $now = new DateTime();
-            $urls = [];
-            $roundLine = $transport->getTransportRoundLines()->last();
-            $transportRound = $roundLine
-                ? $roundLine->getTransportRound()
-                : null;
-
-            foreach ($transportRound?->getLocations() ?? [] as $location) {
-                $hasSensorMessageBetween = $location->getSensorMessagesBetween($round->getBeganAt(), $end);
-                if(!$hasSensorMessageBetween) {
-                    continue;
-                }
-
-                $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
-                if($triggerActions) {
-                    $minTriggerActionThreshold = Stream::from($triggerActions)
-                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
-                        ->last();
-
-                    $maxTriggerActionThreshold = Stream::from($triggerActions)
-                        ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
-                        ->last();
-
-                    $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
-                    $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
-                }
-                if(!$round->getEndedAt()) {
-                    $end = clone ($round->getBeganAt() ?? new DateTime("now"));
-                    $end->setTime(23, 59);
-                } else {
-                    $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
-                }
-
-                $urls[] = [
-                    "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => IOTService::getEntityCodeFromEntity($location),
-                        "id" => $location->getId(),
-                        'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
-                        'end' => $end->format('Y-m-d\TH:i'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL),
-                    "minTemp" => $minThreshold ?? 0,
-                    "maxTemp" => $maxThreshold ?? 0,
-                ];
-            }
-            if (empty($urls)) {
-                $urls[] = [
-                    "fetch_url" => $router->generate("chart_data_history", [
-                        "type" => null,
-                        "id" => null,
-                        'start' => new DateTime('now'),
-                        'end' => new DateTime('tomorrow'),
-                    ], UrlGeneratorInterface::ABSOLUTE_URL),
-                    "minTemp" => 0,
-                    "maxTemp" => 0,
-                ];
-            }
+            $urls = $transportService->getTemperatureChartConfig($round);
         }
 
         return $this->render('transport/order/show.html.twig', [
