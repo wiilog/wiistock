@@ -10,8 +10,6 @@ use DateTime;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Mapping as ORM;
-use FOS\RestBundle\Request\ParameterBag;
-use Symfony\Component\HttpFoundation\InputBag;
 
 trait SensorMessageTrait {
 
@@ -28,7 +26,10 @@ trait SensorMessageTrait {
     /**
      * @return SensorMessage[]
      */
-    public function getSensorMessagesBetween($start, $end, string $type = null, ?int $messageContentType = null): array {
+    public function getSensorMessagesBetween($start, $end, ?array $options = []): array {
+        $sensorType = $options['sensorType'] ?? null;
+        $messageContentType = $options['messageContentType'] ?? null;
+
         $criteria = Criteria::create();
         if($start) {
             if (!($start instanceof DateTime)) {
@@ -51,9 +52,9 @@ trait SensorMessageTrait {
         $criteria->orderBy(['date' => Criteria::ASC]);
 
         $messages = $this->getSensorMessages()->matching($criteria);
-        if($type) {
+        if($sensorType) {
             $messages = $messages
-                ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $type));
+                ->filter(fn(SensorMessage $message) => ($message->getSensor() && FormatHelper::type($message->getSensor()->getType()) === $sensorType));
         }
 
         return $messages->toArray();

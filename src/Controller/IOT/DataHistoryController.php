@@ -85,8 +85,7 @@ class DataHistoryController extends AbstractController {
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
-            null,
-            $messageContentType
+            ["messageContentType" => $messageContentType]
         );
 
         $data = $pairingService->buildChartDataFromMessages($associatedMessages);
@@ -112,7 +111,7 @@ class DataHistoryController extends AbstractController {
         $associatedMessages = $entity->getSensorMessagesBetween(
             $start,
             $now,
-            Sensor::GPS
+            ["sensorType" => Sensor::GPS]
         );
 
         $data = [];
