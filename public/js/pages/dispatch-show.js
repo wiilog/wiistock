@@ -419,7 +419,7 @@ function savePackLine(dispatchId, $row, async = true) {
 
 function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     const $table = $(`#packTable`);
-    const columns = $table.data('initial-visible') || JSON.parse(initialVisibleColumns);
+    const columns = $table.data('initial-visible') || (initialVisibleColumns ? JSON.parse(initialVisibleColumns) : undefined);
 
     const table = initDataTable($table, {
         serverSide: false,
