@@ -63,11 +63,11 @@ final class Version20231025123138 extends AbstractMigration implements Container
             $entityManager->remove($field);
         }
 
-        $onFilerFieldsSetting = (new Setting())
+        $onFilterFieldsSetting = (new Setting())
             ->setLabel(Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS)
             ->setValue(implode(',', $onFilerFields));
 
-        $entityManager->persist($onFilerFieldsSetting);
+        $entityManager->persist($onFilterFieldsSetting);
 
         $entityManager->flush();
     }
