@@ -759,7 +759,7 @@ class RoundController extends AbstractController {
             : null;
 
         return new JsonResponse([
-            "succes" => true,
+            "success" => true,
             "position" => $delivererPosition["content"] ?? null,
         ]);
     }
