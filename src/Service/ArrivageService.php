@@ -405,9 +405,9 @@ class ArrivageService {
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
-        $isSEDCurrentClient =
-            $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-            || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $confirmEmergency = $settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL) !== null;
 
         $allMatchingEmergencies = [];
 
@@ -417,18 +417,18 @@ class ArrivageService {
                     $arrival,
                     $numeroCommande,
                     null,
-                    $isSEDCurrentClient
+                    $confirmEmergency
                 );
 
                 if (!empty($urgencesMatching)) {
-                    if (!$isSEDCurrentClient) {
+                    if (!$confirmEmergency) {
                         $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
-                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $isSEDCurrentClient) {
+                        $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $confirmEmergency) {
                             return $this->createArrivalAlertConfig(
                                 $arrival,
-                                $isSEDCurrentClient,
+                                $confirmEmergency,
                                 [$urgence]
                             );
                         }, $urgencesMatching);
@@ -438,7 +438,7 @@ class ArrivageService {
             }
         }
 
-        if (!$isSEDCurrentClient
+        if (!$confirmEmergency
             && $arrival->getIsUrgent()
             && !empty($allMatchingEmergencies)) {
             $alertConfigs[] = $this->createArrivalAlertConfig(
@@ -449,7 +449,7 @@ class ArrivageService {
         }
 
         if (empty($alertConfigs)) {
-            $alertConfigs[] = $this->createArrivalAlertConfig($arrival, $isSEDCurrentClient);
+            $alertConfigs[] = $this->createArrivalAlertConfig($arrival, $confirmEmergency);
         }
 
         return $alertConfigs;

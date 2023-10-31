@@ -1450,7 +1450,8 @@ class DispatchController extends AbstractController {
 
         $dispatchStatus = $dispatch->getStatut();
         return $this->json([
-           'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
+            'modifiable' => (!$dispatchStatus || $dispatchStatus->isDraft()) && $userService->hasRightFunction(Menu::DEM, Action::MANAGE_PACK),
+            "initialVisibleColumns" => json_encode($dispatchService->getDispatckPacksColumnVisibleConfig($entityManager, true)),
         ]);
     }
 

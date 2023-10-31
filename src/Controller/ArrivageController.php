@@ -518,8 +518,6 @@ class ArrivageController extends AbstractController {
         $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
         $post = $request->request;
-        $isSEDCurrentClient = $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-            || $specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS);
 
         $arrivage = $arrivageRepository->find($post->get('id'));
 
@@ -649,12 +647,16 @@ class ArrivageController extends AbstractController {
             ? $arrivageDataService->createSupplierEmergencyAlert($arrivage)
             : null;
         $isArrivalUrgent = isset($supplierEmergencyAlert);
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $confirmEmergency = $settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL) !== null;
+
         $alertConfig = $isArrivalUrgent
             ? [
                 $supplierEmergencyAlert,
                 $arrivageDataService->createArrivalAlertConfig($arrivage, false)
             ]
-            : $arrivageDataService->createArrivalAlertConfig($arrivage, $isSEDCurrentClient);
+            : $arrivageDataService->createArrivalAlertConfig($arrivage, $confirmEmergency);
 
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);

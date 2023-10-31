@@ -2359,7 +2359,7 @@ class ImportService
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
@@ -2372,7 +2372,7 @@ class ImportService
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
             } else if ($this->scalarCache['totalZone'] === 1) {
                 $zone = $zoneRepository->findOneBy([]);
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError("Le champ zone doit être renseigné");
             }
