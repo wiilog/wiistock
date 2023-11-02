@@ -210,6 +210,8 @@ class Action {
     const DEMO_MODE = 'Mode découverte';
     const CREATE_ARTICLE_FROM_NOMADE = 'Accès création article RFID';
     const MODULE_ACCESS_TRUCK_ARRIVALS = 'Accès arrivages camion';
+    const MODULE_ACCESS_MOVEMENTS = 'Accès mouvements';
+    const MODULE_ACCESS_DISPATCHS = 'Accès acheminements';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
