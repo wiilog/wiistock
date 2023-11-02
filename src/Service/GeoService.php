@@ -198,9 +198,8 @@ class GeoService
             $result = json_decode($request->getContent(), true);
             $distance = round($result['directions'][0]['summary']['totalLength'] * self::MILES_TO_KM, 2);
             $stopsData['distance'] = $distance;
-        } catch (Exception $e) {
-            throw $e;
-            //throw new GeoException('Erreur lors de la récupération des informations GPS');
+        } catch (Exception) {
+            throw new GeoException('Erreur lors de la récupération des informations GPS');
         }
         return $stopsData;
     }
