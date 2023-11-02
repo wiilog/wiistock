@@ -38,7 +38,7 @@ class Nature {
         self::TRANSPORT_DELIVERY_CODE => [
             'label' => self::TRANSPORT_DELIVERY_LABEL,
             'showTypes' => true,
-        ]
+        ],
     ];
 
     #[ORM\Id]
