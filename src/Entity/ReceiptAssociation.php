@@ -2,11 +2,14 @@
 
 namespace App\Entity;
 
-use App\Helper\FormatHelper;
 use App\Repository\ReceiptAssociationRepository;
+use App\Service\FormatService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReceiptAssociationRepository::class)]
 class ReceiptAssociation {
@@ -23,20 +26,27 @@ class ReceiptAssociation {
     private ?Utilisateur $user = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
-    private ?string $packCode = null;
-
-    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $receptionNumber = null;
+
+    #[ORM\ManyToMany(targetEntity: Pack::class)]
+    #[ORM\JoinTable(name: 'receipt_association_logistic_unit')]
+    #[ORM\InverseJoinColumn(name: "logistic_unit_id", referencedColumnName: "id")]
+    private Collection $logisticUnits;
+
+    public function __construct()
+    {
+        $this->logisticUnits = new ArrayCollection();
+    }
 
     public function getId(): ?int {
         return $this->id;
     }
 
-    public function getCreationDate(): ?\DateTimeInterface {
+    public function getCreationDate(): ?DateTime {
         return $this->creationDate;
     }
 
-    public function setCreationDate(?\DateTimeInterface $creationDate): self {
+    public function setCreationDate(?DateTime $creationDate): self {
         $this->creationDate = $creationDate;
 
         return $this;
@@ -52,12 +62,12 @@ class ReceiptAssociation {
         return $this;
     }
 
-    public function serialize(Utilisateur $user = null): array {
+    public function serialize(Utilisateur $user = null, FormatService $formatService): array {
         return [
-            'creationDate' => FormatHelper::datetime($this->getCreationDate(), "", false, $user),
-            'packCode' => $this->getPackCode() ?? '',
+            'creationDate' => $formatService->datetime($this->getCreationDate(), "", false, $user),
+            'packCode' => Stream::From($this->getLogisticUnits())->map(static fn(Pack $logisticUnits) => $logisticUnits->getCode())->join(', ') ?? '',
             'receptionNumber' => $this->getReceptionNumber() ?? '',
-            'user' => FormatHelper::user($this->getUser()),
+            'user' => $formatService->user($this->getUser()),
         ];
     }
 
@@ -71,6 +81,25 @@ class ReceiptAssociation {
         return $this;
     }
 
+    public function getLogisticUnits(): Collection
+    {
+        return $this->logisticUnits;
+    }
+
+    public function setLogisticUnits(Collection $logisticUnits): self
+    {
+        $this->logisticUnits = $logisticUnits;
+
+        return $this;
+    }
+
+    public function removeLogisticUnit(Pack $logisticUnit): self
+    {
+        $this->logisticUnits->removeElement($logisticUnit);
+
+        return $this;
+    }
+
     public function getPackCode(): ?string {
         return $this->packCode;
     }
@@ -80,5 +109,4 @@ class ReceiptAssociation {
 
         return $this;
     }
-
 }
