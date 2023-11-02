@@ -15,15 +15,29 @@ class Nature {
     public const ARRIVAL_CODE = 'arrival';
     public const TRANSPORT_COLLECT_CODE = 'transportCollect';
     public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
+    public const PACK_SEPARATION_CODE = 'bursted';
 
     private const ARRIVAL_LABEL = 'Arrivage';
     private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
     private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
-
+    private const PACK_SEPARATION_LABEL = 'Éclatement';
     public const ENTITIES = [
-        self::ARRIVAL_CODE => self::ARRIVAL_LABEL,
-        self::TRANSPORT_COLLECT_CODE => self::TRANSPORT_COLLECT_LABEL,
-        self::TRANSPORT_DELIVERY_CODE => self::TRANSPORT_DELIVERY_LABEL,
+        self::ARRIVAL_CODE => [
+            'label' => self::ARRIVAL_LABEL,
+            'showTypes' => false,
+        ],
+        self::PACK_SEPARATION_CODE => [
+            'label' => self::PACK_SEPARATION_LABEL,
+            'showTypes' => false,
+        ],
+        self::TRANSPORT_COLLECT_CODE => [
+            'label' => self::TRANSPORT_COLLECT_LABEL,
+            'showTypes' => true,
+        ],
+        self::TRANSPORT_DELIVERY_CODE => [
+            'label' => self::TRANSPORT_DELIVERY_LABEL,
+            'showTypes' => true,
+        ],
     ];
 
     #[ORM\Id]

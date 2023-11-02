@@ -105,17 +105,17 @@
                 <div class="form-group col-4 d-flex align-items-center mb-2">
                     <label class="font-size-mini pointer wii-field-text">
                         <input class="checkbox data-array mr-2" {{ checked ? 'checked' }}
-                               type="checkbox" name="{{ index }}" data-identifier="{{ entity }}" onclick="toggleTypes($(this));">
-                        {{ entity }}
+                               type="checkbox" name="{{ index }}" data-identifier="{{ entity.label }}" onclick="toggleTypes($(this));">
+                        {{ entity.label }}
                     </label>
                 </div>
-                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
+                {% if entity.showTypes%}
                     <div class="input-group row no-gutters">
                         <div class="col-6 types-container">
                             <select name="{{ index }}Types"
                                     class="data form-control w-100 {{ checked ? 'needed' }}"
-                                    title="Types de {{ entity }}"
-                                    data-label="Types de {{ entity }}"
+                                    title="Types de {{ entity.label }}"
+                                    data-label="Types de {{ entity.label }}"
                                     data-s2
                                     {{ not checked ? 'disabled' }}
                                     multiple>
