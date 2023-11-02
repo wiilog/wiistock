@@ -2067,18 +2067,6 @@ class SettingsController extends AbstractController {
                     "label" => "Description",
                     "value" => "<input name='description' class='data form-control' value=\"$description\">",
                 ],
-                [
-                    "label" => "Logo",
-                    "value" => $this->renderView("form_element.html.twig", [
-                        "element" => "image",
-                        "arguments" => [
-                            "logo",
-                            null,
-                            false,
-                            $type?->getLogo()?->getFullPath(),
-                        ],
-                    ]),
-                ]
             ];
 
             if ($categoryLabel === CategoryType::ARTICLE) {
@@ -2098,6 +2086,19 @@ class SettingsController extends AbstractController {
                         <option>#6433D7</option>
                         <option>#D73353</option>
                     </datalist>",
+                ];
+
+                $data[] = [
+                    "label" => "Logo",
+                    "value" => $this->renderView("form_element.html.twig", [
+                        "element" => "image",
+                        "arguments" => [
+                            "logo",
+                            null,
+                            false,
+                            $type?->getLogo()?->getFullPath(),
+                        ],
+                    ]),
                 ];
             }
 
@@ -2261,18 +2262,18 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if ($type && $type->getLogo()) {
-                $data[] = [
-                    "label" => "Logo",
-                    "value" => "<img src='{$type->getLogo()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
-                ];
-            }
-
             if ($categoryLabel === CategoryType::ARTICLE) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
                 ];
+
+                if ($type && $type->getLogo()) {
+                    $data[] = [
+                        "label" => "Logo",
+                        "value" => "<img src='{$type->getLogo()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
+                    ];
+                }
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
