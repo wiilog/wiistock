@@ -2087,19 +2087,6 @@ class SettingsController extends AbstractController {
                         <option>#D73353</option>
                     </datalist>",
                 ];
-
-                $data[] = [
-                    "label" => "Logo",
-                    "value" => $this->renderView("form_element.html.twig", [
-                        "element" => "image",
-                        "arguments" => [
-                            "logo",
-                            null,
-                            false,
-                            $type?->getLogo()?->getFullPath(),
-                        ],
-                    ]),
-                ];
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
@@ -2240,7 +2227,7 @@ class SettingsController extends AbstractController {
                 ]);
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE])) {
                 $data[] = [
                     "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
@@ -2267,13 +2254,6 @@ class SettingsController extends AbstractController {
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
                 ];
-
-                if ($type && $type->getLogo()) {
-                    $data[] = [
-                        "label" => "Logo",
-                        "value" => "<img src='{$type->getLogo()->getFullPath()}' alt='Logo du type' style='max-height: 30px; max-width: 30px;'>"
-                    ];
-                }
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_LIVRAISON, CategoryType::DEMANDE_COLLECTE])) {
@@ -2347,7 +2327,7 @@ class SettingsController extends AbstractController {
                 }
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $type?->getLogo()
