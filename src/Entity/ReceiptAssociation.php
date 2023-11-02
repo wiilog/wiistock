@@ -99,14 +99,4 @@ class ReceiptAssociation {
 
         return $this;
     }
-
-    public function getPackCode(): ?string {
-        return $this->packCode;
-    }
-
-    public function setPackCode(?string $packCode): self {
-        $this->packCode = $packCode;
-
-        return $this;
-    }
 }
