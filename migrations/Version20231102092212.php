@@ -22,7 +22,6 @@ final class Version20231102092212 extends AbstractMigration
 
         $receiptAssociations = $this->connection->fetchAllAssociative('SELECT id, pack_code FROM receipt_association');
 
-        $i = 0;
         foreach ($receiptAssociations as $receiptAssociation) {
             $logisticUnits = explode(',', $receiptAssociation["pack_code"]);
 
@@ -50,13 +49,6 @@ final class Version20231102092212 extends AbstractMigration
                             "logisticUnitId" => $logisticUnitId,
                         ]);
                 }
-
-                $i++;
-                if($i%5000 === 0) {
-                    var_dump($i);
-                    var_dump(new \DateTime());
-                }
-
             }
         }
     }
