@@ -120,7 +120,7 @@ class NatureRepository extends EntityRepository
         foreach ($forms as $form) {
             $qb->orWhere("JSON_EXTRACT(nature.allowedForms, '$.\"$form\"') IS NOT NULL");
         }
-
+        $qb->orderBy('nature.label');
         return $qb->getQuery()->getResult();
     }
 
