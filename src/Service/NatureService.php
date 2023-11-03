@@ -70,7 +70,7 @@ class NatureService
             'displayedOnForms' => !empty($nature->getAllowedForms())
                 ? Stream::from($nature->getAllowedForms())
                     ->map(fn(array|string $types, string $index) =>
-                        Nature::ENTITIES[$index] .
+                        Nature::ENTITIES[$index]['label'] .
                         (
                             is_array($types)
                                 ? (' : ' . Stream::from($typeRepository->findBy(['id' => $types]))

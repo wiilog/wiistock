@@ -226,6 +226,7 @@ class RoundController extends AbstractController {
                         "id" => $location->getId(),
                         'start' => ($transportRound->getBeganAt() ?? $now)->format('Y-m-d\TH:i'),
                         'end' => $end->format('Y-m-d\TH:i'),
+                        'messageContentType' => IOTService::DATA_TYPE_TEMPERATURE,
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,

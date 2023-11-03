@@ -79,6 +79,7 @@ class DispatchController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
+        $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
         $query = $request->query;
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
@@ -105,6 +106,8 @@ class DispatchController extends AbstractController {
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
+        $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
+
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
@@ -122,6 +125,7 @@ class DispatchController extends AbstractController {
             'typesFilter' => $typesFilter,
             'fromDashboard' => $fromDashboard,
             'dispatch' => new Dispatch(),
+            'defaultType' => $typeRepository->findOneBy(['category' => $dispatchCategoryType, 'defaultType' => true]),
         ]);
     }
 
@@ -926,6 +930,16 @@ class DispatchController extends AbstractController {
             throw new FormException("La valeur du champ $field n'est pas valide (entier et décimal uniquement).");
         }
 
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $nature = $natureRepository->find($natureId);
+
+        // check if nature is allowed
+        $naturesAllowed = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
+        if(!in_array($nature, $naturesAllowed)){
+            throw new FormException("La nature n'est pas autorisée pour ce type d'acheminement.");
+        }
+
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
@@ -935,7 +949,6 @@ class DispatchController extends AbstractController {
             $packCode = $noPrefixPackCode;
         }
 
-        $natureRepository = $entityManager->getRepository(Nature::class);
         $packRepository = $entityManager->getRepository(Pack::class);
 
         if(!empty($packCode)) {
@@ -983,7 +996,6 @@ class DispatchController extends AbstractController {
             ->setLength($length !== null ? floatval($length) : $dispatchPack->getLength());
         $entityManager->persist($dispatchPack);
 
-        $nature = $natureRepository->find($natureId);
         $dispatchPack->setQuantity($quantity);
         $pack
             ->setNature($nature)

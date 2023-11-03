@@ -149,9 +149,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'utilisateur', targetEntity: OrdreCollecte::class)]
     private Collection $ordreCollectes;
 
-    #[ORM\OneToMany(mappedBy: 'destinataire', targetEntity: Arrivage::class)]
-    private Collection $arrivagesDestinataire;
-
     #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: Urgence::class)]
     private Collection $emergencies;
 
@@ -233,6 +230,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\ManyToMany(targetEntity: Handling::class, mappedBy: 'receivers')]
     private Collection $receivedHandlings;
 
+    #[ORM\ManyToMany(targetEntity: Arrivage::class, mappedBy: 'receivers')]
+    private Collection $receivedArrivals;
+
     #[ORM\OneToMany(mappedBy: 'buyer', targetEntity: ReferenceArticle::class)]
     private Collection $referencesBuyer;
 
@@ -303,6 +303,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: SessionHistoryRecord::class)]
     private Collection $sessionHistoryRecords;
 
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $dispatchBusinessUnit = null;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -314,7 +317,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->handlings = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
-        $this->arrivagesDestinataire = new ArrayCollection();
         $this->emergencies = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
         $this->arrivagesUtilisateur = new ArrayCollection();
@@ -345,6 +347,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->transportDeliveryOrderRejectedPacks = new ArrayCollection();
         $this->keptFieldValues = new ArrayCollection();
         $this->sessionHistoryRecords = new ArrayCollection();
+        $this->receivedArrivals = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -729,34 +732,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     /**
-     * @return Collection|Arrivage[]
-     */
-    public function getArrivagesDestinataire(): Collection {
-        return $this->arrivagesDestinataire;
-    }
-
-    public function addArrivage(Arrivage $arrivage): self {
-        if(!$this->arrivagesDestinataire->contains($arrivage)) {
-            $this->arrivagesDestinataire[] = $arrivage;
-            $arrivage->setDestinataire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrivage(Arrivage $arrivage): self {
-        if($this->arrivagesDestinataire->contains($arrivage)) {
-            $this->arrivagesDestinataire->removeElement($arrivage);
-            // set the owning side to null (unless already changed)
-            if($arrivage->getDestinataire() === $this) {
-                $arrivage->setDestinataire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Urgence[]
      */
     public function getEmergencies(): Collection {
@@ -804,27 +779,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         if($this->arrivagesAcheteur->contains($arrivagesAcheteur)) {
             $this->arrivagesAcheteur->removeElement($arrivagesAcheteur);
             $arrivagesAcheteur->removeAcheteur($this);
-        }
-
-        return $this;
-    }
-
-    public function addArrivagesDestinataire(Arrivage $arrivagesDestinataire): self {
-        if(!$this->arrivagesDestinataire->contains($arrivagesDestinataire)) {
-            $this->arrivagesDestinataire[] = $arrivagesDestinataire;
-            $arrivagesDestinataire->setDestinataire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrivagesDestinataire(Arrivage $arrivagesDestinataire): self {
-        if($this->arrivagesDestinataire->contains($arrivagesDestinataire)) {
-            $this->arrivagesDestinataire->removeElement($arrivagesDestinataire);
-            // set the owning side to null (unless already changed)
-            if($arrivagesDestinataire->getDestinataire() === $this) {
-                $arrivagesDestinataire->setDestinataire(null);
-            }
         }
 
         return $this;
@@ -1491,6 +1445,29 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         return $this;
     }
 
+    public function getReceivedArrivals(): Collection {
+        return $this->receivedArrivals;
+    }
+
+    public function addReceivedArrival(Arrivage $arrival): self {
+        if(!$this->receivedArrivals->contains($arrival)) {
+            $this->receivedArrivals[] = $arrival;
+            if(!$arrival->getReceivers()->contains($this)) {
+                $arrival->addReceiver($this);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeReceivedArrival(Arrivage $arrival): self {
+        if($this->receivedHandlings->removeElement($arrival)) {
+            $arrival->removeReceiver($this);
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection|ReferenceArticle[]
      */
@@ -2026,6 +2003,16 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
 
         return in_array($userEmailDomain, $wiilogDomains);
+    }
+
+    public function getDispatchBusinessUnit(): ?string {
+        return $this->dispatchBusinessUnit;
+    }
+
+    public function setDispatchBusinessUnit(?string $businessUnit): self {
+        $this->dispatchBusinessUnit = $businessUnit;
+
+        return $this;
     }
 
 }
