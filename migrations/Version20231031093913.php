@@ -22,7 +22,8 @@ final class Version20231031093913 extends AbstractMigration
         // fetch all the natures and update allowed_forms (json ) by adding dispatch : all and displayed_on_forms to true
         $natures = $this->connection->fetchAllAssociative('SELECT * FROM nature');
         foreach ($natures as $nature) {
-            $allowedForms = json_decode($nature['allowed_forms'], true);
+            $allowedFormsStr = $nature['allowed_forms'] ?? null;
+            $allowedForms = $allowedFormsStr ? (json_decode($allowedFormsStr, true) ?: []) : [];
             $allowedForms['dispatch'] = 'all';
             $this->addSql('UPDATE nature SET displayed_on_forms = :displayedOnForms WHERE id = :id', [
                 'displayedOnForms' => true,
