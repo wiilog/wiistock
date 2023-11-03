@@ -364,9 +364,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
         Menu::NOMADE => [
             self::SUB_MENU_GENERAL => [
                 Action::ACCESS_NOMADE_LOGIN,
-                Action::MODULE_ACCESS_STOCK,
-//                Action::MODULE_ACCESS_TRACA,
-                Action::MODULE_ACCESS_HAND,
                 Action::MODULE_NOTIFICATIONS,
                 Action::MODULE_TRACK,
                 Action::DEMO_MODE,
@@ -379,10 +376,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_DISPATCHS,
             ],
             self::SUB_MENU_STOCK => [
-                Action::CREATE_ARTICLE_FROM_NOMADE
+                Action::CREATE_ARTICLE_FROM_NOMADE,
+                Action::MODULE_ACCESS_PREPARATIONS,
+                Action::MODULE_ACCESS_DELIVERY_ORDER,
+                Action::MODULE_ACCESS_MANUAL_DELIVERY,
+                Action::MODULE_ACCESS_COLLECT_ORDER,
+                Action::MODULE_ACCESS_TRANSFER_ORDER,
+                Action::MODULE_ACCESS_MANUAL_TRANSFER,
+                Action::MODULE_ACCESS_INVENTORY,
+                Action::MODULE_ACCESS_ARTICLES_UL_ASSOCIATION,
             ],
             self::SUB_MENU_REQUESTS => [
                 Action::DISPATCH_REQUEST_OFFLINE_MODE,
+                Action::MODULE_ACCESS_HANDLING,
+                Action::MODULE_ACCESS_DELIVERY_REQUESTS,
             ],
         ],
     ];
