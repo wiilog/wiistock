@@ -1,5 +1,3 @@
-import AJAX, {GET, POST} from "@app/ajax";
-
 let tableMvt;
 
 $(function () {
@@ -53,7 +51,7 @@ function loadLUQuantity($selector) {
     const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
     const code = $selector.val();
 
-    AJAX.route(GET, `tracking_movement_logistic_unit_quantity`, {code})
+    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -76,7 +74,7 @@ function loadLULocation($input) {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     const code = $input.val();
 
-    AJAX.route(GET, `tracking_movement_logistic_unit_location`, {code})
+    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_location`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -180,7 +178,7 @@ function initPageModal(tableMvt) {
                         return resolve(true);
                     }
 
-                    AJAX.route(GET, `tracking_movement_is_in_lu`, {barcode: pack})
+                    AJAX.route(AJAX.GET, `tracking_movement_is_in_lu`, {barcode: pack})
                         .json()
                         .then(result => {
                             if(result.in_logistic_unit) {
@@ -265,7 +263,7 @@ function switchMvtCreationType($input) {
 
     if(paramsToGetAppropriateHtml){
         $(`#submitNewMvtTraca`).prop(`disabled`, false);
-        AJAX.route(POST, "mouvement_traca_get_appropriate_html")
+        AJAX.route(AJAX.POST, "mouvement_traca_get_appropriate_html")
             .json(paramsToGetAppropriateHtml)
             .then((response) => {
                 if (response) {
