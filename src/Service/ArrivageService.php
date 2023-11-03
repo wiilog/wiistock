@@ -74,7 +74,7 @@ class ArrivageService {
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -899,8 +899,8 @@ class ArrivageService {
                 $keptFields[FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
             }
 
-            if(isset($keptFields[FieldsParam::FIELD_CODE_RECEIVERS])) {
-                $keptFields[FieldsParam::FIELD_CODE_RECEIVERS] = $utilisateurRepository->findBy(['id' => explode(",", $keptFields[FieldsParam::FIELD_CODE_RECEIVERS])]);
+            if(isset($keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])) {
+                $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS] = $utilisateurRepository->findBy(['id' => explode(",", $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])]);
             }
 
             $arrivalCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARRIVAGE]);

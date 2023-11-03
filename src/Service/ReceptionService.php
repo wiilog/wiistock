@@ -43,7 +43,7 @@ class ReceptionService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public StringService $stringService;

@@ -16,7 +16,7 @@ use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Menu;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
-use App\Service\FieldsParamService;
+use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,7 +33,7 @@ use WiiCommon\Helper\Stream;
 class RequestTemplateController extends AbstractController {
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public TranslationService $translation;

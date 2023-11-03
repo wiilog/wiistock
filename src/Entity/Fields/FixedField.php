@@ -2,7 +2,6 @@
 
 namespace App\Entity\Fields;
 
-use App\Entity\FieldsParam;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

@@ -71,7 +71,7 @@ class DeliveryRequestService
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public NotificationService $notificationService;

@@ -12,11 +12,11 @@ use WiiCommon\Helper\Stream;
  * @method SubLineFixedField[]    findAll()
  * @method SubLineFixedField[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class SubLineFieldsParamRepository extends EntityRepository
+class SubLineFixedFieldRepository extends EntityRepository
 {
     function getByEntity(string $entity): array {
-        $fields = $this->createQueryBuilder("subLineFieldsParam")
-            ->andWhere("subLineFieldsParam.entityCode = :entity")
+        $fields = $this->createQueryBuilder("subLineFixedField")
+            ->andWhere("subLineFixedField.entityCode = :entity")
             ->setParameter("entity", $entity)
             ->getQuery()
             ->getResult();
@@ -42,9 +42,9 @@ class SubLineFieldsParamRepository extends EntityRepository
     }
 
     public function findByEntityAndCode(string $entity, string $field): ?SubLineFixedField {
-        return $this->createQueryBuilder("subLineFieldsParam")
-            ->where("subLineFieldsParam.entityCode = :entity")
-            ->andWhere("subLineFieldsParam.fieldCode = :field")
+        return $this->createQueryBuilder("subLineFixedField")
+            ->where("subLineFixedField.entityCode = :entity")
+            ->andWhere("subLineFixedField.fieldCode = :field")
             ->setParameter("entity", $entity)
             ->setParameter("field", $field)
             ->getQuery()
@@ -52,10 +52,10 @@ class SubLineFieldsParamRepository extends EntityRepository
     }
 
     public function getElements(string $entity, string $field): ?array {
-        $result = $this->createQueryBuilder("subLineFieldsParam")
-            ->select("subLineFieldsParam.elements")
-            ->where("subLineFieldsParam.entityCode = :entity")
-            ->andWhere("subLineFieldsParam.fieldCode = :field")
+        $result = $this->createQueryBuilder("subLineFixedField")
+            ->select("subLineFixedField.elements")
+            ->where("subLineFixedField.entityCode = :entity")
+            ->andWhere("subLineFixedField.fieldCode = :field")
             ->setParameter("entity", $entity)
             ->setParameter("field", $field)
             ->getQuery()

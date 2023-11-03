@@ -61,7 +61,7 @@
         } %}
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedField::FIELD_CODE_NUM_COMMANDE_ARRIVAGE') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCommandList.html.twig' with {
             title: trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false)

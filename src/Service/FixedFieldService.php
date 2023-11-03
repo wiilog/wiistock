@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 
-class FieldsParamService
+class FixedFieldService
 {
 
     private $entityManager;

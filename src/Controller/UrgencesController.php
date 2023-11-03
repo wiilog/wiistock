@@ -9,7 +9,7 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Menu;
 use App\Entity\Urgence;
 use App\Service\CSVExportService;
-use App\Service\FieldsParamService;
+use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
@@ -50,12 +50,12 @@ class UrgencesController extends AbstractController
 
     #[Route('/creer', name: 'emergency_new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function new(Request $request,
+    public function new(Request                $request,
                         EntityManagerInterface $entityManager,
-                        SpecificService $specificService,
-                        UrgenceService $urgenceService,
-                        FieldsParamService $fieldsParamService,
-                        FormatService $formatService): Response {
+                        SpecificService        $specificService,
+                        UrgenceService         $urgenceService,
+                        FixedFieldService      $fieldsParamService,
+                        FormatService          $formatService): Response {
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, true)->all();
 
         $urgenceRepository = $entityManager->getRepository(Urgence::class);
@@ -132,12 +132,12 @@ class UrgencesController extends AbstractController
     }
     #[route('/modifier', name: 'emergency_edit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function edit(Request $request,
-                         SpecificService $specificService,
+    public function edit(Request                $request,
+                         SpecificService        $specificService,
                          EntityManagerInterface $entityManager,
-                         UrgenceService $urgenceService,
-                         FieldsParamService $fieldsParamService,
-                         FormatService $formatService): Response
+                         UrgenceService         $urgenceService,
+                         FixedFieldService      $fieldsParamService,
+                         FormatService          $formatService): Response
     {
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request , FixedFieldStandard::ENTITY_CODE_EMERGENCY, false)->all();
         $urgenceRepository = $entityManager->getRepository(Urgence::class);

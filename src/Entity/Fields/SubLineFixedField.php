@@ -2,11 +2,11 @@
 
 namespace App\Entity\Fields;
 
-use App\Repository\SubLineFieldsParamRepository;
+use App\Repository\SubLineFixedFieldRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
+#[ORM\Entity(repositoryClass: SubLineFixedFieldRepository::class)]
 class SubLineFixedField extends FixedField {
 
     public const FREE_ELEMENTS_FIELDS = [

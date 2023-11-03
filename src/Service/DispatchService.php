@@ -72,7 +72,7 @@ class DispatchService {
     public TrackingMovementService $trackingMovementService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
