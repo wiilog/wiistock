@@ -266,4 +266,15 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
                 ->getQuery()
                 ->toIterable();
     }
+
+    public function findOneByName(string $fullname) {
+        list($first, $last) = explode(' ', $fullname);
+        $queryBuilder = $this->createQueryBuilder("user")
+            ->where("user.username LIKE :first_last OR user.username LIKE :last_first")
+            ->setParameter('first_last', "%$first $last%")
+            ->setParameter('last_first', "%$last $first%")
+            ->getQuery();
+
+        return $queryBuilder->getOneOrNullResult();
+    }
 }

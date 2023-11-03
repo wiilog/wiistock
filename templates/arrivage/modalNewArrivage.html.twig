@@ -11,24 +11,25 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
-{#                display si droit IA #}
-                <div class="col-12">
-                    <div class="form-group">
-                        {% include 'attachment/attachment.html.twig' with {
-                            nameInput: 'uploadAndScan',
-                            'isNew': true,
-                            'required': false,
-                            fieldNameClass : 'wii-subtitle',
-                            override: true,
-                            noLabel: true,
-                            buttonOnly: true,
-                            buttonTitle: 'Importer BL',
-                            bigger: 'row',
-                            formats: 'image/png, image/jpeg, image/jpg, application/pdf',
-                        } %}
+                {% set useAiArrivals = setting_value('USE_AI_ARRIVALS') %}
+                {% if useAiArrivals %}
+                    <div class="col-12">
+                        <div class="form-group">
+                            {% include 'attachment/attachment.html.twig' with {
+                                nameInput: 'uploadAndScan',
+                                'isNew': true,
+                                'required': false,
+                                fieldNameClass : 'wii-subtitle',
+                                override: true,
+                                noLabel: true,
+                                buttonOnly: true,
+                                buttonTitle: 'Importer BL',
+                                bigger: 'row',
+                                formats: 'image/png, image/jpeg, image/jpg, application/pdf',
+                            } %}
+                        </div>
                     </div>
-                </div>
-{#                fin du if #}
+                {% endif %}
                 <div class="row fly-form">
                     {% set supplierFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
@@ -247,6 +248,34 @@
                             </select>
                         </div>
                     {% endif %}
+
+                    {% set targetFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
+                    {% if fieldsParam|isFieldRequired(targetFieldCode, 'displayedCreate') %}
+                        {% set targetRequired = fieldsParam|isFieldRequired(targetFieldCode, 'requiredCreate') %}
+                        <div class="col-4">
+                            <div class="row">
+                                <div class="form-group col-12 w-100">
+                                    <label class="wii-field-name">
+                                        {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
+                                    </label>
+                                    <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
+                                            name="destinataire">
+                                        <option selected disabled>&nbsp;</option>
+                                        {% for user in users %}
+                                            <option value="{{ user.id }}" {{ keptFields[targetFieldCode] ?? null == user.id ? 'selected' }}>{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="wii-section-title my-3 d-flex align-items-center">
+                    {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Informations complémentaires') }}
+                </div>
+                <div class="row">
+
                     <div class="form-group col-4">
                         <label class="wii-field-name" for="type">{{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type') }}*</label>
                         {% set uniqueType = typesArrival|length == 1 %}
@@ -322,27 +351,6 @@
                                     <option value="{{ defaultLocation.id }}" selected>{{ defaultLocation.label }}</option>
                                 {% endif %}
                             </select>
-                        </div>
-                    {% endif %}
-
-                    {% set targetFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TARGET_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(targetFieldCode, 'displayedCreate') %}
-                        {% set targetRequired = fieldsParam|isFieldRequired(targetFieldCode, 'requiredCreate') %}
-                        <div class="col-4">
-                            <div class="row">
-                                <div class="form-group col-12 w-100">
-                                    <label class="wii-field-name">
-                                        {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
-                                    </label>
-                                    <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
-                                            name="destinataire">
-                                        <option selected disabled>&nbsp;</option>
-                                        {% for user in users %}
-                                            <option value="{{ user.id }}" {{ keptFields[targetFieldCode] ?? null == user.id ? 'selected' }}>{{ user.username }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                     {% endif %}
 

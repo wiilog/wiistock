@@ -458,7 +458,22 @@ function scanDeliveryNoteFile($input) {
         processData: false,
         dataType: 'json',
         success: function (data) {
-            console.log(data);
+            let inputValues = data.values;
+            for (const input in inputValues) {
+                $select = $('[name=' + input + ']');
+                if ($select.prop('multiple')) {
+                    let option = new Option(inputValues[input].value, inputValues[input].id ? inputValues[input].id : inputValues[input].value, true, true);
+                    $select.append(option);
+                    $select.trigger('change');
+                } else {
+                    $select.val(inputValues[input].value);
+                }
+                $select.trigger('change');
+                if (input === 'commentaire') {
+                    $('[data-wysiwyg]').find('p').html(inputValues[input].value);
+                }
+            }
+            window.open(data.file, '_blank');
         },
         error: () => {
             Flash.add('danger', 'Il y a eu une erreur lors de l\'import et/ou traitement du fichier');
