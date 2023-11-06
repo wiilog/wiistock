@@ -56,7 +56,7 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection);
 
             if ($field->isDisplayedFilters()) {
-                $onFilerFields[] = $fieldByType->getId();
+                $onFilerFields[] = $field->getId();
             }
             $entityManager->persist($fieldByType);
             $entityManager->remove($field);
