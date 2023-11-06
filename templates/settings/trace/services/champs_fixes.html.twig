@@ -24,7 +24,8 @@
     </div>
     <table id="table-handling-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
-            cells: 6
+            cells: 6,
+            needsFilterColumn: true,
         } %}
     </table>
 </div>

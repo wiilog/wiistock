@@ -132,6 +132,10 @@ abstract class FixedField {
         FixedFieldStandard::ENTITY_CODE_DEMANDE => [
             FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT
         ],
+        FixedFieldStandard::ENTITY_CODE_RECEPTION => [
+            FixedFieldStandard::FIELD_CODE_FOURNISSEUR,
+            FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
+        ],
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
