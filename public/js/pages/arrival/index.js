@@ -458,19 +458,29 @@ function scanDeliveryNoteFile($input) {
         processData: false,
         dataType: 'json',
         success: function (data) {
-            let inputValues = data.values;
-            for (const input in inputValues) {
-                $select = $('[name=' + input + ']');
+            let fields = data.values;
+            for (const field in fields) {
+                $select = $('[name=' + field + ']');
                 if ($select.prop('multiple')) {
-                    let option = new Option(inputValues[input].value, inputValues[input].id ? inputValues[input].id : inputValues[input].value, true, true);
-                    $select.append(option);
+                    if (Array.isArray(fields[field])) {
+                        let score = 0;
+                        fields[field].forEach((optionValue) => {
+                            let option = new Option(optionValue.value, optionValue.id ? optionValue.id : optionValue.value, true, true);
+                            score += optionValue.score;
+                            $select.append(option);
+                        })
+                        score /= fields[field].length;
+                    } else {
+                        let option = new Option(fields[field].value, fields[field].id ? fields[field].id : fields[field].value, true, true);
+                        $select.append(option);
+                    }
                     $select.trigger('change');
                 } else {
-                    $select.val(inputValues[input].value);
+                    $select.val(fields[field].value);
                 }
                 $select.trigger('change');
-                if (input === 'commentaire') {
-                    $('[data-wysiwyg]').find('p').html(inputValues[input].value);
+                if (field === 'commentaire') {
+                    $('[data-wysiwyg]').find('p').html(fields[field].value);
                 }
             }
             window.open(data.file, '_blank');

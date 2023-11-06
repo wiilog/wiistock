@@ -1567,10 +1567,11 @@ class ArrivageController extends AbstractController {
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
 
         if ($request->files->has('file')) {
+//            only the file from the api will be save as attachment
             $uploadedFile = $request->files->get('file');
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();
             $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
-            // the api output will be a base64 image, to fake it we encode the one uploaded
+//             the api output will be a base64 image, to fake it we encode the one uploaded
             $projectDir = $kernel->getProjectDir();
             $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
             $pattern = '/(.+)\.\w{3}/';
@@ -1589,8 +1590,14 @@ class ArrivageController extends AbstractController {
                 ],
                 'transporteur' => [],
                 'numeroCommandeList' => [
-                    'value' => '123456789/P7T30',
-                    'score' => 0.62,
+                    [
+                        'value' => '123456789/P7T30',
+                        'score' => 0.62,
+                    ],
+                    [
+                        'value' => 'MI12456',
+                        'score' => 0.58,
+                    ],
                 ],
                 'noTracking' => [
                     'value' => 'SEY-BEL-610 230',
