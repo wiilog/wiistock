@@ -51,7 +51,7 @@ abstract class FixedField {
 
     ];
 
-    public const ON_LABEL_FILEDS = [
+    public const ON_LABEL_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_DISPATCH => [
             FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH,
             FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH,

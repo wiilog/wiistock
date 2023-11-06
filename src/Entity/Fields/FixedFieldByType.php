@@ -46,7 +46,6 @@ class FixedFieldByType extends FixedField
         $this->keptInMemory = new ArrayCollection();
         $this->displayedCreate = new ArrayCollection();
         $this->displayedEdit = new ArrayCollection();
-        $this->displayedFilters = new ArrayCollection();
         $this->onMobile = new ArrayCollection();
         $this->onLabel = new ArrayCollection();
     }

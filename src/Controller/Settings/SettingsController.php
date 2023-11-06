@@ -2686,7 +2686,7 @@ class SettingsController extends AbstractController {
 
                 if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
                     $onLabel = $field->isOnLabel(...$isParams);
-                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FILEDS[$entity] ?? []);
+                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FIELDS[$entity] ?? []);
                 }
 
                 if ($entityNeeded === FixedFieldStandard::class) {

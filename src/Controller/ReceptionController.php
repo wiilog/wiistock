@@ -1692,7 +1692,6 @@ class ReceptionController extends AbstractController {
                                    EntityManagerInterface     $entityManager,
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
-                                   FreeFieldService           $champLibreService,
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
@@ -1779,7 +1778,7 @@ class ReceptionController extends AbstractController {
                 $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 

@@ -58,12 +58,7 @@ class DemandeController extends AbstractController
                                  FreeFieldService       $champLibreService,
                                  EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
-                $entityManager,
-                $data,
-                false,
-                $champLibreService
-            );
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
         throw new BadRequestHttpException();
@@ -202,11 +197,10 @@ class DemandeController extends AbstractController
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         DeliveryRequestService $demandeLivraisonService,
-                        FreeFieldService       $champLibreService,
                         TranslationService     $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+            $demande = $demandeLivraisonService->newDemande($data, $entityManager);
 
             if ($demande instanceof Demande) {
                 $entityManager->persist($demande);
@@ -897,7 +891,6 @@ class DemandeController extends AbstractController
     #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
     public function redirectBeforeIndex(EntityManagerInterface $entityManager,
                                         SettingsService        $settingsService,
-                                        FreeFieldService       $champLibreService,
                                         DeliveryRequestService $deliveryRequestService,
                                         TranslationService     $translation){
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -932,7 +925,7 @@ class DemandeController extends AbstractController
             $data['demandeur'] = $this->getUser();
             $data['demandeReceiver'] = $recipient->getId();
             $data['type'] = $defaultType;
-            $demande = $deliveryRequestService->newDemande($data, $entityManager, $champLibreService);
+            $demande = $deliveryRequestService->newDemande($data, $entityManager);
 
             if ($demande instanceof Demande) {
                 $entityManager->persist($demande);

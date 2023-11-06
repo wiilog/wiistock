@@ -30,6 +30,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
@@ -104,7 +105,10 @@ class DeliveryRequestService
 
     private array $cache = [];
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
+    public function getDataForDatatable(ParameterBag $params,
+                                        ?string $statusFilter,
+                                        ?string $receptionFilter,
+                                        Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -267,7 +271,6 @@ class DeliveryRequestService
 
     public function newDemande($data,
                                EntityManagerInterface $entityManager,
-                               FreeFieldService $champLibreService,
                                bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -334,7 +337,7 @@ class DeliveryRequestService
             ->setVisibleColumns($visibleColumns)
             ->setFastDelivery($isFastDelivery);
 
-        $champLibreService->manageFreeFields($demande, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($demande, $data, $entityManager);
 
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -352,7 +355,6 @@ class DeliveryRequestService
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
-                                            FreeFieldService       $champLibreService,
                                             bool                   $flush = true,
                                             bool                   $simple = false): array
     {
@@ -363,7 +365,7 @@ class DeliveryRequestService
         $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
-            $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
+            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
             if ($demande instanceof Demande) {
                 /**
                  * Liste des références sous le format :
