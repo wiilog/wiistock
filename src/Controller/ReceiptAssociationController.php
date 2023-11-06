@@ -150,9 +150,10 @@ class ReceiptAssociationController extends AbstractController
 
     #[Route("/export", name: "get_receipt_associations_csv", options: ["expose" => true], methods: ["GET"])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
-    public function export(EntityManagerInterface $manager,
-                           Request $request,
-                           CSVExportService $csvService): Response
+    public function export(EntityManagerInterface       $manager,
+                           Request                      $request,
+                           CSVExportService             $csvService,
+                           ReceiptAssociationService    $receiptAssociationService): Response
     {
 
         $dateMin = $request->query->get('dateMin');
@@ -176,13 +177,13 @@ class ReceiptAssociationController extends AbstractController
                 'unité logistique',
                 'réception(s)',
                 'utilisateur',
+                'Date dernier mouvement',
+                'Dernier emplacement',
             ];
-
-            return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax) {
-                $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->iterateBetween($dateTimeMin, $dateTimeMax);
-
+            return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax,$receiptAssociationService) {
+                $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->getByDates($dateTimeMin, $dateTimeMax);
                 foreach ($receiptAssociations as $receiptAssociation) {
-                    $csvService->putLine($output, $receiptAssociation->serialize($this->getUser()));
+                    $receiptAssociationService->receiptAssociationPutLine($output, $receiptAssociation);
                 }
             }, "association-br_$today.csv", $headers);
         }

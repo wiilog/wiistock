@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Language;
 use App\Entity\ReceiptAssociation;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
@@ -147,5 +148,37 @@ class ReceiptAssociationRepository extends EntityRepository
             ->setParameter('end', $end)
             ->getQuery()
             ->toIterable();
+    }
+
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
+
+        $queryBuilder = $this->createQueryBuilder('receipt_association')
+            ->select('receipt_association.id AS id')
+            ->addSelect("DATE_FORMAT(receipt_association.creationDate, '$dateFormat') AS receptionAssociationCreationDate")
+            ->addSelect('receipt_association.receptionNumber AS receptionAssociationNumber')
+            ->addSelect('user.username AS receptionAssociationUser')
+            ->addSelect('logisticUnits.code AS receptionAssociationLogisticUnit')
+
+            ->addSelect("DATE_FORMAT(lastTracking.datetime, '$dateFormat') AS receptionAssociationLastMovementDate")
+            ->addSelect('emplacement.label AS receptionAssociationLastLocation')
+
+            ->leftJoin('receipt_association.user', 'user')
+            ->leftJoin('receipt_association.logisticUnits', 'logisticUnits')
+            ->leftJoin('logisticUnits.lastTracking', 'lastTracking')
+            ->leftJoin('lastTracking.emplacement', 'emplacement')
+
+            ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
+
+        return $queryBuilder
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->getResult();
     }
 }

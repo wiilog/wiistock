@@ -42,6 +42,8 @@ class ReceiptAssociationService
     #[Required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public CSVExportService $CSVExportService;
 
     public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -124,5 +126,17 @@ class ReceiptAssociationService
             $this->entityManager->persist($dropMvt);
         }
         $this->entityManager->flush();
+    }
+
+    public function receiptAssociationPutLine($output ,array $receiptAssociation): void {
+        $row = [
+            $receiptAssociation['receptionAssociationCreationDate'],
+            $receiptAssociation['receptionAssociationLogisticUnit'],
+            $receiptAssociation['receptionAssociationNumber'],
+            $receiptAssociation['receptionAssociationUser'],
+            $receiptAssociation['receptionAssociationLastMovementDate'],
+            $receiptAssociation['receptionAssociationLastLocation'],
+        ];
+        $this->CSVExportService->putLine($output, $row);
     }
 }
