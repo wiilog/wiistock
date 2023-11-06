@@ -1085,15 +1085,11 @@ function updateMultipleChartData(chart, data) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
-            let dataset = chart.data.datasets.find(({label}) => (label ===
-                (data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                ? data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                : data.legends[subKey]['french'] || subKey)));
+            let legends = data.legends[subKey] ? (data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]) : subKey;
+            let dataset = chart.data.datasets.find(({label}) => (label === (legends || subKey)));
             if(!dataset) {
                 dataset = {
-                    label: data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                        ? data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                        : data.legends[subKey]['french'] || subKey,
+                    label: legends || subKey,
                     backgroundColor: (chartColors
                             ? (
                                 (chartColors && chartColors[subKey])
