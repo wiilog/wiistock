@@ -2264,7 +2264,7 @@ class MobileController extends AbstractApiController
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
 
-        $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
+        $status = $statutRepository->getMobileStatus($rights['dispatch'], $rights['handling']);
 
         $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -2284,13 +2284,13 @@ class MobileController extends AbstractApiController
             $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
         }
 
-        if ($rights['stock']) {
-            // livraisons
-            $deliveriesExpectedDateColors = [
-                'after' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
-                'DDay' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
-                'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
-            ];
+        // livraisons
+        $deliveriesExpectedDateColors = [
+            'after' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_AFTER),
+            'DDay' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_D_DAY),
+            'before' => $settingRepository->getOneParamByLabel(Setting::DELIVERY_EXPECTED_DATE_COLOR_BEFORE),
+        ];
+        if ($rights['deliveryOrder']) {
             $livraisons = Stream::from($livraisonRepository->getMobileDelivery($user))
                 ->map(function ($deliveryArray) use ($deliveriesExpectedDateColors) {
                     $deliveryArray['color'] = $this->mobileApiService->expectedDateColor($deliveryArray['expectedAt'], $deliveriesExpectedDateColors);
@@ -2312,6 +2312,9 @@ class MobileController extends AbstractApiController
 
             $articlesLivraison = $articleRepository->getByLivraisonsIds($livraisonsIds);
             $refArticlesLivraison = $referenceArticleRepository->getByLivraisonsIds($livraisonsIds);
+        }
+
+        if($rights['preparation']) {
             /// preparations
             $preparations = Stream::from($preparationRepository->getMobilePreparations($user))
                 ->map(function ($preparationArray) use ($deliveriesExpectedDateColors) {
@@ -2331,6 +2334,9 @@ class MobileController extends AbstractApiController
             $articlesPrepaByRefArticle = $articleRepository->getArticlePrepaForPickingByUser($user, [], $displayPickingLocation);
 
             $articlesPrepa = $this->getArticlesPrepaArrays($entityManager, $preparations);
+        }
+
+        if($rights['collectOrder']) {
             /// collecte
             $collectes = $ordreCollecteRepository->getMobileCollecte($user);
 
@@ -2352,7 +2358,9 @@ class MobileController extends AbstractApiController
                 ->toArray();
             $articlesCollecte = $articleRepository->getByOrdreCollectesIds($collectesIds);
             $refArticlesCollecte = $referenceArticleRepository->getByOrdreCollectesIds($collectesIds);
+        }
 
+        if($rights['transferOrder']) {
             /// transferOrder
             $transferOrders = $transferOrderRepository->getMobileTransferOrders($user);
             $transferOrdersIds = Stream::from($transferOrders)
@@ -2364,7 +2372,9 @@ class MobileController extends AbstractApiController
                 $articleRepository->getByTransferOrders($transferOrdersIds),
                 $referenceArticleRepository->getByTransferOrders($transferOrdersIds)
             );
+        }
 
+        if($rights['inventory']){
             // inventory
             $articlesInventory = $inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
             $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
@@ -2373,15 +2383,16 @@ class MobileController extends AbstractApiController
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
 
-            $projects = Stream::from($projectRepository->findAll())
-                ->map(fn(Project $project) => [
-                    'id' => $project->getId(),
-                    'code' => $project->getCode(),
-                ])
-                ->toArray();
         }
 
-        if ($rights['demande']) {
+        $projects = Stream::from($projectRepository->findAll())
+            ->map(fn(Project $project) => [
+                'id' => $project->getId(),
+                'code' => $project->getCode(),
+            ])
+            ->toArray();
+
+        if ($rights['handling']) {
             $handlingExpectedDateColors = [
                 'after' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_AFTER),
                 'DDay' => $settingRepository->getOneParamByLabel(Setting::HANDLING_EXPECTED_DATE_COLOR_D_DAY),
@@ -2417,57 +2428,62 @@ class MobileController extends AbstractApiController
             );
 
             $requestFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_HANDLING]);
+        }
 
+        if($rights['deliveryRequest']){
             $demandeLivraisonArticles = $referenceArticleRepository->getByNeedsMobileSync();
             $deliveryFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
 
-            $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                ->map(fn(Type $type) => [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ])->toArray();
+        }
 
-            $users = $userRepository->getAll();
+        $dispatchTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
+            ->map(fn(Type $type) => [
+                'id' => $type->getId(),
+                'label' => $type->getLabel(),
+            ])->toArray();
 
+        $users = $userRepository->getAll();
+
+        if($rights['truckArrival']){
             $reserveTypes = $reserveTypeRepository->getActiveReserveType();
         }
 
-        if ($rights['tracking']) {
+        if ($rights['movement']) {
             $trackingTaking = $trackingMovementService->getMobileUserPicking($entityManager, $user);
-
-            $carriers = Stream::from($carrierRepository->findAll())
-                ->map(function (Transporteur $transporteur) use ($kernel) {
-                    $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
-                    $logo = null;
-                    if ($attachment && $transporteur->isRecurrent()) {
-                        $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
-                        if (file_exists($path)) {
-                            $type = pathinfo($path, PATHINFO_EXTENSION);
-                            $type = ($type === 'svg' ? 'svg+xml' : $type);
-                            $data = file_get_contents($path);
-
-                            $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
-                        }
-                    }
-
-                    return [
-                        'id' => $transporteur->getId(),
-                        'label' => $transporteur->getLabel(),
-                        'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
-                        'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
-                        'logo' => $logo,
-                        'recurrent' => $transporteur->isRecurrent(),
-                    ];
-                })
-                ->toArray();
-
-            $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
             $trackingFreeFields = $freeFieldRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]);
-
-            ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
         }
 
-        if($rights['demande'] || $rights['stock']) {
+        $carriers = Stream::from($carrierRepository->findAll())
+            ->map(function (Transporteur $transporteur) use ($kernel) {
+                $attachment = $transporteur->getAttachments()->isEmpty() ? null : $transporteur->getAttachments()->first();
+                $logo = null;
+                if ($attachment && $transporteur->isRecurrent()) {
+                    $path = $kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName();
+                    if (file_exists($path)) {
+                        $type = pathinfo($path, PATHINFO_EXTENSION);
+                        $type = ($type === 'svg' ? 'svg+xml' : $type);
+                        $data = file_get_contents($path);
+
+                        $logo = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                    }
+                }
+
+                return [
+                    'id' => $transporteur->getId(),
+                    'label' => $transporteur->getLabel(),
+                    'minTrackingNumberLength' => $transporteur->getMinTrackingNumberLength() ?? null,
+                    'maxTrackingNumberLength' => $transporteur->getMaxTrackingNumberLength() ?? null,
+                    'logo' => $logo,
+                    'recurrent' => $transporteur->isRecurrent(),
+                ];
+            })
+            ->toArray();
+
+        $allowedNatureInLocations = $natureRepository->getAllowedNaturesIdByLocation();
+
+        ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
+
+        if($rights['deliveryRequest'] || $rights['deliveryOrder']) {
             $demandeLivraisonTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
@@ -2477,7 +2493,7 @@ class MobileController extends AbstractApiController
 
         }
 
-        if($rights['demande'] || $rights['tracking']){
+        if($rights['dispatch']){
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
