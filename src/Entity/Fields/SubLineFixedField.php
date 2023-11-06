@@ -95,7 +95,7 @@ class SubLineFixedField extends FixedField {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedUnderCondition = null;
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $conditionFixedField = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]

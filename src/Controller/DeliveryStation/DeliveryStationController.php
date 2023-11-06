@@ -243,7 +243,6 @@ class DeliveryStationController extends AbstractController
                                   DeliveryRequestService     $deliveryRequestService,
                                   LivraisonsManagerService   $deliveryOrderService,
                                   PreparationsManagerService $preparationOrderService,
-                                  FreeFieldService           $freeFieldService,
                                   MouvementStockService      $stockMovementService): JsonResponse
     {
         $values = $request->query->all();
@@ -275,7 +274,7 @@ class DeliveryStationController extends AbstractController
             'disabledFieldChecking' => true,
             'isFastDelivery' => true,
         ];
-        $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
+        $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager);
         $entityManager->persist($deliveryRequest);
 
         foreach ($references as $reference) {
@@ -334,7 +333,6 @@ class DeliveryStationController extends AbstractController
                 'directDelivery' => true,
             ],
             false,
-            $freeFieldService,
             false,
             true
         );

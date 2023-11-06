@@ -1666,7 +1666,7 @@ class MobileController extends AbstractApiController
             'expectedAt' => $delivery['expectedAt'] ?? $now->format('Y-m-d'),
             'project' => $delivery['project'] ?? null,
             'commentaire' => $delivery['comment'] ?? null,
-        ], $entityManager, $freeFieldService, true);
+        ], $entityManager, true);
 
         $entityManager->persist($request);
 
@@ -1697,7 +1697,6 @@ class MobileController extends AbstractApiController
                 'directDelivery' => true,
             ],
             false,
-            $freeFieldService,
             false,
             true
         );
@@ -1792,8 +1791,7 @@ class MobileController extends AbstractApiController
         $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
             $demandeArray,
-            true,
-            $champLibreService
+            true
         );
 
         $responseAfterQuantitiesCheck['nomadMessage'] = $responseAfterQuantitiesCheck['nomadMessage']
