@@ -11,6 +11,7 @@ use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -29,20 +30,20 @@ class Reception {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'receptions')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Fournisseur $fournisseur = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $date = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
     private ?string $number = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: "receptions")]
@@ -52,13 +53,13 @@ class Reception {
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'receptions')]
     private ?Statut $statut = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $dateAttendue = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateCommande = null;
 
-    #[ORM\Column(type: "json", nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $orderNumber;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'receptions')]
@@ -67,8 +68,11 @@ class Reception {
     #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'reception')]
     private ?Transporteur $transporteur = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateFinReception = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private $lastAssociation;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
@@ -85,20 +89,20 @@ class Reception {
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $storageLocation = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $urgentArticles = null;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $manualUrgent = null;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: PurchaseRequestLine::class)]
     private Collection $purchaseRequestLines;
 
-    #[ORM\OneToOne(inversedBy: 'reception', targetEntity: Arrivage::class)]
-    private ?Arrivage $arrival = null;
+    #[ORM\ManyToMany(targetEntity: Arrivage::class, inversedBy: 'receptions')]
+    private Collection $arrivals;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: ReceptionLine::class)]
     private Collection $lines;
@@ -110,28 +114,11 @@ class Reception {
         $this->attachments = new ArrayCollection();
         $this->purchaseRequestLines = new ArrayCollection();
         $this->lines = new ArrayCollection();
+        $this->arrivals = new ArrayCollection();
     }
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    public function getArrival(): ?Arrivage {
-        return $this->arrival;
-    }
-
-    public function setArrival(?Arrivage $arrival): self {
-        if($this->arrival && $this->arrival->getReception() !== $this) {
-            $oldArrival = $this->arrival;
-            $this->arrival = null;
-            $oldArrival->setReception(null);
-        }
-        $this->arrival = $arrival;
-        if($this->arrival && $this->arrival->getReception() !== $this) {
-            $this->arrival->setReception($this);
-        }
-
-        return $this;
     }
 
     /**
@@ -494,5 +481,51 @@ class Reception {
     public function isPartial(): bool {
         return Stream::from($this->getReceptionReferenceArticles())
             ->some(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getQuantite());
+    }
+
+    public function getAttachments(): ArrayCollection
+    {
+        return $this->attachments;
+    }
+
+    public function setAttachments(ArrayCollection $attachments): self
+    {
+        $this->attachments = $attachments;
+
+        return $this;
+    }
+
+    public function getArrivals(): Collection {
+        return $this->arrivals;
+    }
+
+    public function addArrival(Arrivage $arrival): self {
+        if (!$this->arrivals->contains($arrival)) {
+            $this->arrivals[] = $arrival;
+            $arrival->addReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrival(Arrivage $arrival): self {
+        if ($this->arrivals->removeElement($arrival)) {
+            $arrival->removeReception($this);
+        }
+
+        return $this;
+    }
+
+    public function setArrivals(?iterable $arrivals): self {
+        foreach($this->getArrivals()->toArray() as $arrival) {
+            $this->removeArrival($arrival);
+        }
+
+        $this->$arrivals = new ArrayCollection();
+        foreach($arrivals ?? [] as $arrival) {
+            $this->addArrival($arrival);
+        }
+
+        return $this;
     }
 }

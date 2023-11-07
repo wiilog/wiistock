@@ -8,7 +8,9 @@ use App\Repository\ArrivageRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\ManyToMany;
 
 
 #[ORM\Entity(repositoryClass: ArrivageRepository::class)]
@@ -19,7 +21,7 @@ class Arrivage {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Fournisseur::class, inversedBy: 'arrivages')]
@@ -28,10 +30,10 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Chauffeur::class, inversedBy: 'arrivages')]
     private ?Chauffeur $chauffeur = null;
 
-    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $noTracking = null;
 
-    #[ORM\Column(type: 'json')]
+    #[ORM\Column(type: Types::JSON)]
     private ?array $numeroCommandeList = [];
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'receivedArrivals')]
@@ -43,16 +45,17 @@ class Arrivage {
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'arrivagesAcheteur')]
     private Collection $acheteurs;
 
-    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $numeroReception = null;
 
     #[ORM\ManyToOne(targetEntity: Transporteur::class, inversedBy: 'arrivages')]
     private ?Transporteur $transporteur = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $date = null;
 
-    #[ORM\Column(type: 'string', length: 32, unique: true, nullable: true)]
+
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true, unique: true)]
     private ?string $numeroArrivage = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'arrivagesUtilisateur')]
@@ -61,13 +64,13 @@ class Arrivage {
     #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: Pack::class)]
     private Collection $packs;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
     #[ORM\OneToMany(mappedBy: 'arrivage', targetEntity: 'Attachment')]
     private Collection $attachements;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $isUrgent = null;
 
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'arrivages')]
@@ -76,16 +79,16 @@ class Arrivage {
     #[ORM\OneToMany(mappedBy: 'lastArrival', targetEntity: Urgence::class)]
     private Collection $urgences;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $customs = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $frozen = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $projectNumber = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $businessUnit = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'arrivals')]
@@ -94,8 +97,8 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
     private ?Emplacement $dropLocation = null;
 
-    #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
-    private ?Reception $reception = null;
+    #[ManyToMany(targetEntity: Reception::class, mappedBy: "arrivals")]
+    private Collection $receptions;
 
     #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
     private Collection $truckArrivalLines;
@@ -107,6 +110,7 @@ class Arrivage {
         $this->urgences = new ArrayCollection();
         $this->numeroCommandeList = [];
         $this->truckArrivalLines = new ArrayCollection();
+        $this->receptions = new ArrayCollection();
         $this->receivers = new ArrayCollection();
     }
 
@@ -525,19 +529,35 @@ class Arrivage {
         return $this;
     }
 
-    public function getReception(): ?Reception {
-        return $this->reception;
+    public function getReceptions(): Collection {
+        return $this->receptions;
     }
 
-    public function setReception(?Reception $reception): self {
-        if($this->reception && $this->reception->getArrival() !== $this) {
-            $oldReception = $this->reception;
-            $this->reception = null;
-            $oldReception->setArrival(null);
+    public function addReception(Reception $reception): self {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->addArrival($this);
         }
-        $this->reception = $reception;
-        if($this->reception && $this->reception->getArrival() !== $this) {
-            $this->reception->setArrival($this);
+
+        return $this;
+    }
+
+    public function removeReception(Reception $reception): self {
+        if ($this->receptions->removeElement($reception)) {
+            $reception->removeArrival($this);
+        }
+
+        return $this;
+    }
+
+    public function setReceptions(?iterable $receptions): self {
+        foreach($this->getReceptions()->toArray() as $reception) {
+            $this->removeReception($reception);
+        }
+
+        $this->$receptions = new ArrayCollection();
+        foreach($receptions ?? [] as $reception) {
+            $this->addReception($reception);
         }
 
         return $this;
