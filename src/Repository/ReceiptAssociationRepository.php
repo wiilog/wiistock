@@ -32,9 +32,20 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters)
+    public function findByParamsAndFilters(InputBag $params, array $filters): array
     {
-        $qb = $this->createQueryBuilder("receipt_association");
+        $qb = $this->createQueryBuilder("receipt_association")
+            ->select("receipt_association.id AS id")
+            ->addSelect("receipt_association.creationDate AS creationDate")
+            ->addSelect("join_logisticUnits.code AS logisticUnit")
+            ->addSelect("join_logisticUnitLastTracking.datetime AS lastTrackingDate")
+            ->addSelect("join_logisticUnitLastTrackingLocation.label AS lastTrackingLocation")
+            ->addSelect("receipt_association.receptionNumber AS receptionNumber")
+            ->addSelect("join_user.username AS user")
+            ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
+            ->leftJoin("join_logisticUnits.lastTracking", "join_logisticUnitLastTracking")
+            ->leftJoin("join_logisticUnitLastTracking.emplacement", "join_logisticUnitLastTrackingLocation")
+            ->leftJoin("receipt_association.user", "join_user");
 
         $countTotal = QueryBuilderHelper::count($qb, 'receipt_association');
 
@@ -125,13 +136,16 @@ class ReceiptAssociationRepository extends EntityRepository
         // compte éléments filtrés
         $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association');
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
 
-        $query = $qb->getQuery();
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
 
         return [
-            'data' => $query ? $query->getResult() : null ,
+            'data' => $qb->getQuery()->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];
