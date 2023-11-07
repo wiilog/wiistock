@@ -3,6 +3,12 @@
     <div class="dropdown dropright">
         {{ include('datatable/dotsRow.html.twig') }}
         <div class="dropdown-menu dropdown-follow-gt {{ canEditPack ? 'pointer' : '' }}">
+            <div class="dropdown-item d-flex align-items-center"
+                 data-id="{{ packId }}"
+                 data-pack-code="{{ packCode }}"
+                 onclick="showItems($(this), $('#modalShowRefereces'), initDatatablePurchaseRequests)">
+                <i class='fas fa-list mr-2'></i></span>Voir les références associées
+            </div>
             {% if canEditPack %}
                 <div class="action-on-click d-none"
                      data-toggle='modal'

@@ -1231,10 +1231,10 @@ class ArrivageController extends AbstractController {
                 'lastMvtDate' => $mouvement ? ($mouvement->getDatetime() ? $mouvement->getDatetime()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i' : 'd/m/Y H:i') : '') : '',
                 'lastLocation' => $mouvement ? ($mouvement->getEmplacement() ? $mouvement->getEmplacement()->getLabel() : '') : '',
                 'operator' => $mouvement ? ($mouvement->getOperateur() ? $mouvement->getOperateur()->getUsername() : '') : '',
-                'project' => $pack->getProject() ? $pack->getProject()->getCode() : '',
                 'actions' => $this->renderView('arrivage/datatablePackRow.html.twig', [
                     'arrivageId' => $arrivage->getId(),
-                    'packId' => $pack->getId()
+                    'packId' => $pack->getId(),
+                    'packCode' => $pack->getCode(),
                 ])
             ];
         }

@@ -2,6 +2,8 @@ $('.select2').select2();
 let tableHistoLitige;
 let tablePacks;
 
+window.showItems = showItems;
+
 $(function () {
     const query = GetRequestQuery();
     let addPacks = $('#addPacks').val();
@@ -113,6 +115,11 @@ $(function () {
         let SubmitDeletePack = $("#submitDeletePack");
         let urlDeletePack = Routing.generate('pack_delete', true);
         InitModal(modalDeletePack, SubmitDeletePack, urlDeletePack, {tables: [tablePacks], clearOnClose: true});
+
+        $('#modalShowRefereces')
+            .on('hide.bs.modal', function () {
+                $(this).find('table.tableItems').DataTable().destroy();
+            })
     });
 
     let pathArrivageLitiges = Routing.generate('arrivageLitiges_api', {arrivage: $('#arrivageId').val()}, true);
@@ -321,4 +328,35 @@ function getNewDisputeModalContent($button) {
                 .append(option)
                 .trigger('change');
         });
+}
+function showItems(button, $modal, initDatatable) {
+    const luId = button.data('id');
+    const packCode = button.data('pack-code');
+    $modal.find('.pack-code').html(packCode);
+    initDatatable(luId, $modal);
+    $modal.modal('show');
+}
+
+function initDatatablePurchaseRequests(logisticUnitId, $modal) {
+    extendsDateSort('customDate');
+    let pathRefShippingRequest = Routing.generate('get_pack_reference_article', {logisticUnit: logisticUnitId, arrival : $('#arrivageId').val()}, true);
+    let tableRefPurchaseRequestsOptions = {
+        ajax: {
+            "url": pathRefShippingRequest,
+            "type": AJAX.GET
+        },
+        serverSide: false,
+        drawConfig: {
+            needsResize: true
+        },
+        domConfig: {
+            removeInfo: true,
+        },
+        columns: [
+            {"data": 'icon', 'title': '', 'orderable': false},
+            {"data": 'reference', 'title': 'Référence'},
+            {"data": 'label', 'title': 'Libellé'},
+        ],
+    };
+    initDataTable($modal.find('.tableItems'), tableRefPurchaseRequestsOptions);
 }
