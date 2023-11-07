@@ -33,6 +33,9 @@ class ReceiptAssociationController extends AbstractController
     #[Required]
     public ReceiptAssociationService $receiptAssociationService;
 
+    #[Required]
+    public TranslationService $translation;
+
     #[Route("/", name: "receipt_association_index", methods: ["GET"])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ASSO])]
     public function index(): Response
@@ -150,10 +153,11 @@ class ReceiptAssociationController extends AbstractController
 
     #[Route("/export", name: "get_receipt_associations_csv", options: ["expose" => true], methods: ["GET"])]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
-    public function export(EntityManagerInterface       $manager,
-                           Request                      $request,
-                           CSVExportService             $csvService,
-                           ReceiptAssociationService    $receiptAssociationService): Response
+    public function export(EntityManagerInterface    $manager,
+                           Request                   $request,
+                           CSVExportService          $csvService,
+                           ReceiptAssociationService $receiptAssociationService,
+                           TranslationService        $translationService): Response
     {
 
         $dateMin = $request->query->get('dateMin');
@@ -173,13 +177,14 @@ class ReceiptAssociationController extends AbstractController
             $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
             $headers = [
-                'date',
-                'unité logistique',
-                'réception(s)',
-                'utilisateur',
-                'Date dernier mouvement',
-                'Dernier emplacement',
+                $translationService->translate('Traçabilité', 'Général', 'Date',false),
+                $translationService->translate('Traçabilité', 'Général', 'Unité logistique',false),
+                $translationService->translate('Traçabilité', 'Association BR', 'Réception',false),
+                $translationService->translate('Traçabilité', 'Général', 'Utilisateur',false),
+                $translationService->translate('Traçabilité', 'Général', 'Date dernier mouvement',false),
+                $translationService->translate('Traçabilité', 'Général', 'Dernier emplacement',false),
             ];
+
             return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax,$receiptAssociationService) {
                 $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->getByDates($dateTimeMin, $dateTimeMax);
                 foreach ($receiptAssociations as $receiptAssociation) {
