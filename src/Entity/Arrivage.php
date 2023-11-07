@@ -10,7 +10,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\ManyToMany;
 
 
 #[ORM\Entity(repositoryClass: ArrivageRepository::class)]
@@ -97,7 +96,7 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
     private ?Emplacement $dropLocation = null;
 
-    #[ManyToMany(targetEntity: Reception::class, mappedBy: "arrivals")]
+    #[ORM\ManyToMany(targetEntity: Reception::class, mappedBy: "arrivals")]
     private Collection $receptions;
 
     #[ORM\ManyToMany(targetEntity: TruckArrivalLine::class, mappedBy: 'arrivals')]
@@ -555,7 +554,7 @@ class Arrivage {
             $this->removeReception($reception);
         }
 
-        $this->$receptions = new ArrayCollection();
+        $this->receptions = new ArrayCollection();
         foreach($receptions ?? [] as $reception) {
             $this->addReception($reception);
         }

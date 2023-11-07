@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Google\Service\AdMob\Date;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReceptionRepository::class)]
@@ -72,7 +73,7 @@ class Reception {
     private ?DateTime $dateFinReception = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private $lastAssociation;
+    private ?DateTime $lastAssociation = null;
 
     #[ORM\OneToMany(mappedBy: 'reception', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
     private Collection $demandes;
@@ -521,7 +522,7 @@ class Reception {
             $this->removeArrival($arrival);
         }
 
-        $this->$arrivals = new ArrayCollection();
+        $this->arrivals = new ArrayCollection();
         foreach($arrivals ?? [] as $arrival) {
             $this->addArrival($arrival);
         }
