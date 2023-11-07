@@ -124,6 +124,9 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: 'bigint', nullable: true)]
     private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
 
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ReceptionLine::class)]
+    private Collection $receptionLines;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -135,6 +138,7 @@ class Pack implements PairedEntity {
         $this->sensorMessages = new ArrayCollection();
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
+        $this->receptionLines = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -775,6 +779,46 @@ class Pack implements PairedEntity {
 
     public function setTruckArrivalDelay(?int $truckArrivalDelay): self {
         $this->truckArrivalDelay = $truckArrivalDelay;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionLine[]
+     */
+    public function getReceptionLines(): Collection {
+        return $this->receptionLines;
+    }
+
+    public function addReceptionLine(ReceptionLine $receptionLine): self {
+        if (!$this->receptionLines->contains($receptionLine)) {
+            $this->receptionLines[] = $receptionLine;
+            $receptionLine->setPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionLine(ReceptionLine $receptionLine): self {
+        if ($this->receptionLines->removeElement($receptionLine)) {
+            if ($receptionLine->getPack() === $this) {
+                $receptionLine->setPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setReceptionLines(?iterable $receptionLines): self {
+        foreach($this->receptionLines->toArray() as $receptionLine) {
+            $this->removeReceptionLine($receptionLine);
+        }
+
+        $this->receptionLines = new ArrayCollection();
+
+        foreach($receptionLines ?? [] as $receptionLine) {
+            $this->addReceptionLine($receptionLine);
+        }
 
         return $this;
     }
