@@ -14,6 +14,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use WiiCommon\Helper\Stream;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
@@ -64,12 +65,11 @@ final class Version20231025123138 extends AbstractMigration implements Container
         }
         $entityManager->flush();
 
-
-        $onFilerFields = array_map(static fn(FixedFieldByType $field) => $field->getId(), $onFilerFields);
-
         $onFilterFieldsSetting = (new Setting())
             ->setLabel(Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS)
-            ->setValue(implode(',', $onFilerFields));
+            ->setValue(Stream::from($onFilerFields)
+                ->map(static fn(FixedFieldByType $field) => $field->getId())
+                ->join(','));
 
         $entityManager->persist($onFilterFieldsSetting);
         $entityManager->flush();
