@@ -32,6 +32,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
+import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -89,6 +90,7 @@ const initializers = {
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_acheminements_configurations: initializeDispatchConfiguration,
     trace_acheminements_statuts: initializeDispatchStatuses,
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
@@ -1404,4 +1406,8 @@ function changeReceiverInput($checkbox) {
     const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
 
     $inputReceiver.attr('disabled', isChecked);
+}
+
+function initializeDispatchConfiguration($container){
+    $container.on(`click`, `.select-all-options`, onSelectAll);
 }

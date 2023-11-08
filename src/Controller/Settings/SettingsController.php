@@ -1298,6 +1298,8 @@ class SettingsController extends AbstractController {
                                 "value" => $type->getId(),
                                 "label" => $type->getLabel(),
                             ])->toArray(),
+                        "automaticallyCreateMovementOnValidationTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES)),
+                        "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES)),
                         "dispatchFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->toArray(),

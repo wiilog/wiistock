@@ -17,6 +17,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class ReceiptAssociationService
 {
@@ -42,8 +43,7 @@ class ReceiptAssociationService
     public TrackingMovementService $trackingMovementService;
 
 
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
 
@@ -64,12 +64,11 @@ class ReceiptAssociationService
         ];
     }
 
-    public function dataRowReceiptAssociation(ReceiptAssociation $receiptAssocation)
-    {
+    public function dataRowReceiptAssociation(ReceiptAssociation $receiptAssocation): array {
         return [
             'id' => $receiptAssocation->getId(),
             'creationDate' => $this->formatService->datetime($receiptAssocation->getCreationDate(), "", false, $this->security->getUser()),
-            'packCode' => $receiptAssocation->getPackCode() ?? '',
+            'packCode' => Stream::From($receiptAssocation->getLogisticUnits())->map(static fn(Pack $logisticUnits) => $logisticUnits->getCode())->join(', ') ?? '',
             'receptionNumber' => $receiptAssocation->getReceptionNumber() ?? '',
             'user' => $this->formatService->user($receiptAssocation->getUser()),
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
@@ -78,8 +77,7 @@ class ReceiptAssociationService
         ];
     }
 
-    public function createMovements(array $receptions, array $packs = [])
-    {
+    public function createMovements(array $receptions, array $packs = []): void {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
 
         $now = new DateTime('now');
