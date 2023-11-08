@@ -668,27 +668,37 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-dispatch-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const $typeInputs = $container.find(`[name=type]`);
+    const selectorTable = `#table-dispatch-fixed-fields`;
+    $typeInputs
+        .on(`change`, function() {
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                    {data: 'onMobile', title: `Afficher` },
+                    {data: 'onLabel', title: `Afficher` }
+                ],
+            });
+        })
+        .first()
+        .trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
