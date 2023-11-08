@@ -16,9 +16,9 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use WiiCommon\Helper\Stream;
 
-class ChampsFixesFixtures extends Fixture implements FixtureGroupInterface {
+class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
 
-    public function load(ObjectManager $manager) {
+    public function load(ObjectManager $manager): void {
         $output = new ConsoleOutput();
         $typeRepository = $manager->getRepository(Type::class);
 

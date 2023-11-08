@@ -117,6 +117,8 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
             FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
             FixedFieldStandard::FIELD_CODE_DESTINATION,
+            FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
+            FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
             FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
             FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
             FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
