@@ -15,7 +15,7 @@
 
 {% set allPacksAlreadyInDispatch = allPacksAlreadyInDispatch is defined and allPacksAlreadyInDispatch %}
 
-    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.reception is null %}
+    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.receptions is null %}
         <a class="btn btn-outline-primary mr-2"
            href="{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}">
             {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Réceptionner') }}
@@ -49,12 +49,7 @@
                     {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
                 </button>
             {% endif %}
-            {% if arrivage.reception and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')) %}
-                <a class="dropdown-item dispatch-button" href="{{ path('reception_show', {id: arrivage.reception.id}) }}">
-                    <i class="fas fa-share-square mr-2"></i>
-                    Aller vers la réception liée
-                </a>
-            {% endif %}
+
             {% if canBeDeleted %}
                 {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::DELETE_ARRI')) %}
                     <a href="" data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal'
