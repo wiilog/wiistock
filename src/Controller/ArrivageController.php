@@ -19,6 +19,7 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Project;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Attachment;
 use App\Entity\Statut;
@@ -849,6 +850,7 @@ class ArrivageController extends AbstractController {
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
+            'nbRefUrgentInArrival' => $arrivageDataService->getNbRefUrgentInArrival($arrivage),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             "projects" => $projectRepository->findActive(),

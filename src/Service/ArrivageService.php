@@ -17,6 +17,8 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
@@ -928,5 +930,21 @@ class ArrivageService {
             'html' => $html ?? "",
             'acheteurs' => $acheteursUsernames ?? []
         ];
+    }
+
+    public function getNbRefUrgentInArrival(Arrivage $arrival): int
+    {
+        $nbRefUrgentInArrival = 0;
+        /* @var Reception $reception */
+        foreach ($arrival->getReceptions() as $reception) {
+            dump($reception->getId());
+            /* @var ReceptionReferenceArticle $receptionReference */
+            foreach ($reception->getReceptionReferenceArticles() as $receptionReference) {
+                if ($receptionReference->getReferenceArticle()->getIsUrgent()) {
+                    $nbRefUrgentInArrival++;
+                }
+            }
+        }
+        return $nbRefUrgentInArrival;
     }
 }

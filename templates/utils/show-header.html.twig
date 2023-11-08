@@ -17,6 +17,12 @@
             </div>
         {% endif %}
     </div>
+
+    {% if arrivage is defined %}
+        <p>{{ arrivage.receptions|length }} réception(s) liée(s)</p>
+        <p>Dont {{ nbRefUrgentInArrival }} références(s) en urgence</p>
+    {% endif %}
+
     {% if showDetails is defined %}
         {% include 'utils/show-header-details.html.twig' with {data: showDetails} %}
     {% endif %}
