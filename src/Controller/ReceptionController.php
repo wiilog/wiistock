@@ -15,7 +15,6 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
-use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -43,7 +42,6 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
-use App\Service\FilterSupService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -297,11 +295,12 @@ class ReceptionController extends AbstractController {
                         ReceptionService $receptionService,
                         EntityManagerInterface $entityManager): Response {
         $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
+        $arrivalFilter = $request->request->get('arrivalFilter');
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
+        $data = $receptionService->getDataForDatatable($user, $request->request, $arrivalFilter, $purchaseRequestFilter);
 
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
@@ -352,7 +351,6 @@ class ReceptionController extends AbstractController {
      * @param ReceptionService $receptionService
      * @param SettingsService $settingsService
      * @param Request $request
-     * @param $filterSupService
      * @param PurchaseRequest|null $purchaseRequest
      * @return Response
      */
@@ -360,11 +358,9 @@ class ReceptionController extends AbstractController {
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
                           Request                $request,
-                          FilterSupService       $filterSupService,
                           PurchaseRequest        $purchaseRequest = null): Response
     {
         $arrivageData = null;
-        $fromArrival = boolval($request->query->get('fromArrival'));
 
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
@@ -407,28 +403,9 @@ class ReceptionController extends AbstractController {
         $user = $this->getUser();
         $fields = $receptionService->getColumnVisibleConfig($user);
 
-        // create 'numCommandes' filter by default if user come from arrival page
-        if($fromArrival){
-            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-
-            // format 'numCommandes'
-            $numCommandes = implode(',', array_map(function($value) { return $value . ':' . $value; }, $arrivageData['numCommande']));
-
-            // find good filter
-            $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COMMAND_LIST, 'reception', $user);
-
-            // if filter have the same values -> pass
-            if($filter && $filter->getValue() !== $numCommandes){
-                $entityManager->remove($filter);
-                $entityManager->flush();
-                $filter = null;
-            }
-            // no filter -> create one
-            if (!$filter && $numCommandes) {
-                $filter = $filterSupService->createFiltreSup('reception', FiltreSup::FIELD_COMMAND_LIST, $numCommandes ?? "" , $this->security->getUser());
-                $entityManager->persist($filter);
-                $entityManager->flush();
-            }
+        if($arrivageData){
+            $arrivalFilter = implode(',', $arrivageData['numCommande']);
+            $arrivageData['arrivalFilter'] = $arrivalFilter;
         }
 
         return $this->render('reception/index.html.twig', [
@@ -440,7 +417,6 @@ class ReceptionController extends AbstractController {
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
             'arrivageToReception' => $arrivageData,
-            'fromArrival' => $fromArrival,
         ]);
     }
 

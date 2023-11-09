@@ -1,31 +1,20 @@
 {% extends 'filters/filters.html.twig' %}
 
 {% block filters %}
-    {% include 'filters/filter_item/filterDate.html.twig' with {
-        disabled: fromArrival ? 'disabled' : '',
-    } %}
-    {% include 'filters/filter_item/filterStatus.html.twig' with {
-        disabled: fromArrival ? 'disabled' : '',
-    } %}
+    {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
         placeholder: 'Demandeurs',
-        disabled: fromArrival ? 'disabled' : '',
     } %}
     {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
-        {% include 'filters/filter_item/filterProvider.html.twig' with {
-            disabled: fromArrival ? 'disabled' : '',
-        } %}
+        {% include 'filters/filter_item/filterProvider.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterEmergency.html.twig' with {
         titleFilterStatut : 'Urgence ?',
-        disabled: fromArrival ? 'disabled' : '',
     } %}
-    {% include 'filters/filter_item/filterExpectedDate.html.twig' with {
-        disabled: fromArrival ? 'disabled' : '',
-    } %}
+    {% include 'filters/filter_item/filterExpectedDate.html.twig'%}
     {% include 'filters/filter_item/filterCommandList.html.twig' with {
         title: "N° de commande",
-        value: fromArrival ? numCommande : [],
     } %}
 {% endblock %}

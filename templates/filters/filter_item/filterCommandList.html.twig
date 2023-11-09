@@ -1,6 +1,5 @@
 {% set disabled = disabled is defined and disabled ? 'disabled' %}
 {% set title = title ?? '' %}
-{% set value = value ?? [] %}
 
 <div class="col-auto m-1 select-filter pr-0">
     <div class="select2-overflow">
@@ -11,15 +10,9 @@
                     data-placeholder="{{ title }}"
                     title="{{ title }}"
                     name="commandList"
+                    id="commandList"
                     multiple
                     {{ disabled }} >
-                {% if value %}
-                    {% for value in value %}
-                        <option value={{ value }} selected >
-                            {{ value }}
-                        </option>
-                    {% endfor %}
-                {% endif %}
             </select>
         </div>
     </div>

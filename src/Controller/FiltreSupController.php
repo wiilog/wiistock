@@ -233,46 +233,4 @@ class FiltreSupController extends AbstractController
             $filterSupService->getFilters($entityManager, json_decode($request->getContent(), true))
         );
     }
-
-
-    #[Route('/delete', name: "filter_delete_by_page_and_filter_name", options: ['expose' => true], methods: 'DELETE')]
-    public function delete(EntityManagerInterface   $entityManager,
-                           Request                  $request): Response
-    {
-        // get data from url params
-        $page = $request->query->get('page');
-        $filterName = $request->query->get('filterSup');
-
-        if(!$page || !$filterName) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => 'Une erreur est survenue lors de la suppression du filtre'
-            ]);
-        }
-
-        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-
-        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $this->security->getUser());
-
-        if($filter){
-            $entityManager->remove($filter);
-            $entityManager->flush();
-            $filter = null;
-        }
-
-        if($filter) {
-            return new JsonResponse(
-                [
-                'success' => false,
-                'msg' => 'Une erreur est survenue lors de la suppression du filtre',
-            ]);
-        }
-
-        return new JsonResponse(
-            [
-                'success' => true,
-                'msg' => 'Le filtre a bien été supprimé',
-            ]
-        );
-    }
 }

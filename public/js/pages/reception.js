@@ -25,6 +25,7 @@ $(function () {
         initNewReceptionEditor($modalReceptionNew);
     }
 
+    const $arrivalFilter = $('#arrivalFilter');
     // filtres enregistrés en base pour chaque utilisateur
     if ($('#purchaseRequestFilter').val() !== '0') {
         const purchaseRequestFilter = $('#purchaseRequestFilter').val().split(',');
@@ -32,7 +33,15 @@ $(function () {
             let option = new Option(filter, filter, true, true);
             $('#commandList').append(option).trigger('change');
         })
-    } else {
+    }
+    else if ($arrivalFilter.val() !== '0') {
+        const arrivalFilterValues = $arrivalFilter.val().split(',');
+        arrivalFilterValues.forEach(function (filter) {
+            let option = new Option(filter, filter, true, true);
+            $('#commandList').append(option).trigger('change');
+        })
+    }
+    else {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_RECEPTION);
         $.post(path, params, function (data) {
@@ -84,7 +93,8 @@ function initTableReception() {
                     "url": pathReception,
                     "type": "POST",
                     'data': {
-                        'purchaseRequestFilter': $('#purchaseRequest').val()
+                        'purchaseRequestFilter': $('#purchaseRequest').val(),
+                        'arrivalFilter': $('#arrivalFilter').val()
                     }
                 },
                 columns,
@@ -109,23 +119,5 @@ function initTableReception() {
                 resizeTable(receptionsTable);
             });
             return receptionsTable;
-        });
-}
-
-function resetFilters(){
-    const url = new URL(window.location.href);
-    // remove 'numCommandes' filter
-    AJAX.route('DELETE', `filter_delete_by_page_and_filter_name`, {
-        page: PAGE_RECEPTION,
-        filterSup: 'commandList'
-    })
-        .json()
-        .then(({success}) => {
-            if (success) {
-                //remove 'fromArrivage' from url
-                url.searchParams.delete('fromArrival');
-                // reload page without 'fromArrivage' in url
-                window.location.replace(url.href)
-            }
         });
 }
