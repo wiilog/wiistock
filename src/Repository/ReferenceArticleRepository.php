@@ -12,6 +12,7 @@ use App\Entity\Inventory\InventoryMission;
 use App\Entity\Livraison;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequestExpectedLine;
 use App\Entity\TransferRequest;
@@ -1163,86 +1164,128 @@ class ReferenceArticleRepository extends EntityRepository {
         return $result ? $result[0]['barCode'] : null;
     }
 
-    public function getStockQuantity(ReferenceArticle $referenceArticle): int
+    /**
+     * @return array [ referenceId => stockQuantity ]
+     */
+    public function getStockQuantities(array $references): array
     {
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $em = $this->getEntityManager();
-            $query = $em->createQuery(
-            /** @lang DQL */
-                "SELECT SUM(a.quantite)
-                    FROM App\Entity\ReferenceArticle ra
-                    JOIN ra.articlesFournisseur af
-                    JOIN af.articles a
-                    JOIN a.statut s
-                    WHERE s.nom NOT IN (:inactiveStatus)
-                      AND ra = :refArt
-                ")
-                ->setParameters([
-                    'refArt' => $referenceArticle->getId(),
-                    'inactiveStatus' => [Article::STATUT_INACTIF, Article::STATUT_EN_LITIGE]
-                ]);
-            $stockQuantity = ($query->getSingleScalarResult() ?? 0);
-        } else {
-            $stockQuantity = $referenceArticle->getQuantiteStock();
+        $referencesByQuantityManagement = Stream::from($references)
+            ->keymap(fn(ReferenceArticle $referenceArticle) => [
+                $referenceArticle->getTypeQuantite(),
+                $referenceArticle
+            ], true)
+            ->toArray();
+
+        if (!empty($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_ARTICLE])) {
+            $byArticleResult = $this->createQueryBuilder("referenceArticle")
+                ->select("referenceArticle.id AS referenceArticleId")
+                ->addSelect("SUM(article.quantite) AS quantity")
+                ->leftJoin("referenceArticle.articlesFournisseur", "supplierArticle")
+                ->leftJoin("supplierArticle.articles", "article")
+                ->leftJoin("article.statut", "status", Join::WITH, "status.code NOT IN (:inactiveStatusCode)")
+                ->andWhere('referenceArticle IN (:referenceArticles)')
+                ->groupBy("referenceArticle.id")
+                ->setParameter("inactiveStatusCode", [Article::STATUT_INACTIF, Article::STATUT_EN_LITIGE])
+                ->setParameter("referenceArticles", $referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_ARTICLE])
+                ->getQuery()
+                ->getResult();
+
+            $quantityByReferences = Stream::from($byArticleResult)
+                ->keymap(fn(array $row) => [$row["referenceArticleId"], $row["quantity"]]);
         }
-        return $stockQuantity;
+        else {
+            $quantityByReferences = Stream::from([]);
+        }
+
+        return $quantityByReferences
+            ->concat(
+                Stream::from($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_REFERENCE] ?? [])
+                    ->keymap(fn(ReferenceArticle $referenceArticle) => $referenceArticle->getQuantiteStock()),
+                true
+            )
+            ->toArray();
     }
 
-    public function getReservedQuantity(ReferenceArticle $referenceArticle): int
+    public function getReservedQuantities(array $references, bool $includeDeliveryReferences = false): array
     {
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $referenceReservedQuantity = $this->createQueryBuilder('referenceArticle')
-                ->select('SUM(preparationLine.quantityToPick)')
-                ->join('referenceArticle.preparationOrderReferenceLines', 'preparationLine')
-                ->join('preparationLine.preparation', 'preparation')
-                ->join('preparation.statut', 'preparationStatus')
-                ->andWhere('preparationStatus.nom IN (:inProgressPreparationStatus)')
-                ->andWhere('referenceArticle = :referenceArticle')
-                ->setMaxResults(1)
+        $referencesByQuantityManagement = Stream::from($references)
+            ->keymap(fn(ReferenceArticle $referenceArticle) => [
+                $referenceArticle->getTypeQuantite(),
+                $referenceArticle
+            ], true)
+            ->toArray();
+        if (!empty($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_ARTICLE])) {
+            $referenceReservedQuantities = $this->createQueryBuilder('referenceArticle')
+                ->select("referenceArticle.id AS referenceArticleId")
+                ->addSelect('SUM(preparationLine.quantityToPick) AS quantity')
+                ->leftJoin('referenceArticle.preparationOrderReferenceLines', 'preparationLine')
+                ->leftJoin('preparationLine.preparation', 'preparation')
+                ->leftJoin('preparation.statut', 'preparationStatus', Join::WITH, "preparationStatus.nom IN (:inProgressPreparationStatus)")
+                ->andWhere('referenceArticle IN (:referenceArticles)')
+                ->groupBy("referenceArticle.id")
                 ->setParameters([
-                    'referenceArticle' => $referenceArticle,
+                    'referenceArticles' => $referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_ARTICLE],
                     'inProgressPreparationStatus' => [Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION],
                 ])
                 ->getQuery()
-                ->getSingleScalarResult();
-            $articleReservedQuantity = $this->createQueryBuilder('referenceArticle')
-                ->select('SUM(COALESCE(preparationOrderLine.quantityToPick, article.quantite))')
-                ->join('referenceArticle.articlesFournisseur', 'supplierArticles')
-                ->join('supplierArticles.articles', 'article')
-                ->join('article.statut', 'articleStatus')
-                ->join('article.preparationOrderLines', 'preparationOrderLine')
-                ->join('preparationOrderLine.preparation', 'preparation')
-                ->join('preparation.statut', 'preparationStatus')
+                ->getResult();
+            $articleReservedQuantities = $this->createQueryBuilder('referenceArticle')
+                ->select("referenceArticle.id AS referenceArticleId")
+                ->addSelect('SUM(COALESCE(preparationOrderLine.quantityToPick, article.quantite)) as quantity')
+                ->leftJoin('referenceArticle.articlesFournisseur', 'supplierArticles')
+                ->leftJoin('supplierArticles.articles', 'article')
+                ->leftJoin('article.statut', 'articleStatus', Join::WITH, "articleStatus.code = :transitArticleStatus")
+                ->leftJoin('article.preparationOrderLines', 'preparationOrderLine')
+                ->leftJoin('preparationOrderLine.preparation', 'preparation')
+                ->leftJoin('preparation.statut', 'preparationStatus')
                 ->leftJoin('preparation.livraison', 'delivery')
                 ->leftJoin('delivery.statut', 'deliveryStatus')
-                ->andWhere('articleStatus.nom = :transitArticleStatus')
-                ->andWhere('referenceArticle = :referenceArticle')
-                ->setMaxResults(1)
+                ->andWhere('referenceArticle IN (:referenceArticles)')
+                ->groupBy("referenceArticle.id")
                 ->setParameters([
-                    'referenceArticle' => $referenceArticle,
+                    'referenceArticles' => $referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_ARTICLE],
                     'transitArticleStatus' => Article::STATUT_EN_TRANSIT,
                 ])
                 ->getQuery()
-                ->getSingleScalarResult();
-            $reservedQuantity = ($referenceReservedQuantity ?? 0) + ($articleReservedQuantity ?? 0);
-        } else {
-            $reservedQuantity = $referenceArticle->getQuantiteReservee();
+                ->getResult();
+
+            $quantityByReferencesArray = [];
+            foreach ($referenceReservedQuantities as $referenceReservedQuantityRow) {
+                $referenceArticleId = $referenceReservedQuantityRow["referenceArticleId"];
+                $referenceReservedQuantity = $referenceReservedQuantityRow["quantity"];
+                $quantityByReferencesArray[$referenceArticleId] = $referenceReservedQuantity;
+            }
+            foreach ($articleReservedQuantities as $articleReservedQuantityRow) {
+                $referenceArticleId = $articleReservedQuantityRow["referenceArticleId"];
+                $articleReservedQuantity = $articleReservedQuantityRow["quantity"];
+                $referenceReservedQuantity = $quantityByReferencesArray[$referenceArticleId] ?? 0;
+                $quantityByReferencesArray[$referenceArticleId] = $referenceReservedQuantity + $articleReservedQuantity;
+            }
         }
-        return $reservedQuantity;
-    }
 
-    public function getOneReferenceByBarCodeAndLocation(string $barCode, ?string $location)
-    {
-        $queryBuilder = $this
-            ->createQueryBuilderByBarCodeAndLocation($barCode, $location, false)
-            ->select('referenceArticle.reference as reference')
-            ->addSelect('referenceArticle.id as id')
-            ->addSelect('referenceArticle.barCode as barCode')
-            ->addSelect('referenceArticle.quantiteDisponible as quantity')
-            ->addSelect('1 as is_ref');
-
-        $result = $queryBuilder->getQuery()->execute();
-        return !empty($result) ? $result[0] : null;
+        return Stream::from($quantityByReferencesArray ?? [])
+            ->concat(
+                Stream::from($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_REFERENCE] ?? [])
+                    ->keymap(fn(ReferenceArticle $referenceArticle) => [
+                        $referenceArticle->getId(),
+                        Stream::from($referenceArticle->getPreparationOrderReferenceLines())
+                            ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) use ($includeDeliveryReferences) {
+                                $preparation = $ligneArticlePreparation->getPreparation();
+                                $livraison = $preparation->getLivraison();
+                                return $preparation->getStatut()?->getCode() === Preparation::STATUT_EN_COURS_DE_PREPARATION
+                                    || $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER
+                                    || (
+                                        $includeDeliveryReferences &&
+                                        $livraison &&
+                                        $livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
+                                    );
+                            })
+                            ->map(fn(PreparationOrderReferenceLine $ligneArticlePrepaEnCours) => $ligneArticlePrepaEnCours->getQuantityToPick())
+                            ->sum()
+                    ]),
+                true
+            )
+            ->toArray();
     }
 
     public function findOneByBarCodeAndLocation(string $barCode, string $location): ?ReferenceArticle

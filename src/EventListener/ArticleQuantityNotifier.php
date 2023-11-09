@@ -5,6 +5,7 @@ namespace App\EventListener;
 use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\Setting;
+use App\Exceptions\FormException;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
 use DateTime;
@@ -12,6 +13,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMException;
 use Exception;
+use WiiCommon\Helper\Stream;
 
 class ArticleQuantityNotifier {
 
@@ -37,16 +39,21 @@ class ArticleQuantityNotifier {
     /**
      * @throws ORMException
      */
-    public function postFlush() {
+    public function postFlush(): void {
         if (!self::$referenceArticlesUpdating) {
             self::$referenceArticlesUpdating = true;
 
             $cleanedEntityManager = $this->getEntityManager();
 
+            $this->refArticleService->updateRefArticleQuantities(
+                $cleanedEntityManager,
+                Stream::from(self::$referenceArticlesToUpdate)
+                    ->map(fn($item) => $item['referenceArticle'])
+                    ->toArray()
+            );
             foreach (self::$referenceArticlesToUpdate as $item) {
                 $referenceArticle = $item['referenceArticle'];
 
-                $this->refArticleService->updateRefArticleQuantities($cleanedEntityManager, $referenceArticle);
 
                 $this->refArticleService->treatAlert($cleanedEntityManager, $referenceArticle);
                 $articles = $item['articles'];

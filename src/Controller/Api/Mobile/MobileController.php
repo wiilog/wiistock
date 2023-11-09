@@ -2734,7 +2734,6 @@ class MobileController extends AbstractApiController
         $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
         $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
-
         $inventoryService->clearInventoryZone($mission);
 
         $zonesData = [];

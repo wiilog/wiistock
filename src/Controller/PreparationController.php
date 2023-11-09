@@ -336,9 +336,7 @@ class PreparationController extends AbstractController
         $entityManager->flush();
 
         if (!$preparation->isPlanned()) {
-            foreach ($refToUpdate as $reference) {
-                $refArticleDataService->updateRefArticleQuantities($entityManager, $reference);
-            }
+            $refArticleDataService->updateRefArticleQuantities($entityManager, $refToUpdate);
         }
 
         $entityManager->flush();
@@ -970,7 +968,7 @@ class PreparationController extends AbstractController
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                         $referenceArticle->setQuantiteReservee(($referenceArticle->getQuantiteReservee() ?? 0) + $refLine->getQuantityToPick());
                     } else {
-                        $refArticleDataService->updateRefArticleQuantities($manager, $referenceArticle);
+                        $refArticleDataService->updateRefArticleQuantities($manager, [$referenceArticle]);
                     }
                 }
             }
