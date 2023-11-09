@@ -2770,12 +2770,20 @@ class MobileController extends AbstractApiController
                 foreach ($lines as $line) {
                     $line->setDone(true);
                     if ($line->getLocation()) {
-                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()];
-                        $line
-                            ->setOperator($validator)
-                            ->setScannedAt(isset($inventoryDatum) ? ($validatedAt ?? $now) : null)
-                            ->setPercentage(isset($inventoryDatum) ? $inventoryDatum["ratio"] : null)
-                            ->setArticles(isset($inventoryDatum) ? $inventoryDatum["articles"] : []);
+                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()] ?? null;
+                        if (isset($inventoryDatum)) {
+                            $scannedAt = $validatedAt ?? $now;
+                            $line
+                                ->setOperator($validator)
+                                ->setScannedAt($scannedAt)
+                                ->setPercentage($inventoryDatum["ratio"])
+                                ->setArticles($inventoryDatum["articles"]);
+                        }
+                        else {
+                            $zoneLabel = $zone->getName();
+                            $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
+                            throw new FormException("L'emplacement $locationLabel dans la zone $zoneLabel n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
+                        }
                     }
                 }
             }
@@ -2842,7 +2850,6 @@ class MobileController extends AbstractApiController
         }
         return $this->json([
             "success" => true,
-            "data" => ""
         ]);
     }
 
