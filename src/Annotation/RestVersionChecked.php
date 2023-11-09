@@ -2,8 +2,7 @@
 
 namespace App\Annotation;
 
-use Doctrine\Common\Annotations\Annotation;
-use Doctrine\Common\Annotations\Annotation\Target;
+use Attribute;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class RestVersionChecked {
