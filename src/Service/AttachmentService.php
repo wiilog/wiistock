@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 
 
 class AttachmentService {
@@ -156,5 +157,14 @@ class AttachmentService {
         file_put_contents($filePath, $data);
 
         return $filePath;
+    }
+
+    public function getBase64(Attachment $attachment): ?string {
+        $path = "$this->attachmentDirectory/{$attachment->getFileName()}";
+        $type = pathinfo($path, PATHINFO_EXTENSION);
+        $data = file_get_contents($path);
+        $encodedImage = base64_encode($data);
+
+        return "data:image/$type;base64,$encodedImage";
     }
 }
