@@ -111,3 +111,21 @@ function initTableReception() {
             return receptionsTable;
         });
 }
+
+function resetFilters(){
+    const url = new URL(window.location.href);
+    // remove 'numCommandes' filter
+    AJAX.route('DELETE', `filter_delete_by_page_and_filter_name`, {
+        page: PAGE_RECEPTION,
+        filterSup: 'commandList'
+    })
+        .json()
+        .then(({success}) => {
+            if (success) {
+                //remove 'fromArrivage' from url
+                url.searchParams.delete('fromArrival');
+                // reload page without 'fromArrivage' in url
+                window.location.replace(url.href)
+            }
+        });
+}

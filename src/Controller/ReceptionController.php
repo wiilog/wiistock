@@ -15,6 +15,7 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
+use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -42,6 +43,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
+use App\Service\FilterSupService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
@@ -66,6 +68,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -87,6 +90,9 @@ class ReceptionController extends AbstractController {
 
     #[Required]
     public FreeFieldService $freeFieldService;
+
+    #[Required]
+    public Security $security;
 
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -342,18 +348,28 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
+     * @param EntityManagerInterface $entityManager
+     * @param ReceptionService $receptionService
+     * @param SettingsService $settingsService
+     * @param Request $request
+     * @param $filterSupService
+     * @param PurchaseRequest|null $purchaseRequest
+     * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
                           SettingsService        $settingsService,
                           Request                $request,
+                          FilterSupService       $filterSupService,
                           PurchaseRequest        $purchaseRequest = null): Response
     {
         $arrivageData = null;
+        $fromArrival = boolval($request->query->get('fromArrival'));
+
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-            if ($arrivage && !$arrivage->getReception()) {
+            if ($arrivage && empty(!$arrivage->getReceptions())) {
                 $arrivageData = [
                     'id' => $arrivageId,
                     'fournisseur' => $arrivage->getFournisseur(),
@@ -391,6 +407,30 @@ class ReceptionController extends AbstractController {
         $user = $this->getUser();
         $fields = $receptionService->getColumnVisibleConfig($user);
 
+        // create 'numCommandes' filter by default if user come from arrival page
+        if($fromArrival){
+            $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+            // format 'numCommandes'
+            $numCommandes = implode(',', array_map(function($value) { return $value . ':' . $value; }, $arrivageData['numCommande']));
+
+            // find good filter
+            $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COMMAND_LIST, 'reception', $user);
+
+            // if filter have the same values -> pass
+            if($filter && $filter->getValue() !== $numCommandes){
+                $entityManager->remove($filter);
+                $entityManager->flush();
+                $filter = null;
+            }
+            // no filter -> create one
+            if (!$filter && $numCommandes) {
+                $filter = $filterSupService->createFiltreSup('reception', FiltreSup::FIELD_COMMAND_LIST, $numCommandes ?? "" , $this->security->getUser());
+                $entityManager->persist($filter);
+                $entityManager->flush();
+            }
+        }
+
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
@@ -400,6 +440,7 @@ class ReceptionController extends AbstractController {
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
             'arrivageToReception' => $arrivageData,
+            'fromArrival' => $fromArrival,
         ]);
     }
 

@@ -3,7 +3,7 @@
         <div class="row no-gutters align-items-center">
             <div class="col">{{ titleFilterStatut ?? trans('Qualité', 'Litiges', 'Urgence ?', false) }}</div>
             <label class="switch col-auto">
-                <input class="checkbox filter-checkbox" type="checkbox" name="emergency" id="emergency-filter">
+                <input class="checkbox filter-checkbox" {{ disabled }} type="checkbox" name="emergency" id="emergency-filter">
                 <span class="slider round"></span>
             </label>
         </div>

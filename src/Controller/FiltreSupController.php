@@ -6,11 +6,13 @@ use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Utilisateur;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -18,6 +20,9 @@ use WiiCommon\Helper\Stream;
  */
 class FiltreSupController extends AbstractController
 {
+
+    #[Required]
+    public Security $security;
 
     /**
      * @Route("/creer", name="filter_sup_new", options={"expose"=true})
@@ -226,6 +231,48 @@ class FiltreSupController extends AbstractController
     {
         return $this->json(
             $filterSupService->getFilters($entityManager, json_decode($request->getContent(), true))
+        );
+    }
+
+
+    #[Route('/delete', name: "filter_delete_by_page_and_filter_name", options: ['expose' => true], methods: 'DELETE')]
+    public function delete(EntityManagerInterface   $entityManager,
+                           Request                  $request): Response
+    {
+        // get data from url params
+        $page = $request->query->get('page');
+        $filterName = $request->query->get('filterSup');
+
+        if(!$page || !$filterName) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'Une erreur est survenue lors de la suppression du filtre'
+            ]);
+        }
+
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        $filter = $filtreSupRepository->findOnebyFieldAndPageAndUser($filterName, $page, $this->security->getUser());
+
+        if($filter){
+            $entityManager->remove($filter);
+            $entityManager->flush();
+            $filter = null;
+        }
+
+        if($filter) {
+            return new JsonResponse(
+                [
+                'success' => false,
+                'msg' => 'Une erreur est survenue lors de la suppression du filtre',
+            ]);
+        }
+
+        return new JsonResponse(
+            [
+                'success' => true,
+                'msg' => 'Le filtre a bien été supprimé',
+            ]
         );
     }
 }
