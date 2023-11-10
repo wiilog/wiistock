@@ -38,6 +38,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }}{{ supplierRequired ? '*' }}
                             </label>
+                            <span class="wii-small-text"></span>
                             <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }}"
                                     name="fournisseur">
                                 <option selected disabled>&nbsp;</option>
@@ -67,6 +68,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur') }}{{ carrierRequired ? '*' }}
                             </label>
+                            <span class="wii-small-text"></span>
                             <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ carrierRequired ? 'needed' }}"
                                     name="transporteur">
                                 <option selected disabled>&nbsp;</option>
@@ -221,6 +223,7 @@
                                 <label class="wii-field-name" for="noTracking">
                                     {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
                                 </label>
+                                <span class="wii-small-text"></span>
                                 <input type="text"
                                        class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
                                        value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
@@ -236,6 +239,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }}{{ orderNumberRequired ? '*' }}
                             </label>
+                            <span class="wii-small-text"></span>
                             <select class="form-control input-sm data select2-free w-100 {{ orderNumberRequired ? 'needed' }}"
                                     name="numeroCommandeList"
                                     multiple="multiple">
@@ -258,6 +262,7 @@
                                     <label class="wii-field-name">
                                         {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
                                     </label>
+                                    <span class="wii-small-text"></span>
                                     <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
                                             name="destinataire">
                                         <option selected disabled>&nbsp;</option>
@@ -552,6 +557,7 @@
                             <label class="wii-subtitle" for="commentaire">
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
+                            <span class="wii-small-text"></span>
                             <input class="commentaire form-control input-sm data {{ commentRequired ? 'needed' }}"
                                    name="commentaire"
                                    type="hidden">
