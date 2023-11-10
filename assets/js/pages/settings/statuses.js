@@ -1,5 +1,5 @@
 import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
-import AJAX, {GET} from "@app/ajax";
+import AJAX from "@app/ajax";
 
 const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
@@ -7,6 +7,10 @@ const MODE_PURCHASE_REQUEST = 'purchase-request';
 const MODE_ARRIVAL = 'arrival';
 const MODE_DISPATCH = 'dispatch';
 const MODE_HANDLING = 'handling';
+
+const MODAL_EDITING_MODES = [
+    MODE_DISPATCH,
+];
 
 const DISABLED_LABELS_TRANSLATION_PAGES = [
     `#reception-dispute-statuses-table`,
@@ -28,16 +32,16 @@ export function initializePurchaseRequestStatuses($container, canEdit) {
     initializeStatuses($container, canEdit, MODE_PURCHASE_REQUEST);
 }
 
-export function initializeDispatchStatuses($container, canEdit) {
-    initializeStatusesByTypes($container, canEdit, MODE_DISPATCH)
+export function initializeDispatchStatuses($container) {
+    initializeStatusesByTypes($container, false, MODE_DISPATCH);
 }
 
 export function initializeArrivalStatuses($container, canEdit) {
-    initializeStatusesByTypes($container, canEdit, MODE_ARRIVAL)
+    initializeStatusesByTypes($container, canEdit, MODE_ARRIVAL);
 }
 
 export function initializeHandlingStatuses($container, canEdit) {
-    initializeStatusesByTypes($container, canEdit, MODE_HANDLING)
+    initializeStatusesByTypes($container, canEdit, MODE_HANDLING);
 }
 
 function initializeStatuses($container, canEdit, mode, categoryType) {
@@ -69,6 +73,13 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         onInit: () => {
             $addButton.removeClass(`d-none`);
         },
+        ...(MODAL_EDITING_MODES.includes(mode)
+            ? {
+                onRowClick: (event) => {
+                    getStatusFormTemplate($container, $(`.modal-edit-status`), $(event.currentTarget), type, mode);
+                },
+            } : {}
+        ),
         onEditStart: () => {
             $managementButtons.removeClass('d-none');
             if(!DISABLED_LABELS_TRANSLATION_PAGES.includes(tableSelector)) {
@@ -81,7 +92,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
                     .off('click.statusTranslation')
                     .on('click.statusTranslation', function () {
                         wrapLoadingOnActionButton($(this), () => (
-                            AJAX.route(GET, "settings_edit_status_translations_api", {
+                            AJAX.route(AJAX.GET, "settings_edit_status_translations_api", {
                                 type: $('[name=type]:checked').val(),
                                 mode: mode
                             })
@@ -117,7 +128,13 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     $addRow
         .off('click')
         .on(`click`, function() {
-            table.addRow(true);
+            const type = $('[name=type]:checked').val();
+
+            if(!MODAL_EDITING_MODES.includes(mode)) {
+                table.addRow(true);
+            } else {
+                getStatusFormTemplate($container, $(`.modal-new-status`), $(this), type, mode);
+            }
         });
 
     $addButton
@@ -130,6 +147,86 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     });
 
     return table;
+}
+
+function getStatusFormTemplate($container, $modal, $element, type, mode) {
+    const status = $element.find(`[name=statusId]`).exists()
+        ? $element.find(`[name=statusId]`).val()
+        : null;
+
+    Modal.load(`status_form_template`, {type, mode, status}, $modal, $element, {
+        onOpen: () => onStatusModalOpen($modal, status, $container, mode),
+    });
+}
+
+function onStatusModalOpen($modal, status, $container, mode) {
+    const $state = $modal.find(`[name=state]`);
+    const $automatic = $modal.find(`[name=automatic]`);
+    const $automaticDispatchCreation = $modal.find(`[name=automaticDispatchCreation]`);
+
+    $modal.find(`[data-states]`).addClass(`d-none`);
+    const states = JSON.parse($(`[name=states]`).val());
+
+    $state
+        .on(`change`, function () {
+            const state = states[$(this).val()].slug;
+
+            $modal.find(`[data-states]`).addClass(`d-none`);
+
+            const $elements = $modal.find(`[data-states*=${state}]`);
+            if($elements.length > 0) {
+                $elements.removeClass(`d-none`);
+            } else {
+                $modal.find(`[data-states]`).addClass(`d-none`);
+            }
+        });
+
+    $automatic
+        .on(`change`, function () {
+            const checked = $(this).is(`:checked`);
+            $modal
+                .find(`.automatic-status`)
+                .toggleClass(`d-none`, !checked)
+                .find(`[name=movementType]`)
+                .prop(`required`, checked);
+        });
+
+    $automaticDispatchCreation
+        .on(`change`, function () {
+            const checked = $(this).is(`:checked`);
+            $modal
+                .find(`.new-dispatch-type`)
+                .toggleClass(`d-none`, !checked)
+                .find(`[name=newDispatchType]`)
+                .prop(`required`, checked);
+        });
+
+    $modal.find(`.select-all-options`).on(`click`, onSelectAll);
+
+    Form
+        .create($modal)
+        .clearSubmitListeners()
+        .clearOpenListeners()
+        .onSubmit((data, form) => {
+            let values = data.asObject();
+            values.status = status || null;
+            form.loading(() => {
+                return AJAX
+                    .route(AJAX.POST, `status_form_submit`, values)
+                    .json()
+                    .then(({success}) => {
+                        if(success) {
+                            $modal.modal(`hide`);
+                            initializeStatusesByTypes($container, false, mode);
+                        }
+                    });
+            })
+        });
+
+    $state
+        .add($automatic)
+        .add($automaticDispatchCreation)
+        .trigger(`change`);
 }
 
 function getStatusesColumn(mode) {
@@ -162,21 +259,6 @@ function getStatusesColumn(mode) {
             modes: [MODE_HANDLING, MODE_DISPATCH]
         },
         {
-            data: `sendReport`,
-            title: `<div class='small-column'>Envoi compte rendu</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureType`,
-            title: `<div class='small-column'>Signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureColor`,
-            title: `<div class='small-column'>Couleur signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -190,11 +272,6 @@ function getStatusesColumn(mode) {
             data: `commentNeeded`,
             title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
             modes: [MODE_HANDLING]
-        },
-        {
-            data: `commentNeeded`,
-            title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
-            modes: [MODE_DISPATCH]
         },
         {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
@@ -267,9 +344,11 @@ function initializeStatusesByTypes($container, canEdit, mode) {
         });
 
     $addButton
-        .on('click', function() {
-            $filtersContainer.addClass('d-none');
-            $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
+        .on('click', function () {
+            if (!MODAL_EDITING_MODES.includes(mode)) {
+                $filtersContainer.addClass('d-none');
+                $pageBody.prepend('<div class="header wii-title">Ajouter des statuts</div>');
+            }
         });
 }
 

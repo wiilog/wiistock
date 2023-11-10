@@ -938,12 +938,12 @@ class SettingsService {
                 $languageRepository = $this->manager->getRepository(Language::class);
 
                 $categoryName = match ($statusesData[0]['mode']) {
-                    StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
-                    StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
-                    StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
-                    StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
-                    StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                    Statut::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+                    Statut::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+                    Statut::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+                    Statut::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+                    Statut::MODE_DISPATCH => CategorieStatut::DISPATCH,
+                    Statut::MODE_HANDLING => CategorieStatut::HANDLING
                 };
 
                 $category = $categoryRepository->findOneBy(['nom' => $categoryName]);

@@ -13,6 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Nature {
 
     public const ARRIVAL_CODE = 'arrival';
+    public const DISPATCH_CODE = 'dispatch';
     public const TRANSPORT_COLLECT_CODE = 'transportCollect';
     public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
     public const PACK_SEPARATION_CODE = 'bursted';
