@@ -90,6 +90,17 @@ class ArrivageController extends AbstractController {
                           TagTemplateService $tagTemplateService,
                           ArrivageService $arrivageService,
                           FilterSupService $filterSupService): Response {
+
+        $receptionData = null;
+        $receptionId = $request->query->get('reception');
+
+        if($receptionId) {
+            $reception = $entityManager->getRepository(Reception::class)->find($receptionId);
+            $receptionData['id'] = $reception->getId();
+            $receptionData['orderNumber'] = implode(',', $reception->getOrderNumber());
+            $request->request->add(['receptionFilter' => $receptionData["orderNumber"]]);
+        }
+
         $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
@@ -134,6 +145,7 @@ class ArrivageController extends AbstractController {
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
             "openNewModal" => count($fromTruckArrivalOptions) > 0,
+            "reception" => $receptionData,
         ]);
     }
 
@@ -141,14 +153,17 @@ class ArrivageController extends AbstractController {
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::DISPLAY_ARRI}, mode=HasPermission::IN_JSON)
      */
-    public function api(Request $request, ArrivageService $arrivageService): Response {
+    public function api(Request $request, ArrivageService $arrivageService): Response
+    {
+        $receptionFilter = $request->request->get('receptionFilter');
+
         if($this->userService->hasRightFunction(Menu::TRACA, Action::LIST_ALL) || !$this->getUser()) {
             $userId = null;
         } else {
             $userId = $this->getUser()->getId();
         }
 
-        return $this->json($arrivageService->getDataForDatatable($request, $userId));
+        return $this->json($arrivageService->getDataForDatatable($request, $userId, $receptionFilter));
     }
 
     /**

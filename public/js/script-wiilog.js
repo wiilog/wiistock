@@ -12,6 +12,7 @@ const PAGE_IMPORT = 'import';
 const PAGE_EXPORT = 'export';
 const PAGE_ALERTE = 'alerte';
 const PAGE_RECEPTION = 'reception';
+const PAGE_ARRIVAGE = 'arrivage';
 const PAGE_MVT_STOCK = 'mvt_stock';
 const PAGE_MVT_TRACA = 'mvt_traca';
 const PAGE_PACK = 'pack';
