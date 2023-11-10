@@ -42,7 +42,7 @@ class TruckArrivalService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     public function getDataForDatatable(EntityManagerInterface $entityManager,
                                         Request                $request,

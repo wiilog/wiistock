@@ -5,11 +5,11 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
-use App\Entity\Customer;
 use App\Entity\Chauffeur;
+use App\Entity\Customer;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
@@ -20,11 +20,11 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\ReceptionLine;
-use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
+use App\Entity\ReceptionLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
@@ -589,8 +589,8 @@ class SelectController extends AbstractController {
         $page = $request->query->get('page');
 
         $businessUnitValues = $manager
-            ->getRepository(FieldsParam::class)
-            ->getElements($page, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+            ->getRepository(FixedFieldStandard::class)
+            ->getElements($page, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $results = Stream::from($businessUnitValues)
             ->map(fn(string $value) => [
@@ -721,8 +721,8 @@ class SelectController extends AbstractController {
      * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),

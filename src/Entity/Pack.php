@@ -13,6 +13,7 @@ use App\Repository\PackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PackRepository::class)]
@@ -27,10 +28,10 @@ class Pack implements PairedEntity {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $code = null;
 
     #[ORM\ManyToOne(targetEntity: Arrivage::class, inversedBy: 'packs')]
@@ -55,19 +56,19 @@ class Pack implements PairedEntity {
     #[ORM\OrderBy(['datetime' => 'DESC', 'id' => 'DESC'])]
     private Collection $trackingMovements;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
     private ?int $quantity = 1;
 
-    #[ORM\Column(type: 'decimal', precision: 12, scale: 3, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?float $weight = null;
 
-    #[ORM\Column(type: 'decimal', precision: 12, scale: 6, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 6, nullable: true)]
     private ?float $volume = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: DispatchPack::class, orphanRemoval: true)]
@@ -97,7 +98,7 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: Pairing::class, cascade: ['remove'])]
     private Collection $pairings;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private bool $deliveryDone = false;
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistory::class)]
@@ -115,13 +116,13 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ProjectHistoryRecord::class, cascade: ["persist", "remove"])]
     private Collection $projectHistoryRecords;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private ?bool $articleContainer = false;
 
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: ShippingRequestPack::class, cascade: ['persist'])]
     private ?ShippingRequestPack $shippingRequestPack = null;
 
-    #[ORM\Column(type: 'bigint', nullable: true)]
+    #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?int $truckArrivalDelay = null; //millisecondes entre la création de l'arrivage camion et l'UL
 
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ReceptionLine::class)]
