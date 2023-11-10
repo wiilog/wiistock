@@ -214,6 +214,21 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $customerAddress = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $dueDate1 = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $dueDate2 = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $dueDate2Bis = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $productionOrderNumber = null;
+
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $productionRequest = null;
+
     public function __construct() {
         $this->dispatchPacks = new ArrayCollection();
         $this->attachements = new ArrayCollection();
@@ -722,6 +737,66 @@ class Dispatch extends StatusHistoryContainer {
     public function setCustomerAddress(?string $customerAddress): self
     {
         $this->customerAddress = $customerAddress;
+
+        return $this;
+    }
+
+    public function getDueDate1(): ?DateTime
+    {
+        return $this->dueDate1;
+    }
+
+    public function setDueDate1(?DateTime $dueDate1): self
+    {
+        $this->dueDate1 = $dueDate1;
+
+        return $this;
+    }
+
+    public function getDueDate2(): ?DateTime
+    {
+        return $this->dueDate2;
+    }
+
+    public function setDueDate2(?DateTime $dueDate2): self
+    {
+        $this->dueDate2 = $dueDate2;
+
+        return $this;
+    }
+
+    public function getDueDate2Bis(): ?DateTime
+    {
+        return $this->dueDate2Bis;
+    }
+
+    public function setDueDate2Bis(?DateTime $dueDate2Bis): self
+    {
+        $this->dueDate2Bis = $dueDate2Bis;
+
+        return $this;
+    }
+
+    public function getProductionOrderNumber(): ?string
+    {
+        return $this->productionOrderNumber;
+    }
+
+    public function setProductionOrderNumber(?string $productionOrderNumber): self
+    {
+        $this->productionOrderNumber = $productionOrderNumber;
+
+        return $this;
+    }
+
+    public function getProductionRequest(): ?string
+    {
+        return $this->productionRequest;
+    }
+
+    public function setProductionRequest(?string $productionRequest): self
+    {
+        $this->productionRequest = $productionRequest;
 
         return $this;
     }
