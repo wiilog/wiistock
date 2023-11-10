@@ -1,0 +1,130 @@
+{% import 'form.html.twig' as form %}
+
+<div class="row">
+    <div class="col-12 col-md-6">
+        {{ form.lang('label', 'Libellé', true, {
+            languages: language_service.languages,
+            entity: status.id ? status : null,
+        }) }}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="wii-field-name">Type</label>
+        <div class="wii-body-text mt-1">{{ type.label }}</div>
+    </div>
+    <div class="col-12 col-md-6 mt-2">
+        {{ form.select("state", "Etat", true, {
+            type: null,
+            items: constant('App\\Entity\\Dispatch::STATUS_STATES')|map((state, index) => {
+                label: state.name,
+                value: index,
+                selected: status.id and status.state == index,
+            }),
+        }) }}
+    </div>
+    <div class="col-12 col-md-6 mt-2">
+        {{ form.input("order", "Ordre", true, status.displayOrder, {
+            labelWidth: 'w-25',
+            type: "number",
+            min: 0,
+        }) }}
+    </div>
+</div>
+<div class="wii-section-title my-3" data-states="to-treat,in-progress,treated">Statut automatique</div>
+<div class="row" data-states="treated">
+    <div class="col-12">
+        {{ form.checkbox("automaticAllPacksOnDepositLocation", "Statut automatique quand toutes les unités logistiques sont déposées sur l'emplacement de dépose", false, status.automaticAllPacksOnDepositLocation) }}
+    </div>
+</div>
+<div class="row" data-states="to-treat,in-progress">
+    <div class="col-12">
+        {{ form.checkbox("automatic", "Statut automatique", false, status.id and status.automatic) }}
+    </div>
+    <div class="col-12 mt-3 automatic-status d-none">
+        <div class="d-flex align-items-center">
+            Passage automatique à ce statut à la
+            {{ form.select("movementType", null, true, {
+                type: null,
+                inputClass: "w-100",
+                labelClass: "w-25 mx-2",
+                items: constant('App\\Entity\\Statut::MOVEMENT_TYPES')|map((type, index) => {
+                    label: type,
+                    value: index,
+                    selected: status.id and status.automaticStatusMovementType == index,
+                }),
+            }) }}
+            de toutes les unités logistiques
+        </div>
+    </div>
+    <div class="col-12 mt-3 automatic-status d-none">
+        {{ form.select("natures", "Excepté les natures", false, {
+            type: null,
+            items: natures|map((nature) => {
+                label: nature.code,
+                value: nature.id,
+                selected: status.id and status.automaticStatusExcludedNatures.contains(nature),
+            }),
+            multiple: true,
+        }) }}
+    </div>
+    <div class="col-12 mt-3 automatic-status d-none">
+        {{ form.select("locations", "Sur les emplacements", false, {
+            type: "location",
+            items: status.id
+                ? status.automaticStatusLocations|map((location) => {
+                    label: location.label,
+                    value: location.id,
+                    selected: true,
+                }) : {},
+            multiple: true,
+        }) }}
+    </div>
+</div>
+<div class="wii-section-title my-3" data-states="to-treat,in-progress">Création automatique nouvel acheminement</div>
+<div class="row" data-states="to-treat,in-progress">
+    <div class="col-12">
+        {{ form.checkbox("automaticDispatchCreation", "Création automatique nouvel acheminement", false, status.id and status.automaticDispatchCreation) }}
+    </div>
+    <div class="col-12 col-md-6 mt-3 new-dispatch-type d-none">
+        {{ form.select("newDispatchType", "Type du nouvel acheminement", true, {
+            type: null,
+            items: dispatchTypes|map((type) => {
+                label: type.label,
+                value: type.id,
+                selected: status.id and status.automaticDispatchCreationType == type,
+            }),
+        }) }}
+    </div>
+</div>
+<div class="wii-section-title my-3">Envoi d'emails</div>
+<div class="row">
+    <div class="col-12 col-md-6">
+        {{ form.checkbox("sendMailRequester", "Envoi d'email au demandeur", false, status.sendNotifToDeclarant) }}
+    </div>
+    <div class="col-12 col-md-6">
+        {{ form.checkbox("sendMailReceivers", "Envoi d'email aux destinataires", false, status.sendNotifToRecipient) }}
+    </div>
+</div>
+<div class="wii-section-title my-3" data-states="to-treat,in-progress,partial,treated">Divers</div>
+<div class="row">
+    <div class="col-12 mb-3" data-states="to-treat,in-progress,partial">
+        {{ form.checkbox("mobileSync", "Synchronisation nomade", false, status.needsMobileSync) }}
+    </div>
+    <div class="col-12 d-none" data-states="to-treat,in-progress,treated">
+        <div class="d-flex align-items-center">
+            {{ form.select("accessibleBy", "Accessible à", true, {
+                type: null,
+                multiple: true,
+                items: roles|map((role) => {
+                    label: role.label,
+                    value: role.id,
+                    selected: status.id and status.accessibleBy.contains(role),
+                }),
+                selectAllLabel: "Tous les rôles",
+            }) }}
+        </div>
+    </div>
+</div>
+
+{{ form.hidden("states", constant('App\\Entity\\Dispatch::STATUS_STATES')|json_encode) }}
+{{ form.hidden("type", type.id) }}
+{{ form.hidden("mode", mode) }}

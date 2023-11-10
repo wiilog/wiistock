@@ -10,6 +10,7 @@ use App\Helper\LanguageHelper;
 use App\Repository\StatutRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StatutRepository::class)]
@@ -28,6 +29,30 @@ class Statut {
     const GROUPED_SIGNATURE_DEFAULT_COLOR = '#3353D7';
 
     const REGEX_STATUS_NAME_VALIDATE  = '/^[^,;]*$/';
+
+    const DROP_TYPE = 0;
+    const PICK_TYPE = 1;
+
+    public const MOVEMENT_TYPES = [
+        self::DROP_TYPE => "dépose",
+        self::PICK_TYPE => "prise",
+    ];
+
+    const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
+    const MODE_RECEPTION_DISPUTE = 'reception-dispute';
+    const MODE_PURCHASE_REQUEST = 'purchase-request';
+    const MODE_ARRIVAL = 'arrival';
+    const MODE_DISPATCH= 'dispatch';
+    const MODE_HANDLING= 'handling';
+
+    public const STATUS_MODES = [
+        self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
+        self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
+        self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
+        self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
+        self::MODE_DISPATCH => CategorieStatut::DISPATCH,
+        self::MODE_HANDLING => CategorieStatut::HANDLING
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -136,6 +161,36 @@ class Statut {
     #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
     private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $automatic = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $automaticDispatchCreation = null;
+
+    #[ORM\ManyToOne(targetEntity: Type::class)]
+    private ?Type $automaticDispatchCreationType = null;
+
+    #[ORM\ManyToMany(targetEntity: Role::class)]
+    #[ORM\JoinTable(name: "status_accessible_by")]
+    #[ORM\JoinColumn(name: "status_id", referencedColumnName: "id")]
+    #[ORM\InverseJoinColumn(name: "role_id", referencedColumnName: "id")]
+    private Collection $accessibleBy;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $automaticStatusMovementType = null;
+
+    #[ORM\OneToMany(mappedBy: "automaticDepositStatus", targetEntity: Emplacement::class)]
+    private Collection $automaticStatusLocations;
+
+    #[ORM\ManyToMany(targetEntity: Nature::class)]
+    #[ORM\JoinTable(name: "status_excluded_nature")]
+    #[ORM\JoinColumn(name: "status_id", referencedColumnName: "id")]
+    #[ORM\InverseJoinColumn(name: "nature_id", referencedColumnName: "id")]
+    private Collection $automaticStatusExcludedNatures;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $automaticAllPacksOnDepositLocation = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -150,9 +205,11 @@ class Statut {
         $this->arrivages = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
-
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
+        $this->accessibleBy = new ArrayCollection();
+        $this->automaticStatusLocations = new ArrayCollection();
+        $this->automaticStatusExcludedNatures = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -836,6 +893,158 @@ class Statut {
     public function setGroupedSignatureColor(?string $groupedSignatureColor): self
     {
         $this->groupedSignatureColor = $groupedSignatureColor;
+
+        return $this;
+    }
+
+    public function isAutomatic(): ?bool {
+        return $this->automatic;
+    }
+
+    public function setAutomatic(?bool $automatic): self {
+        $this->automatic = $automatic;
+        return $this;
+    }
+
+    public function isAutomaticDispatchCreation(): ?bool {
+        return $this->automaticDispatchCreation;
+    }
+
+    public function setAutomaticDispatchCreation(?bool $automatic): self {
+        $this->automaticDispatchCreation = $automatic;
+        return $this;
+    }
+
+    public function getAccessibleBy(): Collection
+    {
+        return $this->accessibleBy;
+    }
+
+    public function addAccessibleBy(Role $role): self
+    {
+        if (!$this->accessibleBy->contains($role)) {
+            $this->accessibleBy->add($role);
+        }
+
+        return $this;
+    }
+
+    public function removeAccessibleBy(Role $role): self
+    {
+        $this->accessibleBy->removeElement($role);
+
+        return $this;
+    }
+
+    public function setAccessibleBy(?iterable $roles): self {
+        foreach($this->getAccessibleBy()->toArray() as $role){
+            $this->removeAccessibleBy($role);
+        }
+
+        $this->accessibleBy = new ArrayCollection();
+        foreach ($roles ?? [] as $role) {
+            $this->addAccessibleBy($role);
+        }
+
+        return $this;
+    }
+
+    public function getAutomaticDispatchCreationType(): ?Type {
+        return $this->automaticDispatchCreationType;
+    }
+
+    public function setAutomaticDispatchCreationType(?Type $type): self {
+        $this->automaticDispatchCreationType = $type;
+        return $this;
+    }
+
+    public function getAutomaticStatusMovementType(): ?int
+    {
+        return $this->automaticStatusMovementType;
+    }
+
+    public function setAutomaticStatusMovementType(?int $automaticStatusMovementType): self
+    {
+        $this->automaticStatusMovementType = $automaticStatusMovementType;
+
+        return $this;
+    }
+
+    public function getAutomaticStatusLocations(): Collection
+    {
+        return $this->automaticStatusLocations;
+    }
+
+    public function setAutomaticStatusLocations(?array $locations): self {
+        foreach($this->getAutomaticStatusLocations()->toArray() as $location) {
+            $this->removeAutomaticStatusLocation($location);
+        }
+
+        $this->automaticStatusLocations = new ArrayCollection();
+        foreach($locations as $location) {
+            $this->addAutomaticStatusLocation($location);
+        }
+
+        return $this;
+    }
+
+    public function addAutomaticStatusLocation(Emplacement $automaticStatusLocation): self
+    {
+        if (!$this->automaticStatusLocations->contains($automaticStatusLocation)) {
+            $this->automaticStatusLocations[] = $automaticStatusLocation;
+            $automaticStatusLocation->setAutomaticDepositStatus($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAutomaticStatusLocation(Emplacement $automaticStatusLocation): self
+    {
+        if ($this->automaticStatusLocations->removeElement($automaticStatusLocation)) {
+            // set the owning side to null (unless already changed)
+            if ($automaticStatusLocation->getAutomaticDepositStatus() === $this) {
+                $automaticStatusLocation->setAutomaticDepositStatus(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAutomaticStatusExcludedNatures(): Collection
+    {
+        return $this->automaticStatusExcludedNatures;
+    }
+
+    public function setAutomaticStatusExcludedNatures(?array $natures): self {
+        $this->automaticStatusExcludedNatures = new ArrayCollection($natures);
+        return $this;
+    }
+
+
+    public function addAutomaticStatusExcludedNature(Nature $automaticStatusExcludedNature): self
+    {
+        if (!$this->automaticStatusExcludedNatures->contains($automaticStatusExcludedNature)) {
+            $this->automaticStatusExcludedNatures[] = $automaticStatusExcludedNature;
+        }
+
+        return $this;
+    }
+
+    public function removeAutomaticStatusExcludedNature(Nature $automaticStatusExcludedNature): self
+    {
+        $this->automaticStatusExcludedNatures->removeElement($automaticStatusExcludedNature);
+
+        return $this;
+    }
+
+    public function isAutomaticAllPacksOnDepositLocation(): ?bool {
+        return $this->automaticAllPacksOnDepositLocation;
+    }
+
+
+    public function setAutomaticAllPacksOnDepositLocation(?bool $automaticAllPacksOnDepositLocation): self
+    {
+        $this->automaticAllPacksOnDepositLocation = $automaticAllPacksOnDepositLocation;
 
         return $this;
     }

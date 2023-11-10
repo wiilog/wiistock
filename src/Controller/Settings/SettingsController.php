@@ -1234,7 +1234,7 @@ class SettingsController extends AbstractController {
                         'category' => CategoryType::DEMANDE_COLLECTE,
                     ],
                     self::MENU_PURCHASE_STATUSES => fn() => [
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PURCHASE_REQUEST),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_PURCHASE_REQUEST),
                     ],
                     self::MENU_SHIPPING => function() use ($settingRepository, $roleRepository) {
                         $toTreatRoleIds = $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES)
@@ -1278,7 +1278,7 @@ class SettingsController extends AbstractController {
                         "receptionStatuses" => $statusRepository->findByCategorieName(CategorieStatut::RECEPTION, 'displayOrder'),
                     ],
                     self::MENU_DISPUTE_STATUSES => fn() => [
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_RECEPTION_DISPUTE),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_RECEPTION_DISPUTE),
                     ],
                     self::MENU_FREE_FIELDS => fn() => [
                         "type" => $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION),
@@ -1418,7 +1418,7 @@ class SettingsController extends AbstractController {
                         return [
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_DISPATCH,
-                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_DISPATCH),
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_DISPATCH),
                             'groupedSignatureTypes' => $this->dispatchService->getGroupedSignatureTypes(),
                         ];
                     },
@@ -1446,7 +1446,7 @@ class SettingsController extends AbstractController {
                         'category' => CategoryType::ARRIVAGE,
                     ],
                     self::MENU_DISPUTE_STATUSES => fn() => [
-                        'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL_DISPUTE),
+                        'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_ARRIVAL_DISPUTE),
                     ],
                     self::MENU_STATUSES => function() {
                         $types = $this->typeGenerator(CategoryType::ARRIVAGE, false);
@@ -1455,7 +1455,7 @@ class SettingsController extends AbstractController {
                         return [
                             'types' => $types,
                             'categoryType' => CategoryType::ARRIVAGE,
-                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_ARRIVAL),
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_ARRIVAL),
                         ];
                     },
                 ],
@@ -1513,7 +1513,7 @@ class SettingsController extends AbstractController {
                         return [
                             'types' => $types,
                             'categoryType' => CategoryType::DEMANDE_HANDLING,
-                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_HANDLING),
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(Statut::MODE_HANDLING),
                         ];
                     },
                 ],
