@@ -1,20 +1,20 @@
 @import "variables";
 
 .score-low {
-    &.ql-snow, & > span > .select2-selection {
-        background-color: $lightest-danger;
+    &, &.ql-snow {
+        background-color: $lightest-danger!important;
     }
 }
 
 .score-medium {
-    &.ql-snow, & > span > .select2-selection {
-        background-color: $lightest-warning;
+   &, &.ql-snow{
+        background-color: $lightest-warning!important;
     }
 }
 
 
 .score-high {
-    &.ql-snow, & > span > .select2-selection {
-        background-color: $lightest-success;
+    &, &.ql-snow {
+        background-color: $lightest-success!important;
     }
 }

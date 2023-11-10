@@ -501,14 +501,17 @@ function scanDeliveryNoteFile($input) {
                 $select.trigger('change');
 
                 if (score) {
-                    $labelScore = $select.parent().find(".wii-small-text");
+                    let $labelScore = $select.parent().find(".wii-small-text");
                     $labelScore.html(score * 100 + '%');
+                    let $coloredLabel = $select.next().hasClass('ql-toolbar')
+                        ? $select.next()
+                        : $select.next().find('.select2-selection');
                     if (score > 0.90 ) {
-                        $select.next().addClass('score-high');
+                        $coloredLabel.addClass('score-high');
                     } else if (score <= 0.90 && score > 0.60) {
-                        $select.next().addClass('score-medium');
+                        $coloredLabel.addClass('score-medium');
                     } else if (score >= 0 && score <= 0.60) {
-                        $select.next().addClass('score-low');
+                        $coloredLabel.addClass('score-low');
                     }
                 }
             }
