@@ -13,6 +13,7 @@ use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
@@ -74,7 +75,7 @@ class DispatchController extends AbstractController {
                           DispatchService           $service): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
@@ -99,8 +100,6 @@ class DispatchController extends AbstractController {
         $currentUser = $this->getUser();
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
-
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
@@ -108,14 +107,13 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $this->getFormatter()->type($type)
                 ])
                 ->toArray(),
-            'fieldsParam' => $fieldsParam,
             'fields' => $fields,
             'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
             'statusFilter' => $statusesFilter,
@@ -278,10 +276,8 @@ class DispatchController extends AbstractController {
             }
         }
 
-        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true);
-
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
-
+        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true, $type);
         $locationTake = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)
             ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
             : $type->getPickLocation();
@@ -455,12 +451,10 @@ class DispatchController extends AbstractController {
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $printBL = $request->query->getBoolean('printBL');
 
         $dispatchStatus = $dispatch->getStatut();
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
         $dispatchReferenceArticleAttachments = [];
@@ -495,7 +489,6 @@ class DispatchController extends AbstractController {
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
-            'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
             "attachments" => $attachments,
@@ -597,10 +590,8 @@ class DispatchController extends AbstractController {
 
         $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
 
-        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false);
-
         $type = $dispatch->getType();
-
+        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
 
         $requesterData = $post->get(FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH);
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
@@ -743,13 +734,19 @@ class DispatchController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
-
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
 
         $dispatch = $dispatchRepository->find($request->query->get('id'));
         $dispatchStatus = $dispatch->getStatut();
+        $dispatchType = $dispatch->getType();
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($dispatchType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($dispatchType),
+            ]])
+            ->toArray();
 
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
             || (
@@ -764,13 +761,13 @@ class DispatchController extends AbstractController {
             ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
             : [];
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $form = $this->renderView('dispatch/forms/form.html.twig', [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
             'statuses' => $statuses,
             'attachments' => $attachmentRepository->findBy(['dispatch' => $dispatch])

@@ -2,6 +2,8 @@
 
 {% block filters %}
     {% set fromDashboard = statusFilter is defined and statusFilter is not empty and typesFilter is defined and typesFilter is not empty %}
+    {% set onFilterfields = setting_value('DISPATCH_FIXED_FIEDS_ON_FILTERS')|split(',') %}
+
     <input name="fromDashboard" value="{{ fromDashboard }}" type="hidden"/>
     {% include 'filters/filter_item/filterDate.html.twig' with {
         disabled: fromDashboard ? 'disabled',
@@ -21,7 +23,7 @@
         disabled: fromDashboard ? 'disabled',
     } %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
             name: 'requesters',
             placeholder: trans('Demande', 'Général', 'Demandeurs', false),
@@ -29,19 +31,19 @@
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterCarrier.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterUser.html.twig' with {
             name: 'receivers',
             placeholder: trans('Demande', 'Général', 'Destinataire(s)', false),
@@ -49,20 +51,20 @@
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterCommandList.html.twig' with {
             disabled: fromDashboard ? 'disabled',
             title: trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterDestination.html.twig' with {
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'pickLocation',
             removeId: true,
@@ -70,7 +72,7 @@
         } %}
     {% endif %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
-    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+    {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterLocation.html.twig' with {
             name: 'dropLocation',
             removeId: true,

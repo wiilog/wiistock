@@ -4,7 +4,10 @@
 namespace App\Service;
 
 
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Type;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -25,10 +28,19 @@ class FixedFieldService
         return isset($config[$fieldName]) && isset($config[$fieldName][$action]) && $config[$fieldName][$action];
     }
 
-    public function filterHeaderConfig(array $config, string $entityCode) {
-        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
-
-        $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
+    public function filterHeaderConfig(array $config, string $entityCode, ?Type $type = null) {
+        if ($type) {
+            $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
+            $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+                ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                    FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($type),
+                    FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE => $field->isDisplayedCreate($type),
+                ]])
+                ->toArray();
+        } else {
+            $fixedFieldStandardRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+            $fieldsParam = $fixedFieldStandardRepository->getByEntity($entityCode);
+        }
 
         return array_filter($config, function ($fieldConfig) use ($fieldsParam) {
             return (
@@ -43,20 +55,37 @@ class FixedFieldService
                                    InputBag               $inputBag,
                                    string                 $entityCode,
                                    bool                   $isCreation,
-                                   ?ParameterBag          $ignoredFields = null ): InputBag {
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity($entityCode);
-
+                                   ?ParameterBag          $ignoredFields = null,
+                                   ?Type                  $type = null): InputBag {
         $displayAction = $isCreation ? 'displayedCreate' : 'displayedEdit';
         $requiredAction = $isCreation ? 'requiredCreate' : 'requiredEdit';
+        $actions = [$displayAction, $requiredAction];
+
         $ignoredFields = $ignoredFields ?? new ParameterBag();
+
+        $fixedFieldRepository = $entityManager->getRepository($type ? FixedFieldByType::class : FixedFieldStandard::class);
+        $params = $type ? [$type] : [];
+        $fieldsParam = Stream::from($fixedFieldRepository->findBy(["entityCode" => $entityCode]))
+            ->keymap(static fn(FixedField $field) => [
+                $field->getFieldCode(),
+                Stream::from($actions)
+                    ->keymap(static function (string $action) use ($field, $params): array {
+                        $method = "is" . ucfirst($action);
+                        return[
+                            $action,
+                            $field->$method(...$params),
+                        ];
+                    })
+                    ->toArray()
+            ])
+            ->toArray();
 
         Stream::from($fieldsParam)
             ->each(function ($params, $fieldName) use ($ignoredFields, $inputBag, $displayAction, $requiredAction) {
                 if (!$params[$displayAction]) {
                     $inputBag->remove($fieldName);
                 } else {
-                    if ($params[$requiredAction] && !$inputBag->has($fieldName)) {
+                    if ($params[$requiredAction] && ($inputBag->get($fieldName) === '' || $inputBag->get($fieldName) === null)) {
                         if (!$ignoredFields->getBoolean($fieldName)) {
                             throw new FormException("Une erreur est presente dans le formulaire ");
                         }
