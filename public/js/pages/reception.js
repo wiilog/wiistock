@@ -34,7 +34,7 @@ $(function () {
             $('#commandList').append(option).trigger('change');
         })
     }
-    else if ($arrivalFilter.val() !== '0') {
+    else if ($arrivalFilter.val() !== '') {
         const arrivalFilterValues = $arrivalFilter.val().split(',');
         arrivalFilterValues.forEach(function (filter) {
             let option = new Option(filter, filter, true, true);
