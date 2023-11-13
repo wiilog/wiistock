@@ -931,20 +931,4 @@ class ArrivageService {
             'acheteurs' => $acheteursUsernames ?? []
         ];
     }
-
-    public function getNbRefUrgentInArrival(Arrivage $arrival): int
-    {
-        $nbRefUrgentInArrival = 0;
-        /* @var Reception $reception */
-        foreach ($arrival->getReceptions() as $reception) {
-            dump($reception->getId());
-            /* @var ReceptionReferenceArticle $receptionReference */
-            foreach ($reception->getReceptionReferenceArticles() as $receptionReference) {
-                if ($receptionReference->getReferenceArticle()->getIsUrgent()) {
-                    $nbRefUrgentInArrival++;
-                }
-            }
-        }
-        return $nbRefUrgentInArrival;
-    }
 }

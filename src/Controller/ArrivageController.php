@@ -850,7 +850,7 @@ class ArrivageController extends AbstractController {
             'canBeDeleted' => $arrivageRepository->countUnsolvedDisputesByArrivage($arrivage) == 0,
             'fieldsParam' => $fieldsParam,
             'showDetails' => $arrivageDataService->createHeaderDetailsConfig($arrivage),
-            'nbRefUrgentInArrival' => $arrivageDataService->getNbRefUrgentInArrival($arrivage),
+            'nbRefUrgentInArrival' => $arrivageRepository->getNbRefUrgentInArrival($arrivage),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARRIVAGE),
             'defaultDisputeStatusId' => $defaultDisputeStatus[0] ?? null,
             "projects" => $projectRepository->findActive(),

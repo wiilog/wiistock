@@ -12,7 +12,7 @@
                onclick="listPacks($(this))">
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>{{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Impression') }}
             </a>
-            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.receptions is null %}
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.receptions is empty %}
                 <a href='{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}'
                    class="dropdown-item pointer d-flex align-items-center">
                     <span class="wii-icon wii-icon-reception-black wii-icon-15px-black mr-2"></span>{{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Réceptionner') }}
