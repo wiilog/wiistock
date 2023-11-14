@@ -1,12 +1,10 @@
 import AJAX, {POST} from "@app/ajax";
 import Modal from "@app/modal";
 import Select2 from "../../select2";
-import {warning} from "@symfony/webpack-encore/lib/logger";
 
 global.deleteTruckArrival = deleteTruckArrival;
 
 export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
-    console.log($warningMessage)
     $trackingNumberSelect.off('change.lengthCheck').on('change.lengthCheck', function () {
         Select2.initSelectMultipleWarning(
             $trackingNumberSelect,
