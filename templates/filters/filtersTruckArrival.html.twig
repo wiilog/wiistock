@@ -14,19 +14,19 @@
         placeholder: 'N° de tracking transporteur',
     } %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCarrier.html.twig' with {
             carriers : carriersForFilter
         } %}
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterDrivers.html.twig' %}
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterBasicString.html.twig' with {
             name: 'registrationNumber',
