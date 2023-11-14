@@ -275,7 +275,7 @@ class LocationGroupRepository extends EntityRepository
         return $res[0]['count'] ?? 0;
     }
 
-    public function getForSelect(?string $term) {
+    public function getForSelect(?string $term): array {
         return $this->createQueryBuilder("location_group")
             ->select("CONCAT('locationGroup:',location_group.id) AS id, location_group.label AS text")
             ->where("location_group.label LIKE :term")
@@ -285,4 +285,13 @@ class LocationGroupRepository extends EntityRepository
             ->getArrayResult();
     }
 
+    public function getWithGroupsForSelect($term): array {
+        return $this->createQueryBuilder('location_group')
+            ->select("CONCAT('locationGroup-', location_group.id) AS id")
+            ->addSelect('location_group.label AS text')
+            ->andWhere("location_group.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
 }

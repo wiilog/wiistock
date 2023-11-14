@@ -1,0 +1,23 @@
+{% import 'form.html.twig' as form %}
+
+{% set isPreFilled = isPreFilled ?? false %}
+<div class="col-auto minw-300px m-1 pr-0 select-filter">
+    {{ form.select(
+        name,
+        null,
+        false,
+        {
+            type: 'locationWithGroups',
+            placeholder: placeholder,
+            multiple: true,
+            items: isPreFilled ? locationsFilter|sort((a, b) => a.label <=> b.label)|map((location) => {
+                label: location.label,
+                value: location.id,
+                selected: true
+            } ) : [],
+            disabled: disabled is defined ? disabled : false,
+            inputClass : 'w-100 filter-select2'
+        }
+    ) }}
+</div>
+

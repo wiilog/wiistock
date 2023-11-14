@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
@@ -16,6 +18,7 @@ use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
@@ -847,6 +850,19 @@ class SelectController extends AbstractController {
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
         return $this->json([
             "results" => $lines,
+        ]);
+    }
+
+    #[Route('/select/locations-with-groups', name: 'ajax_select_locations_with_groups', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
+    public function locationsWithGroups(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithGroupsForSelect($request->query->get("term"));
+        $locations = $entityManager->getRepository(Emplacement::class)->getWithGroupsForSelect($request->query->get("term"));
+        $allLocations = array_merge($locations, $locationGroups);
+        usort($allLocations, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
+
+        return $this->json([
+            'results' => $allLocations
         ]);
     }
 }
