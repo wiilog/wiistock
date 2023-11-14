@@ -58,11 +58,16 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->andWhere("filter_user.id in (:value)")
                         ->setParameter('value', $value);
                     break;
-                case 'UL':
-                    $value = $filter['value'];
-                    $qb
-                        ->andWhere("receipt_association.packCode LIKE :value")
-                        ->setParameter('value', "%$value%");
+                case 'logisticUnits':
+                    $value = explode(',', $filter['value']);
+                    $orX = $qb->expr()->orX();
+
+                    foreach ($value as $index => $logisticUnitId) {
+                        $parameterName = 'value' . $index;
+                        $orX->add($qb->expr()->isMemberOf(":$parameterName", "receipt_association.logisticUnits"));
+                        $qb->setParameter($parameterName, $logisticUnitId);
+                    }
+                    $qb->andWhere($orX);
                     break;
                 case 'reception_string':
                     $qb
