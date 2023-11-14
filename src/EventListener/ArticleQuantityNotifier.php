@@ -2,48 +2,42 @@
 
 namespace App\EventListener;
 
-use App\Entity\Alert;
 use App\Entity\Article;
 use App\Entity\Setting;
-use App\Exceptions\FormException;
 use App\Service\AlertService;
 use App\Service\RefArticleDataService;
-use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\ORMException;
-use Exception;
+use JetBrains\PhpStorm\Deprecated;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
+#[Deprecated]
 class ArticleQuantityNotifier {
 
-    private $refArticleService;
-    private $alertService;
-    private $entityManager;
-    private $expiryDelay;
+    #[Required]
+    public RefArticleDataService $refArticleService;
 
-    private static $referenceArticlesToUpdate = [];
-    private static $referenceArticlesUpdating = false;
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(RefArticleDataService $refArticleDataService,
-                                AlertService $alertService,
-                                EntityManagerInterface $entityManager) {
-        $this->refArticleService = $refArticleDataService;
-        $this->alertService = $alertService;
-        $this->entityManager = $entityManager;
+    #[Required]
+    public AlertService $alertService;
 
-        $this->expiryDelay = $entityManager->getRepository(Setting::class)
-            ->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
-    }
+    private static array $referenceArticlesToUpdate = [];
 
-    /**
-     * @throws ORMException
-     */
+    private static bool $referenceArticlesUpdating = false;
+
+    public static bool $disableArticleUpdate = false;
+
+    #[Deprecated]
     public function postFlush(): void {
-        if (!self::$referenceArticlesUpdating) {
+        if (!self::$disableArticleUpdate && !self::$referenceArticlesUpdating) {
             self::$referenceArticlesUpdating = true;
 
             $cleanedEntityManager = $this->getEntityManager();
+            $expiryDelay = $this->entityManager->getRepository(Setting::class)
+                ->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
 
             $this->refArticleService->updateRefArticleQuantities(
                 $cleanedEntityManager,
@@ -57,8 +51,8 @@ class ArticleQuantityNotifier {
 
                 $this->refArticleService->treatAlert($cleanedEntityManager, $referenceArticle);
                 $articles = $item['articles'];
-                foreach ($articles as $articleId => $article) {
-                    $this->treatAlert($cleanedEntityManager, $article);
+                foreach ($articles as $article) {
+                    $this->alertService->treatArticleAlert($cleanedEntityManager, $article, $expiryDelay);
                 }
                 $cleanedEntityManager->flush();
             }
@@ -68,34 +62,22 @@ class ArticleQuantityNotifier {
         }
     }
 
-    /**
-     * @param Article $article
-     * @throws Exception
-     */
+    #[Deprecated]
     public function postUpdate(Article $article) {
         $this->saveArticle($article);
     }
 
-    /**
-     * @param Article $article
-     * @throws Exception
-     */
+    #[Deprecated]
     public function postPersist(Article $article) {
         $this->saveArticle($article);
     }
 
-    /**
-     * @param Article $article
-     * @throws Exception
-     */
+    #[Deprecated]
     public function postRemove(Article $article) {
         $this->saveArticle($article);
     }
 
-    /**
-     * @param Article $article
-     * @throws ORMException
-     */
+    #[Deprecated]
     private function saveArticle(Article $article) {
         $cleanedEntityManager = $this->getEntityManager(true);
         $cleanedEntityManager->clear();
@@ -115,54 +97,10 @@ class ArticleQuantityNotifier {
         }
     }
 
-    /**
-     * @param bool $cleaned
-     * @return EntityManagerInterface
-     * @throws ORMException
-     */
+    #[Deprecated]
     private function getEntityManager(bool $cleaned = false): EntityManagerInterface {
         return $this->entityManager->isOpen() && !$cleaned
             ? $this->entityManager
             : new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-    }
-
-    private function treatAlert(EntityManagerInterface $entityManager,
-                                Article $article)
-    {
-        if (is_numeric($this->expiryDelay) && $article->getExpiryDate()) {
-            $now = new DateTime("now");
-            $expires = clone $now;
-            $expires->modify("{$this->expiryDelay} day");
-
-            $existing = $entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
-
-            //more than one expiry alert is an invalid state, so remove them to reset
-            if (count($existing) > 1) {
-                foreach ($existing as $alert) {
-                    $entityManager->remove($alert);
-                }
-
-                $existing = null;
-            }
-
-            if ($expires >= $article->getExpiryDate() && !$existing) {
-                $alert = new Alert();
-                $alert->setArticle($article);
-                $alert->setType(Alert::EXPIRY);
-                $alert->setDate($now);
-
-                $entityManager->persist($alert);
-
-                if ($article->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                    $managers = $article->getArticleFournisseur()
-                        ->getReferenceArticle()
-                        ->getManagers()
-                        ->toArray();
-                    $this->alertService->sendExpiryMails($managers, $article, $this->expiryDelay);
-                }
-            } else if ($now < $article->getExpiryDate() && $existing) {
-                $entityManager->remove($existing[0]);
-            }
-        }
     }
 }

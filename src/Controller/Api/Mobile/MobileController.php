@@ -53,6 +53,7 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TrackingMovementRepository;
+use App\Service\AlertService;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
@@ -75,6 +76,7 @@ use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
+use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -2705,7 +2707,6 @@ class MobileController extends AbstractApiController
                                   EntityManagerInterface $entityManager,
                                   InventoryService       $inventoryService,
                                   MailerService          $mailerService,
-                                  MouvementStockService  $stockMovementService,
                                   FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
@@ -2792,44 +2793,12 @@ class MobileController extends AbstractApiController
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
-        // change article states
-        /** @var Article $article */
-        foreach ($articlesOnLocations as $article) {
-            if (in_array($article->getRFIDtag(), $tags)) {
-                $presentArticle = $article;
-                if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
-                    $location = $presentArticle->getEmplacement();
-                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
-                        'date' => $now,
-                        'locationTo' => $location,
-                    ]);
-
-                    $entityManager->persist($correctionMovement);
-                }
-                $presentArticle
-                    ->setFirstUnavailableDate(null)
-                    ->setLastAvailableDate($now)
-                    ->setStatut($activeStatus)
-                    ->setDateLastInventory($now);
-            }
-            else {
-                $missingArticle = $article;
-                if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                    $location = $missingArticle->getEmplacement();
-                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
-                        'date' => $now,
-                        'locationTo' => $location,
-                    ]);
-
-                    $entityManager->persist($correctionMovement);
-                    $missingArticle
-                        ->setFirstUnavailableDate($now);
-                }
-                $missingArticle
-                    ->setStatut($inactiveStatus)
-                    ->setDateLastInventory($now);
-            }
-        }
+        $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, [
+            "activeStatus" => $activeStatus,
+            "inactiveStatus" => $inactiveStatus,
+            "validator" => $validator,
+            "date" => $now,
+        ]);
 
         $mission
             ->setValidatedAt($now)
@@ -2847,6 +2816,7 @@ class MobileController extends AbstractApiController
                 $mission->getRequester()
             );
         }
+
         return $this->json([
             "success" => true,
         ]);
