@@ -177,19 +177,16 @@ class ReceiptAssociationRepository extends EntityRepository
 
         $queryBuilder = $this->createQueryBuilder('receipt_association')
             ->select('receipt_association.id AS id')
-            ->addSelect("DATE_FORMAT(receipt_association.creationDate, '$dateFormat') AS receptionAssociationCreationDate")
-            ->addSelect('receipt_association.receptionNumber AS receptionAssociationNumber')
-            ->addSelect('user.username AS receptionAssociationUser')
-            ->addSelect('logisticUnits.code AS receptionAssociationLogisticUnit')
-
-            ->addSelect("DATE_FORMAT(lastTracking.datetime, '$dateFormat') AS receptionAssociationLastMovementDate")
-            ->addSelect('emplacement.label AS receptionAssociationLastLocation')
-
-            ->leftJoin('receipt_association.user', 'user')
-            ->leftJoin('receipt_association.logisticUnits', 'logisticUnits')
-            ->leftJoin('logisticUnits.lastTracking', 'lastTracking')
-            ->leftJoin('lastTracking.emplacement', 'emplacement')
-
+            ->addSelect("DATE_FORMAT(receipt_association.creationDate, '$dateFormat') AS creationDate")
+            ->addSelect('receipt_association.receptionNumber AS receptionNumber')
+            ->addSelect('join_user.username AS user')
+            ->addSelect('join_logisticUnits.code AS logisticUnit')
+            ->addSelect("DATE_FORMAT(join_lastTracking.datetime, '$dateFormat') AS lastTrackingDate")
+            ->addSelect('join_location.label AS lastTrackingLocation')
+            ->leftJoin('receipt_association.user', 'join_user')
+            ->leftJoin('receipt_association.logisticUnits', 'join_logisticUnits')
+            ->leftJoin('logisticUnits.lastTracking', 'join_lastTracking')
+            ->leftJoin('lastTracking.emplacement', 'join_location')
             ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
 
         return $queryBuilder

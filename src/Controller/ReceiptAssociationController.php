@@ -182,6 +182,7 @@ class ReceiptAssociationController extends AbstractController
 
         if (!empty($dateTimeMin) && !empty($dateTimeMax)) {
             $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
+            $user = $this->getUser();
 
             $headers = [
                 $translationService->translate('Traçabilité', 'Général', 'Date',false),
@@ -192,8 +193,8 @@ class ReceiptAssociationController extends AbstractController
                 $translationService->translate('Traçabilité', 'Général', 'Dernier emplacement',false),
             ];
 
-            return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax,$receiptAssociationService) {
-                $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->getByDates($dateTimeMin, $dateTimeMax);
+            return $csvService->streamResponse(function ($output) use ($manager, $csvService, $dateTimeMin, $dateTimeMax,$receiptAssociationService, $user) {
+                $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->getByDates($dateTimeMin, $dateTimeMax, $user->getDateFormat());
                 foreach ($receiptAssociations as $receiptAssociation) {
                     $receiptAssociationService->receiptAssociationPutLine($output, $receiptAssociation);
                 }
