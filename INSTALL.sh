@@ -28,22 +28,19 @@ then
 
     echo ">>>> Création du répertoire";
     cp -r . "$follow_nexter_home"
+    cp "$follow_nexter_home/.env" "$follow_nexter_home/.env.local"
 
     ## now loop through the above array
     for env_variable_name in "${env_variables[@]}"
     do
         echo "Entrez la valeur de $env_variable_name:"
         read env_variable_value
-        sed -i "s|$env_variable_name=.*|$env_variable_name=$env_variable_value|g" "$follow_nexter_home/.env"
+        sed -i "s|$env_variable_name=.*|$env_variable_name=$env_variable_value|g" "$follow_nexter_home/.env.LOCAL"
     done
 fi
 
 
 cd "$follow_nexter_home" || exit
-
-if [ ! -f "$follow_nexter_home/.env.local" ]; then
-    cp "$follow_nexter_home/.env" "$follow_nexter_home/.env.local"
-fi
 
 echo ">>>> Création des fichiers générés"
 if [ ! -f "$follow_nexter_home/config/generated.yaml" ]; then
