@@ -2052,7 +2052,7 @@ class DispatchService {
             $form,
             FixedFieldStandard::ENTITY_CODE_DISPATCH,
             $isCreation,
-            New ParameterBag([
+            new ParameterBag([
                 FixedFieldStandard::FIELD_CODE_EMERGENCY => true,
             ]),
             $type,

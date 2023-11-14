@@ -17,7 +17,7 @@ use WiiCommon\Helper\Stream;
  */
 class FixedFieldByTypeRepository extends EntityRepository {
     function getByEntity(string $entity, ?array $attributes = null): array {
-        $delimiter = ',';
+        $delimiter = ' ';
         $attributes = $attributes ?: FixedFieldByType::ATTRIBUTES;
 
         $subQuery = function (string $field) use ($delimiter, $entity): string {

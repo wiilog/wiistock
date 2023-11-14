@@ -9,7 +9,7 @@
         {% else %}
             data-{{ ParamName }}-type
         {% endif %}
-        =",{{ types }},"
+        ="{{ types }}"
     {% endfor %}
 {% endmacro %}
 
@@ -87,7 +87,7 @@
         </div>
     </div>
 </div>
-<div class="row mt-2 fixed-field-container">
+<div class="row mt-2">
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
@@ -96,7 +96,7 @@
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requester = dispatch.requester ?? app.user %}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Demandeur', false), requiredOnform, {
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Demandeur'), requiredOnform, {
                 type: 'user',
                 inputClass: 'no-clear',
                 items: [{
@@ -174,7 +174,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set dispatchEmergency = dispatch.emergency %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence', false), false, {
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), false, {
                 items: emergencies|map(item => ({
                     value: item,
                     label: item,
@@ -196,7 +196,7 @@
                 {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
                 class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
                 {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-                {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur', false), requiredOnform, {
+                {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur'), requiredOnform, {
                     type: 'carrier',
                     items: dispatch.carrier ? [{
                         value: dispatch.carrier.id,
@@ -226,7 +226,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Destinataire(s)', false), requiredOnform, {
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Destinataire(s)'), requiredOnform, {
                 type: 'user',
                 multiple: true,
                 items: dispatch.receivers|map((item) => {
@@ -272,7 +272,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit', false), requiredOnform, {
+            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit'), requiredOnform, {
                 inputClass: "needs-default",
                 items: dispatchBusinessUnits|map((businessUnit) => {
                     value: businessUnit,
@@ -317,7 +317,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-8 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.inlineInputs(fieldCode, trans('Demande', 'Acheminements', 'Modale', 'Echéance', false), requiredOnform,{
+            {{ form.inlineInputs(fieldCode, trans('Demande', 'Acheminements', 'Modale', 'Echéance'), requiredOnform,{
                 content: [
                     {
                         label: 'Du',
@@ -357,7 +357,7 @@
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set dispatchBusinessUnit = dispatch.businessUnit %}
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Client', false), requiredOnform, {
+            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Client'), requiredOnform, {
                 type: 'customers',
                 items: [{
                     label: dispatch.customerName,

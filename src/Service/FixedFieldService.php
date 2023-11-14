@@ -64,16 +64,16 @@ class FixedFieldService
         $ignoredFields = $ignoredFields ?? new ParameterBag();
 
         $fixedFieldRepository = $entityManager->getRepository($type ? FixedFieldByType::class : FixedFieldStandard::class);
-        $params = $type ? [$type] : [];
+        $accessorParams = $type ? [$type] : [];
         $fieldsParam = Stream::from($fixedFieldRepository->findBy(["entityCode" => $entityCode]))
             ->keymap(static fn(FixedField $field) => [
                 $field->getFieldCode(),
                 Stream::from($actions)
-                    ->keymap(static function (string $action) use ($field, $params): array {
+                    ->keymap(static function (string $action) use ($field, $accessorParams): array {
                         $method = "is" . ucfirst($action);
                         return[
                             $action,
-                            $field->$method(...$params),
+                            $field->$method(...$accessorParams),
                         ];
                     })
                     ->toArray()
