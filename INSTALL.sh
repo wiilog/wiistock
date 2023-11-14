@@ -35,7 +35,7 @@ then
     do
         echo "Entrez la valeur de $env_variable_name:"
         read env_variable_value
-        sed -i "s|$env_variable_name=.*|$env_variable_name=$env_variable_value|g" "$follow_nexter_home/.env.LOCAL"
+        sed -i "s|$env_variable_name=.*|$env_variable_name=$env_variable_value|g" "$follow_nexter_home/.env.local"
     done
 fi
 
