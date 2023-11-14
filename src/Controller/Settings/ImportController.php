@@ -40,8 +40,7 @@ class ImportController extends AbstractController
     public function new(Request                $request,
                         AttachmentService      $attachmentService,
                         EntityManagerInterface $entityManager,
-                        ImportService          $importService,
-                        FTPService             $FTPService): Response
+                        ImportService          $importService): Response
     {
         $post = $request->request;
 
@@ -63,24 +62,11 @@ class ImportController extends AbstractController
             $importService->updateScheduleRules($rule, $request->request);
             $import->setScheduleRule($rule);
 
-            $FTPConfig = [
-                "host" => $post->get("host"),
-                "port" => $post->get("port"),
-                "user" => $post->get("user"),
-                "pass" => $post->get("pass"),
-            ];
-
-            $connect = $FTPService->try($FTPConfig);
-            if(!is_bool($connect)) {
-                throw new FormException($connect->getMessage());
-            }
-
             $nextExecutionDate = $importService->calculateNextExecutionDate($import);
             $import
                 ->setScheduleRule($rule)
                 ->setNextExecutionDate($nextExecutionDate)
-                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT))
-                ->setFTPConfig($FTPConfig);
+                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT));
         } else {
             $import->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT));
         }
@@ -252,7 +238,7 @@ class ImportController extends AbstractController
             'html' => $this->renderView('settings/donnees/import/content.html.twig', [
                 'import' => $import ?? new Import(),
                 'isScheduledImport' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT,
-                'isUniqueImport' => $typeLabel === Type::LABEL_UNIQUE_IMPORT
+                'isUniqueImport' => $typeLabel === Type::LABEL_UNIQUE_IMPORT,
             ])
         ]);
     }

@@ -48,7 +48,6 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
-use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -267,9 +266,6 @@ class ImportService
     #[Required]
     public CacheService $cacheService;
 
-    #[Required]
-    public FTPService $FTPService;
-
     private EmplacementDataService $emplacementDataService;
 
     private Import $currentImport;
@@ -345,9 +341,6 @@ class ImportService
 
         return [
             'id' => $import->getId(),
-            'unableToConnect' => ($import->getFTPConfig()['unableToConnect'] ?? false)
-                ? '<img src="/svg/urgence.svg" alt="Erreur" width="15px" title="Une erreur est survenue lors de la dernière tentative de connexion au serveur FTP. Veuillez vérifier vos paramétres de connexion.">'
-                : "",
             'createdAt' => $this->formatService->datetime($import->getCreateAt()),
             'startDate' => $this->formatService->datetime($import->getStartDate()),
             'endDate' => $this->formatService->datetime($import->getEndDate()),
@@ -396,23 +389,7 @@ class ImportService
         $logFileMapper = $this->getLogFileMapper();
 
         if ($import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
-            $absoluteFilePath = $import->getScheduleRule()->getFilePath();
-
-            $name = uniqid() . ".csv";
-            $path = "/tmp/$name";
-            $FTPConfig = $import->getFTPConfig();
-
-            if(!is_bool($this->FTPService->try($FTPConfig))) {
-                throw new UnableToConnectException();
-            }
-
-            $data = $this->FTPService->get([
-                'host' => $FTPConfig['host'],
-                'port' => $FTPConfig['port'],
-                'user' => $FTPConfig['user'],
-                'pass' => $FTPConfig['pass'],
-            ], $absoluteFilePath);
-            file_put_contents($path, $data);
+            $path = $import->getScheduleRule()->getFilePath();
         } else {
             $path = $this->attachmentService->getServerPath($csvFile);
         }
