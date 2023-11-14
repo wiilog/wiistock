@@ -128,6 +128,10 @@ class Pack implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'pack', targetEntity: ReceptionLine::class)]
     private Collection $receptionLines;
 
+    #[ORM\ManyToOne(targetEntity: Dispatch::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
+    private ?Dispatch $creatingDispatch = null;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -820,6 +824,18 @@ class Pack implements PairedEntity {
         foreach($receptionLines ?? [] as $receptionLine) {
             $this->addReceptionLine($receptionLine);
         }
+
+        return $this;
+    }
+
+    public function getCreatingDispatch(): ?Dispatch
+    {
+        return $this->creatingDispatch;
+    }
+
+    public function setCreatingDispatch(?Dispatch $creatingDispatch): self
+    {
+        $this->creatingDispatch = $creatingDispatch;
 
         return $this;
     }
