@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Language;
 use App\Entity\ReceiptAssociation;
 use App\Helper\QueryBuilderHelper;
 use DateTime;
@@ -32,11 +33,22 @@ class ReceiptAssociationRepository extends EntityRepository
         return $query->execute();
     }
 
-    public function findByParamsAndFilters(InputBag $params, $filters)
+    public function findByParamsAndFilters(InputBag $params, array $filters): array
     {
-        $qb = $this->createQueryBuilder("receipt_association");
+        $qb = $this->createQueryBuilder("receipt_association")
+            ->select("receipt_association.id AS id")
+            ->addSelect("receipt_association.creationDate AS creationDate")
+            ->addSelect("join_logisticUnits.code AS logisticUnit")
+            ->addSelect("join_logisticUnitLastTracking.datetime AS lastTrackingDate")
+            ->addSelect("join_logisticUnitLastTrackingLocation.label AS lastTrackingLocation")
+            ->addSelect("receipt_association.receptionNumber AS receptionNumber")
+            ->addSelect("join_user.username AS user")
+            ->leftJoin("receipt_association.logisticUnits", "join_logisticUnits")
+            ->leftJoin("join_logisticUnits.lastTracking", "join_logisticUnitLastTracking")
+            ->leftJoin("join_logisticUnitLastTracking.emplacement", "join_logisticUnitLastTrackingLocation")
+            ->leftJoin("receipt_association.user", "join_user");
 
-        $countTotal = QueryBuilderHelper::count($qb, 'receipt_association');
+        $countTotal = QueryBuilderHelper::count($qb, 'receipt_association', false);
 
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -47,11 +59,16 @@ class ReceiptAssociationRepository extends EntityRepository
                         ->andWhere("filter_user.id in (:value)")
                         ->setParameter('value', $value);
                     break;
-                case 'UL':
-                    $value = $filter['value'];
-                    $qb
-                        ->andWhere("receipt_association.packCode LIKE :value")
-                        ->setParameter('value', "%$value%");
+                case 'logisticUnits':
+                    $value = explode(',', $filter['value']);
+                    $orX = $qb->expr()->orX();
+
+                    foreach ($value as $index => $logisticUnitId) {
+                        $parameterName = 'value' . $index;
+                        $orX->add($qb->expr()->isMemberOf(":$parameterName", "receipt_association.logisticUnits"));
+                        $qb->setParameter($parameterName, $logisticUnitId);
+                    }
+                    $qb->andWhere($orX);
                     break;
                 case 'reception_string':
                     $qb
@@ -123,15 +140,18 @@ class ReceiptAssociationRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association');
+        $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association', false);
 
-        if ($params->getInt('start')) $qb->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $qb->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $qb->setFirstResult($params->getInt('start'));
+        }
 
-        $query = $qb->getQuery();
+        if ($params->getInt('length')) {
+            $qb->setMaxResults($params->getInt('length'));
+        }
 
         return [
-            'data' => $query ? $query->getResult() : null ,
+            'data' => $qb->getQuery()->getResult(),
             'count' => $countFiltered,
             'total' => $countTotal
         ];
@@ -147,5 +167,34 @@ class ReceiptAssociationRepository extends EntityRepository
             ->setParameter('end', $end)
             ->getQuery()
             ->toIterable();
+    }
+
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array
+    {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
+
+        $queryBuilder = $this->createQueryBuilder('receipt_association')
+            ->select('receipt_association.id AS id')
+            ->addSelect("DATE_FORMAT(receipt_association.creationDate, '$dateFormat') AS creationDate")
+            ->addSelect('receipt_association.receptionNumber AS receptionNumber')
+            ->addSelect('join_user.username AS user')
+            ->addSelect('join_logisticUnits.code AS logisticUnit')
+            ->addSelect("DATE_FORMAT(join_lastTracking.datetime, '$dateFormat') AS lastTrackingDate")
+            ->addSelect('join_location.label AS lastTrackingLocation')
+            ->leftJoin('receipt_association.user', 'join_user')
+            ->leftJoin('receipt_association.logisticUnits', 'join_logisticUnits')
+            ->leftJoin('logisticUnits.lastTracking', 'join_lastTracking')
+            ->leftJoin('lastTracking.emplacement', 'join_location')
+            ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
+
+        return $queryBuilder
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
+            ->getQuery()
+            ->getResult();
     }
 }

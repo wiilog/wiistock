@@ -10,13 +10,13 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Chauffeur;
+use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Handling;
@@ -99,8 +99,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use WiiCommon\Helper\Stream;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 #[Rest\Route("/api")]
 class MobileController extends AbstractApiController
@@ -127,7 +127,7 @@ class MobileController extends AbstractApiController
 
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $globalParametersRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $mobileKey = $request->request->get('loginKey');
 
@@ -174,7 +174,7 @@ class MobileController extends AbstractApiController
 
                     $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
 
-                    $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE])
+                    $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE])
                         ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
                         ->toArray();
 
@@ -1638,7 +1638,7 @@ class MobileController extends AbstractApiController
             'expectedAt' => $delivery['expectedAt'] ?? $now->format('Y-m-d'),
             'project' => $delivery['project'] ?? null,
             'commentaire' => $delivery['comment'] ?? null,
-        ], $entityManager, $freeFieldService, true);
+        ], $entityManager, true);
 
         $entityManager->persist($request);
 
@@ -1669,7 +1669,6 @@ class MobileController extends AbstractApiController
                 'directDelivery' => true,
             ],
             false,
-            $freeFieldService,
             false,
             true
         );
@@ -1762,8 +1761,7 @@ class MobileController extends AbstractApiController
         $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
             $entityManager,
             $demandeArray,
-            true,
-            $champLibreService
+            true
         );
 
         $responseAfterQuantitiesCheck['nomadMessage'] = $responseAfterQuantitiesCheck['nomadMessage']
@@ -2212,7 +2210,7 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $projectRepository = $entityManager->getRepository(Project::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
@@ -2222,7 +2220,7 @@ class MobileController extends AbstractApiController
 
         $status = $statutRepository->getMobileStatus($rights['tracking'] || $rights['demande'], $rights['demande']);
 
-        $fieldsParam = Stream::from([FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL])
+        $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL])
             ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
             ->toArray();
 
@@ -2439,7 +2437,7 @@ class MobileController extends AbstractApiController
                 'dispatchPacks' => $dispatchPacks,
                 'dispatchReferences' => $dispatchReferences,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
-            $elements = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+            $elements = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
             $dispatchEmergencies = Stream::from($elements)
                 ->toArray();
 
@@ -3483,7 +3481,7 @@ class MobileController extends AbstractApiController
     #[Wii\RestVersionChecked]
     public function dispatchEmergencies(EntityManagerInterface $manager): Response
     {
-        $elements = $manager->getRepository(FieldsParam::class)->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY);
+        $elements = $manager->getRepository(FixedFieldStandard::class)->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
         $emergencies = Stream::from($elements)
             ->map(fn(string $element) => [
                 'id' => $element,

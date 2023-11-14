@@ -1,21 +1,21 @@
 {% import 'form.html.twig' as form %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVER_DEMANDE'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE'),
     field: receiver.field,
     elementsType: receiver.elementsType,
     elements: receiver.elements,
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_TYPE_DEMANDE'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE'),
     field: type.field,
     elementsType: type.elementsType,
     elements: type.elements,
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_DESTINATION_DEMANDE'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE'),
     field: locationByType.field,
     elementsType: locationByType.elementsType,
     elements: locationByType.elements,
@@ -32,7 +32,8 @@
 <div class="wii-section">
     <table id="table-demande-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
-            cells: 6
+            cells: 6,
+            needsFilterColumn: true,
         } %}
     </table>
 </div>
