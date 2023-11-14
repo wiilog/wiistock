@@ -483,18 +483,6 @@ class Reception {
             ->some(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getQuantite());
     }
 
-    public function getAttachments(): ArrayCollection
-    {
-        return $this->attachments;
-    }
-
-    public function setAttachments(ArrayCollection $attachments): self
-    {
-        $this->attachments = $attachments;
-
-        return $this;
-    }
-
     public function getArrivals(): Collection {
         return $this->arrivals;
     }

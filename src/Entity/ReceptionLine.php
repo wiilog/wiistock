@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ReceptionLineRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -14,13 +15,13 @@ class ReceptionLine {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'lines')]
     private ?Reception $reception = null;
 
-    #[ORM\ManyToOne(targetEntity: Pack::class)]
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'receptionLines')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Pack $pack = null;
 
@@ -54,7 +55,13 @@ class ReceptionLine {
     }
 
     public function setPack(?Pack $pack): self {
+        if($this->pack && $this->pack !== $pack){
+            $this->pack->removeReceptionLine($this);
+        }
+
         $this->pack = $pack;
+        $pack?->addReceptionLine($this);
+
         return $this;
     }
 

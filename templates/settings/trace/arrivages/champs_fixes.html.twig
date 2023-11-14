@@ -1,7 +1,7 @@
 {% import 'form.html.twig' as form %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT'),
     field: businessUnit.field,
     elementsType: businessUnit.elementsType,
     elements: businessUnit.elements,
@@ -17,7 +17,8 @@
     <table id="table-arrival-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
             creationColumns: 3,
-            cells: 7
+            cells: 7,
+            needsFilterColumn: true,
         } %}
     </table>
 </div>

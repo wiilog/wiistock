@@ -226,6 +226,7 @@ class RoundController extends AbstractController {
                         "id" => $location->getId(),
                         'start' => ($transportRound->getBeganAt() ?? $now)->format('Y-m-d\TH:i'),
                         'end' => $end->format('Y-m-d\TH:i'),
+                        'messageContentType' => IOTService::DATA_TYPE_TEMPERATURE,
                     ], UrlGeneratorInterface::ABSOLUTE_URL),
                     "minTemp" => $minThreshold ?? 0,
                     "maxTemp" => $maxThreshold ?? 0,
@@ -744,5 +745,23 @@ class RoundController extends AbstractController {
             $pdfService->generatePDFTransportRound($transportRound),
             "{$transportRound->getNumber()}-bon-transport.pdf"
         );
+    }
+
+    #[Route("/last-deliverer-position/{transportRound}", name: "transport_round_last_deliverer_position", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_TRANSPORT])]
+    public function getLastDelivererPosition(TransportRound         $transportRound,
+                                             EntityManagerInterface $entityManager): JsonResponse {
+        $delivererPosition = $transportRound?->getBeganAt()
+            ? $entityManager->getRepository(Vehicle::class)->findOneByDateLastMessageBetween(
+                $transportRound->getVehicle(),
+                $transportRound->getBeganAt(),
+                $transportRound->getEndedAt(),
+                Sensor::GPS)
+            : null;
+
+        return new JsonResponse([
+            "success" => true,
+            "position" => $delivererPosition["content"] ?? null,
+        ]);
     }
 }

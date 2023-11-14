@@ -11,6 +11,8 @@ use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Entity\Statut;
+use App\Entity\Type;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -529,5 +531,36 @@ class EmplacementRepository extends EntityRepository
             ->setParameter('zone', $zone)
             ->getQuery()
             ->getSingleScalarResult() > 0;
+    }
+
+    public function countWithoutAutoStatus(array $locations, Type $type, ?Statut $includedStatus = null): int {
+        if (!empty($locations)) {
+            $queryBuilder = $this->createQueryBuilder('location');
+            $exprBuilder = $queryBuilder->expr();
+
+            $queryBuilder->select('COUNT(location)');
+
+            $orX = [
+                'location.automaticDepositStatus IS NULL'
+            ];
+
+            if ($includedStatus && $includedStatus->getId()) {
+                $orX[] = 'location.automaticDepositStatus = :includedStatus';
+                $queryBuilder->setParameter('includedStatus', $includedStatus);
+            }
+
+            $orX[] = 'status_type != :statusType';
+            return $queryBuilder
+                ->leftJoin('location.automaticDepositStatus', 'automatic_deposit_status')
+                ->leftJoin('automatic_deposit_status.type', 'status_type')
+                ->andWhere('location IN (:locations)')
+                ->andWhere($exprBuilder->orX(...$orX))
+                ->setParameter('statusType', $type)
+                ->setParameter('locations', $locations)
+                ->getQuery()
+                ->getSingleScalarResult();
+        } else {
+            return 0;
+        }
     }
 }

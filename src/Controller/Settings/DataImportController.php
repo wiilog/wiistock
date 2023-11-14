@@ -2,16 +2,15 @@
 
 namespace App\Controller\Settings;
 
+use App\Controller\AbstractController;
 use App\Entity\CategorieStatut;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Import;
 use App\Entity\Statut;
-use App\Entity\StorageRule;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\ImportService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,7 +44,7 @@ class DataImportController extends AbstractController
         $post = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $importRepository = $entityManager->getRepository(Import::class);
 
         /** @var Utilisateur $loggedUser */
@@ -133,7 +132,7 @@ class DataImportController extends AbstractController
                             if ($fieldParamCode) {
                                 $fieldParam = $fieldsParamRepository->findOneBy([
                                     'fieldCode' => $fieldParamCode,
-                                    'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                                    'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                                 ]);
                                 if ($fieldParam && $fieldParam->isRequiredCreate()) {
                                     $fieldsNeeded[] = $field;
