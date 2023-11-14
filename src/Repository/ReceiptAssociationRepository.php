@@ -48,7 +48,7 @@ class ReceiptAssociationRepository extends EntityRepository
             ->leftJoin("join_logisticUnitLastTracking.emplacement", "join_logisticUnitLastTrackingLocation")
             ->leftJoin("receipt_association.user", "join_user");
 
-        $countTotal = QueryBuilderHelper::count($qb, 'receipt_association');
+        $countTotal = QueryBuilderHelper::count($qb, 'receipt_association', false);
 
         foreach ($filters as $filter) {
             switch($filter['field']) {
@@ -140,7 +140,7 @@ class ReceiptAssociationRepository extends EntityRepository
         }
 
         // compte éléments filtrés
-        $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association');
+        $countFiltered = QueryBuilderHelper::count($qb, 'receipt_association', false);
 
         if ($params->getInt('start')) {
             $qb->setFirstResult($params->getInt('start'));
