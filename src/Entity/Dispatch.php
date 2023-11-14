@@ -84,6 +84,14 @@ class Dispatch extends StatusHistoryContainer {
         'notes' => true,
     ];
 
+    const STATUS_STATES = [
+        Statut::DRAFT => ["name" => "Brouillon", "slug" => "draft"],
+        Statut::NOT_TREATED => ["name" => "A traiter", "slug" => "to-treat"],
+        Statut::IN_PROGRESS => ["name" => "En cours", "slug" => "in-progress"],
+        Statut::PARTIAL => ["name" => "Partiel", "slug" => "partial"],
+        Statut::TREATED => ["name" => "Traité", "slug" => "treated"],
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

@@ -3,9 +3,10 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
@@ -15,12 +16,11 @@ use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Menu;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
-use App\Service\FieldsParamService;
+use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,7 +33,7 @@ use WiiCommon\Helper\Stream;
 class RequestTemplateController extends AbstractController {
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public TranslationService $translation;
@@ -48,7 +48,7 @@ class RequestTemplateController extends AbstractController {
                                           ?RequestTemplate          $template): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $edit = $request->query->getBoolean("edit");
 
@@ -148,16 +148,16 @@ class RequestTemplateController extends AbstractController {
                 $comment = $template?->getComment();
                 $carriedOutOperations = $template?->getCarriedOutOperationCount();
                 $status = "";
-                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_HANDLING);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_HANDLING);
                 $action = $template ? 'requiredEdit' : 'requiredCreate';
-                $emergencyIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_EMERGENCY, $action);
-                $sourceIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_LOADING_ZONE, $action)
+                $emergencyIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_EMERGENCY, $action);
+                $sourceIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_LOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $destinationIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_UNLOADING_ZONE, $action)
+                $destinationIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE, $action)
                     ? 'required'
                     : '';
-                $carriedOutOperationsIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
+                $carriedOutOperationsIsNeeded = $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT, $action)
                     ? 'required'
                     : '';
                 if($template && $template->getRequestStatus()) {
@@ -196,7 +196,7 @@ class RequestTemplateController extends AbstractController {
                     "label" => "Urgence",
                     "value" => $this->renderView('settings/trace/services/handling_emergency_template.html.twig', [
                         'request_template' => $template,
-                        'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_HANDLING, FieldsParam::FIELD_CODE_EMERGENCY),
+                        'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY),
                         'required' => $emergencyIsNeeded
                     ]),
                 ];

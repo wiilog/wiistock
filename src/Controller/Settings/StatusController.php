@@ -5,11 +5,19 @@ namespace App\Controller\Settings;
 use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Emplacement;
+use App\Entity\Language;
 use App\Entity\Menu;
+use App\Entity\Nature;
+use App\Entity\Role;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\Translation;
+use App\Entity\TranslationSource;
 use App\Entity\Type;
+use App\Exceptions\FormException;
 use App\Service\DispatchService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
@@ -19,55 +27,35 @@ use App\Controller\AbstractController;
 use Symfony\Component\HttpClient\Exception\InvalidArgumentException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-
-/**
- * @Route("/parametrage")
- */
+#[Route("/parametrage")]
 class StatusController extends AbstractController
 {
-    const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
-    const MODE_RECEPTION_DISPUTE = 'reception-dispute';
-    const MODE_PURCHASE_REQUEST = 'purchase-request';
-    const MODE_ARRIVAL = 'arrival';
-    const MODE_DISPATCH= 'dispatch';
-    const MODE_HANDLING= 'handling';
 
-    /**
-     * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
-     */
+    #[Route("/statuses-api", name: "settings_statuses_api", options: ["expose" => true])]
     public function statusesApi(Request                $request,
                                 UserService            $userService,
                                 StatusService          $statusService,
                                 DispatchService        $dispatchService,
                                 EntityManagerInterface $entityManager): JsonResponse {
         $edit = $request->query->getBoolean("edit");
-        $translate = $request->query->getBoolean("translate");
         $mode = $request->query->get("mode");
         $typeId = $request->query->get("type");
 
-        $availableMode = [
-            self::MODE_ARRIVAL_DISPUTE,
-            self::MODE_RECEPTION_DISPUTE,
-            self::MODE_PURCHASE_REQUEST,
-            self::MODE_ARRIVAL,
-            self::MODE_DISPATCH,
-            self::MODE_HANDLING
-        ];
-
-        if (!in_array($mode, $availableMode)) {
+        if (!in_array($mode, array_keys(Statut::STATUS_MODES))) {
             throw new InvalidArgumentException('Invalid mode');
         }
 
         $hasAccess = match($mode) {
-            self::MODE_ARRIVAL_DISPUTE, self::MODE_ARRIVAL => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_ARRI),
-            self::MODE_DISPATCH => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_DISPATCH),
-            self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_HAND),
-            self::MODE_RECEPTION_DISPUTE => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP),
-            self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_REQUESTS)
+            Statut::MODE_ARRIVAL_DISPUTE, Statut::MODE_ARRIVAL => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_ARRI),
+            Statut::MODE_DISPATCH => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_DISPATCH),
+            Statut::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_HAND),
+            Statut::MODE_RECEPTION_DISPUTE => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP),
+            Statut::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_REQUESTS)
         };
 
         if (!$hasAccess) {
@@ -81,17 +69,8 @@ class StatusController extends AbstractController
         $statusRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
 
-        $category = match ($mode) {
-            self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
-            self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
-            self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
-            self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
-            self::MODE_DISPATCH => CategorieStatut::DISPATCH,
-            self::MODE_HANDLING => CategorieStatut::HANDLING
-        };
-
         $type = $typeId ? $typeRepository->find($typeId) : null;
-        $statuses = $statusRepository->findStatusByType($category, $type);
+        $statuses = $statusRepository->findStatusByType(Statut::STATUS_MODES[$mode], $type);
 
         foreach ($statuses as $status) {
             $actionColumn = $canDelete
@@ -177,10 +156,8 @@ class StatusController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/status/{entity}/supprimer", name="settings_delete_status", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route("/status/{entity}/supprimer", name: "settings_delete_status", options: ["expose" => true])]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function deleteStatus(EntityManagerInterface $manager, Statut $entity): JsonResponse
     {
         if($entity->isDefaultForCategory()) {
@@ -237,10 +214,8 @@ class StatusController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/status-api/edit/translate", name="settings_edit_status_translations_api", options={"expose"=true}, methods="GET", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route("/status-api/edit/translate", name: "settings_edit_status_translations_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function apiEditTranslations(Request $request,
                                         EntityManagerInterface $manager,
                                         TranslationService $translationService): JsonResponse
@@ -251,17 +226,8 @@ class StatusController extends AbstractController
         $statusRepository = $manager->getRepository(Statut::class);
         $typeRepository = $manager->getRepository(Type::class);
 
-        $category = match ($mode) {
-            self::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
-            self::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
-            self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
-            self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
-            self::MODE_DISPATCH => CategorieStatut::DISPATCH,
-            self::MODE_HANDLING => CategorieStatut::HANDLING
-        };
-
         $type = $typeId ? $typeRepository->find($typeId) : null;
-        $statuses = $statusRepository->findStatusByType($category, $type);
+        $statuses = $statusRepository->findStatusByType(Statut::STATUS_MODES[$mode], $type);
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
@@ -281,10 +247,8 @@ class StatusController extends AbstractController
             ]);
     }
 
-    /**
-     * @Route("/status/edit/translate", name="settings_edit_status_translations", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/status/edit/translate", name: "settings_edit_status_translations", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editTranslations(Request                $request,
                                      StatusService          $statusService,
                                      EntityManagerInterface $manager,
@@ -321,5 +285,134 @@ class StatusController extends AbstractController
             ]);
         }
         throw new BadRequestHttpException();
+    }
+
+    #[Route("/form-template/{mode}/{type}/{status}", name: "status_form_template", options: ["expose" => true], defaults: ["status" => null], methods: "GET")]
+    public function formTemplate(Type $type, string $mode, ?int $status, EntityManagerInterface $manager): Response {
+        $roleRepository = $manager->getRepository(Role::class);
+        $typeRepository = $manager->getRepository(Type::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+
+        $status = $status
+            ? $manager->find(Statut::class, $status)
+            : null;
+
+        return $this->json([
+            "html" => $this->renderView("settings/trace/acheminements/status_form/form.html.twig", [
+                "status" => $status ?: new Statut(),
+                "type" => $type,
+                "mode" => $mode,
+                "roles" => $roleRepository->findAll(),
+                "dispatchTypes" => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),
+                "natures" => $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]),
+            ]),
+        ]);
+    }
+
+    #[Route("/form-submit", name: "status_form_submit", options: ["expose" => true], methods: "POST")]
+    public function formSubmit(Request                $request,
+                               EntityManagerInterface $manager,
+                               StatusService          $statusService,
+                               TranslationService     $translationService): Response
+    {
+        $query = $request->query;
+
+        $roleRepository = $manager->getRepository(Role::class);
+        $statusRepository = $manager->getRepository(Statut::class);
+        $typeRepository = $manager->getRepository(Type::class);
+        $natureRepository = $manager->getRepository(Nature::class);
+        $locationRepository = $manager->getRepository(Emplacement::class);
+        $categoryStatusRepository = $manager->getRepository(CategorieStatut::class);
+
+        $mode = $query->get("mode");
+        $locationIds = explode(",", $query->get("locations", ""));
+        $labels = json_decode($query->get("labels"), true);
+
+        $status = $query->get("status")
+            ? $statusRepository->find($query->getInt("status"))
+            : new Statut();
+        $type = $typeRepository->find($query->getInt("type"));
+        $newDispatchType = $query->get("newDispatchType")
+            ? $typeRepository->find($query->getInt("newDispatchType"))
+            : null;
+        $categoryStatus = $categoryStatusRepository->findOneBy(['nom' => Statut::STATUS_MODES[$mode]]);
+
+        $frenchLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => Language::FRENCH_SLUG]);
+        $frenchLabel = Stream::from($labels)
+            ->find(fn(array $element) => intval($element['language-id']) === $frenchLanguage->getId());
+
+        $status
+            ->setNom($frenchLabel['label'])
+            ->setState($query->getInt("state"))
+            ->setCategorie($categoryStatus)
+            ->setType($type)
+            ->setDisplayOrder($query->getInt("order"))
+            ->setSendNotifToDeclarant($query->getBoolean("sendMailRequester"))
+            ->setSendNotifToRecipient($query->getBoolean("sendMailReceivers"))
+            ->setNeedsMobileSync($query->getBoolean("mobileSync"))
+            ->setAutomaticDispatchCreation($query->getBoolean("automaticDispatchCreation"))
+            ->setAutomaticDispatchCreationType($newDispatchType)
+            ->setAutomatic($query->getBoolean("automatic"))
+            ->setAutomaticStatusMovementType($query->getInt("movementType"))
+            ->setAutomaticAllPacksOnDepositLocation($query->getBoolean("automaticAllPacksOnDepositLocation"));
+
+        if($query->has("natures")) {
+            $natures = $natureRepository->findBy(["id" => explode(",", $query->get("natures", ""))]);
+            $status->setAutomaticStatusExcludedNatures($natures);
+        }
+
+        if($query->has("locations")) {
+            $validLocations = $locationRepository->countWithoutAutoStatus($locationIds, $type, $status);
+            if ($validLocations !== count($locationIds)){
+                throw new FormException("Un des emplacements sélectionné l'est déjà pour un autre statut.");
+            } else {
+                $locations = $locationRepository->findBy(["id" => $locationIds]);
+                $status->setAutomaticStatusLocations($locations);
+            }
+        }
+
+        $accessibleBy = $roleRepository->findBy(["id" => explode(",", $query->get("accessibleBy"))]);
+        $status->getAccessibleBy()->clear();
+        foreach ($accessibleBy as $role) {
+            $status->addAccessibleBy($role);
+        }
+
+        $labelTranslation = $status->getLabelTranslation();
+        if (!$labelTranslation) {
+            $labelTranslation = new TranslationSource();
+            $manager->persist($labelTranslation);
+
+            $status->setLabelTranslation($labelTranslation);
+
+            foreach ($labels as $label) {
+                $labelLanguage = $manager->getRepository(Language::class)->find($label['language-id']);
+
+                $newTranslation = new Translation();
+                $newTranslation
+                    ->setTranslation($label['label'])
+                    ->setSource($labelTranslation)
+                    ->setLanguage($labelLanguage);
+
+                $labelTranslation->addTranslation($newTranslation);
+                $manager->persist($newTranslation);
+            }
+        } else {
+            $translationService->editEntityTranslations($manager, $labelTranslation, $labels);
+        }
+
+        $validation = $statusService->validateStatusesData([...$statusRepository->findBy(["type" => $type]), ...!$status->getId() ? [$status] : []]);
+        if (!$validation['success']) {
+            throw new FormException($validation['message']);
+        }
+
+        $message = "Le statut a bien été " . ($status->getId() ? "modifié" : "créé") . ".";
+        $manager->persist($status);
+
+        $manager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => $message,
+        ]);
     }
 }

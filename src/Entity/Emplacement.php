@@ -154,6 +154,10 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
     private Collection $inventoryMissionRules;
 
+    #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: "automaticStatusLocations")]
+    #[ORM\JoinColumn(onDelete: "SET NULL")]
+    private ?Statut $automaticDepositStatus = null;
+
     public function __construct() {
         $this->clusters = new ArrayCollection();
         $this->articles = new ArrayCollection();
@@ -1124,6 +1128,18 @@ class Emplacement implements PairedEntity {
         foreach($inventoryMissionRules ?? [] as $inventoryMissionRule) {
             $this->addInventoryMissionRule($inventoryMissionRule);
         }
+
+        return $this;
+    }
+
+    public function getAutomaticDepositStatus(): ?Statut
+    {
+        return $this->automaticDepositStatus;
+    }
+
+    public function setAutomaticDepositStatus(?Statut $automaticDepositStatus): self
+    {
+        $this->automaticDepositStatus = $automaticDepositStatus;
 
         return $this;
     }

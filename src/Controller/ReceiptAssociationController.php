@@ -13,6 +13,7 @@ use App\Service\ReceiptAssociationService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -92,8 +93,7 @@ class ReceiptAssociationController extends AbstractController
 
         $existingPacks = $manager->getRepository(Pack::class)->findBy(['code' => $packs]);
         $packsForMovements = $existingPacks;
-        $existingPacks = Stream::from($existingPacks)->map(fn(Pack $pack) => $pack->getCode())->toArray();
-        $invalidPacks = Stream::diff($existingPacks, $packs)->toArray();
+        $invalidPacks = Stream::diff(Stream::from($existingPacks)->map(fn(Pack $pack) => $pack->getCode())->toArray(), $packs)->toArray();
         if(!empty($invalidPacks)) {
             $invalidPacksStr = implode(", ", $invalidPacks);
             return $this->json([
@@ -112,7 +112,7 @@ class ReceiptAssociationController extends AbstractController
         if (empty($packs)) {
             $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->findBy(['receptionNumber' => $receptions]);
             $existingAssociationWithoutPack = !Stream::from($receiptAssociations)
-                ->filter(fn(ReceiptAssociation $receiptAssociation) => !$receiptAssociation->getPackCode())
+                ->filter(fn(ReceiptAssociation $receiptAssociation) => $receiptAssociation->getLogisticUnits()->isEmpty())
                 ->isEmpty();
 
             if ($existingAssociationWithoutPack) {
@@ -131,7 +131,7 @@ class ReceiptAssociationController extends AbstractController
                 ->setReceptionNumber($reception)
                 ->setUser($user)
                 ->setCreationDate($now)
-                ->setPackCode(str_replace(",", ", ", $packsStr));
+                ->setLogisticUnits(new ArrayCollection($existingPacks));
 
             $manager->persist($receiptAssociation);
         }
