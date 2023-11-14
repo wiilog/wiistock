@@ -3103,7 +3103,7 @@ class MobileController extends AbstractApiController
 
                         return [
                             "lineId" => $line?->getId(),
-                            "quantityType" => $reference?->getQuantityType(),
+                            "quantityType" => $reference?->getTypeQuantite(),
                             "reference" => $reference?->getReference(),
                             "label" => $reference?->getLibelle(),
                             "emergency" => $line?->getEmergencyTriggered(),
