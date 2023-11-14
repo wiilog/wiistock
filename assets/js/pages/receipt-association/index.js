@@ -1,6 +1,5 @@
-$(`.select2`).select2();
-
 $(function () {
+    $(`.select2`).select2();
     const tableReceiptAssociation = initDatatable();
 
     const $userFormat = $(`#userDateFormat`);
@@ -15,7 +14,7 @@ $(function () {
         displayFiltersSup(data, true);
     }, `json`);
 
-    const $modalNewReceiptAssociation = $(`.modal-new-receipt-association`);
+    const $modalNewReceiptAssociation = $(`#modalNewReceiptAssociation`);
     Form.create($modalNewReceiptAssociation)
         .submitTo(AJAX.POST, `receipt_association_form_submit`, {
             tables: [tableReceiptAssociation],
@@ -23,13 +22,16 @@ $(function () {
         })
         .onOpen(() => {
             Modal.load(`receipt_association_form_template`, {}, $modalNewReceiptAssociation, $modalNewReceiptAssociation.find(`.modal-body`), {
-                onOpen: () => onOpenModal($modalNewReceiptAssociation),
+                onOpen: () => onOpenNewReceiptAssociationModal($modalNewReceiptAssociation),
             });
         });
 });
 
-function onOpenModal($modal) {
+function onOpenNewReceiptAssociationModal($modal) {
     $modal.find(`[name=logisticUnit]`).trigger(`focus`);
+
+    const $logisticUnitContainerTemplate = $(`.logistic-unit-container-template`);
+    const $receptionNumberContainerTemplate = $(`.reception-number-container-template`);
 
     $modal
         .find(`[name=existingLogisticUnits]`)
@@ -54,9 +56,6 @@ function onOpenModal($modal) {
     $modal
         .find(`.add-logistic-unit, .add-reception-number`)
         .on(`click`, function() {
-            const $logisticUnitContainerTemplate = $(`.logistic-unit-container-template`);
-            const $receptionNumberContainerTemplate = $(`.reception-number-container-template`);
-
             if($(this).is(`.add-logistic-unit`)) {
                 $modal
                     .find(`.logistic-unit-container`)
@@ -133,7 +132,7 @@ function initDatatable() {
         },
         ajax: {
             url: pathReceiptAssociation,
-            type: `POST`
+            type: AJAX.POST,
         },
         columns: [
             {data: `Actions`, name: `Actions`, title: ``, className: `noVis`, orderable: false},

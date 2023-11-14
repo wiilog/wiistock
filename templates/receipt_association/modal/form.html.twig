@@ -41,31 +41,4 @@
     </div>
 </div>
 
-<template class="logistic-unit-container-template">
-    <div class="logistic-unit-container d-flex justify-content-between mt-2"
-         data-multiple-key="logisticUnits">
-        {{ form.input("logisticUnit", null, true, null, {
-            width: "w-75",
-            attributes: {
-                "data-global-error": "Unité(s) logistique(s)",
-            }
-        }) }}
-        <button class="btn delete-line d-flex align-items-center">
-            <i class="wii-icon wii-icon-trash text-primary"></i>
-        </button>
-    </div>
-</template>
-
-<template class="reception-number-container-template">
-    <div class="reception-number-container d-flex justify-content-between mt-2"
-         data-multiple-key="receptionNumbers">
-        {{ form.input("receptionNumber", null, true, null, {
-            width: "w-75",
-        }) }}
-        <button class="btn delete-line d-flex align-items-center">
-            <i class="wii-icon wii-icon-trash text-primary"></i>
-        </button>
-    </div>
-</template>
-
 {{ form.hidden("limit", 10) }}
