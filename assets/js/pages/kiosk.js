@@ -117,10 +117,10 @@ $(function () {
                 const $articleDataInput = $('input[name=reference-article-input]');
                 const {token} = GetRequestQuery();
                 wrapLoadingOnActionButton($(this), () => (
-                    AJAX.route(POST, 'check_article_is_valid', {token, articleLabel: $articleDataInput.val() || null})
+                    AJAX.route(POST, 'check_article_is_valid', {token, barcode: $articleDataInput.val() || null, referenceLabel : $referenceRefInput.val() })
                         .json()
-                        .then(({success, fromArticlePage}) => {
-                            if (success || !fromArticlePage) {
+                        .then(({success}) => {
+                            if(success){
                                 $current.removeClass('active').addClass('d-none');
                                 $($current.next()[0]).addClass('active').removeClass('d-none');
                                 $currentTimelineEvent.removeClass('current');
@@ -155,9 +155,9 @@ $(function () {
                                     || $freeFieldLabel.find('select').find('option:selected').text());
                                 $('.reference-commentary').html($('input[name=reference-comment]').val());
                             } else {
-                                $modalArticleIsNotValid.modal('show');
-                                $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
-                            }
+                                    $modalArticleIsNotValid.modal('show');
+                                    $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
+                                }
                         })));
             } else {
                 $current.removeClass('active').addClass('d-none');
