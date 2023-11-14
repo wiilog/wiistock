@@ -7,7 +7,7 @@ use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Utilisateur;
-use App\Service\FieldsParamService;
+use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\SpecificService;
@@ -39,7 +39,7 @@ class AppExtension extends AbstractExtension {
     public SpecificService $specificService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public KernelInterface $kernel;

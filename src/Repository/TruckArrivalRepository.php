@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\FieldsParam;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;

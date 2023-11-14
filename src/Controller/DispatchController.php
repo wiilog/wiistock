@@ -3,53 +3,49 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
-use App\Entity\Arrivage;
-use App\Entity\CategorieCL;
-use App\Entity\Dispatch;
 use App\Entity\Action;
+use App\Entity\Arrivage;
+use App\Entity\Attachment;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Dispatch;
+use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
-use App\Entity\FreeField;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Fields\SubLineFixedField;
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
-
 use App\Entity\Nature;
 use App\Entity\Pack;
-use App\Entity\DispatchPack;
 use App\Entity\Setting;
-use App\Entity\Attachment;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
-use App\Entity\SubLineFieldsParam;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Service\DataExportService;
-use App\Service\LanguageService;
-use App\Service\NotificationService;
-use App\Service\RefArticleDataService;
-use App\Service\StatusHistoryService;
-use App\Service\VisibleColumnService;
-use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
+use App\Service\DataExportService;
+use App\Service\DispatchService;
 use App\Service\FreeFieldService;
+use App\Service\LanguageService;
+use App\Service\NotificationService;
 use App\Service\PackService;
 use App\Service\RedirectService;
+use App\Service\RefArticleDataService;
+use App\Service\StatusHistoryService;
+use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
-use App\Service\DispatchService;
-
+use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -58,7 +54,8 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\TranslationService;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
 #[Route("/acheminements")]
@@ -77,7 +74,7 @@ class DispatchController extends AbstractController {
                           DispatchService           $service): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
@@ -102,7 +99,7 @@ class DispatchController extends AbstractController {
         $currentUser = $this->getUser();
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
@@ -111,7 +108,7 @@ class DispatchController extends AbstractController {
         return $this->render('dispatch/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
@@ -283,29 +280,29 @@ class DispatchController extends AbstractController {
 
         $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true);
 
-        $type = $typeRepository->find($post->get(FieldsParam::FIELD_CODE_TYPE_DISPATCH));
+        $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
 
-        $locationTake = $post->get(FieldsParam::FIELD_CODE_LOCATION_PICK)
-            ? ($emplacementRepository->find($post->get(FieldsParam::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
+        $locationTake = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)
+            ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
             : $type->getPickLocation();
-        $locationDrop = $post->get(FieldsParam::FIELD_CODE_LOCATION_DROP)
-            ? ($emplacementRepository->find($post->get(FieldsParam::FIELD_CODE_LOCATION_DROP)) ?: $type->getDropLocation())
+        $locationDrop = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_DROP)
+            ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_DROP)) ?: $type->getDropLocation())
             : $type->getDropLocation();
 
-        $destination = $post->get(FieldsParam::FIELD_CODE_DESTINATION);
+        $destination = $post->get(FixedFieldStandard::FIELD_CODE_DESTINATION);
 
-        $comment = $post->get(FieldsParam::FIELD_CODE_COMMENT_DISPATCH);
-        $startDateRaw = $post->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH);
-        $endDateRaw = $post->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH);
-        $carrier = $post->get(FieldsParam::FIELD_CODE_CARRIER_DISPATCH);
-        $carrierTrackingNumber = $post->get(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH);
-        $commandNumber = $post->get(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH);
-        $receivers = $post->get(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH);
-        $emails = $post->get(FieldsParam::FIELD_CODE_EMAILS);
-        $emergency = $post->get(FieldsParam::FIELD_CODE_EMERGENCY);
-        $projectNumber = $post->get(FieldsParam::FIELD_CODE_PROJECT_NUMBER);
-        $businessUnit = $post->get(FieldsParam::FIELD_CODE_BUSINESS_UNIT);
-        $statusId = $post->get(FieldsParam::FIELD_CODE_STATUS_DISPATCH);
+        $comment = $post->get(FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH);
+        $startDateRaw = $post->get(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH);
+        $endDateRaw = $post->get(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH);
+        $carrier = $post->get(FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH);
+        $carrierTrackingNumber = $post->get(FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH);
+        $commandNumber = $post->get(FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH);
+        $receivers = $post->get(FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH);
+        $emails = $post->get(FixedFieldStandard::FIELD_CODE_EMAILS);
+        $emergency = $post->get(FixedFieldStandard::FIELD_CODE_EMERGENCY);
+        $projectNumber = $post->get(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER);
+        $businessUnit = $post->get(FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        $statusId = $post->get(FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH);
 
         $status = $statusId ? $statutRepository->find($statusId) : null;
         if (!isset($status) || $status?->getCategorie()?->getNom() !== CategorieStatut::DISPATCH) {
@@ -332,7 +329,7 @@ class DispatchController extends AbstractController {
             ]);
         }
 
-        $requesterId = $post->get(FieldsParam::FIELD_CODE_REQUESTER_DISPATCH);
+        $requesterId = $post->get(FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH);
         $requester = $requesterId ? $userRepository->find($requesterId) : null;
         $requester = $requester ?? $this->getUser();
 
@@ -352,10 +349,10 @@ class DispatchController extends AbstractController {
             ->setNumber($dispatchNumber)
             ->setDestination($destination)
             ->setCreatedBy($currentUser)
-            ->setCustomerName($post->get(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH))
-            ->setCustomerPhone($post->get(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH))
-            ->setCustomerRecipient($post->get(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
-            ->setCustomerAddress($post->get(FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
+            ->setCustomerName($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH))
+            ->setCustomerPhone($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH))
+            ->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
+            ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
@@ -406,7 +403,7 @@ class DispatchController extends AbstractController {
         }
 
         if(!empty($emergency)) {
-            $dispatch->setEmergency($post->get(FieldsParam::FIELD_CODE_EMERGENCY));
+            $dispatch->setEmergency($post->get(FixedFieldStandard::FIELD_CODE_EMERGENCY));
         }
 
         if(!empty($projectNumber)) {
@@ -458,12 +455,12 @@ class DispatchController extends AbstractController {
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $printBL = $request->query->getBoolean('printBL');
 
         $dispatchStatus = $dispatch->getStatut();
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
         $dispatchReferenceArticleAttachments = [];
@@ -605,96 +602,96 @@ class DispatchController extends AbstractController {
         $type = $dispatch->getType();
 
 
-        $requesterData = $post->get(FieldsParam::FIELD_CODE_REQUESTER_DISPATCH);
+        $requesterData = $post->get(FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH);
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
         $requester = $requester ?? $dispatch->getRequester() ?? $this->getUser();
 
-        if ($post->has(FieldsParam::FIELD_CODE_LOCATION_PICK)) {
-            $locationPickData = $post->get(FieldsParam::FIELD_CODE_LOCATION_PICK);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) {
+            $locationPickData = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK);
             $locationPick = $locationPickData
                 ? $emplacementRepository->find($locationPickData)
                 : $type->getPickLocation();
             $dispatch->setLocationFrom($locationPick);
         }
-        if ($post->has(FieldsParam::FIELD_CODE_LOCATION_DROP)) {
-            $locationDropData = $post->get(FieldsParam::FIELD_CODE_LOCATION_DROP);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_LOCATION_DROP)) {
+            $locationDropData = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_DROP);
             $locationDrop = $locationDropData
                 ? $emplacementRepository->find($locationDropData)
                 : $type->getDropLocation();
             $dispatch->setLocationTo($locationDrop);
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_START_DATE_DISPATCH)) {
-            $startDateRaw = $post->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH)) {
+            $startDateRaw = $post->get(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH);
             $startDate = !empty($startDateRaw) ? $dispatchService->createDateFromStr($startDateRaw) : null;
             $dispatch->setStartDate($startDate);
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)) {
-            $endDateRaw = $post->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH)) {
+            $endDateRaw = $post->get(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH);
             $endDate = !empty($endDateRaw) ? $dispatchService->createDateFromStr($endDateRaw) : null;
             $dispatch->setEndDate($endDate);
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CARRIER_DISPATCH)) {
-            $carrierId = $post->get(FieldsParam::FIELD_CODE_CARRIER_DISPATCH);
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH)) {
+            $carrierId = $post->get(FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH);
             $carrier = $carrierId ? $carrierRepository->find($carrierId) : null;
             $dispatch->setCarrier($carrier);
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH)) {
-            $dispatch->setCarrierTrackingNumber($post->get(FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH)) {
+            $dispatch->setCarrierTrackingNumber($post->get(FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH)) {
-            $dispatch->setCommandNumber($post->get(FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH)) {
+            $dispatch->setCommandNumber($post->get(FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_BUSINESS_UNIT)) {
-            $dispatch->setBusinessUnit($post->get(FieldsParam::FIELD_CODE_BUSINESS_UNIT));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT)) {
+            $dispatch->setBusinessUnit($post->get(FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_DESTINATION)) {
-            $dispatch->setDestination($post->get(FieldsParam::FIELD_CODE_DESTINATION));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_DESTINATION)) {
+            $dispatch->setDestination($post->get(FixedFieldStandard::FIELD_CODE_DESTINATION));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_PROJECT_NUMBER)) {
-            $dispatch->setProjectNumber($post->get(FieldsParam::FIELD_CODE_PROJECT_NUMBER));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER)) {
+            $dispatch->setProjectNumber($post->get(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_COMMENT_DISPATCH)) {
-            $dispatch->setCommentaire($post->get(FieldsParam::FIELD_CODE_COMMENT_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH)) {
+            $dispatch->setCommentaire($post->get(FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_EMERGENCY)) {
-            $dispatch->setEmergency($post->get(FieldsParam::FIELD_CODE_EMERGENCY));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_EMERGENCY)) {
+            $dispatch->setEmergency($post->get(FixedFieldStandard::FIELD_CODE_EMERGENCY));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH)) {
-            $dispatch->setCustomerName($post->get(FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH)) {
+            $dispatch->setCustomerName($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH)) {
-            $dispatch->setCustomerPhone($post->get(FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH)) {
+            $dispatch->setCustomerPhone($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
-            $dispatch->setCustomerRecipient($post->get(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
+            $dispatch->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
-            $dispatch->setCustomerAddress($post->get(FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
+        if ($post->has(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH)) {
+            $dispatch->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_EMAILS)) {
-            $emails = Stream::explode(",", $post->get(FieldsParam::FIELD_CODE_EMAILS) ?? '')
+        if ($post->has(FixedFieldStandard::FIELD_CODE_EMAILS)) {
+            $emails = Stream::explode(",", $post->get(FixedFieldStandard::FIELD_CODE_EMAILS) ?? '')
                 ->filter()
                 ->toArray();
             $dispatch->setEmails($emails);
         }
 
-        if ($post->has(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH)) {
-            $receiversIds = Stream::explode(",", $post->get(FieldsParam::FIELD_CODE_RECEIVER_DISPATCH) ?: '')
+        if ($post->has(FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH)) {
+            $receiversIds = Stream::explode(",", $post->get(FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH) ?: '')
                 ->filter()
                 ->toArray();
             $existingReceivers = $dispatch->getReceivers();
@@ -746,10 +743,10 @@ class DispatchController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
 
         $dispatch = $dispatchRepository->find($request->query->get('id'));
         $dispatchStatus = $dispatch->getStatut();
@@ -767,13 +764,13 @@ class DispatchController extends AbstractController {
             ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
             : [];
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $form = $this->renderView('dispatch/forms/form.html.twig', [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
             'statuses' => $statuses,
             'attachments' => $attachmentRepository->findBy(['dispatch' => $dispatch])
@@ -883,16 +880,16 @@ class DispatchController extends AbstractController {
                 "code" => null,
                 "quantity" => null,
                 "nature" => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => null,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => null,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => null,
             ];
         }
         return $this->json([
@@ -920,9 +917,9 @@ class DispatchController extends AbstractController {
         $length = $data["length"] ?? null;
 
         $field = match (true) {
-            $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
-            $width !== null && !StringHelper::matchEvery($width, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
-            $length !== null && !StringHelper::matchEvery($length, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFieldsParam::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
+            $height !== null && !StringHelper::matchEvery($height, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+            $width !== null && !StringHelper::matchEvery($width, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_WIDTH,
+            $length !== null && !StringHelper::matchEvery($length, StringHelper::INTEGER_AND_DECIMAL_REGEX) => SubLineFixedField::FIELD_LABEL_DISPATCH_LOGISTIC_UNIT_LENGTH,
             default => null,
         };
 
@@ -1254,10 +1251,10 @@ class DispatchController extends AbstractController {
             []
         );
 
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'fromDelivery' => $request->query->getBoolean('fromDelivery'),
             'dispatch' => $dispatch->getId(),
         ]));

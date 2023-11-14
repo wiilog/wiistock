@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Fields;
 
-use App\Repository\SubLineFieldsParamRepository;
+use App\Repository\SubLineFixedFieldRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SubLineFieldsParamRepository::class)]
-class SubLineFieldsParam {
+#[ORM\Entity(repositoryClass: SubLineFixedFieldRepository::class)]
+class SubLineFixedField extends FixedField {
 
     public const FREE_ELEMENTS_FIELDS = [
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
@@ -72,91 +72,37 @@ class SubLineFieldsParam {
 
     public const DISABLED_DISPLAYED_UNDER_CONDITION = [
         self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES,
         ],
     ];
 
     public const DISABLED_REQUIRED = [
         self::ENTITY_CODE_DEMANDE_REF_ARTICLE => [
-            SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
+            SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT,
         ],
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
-            SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE,
+            SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION,
         ],
     ];
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $entityCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldLabel = null;
-
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayed = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedUnderCondition = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $conditionFixedField = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $conditionFixedFieldValue = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $required = null;
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $elements = [];
-
-    #[ORM\Column(type: Types::STRING, nullable: true)]
-    private ?string $elementsType = null;
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getEntityCode(): ?string {
-        return $this->entityCode;
-    }
-
-    public function setEntityCode(string $entityCode): self {
-        $this->entityCode = $entityCode;
-
-        return $this;
-    }
-
-    public function getFieldCode(): ?string {
-        return $this->fieldCode;
-    }
-
-    public function setFieldCode(string $fieldCode): self {
-        $this->fieldCode = $fieldCode;
-
-        return $this;
-    }
-
-    public function getFieldLabel(): ?string {
-        return $this->fieldLabel;
-    }
-
-    public function setFieldLabel(string $fieldLabel): self {
-        $this->fieldLabel = $fieldLabel;
-
-        return $this;
-    }
 
     public function isDisplayed(): ?bool {
         return $this->displayed;
@@ -205,27 +151,6 @@ class SubLineFieldsParam {
     public function setRequired(?bool $required): self {
         $this->required = $required;
 
-        return $this;
-    }
-
-    public function getElementsType(): ?string
-    {
-        return $this->elementsType;
-    }
-
-    public function setElementsType(?string $elementsType): self
-    {
-        $this->elementsType = $elementsType;
-
-        return $this;
-    }
-
-    public function getElements(): ?array {
-        return $this->elements;
-    }
-
-    public function setElements(?array $elements): self {
-        $this->elements = $elements;
         return $this;
     }
 }
