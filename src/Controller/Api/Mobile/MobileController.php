@@ -46,6 +46,8 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\EventListener\ArticleQuantityNotifier;
+use App\EventListener\RefArticleQuantityNotifier;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
@@ -53,7 +55,6 @@ use App\Exceptions\RequestNeedToBeProcessedException;
 use App\Repository\ArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TrackingMovementRepository;
-use App\Service\AlertService;
 use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
@@ -2732,8 +2733,6 @@ class MobileController extends AbstractApiController
 
         $now = new DateTime('now');
         $validator = $this->getUser();
-        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
 
         $inventoryService->clearInventoryZone($mission);
 
@@ -2793,12 +2792,11 @@ class MobileController extends AbstractApiController
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
-        $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, [
-            "activeStatus" => $activeStatus,
-            "inactiveStatus" => $inactiveStatus,
-            "validator" => $validator,
-            "date" => $now,
-        ]);
+
+        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
+        ArticleQuantityNotifier::$disableArticleUpdate = true;
+
+        $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, $validator, $now);
 
         $mission
             ->setValidatedAt($now)
@@ -2806,6 +2804,9 @@ class MobileController extends AbstractApiController
             ->setDone(true);
 
         $entityManager->flush();
+
+        RefArticleQuantityNotifier::$disableReferenceUpdate = false;
+        ArticleQuantityNotifier::$disableArticleUpdate = false;
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(

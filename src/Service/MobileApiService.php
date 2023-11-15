@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
@@ -12,10 +13,9 @@ use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Utilisateur;
-use App\EventListener\ArticleQuantityNotifier;
-use App\EventListener\RefArticleQuantityNotifier;
 use App\Repository\SettingRepository;
 use Composer\Semver\Semver;
 use DateTime;
@@ -234,18 +234,24 @@ class MobileApiService {
        return Semver::satisfies($mobileVersion, $requiredVersion);
     }
 
+    /**
+     * @param Article[] $articles
+     * @param string[] $tags
+     */
     public function treatInventoryArticles(EntityManagerInterface $entityManager,
                                            array                  $articles,
                                            array                  $tags,
-                                           array                  $options = []): void
+                                           Utilisateur            $validator,
+                                           DateTime               $date): void
     {
-        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
-        ArticleQuantityNotifier::$disableArticleUpdate = true;
 
-        $activeStatus = $options["activeStatus"] ?? null;
-        $inactiveStatus = $options["inactiveStatus"] ?? null;
-        $validator = $options["validator"] ?? null;
-        $now = $options["date"] ?? new DateTime();
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $activeStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $inactiveStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+
+        $referenceArticlesToUpdate = [];
 
         foreach ($articles as $article) {
             if (in_array($article->getRFIDtag(), $tags)) {
@@ -253,7 +259,7 @@ class MobileApiService {
                 if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
                     $location = $presentArticle->getEmplacement();
                     $correctionMovement = $this->stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
-                        'date' => $now,
+                        'date' => $date,
                         'locationTo' => $location,
                     ]);
 
@@ -261,45 +267,49 @@ class MobileApiService {
                 }
                 $presentArticle
                     ->setFirstUnavailableDate(null)
-                    ->setLastAvailableDate($now)
+                    ->setLastAvailableDate($date)
                     ->setStatut($activeStatus)
-                    ->setDateLastInventory($now);
+                    ->setDateLastInventory($date);
             }
             else {
                 $missingArticle = $article;
                 if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
                     $location = $missingArticle->getEmplacement();
                     $correctionMovement = $this->stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
-                        'date' => $now,
+                        'date' => $date,
                         'locationTo' => $location,
                     ]);
 
                     $entityManager->persist($correctionMovement);
                     $missingArticle
-                        ->setFirstUnavailableDate($now);
+                        ->setFirstUnavailableDate($date);
                 }
                 $missingArticle
                     ->setStatut($inactiveStatus)
-                    ->setDateLastInventory($now);
+                    ->setDateLastInventory($date);
+            }
+
+            $reference = $article->getReferenceArticle();
+            $referenceArticleId = $reference?->getId();
+            if ($referenceArticleId
+                && !isset($referenceArticlesToUpdate[$referenceArticleId])) {
+                $referenceArticlesToUpdate[$referenceArticleId] = $reference;
             }
         }
 
         $entityManager->flush();
 
-        $references = Stream::from($articles)
-            ->map(static fn(Article $article) => $article->getReferenceArticle())
-            ->toArray();
+        $this->refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticlesToUpdate);
 
-        $this->refArticleDataService->updateRefArticleQuantities($entityManager, $references);
-
-        $expiryDelay = $entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
-        foreach ($references as $reference) {
+        $expiryDelay = $settingRepository->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
+        foreach ($referenceArticlesToUpdate as $reference) {
             $this->refArticleDataService->treatAlert($entityManager, $reference);
         }
 
         foreach ($articles as $article) {
             $this->alertService->treatArticleAlert($entityManager, $article, $expiryDelay);
         }
-    }
 
+        $entityManager->flush();
+    }
 }
