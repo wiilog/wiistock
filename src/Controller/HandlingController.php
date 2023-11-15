@@ -106,7 +106,7 @@ class HandlingController extends AbstractController {
             'types' => $types,
             'fieldsParam' => $fieldsParam,
             'fields' => $fields,
-            'status_state_values' => Stream::from($statusService->getStatusStatesValues())
+            'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
                 ->reduce(function(array $carry, $test) {
                     $carry[$test['id']] = $test['label'];
                     return $carry;

@@ -141,15 +141,16 @@ $(function() {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function() {
         toggleValidateGroupedSignatureButton($dispatchsTable, $groupedSignatureModeContainer);
     });
+
+    initFilterStatusMutiple();
 });
 
 function initTableDispatch(groupedSignatureMode = false) {
     const $filtersContainer = $(".filters-container");
     const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
-    const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
 
-    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, preFilledStatuses: $statutFilter.val(), preFilledTypes: $typeFilter.val()}, true);
+    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, filterStatus: $('#filterStatus').val(), preFilledTypes: $typeFilter.val()}, true);
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
     if(groupedSignatureMode || !initialVisible) {
         return $.post(Routing.generate('dispatch_api_columns', {groupedSignatureMode}))
