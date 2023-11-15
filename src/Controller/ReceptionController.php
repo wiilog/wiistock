@@ -76,7 +76,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use function PHPUnit\Framework\isEmpty;
 
 /**
  * @Route("/reception")
@@ -357,7 +356,7 @@ class ReceptionController extends AbstractController {
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-            if ($arrivage && isEmpty(!$arrivage->getReceptions())) {
+            if ($arrivage && $arrivage->getReceptions()->isEmpty()) {
                 $arrivageData = [
                     'id' => $arrivageId,
                     'fournisseur' => $arrivage->getFournisseur(),
