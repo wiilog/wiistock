@@ -55,6 +55,7 @@ Encore
     .addEntry('tracking-movement', './assets/js/pages/tracking-movement/tracking-movement.js')
     .addEntry('tracking-movement-wrong-location-warning', './assets/js/pages/tracking-movement/wrong-location-warning.js')
     .addEntry('filters', './assets/js/filters.js')
+    .addEntry('receipt-association-index', './assets/js/pages/receipt-association/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
