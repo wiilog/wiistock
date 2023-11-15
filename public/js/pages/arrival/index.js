@@ -121,11 +121,11 @@ $(function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
 
-    const receptionFilterValues =  $('#receptionFilter').val();
+    const receptionFilterValues =  $('[name=receptionFilter]').val();
 
     if (receptionFilterValues !== '') {
         let option = new Option(receptionFilterValues, receptionFilterValues, true, true);
-        $('select[name=commandList]').append(option).trigger('change');
+        $('[name=commandList]').append(option).trigger('change');
     } else {
         let path = Routing.generate('filter_get_by_page');
         let params = JSON.stringify(PAGE_ARRIVAGE);

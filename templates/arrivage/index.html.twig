@@ -1,9 +1,10 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
 {% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
 
-{% set receptionDefined = reception is defined and reception is not empty %}
+{% set receptionDefined = fromReception is defined and fromReception %}
 
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
@@ -45,7 +46,7 @@
                             </button>
 
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                                <a href="{{ path('reception_show', {'id': reception.id}) }}"
+                                <a href="{{ path('reception_show', {'id': fromReception.id}) }}"
                                    class='dropdown-item pointer'>
                                     <i class="fas fa-undo-alt"></i>
                                     Retour à la reception
@@ -130,8 +131,7 @@
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
     <input id="openNewModal" value="{{ openNewModal }}" hidden>
 
-    <input value="{{ reception.orderNumber ?? '' }}" id="receptionFilter" hidden>
-    <input value="{{ reception.id ?? '' }}" id="receptionId" hidden>
+    {{ form.hidden('receptionFilter', fromReception.orderNumber ?? '' ) }}
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {

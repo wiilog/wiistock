@@ -145,7 +145,7 @@ class ArrivageController extends AbstractController {
             "initial_visible_columns" => $this->apiColumns($arrivageService, $entityManager, $request)->getContent(),
             "initial_filters" => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_LU_ARRIVAL)),
             "openNewModal" => count($fromTruckArrivalOptions) > 0,
-            "reception" => $receptionData,
+            "fromReception" => $receptionData,
         ]);
     }
 
