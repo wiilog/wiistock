@@ -13,8 +13,10 @@ use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
@@ -38,6 +40,7 @@ use App\Service\PackService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
+use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -71,12 +74,14 @@ class DispatchController extends AbstractController {
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE])]
     public function index(Request                   $request,
                           EntityManagerInterface    $entityManager,
+                          StatusService             $statusService,
                           DispatchService           $service): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
         $query = $request->query;
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
@@ -99,24 +104,56 @@ class DispatchController extends AbstractController {
         $currentUser = $this->getUser();
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
-
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
+        $dateChoices = [
+            [
+                'name' => 'creationDate',
+                'label' => 'Date de création',
+            ],
+            [
+                'name' => 'validationDate',
+                'label' => 'Date de validation',
+            ],
+            [
+                'name' => 'treatmentDate',
+                'label' => 'Date de traitement',
+            ],
+            [
+                'name' => 'endDate',
+                'label' => 'Date d\'échéance',
+            ],
+        ];
+
+        foreach ($dateChoices as &$choice) {
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'dispatch', $currentUser);
+        }
+        $dateChoicesHasDefault = Stream::from($dateChoices)
+            ->some(static fn($choice) => ($choice['default'] ?? false));
+
+        if ($dateChoicesHasDefault) {
+            $dateChoices[0]['default'] = true;
+        }
+
         return $this->render('dispatch/index.html.twig', [
-            'statuts' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
+            'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
                     'label' => $this->getFormatter()->type($type)
                 ])
                 ->toArray(),
-            'fieldsParam' => $fieldsParam,
             'fields' => $fields,
+            'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
+                ->reduce(function(array $carry, $test) {
+                    $carry[$test['id']] = $test['label'];
+                    return $carry;
+                }, []),
             'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
             'statusFilter' => $statusesFilter,
             'typesFilter' => $typesFilter,
@@ -181,25 +218,28 @@ class DispatchController extends AbstractController {
     {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
         $fromDashboard = $request->query->getBoolean('fromDashboard');
-        $preFilledStatuses = $request->query->has('preFilledStatuses')
-            ? implode(",", $request->query->all('preFilledStatuses'))
-            : [];
-        $preFilledTypes = $request->query->has('preFilledTypes')
-            ? implode(",", $request->query->all('preFilledTypes'))
-            : [];
 
-        $preFilledFilters = [
-            [
-                'field' => 'statut',
-                'value' => $preFilledStatuses,
-            ],
-            [
-                'field' => 'multipleTypes',
-                'value' => $preFilledTypes,
-            ]
-        ];
+        if ($fromDashboard) {
+            $preFilledStatuses = $request->query->has('preFilledStatuses')
+                ? implode(",", $request->query->all('preFilledStatuses'))
+                : [];
+            $preFilledTypes = $request->query->has('preFilledTypes')
+                ? implode(",", $request->query->all('preFilledTypes'))
+                : [];
 
-        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters);
+            $preFilledFilters = [
+                [
+                    'field' => 'statuses-filter',
+                    'value' => $preFilledStatuses,
+                ],
+                [
+                    'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
+                    'value' => $preFilledTypes,
+                ]
+            ];
+        }
+
+        $data = $dispatchService->getDataForDatatable($request->request, $groupedSignatureMode, $fromDashboard, $preFilledFilters ?? []);
 
         return new JsonResponse($data);
     }
@@ -278,10 +318,8 @@ class DispatchController extends AbstractController {
             }
         }
 
-        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true);
-
         $type = $typeRepository->find($post->get(FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH));
-
+        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, true, $type);
         $locationTake = $post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)
             ? ($emplacementRepository->find($post->get(FixedFieldStandard::FIELD_CODE_LOCATION_PICK)) ?: $type->getPickLocation())
             : $type->getPickLocation();
@@ -455,12 +493,10 @@ class DispatchController extends AbstractController {
         $paramRepository = $entityManager->getRepository(Setting::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $printBL = $request->query->getBoolean('printBL');
 
         $dispatchStatus = $dispatch->getStatut();
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
 
         $dispatchReferenceArticleAttachments = [];
@@ -495,7 +531,6 @@ class DispatchController extends AbstractController {
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
             'newPackRow' => $dispatchService->packRow($dispatch, null, true, true),
-            'fieldsParam' => $fieldsParam,
             'freeFields' => $freeFields,
             "descriptionFormConfig" => $refArticleDataService->getDescriptionConfig($entityManager, true),
             "attachments" => $attachments,
@@ -597,10 +632,8 @@ class DispatchController extends AbstractController {
 
         $this->persistAttachments($dispatch, $this->attachmentService, $request, $entityManager);
 
-        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false);
-
         $type = $dispatch->getType();
-
+        $post = $dispatchService->checkFormForErrors($entityManager, $post, $dispatch, false, $type);
 
         $requesterData = $post->get(FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH);
         $requester = $requesterData ? $utilisateurRepository->find($requesterData) : null;
@@ -743,13 +776,19 @@ class DispatchController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $attachmentRepository = $entityManager->getRepository(Attachment::class);
-
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
 
         $dispatch = $dispatchRepository->find($request->query->get('id'));
         $dispatchStatus = $dispatch->getStatut();
+        $dispatchType = $dispatch->getType();
+
+        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
+                FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT => $field->isDisplayedEdit($dispatchType),
+                FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT => $field->isRequiredEdit($dispatchType),
+            ]])
+            ->toArray();
 
         if (!$this->userService->hasRightFunction(Menu::DEM, Action::EDIT)
             || (
@@ -764,13 +803,13 @@ class DispatchController extends AbstractController {
             ? $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::DRAFT, Statut::NOT_TREATED])
             : [];
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $form = $this->renderView('dispatch/forms/form.html.twig', [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
             'statuses' => $statuses,
             'attachments' => $attachmentRepository->findBy(['dispatch' => $dispatch])

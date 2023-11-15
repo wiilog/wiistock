@@ -11,6 +11,24 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FixedFieldByTypeRepository::class)]
 class FixedFieldByType extends FixedField
 {
+    public const ATTRIBUTE_REQUIRED_CREATE = 'requiredCreate';
+    public const ATTRIBUTE_REQUIRED_EDIT = 'requiredEdit';
+    public const ATTRIBUTE_KEPT_IN_MEMORY = 'keptInMemory';
+    public const ATTRIBUTE_DISPLAYED_CREATE = 'displayedCreate';
+    public const ATTRIBUTE_DISPLAYED_EDIT = 'displayedEdit';
+    public const ATTRIBUTE_ON_MOBILE = 'onMobile';
+    public const ATTRIBUTE_ON_LABEL = 'onLabel';
+
+    public const ATTRIBUTES = [
+        self::ATTRIBUTE_REQUIRED_CREATE,
+        self::ATTRIBUTE_REQUIRED_EDIT,
+        self::ATTRIBUTE_KEPT_IN_MEMORY,
+        self::ATTRIBUTE_DISPLAYED_CREATE,
+        self::ATTRIBUTE_DISPLAYED_EDIT,
+        self::ATTRIBUTE_ON_MOBILE,
+        self::ATTRIBUTE_ON_LABEL,
+    ];
+
     #[ORM\ManyToMany(targetEntity: Type::class)]
     #[ORM\JoinTable(name: 'fixed_field_by_type_required_create')]
     private Collection $requiredCreate;

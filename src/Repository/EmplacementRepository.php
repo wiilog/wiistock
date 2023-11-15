@@ -533,6 +533,16 @@ class EmplacementRepository extends EntityRepository
             ->getSingleScalarResult() > 0;
     }
 
+    public function getWithGroupsForSelect(?string $term): array {
+        return $this->createQueryBuilder('location')
+            ->select("CONCAT('location-', location.id) AS id")
+            ->addSelect('location.label AS text')
+            ->andWhere("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countWithoutAutoStatus(array $locations, Type $type, ?Statut $includedStatus = null): int {
         if (!empty($locations)) {
             $queryBuilder = $this->createQueryBuilder('location');

@@ -13,6 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\Query\Expr\Select;
+use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -40,19 +41,25 @@ class DispatchRepository extends EntityRepository
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 
+        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
+
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case 'statut':
-                    $value = explode(',', $filter['value']);
-					$qb
-						->join('dispatch.statut', 'filter_status')
-						->andWhere('filter_status.id in (:statut)')
-						->setParameter('statut', $value);
+                case 'statuses-filter':
+                    if(!empty($filter['value'])) {
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('dispatch.statut', 'filter_status')
+                            ->andWhere('filter_status.id in (:statut)')
+                            ->setParameter('statut', $value);
+                    }
 					break;
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
-                        $value = explode(',', $filter['value']);
+                        $value = Stream::explode(',', $filter['value'])
+                            ->map(static fn($type) => explode(':', $type)[0])
+                            ->toArray();
                         $qb
                             ->join('dispatch.type', 'filter_type')
                             ->andWhere('filter_type.id in (:filter_type_value)')
@@ -101,11 +108,23 @@ class DispatchRepository extends EntityRepository
                         ->setParameter("filter_emergencies_value", $value);
                     break;
                 case 'dateMin':
-                    $qb->andWhere('dispatch.creationDate >= :filter_dateMin_value')
+                    $filteredDate = match ($dateChoice){
+                        'validationDate' => 'validationDate',
+                        'treatmentDate' => 'treatmentDate',
+                        'endDate' => 'startDate',
+                        default => 'creationDate'
+                    };
+                    $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
                         ->setParameter('filter_dateMin_value', $filter['value'] . ' 00.00.00');
                     break;
                 case 'dateMax':
-                    $qb->andWhere('dispatch.creationDate <= :filter_dateMax_value')
+                    $filteredDate = match ($dateChoice){
+                        'validationDate' => 'validationDate',
+                        'treatmentDate' => 'treatmentDate',
+                        'endDate' => 'endDate',
+                        default => 'creationDate'
+                    };
+                    $qb->andWhere("dispatch.{$filteredDate} <= :filter_dateMax_value")
                         ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
                     break;
                 case 'destination':
@@ -133,6 +152,30 @@ class DispatchRepository extends EntityRepository
                         ->innerJoin('filter_dispatch_packs.pack', 'filter_dispatch_packs_pack')
                         ->andWhere("filter_dispatch_packs_pack.id IN (:logisticUnitIds)")
                         ->setParameter('logisticUnitIds', $value);
+                    break;
+                case FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS:
+                    [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+
+                    $qb->leftJoin('dispatch.locationTo', 'drop_location')
+                        ->leftJoin("drop_location.locationGroup", "drop_location_group")
+                        ->andWhere($qb->expr()->orX(
+                            "drop_location.id IN (:filter_drop_locations)",
+                            "drop_location_group.id IN (:filter_drop_location_groups)",
+                        ))
+                        ->setParameter("filter_drop_location_groups", $locationGroups)
+                        ->setParameter("filter_drop_locations", $locations);
+                    break;
+                case FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS:
+                    [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+
+                    $qb->leftJoin('dispatch.locationFrom', 'pick_location')
+                        ->leftJoin("pick_location.locationGroup", "pick_location_group")
+                        ->andWhere($qb->expr()->orX(
+                            "pick_location.id IN (:filter_pick_locations)",
+                            "pick_location_group.id IN (:filter_pick_location_groups)",
+                        ))
+                        ->setParameter("filter_pick_location_groups", $locationGroups)
+                        ->setParameter("filter_pick_locations", $locations);
                     break;
             }
         }
@@ -612,5 +655,31 @@ class DispatchRepository extends EntityRepository
             $dispatchPack = $pack->getDispatchPacks()->first();
             return $dispatchPack ? $dispatchPack->getDispatch() : null;
         }
+    }
+
+    private function extractLocationsAndGroups($filter): array {
+        $items = explode(",", $filter["value"]);
+        $locations = [];
+        $locationGroups = [];
+
+        foreach ($items as $item) {
+            [$type, $id] = explode("-", strtok($item, ":"));
+            if ($type === "locationGroup") {
+                $locationGroups[] = $id;
+            }
+            else {
+                if ($type === "location") {
+                    $locations[] = $id;
+                }
+                else {
+                    throw new RuntimeException("Unknown location type $type");
+                }
+            }
+        }
+
+        return [
+            $locations,
+            $locationGroups,
+        ];
     }
 }

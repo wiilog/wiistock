@@ -384,29 +384,21 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [
-                'default' => Stream::from(
-                    $fixedFieldByTypeRepository->findBy([
-                        'fieldCode' => [
-                            FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_EMERGENCY,
-                            FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH,
-                            FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
-                            FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
-                            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
-                            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
-                            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
-                        ],
-                        'entityCode' => [
-                            FixedFieldStandard::ENTITY_CODE_DISPATCH,
-                        ]
-                    ]))
-                    ->map(fn(FixedFieldByType $fixedFieldByType) => $fixedFieldByType->getId())
-                    ->join(',')
+                'default' => join(',', [
+                    FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_EMERGENCY,
+                    FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
+                    FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
+                    FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+                    FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+                    FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+                ]),
             ],
         ];
 
