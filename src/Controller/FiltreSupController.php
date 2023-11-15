@@ -21,9 +21,6 @@ use WiiCommon\Helper\Stream;
 class FiltreSupController extends AbstractController
 {
 
-    #[Required]
-    public Security $security;
-
     /**
      * @Route("/creer", name="filter_sup_new", options={"expose"=true})
      */

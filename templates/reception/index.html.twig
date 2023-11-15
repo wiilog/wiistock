@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réceptions', false) }}{% endblock %}
 {% block title_tooltip %}Ordre | Réceptions{% endblock %}
@@ -149,8 +150,7 @@
         </div>
     </div>
 
-    <input type="hidden" value="{{ arrivageToReception.arrivalFilter ?? '' }}" id="arrivalFilter">
-    <input type="hidden" value="{{ arrivageToReception.id ?? '' }}" id="arrival">
+    {{ form.hidden('arrivalFilter', arrivageToReception.arrivalFilter ?? '' ) }}
 
     <input type="hidden" value="{{ purchaseRequestFilter }}" id="purchaseRequestFilter">
     <input type="hidden" value="{{ purchaseRequest }}" id="purchaseRequest">

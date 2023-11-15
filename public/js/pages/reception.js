@@ -25,7 +25,7 @@ $(function () {
         initNewReceptionEditor($modalReceptionNew);
     }
 
-    const $arrivalFilter = $('#arrivalFilter');
+    const $arrivalFilter = $('[name=arrivalFilter]');
     // filtres enregistrés en base pour chaque utilisateur
     if ($('#purchaseRequestFilter').val() !== '0') {
         const purchaseRequestFilter = $('#purchaseRequestFilter').val().split(',');
@@ -94,7 +94,7 @@ function initTableReception() {
                     "type": "POST",
                     'data': {
                         'purchaseRequestFilter': $('#purchaseRequest').val(),
-                        'arrivalFilter': $('#arrivalFilter').val()
+                        'arrivalFilter': $('[name=arrivalFilter]').val()
                     }
                 },
                 columns,

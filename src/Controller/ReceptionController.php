@@ -76,6 +76,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
+use function PHPUnit\Framework\isEmpty;
 
 /**
  * @Route("/reception")
@@ -87,9 +88,6 @@ class ReceptionController extends AbstractController {
 
     #[Required]
     public FreeFieldService $freeFieldService;
-
-    #[Required]
-    public Security $security;
 
     /**
      * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
@@ -346,11 +344,6 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     * @param EntityManagerInterface $entityManager
-     * @param ReceptionService $receptionService
-     * @param SettingsService $settingsService
-     * @param Request $request
-     * @param PurchaseRequest|null $purchaseRequest
      * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
@@ -364,7 +357,7 @@ class ReceptionController extends AbstractController {
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-            if ($arrivage && empty(!$arrivage->getReceptions())) {
+            if ($arrivage && isEmpty(!$arrivage->getReceptions())) {
                 $arrivageData = [
                     'id' => $arrivageId,
                     'fournisseur' => $arrivage->getFournisseur(),
