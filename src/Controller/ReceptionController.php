@@ -66,6 +66,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -289,11 +290,12 @@ class ReceptionController extends AbstractController {
                         ReceptionService $receptionService,
                         EntityManagerInterface $entityManager): Response {
         $purchaseRequestFilter = $request->request->get('purchaseRequestFilter');
+        $arrivalFilter = $request->request->get('arrivalFilter');
 
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
+        $data = $receptionService->getDataForDatatable($user, $request->request, $arrivalFilter, $purchaseRequestFilter);
 
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
@@ -340,6 +342,7 @@ class ReceptionController extends AbstractController {
     /**
      * @Route("/liste/{purchaseRequest}", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
+     * @return Response
      */
     public function index(EntityManagerInterface $entityManager,
                           ReceptionService       $receptionService,
@@ -348,10 +351,11 @@ class ReceptionController extends AbstractController {
                           PurchaseRequest        $purchaseRequest = null): Response
     {
         $arrivageData = null;
+
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-            if ($arrivage && !$arrivage->getReception()) {
+            if ($arrivage && $arrivage->getReceptions()->isEmpty()) {
                 $arrivageData = [
                     'id' => $arrivageId,
                     'fournisseur' => $arrivage->getFournisseur(),
@@ -388,6 +392,11 @@ class ReceptionController extends AbstractController {
         /** @var Utilisateur $user */
         $user = $this->getUser();
         $fields = $receptionService->getColumnVisibleConfig($user);
+
+        if($arrivageData){
+            $arrivalFilter = implode(',', $arrivageData['numCommande']);
+            $arrivageData['arrivalFilter'] = $arrivalFilter;
+        }
 
         return $this->render('reception/index.html.twig', [
             'typeChampLibres' => $typeChampLibre,

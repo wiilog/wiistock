@@ -1,4 +1,5 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réceptions', false) }}{% endblock %}
 {% block title_tooltip %}Ordre | Réceptions{% endblock %}
@@ -7,7 +8,8 @@
     {% include 'filters/filtersReception.html.twig' with {
         page: 'PAGE_RECEPTION',
         tableSelector: '#tableReception_id',
-        disabled: purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0,
+        disabled: purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 or arrivageToReception,
+        numCommande: arrivageToReception.numCommande ?? null,
     } %}
 {% endblock %}
 
@@ -17,37 +19,11 @@
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
-                {% if purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 %}
-                <div class="btn-group">
-                    <div class="btn btn-primary split-button">
-                        <a href="{{ path('reception_index') }}">Voir toutes les réceptions</a>
-                    </div>
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                        <a href="{{ path('purchase_request_show', {'id': purchaseRequest}) }}"
-                           class='dropdown-item pointer'>
-                            <i class="fas fa-undo-alt"></i>
-                            Retour à la demande d'achat
-                        </a>
-                    </div>
-                </div>
-                {% else %}
-                <div class="btn-group">
-                    {% if hasRightCreate and hasRightExport %}
-                        <button type="button"
-                                data-toggle="modal"
-                                data-target="#modalNewReception"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
-                        </button>
+                {% if purchaseRequestFilter is defined and purchaseRequestFilter is not null and purchaseRequestFilter != 0 or arrivageToReception %}
+                    <div class="btn-group">
+                        <div class="btn btn-primary split-button">
+                            <a href="{{ path('reception_index') }}">Voir toutes les réceptions</a>
+                        </div>
                         <button type="button"
                                 class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                                 data-toggle="dropdown"
@@ -55,46 +31,36 @@
                                 aria-expanded="false">
                             <span class="fa fa-angle-down"></span>
                         </button>
-                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                            <div class="dropdown-item" onclick="saveExportFile('get_receptions_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
-                            <a class="dropdown-item pointer"
-                               data-toggle="modal"
-                               data-target="#modalColumnVisible">
-                                <i class="fa fa-cog mr-2"></i>
-                                Gestion des colonnes
-                            </a>
-                        </div>
-                    {% else %}
-                        {% if hasRightCreate %}
-                            <div data-toggle="modal"
-                                 data-target="#modalNewReception"
-                                 class="btn btn-primary split-button d-flex align-items-center"
-                                 onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
-                                <span class="wii-icon wii-icon-plus mr-2"></span>
-                                {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
-                            </div>
-                            <button type="button"
-                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                                    data-toggle="dropdown"
-                                    aria-haspopup="true"
-                                    aria-expanded="false">
-                                <span class="fa fa-angle-down"></span>
-                            </button>
+
+                        {% if arrivageToReception %}
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
-                                <a class="dropdown-item pointer"
-                                   data-toggle="modal"
-                                   data-target="#modalColumnVisible">
-                                    <i class="fa fa-cog mr-2"></i>
-                                    Gestion des colonnes
+                                <a class="dropdown-item d-flex align-items-center"
+                                   id="seeAllReceptionsBtn"
+                                   href="{{ path('arrivage_show', {id: arrivageToReception.id}) }}">
+                                    <span class="wii-icon wii-icon-export mr-2"></span>
+                                    Retour à l'arrivage
                                 </a>
                             </div>
                         {% endif %}
-                        {% if hasRightExport %}
-                            <div class="btn btn-primary" onclick="saveExportFile('get_receptions_csv')">
-                                <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
-                            </div>
+                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                            <a href="{{ path('purchase_request_show', {'id': purchaseRequest}) }}"
+                               class='dropdown-item pointer'>
+                                <i class="fas fa-undo-alt"></i>
+                                Retour à la demande d'achat
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="btn-group">
+                        {% if hasRightCreate and hasRightExport %}
+                            <button type="button"
+                                    data-toggle="modal"
+                                    data-target="#modalNewReception"
+                                    class="btn btn-primary split-button d-flex align-items-center"
+                                    onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>
+                                {{ trans('Ordre','Réceptions', 'nouvelle réception')}}
+                            </button>
                             <button type="button"
                                     class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
                                     data-toggle="dropdown"
@@ -103,6 +69,9 @@
                                 <span class="fa fa-angle-down"></span>
                             </button>
                             <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                <div class="dropdown-item" onclick="saveExportFile('get_receptions_csv')">
+                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                </div>
                                 <a class="dropdown-item pointer"
                                    data-toggle="modal"
                                    data-target="#modalColumnVisible">
@@ -111,15 +80,59 @@
                                 </a>
                             </div>
                         {% else %}
-                            <button type="button"
-                                    data-toggle="modal"
-                                    data-target="#modalColumnVisible"
-                                    class="btn btn-primary">
-                                <i class="fa fa-cog mr-2"></i>Gestion des colonnes
-                            </button>
+                            {% if hasRightCreate %}
+                                <div data-toggle="modal"
+                                     data-target="#modalNewReception"
+                                     class="btn btn-primary split-button d-flex align-items-center"
+                                     onclick="clearModal('#modalNewReception'); initNewReceptionEditor('#modalNewReception'); initReceptionLocation();">
+                                    <span class="wii-icon wii-icon-plus mr-2"></span>
+                                    {{ trans('Ordre','Réceptions', 'nouvelle réception') }}
+                                </div>
+                                <button type="button"
+                                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                    <a class="dropdown-item pointer"
+                                       data-toggle="modal"
+                                       data-target="#modalColumnVisible">
+                                        <i class="fa fa-cog mr-2"></i>
+                                        Gestion des colonnes
+                                    </a>
+                                </div>
+                            {% endif %}
+                            {% if hasRightExport %}
+                                <div class="btn btn-primary" onclick="saveExportFile('get_receptions_csv')">
+                                    <i class="fa fa-file-csv mr-2"></i>Exporter au format CSV
+                                </div>
+                                <button type="button"
+                                        class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                        data-toggle="dropdown"
+                                        aria-haspopup="true"
+                                        aria-expanded="false">
+                                    <span class="fa fa-angle-down"></span>
+                                </button>
+                                <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right pointer">
+                                    <a class="dropdown-item pointer"
+                                       data-toggle="modal"
+                                       data-target="#modalColumnVisible">
+                                        <i class="fa fa-cog mr-2"></i>
+                                        Gestion des colonnes
+                                    </a>
+                                </div>
+                            {% else %}
+                                <button type="button"
+                                        data-toggle="modal"
+                                        data-target="#modalColumnVisible"
+                                        class="btn btn-primary">
+                                    <i class="fa fa-cog mr-2"></i>Gestion des colonnes
+                                </button>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -136,8 +149,12 @@
             </div>
         </div>
     </div>
+
+    {{ form.hidden('arrivalFilter', arrivageToReception.arrivalFilter ?? '' ) }}
+
     <input type="hidden" value="{{ purchaseRequestFilter }}" id="purchaseRequestFilter">
     <input type="hidden" value="{{ purchaseRequest }}" id="purchaseRequest">
+
     {% include "reception/modalNewReception.html.twig" with {
         arrivageToReception: arrivageToReception
     } %}

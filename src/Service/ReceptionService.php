@@ -82,7 +82,7 @@ class ReceptionService
     #[Required]
     public ArticleDataService $articleDataService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
+    public function getDataForDatatable(Utilisateur $user, $params = null, $arrivalFilter = null, $purchaseRequestFilter = null)
     {
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -92,10 +92,19 @@ class ReceptionService
             $filters = [
                 [
                     'field' => 'purchaseRequest',
-                    'value' => $purchaseRequestFilter
+                    'value' => $purchaseRequestFilter,
                 ]
             ];
-        } else {
+        }
+        else if ($arrivalFilter) {
+            $filters = [
+                [
+                    'field' => 'commandList',
+                    'value' => $arrivalFilter,
+                ]
+            ];
+        }
+        else {
             $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEPTION, $user);
         }
 
