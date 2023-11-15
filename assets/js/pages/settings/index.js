@@ -32,6 +32,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
+import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -89,6 +90,7 @@ const initializers = {
     stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_acheminements_configurations: initializeDispatchConfiguration,
     trace_acheminements_statuts: initializeDispatchStatuses,
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
@@ -666,27 +668,37 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-dispatch-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const $typeInputs = $container.find(`[name=type]`);
+    const selectorTable = `#table-dispatch-fixed-fields`;
+    $typeInputs
+        .on(`change`, function() {
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                    {data: 'onMobile', title: `Afficher` },
+                    {data: 'onLabel', title: `Afficher` }
+                ],
+            });
+        })
+        .first()
+        .trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -1394,4 +1406,8 @@ function changeReceiverInput($checkbox) {
     const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
 
     $inputReceiver.attr('disabled', isChecked);
+}
+
+function initializeDispatchConfiguration($container){
+    $container.on(`click`, `.select-all-options`, onSelectAll);
 }

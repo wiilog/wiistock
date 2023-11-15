@@ -2,13 +2,9 @@
 
 namespace App\Annotation;
 
-use Doctrine\Common\Annotations\Annotation;
-use Doctrine\Common\Annotations\Annotation\Target;
+use Attribute;
 
-/**
- * @Annotation
- * @Target("METHOD")
- */
+#[Attribute(Attribute::TARGET_METHOD)]
 class RestAuthenticated {
 
 }

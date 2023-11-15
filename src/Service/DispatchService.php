@@ -4,24 +4,25 @@ namespace App\Service;
 
 use App\Entity\Arrivage;
 use App\Entity\Attachment;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
-use App\Entity\FreeField;
-use App\Entity\Dispatch;
-use App\Entity\CategorieCL;
-use App\Entity\CategoryType;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
-use App\Entity\SubLineFieldsParam;
-use App\Entity\TrackingMovement;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -29,16 +30,15 @@ use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class DispatchService {
 
@@ -73,7 +73,7 @@ class DispatchService {
     public TrackingMovementService $trackingMovementService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -133,7 +133,7 @@ class DispatchService {
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
-        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters, $this->userService->getUser(), $this->visibleColumnService,  [
+        $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->visibleColumnService,  [
             'defaultLanguage' => $defaultLanguage,
             'language' => $language
         ]);
@@ -228,15 +228,14 @@ class DispatchService {
                                          bool $fromArrival = false,
                                          array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]);
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $draftStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::DISPATCH, [Statut::DRAFT]);
         $existingDispatches = $dispatchRepository->findBy([
@@ -247,7 +246,7 @@ class DispatchService {
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
                 $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -333,38 +332,38 @@ class DispatchService {
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Transporteur', false),
                 'value' => $this->formatService->carrier($carrier, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° tracking transporteur', false),
                 'value' => $carrierTrackingNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH]
             ],
             $receiverDetails ?? [],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'N° projet', false),
                 'value' => $projectNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_PROJECT_NUMBER]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
                 'value' => $dispatch->getBusinessUnit() ?? '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_BUSINESS_UNIT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
                 'value' => $commandNumber ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
                 'value' => $this->formatService->location($locationFrom, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_PICK]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_LOCATION_PICK]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
                 'value' => $this->formatService->location($locationTo, '-'),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_LOCATION_DROP]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Général', "Dates d'échéance", false),
@@ -374,7 +373,7 @@ class DispatchService {
                         2 => $endDateStr
                     ], false)
                     : '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DEADLINE_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Général', null, 'Zone liste', 'Traité par', false),
@@ -383,27 +382,27 @@ class DispatchService {
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
                 'value' => $dispatch->getDestination() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DESTINATION]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DESTINATION]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
                 'value' => $dispatch->getCustomerName() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
                 'value' => $dispatch->getCustomerPhone() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de', false),
                 'value' => $dispatch->getCustomerRecipient() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH]
             ],
             [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
                 'value' => $dispatch->getCustomerAddress() ?: '-',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
         ];
 
@@ -431,7 +430,7 @@ class DispatchService {
             ];
         }
 
-        return $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DISPATCH);
+        return $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DISPATCH, $dispatch->getType());
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -832,22 +831,22 @@ class DispatchService {
                     "selected" => $current->getId() === $nature?->getId() ? "selected" : "",
                 ]);
 
-            $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFieldsParam::class);
+            $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFixedField::class);
 
             $fieldEntities = $subLineFieldsParamRepository->findBy([
-                'entityCode' => SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
+                'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
                 'fieldCode' => [
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT,
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME,
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT,
                 ],
             ]);
 
             $fields = Stream::from($fieldEntities)
-                ->keymap(static function (SubLineFieldsParam $subLineFieldsParam) use ($length, $width, $height, $weight, $volume, $comment) {
+                ->keymap(static function (SubLineFixedField $subLineFieldsParam) use ($length, $width, $height, $weight, $volume, $comment) {
                     $fieldCode = $subLineFieldsParam->getFieldCode();
                     return [
                         $fieldCode,
@@ -904,7 +903,7 @@ class DispatchService {
                     ]),
                 "nature" => $this->formService->macro(
                     'select',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_NATURE,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_NATURE,
                     null,
                     true,
                     [
@@ -914,11 +913,11 @@ class DispatchService {
                         'value' => $nature?->getId(),
                     ],
                 ),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $this->formService->macro(
                     'input',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT,
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT]['required'],
                     $weight,
                     [
                         'type' => 'number',
@@ -933,11 +932,11 @@ class DispatchService {
                             ],
                         ],
                     ]),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $this->formService->macro(
                     'input',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME,
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME]['required'],
                     $volume,
                     [
                         'type' => 'number',
@@ -952,27 +951,27 @@ class DispatchService {
                             ],
                         ],
                     ]),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => $this->formService->macro(
                     'wysiwyg',
                     'comment',
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT]['required'],
                     $comment,
                     [
                         'oneLineWysiwyg' => true,
                         'inputClass' => $creationMode,
                     ]),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation ?? "<span class='lastLocation'></span>",
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator ?? "<span class='operator'></span>",
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status ?? "<span class='status'></span>",
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate ?? "<span class='lastMvtDate'></span>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation ?? "<span class='lastLocation'></span>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator ?? "<span class='operator'></span>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status ?? "<span class='status'></span>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => $this->formService->macro(
                     'select',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT,
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT]['required'],
                     [
-                        'items' => $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT]['elements'],
+                        'items' => $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT]['elements'],
                         'type' => '',
                         'editable' => true,
                         'value' => $height,
@@ -987,13 +986,13 @@ class DispatchService {
                             ],
                         ],
                     ]),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => $this->formService->macro(
                     'select',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH,
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH]['required'],
                     [
-                        'items' => $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH]['elements'],
+                        'items' => $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH]['elements'],
                         'type' => '',
                         'editable' => true,
                         'value' => $width,
@@ -1008,13 +1007,13 @@ class DispatchService {
                             ],
                         ],
                     ]),
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $this->formService->macro(
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $this->formService->macro(
                     'select',
-                    SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
+                    SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH,
                     null,
-                    $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH]['required'],
+                    $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH]['required'],
                     [
-                        'items' => $fields[SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH]['elements'],
+                        'items' => $fields[SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH]['elements'],
                         'type' => '',
                         'editable' => true,
                         'value' => $length,
@@ -1036,16 +1035,16 @@ class DispatchService {
                 "code" => $code,
                 "nature" => $nature?->getLabel(),
                 "quantity" => $quantity,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $volume,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => "<div class='ql-editor'>$comment</div>",
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => $height,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => $width,
-                SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $length,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT => $weight,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME => $volume,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT => "<div class='ql-editor'>$comment</div>",
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $lastMvtDate,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $lastLocation,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $operator,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS => $status,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT => $height,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH => $width,
+                SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH => $length,
             ];
         }
 
@@ -2036,47 +2035,49 @@ class DispatchService {
     public function checkFormForErrors(EntityManagerInterface $entityManager,
                                        InputBag               $form,
                                        Dispatch               $dispatch,
-                                       bool                   $isCreation):InputBag {
-        if ($form->get(FieldsParam::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FieldsParam::FIELD_CODE_END_DATE_DISPATCH)){
+                                       bool                   $isCreation,
+                                       Type                   $type):InputBag {
+        if ($form->get(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH)){
             $form->add([
-                FieldsParam::FIELD_CODE_DEADLINE_DISPATCH => true,
+                FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH => true,
             ]);
         }
         if ($dispatch->getAttachments()->count()){
             $form->add([
-                FieldsParam::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
+                FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH => true,
             ]);
         }
         return $this->fieldsParamService->checkForErrors(
             $entityManager,
             $form,
-            FieldsParam::ENTITY_CODE_DISPATCH,
+            FixedFieldStandard::ENTITY_CODE_DISPATCH,
             $isCreation,
-            New ParameterBag([
-                FieldsParam::FIELD_CODE_EMERGENCY => true,
-            ])
+            new ParameterBag([
+                FixedFieldStandard::FIELD_CODE_EMERGENCY => true,
+            ]),
+            $type,
         );
     }
 
     public function getDispatckPacksColumnVisibleConfig(EntityManagerInterface $entityManager, bool $editMode = false): array {
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
 
-        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT);
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT);
         $columns = [
             ['name' => "actions", "class" => "noVis", "orderable" => false, "alwaysVisible" => true],
             ["name" => 'code', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Code')],
             ["name" => 'quantity', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Quantité UL')],
             ["name" => 'nature', 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire'],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur')],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut'],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px'],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px'],
-            ["name" => SubLineFieldsParam::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px'],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)')],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_VOLUME, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)')],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_COMMENT, 'title' => 'Commentaire'],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement')],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement')],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Opérateur')],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_STATUS, 'title' => 'Statut'],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_HEIGHT, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)'), 'width' => '200px'],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_WIDTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)'), 'width' => '200px'],
+            ["name" => SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LENGTH, 'title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)'), 'width' => '200px'],
         ];
 
         $columns = Stream::from($columns)
