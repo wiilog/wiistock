@@ -434,7 +434,7 @@ class PackController extends AbstractController
                 return [
                     "reference" => $referenceArticle->getReference(),
                     "label" => $referenceArticle->getLibelle(),
-                    "icon" => '<img src="'.$referenceArticle->getType()->getLogo()?->getFullPath().'" width="25px">',
+                    "icon" => '<img src="'.$referenceArticle->getType()?->getLogo()?->getFullPath().'" width="25px">',
                 ];
             })
             ->toArray();
