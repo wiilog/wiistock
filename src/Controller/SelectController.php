@@ -292,7 +292,11 @@ class SelectController extends AbstractController {
      */
     public function packs(Request $request, EntityManagerInterface $manager): Response {
         $limit = $request->query->get('limit') ?: null;
-        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"), ['limit' => $limit]);
+        $results = $manager->getRepository(Pack::class)->getForSelect($request->query->get("term"), [
+            'limit' => $limit,
+            'packReception' => $request->query->get('packReception') ?: null,
+            'alreadySelectedPacks' => $request->query->get('alreadySelectedPacks') ?: null,
+        ]);
         return $this->json([
             "results" => $results,
         ]);

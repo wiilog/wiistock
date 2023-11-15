@@ -59,8 +59,8 @@ class Reception {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateCommande = null;
 
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $orderNumber;
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $orderNumber;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'receptions')]
     private ?Type $type = null;
@@ -232,11 +232,11 @@ class Reception {
         return $this;
     }
 
-    public function getOrderNumber(): ?array {
+    public function getOrderNumber(): ?string {
         return $this->orderNumber;
     }
 
-    public function setOrderNumber(?array $orderNumber): self {
+    public function setOrderNumber(?string $orderNumber): self {
         $this->orderNumber = $orderNumber;
 
         return $this;
@@ -258,6 +258,16 @@ class Reception {
 
     public function setDateFinReception(?DateTimeInterface $dateFinReception): self {
         $this->dateFinReception = $dateFinReception;
+
+        return $this;
+    }
+
+    public function getLastAssociation(): ?DateTimeInterface {
+        return $this->lastAssociation;
+    }
+
+    public function setLastAssociation(?DateTimeInterface $lastAssociation): self {
+        $this->lastAssociation = $lastAssociation;
 
         return $this;
     }
@@ -512,6 +522,26 @@ class Reception {
         $this->arrivals = new ArrayCollection();
         foreach($arrivals ?? [] as $arrival) {
             $this->addArrival($arrival);
+        }
+
+        return $this;
+    }
+
+    public function bulkInsertArrivals(array $arrivals): self
+    {
+        dump($arrivals);
+        foreach ($this->arrivals as $arrival) {
+            $arrival->removeReception($this);
+        }
+        $this->arrivals = new ArrayCollection();
+
+        /** @var Arrivage $arrival */
+        foreach ($arrivals as $arrival) {
+            $this->addArrival($arrival);
+            if ($arrival->getTransporteur()) {
+                $this->setTransporteur($arrival->getTransporteur());
+            }
+            $arrival->addReception($this);
         }
 
         return $this;

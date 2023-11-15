@@ -184,8 +184,7 @@ class ReceptionController extends AbstractController {
             }
 
             if ($data->has('orderNumber')) {
-                $orderNumber = explode(",", $data->get('orderNumber'));
-                $reception->setOrderNumber($orderNumber);
+                $reception->setOrderNumber($data->get('orderNumber'));
             }
 
             if ($data->has('dateAttendue')) {
@@ -482,389 +481,199 @@ class ReceptionController extends AbstractController {
     }
 
     /**
-     * @Route("/remove-reception-reference-article", name="reception_reference_article_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/remove-reception-line", name="reception_line_remove",  options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function removeReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                     ReceptionService       $receptionService,
-                                                    MouvementStockService  $mouvementStockService,
                                                     RefArticleDataService  $refArticleDataService,
                                                     Request                $request): Response {
-        if($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
+        $data = $request->request->get('id');
+        if($data) {
+            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
 
-            /** @var ReceptionReferenceArticle $ligneArticle */
-            $ligneArticle = $receptionReferenceArticleRepository->find($data['ligneArticle']);
+            /** @var ReceptionLine $receptionLine */
+            $receptionLine = $receptionLineRepository->find($data);
 
-            $reception = $ligneArticle
-                ?->getReceptionLine()
-                ?->getReception();
-            if(!$ligneArticle || !$reception) {
+            if ($receptionLine->getPack()) {
+                return new JsonResponse([
+                    'success' => false,
+                    'msg' => 'Vous ne pouvez pas supprimer cette ligne car elle est liée à des colis',
+                ]);
+            }
+
+            $reception = $receptionLine->getReception();
+
+            if(!$reception) {
                 throw new FormException('La référence est introuvable');
             }
 
-            $ligneArticleLabel = $ligneArticle->getReferenceArticle() ? $ligneArticle->getReferenceArticle()->getReference() : '';
+            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
+            $receptionReferenceArticle = $receptionLine->getReceptionReferenceArticles()->first();
+
+            $receptionReferenceArticleLabel = $receptionReferenceArticle?->getReferenceArticle() ? $receptionReferenceArticle?->getReferenceArticle()->getReference() : '';
 
             $associatedMovements = $trackingMovementRepository->findBy([
-                'receptionReferenceArticle' => $ligneArticle,
+                'receptionReferenceArticle' => $receptionReferenceArticle,
             ]);
 
             if ($associatedMovements) {
                 return new JsonResponse([
                     'success' => false,
-                    'msg' => 'Cette Référence est référencée dans un ou plusieurs mouvements de traçabilité',
+                    'msg' => 'Cette référence est référencée dans un ou plusieurs mouvements de traçabilité',
                 ]);
             }
 
-            $reference = $ligneArticle->getReferenceArticle();
-            if($reference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $newRefQuantity = $reference->getQuantiteStock() - $ligneArticle->getQuantite();
-                $newRefAvailableQuantity = $newRefQuantity - $reference->getQuantiteReservee();
-                if($newRefAvailableQuantity < 0) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'La suppression de la référence engendre des quantités négatives',
-                    ]);
-                }
-                $reference->setQuantiteStock($newRefQuantity);
-            }
+
+
+            $reference = $receptionReferenceArticle->getReferenceArticle();
 
             // if receptionReferenceArticle is not attached to a pack
             // then we delete reception line if it doesn't have any reference articles linked
-            $receptionLine = $ligneArticle->getReceptionLine();
-            $ligneArticle->setReceptionLine(null);
-            if (!$receptionLine->getPack()
-                && $receptionLine->getReceptionReferenceArticles()->isEmpty()) {
-                $receptionLine->setReception(null);
+            $receptionLine = $receptionReferenceArticle->getReceptionLine();
+            if (!$receptionLine->getPack()) {
+                $reception->removeLine($receptionLine);
+                $receptionLine->removeReceptionReferenceArticle($receptionReferenceArticle);
+                $entityManager->remove($receptionReferenceArticle);
                 $entityManager->remove($receptionLine);
             }
 
-            $entityManager->remove($ligneArticle);
+            $entityManager->remove($receptionReferenceArticle);
             $entityManager->flush();
             $refArticleDataService->setStateAccordingToRelations($reference, $purchaseRequestLineRepository, $receptionReferenceArticleRepository);
 
             $reception->setStatut($receptionService->getNewStatus($reception));
 
-            /** @var Utilisateur $currentUser */
-            $currentUser = $this->getUser();
-            $quantity = $ligneArticle->getQuantite();
-            if ($quantity) {
-                $stockMovement = $mouvementStockService->createMouvementStock(
-                    $currentUser,
-                    null,
-                    $quantity,
-                    $reference,
-                    MouvementStock::TYPE_SORTIE
-                );
-
-                $stockMovement->setReceptionOrder($reception);
-                $date = new DateTime('now');
-                $mouvementStockService->finishStockMovement($stockMovement, $date, $reception->getLocation());
-                $entityManager->persist($stockMovement);
-            }
-
-            $entityManager->flush();
             return new JsonResponse([
                 'success' => true,
-                'entete' => $this->renderView('reception/show/header.html.twig', [
-                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                    'reception' => $reception,
-                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
-                ]),
-                'msg' => 'La référence <strong>' . $ligneArticleLabel . '</strong> a bien été supprimée.',
+                'msg' => 'La référence <strong>' . $receptionReferenceArticleLabel . '</strong> a bien été supprimée.',
             ]);
         }
         throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/new-reception-reference-article", name="reception_reference_article_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
+     * @Route("/new-reception-line", name="reception_line_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
-    public function newReceptionReferenceArticle(EntityManagerInterface           $entityManager,
-                                                 ReceptionService                 $receptionService,
-                                                 ReceptionLineService             $receptionLineService,
-                                                 ReceptionReferenceArticleService $receptionReferenceArticleService,
-                                                 Request                          $request): Response {
-        if ($contentData = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
+    public function newReceptionLine(EntityManagerInterface           $entityManager,
+                                     ReceptionService                 $receptionService,
+                                     Request                          $request): Response {
+        $contentData = $request->request;
+        if ($contentData) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
 
-            $refArticleId = (int)$contentData['referenceArticle'];
+            $refArticleId = (int)$contentData->get('referenceArticle');
             $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
-            $reception = $receptionRepository->find($contentData['reception']);
-            $commande = $contentData['commande'];
+            $reception = $receptionRepository->find($contentData->get('reception'));
 
-            $packId = $contentData['pack'] ?? null;
-            $pack = $packId ? $packRepository->find($packId) : null;
+            $refAlreadyExists = Stream::from($reception->getLines())
+                ->some(fn(ReceptionLine $receptionLine) => $refArticle
+                    && $receptionLine->getReceptionReferenceArticles()->first()
+                    && $receptionLine->getReceptionReferenceArticles()->first()?->getReferenceArticle()?->getReference() === $refArticle->getReference());
 
-            /* Only reference by article in the reception's packs */
-            if (isset($pack)
-                && $refArticle->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
-            }
-
-            $receptionLine = $reception->getLine($pack);
-
-            // we can't add a reference to a pack which does not already exist in the reception
-            //  + unique constraint: ref can be only one time in a reception line with or without pack
-            if ((!$receptionLine && $pack)
-                || $receptionLine?->getReceptionReferenceArticle($refArticle, $commande)) {
-                if (!$receptionLine) {
-                    throw new FormException('Il y a eu un problème lors de l\'ajout de la référence à la réception, veuillez recharger la page et réessayer.');
-                }
-                else if (!$receptionLine->hasPack()) {
-                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà pour cette réception.');
-                }
-                else {
-                    throw new FormException('La référence et le numéro de commande d\'achat saisis existent déjà dans l\'unité logistique que vous avez sélectionnée.');
-                }
-            } else {
-                $anomalie = $contentData['anomalie'];
-                if($anomalie) {
-                    $statutRecep = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, Reception::STATUT_ANOMALIE);
-                    $reception->setStatut($statutRecep);
+            if(!$refAlreadyExists) {
+                $updateLineRes = $receptionService->updateReceptionLine($entityManager, $reception, $refArticle, $contentData);
+                if (!($updateLineRes['success'] ?? false)) {
+                    return new JsonResponse($updateLineRes);
                 }
 
-                $receptionReferenceArticle = new ReceptionReferenceArticle();
-
-                if (empty($reception->getOrderNumber())) {
-                    $reception->setOrderNumber([$commande]);
-                }
-
-                $receptionReferenceArticle
-                    ->setCommande($commande)
-                    ->setAnomalie($contentData['anomalie'])
-                    ->setCommentaire($contentData['commentaire'] ?? null)
-                    ->setReferenceArticle($refArticle)
-                    ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
-
-                if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
-                    $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
-                }
-
-                $entityManager->persist($receptionReferenceArticle);
-                $entityManager->flush();
-
-                if($refArticle->getIsUrgent()) {
-                    $reception->setUrgentArticles(true);
-                    $receptionReferenceArticle->setEmergencyTriggered(true);
-                    $receptionReferenceArticle->setEmergencyComment($refArticle->getEmergencyComment());
-                }
                 $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
 
                 if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
                     $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
                 }
 
-                if (!isset($receptionLine)) {
-                    $receptionLine = $receptionLineService->persistReceptionLine($entityManager, $reception, $pack);
-                }
-                $receptionLine->addReceptionReferenceArticle($receptionReferenceArticle);
-
+                $receptionService->amendReceptionStatus($entityManager, $reception);
                 $entityManager->flush();
 
-                $json = [
+                return new JsonResponse([
                     'success' => true,
                     'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
-                    'receptionReferenceArticle' => $receptionReferenceArticleService->serializeForSelect($receptionReferenceArticle),
-                    'entete' => $this->renderView('reception/show/header.html.twig', [
-                        'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                        'reception' => $reception,
-                        'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
-                    ]),
-                ];
+                ]);
+            }  else {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "La référence existe déjà pour cette réception"
+                ]);
             }
-            return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
     }
 
     /**
-     * @Route("/api-edit-reception-reference-article", name="reception_reference_article_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
+     * @Route("/api-edit-reception-line", name="reception_line_edit_api", options={"expose"=true},  methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::ORDRE, Action::EDIT}, mode=HasPermission::IN_JSON)
      */
     public function apiEditReceptionReferenceArticle(EntityManagerInterface $entityManager,
                                                      Request                $request): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+        $data = $request->query->get('lineId');
+        if ($data) {
+            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
 
-            $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['id']);
-            $canUpdateQuantity = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
-            $reception = $receptionReferenceArticle->getReceptionLine()->getReception();
+            $receptionLine = $receptionLineRepository->find($data);
+            $reception = $receptionLine->getReception();
+            $receptionReferenceArticle = $receptionLine->getReceptionReferenceArticles()->first();
 
-            $json = $this->renderView(
-                'reception/show/modalEditReceptionReferenceArticleContent.html.twig',
-                [
-                    'receptionReferenceArticle' => $receptionReferenceArticle,
-                    'reception' => $reception,
-                    'canUpdateQuantity' => $canUpdateQuantity,
-                    'minValue' => $receptionReferenceArticle->getQuantite() ?? 0,
+            return new JsonResponse([
+                'success' => true,
+                'html' => $this->renderView(
+                    'reception/show/modalReceptionLineContent.html.twig',
+                    [
+                        'isEdit' => true,
+                        'receptionLine' => $receptionLine,
+                        'reception' => $reception,
+                        'receptionReferenceArticle' => $receptionReferenceArticle,
+                        'articles' => Stream::from($receptionReferenceArticle->getArticles())
+                            ->map(fn(Article $article) => [
+                                'label' => $article->getLabel(),
+                                'value' => $article->getLabel(),
+                                'selected' => true,
+                            ])
+                            ->toArray(),
+                    ]),
                 ]
             );
-            return new JsonResponse($json);
         }
         throw new BadRequestHttpException();
     }
 
-    #[Route("/edit-reception-reference-article", name: "reception_reference_article_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/edit-reception-line", name: "reception_line_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editReceptionReferenceArticle(EntityManagerInterface  $entityManager,
+    public function editReceptionLine(EntityManagerInterface  $entityManager,
                                                   ReceptionService        $receptionService,
-                                                  Request                 $request,
-                                                  MouvementStockService   $mouvementStockService,
-                                                  TrackingMovementService $trackingMovementService): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+                                                  Request                 $request): Response {
+        $data = $request->request;
+        if ($data) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
-            $packRepository = $entityManager->getRepository(Pack::class);
+            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+            $receptionRepository = $entityManager->getRepository(Reception::class);
 
-            /** @var ReceptionReferenceArticle $receptionReferenceArticle */
-            $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['article']);
+            $refArticleId = (int)$data->get('referenceArticle');
+            $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
+            $reception = $receptionRepository->find($data->get('reception'));
 
-            $receptionLine = $receptionReferenceArticle->getReceptionLine();
-            $reception = $receptionLine->getReception();
-
-            $pack = !empty($data['pack']) ? $packRepository->find($data['pack']) : null;
-            $orderNumber = $data['commande'];
-            $referenceArticle = !empty($data['referenceArticle']) ? $referenceArticleRepository->find($data['referenceArticle']) : null;
-
-            if ($receptionReferenceArticle->isReceptionBegun()
-                && ($pack?->getId() !== $receptionLine->getPack()?->getId()
-                    || $orderNumber !== $receptionReferenceArticle->getCommande()
-                    || $referenceArticle?->getId() !== $receptionReferenceArticle->getReferenceArticle()?->getId())) {
-                throw new FormException("Des articles ont déjà été réceptionnés, vous ne pouvez pas modifier l'unité logistique, la référence ou le numéro de commande d'achat de cette ligne de réception.");
+            $updateLineRes = $receptionService->updateReceptionLine($entityManager, $reception, $refArticle, $data);
+            if (!($updateLineRes['success'] ?? false)) {
+                return new JsonResponse($updateLineRes);
             }
 
-            /* Only reference managed by article in packs */
-            if (isset($pack)
-                && $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() !== ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                throw new FormException('Vous pouvez uniquement ajouter des références gérées par article aux unités logistiques et il s\'agit d\'une référence gérée par référence.');
+            $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
+
+            if ($status === Reception::STATUT_EN_ATTENTE || $status === Reception::STATUT_RECEPTION_PARTIELLE) {
+                $refArticle->setOrderState(ReferenceArticle::WAIT_FOR_RECEPTION_ORDER_STATE);
             }
 
-            $newReceptionLine = $reception->getLine($pack);
-            if ($newReceptionLine && $newReceptionLine->getId() !== $receptionLine->getId()) {
-                $receptionLine = $newReceptionLine;
-                $receptionReferenceArticle->setReceptionLine($receptionLine);
-            }
-
-            $receptionReferenceArticleMatching = $receptionLine->getReceptionReferenceArticle($referenceArticle, $orderNumber);
-            if ($receptionReferenceArticleMatching
-                && $receptionReferenceArticleMatching->getId() !== $receptionReferenceArticle->getId()) {
-                throw new FormException("L'association de cette référence avec ce numéro de commande existe déjà dans la réception");
-            }
-
-            $receptionReferenceArticle
-                ->setReferenceArticle($referenceArticle)
-                ->setCommande($orderNumber)
-                ->setAnomalie($data['anomalie'])
-                ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire($data['commentaire'] ?? null);
-
-            $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
-            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
-            if($typeQuantite === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
-                $quantite = $data['quantite'];
-                $oldReceivedQuantity = $receptionReferenceArticle->getQuantite() ?? 0;
-                $newReceivedQuantity = max((int)$quantite, 0);
-                $diffReceivedQuantity = $newReceivedQuantity - $oldReceivedQuantity;
-
-                // protection quantité reçue <= quantité à recevoir
-                if($receptionReferenceArticle->getQuantiteAR() && $quantite > $receptionReferenceArticle->getQuantiteAR()) {
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => 'La quantité reçue ne peut pas être supérieure à la quantité à recevoir.',
-                    ]);
-                }
-
-                /** @var Utilisateur $currentUser */
-                $currentUser = $this->getUser();
-                $receptionLocation = $reception->getLocation();
-                $now = new DateTime('now');
-
-                if($diffReceivedQuantity != 0) {
-                    $newStockQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
-                    if($newStockQuantity - $referenceArticle->getQuantiteReservee() < 0) {
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' =>
-                                'Vous ne pouvez pas avoir reçu '
-                                . $newReceivedQuantity
-                                . ' : la quantité disponible de la référence est : '
-                                . $referenceArticle->getQuantiteDisponible(),
-                        ]);
-                    } else {
-                        $mouvementStock = $mouvementStockService->createMouvementStock(
-                            $currentUser,
-                            null,
-                            abs($diffReceivedQuantity),
-                            $referenceArticle,
-                            $diffReceivedQuantity < 0 ? MouvementStock::TYPE_SORTIE : MouvementStock::TYPE_ENTREE
-                        );
-                        $mouvementStock->setReceptionOrder($reception);
-
-                        $mouvementStockService->finishStockMovement(
-                            $mouvementStock,
-                            $now,
-                            $receptionLocation
-                        );
-                        $entityManager->persist($mouvementStock);
-                        $createdMvt = $trackingMovementService->createTrackingMovement(
-                            $referenceArticle->getBarCode(),
-                            $receptionLocation,
-                            $currentUser,
-                            $now,
-                            false,
-                            true,
-                            TrackingMovement::TYPE_DEPOSE,
-                            [
-                                'mouvementStock' => $mouvementStock,
-                                'quantity' => $mouvementStock->getQuantity(),
-                                'from' => $reception,
-                                'receptionReferenceArticle' => $receptionReferenceArticle,
-                            ]
-                        );
-
-                        $receptionReferenceArticle->setQuantite($newReceivedQuantity);
-                        $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                        $referenceArticle
-                            ->setQuantiteStock($newStockQuantity);
-                        $entityManager->persist($createdMvt);
-                    }
-                }
-            }
-
-            if(array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
-                $articleFournisseur = $articleFournisseurRepository->find($data['articleFournisseur']);
-                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
-            }
-
-            // Le double flush est nécessaire. Dans le cas contraire, la quantité disponible de la référence ne se recalcule pas.
-            // Déclenchement de deux triggers :
-            //      - RefArticleQuantityNotifier (premier flush)
-            //      - RefArticleStateNotifier (second flush)
+            $receptionService->amendReceptionStatus($entityManager, $reception);
             $entityManager->flush();
-
-            $reception->setStatut($receptionService->getNewStatus($reception));
-
-            $entityManager->flush();
-
-            $referenceLabel = $referenceArticle ? $referenceArticle->getReference() : '';
 
             return new JsonResponse([
                 'success' => true,
-                'msg' => 'La référence <strong>' . $referenceLabel . '</strong> a bien été modifiée.',
-                'entete' => $this->renderView('reception/show/header.html.twig', [
-                    'modifiable' => $reception->getStatut()->getCode() !== Reception::STATUT_RECEPTION_TOTALE,
-                    'reception' => $reception,
-                    'showDetails' => $receptionService->createHeaderDetailsConfig($reception),
-                ]),
+                'msg' => 'La référence <strong>' . $refArticle->getReference() . '</strong> a bien été ajoutée.',
             ]);
         }
         throw new BadRequestHttpException();
@@ -1388,7 +1197,8 @@ class ReceptionController extends AbstractController {
     public function checkBeforeReceptionReferenceArticleDelete(EntityManagerInterface $entityManager,
                                                                TranslationService     $translationService,
                                                                Request                $request) {
-        if ($id = json_decode($request->getContent(), true)) {
+        $id = $request->request->get('id');
+        if ($id) {
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $ligneArticle = $receptionReferenceArticleRepository->find($id);
             $nbArticles = $ligneArticle->getArticles()->count();
@@ -2311,45 +2121,10 @@ class ReceptionController extends AbstractController {
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function getReceptionLinesApi(EntityManagerInterface $entityManager,
                                          Reception              $reception,
-                                         Request                $request): JsonResponse {
-
-        $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
-
-        $lines = $reception->getLines();
-        $linesCount = $lines->count();
-
-        $receptionWithoutUnits = $linesCount === 1 && $lines->get(0)->getPack() === null;
-
-        $start = $request->query->get('start') ?: 0;
-        $search = $request->query->get('search') ?: 0;
-
-        $listLength = 5;
-
-        $pagination = match($receptionWithoutUnits) {
-            true => $lines->get(0)->getReceptionReferenceArticles()->count() > $listLength, // reference display
-            false => $linesCount > $listLength // logistic unit display
-        };
-
-        $result = $receptionLineRepository->getByReception($reception, [
-            "start" => $start,
-            "length" => $listLength,
-            "paginationMode" => $receptionWithoutUnits ? "references" : "units",
-            "search" => $search,
-        ]);
-
-        return $this->json([
-            "success" => true,
-            "html" => $this->renderView("reception/show/line-list.html.twig", [
-                "reception" => $reception,
-                "pagination" => $pagination,
-                "lines" => $result["data"],
-                "total" => $result["total"],
-                "current" => $start,
-                "currentPage" => floor($start / $listLength),
-                "pageLength" => $listLength,
-                "pagesCount" => ceil($result["total"] / $listLength),
-            ]),
-        ]);
+                                         Request                $request,
+                                         ReceptionLineService   $receptionLineService): JsonResponse
+    {
+        $data = $receptionLineService->getDataForDatatable($entityManager, $request->query, $reception);
+        return new JsonResponse($data);
     }
-
 }

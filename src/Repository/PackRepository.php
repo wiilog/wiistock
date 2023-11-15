@@ -646,6 +646,21 @@ class PackRepository extends EntityRepository
                 ->andWhere("article.id IS NULL");
         }
 
+        if ($options["packReception"] ?? false) {
+            $qb
+                ->leftJoin("pack.arrivage", "join_arrivage")
+                ->leftJoin("join_arrivage.receptions", "join_reception")
+                ->andWhere("join_reception.id = :reception")
+                ->setParameter("reception", $options["packReception"]);
+        }
+
+        if ($options["alreadySelectedPacks"] ?? false) {
+            dump('65');
+            $alreadySelectedPacks = explode(';', $options["alreadySelectedPacks"]);
+            $qb->andWhere("pack.id NOT IN (:alreadySelectedPacks)")
+                ->setParameter('alreadySelectedPacks', $alreadySelectedPacks);
+        }
+
         if($limit) {
             $qb->setMaxResults($limit);
         }

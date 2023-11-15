@@ -1,0 +1,27 @@
+{% import 'form.html.twig' as form %}
+
+<div id="modalNewReceptionLine" class="modal fade" role="dialog"
+      data-modal-type="new" aria-labelledby="dataModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered"
+         role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Ajouter une ligne"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'reception/show/modalReceptionLineContent.html.twig' with {
+                    reception,
+                    isEdit: false,
+                } %}
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Enregistrer', type: "submit"},
+                ],
+            } %}
+        </div>
+    </div>
+</div>
