@@ -123,7 +123,7 @@ class DispatchController extends AbstractController {
             ],
             [
                 'name' => 'endDate',
-                'label' => 'Date d\'échéance',
+                'label' => 'Date d\'échéances',
             ],
         ];
 
