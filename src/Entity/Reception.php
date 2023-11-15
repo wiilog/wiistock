@@ -13,7 +13,6 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Google\Service\AdMob\Date;
 use WiiCommon\Helper\Stream;
 
 #[ORM\Entity(repositoryClass: ReceptionRepository::class)]
@@ -482,18 +481,6 @@ class Reception {
     public function isPartial(): bool {
         return Stream::from($this->getReceptionReferenceArticles())
             ->some(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getQuantite());
-    }
-
-    public function getAttachments(): ArrayCollection
-    {
-        return $this->attachments;
-    }
-
-    public function setAttachments(ArrayCollection $attachments): self
-    {
-        $this->attachments = $attachments;
-
-        return $this;
     }
 
     public function getArrivals(): Collection {

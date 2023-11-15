@@ -8,6 +8,7 @@ use App\Entity\DispatchPack;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
+use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -589,5 +590,27 @@ class DispatchRepository extends EntityRepository
         return $qb
             ->getQuery()
             ->toIterable();
+    }
+
+    public function findNotTreatedForPack(Pack $pack): ?Dispatch {
+        if ($pack->getId()) {
+            return $this->createQueryBuilder("dispatch")
+                ->leftJoin("dispatch.dispatchPacks", "dispatch_packs")
+                ->leftJoin("dispatch_packs.pack", "joined_pack")
+                ->join("dispatch.statut", "status")
+                ->andWhere("joined_pack.id = :pack")
+                ->andWhere("status.id IS NOT NULL")
+                ->andWhere("status.state != :treated")
+                ->setParameter("pack", $pack)
+                ->setParameter("treated", Statut::TREATED)
+                ->orderBy("dispatch.id", "DESC")
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+        }
+        else {
+            $dispatchPack = $pack->getDispatchPacks()->first();
+            return $dispatchPack ? $dispatchPack->getDispatch() : null;
+        }
     }
 }
