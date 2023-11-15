@@ -120,7 +120,6 @@ $(function () {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
-
 });
 
 function initTableArrival(dispatchMode = false) {

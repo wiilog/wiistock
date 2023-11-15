@@ -70,9 +70,9 @@
             {{ form.select(setting('DISPATCH_FIXED_FIEDS_ON_FILTERS'), '', false, {
                 type: '',
                 items: dispatchFixedFieldsFilterable|map((fixedField) => ({
-                        value : fixedField.id,
+                        value : fixedField.fieldCode,
                         label : fixedField.fieldLabel,
-                        selected: fixedField.id in dispatchFixedFieldsInFilter
+                        selected: fixedField.fieldCode in dispatchFixedFieldsInFilter
                 })),
                 multiple: true,
             }) }}

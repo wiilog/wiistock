@@ -1,7 +1,24 @@
 {% import 'form.html.twig' as form %}
 
-{% set displayAction = dispatch.id ? 'displayedEdit' : 'displayedCreate' %}
-{% set requiredAction = dispatch.id ? 'requiredEdit' : 'requiredCreate' %}
+{% macro dataAttributesFieldbyType(fieldsParam, fieldCode) %}
+    {% for ParamName, types in fieldsParam[fieldCode] is defined ? fieldsParam[fieldCode] : [] %}
+        {% if ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT')] %}
+            data-displayed-type
+        {% elseif ParamName in [constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE'), constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT')] %}
+            data-required-type
+        {% else %}
+            data-{{ ParamName }}-type
+        {% endif %}
+        ="{{ types }}"
+    {% endfor %}
+{% endmacro %}
+
+{% import _self as macros %}
+
+{% set displayAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE') %}
+{% set requiredAction = dispatch.id ? constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_EDIT') : constant('App\\Entity\\Fields\\FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE') %}
+
+{% set typeCanChange =  dispatch.id ? false : true %}
 
 {% if dispatch.id %}
     {{ form.hidden('id', dispatch.id) }}
@@ -69,15 +86,17 @@
             } %}
         </div>
     </div>
-
-
+</div>
+<div class="row mt-2">
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requester = dispatch.requester ?? app.user %}
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Demandeur', false), requiredOnform, {
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Demandeur'), requiredOnform, {
                 type: 'user',
                 inputClass: 'no-clear',
                 items: [{
@@ -92,9 +111,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {{ form.hidden('typeDispatchPickLocation', dispatch.type.id ?? null) }}
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise'), requiredOnform, {
                 type: 'location',
                 items: dispatch.locationFrom ? [{
@@ -112,9 +133,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {{ form.hidden('typeDispatchDropLocation', dispatch.type.id ?? null ) }}
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose'), requiredOnform, {
                 type: 'location',
                 items: dispatch.locationTo ? [{
@@ -132,8 +155,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Destination'), requiredOnform, dispatch.destination, {
                 additionalAttributes: [
                     { name: 'maxlength', value: 50},
@@ -145,9 +170,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set dispatchEmergency = dispatch.emergency %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence', false), false, {
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), false, {
                 items: emergencies|map(item => ({
                     value: item,
                     label: item,
@@ -165,9 +192,11 @@
         {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
         {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
         {% if displayOnform %}
-            <div class="form-group col-md-4 col-12">
-                {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-                {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur', false), requiredOnform, {
+            <div
+                {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+                class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+                {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+                {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Transporteur'), requiredOnform, {
                     type: 'carrier',
                     items: dispatch.carrier ? [{
                         value: dispatch.carrier.id,
@@ -182,8 +211,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'N° tracking transporteur'), requiredOnform, dispatch.carrierTrackingNumber) }}
         </div>
     {% endif %}
@@ -191,9 +222,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Général', 'Destinataire(s)', false), requiredOnform, {
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {{ form.select(fieldCode, trans('Demande', 'Général', 'Destinataire(s)'), requiredOnform, {
                 type: 'user',
                 multiple: true,
                 items: dispatch.receivers|map((item) => {
@@ -208,8 +241,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande'), requiredOnform, dispatch.commandNumber) }}
         </div>
     {% endif %}
@@ -217,8 +252,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% set projectNumber = dispatch.id is defined ? dispatch.projectNumber : (arrival is defined ? arrival.projectNumber : null) %}
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'N° projet'), requiredOnform, projectNumber, {
                 additionalAttributes: dispatch.id ? [] : [
@@ -231,9 +268,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit', false), requiredOnform, {
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Général', 'Business unit'), requiredOnform, {
                 inputClass: "needs-default",
                 items: dispatchBusinessUnits|map((businessUnit) => {
                     value: businessUnit,
@@ -254,8 +293,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMAILS') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, 'Email(s)', requiredOnform, {
                 multiple: true,
                 type: '',
@@ -272,9 +313,11 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-        <div class="form-group col-md-8 col-12">
-            {{ form.inlineInputs(fieldCode, trans('Demande', 'Acheminements', 'Modale', 'Echéance', false), requiredOnform,{
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-8 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.inlineInputs(fieldCode, trans('Demande', 'Acheminements', 'Modale', 'Echéance'), requiredOnform,{
                 content: [
                     {
                         label: 'Du',
@@ -309,10 +352,12 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set dispatchBusinessUnit = dispatch.businessUnit %}
-            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Client', false), requiredOnform, {
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.select(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Client'), requiredOnform, {
                 type: 'customers',
                 items: [{
                     label: dispatch.customerName,
@@ -329,8 +374,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input(fieldCode, trans('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client'), requiredOnform, dispatch.customerPhone) }}
         </div>
     {% endif %}
@@ -338,8 +385,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-4 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.input('customerRecipient', trans('Demande', 'Acheminements', 'Champs fixes', 'À l\'attention de'), requiredOnform, dispatch.customerRecipient) }}
         </div>
     {% endif %}
@@ -347,8 +396,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col-md-8 col-12">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-8 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.textarea('customerAddress', trans('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison'), requiredOnform, dispatch.customerAddress) }}
         </div>
     {% endif %}
@@ -381,8 +432,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="form-group col">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, dispatch.commentaire) }}
         </div>
     {% endif %}
@@ -390,8 +443,10 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-        <div class="form-group col-md-4 col-12">
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {% include 'attachment/attachment.html.twig' with {
                 isNew: dispatch.id is null,
                 required: requiredOnform,

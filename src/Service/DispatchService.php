@@ -11,6 +11,7 @@ use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
@@ -227,15 +228,14 @@ class DispatchService {
                                          bool $fromArrival = false,
                                          array $packs = []): array {
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $typeRepository = $entityManager->getRepository(Type::class);
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH);
+        $fieldsParam = $fixedFieldByTypeRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DISPATCH, [FixedFieldByType::ATTRIBUTE_REQUIRED_CREATE, FixedFieldByType::ATTRIBUTE_DISPLAYED_CREATE]);
 
-        $dispatchBusinessUnits = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        $dispatchBusinessUnits = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $draftStatuses = $statusRepository->findByCategoryAndStates(CategorieStatut::DISPATCH, [Statut::DRAFT]);
         $existingDispatches = $dispatchRepository->findBy([
@@ -246,7 +246,7 @@ class DispatchService {
         return [
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'fieldsParam' => $fieldsParam,
-            'emergencies' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'preFill' => $settingRepository->getOneParamByLabel(Setting::PREFILL_DUE_DATE_TODAY),
             'typeChampsLibres' => array_map(function(Type $type) use ($freeFieldRepository) {
                 $champsLibres = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
@@ -430,7 +430,7 @@ class DispatchService {
             ];
         }
 
-        return $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DISPATCH);
+        return $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DISPATCH, $dispatch->getType());
     }
 
     public function createDateFromStr(?string $dateStr): ?DateTime {
@@ -2035,7 +2035,8 @@ class DispatchService {
     public function checkFormForErrors(EntityManagerInterface $entityManager,
                                        InputBag               $form,
                                        Dispatch               $dispatch,
-                                       bool                   $isCreation):InputBag {
+                                       bool                   $isCreation,
+                                       Type                   $type):InputBag {
         if ($form->get(FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH) && $form->get(FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH)){
             $form->add([
                 FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH => true,
@@ -2051,9 +2052,10 @@ class DispatchService {
             $form,
             FixedFieldStandard::ENTITY_CODE_DISPATCH,
             $isCreation,
-            New ParameterBag([
+            new ParameterBag([
                 FixedFieldStandard::FIELD_CODE_EMERGENCY => true,
-            ])
+            ]),
+            $type,
         );
     }
 
