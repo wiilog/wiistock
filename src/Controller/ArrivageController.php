@@ -999,22 +999,9 @@ class ArrivageController extends AbstractController {
             $currentUser = $this->getUser();
 
             $response = [];
-            $persistedPack = [];
-            if ($reception = $arrivage->getReception()) {
-                $statusCode = $reception->getStatut()->getCode();
-                if ($statusCode === Reception::STATUT_EN_ATTENTE) {
-                    $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project, $reception);
-                    $entityManager->flush();
-                } elseif ($statusCode === Reception::STATUT_RECEPTION_TOTALE) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas ajouter d'unité(s) logistique(s) à un arrivage receptionné."
-                    ];
-                }
-            } else {
-                $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
-                $entityManager->flush();
-            }
+
+            $persistedPack = $packService->persistMultiPacks($entityManager, $arrivage, $natures, $currentUser, true, $project);
+            $entityManager->flush();
 
             if ($response === []) {
                 $response = [
