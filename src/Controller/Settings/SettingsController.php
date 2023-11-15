@@ -2244,8 +2244,8 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $formService->macro("switch", "isDefault", null, true, [
-                        ["label" => "Oui", "value" => 1, "checked" => $type->isDefault()],
-                        ["label" => "Non", "value" => 0, "checked" => !$type->isDefault()],
+                        ["label" => "Oui", "value" => 1, "checked" => $type?->isDefault()],
+                        ["label" => "Non", "value" => 0, "checked" => !$type?->isDefault()],
                     ]),
                 ];
             }
