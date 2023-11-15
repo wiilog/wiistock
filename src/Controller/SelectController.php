@@ -859,9 +859,9 @@ class SelectController extends AbstractController {
         $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithGroupsForSelect($request->query->get("term"));
         $locations = $entityManager->getRepository(Emplacement::class)->getWithGroupsForSelect($request->query->get("term"));
         $allLocations = Stream::from($locations, $locationGroups)
-            ->sort(fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']))
+            ->sort(static fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']))
             ->toArray();
-        
+
         return $this->json([
             'results' => $allLocations
         ]);
