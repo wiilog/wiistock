@@ -492,9 +492,7 @@ class ImportService
             fclose($logFile);
 
             // mise à jour des quantités sur références par article
-            foreach ($refToUpdate as $ref) {
-                $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
-            }
+            $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $refToUpdate);
 
             // flush update quantities
             $this->entityManager->flush();

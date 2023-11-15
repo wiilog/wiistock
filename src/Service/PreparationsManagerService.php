@@ -749,7 +749,7 @@ class PreparationsManagerService
         foreach ($preparation->getReferenceLines() as $ligneArticle) {
             $refArticle = $ligneArticle->getReference();
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, [$refArticle]);
             }
             // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
         }
