@@ -499,18 +499,17 @@ class ArrivageRepository extends EntityRepository
     }
 
 
-    public function getNbRefUrgentInArrival(Arrivage $arrival):int
-    {
-    return $this->createQueryBuilder('arrival')
-        ->select('COUNT(referenceArticle)')
-        ->leftJoin('arrival.receptions', 'reception')
-        ->leftJoin('reception.lines', 'receptionLine')
-        ->leftJoin('receptionLine.receptionReferenceArticles', 'receptionReferenceArticle')
-        ->leftJoin('receptionReferenceArticle.referenceArticle', 'referenceArticle')
-        ->andWhere('arrival.id = :arrival')
-        ->andWhere('referenceArticle.isUrgent = 1')
-        ->setParameter('arrival', $arrival)
-        ->getQuery()
-        ->getSingleScalarResult();
+    public function getNbRefUrgentInArrival(Arrivage $arrival): int {
+        return $this->createQueryBuilder('arrival')
+            ->select('COUNT(join_referenceArticle)')
+            ->leftJoin('arrival.receptions', 'join_reception')
+            ->leftJoin('join_reception.lines', 'join_receptionLine')
+            ->leftJoin('join_receptionLine.receptionReferenceArticles', 'join_receptionReferenceArticle')
+            ->leftJoin('join_receptionReferenceArticle.referenceArticle', 'join_referenceArticle')
+            ->andWhere('arrival.id = :arrival')
+            ->andWhere('join_referenceArticle.isUrgent = 1')
+            ->setParameter('arrival', $arrival->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
