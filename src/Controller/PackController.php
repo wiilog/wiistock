@@ -15,7 +15,10 @@ use App\Entity\Pack;
 
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\ReceptionLine;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -410,6 +413,35 @@ class PackController extends AbstractController
         return $this->json([
             'success' => true,
             'location' => $location?->getId(),
+        ]);
+    }
+
+    #[Route("/get-pack-reference-article/{logisticUnit}/{arrival}", name: "get_pack_reference_article", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ARRI])]
+    public function getReferenceArticle(Pack            $logisticUnit,
+                                        Arrivage        $arrival): JsonResponse {
+        $logisticUnitId = $logisticUnit->getId();
+
+        $articleRows = Stream::from($arrival->getReceptions())
+            ->filter(static fn(Reception $reception) =>
+                Stream::from($reception->getLines())
+                    ->some(static fn(ReceptionLine $receptionLine) => $receptionLine->getPack()->getId() === $logisticUnitId))
+            ->flatMap(static fn(Reception $reception) => $reception->getLines())
+            ->filter(static fn(ReceptionLine $receptionLine) => $receptionLine->getPack()->getId() === $logisticUnitId)
+            ->flatMap(static fn(ReceptionLine $receptionLine) => $receptionLine->getReceptionReferenceArticles())
+            ->map(static function(ReceptionReferenceArticle $receptionReferenceArticle): array {
+                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+                return [
+                    "reference" => $referenceArticle->getReference(),
+                    "label" => $referenceArticle->getLibelle(),
+                    "icon" => '<img src="'.$referenceArticle->getType()?->getLogo()?->getFullPath().'" width="25px">',
+                ];
+            })
+            ->toArray();
+
+        return $this->json([
+            'success' => true,
+            'data' => $articleRows,
         ]);
     }
 }
