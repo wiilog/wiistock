@@ -6,7 +6,7 @@
     {% include 'filters/filter_item/filterUser.html.twig' with {
         placeholder: 'Demandeurs',
     } %}
-    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterProvider.html.twig' %}
     {% endif %}

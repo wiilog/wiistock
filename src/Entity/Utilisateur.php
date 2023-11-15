@@ -182,9 +182,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: DisputeHistoryRecord::class)]
     private Collection $disputeHistoryRecords;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: ReceiptAssociation::class)]
-    private Collection $receptionsTraca;
-
     #[ORM\ManyToMany(targetEntity: Dispute::class, mappedBy: 'buyers')]
     private Collection $disputes;
 
@@ -330,7 +327,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->requestedDispatches = new ArrayCollection();
         $this->treatedDispatches = new ArrayCollection();
         $this->treatedHandlings = new ArrayCollection();
-        $this->receptionsTraca = new ArrayCollection();
         $this->disputes = new ArrayCollection();
         $this->referencesEmergenciesTriggered = new ArrayCollection();
         $this->reportedDisputes = new ArrayCollection();
@@ -1124,34 +1120,6 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
             // set the owning side to null (unless already changed)
             if($treatedHandling->getRequester() === $this) {
                 $treatedHandling->setRequester(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|ReceiptAssociation[]
-     */
-    public function getReceptionsTraca(): Collection {
-        return $this->receptionsTraca;
-    }
-
-    public function addReceptionsTraca(ReceiptAssociation $receptionsTraca): self {
-        if(!$this->receptionsTraca->contains($receptionsTraca)) {
-            $this->receptionsTraca[] = $receptionsTraca;
-            $receptionsTraca->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReceptionsTraca(ReceiptAssociation $receptionsTraca): self {
-        if($this->receptionsTraca->contains($receptionsTraca)) {
-            $this->receptionsTraca->removeElement($receptionsTraca);
-            // set the owning side to null (unless already changed)
-            if($receptionsTraca->getUser() === $this) {
-                $receptionsTraca->setUser(null);
             }
         }
 

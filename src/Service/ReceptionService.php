@@ -7,25 +7,24 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
+use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
-use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class ReceptionService
 {
@@ -44,7 +43,7 @@ class ReceptionService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public StringService $stringService;
@@ -350,8 +349,8 @@ class ReceptionService
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
@@ -436,7 +435,7 @@ class ReceptionService
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         return array_merge(
             $configFiltered,

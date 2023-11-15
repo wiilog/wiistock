@@ -118,7 +118,7 @@ class StatusService {
                 'label' => 'Brouillon',
                 'id' => Statut::DRAFT,
                 'code' => 'draft',
-                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_DISPATCH],
+                'modes' => [Statut::MODE_PURCHASE_REQUEST, Statut::MODE_DISPATCH],
                 'needMobileSyncDisabled' => true,
                 'automaticReceptionCreationDisabled' => true
             ],
@@ -132,7 +132,7 @@ class StatusService {
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
                 'code' => 'inProgress',
-                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING],
+                'modes' => [Statut::MODE_PURCHASE_REQUEST, Statut::MODE_HANDLING],
                 'automaticReceptionCreationDisabled' => true
             ],
             [
@@ -145,13 +145,13 @@ class StatusService {
                 'label' => 'Litige',
                 'id' => Statut::DISPUTE,
                 'code' => 'dispute',
-                'modes' => [StatusController::MODE_ARRIVAL],
+                'modes' => [Statut::MODE_ARRIVAL],
             ],
             [
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
                 'code' => 'partial',
-                'modes' => [StatusController::MODE_DISPATCH],
+                'modes' => [Statut::MODE_DISPATCH],
             ],
         ])
             ->filter(fn($state) => (

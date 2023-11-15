@@ -14,7 +14,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -76,7 +76,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/reception")
@@ -243,7 +242,7 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $reception = $receptionRepository->find($data['id']);
 
@@ -274,7 +273,7 @@ class ReceptionController extends AbstractController {
                 ];
             }
 
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/show/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
@@ -302,8 +301,8 @@ class ReceptionController extends AbstractController {
 
         $data = $receptionService->getDataForDatatable($user, $request->request, $arrivalFilter, $purchaseRequestFilter);
 
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
         $data['columnsToHide'] = $fieldsParam;
 
         return new JsonResponse($data);
@@ -384,11 +383,11 @@ class ReceptionController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
         $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
         foreach($listType as $type) {
@@ -902,7 +901,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -946,7 +945,7 @@ class ReceptionController extends AbstractController {
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
             'restrictedLocations' => $restrictedLocations,
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
         ]);
     }
@@ -1710,7 +1709,6 @@ class ReceptionController extends AbstractController {
                                    EntityManagerInterface     $entityManager,
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
-                                   FreeFieldService           $champLibreService,
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
@@ -1797,7 +1795,7 @@ class ReceptionController extends AbstractController {
                 $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 

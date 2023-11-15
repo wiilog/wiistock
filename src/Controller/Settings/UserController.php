@@ -3,7 +3,7 @@
 namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
@@ -47,7 +47,7 @@ class UserController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
-            $fixedFieldRepository = $entityManager->getRepository(FieldsParam::class);
+            $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
@@ -72,7 +72,7 @@ class UserController extends AbstractController {
                             "selected" => $key == $user->getDateFormat()
                         ])
                         ->toArray(),
-                    "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FieldsParam::ENTITY_CODE_DISPATCH, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
+                    "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 ])
             ]);
         }
