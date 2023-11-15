@@ -97,6 +97,19 @@ class ReceptionLine {
         return $this;
     }
 
+    public function setReceptionReferenceArticles(?iterable $receptionReferenceArticles): self {
+        foreach($this->getReceptionReferenceArticles()->toArray() as $receptionReferenceArticle) {
+            $this->removeReceptionReferenceArticle($receptionReferenceArticle);
+        }
+
+        $this->receptionReferenceArticles = new ArrayCollection();
+        foreach($receptionReferenceArticles ?? [] as $receptionReferenceArticle) {
+            $this->addReceptionReferenceArticle($receptionReferenceArticle);
+        }
+
+        return $this;
+    }
+
     public function getReceptionReferenceArticle(?ReferenceArticle $referenceArticle,
                                                  ?string $orderNumber): ?ReceptionReferenceArticle {
         return Stream::from($this->receptionReferenceArticles->toArray())

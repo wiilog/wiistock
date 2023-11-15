@@ -1,0 +1,112 @@
+{% import 'form.html.twig' as form %}
+<input type="hidden" class="data" name="reception" value="{{ reception.id }}"/>
+{% set referenceIsDefined = receptionReferenceArticle is defined and receptionReferenceArticle.referenceArticle %}
+<div class="row">
+    <div class="form-group col-xl-6 col-12">
+        <div class="row no-gutters align-items-end">
+            <div class="col">
+                {{ form.select('referenceArticle', trans('Stock', 'Références', 'référence', false), true, {
+                    type: 'reference',
+                    items: referenceIsDefined ? [{
+                        label: receptionReferenceArticle.referenceArticle.libelle,
+                        value: receptionReferenceArticle.referenceArticle.id,
+                        selected: true,
+                    }] : [],
+                    onChange: 'articleChanged($(this))',
+                }) }}
+            </div>
+
+            {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
+                <div class="col-auto pl-2">
+                    <a href="{{ path('reference_article_new_page', {from: 'reception_add_line', reception: reception.id}) }}"
+                       class="btn btn-primary m-0 d-flex align-items-center">
+                        <span class="wii-icon wii-icon-plus mr-1"></span>
+                        <span>Créer</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div id='innerNewRef' class="form-group w-100 col-12"></div>
+
+    <div class="form-group col-12 mb-3 ml-0">
+        {{ form.input('reference-label', 'Désignation', false, referenceIsDefined ? receptionReferenceArticle.referenceArticle.reference : null, {
+            inputClass: 'reference-label',
+            readonly: true,
+        }) }}
+    </div>
+</div>
+
+<div class="body-add-ref row {{ isEdit ? '' : 'd-none'}}">
+    <div class="col-12">
+        <span class="h5">Associer au(x) colis</span>
+        <div class="pack-associations">
+            {% if isEdit %}
+                {% if referenceIsDefined and receptionReferenceArticle.referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_REFERENCE') %}
+                    <div class="row mt-2" data-multiple-key="packAssociations">
+                        <div class="col-md-6 col-12">
+                            {{ form.select('pack', null, false, {
+                                type: 'pack',
+                                items: receptionLine.pack ? [{
+                                    label: receptionLine.pack.code,
+                                    value: receptionLine.pack.id,
+                                    selected: true,
+                                }] : [],
+                                placeholder: "Sélectionnez un colis",
+                                includeParams: "input[name=packReception], input[name=alreadySelectedPacks]",
+                            }) }}
+                        </div>
+                    </div>
+                {% elseif referenceIsDefined and receptionReferenceArticle.referenceArticle.typeQuantite == constant('App\\Entity\\ReferenceArticle::QUANTITY_TYPE_ARTICLE') %}
+                    <div class="row mt-2" data-multiple-key="packAssociations">
+                        <div class="col-md-6 col-12">
+                            {{ form.select('pack', null, false, {
+                                type: 'pack',
+                                items: receptionLine.pack ? [{
+                                    label: receptionLine.pack.code,
+                                    value: receptionLine.pack.id,
+                                    selected: true,
+                                }] : [],
+                                placeholder: "Sélectionnez un colis",
+                                includeParams: "input[name=packReception], input[name=alreadySelectedPacks]",
+                            }) }}
+                        </div>
+                        <div class="col-md-6 col-12">
+                            {{ form.select('articles', '', false, {
+                                type: null,
+                                items: articles,
+                                placeholder: "Entrez des articles",
+                                multiple: true,
+                                editable: true,
+                            }) }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% if not isEdit %}
+            <button type="button" class="btn btn-primary my-2 add-pack-association">
+                <i class="fa fa-plus"></i>
+            </button>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <div class="form-group col-12 emergency {{ referenceIsDefined and receptionReferenceArticle.referenceArticle.isUrgent ? '' : 'd-none' }}">
+            <h1 class="my-0"><i class="fa fa-exclamation-triangle mr-2"></i>Cette référence est en URGENCE.</h1>
+            <div class="form-group commentOverflow h-100 mw-50 text-justify mw-75">
+                <p class="pl-0">Commentaire de l'urgence :
+                    <div class="emergency-comment">{{ referenceIsDefined and receptionReferenceArticle.referenceArticle.emergencyComment }}</div>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group col-12">
+        {{ form.wysiwyg('commentaire', 'Commentaire', false, referenceIsDefined ? receptionReferenceArticle.commentaire : '')}}
+    </div>
+
+    <input type="hidden" name="referenceTypeQuantity" value="{{ referenceIsDefined ? receptionReferenceArticle.referenceArticle.typeQuantite : null }}"/>
+    <input type="hidden" name="packReception" value="{{ reception.id }}"/>
+    <input type="hidden" name="alreadySelectedPacks" value=""/>
+</div>

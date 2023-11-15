@@ -498,6 +498,16 @@ class ArrivageRepository extends EntityRepository
             ->getResult();
     }
 
+    public function getByOrderNumber(string $orderNumber) {
+        return $this->createQueryBuilder('arrivage')
+            ->select('arrivage')
+            ->where("JSON_SEARCH(arrivage.numeroCommandeList, 'all', :orderNumber) IS NOT NULL")
+            ->orderBy('arrivage.date')
+            ->setParameter('orderNumber', $orderNumber)
+            ->getQuery()
+            ->execute();
+    }
+
 
     public function getNbRefUrgentInArrival(Arrivage $arrival): int {
         return $this->createQueryBuilder('arrival')

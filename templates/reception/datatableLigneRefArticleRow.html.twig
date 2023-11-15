@@ -28,9 +28,9 @@
                 attributes: {
                     "data-id": ligneId,
                     "data-toggle": "modal",
-                    "data-target": "#modalEditReceptionReferenceArticle",
-                    onclick: 'editRow($(this), "' ~ path('reception_reference_article_edit_api') ~ '", $("#modalEditReceptionReferenceArticle"), $("#submitEditLigneArticle")),
-                              clearModal("#modalEditReceptionReferenceArticle")',
+                    "data-target": "#response",
+                    onclick: 'editRow($(this), "' ~ path('reception_line_edit_api') ~ '", $("#modalEditReceptionLine"), $("#submitEditLigneArticle")),
+                              clearModal("#modalEditReceptionLine")',
                 }
             },
             {

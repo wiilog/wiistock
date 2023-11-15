@@ -38,8 +38,8 @@
             action: pack
             ? {
                 icon: 'wii-icon wii-icon-new-article',
-                datatarget: "#modalNewReceptionReferenceArticle",
-                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
+                datatarget: "#modalNewReceptionLine",
+                onclick: "initNewArticleEditor('#modalNewReceptionLine', { unitId : " ~ pack.id ~ ", unitCode : '" ~ pack.code ~ "' })",
             }
         } %}
     {% endfor %}
