@@ -1718,7 +1718,7 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
-                    "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "dispatchBusinessUnits" => $fixedFieldStandardRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
