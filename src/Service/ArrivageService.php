@@ -95,7 +95,7 @@ class ArrivageService {
 
     private ?array $exportCache = null;
 
-    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter, String $receptionFilter = null)
+    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter, string $receptionFilter = null)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
