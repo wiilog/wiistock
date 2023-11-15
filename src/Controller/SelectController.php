@@ -853,14 +853,15 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    #[Route('/select/locations-with-groups', name: 'ajax_select_locations_with_groups', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/select/location-with-group', name: 'ajax_select_location_with_group', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
-    public function locationsWithGroups(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+    public function locationWithGroup(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithGroupsForSelect($request->query->get("term"));
         $locations = $entityManager->getRepository(Emplacement::class)->getWithGroupsForSelect($request->query->get("term"));
-        $allLocations = array_merge($locations, $locationGroups);
-        usort($allLocations, fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']));
-
+        $allLocations = Stream::from($locations, $locationGroups)
+            ->sort(fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']))
+            ->toArray();
+        
         return $this->json([
             'results' => $allLocations
         ]);

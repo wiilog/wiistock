@@ -15,7 +15,7 @@
                 value: location.id,
                 selected: true
             } ) : [],
-            disabled: disabled is defined ? disabled : false,
+            disabled: disabled is defined and disabled,
             inputClass : 'w-100 filter-select2'
         }
     ) }}

@@ -108,40 +108,40 @@ class DispatchController extends AbstractController {
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
-        $dateChoice = [
+        $dateChoices = [
             [
                 'name' => 'creationDate',
                 'label' => 'Date de création',
             ],
             [
                 'name' => 'validationDate',
-                'label' => 'date de validation',
+                'label' => 'Date de validation',
             ],
             [
                 'name' => 'treatmentDate',
-                'label' => 'date de traitement',
+                'label' => 'Date de traitement',
             ],
             [
                 'name' => 'endDate',
-                'label' => 'date d\'échéance',
+                'label' => 'Date d\'échéance',
             ],
         ];
 
-        foreach ($dateChoice as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser('date-choice_' . $choice['name'], 'handling', $currentUser);
+        foreach ($dateChoices as &$choice) {
+            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'dispatch', $currentUser);
         }
-        $dateChoiceHasDefault = Stream::from($dateChoice)
+        $dateChoicesHasDefault = Stream::from($dateChoices)
             ->some(static fn($choice) => ($choice['default'] ?? false));
 
-        if ($dateChoiceHasDefault) {
-            $dateChoice[0]['default'] = true;
+        if ($dateChoicesHasDefault) {
+            $dateChoices[0]['default'] = true;
         }
 
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
-            'dateChoices' => $dateChoice,
+            'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
@@ -149,7 +149,7 @@ class DispatchController extends AbstractController {
                 ])
                 ->toArray(),
             'fields' => $fields,
-            'status_state_values' => Stream::from($statusService->getStatusStatesValues())
+            'statusStateValues' => Stream::from($statusService->getStatusStatesValues())
                 ->reduce(function(array $carry, $test) {
                     $carry[$test['id']] = $test['label'];
                     return $carry;

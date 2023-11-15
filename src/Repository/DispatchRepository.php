@@ -40,7 +40,7 @@ class DispatchRepository extends EntityRepository
 
         $countTotal = QueryBuilderHelper::count($qb, 'dispatch');
 
-        $dateChoice = (Stream::from($filters)->find(fn($filter) => $filter['field'] === 'date-choice'))["value"] ?? '';
+        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
 
         // filtres sup
         foreach ($filters as $filter) {
@@ -57,7 +57,7 @@ class DispatchRepository extends EntityRepository
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
                         $value = Stream::explode(',', $filter['value'])
-                            ->map(fn($type) => explode(':', $type)[0])
+                            ->map(static fn($type) => explode(':', $type)[0])
                             ->toArray();
                         $qb
                             ->join('dispatch.type', 'filter_type')

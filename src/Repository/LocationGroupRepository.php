@@ -285,7 +285,7 @@ class LocationGroupRepository extends EntityRepository
             ->getArrayResult();
     }
 
-    public function getWithGroupsForSelect($term): array {
+    public function getWithGroupsForSelect(?string $term): array {
         return $this->createQueryBuilder('location_group')
             ->select("CONCAT('locationGroup-', location_group.id) AS id")
             ->addSelect('location_group.label AS text')
