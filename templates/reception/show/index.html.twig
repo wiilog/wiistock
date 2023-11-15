@@ -1,4 +1,5 @@
 {% extends "layout.html.twig" %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}Ordre | {{ trans('Ordre','Réceptions', 'Réception', false) }} | Détails{% endblock %}
 {% block title_tooltip %}Ordre | Réception | Détails{% endblock %}
@@ -30,25 +31,7 @@
                     <div class="header wii-title">Liste des articles</div>
                     <div class="content">
                         <div class="row wii-page-card-header">
-                            <div class="col-auto mb-3">
-                                <div class="dataTables_filter">
-                                    <label>{{ trans('Général', '', 'Zone liste', 'Rechercher : ') }} <input type="search"/></label>
-                                </div>
-                            </div>
                             <div class="col-auto ml-auto mb-3">
-                                {% include 'utils/action-buttons/header-buttons.html.twig' with {
-                                    actions: [{
-                                        buttonClass: "btn btn-outline-primary mr-2",
-                                        title: trans('Ordre', 'Réceptions', 'Réception'),
-                                        hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
-                                        attributes: {
-                                            "data-target": "#modalNewLigneReception",
-                                            "data-toggle": "modal",
-                                            onclick: "openModalNewReceptionReferenceArticle($(this))",
-                                        },
-                                    }]
-                                } %}
-
                                 {% include 'utils/action-buttons/header-buttons.html.twig' with {
                                     actions: [
                                         {
@@ -57,9 +40,9 @@
                                             hasRight: modifiable and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::EDIT')),
                                             icon: "wii-icon wii-icon-new-article",
                                             attributes: {
-                                                "data-target": "#modalNewReceptionReferenceArticle",
+                                                "data-target": "#modalNewReceptionLine",
                                                 "data-toggle": "modal",
-                                                onclick: "initNewArticleEditor('#modalNewReceptionReferenceArticle')",
+                                                onclick: "initNewArticleEditor('#modalNewReceptionLine')",
                                             },
                                         },
                                         {
@@ -75,12 +58,7 @@
                                 } %}
                             </div>
                         </div>
-                        <div class="row mt-2">
-                            <div class="col-12 logistic-units-container wii-multiple-loading"
-                                 data-loader-color="primary"
-                                 data-loader-size="normal">
-                            </div>
-                        </div>
+                        <table id="receptionLinesTable" data-table-processing="receptionLinesTable"></table>
                     </div>
                 </div>
             </div>
@@ -126,11 +104,44 @@
     <input type="hidden" id="ligneSelected" value="-1"/>
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
 
+
+    <template id="pack-association-managed-by-reference">
+        <div class="row mt-2" data-multiple-key="packAssociations">
+            <div class="col-md-6 col-12">
+                {{ form.select('pack', null, false, {
+                    type: 'pack',
+                    placeholder: "Sélectionnez un colis",
+                    includeParams: "input[name=packReception], input[name=alreadySelectedPacks]",
+                }) }}
+            </div>
+        </div>
+    </template>
+
+    <template id="pack-association-managed-by-article">
+        <div class="row mt-2" data-multiple-key="packAssociations">
+            <div class="col-md-6 col-12">
+                {{ form.select('pack', null, false, {
+                    type: 'pack',
+                    placeholder: "Sélectionnez un colis",
+                    includeParams: "input[name=packReception], input[name=alreadySelectedPacks]",
+                }) }}
+            </div>
+            <div class="col-md-6 col-12">
+                {{ form.select('articles', '', false, {
+                    type: null,
+                    placeholder: "Entrez des articles",
+                    multiple: true,
+                    editable: true,
+                }) }}
+            </div>
+        </div>
+    </template>
+
     {% include "reception/show/modalDeleteReception.html.twig" %}
     {% include "reception/show/modalEditReception.html.twig" %}
-    {% include "reception/show/modalEditReceptionReferenceArticle.html.twig" %}
+    {% include "reception/show/modalEditReceptionLine.html.twig" %}
     {% include "reception/show/modalDeleteReceptionReferenceArticle.html.twig" %}
-    {% include "reception/show/modalNewReceptionReferenceArticle.html.twig" %}
+    {% include "reception/show/modalNewReceptionLine.html.twig" %}
     {% include "reception/show/modalChooseConditionnement.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/show/modalNewLitige.html.twig' %}

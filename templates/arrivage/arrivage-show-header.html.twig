@@ -14,13 +14,6 @@
 {% block showActions %}
 
 {% set allPacksAlreadyInDispatch = allPacksAlreadyInDispatch is defined and allPacksAlreadyInDispatch %}
-
-    {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE')) and arrivage.receptions is empty %}
-        <a class="btn btn-outline-primary mr-2"
-           href="{{ path('reception_index', {'open-modal': 'new', 'clear-modal': 0, arrivage: arrivage.id}) }}">
-            {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Réceptionner') }}
-        </a>
-    {% endif %}
     <div class="btn-group">
         {% if hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_ARRI')) %}
             <button type="button"
@@ -43,6 +36,14 @@
                 <span class="wii-icon wii-icon-printer-black mr-2"></span>
                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Imprimer arrivage UL') }}
             </a>
+
+            <a class="dropdown-item d-flex align-items-center"
+               id="seeAllReceptionsBtn"
+               href="{{ path('reception_index', {arrivage: arrivage.id}) }}">
+                <span class="wii-icon wii-icon-export mr-2"></span>
+                Voir toutes les réceptions
+            </a>
+
             {% if not allPacksAlreadyInDispatch and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE_ACHE')) %}
                 <button class="dropdown-item dispatch-button" data-id="{{ arrivage.id }}">
                     <i class="fas fa-exchange-alt mr-2"></i>

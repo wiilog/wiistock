@@ -1,15 +1,19 @@
 {% extends 'layout.html.twig' %}
+{% import 'form.html.twig' as form %}
 
 {% block title %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
 {% block title_tooltip %}{{ trans('Traçabilité', 'Général', 'Traçabilité') }} | {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Arrivages unités logistiques') }}{% endblock %}
 
+{% set receptionDefined = fromReception is defined and fromReception %}
+
 {% block page_filter %}
     {% include 'filters/filtersArrivage.html.twig' with {
-        'page': 'PAGE_LU_ARRIVAL',
-        'tableSelector': '#arrivalsTable',
-        'needsDateFormatting': true,
-        'callback': '() => {clicked = true;
-        }'
+        page: 'PAGE_LU_ARRIVAL',
+        tableSelector: '#arrivalsTable',
+        needsDateFormatting: true,
+        callback: '() => {clicked = true;
+        }',
+        disabled : receptionDefined
     } %}
 {% endblock %}
 
@@ -27,51 +31,74 @@
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto">
                 <div class="btn-group arrival-mode-container">
-                    {% if hasRightToCreate %}
-                        <button type="button"
-                                class="btn btn-primary split-button d-flex align-items-center"
-                                name="new-arrival"
-                                disabled
-                                onclick="openArrivalCreationModal()">
-                            <span class="wii-icon wii-icon-plus mr-2"></span>
-                            {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL') }}
-                        </button>
-                    {% elseif hasRightToExport %}
-                        <button type="button"
-                                class="btn btn-primary split-button"
-                                onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
-                            <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
-                            {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                        </button>
-                    {% endif %}
-                    <button type="button"
-                            class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
-                            data-toggle="dropdown"
-                            aria-haspopup="true"
-                            aria-expanded="false">
-                        <span class="fa fa-angle-down"></span>
-                    </button>
-                    <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
-                        {% if hasRightToCreate and hasRightToExport %}
-                            <a class="dropdown-item pointer"
-                               onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
-                                <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
-                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
-                            </a>
-                        {% endif %}
-                        <a class="dropdown-item pointer"
-                           data-toggle="modal"
-                           data-target="#modalColumnVisible">
-                            <i class="fa fa-cog mr-2"></i>
-                            {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
-                        </a>
-                        <a class="dropdown-item pointer dispatch-mode-button d-none">
-                            <i class="fas fa-exchange-alt mr-2"></i>
-                            {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
-                        </a>
-                    </div>
-                </div>
 
+                    {% if receptionDefined %}
+                        <div class="btn-group">
+                            <div class="btn btn-primary split-button">
+                                <a href="{{ path('arrivage_index') }}">Voir tous les arrivages</a>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                    data-toggle="dropdown"
+                                    aria-haspopup="true"
+                                    aria-expanded="false">
+                                <span class="fa fa-angle-down"></span>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                                <a href="{{ path('reception_show', {'id': fromReception.id}) }}"
+                                   class='dropdown-item pointer'>
+                                    <i class="fas fa-undo-alt"></i>
+                                    Retour à la reception
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        {% if hasRightToCreate %}
+                            <button type="button"
+                                    class="btn btn-primary split-button d-flex align-items-center"
+                                    name="new-arrival"
+                                    disabled
+                                    onclick="openArrivalCreationModal()">
+                                <span class="wii-icon wii-icon-plus mr-2"></span>
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Nouvel arrivage UL') }}
+                            </button>
+                        {% elseif hasRightToExport %}
+                            <button type="button"
+                                    class="btn btn-primary split-button"
+                                    onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
+                                <span class="fa fa-file-csv mr-2" style="padding: 0 2px"></span>
+                                {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
+                            </button>
+                        {% endif %}
+                        <button type="button"
+                                class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                            <span class="fa fa-angle-down"></span>
+                        </button>
+                        <div class="dropdown-menu dropdown-follow-gt dropdown-menu-right">
+                            {% if hasRightToCreate and hasRightToExport %}
+                                <a class="dropdown-item pointer"
+                                   onclick="saveExportFile('get_arrivages_csv', true, {}, false, '{{ trans('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
+                                    <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                                    {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
+                                </a>
+                            {% endif %}
+                            <a class="dropdown-item pointer"
+                               data-toggle="modal"
+                               data-target="#modalColumnVisible">
+                                <i class="fa fa-cog mr-2"></i>
+                                {{ trans('Général', null, 'Zone liste', 'Gestion des colonnes') }}
+                            </a>
+                            <a class="dropdown-item pointer dispatch-mode-button d-none">
+                                <i class="fas fa-exchange-alt mr-2"></i>
+                                {{ trans('Traçabilité', 'Arrivages UL', 'Détails arrivage UL - Entête', 'Acheminer') }}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
 
                 <div class="dispatch-mode-container d-none">
                     <button type="button"
@@ -103,6 +130,8 @@
     <input id="arrivalForm" value="{{ initial_form|json_encode }}" hidden>
     <input id="tagTemplates" value="{{ tag_templates|json_encode }}" hidden>
     <input id="openNewModal" value="{{ openNewModal }}" hidden>
+
+    {{ form.hidden('receptionFilter', fromReception.orderNumber ?? '' ) }}
 
     {% include "arrivage/modalListPacks.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {

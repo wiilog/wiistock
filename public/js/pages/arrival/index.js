@@ -120,6 +120,20 @@ $(function () {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function () {
         toggleValidateDispatchButton($arrivalsTable, $dispatchModeContainer);
     });
+
+    const receptionFilterValues =  $('[name=receptionFilter]').val();
+
+    if (receptionFilterValues !== '') {
+        let option = new Option(receptionFilterValues, receptionFilterValues, true, true);
+        $('[name=commandList]').append(option).trigger('change');
+    } else {
+        let path = Routing.generate('filter_get_by_page');
+        let params = JSON.stringify(PAGE_ARRIVAGE);
+        $.post(path, params, function (data) {
+            displayFiltersSup(data);
+        }, 'json');
+    }
+
 });
 
 function initTableArrival(dispatchMode = false) {
