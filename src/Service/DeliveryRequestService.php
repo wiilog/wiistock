@@ -542,9 +542,7 @@ class DeliveryRequestService
             return $response;
         }
         if (!$settingNeedPlanningValidation) {
-            foreach ($refArticleToUpdateQuantities as $refArticle) {
-                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
-            }
+            $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticleToUpdateQuantities);
         }
 
         if (!$simpleValidation && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {

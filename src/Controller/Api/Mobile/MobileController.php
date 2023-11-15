@@ -47,6 +47,8 @@ use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\EventListener\ArticleQuantityNotifier;
+use App\EventListener\RefArticleQuantityNotifier;
 use App\Exceptions\ArticleNotAvailableException;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
@@ -77,6 +79,7 @@ use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceptionService;
+use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -2665,7 +2668,6 @@ class MobileController extends AbstractApiController
                                   EntityManagerInterface $entityManager,
                                   InventoryService       $inventoryService,
                                   MailerService          $mailerService,
-                                  MouvementStockService  $stockMovementService,
                                   FormatService          $formatService,
                                   Twig_Environment       $templating): Response
     {
@@ -2691,9 +2693,6 @@ class MobileController extends AbstractApiController
 
         $now = new DateTime('now');
         $validator = $this->getUser();
-        $activeStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-        $inactiveStatus = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
-
 
         $inventoryService->clearInventoryZone($mission);
 
@@ -2730,12 +2729,20 @@ class MobileController extends AbstractApiController
                 foreach ($lines as $line) {
                     $line->setDone(true);
                     if ($line->getLocation()) {
-                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()];
-                        $line
-                            ->setOperator($validator)
-                            ->setScannedAt(isset($inventoryDatum) ? ($validatedAt ?? $now) : null)
-                            ->setPercentage(isset($inventoryDatum) ? $inventoryDatum["ratio"] : null)
-                            ->setArticles(isset($inventoryDatum) ? $inventoryDatum["articles"] : []);
+                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()] ?? null;
+                        if (isset($inventoryDatum)) {
+                            $scannedAt = $validatedAt ?? $now;
+                            $line
+                                ->setOperator($validator)
+                                ->setScannedAt($scannedAt)
+                                ->setPercentage($inventoryDatum["ratio"])
+                                ->setArticles($inventoryDatum["articles"]);
+                        }
+                        else {
+                            $zoneLabel = $zone->getName();
+                            $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
+                            throw new FormException("L'emplacement $locationLabel dans la zone $zoneLabel n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
+                        }
                     }
                 }
             }
@@ -2745,43 +2752,11 @@ class MobileController extends AbstractApiController
 
         $articlesOnLocations = $articleRepository->findAvailableArticlesToInventory($tags, $locations, ['mode' => ArticleRepository::INVENTORY_MODE_FINISH]);
 
-        // change article states
-        /** @var Article $article */
-        foreach ($articlesOnLocations as $article) {
-            if (in_array($article->getRFIDtag(), $tags)) {
-                $presentArticle = $article;
-                if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
-                    $location = $presentArticle->getEmplacement();
-                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
-                        'date' => $now,
-                        'locationTo' => $location,
-                    ]);
 
-                    $entityManager->persist($correctionMovement);
-                }
-                $presentArticle
-                    ->setFirstUnavailableDate(null)
-                    ->setLastAvailableDate($now)
-                    ->setStatut($activeStatus)
-                    ->setDateLastInventory($now);
-            } else {
-                $missingArticle = $article;
-                if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
-                    $location = $missingArticle->getEmplacement();
-                    $correctionMovement = $stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
-                        'date' => $now,
-                        'locationTo' => $location,
-                    ]);
+        RefArticleQuantityNotifier::$disableReferenceUpdate = true;
+        ArticleQuantityNotifier::$disableArticleUpdate = true;
 
-                    $entityManager->persist($correctionMovement);
-                    $missingArticle
-                        ->setFirstUnavailableDate($now);
-                }
-                $missingArticle
-                    ->setStatut($inactiveStatus)
-                    ->setDateLastInventory($now);
-            }
-        }
+        $this->mobileApiService->treatInventoryArticles($entityManager, $articlesOnLocations, $tags, $validator, $now);
 
         $mission
             ->setValidatedAt($now)
@@ -2789,6 +2764,9 @@ class MobileController extends AbstractApiController
             ->setDone(true);
 
         $entityManager->flush();
+
+        RefArticleQuantityNotifier::$disableReferenceUpdate = false;
+        ArticleQuantityNotifier::$disableArticleUpdate = false;
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
@@ -2799,9 +2777,9 @@ class MobileController extends AbstractApiController
                 $mission->getRequester()
             );
         }
+
         return $this->json([
             "success" => true,
-            "data" => ""
         ]);
     }
 
