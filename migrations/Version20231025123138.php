@@ -57,19 +57,16 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection);
 
             if ($field->isDisplayedFilters()) {
-                $onFilerFields[] = $fieldByType;
+                $onFilerFields[] = $field->getFieldCode();
             }
 
             $entityManager->persist($fieldByType);
             $entityManager->remove($field);
         }
-        $entityManager->flush();
 
         $onFilterFieldsSetting = (new Setting())
             ->setLabel(Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS)
-            ->setValue(Stream::from($onFilerFields)
-                ->map(static fn(FixedFieldByType $field) => $field->getId())
-                ->join(','));
+            ->setValue(join(',', $onFilerFields));
 
         $entityManager->persist($onFilterFieldsSetting);
         $entityManager->flush();

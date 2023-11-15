@@ -14,12 +14,9 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
-use App\Service\PackService;
-use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -28,13 +25,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
+#[Rest\Route("/api")]
 class DispatchController extends AbstractApiController
 {
-    /**
-     * @Rest\Post("/api/new-offline-dispatches", name="api_new_offline_dispatches", methods="POST", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+
+    #[Rest\Post("/new-offline-dispatches", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function createNewOfflineDispatchs(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService,

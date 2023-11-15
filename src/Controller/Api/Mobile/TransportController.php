@@ -43,16 +43,14 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
+#[Rest\Route("/api")]
 class TransportController extends AbstractApiController
 {
 
-    /**
-     * @Rest\Get("/api/transport-rounds", name="api_transport_rounds", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/transport-rounds", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function transportRounds(EntityManagerInterface $manager): Response
     {
         $transportRoundRepository = $manager->getRepository(TransportRound::class);
@@ -66,11 +64,9 @@ class TransportController extends AbstractApiController
         return $this->json($data);
     }
 
-    /**
-     * @Rest\Get("/api/fetch-transport", name="api_fetch_transport", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/fetch-transport", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function fetchSingleTransport(Request $request, EntityManagerInterface $manager): Response
     {
         $transportRequest = $manager->find(TransportRequest::class, $request->query->get("request"));
@@ -78,11 +74,9 @@ class TransportController extends AbstractApiController
         return $this->json($this->serializeTransport($manager, $transportRequest));
     }
 
-    /**
-     * @Rest\Get("/api/fetch-round", name="api_fetch_round", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/fetch-round", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function fetchSingleRound(Request $request, EntityManagerInterface $manager): Response {
         $round = $request->query->get("round") ? $manager->find(TransportRound::class, $request->query->get("round"))
             : $manager->find(TransportRequest::class, $request->query->get("request"))->getOrder()->getTransportRoundLines()->last()->getTransportRound();
@@ -374,11 +368,9 @@ class TransportController extends AbstractApiController
         ];
     }
 
-    /**
-     * @Rest\Get("/api/reject-motives", name="api_reject_motives", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/reject-motives", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function rejectMotives(EntityManagerInterface $manager): Response
     {
         $settingRepository = $manager->getRepository(Setting::class);
@@ -399,11 +391,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/reject-pack", name="api_reject_pack", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/reject-pack", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function rejectPack(Request                 $request,
                                EntityManagerInterface  $manager,
                                TransportRoundService   $transportRoundService,
@@ -450,11 +440,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/load-packs", name="api_load_packs", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/load-packs", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function loadPacks(Request                 $request,
                               EntityManagerInterface  $manager,
                               TrackingMovementService $trackingMovementService): Response
@@ -490,11 +478,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/finish-round", name="api_finish_round", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/finish-round", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function finishRound(Request                 $request,
                                 EntityManagerInterface  $manager,
                                 GeoService              $geoService,
@@ -613,11 +599,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/start-round", name="api_start_round", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/start-round", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function startRound(Request                 $request,
                                EntityManagerInterface  $manager,
                                StatusHistoryService    $statusHistoryService,
@@ -730,11 +714,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Get("/api/has-new-packs", name="api_has_new_packs", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/has-new-packs", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function hasNewPacks(Request $request, EntityManagerInterface $manager): Response
     {
         $data = $request->query;
@@ -756,11 +738,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/finish-transport", name="api_finish-transport", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/finish-transport", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function finishTransport(Request                 $request,
                                     EntityManagerInterface  $manager,
                                     TransportHistoryService $historyService,
@@ -928,11 +908,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/transport-failure", name="api_transport_failure", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/transport-failure", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function transportFailure(Request                 $request,
                                      EntityManagerInterface  $manager,
                                      StatusHistoryService    $statusHistoryService,
@@ -1154,11 +1132,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Post("/api/deposit-transport-packs", name="api_deposit_transport_packs", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Post("/deposit-transport-packs", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function depositPacks(Request                 $request,
                                  EntityManagerInterface  $manager,
                                  TransportHistoryService $transportHistoryService,
@@ -1339,11 +1315,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Get("/api/end-round-locations", name="api_end_round_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/end-round-locations", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function endRoundLocations(EntityManagerInterface $manager): Response
     {
         $settingRepository = $manager->getRepository(Setting::class);
@@ -1357,11 +1331,9 @@ class TransportController extends AbstractApiController
         ]);
     }
 
-    /**
-     * @Rest\Get("/api/packs-return-locations", name="api_packs_return_locations", methods={"GET"}, condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+    #[Rest\Get("/packs-return-locations", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function packsReturnLocations(EntityManagerInterface $manager): Response
     {
         $settingRepository = $manager->getRepository(Setting::class);
