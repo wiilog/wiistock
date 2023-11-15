@@ -2,7 +2,7 @@
 
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY_TYPE'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE'),
     field: emergencyType.field,
     elementsType: emergencyType.elementsType,
     elements: emergencyType.elements,
@@ -17,7 +17,8 @@
     </div>
     <table id="table-emergencies-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
         {% include 'datatable/main-header.html.twig' with {
-            cells: 6
+            cells: 6,
+            needsFilterColumn: true,
         } %}
     </table>
 </div>

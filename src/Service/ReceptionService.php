@@ -5,27 +5,33 @@ namespace App\Service;
 
 
 use App\Entity\Arrivage;
+use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\Attachment;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Emplacement;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
+use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
-use App\Entity\ReceptionReferenceArticle;
-use App\Entity\Setting;
+use App\Entity\Pack;
+use App\Entity\ReceptionLine;
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
+use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\EntityManagerInterface;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class ReceptionService
 {
@@ -44,7 +50,7 @@ class ReceptionService
     public EntityManagerInterface $entityManager;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public StringService $stringService;
@@ -72,6 +78,9 @@ class ReceptionService
 
     #[Required]
     public ReceptionLineService $receptionLineService;
+
+    #[Required]
+    public ArticleDataService $articleDataService;
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
     {
@@ -135,7 +144,7 @@ class ReceptionService
         }
 
         $reception
-            ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
+            ->setOrderNumber(!empty($data['orderNumber']) ? $data['orderNumber'] : null)
             ->setNumber($numero)
             ->setDate($date)
             ->setUtilisateur($currentUser)
@@ -158,8 +167,19 @@ class ReceptionService
         $this->updateReception($entityManager, $reception, $data, ['import' => $fromImport]);
 
         $entityManager->persist($reception);
+        $this->updateArrivalLinks($reception, $entityManager);
+
         $entityManager->flush();
+
         return $reception;
+    }
+
+    public function updateArrivalLinks(Reception $reception, EntityManagerInterface $entityManager) {
+        $arrivageRepository = $entityManager->getRepository(Arrivage::class);
+        $linkedArrivals = $reception->getOrderNumber()
+            ? $arrivageRepository->getByOrderNumber($reception->getOrderNumber())
+            : [];
+        $reception->bulkInsertArrivals($linkedArrivals);
     }
 
     public function updateReception(EntityManagerInterface $entityManager,
@@ -305,7 +325,7 @@ class ReceptionService
                     ->toArray())
             ),
             "number" => $reception->getNumber() ?: "",
-            "orderNumber" => $reception->getOrderNumber() ? join(",", $reception->getOrderNumber()) : "",
+            "orderNumber" => $reception->getOrderNumber(),
             "storageLocation" => $this->formatService->location($reception->getStorageLocation()),
             "emergency" => $reception->isManualUrgent() || $reception->hasUrgentArticles(),
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
@@ -341,8 +361,8 @@ class ReceptionService
     }
 
     public function createHeaderDetailsConfig(Reception $reception): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         $status = $reception->getStatut();
         $provider = $reception->getFournisseur();
@@ -352,7 +372,7 @@ class ReceptionService
         $dateAttendue = $reception->getDateAttendue();
         $dateEndReception = $reception->getDateFinReception();
         $creationDate = $reception->getDate();
-        $orderNumber = $reception->getOrderNumber() ? join(", ", $reception->getOrderNumber()) : null;
+        $orderNumber = $reception->getOrderNumber();
         $comment = $reception->getCommentaire();
         $storageLocation = $reception->getStorageLocation();
         $attachments = $reception->getAttachments();
@@ -427,7 +447,7 @@ class ReceptionService
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_RECEPTION);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         return array_merge(
             $configFiltered,
@@ -526,5 +546,195 @@ class ReceptionService
                 ? Reception::STATUT_RECEPTION_PARTIELLE
                 : Reception::STATUT_EN_ATTENTE);
         return $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::RECEPTION, $statusCode);
+    }
+
+    public function amendReceptionStatus(EntityManagerInterface $manager, Reception $reception): void
+    {
+        $pendingStatus = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::RECEPTION,
+            Reception::STATUT_EN_ATTENTE
+        );
+        $finalizedStatus = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::RECEPTION,
+            Reception::STATUT_RECEPTION_TOTALE
+        );
+        $partialStatus = $manager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(
+            CategorieStatut::RECEPTION,
+            Reception::STATUT_RECEPTION_PARTIELLE
+        );
+        if ($this->receptionIsPartial($reception)) {
+            $reception->setStatut($partialStatus);
+        } else if ($this->receptionIsFinalized($reception)) {
+            $reception->setStatut($finalizedStatus);
+        } else {
+            $reception->setStatut($pendingStatus);
+        }
+    }
+
+    private function receptionIsPartial(Reception $reception): bool {
+        return !$this->receptionIsFinalized($reception)
+            && Stream::from($reception->getReceptionReferenceArticles())
+                ->filter(fn(ReceptionReferenceArticle $receptionReferenceArticle) => !$receptionReferenceArticle->getReceptionLine())
+                ->count() > 0;
+    }
+
+    private function receptionIsFinalized(Reception $reception): bool {
+        return !Stream::from($reception->getReceptionReferenceArticles())
+            ->some(fn(ReceptionReferenceArticle $receptionReferenceArticle) => $receptionReferenceArticle->getReceptionLine());
+    }
+
+    public function updateReceptionLine(EntityManagerInterface $entityManager,
+                                        Reception $reception,
+                                        ReferenceArticle $refArticle,
+                                        InputBag $contentData): array {
+        $refAlreadyExists = Stream::from($reception->getReceptionReferenceArticles())
+            ->some(fn(ReceptionReferenceArticle $receptionRefArticle) => $receptionRefArticle->getId() === $contentData->get('referenceArticle'));
+
+        if (!$refAlreadyExists) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
+            $packCodes = [];
+            $packAssociations = Stream::from(json_decode($contentData->get("packAssociations") ?? [], true))
+                ->filter(fn($a) => isset($a["pack"]) && $a['pack'])
+                ->toArray();
+            foreach ($packAssociations as $association) {
+                if (isset($packCodes[$association["pack"]])) {
+                    return [
+                        "success" => false,
+                        "msg" => "Le colis {$packCodes[$association["pack"]]} est présent en double",
+                    ];
+                }
+                $pack = $packRepository->find($association["pack"]);
+                $packCodes[$association["pack"]] = $pack->getCode();
+                $linePack = $contentData->get('article')
+                    ? $receptionLineRepository->find($contentData->getInt('article'))
+                    : null;
+
+                $receptionReferenceArticle = $contentData->get('article') ? $linePack->getReceptionReferenceArticle($refArticle, $reception->getOrderNumber()) : new ReceptionReferenceArticle();
+
+                if($receptionReferenceArticle){
+                    $receptionReferenceArticle
+                        ->setCommentaire($contentData->get('commentaire') ?? null)
+                        ->setCommande($reception->getOrderNumber())
+                        ->setReferenceArticle($refArticle);
+                    $entityManager->persist($receptionReferenceArticle);
+
+
+                    if (!$linePack) {
+                        $linePack = (new ReceptionLine())
+                            ->setReception($reception)
+                            ->setPack($pack)
+                            ->addReceptionReferenceArticle($receptionReferenceArticle);
+                        $entityManager->persist($linePack);
+                    } else {
+                        $linePack
+                            ->setReception($reception)
+                            ->setPack($pack)
+                            ->setReceptionReferenceArticles([])
+                            ->addReceptionReferenceArticle($receptionReferenceArticle);
+                    }
+
+                    $receptionReferenceArticle->setReceptionLine($linePack);
+                    $reception->setLastAssociation(new DateTime());
+                    if ($receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                        $articles = $association["articles"] ?? [];
+                        $resAddArticle = $this->addArticleAssociations($entityManager, $receptionReferenceArticle, $articles);
+                        if (!$resAddArticle['success']) {
+                            return $resAddArticle;
+                        }
+                    } else {
+                        foreach ($receptionReferenceArticle->getArticles() as $article) {
+                            $receptionReferenceArticle->removeArticle($article);
+                        }
+                    }
+                    if ($receptionReferenceArticle->getReferenceArticle()->getIsUrgent()) {
+                        $pack->setUrgent(true);
+                    }
+                }
+            }
+        } else {
+            return [
+                "success" => false,
+                "msg" => "La référence existe déjà pour cette réception"
+            ];
+        }
+
+        if(!isset($receptionReferenceArticle)){
+            $receptionReferenceArticle = new ReceptionReferenceArticle();
+
+            $receptionReferenceArticle
+                ->setCommentaire($contentData->get('commentaire') ?? null)
+                ->setReferenceArticle($refArticle);
+
+            $entityManager->persist($receptionReferenceArticle);
+
+            $linePack = $contentData->get('article') ? $receptionLineRepository->find($contentData->getInt('article')) : new ReceptionLine();
+
+            $linePack
+                ->setReception($reception)
+                ->setPack(null)
+                ->setReceptionReferenceArticles([])
+                ->addReceptionReferenceArticle($receptionReferenceArticle);
+
+            $entityManager->persist($linePack);
+        }
+
+        return ["success" => true];
+    }
+
+    public function addArticleAssociations(EntityManagerInterface $entityManager,
+                                           ReceptionReferenceArticle $receptionReferenceArticle,
+                                           array $articles): array
+    {
+        $line = $receptionReferenceArticle->getReceptionLine();
+
+        foreach ($articles as $label) {
+            $article = $receptionReferenceArticle->getArticles()
+                ->filter(fn(Article $article) => $article->getLabel() === $label)
+                ->first();
+            if (!$article) {
+                $existing = $entityManager->getRepository(Article::class)->findBy(["label" => $label]);
+                if ($existing) {
+                    return [
+                        "success" => false,
+                        "msg" => "Un article avec le libellé {$label} existe déjà en base de données",
+                    ];
+                }
+                if (!$line->getReception()->getFournisseur()) {
+                    return [
+                        "success" => false,
+                        "msg" => "Veuillez renseigner un fournisseur dans la réception pour pouvoir continuer.",
+                    ];
+                }
+                $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+                $isVisible = $referenceArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
+
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel('A DETERMINER' . '-' . $referenceArticle->getReference() . '-' . $label)
+                    ->setReference('A DETERMINER' . '-' . $referenceArticle->getReference() . '-' . $label)
+                    ->setFournisseur($line->getReception()->getFournisseur())
+                    ->setReferenceArticle($referenceArticle)
+                    ->setVisible($isVisible);
+                $entityManager->persist($articleFournisseur);
+                $article = (new Article())
+                    ->setLabel($label)
+                    ->setReceptionReferenceArticle($receptionReferenceArticle)
+                    ->setType($referenceArticle->getType())
+                    ->setBarCode($this->articleDataService->generateBarCode())
+                    ->setArticleFournisseur($articleFournisseur)
+                    ->setConform(true);
+                $receptionReferenceArticle->addArticle($article);
+                $entityManager->persist($article);
+            }
+        }
+
+        //remove deleted articles
+        foreach ($receptionReferenceArticle->getArticles() as $article) {
+            if (!is_int(array_search($article->getLabel(), $articles))) {
+                $receptionReferenceArticle->removeArticle($article);
+            }
+        }
+        return ['success' => true];
     }
 }

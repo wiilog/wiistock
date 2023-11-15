@@ -323,7 +323,15 @@ function initEditatable(datatable, onDatatableInit = null) {
             const data = datatable.table.rows().count();
             setTimeout(() => $parent
                 .find(`.datatable-paging, .dataTables_filter`)
-                .toggleClass(`d-none`, data <= 10), 0)
+                .toggleClass(`d-none`, data <= 10), 0);
+
+            if (config.onRowClick) {
+                $rows
+                    .off(`click.editatableRowClick`)
+                    .on(`click.editatableRowClick`, function (event) {
+                        config.onRowClick(event);
+                    });
+            }
 
         },
         initComplete: () => {

@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewReception" role="dialog"
      data-modal-type="new"
      aria-hidden="true">
@@ -42,14 +44,7 @@
                 <div class="row">
                     {% if fieldsParam|isFieldRequired('numCommande', 'displayedCreate') %}
                         <div class="form-group col-6">
-                            <label class="wii-field-name">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' : '' }}</label>
-                            <select name="orderNumber" data-s2 data-editable multiple class="form-control w-100 data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
-                                {% if (arrivageToReception) %}
-                                    {% for num in arrivageToReception.numCommande %}
-                                        <option value="{{ num }}" selected>{{ num }}</option>
-                                    {% endfor %}
-                                {% endif %}
-                            </select>
+                            {{ form.input('orderNumber', 'Numéro de commande', fieldsParam|isFieldRequired('numCommande', 'requiredCreate'), null) }}
                         </div>
                     {% endif %}
 
@@ -204,7 +199,7 @@
                             <div class="editor-container" data-wysiwyg></div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <div>

@@ -14,9 +14,10 @@ let tableArticleLitige;
 let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
+let receptionLinesTable
 
 window.initNewArticleEditor = initNewArticleEditor;
-window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
+window.openModalNewReceptionLine = openModalNewReceptionLine;
 window.finishReception = finishReception;
 window.onRequestTypeChange = onRequestTypeChange;
 window.demandeurChanged = demandeurChanged;
@@ -28,12 +29,15 @@ window.getCommentAndAddHisto = getCommentAndAddHisto;
 window.editRowLitigeReception = editRowLitigeReception;
 window.initEditReception = initEditReception;
 
+global.deleteReceptionLine = deleteReceptionLine;
+global.editReceptionLine = editReceptionLine;
+
 $(function () {
     $('.select2').select2();
     receptionDisputesDatatable = InitDisputeDataTable();
+    loadReceptionLines();
     initPageModals();
     launchPackListSearching();
-    loadReceptionLines();
 
     $('#modalNewLitige').on('change', 'select[name=disputePacks]', function () {
         const data = $(this).select2('data');
@@ -71,6 +75,35 @@ $(function () {
         Flash.add(`success`, `La ligne de conditionnement a bien été supprimée.`);
     });
 
+    $(document).on(`click`, `.add-pack-association`, function() {
+        const $modal = $(this).closest(`.modal`);
+        const $container = $modal.find(`.pack-associations`);
+        const $referenceArticle = $modal.find(`[name="referenceArticle"]`);
+
+        const reference = ($referenceArticle.select2(`data`) || [])[0];
+        const quantityType = (reference && reference.typeQuantity) || $modal.find(`[name="referenceTypeQuantity"]`).val();
+
+        let $element;
+        if(quantityType === `article`) {
+            $element = $($(`template#pack-association-managed-by-article`).html());
+        } else {
+            $element = $($(`template#pack-association-managed-by-reference`).html());
+        }
+
+        $element.data(`multiple-object-index`, $container.children().length);
+        $container.append($element);
+
+        let $selects = $container.find('select[name=pack]');
+        let values = [];
+        $selects.each(function() {
+            const value = $(this).val();
+            if(value) {
+                values.push(value);
+            }
+        });
+        $('[name=alreadySelectedPacks]').val(values.join(';'));
+    });
+
     $(`[name=requestType]`).on(`change`, function () {
         const type = $(this).val();
 
@@ -100,7 +133,7 @@ function initNewReferenceArticleEditor($modal) {
         success: ({success, data}) => {
             if (success && data) {
                 let option = new Option(data.reference, data.id, true, true);
-                $('#reception-add-ligne').append(option).trigger('change');
+                $('[name=referenceArticle]').append(option).trigger('change');
             }
         }
     });
@@ -109,7 +142,7 @@ function initNewReferenceArticleEditor($modal) {
 function addArticle() {
     let path = Routing.generate('get_modal_new_ref', true);
     $.post(path, {}, function (modalNewRef) {
-        $('#reception-add-ligne').val(null).trigger('change');
+        $('[name=referenceArticle]').val(null).trigger('change');
         const $modal = $('#innerNewRef');
         $modal.html(modalNewRef);
         initNewReferenceArticleEditor($modal);
@@ -117,59 +150,16 @@ function addArticle() {
 }
 
 function initPageModals() {
-    let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
-    let $submitAddLigneArticle = $modalNewReceptionReferenceArticle.find("[type=submit]");
-    let $submitAndRedirectLigneArticle = $('#addArticleLigneSubmitAndRedirect');
-    let urlAddLigneArticle = Routing.generate('reception_reference_article_new', true);
-    InitModal($modalNewReceptionReferenceArticle, $submitAddLigneArticle, urlAddLigneArticle, {
-        success: () => {
-            loadReceptionLines();
-        }
-    });
-    InitModal($modalNewReceptionReferenceArticle, $submitAndRedirectLigneArticle, urlAddLigneArticle, {
-        success: createHandlerAddLigneArticleResponseAndRedirect($modalNewReceptionReferenceArticle),
-        keepForm: true,
-        keepModal: true
-    });
+    let $modalNewReceptionLine = $("#modalNewReceptionLine");
 
-    $modalNewReceptionReferenceArticle.on(`show.bs.modal`, function() {
-        const {label, reference, is_article} = GetRequestQuery();
-        const $select = $(this).find(`[name="referenceArticle"]`);
+    Form.create($modalNewReceptionLine, {clearOnOpen: true})
+        .onOpen(() => {
+            $('.body-add-ref').addClass('d-none').removeClass('d-flex');
 
-        if(label && reference) {
-            $select.append(new Option(label, reference, true, true));
-            $select.trigger(`change`);
-            if(is_article === '1'){
-                $modalNewReceptionReferenceArticle.find(`#addArticleLigneSubmitAndRedirect`).removeClass(`d-none`);
-            }
-
-            setTimeout(() => SetRequestQuery({}), 1);
-        }
-        Select2Old.articleReference($select);
-    });
-
-    let $modalDeleteReceptionReferenceArticle = $("#modalDeleteReceptionReferenceArticle");
-    let $submitDeleteReceptionReferenceArticle = $("#submitDeleteReceptionReferenceArticle");
-    let urlReceptionReferenceArticle = Routing.generate('reception_reference_article_remove', true);
-    InitModal($modalDeleteReceptionReferenceArticle, $submitDeleteReceptionReferenceArticle, urlReceptionReferenceArticle, {
-        success: () => {
-            loadReceptionLines();
-        },
-        error: (data) => {
-            if (data && data.msg) {
-                Flash.add(ERROR, data.msg);
-            }
-        }
-    });
-
-    let $modalEditArticle = $("#modalEditReceptionReferenceArticle");
-    let $submitEditArticle = $("#submitEditLigneArticle");
-    let urlEditArticle = Routing.generate('reception_reference_article_edit', true);
-    InitModal($modalEditArticle, $submitEditArticle, urlEditArticle, {
-        success: () => {
-            loadReceptionLines();
-        }
-    });
+        })
+        .submitTo(POST, `reception_line_new`, {
+            tables: [receptionLinesTable],
+        });
 
     let $modalDelete = $("#modalDeleteReception");
     let $submitDelete = $("#submitDeleteReception");
@@ -429,34 +419,35 @@ function articleChanged($select) {
         return;
     }
 
+    $modal.find(`.pack-associations`).html(``);
+    $('.add-pack-association').trigger(`click`);
+
     const selectedReference = $select.select2(`data`);
-    const $addArticleAndRedirectSubmit = $(`#addArticleLigneSubmitAndRedirect`);
-    let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
-    let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
+        const {libelle, urgent, emergencyComment} = selectedReference[0];
 
-        $addArticleLigneSubmit.prop(`disabled`, false);
-        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
 
-        const $emergencyContainer = $(`.emergency`);
-        const $emergencyCommentContainer =  $(`.emergency-comment`);
-        if (urgent) {
-            $emergencyContainer.removeClass(`d-none`);
+        $modal.find(`.reference-label`).val(libelle);
+
+        const $emergencyContainer = $('.emergency');
+        const $emergencyCommentContainer = $('.emergency-comment');
+        if(urgent) {
+            $emergencyContainer.removeClass('d-none');
             $emergencyCommentContainer.text(emergencyComment);
         } else {
-            $emergencyContainer.addClass(`d-none`);
-            $emergencyCommentContainer.text(``);
+            $emergencyContainer.addClass('d-none');
+            $emergencyCommentContainer.text('');
         }
+
         $modal.find(`.body-add-ref`)
             .removeClass(`d-none`)
             .addClass(`d-flex`);
+
         $('#innerNewRef').html(``);
-    }
-    else {
-        $addArticleAndRedirectSubmit.addClass(`d-none`);
-        $addArticleLigneSubmit.prop(`disabled`, true);
+    } else {
+        $modal.find(`.reference-label`).val('')
+
         $modal.find(`.body-add-ref`)
             .addClass(`d-none`)
             .removeClass(`d-flex`);
@@ -481,7 +472,7 @@ function finishReception(receptionId, confirmed, $button) {
     ), true);
 }
 
-function openModalNewReceptionReferenceArticle() {
+function openModalNewReceptionLine() {
     clearModalLigneReception('#modalNewLigneReception');
     initNewLigneReception();
 }
@@ -781,7 +772,6 @@ function clearPackingContent($element, hideSubFields = true, hidePackingContaine
 
 function loadReceptionLines({start, search} = {}) {
     start = start || 0;
-    const $logisticUnitsContainer = $('.logistic-units-container');
     const reception = $('#receptionId').val();
 
     const params = {reception, start};
@@ -792,65 +782,34 @@ function loadReceptionLines({start, search} = {}) {
         clearPackListSearching();
     }
 
-    wrapLoadingOnActionButton(
-        $logisticUnitsContainer,
-        () => (
-            AJAX.route(GET, 'reception_lines_api', params)
-                .json()
-                .then(data => {
-                    $logisticUnitsContainer.html(data.html);
-                    $logisticUnitsContainer.find('.articles-container table')
-                        .each(function() {
-                            const $table = $(this);
-                            initDataTable($table, {
-                                serverSide: false,
-                                ordering: true,
-                                paging: false,
-                                searching: false,
-                                order: [['emergency', "desc"], ['reference', "desc"]],
-                                columns: [
-                                    {data: 'actions', className: 'noVis hideOrder', orderable: false},
-                                    {data: 'reference', title: 'Référence'},
-                                    {data: 'orderNumber', title: 'Commande'},
-                                    {data: 'quantityToReceive', title: 'À recevoir'},
-                                    {data: 'receivedQuantity', title: 'Reçu'},
-                                    {data: 'emergency', visible: false},
-                                    {data: 'comment', visible: false},
-                                ],
-                                domConfig: {
-                                    removeInfo: true,
-                                    needsPaginationRemoval: true,
-                                    removeLength: true,
-                                    removeTableHeader: true,
-                                },
-                                rowConfig: {
-                                    needsRowClickAction: true,
-                                    needsColor: true,
-                                    dataToCheck: 'emergency',
-                                    color: 'danger',
-                                    callback: (row, data) => {
-                                        if (data.emergency && data.comment) {
-                                            const $row = $(row);
-                                            $row.attr('title', data.comment);
-                                            initTooltips($row);
-                                        }
-                                    }
-                                },
-                            })
-                        });
-
-                    $logisticUnitsContainer
-                        .find('.paginate_button:not(.disabled)')
-                        .on('click', function() {
-                            const $button = $(this);
-                            loadReceptionLines({
-                                start: $button.data('page'),
-                                search: articleSearch
-                            });
-                        });
-                })
-        )
-    )
+    receptionLinesTable = initDataTable('receptionLinesTable', {
+        ordering: false,
+        search: true,
+        pageLength: 24,
+        lengthMenu: [24, 48, 72, 96],
+        ajax: {
+            url: Routing.generate(`reception_lines_api`, params),
+            type: GET,
+        },
+        domConfig: {
+            removeInfo: true
+        },
+        rowConfig: {
+            needsRowClickAction: true,
+            needsColor: true,
+            color: 'danger',
+            dataToCheck: 'emergency'
+        },
+        columns: [
+            {data: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'logo', title: ''},
+            {data: 'reference', title: 'Référence'},
+            {data: 'label', title: 'Libellé'},
+            {data: 'packCode', title: 'Unité logistique'},
+            {data: 'articles', title: 'Articles'},
+            {data: 'emergency', visible: false},
+        ],
+    });
 }
 
 function launchPackListSearching() {
@@ -981,4 +940,38 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                 }
             });
     });
+}
+
+function deleteReceptionLine(lineId){
+    const $modalDeleteReceptionLine = $('#modalDeleteReceptionLine');
+    Form.create($modalDeleteReceptionLine)
+        .submitTo(`POST`, `reception_line_remove`, {
+            tables: [receptionLinesTable],
+        });
+
+    $modalDeleteReceptionLine.find('[type=submit]').val(lineId);
+    $modalDeleteReceptionLine.modal('show');
+}
+
+function editReceptionLine(lineId){
+    const $modalEditReceptionLine = $('#modalEditReceptionLine');
+    Form.create($modalEditReceptionLine, {clearOnOpen: true})
+        .onOpen(() => {
+            $modalEditReceptionLine.find('.modal-body').html('');
+            AJAX.route(POST, 'reception_line_edit_api', {
+                lineId,
+            })
+                .json()
+                .then((response) => {
+                    if (response.success) {
+                        $modalEditReceptionLine.find('.modal-body').html(response.html);
+                    }
+                });
+        })
+        .submitTo(POST, `reception_line_edit`, {
+            tables: [receptionLinesTable],
+        });
+
+    $modalEditReceptionLine.find('[type=submit]').val(lineId);
+    $modalEditReceptionLine.modal('show');
 }

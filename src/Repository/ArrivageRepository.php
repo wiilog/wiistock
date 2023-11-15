@@ -47,10 +47,10 @@ class ArrivageRepository extends EntityRepository
 
     public function countByDates(DateTime $dateMin,
                                  DateTime $dateMax,
-                                 array $arrivalStatusesFilter = [],
-                                 array $arrivalTypesFilter = []): int
+                                 array    $arrivalStatusesFilter = [],
+                                 array    $arrivalTypesFilter = []): int
     {
-		$queryBuilder = $this->createQueryBuilderByDates($dateMin, $dateMax)
+        $queryBuilder = $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->select('COUNT(arrivage)');
 
         if (!empty($arrivalStatusesFilter)) {
@@ -72,7 +72,7 @@ class ArrivageRepository extends EntityRepository
 
     public function countByDate(DateTime $date): ?int
     {
-		return $this->createQueryBuilder('arrivage')
+        return $this->createQueryBuilder('arrivage')
             ->select('COUNT(arrivage)')
             ->where('arrivage.date = :date')
             ->setParameter('date', $date)
@@ -85,7 +85,7 @@ class ArrivageRepository extends EntityRepository
      */
     public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array
     {
-		return $this->createQueryBuilderByDates($dateMin, $dateMax)
+        return $this->createQueryBuilderByDates($dateMin, $dateMax)
             ->getQuery()
             ->execute();
     }
@@ -170,18 +170,18 @@ class ArrivageRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'type':
-					$qb
-						->join('arrival.type', 'filter_type')
-						->andWhere('filter_type.label = :type')
-						->setParameter('type', $filter['value']);
-					break;
+                    $qb
+                        ->join('arrival.type', 'filter_type')
+                        ->andWhere('filter_type.label = :type')
+                        ->setParameter('type', $filter['value']);
+                    break;
                 case 'statut':
-					$value = explode(',', $filter['value']);
-					$qb
-						->join('arrival.statut', 'filter_status')
-						->andWhere('filter_status.id in (:statut)')
-						->setParameter('statut', $value);
-					break;
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('arrival.statut', 'filter_status')
+                        ->andWhere('filter_status.id in (:statut)')
+                        ->setParameter('statut', $value);
+                    break;
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
@@ -191,7 +191,7 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case 'providers':
                     $value = explode(',', $filter['value']);
-					$qb
+                    $qb
                         ->join('arrival.fournisseur', 'f2')
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
@@ -275,18 +275,18 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('arrival.truckArrivalLines', 'lines')
                         ->leftJoin('lines.truckArrival', 'filter_truckArrival')
                         ->andWhere('filter_truckArrival.number LIKE :numTruckArrival')
-                        ->setParameter('numTruckArrival' , '%'.$filter['value'].'%');
+                        ->setParameter('numTruckArrival', '%' . $filter['value'] . '%');
                     break;
                 case 'noTracking':
                     $qb
                         ->leftJoin('arrival.truckArrivalLines', 'truckArrivalLines')
                         ->andWhere('arrival.noTracking LIKE :noTracking OR truckArrivalLines.number LIKE :noTracking')
-                        ->setParameter('noTracking', '%'.$filter['value'].'%');
+                        ->setParameter('noTracking', '%' . $filter['value'] . '%');
                     break;
             }
         }
 
-		//Filter search
+        //Filter search
         if (!empty($params)) {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
@@ -378,10 +378,10 @@ class ArrivageRepository extends EntityRepository
                             ->orderBy('order_dropLocation.label', $order);
                     } else {
                         $freeFieldId = VisibleColumnService::extractFreeFieldId($column);
-                        if(is_numeric($freeFieldId)) {
+                        if (is_numeric($freeFieldId)) {
                             /** @var FreeField $freeField */
                             $freeField = $this->getEntityManager()->getRepository(FreeField::class)->find($freeFieldId);
-                            if($freeField->getTypage() === FreeField::TYPE_NUMBER) {
+                            if ($freeField->getTypage() === FreeField::TYPE_NUMBER) {
                                 $qb->orderBy("CAST(JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"') AS SIGNED)", $order);
                             } else {
                                 $qb->orderBy("JSON_EXTRACT(arrival.freeFields, '$.\"$freeFieldId\"')", $order);
@@ -394,7 +394,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        if(!$params->has("order")) {
+        if (!$params->has("order")) {
             $qb->addOrderBy("arrival.date", "DESC");
         }
 
@@ -409,7 +409,7 @@ class ArrivageRepository extends EntityRepository
             }
         }
 
-        if($options['dispatchMode']) {
+        if ($options['dispatchMode']) {
             $qb->orderBy("arrival.date", "DESC");
         }
 
@@ -420,7 +420,8 @@ class ArrivageRepository extends EntityRepository
         ];
     }
 
-    public function countByUser($user): int {
+    public function countByUser($user): int
+    {
         $qb = $this->createQueryBuilder("arrival");
 
         $qb
@@ -436,7 +437,8 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {
+    public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array
+    {
         $queryBuilder = $this->createQueryBuilder("arrival");
         $expr = $queryBuilder->expr();
 
@@ -456,7 +458,8 @@ class ArrivageRepository extends EntityRepository
             ->toArray();
     }
 
-    public function countArrivalPacksInDispatch(Arrivage $arrival): int {
+    public function countArrivalPacksInDispatch(Arrivage $arrival): int
+    {
         return $this->createQueryBuilder('arrival')
             ->select("COUNT(dispatch_packs)")
             ->leftJoin('arrival.packs', 'packs')
@@ -468,7 +471,8 @@ class ArrivageRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function iterateArrivals(DateTime $dateMin, DateTime $dateMax): iterable {
+    public function iterateArrivals(DateTime $dateMin, DateTime $dateMax): iterable
+    {
         $qb = $this->createQueryBuilder('arrivage')
             ->andWhere('arrivage.date BETWEEN :dateMin AND :dateMax')
             ->setParameter('dateMin', $dateMin)
@@ -478,7 +482,8 @@ class ArrivageRepository extends EntityRepository
             ->toIterable();
     }
 
-    public function getForSelect(?string $term, Language $language, Language $default): array {
+    public function getForSelect(?string $term, Language $language, Language $default): array
+    {
         return $this->createQueryBuilder('nature')
             ->select("nature.id AS id")
             ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label)) AS text")
@@ -491,5 +496,30 @@ class ArrivageRepository extends EntityRepository
             ->setParameter("default", $default)
             ->getQuery()
             ->getResult();
+    }
+
+    public function getByOrderNumber(string $orderNumber) {
+        return $this->createQueryBuilder('arrivage')
+            ->select('arrivage')
+            ->where("JSON_SEARCH(arrivage.numeroCommandeList, 'all', :orderNumber) IS NOT NULL")
+            ->orderBy('arrivage.date')
+            ->setParameter('orderNumber', $orderNumber)
+            ->getQuery()
+            ->execute();
+    }
+
+
+    public function getNbRefUrgentInArrival(Arrivage $arrival): int {
+        return $this->createQueryBuilder('arrival')
+            ->select('COUNT(join_referenceArticle)')
+            ->leftJoin('arrival.receptions', 'join_reception')
+            ->leftJoin('join_reception.lines', 'join_receptionLine')
+            ->leftJoin('join_receptionLine.receptionReferenceArticles', 'join_receptionReferenceArticle')
+            ->leftJoin('join_receptionReferenceArticle.referenceArticle', 'join_referenceArticle')
+            ->andWhere('arrival.id = :arrival')
+            ->andWhere('join_referenceArticle.isUrgent = 1')
+            ->setParameter('arrival', $arrival->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }
