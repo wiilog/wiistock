@@ -2439,7 +2439,7 @@ class MobileController extends AbstractApiController
 
         ['natures' => $natures] = $this->mobileApiService->getNaturesData($entityManager, $this->getUser());
 
-        if ($rights['demande'] || $rights['stock']) {
+        if($rights['deliveryRequest'] || $rights['deliveryOrder']) {
             $demandeLivraisonTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]))
                 ->map(fn(Type $type) => [
                     'id' => $type->getId(),
@@ -2449,7 +2449,7 @@ class MobileController extends AbstractApiController
 
         }
 
-        if ($rights['demande'] || $rights['tracking']) {
+        if($rights['dispatch']){
             [
                 'dispatches' => $dispatches,
                 'dispatchPacks' => $dispatchPacks,
