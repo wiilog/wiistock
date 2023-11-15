@@ -23,6 +23,7 @@ class FormExceptionListener {
         $event->setResponse(new JsonResponse([
             "success" => false,
             "msg" => $message,
+            "message" => $message,
             "data" => $data ?? null,
         ], $exception->getCode() ?: Response::HTTP_OK));
     }
