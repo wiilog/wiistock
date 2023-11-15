@@ -16,7 +16,7 @@ class Nature {
     public const DISPATCH_CODE = 'dispatch';
     public const TRANSPORT_COLLECT_CODE = 'transportCollect';
     public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
-    public const PACK_SEPARATION_CODE = 'bursted';
+    public const PACK_SEPARATION_CODE = 'packSeparation';
 
     private const ARRIVAL_LABEL = 'Arrivage';
     private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
