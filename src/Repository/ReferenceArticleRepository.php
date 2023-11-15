@@ -186,6 +186,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.description AS description')
             ->addSelect('reference.typeQuantite AS typeQuantite')
             ->addSelect('reference.barCode AS barCode')
+            ->addSelect('reference.isUrgent as urgent')
+            ->addSelect('reference.emergencyComment as emergencyComment')
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
             ->orHaving("text LIKE :term")

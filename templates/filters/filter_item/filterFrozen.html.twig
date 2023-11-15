@@ -5,7 +5,7 @@
                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé') }} ?
             </div>
             <label class="switch col-auto">
-                <input class="checkbox filter-checkbox" type="checkbox" name="frozen" id="frozen-filter">
+                <input class="checkbox filter-checkbox" {{ disabled }} type="checkbox" name="frozen" id="frozen-filter">
                 <span class="slider round"></span>
             </label>
         </div>

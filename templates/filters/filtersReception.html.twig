@@ -4,16 +4,16 @@
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterStatus.html.twig' %}
     {% include 'filters/filter_item/filterUser.html.twig' with {
-        placeholder: 'Demandeurs'
+        placeholder: 'Demandeurs',
     } %}
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterProvider.html.twig' %}
     {% endif %}
     {% include 'filters/filter_item/filterEmergency.html.twig' with {
-        titleFilterStatut : 'Urgence ?'
+        titleFilterStatut : 'Urgence ?',
     } %}
-    {% include 'filters/filter_item/filterExpectedDate.html.twig' %}
+    {% include 'filters/filter_item/filterExpectedDate.html.twig'%}
     {% include 'filters/filter_item/filterCommandList.html.twig' with {
         title: "N° de commande",
     } %}

@@ -17,6 +17,8 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
@@ -95,7 +97,7 @@ class ArrivageService {
 
     private ?array $exportCache = null;
 
-    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter)
+    public function getDataForDatatable(Request $request, ?int $userIdArrivalFilter, string $receptionFilter = null)
     {
         $arrivalRepository = $this->entityManager->getRepository(Arrivage::class);
         $supFilterRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -104,7 +106,17 @@ class ArrivageService {
         $currentUser = $this->security->getUser();
         $dispatchMode = $request->query->getBoolean('dispatchMode');
 
-        $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LU_ARRIVAL, $currentUser);
+        if ($receptionFilter) {
+            $filters = [
+                [
+                    'field' => 'commandList',
+                    'value' => $receptionFilter
+                ]
+            ];
+        } else {
+            $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_LU_ARRIVAL, $currentUser);
+        }
+
         $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
         $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;

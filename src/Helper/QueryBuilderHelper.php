@@ -10,14 +10,21 @@ use Doctrine\ORM\QueryBuilder;
 class QueryBuilderHelper
 {
 
-    public static function count(QueryBuilder $query, string $alias): int
+    public static function count(QueryBuilder $query, string $alias, bool $distinct = true): int
     {
         $countQuery = clone $query;
 
-        $result = $countQuery
+        $countQuery
             ->resetDQLPart('orderBy')
-            ->resetDQLPart('groupBy')
-            ->select("COUNT(DISTINCT $alias) AS __query_count")
+            ->resetDQLPart('groupBy');
+
+        if($distinct) {
+            $countQuery->select("COUNT(DISTINCT $alias) AS __query_count");
+        } else {
+            $countQuery->select("COUNT($alias) AS __query_count");
+        }
+
+        $result = $countQuery
             ->getQuery()
             ->getSingleResult();
 

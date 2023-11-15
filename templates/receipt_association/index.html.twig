@@ -20,9 +20,9 @@
                     <div class="btn-group">
                         {% if hasRightCreate %}
                             <button type="button"
-                                    class="btn btn-primary d-flex align-items-center {{ hasRightExport ? 'split-button' }}"
-                                    data-target='#modalNewReceiptAssociation'
-                                    data-toggle='modal'>
+                                    class="btn btn-primary d-flex align-items-center new-receipt-association {{ hasRightExport ? "split-button" }}"
+                                    data-target="#modalNewReceiptAssociation"
+                                    data-toggle="modal">
                                 <span class="wii-icon wii-icon-plus mr-2"></span>
                                 {{ trans('Traçabilité', 'Association BR', 'Association BR') }}
                             </button>
@@ -63,5 +63,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/receipt_association.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('receipt-association-index') }}
 {% endblock %}

@@ -1,4 +1,5 @@
-<div class="modal fade" id="modalEditReceptionReferenceArticle" role="dialog" aria-hidden="true">
+
+<div class="modal fade" id="modalEditReceptionLine" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -6,10 +7,11 @@
             } %}
 
             <div class="modal-body modal-input container-fluid"></div>
+
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'article', id: 'submitEditLigneArticle'}
+                    {classes: 'btn btn-success data', text: 'Enregistrer', name: 'article', type: 'submit', id: 'submitEditLigneArticle'}
                 ],
             } %}
 
