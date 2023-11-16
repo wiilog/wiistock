@@ -491,7 +491,6 @@ class ReceptionController extends AbstractController {
                                                     RefArticleDataService  $refArticleDataService,
                                                     Request                $request): Response {
         if($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -540,6 +539,7 @@ class ReceptionController extends AbstractController {
                 && $receptionLine->getReceptionReferenceArticles()->isEmpty()) {
                 $receptionLine->setReception(null);
                 $entityManager->remove($receptionLine);
+                $entityManager->flush();
             }
 
             $entityManager->remove($ligneArticle);

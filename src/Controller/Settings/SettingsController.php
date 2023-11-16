@@ -1319,9 +1319,7 @@ class SettingsController extends AbstractController {
                             ->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
-                        //$emergencyField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
-                        //$businessField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
                         $businessField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
@@ -1708,7 +1706,7 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
-                    "dispatchBusinessUnits" => $fixedFieldStandardRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
