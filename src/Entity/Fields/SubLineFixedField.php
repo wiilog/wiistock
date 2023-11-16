@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: SubLineFixedFieldRepository::class)]
 class SubLineFixedField extends FixedField {
+    public const FIELD_TYPE = 'subLineFixedField';
 
     public const FREE_ELEMENTS_FIELDS = [
         self::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT => [

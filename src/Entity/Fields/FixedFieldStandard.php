@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: FixedFieldStandardRepository::class)]
 class FixedFieldStandard extends FixedField {
+    public const FIELD_TYPE = 'fixedFieldStandard';
 
     const ELEMENTS_TYPE_FREE = 'FREE';
     const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';
