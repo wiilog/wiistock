@@ -95,7 +95,7 @@ class ReceiptAssociationService
             //prise UL
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
-                $pack->getLastTracking()->getEmplacement(),
+                $pack->getLastTracking()?->getEmplacement(),
                 $this->userService->getUser(),
                 $now,
                 false,
