@@ -113,7 +113,6 @@ class ReceiptAssociationRepository extends EntityRepository
                 {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
-                    dump($column);
                     if ($column === 'user') {
                         $qb
                             ->leftJoin('receipt_association.user', 'order_user')
