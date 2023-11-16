@@ -1739,14 +1739,16 @@ class SettingsController extends AbstractController {
         ));
     }
 
-    /**
-     * @Route("/enregistrer/champ-fixe/{field}", name="settings_save_field_param", options={"expose"=true})
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/enregistrer/champ-fixe/{field}", name: "settings_save_field_param", options: ["expose" => true], methods: ["POST"])]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function saveFieldParam(Request $request, EntityManagerInterface $manager, int $field): Response {
-        $field = $request->query->getBoolean('isSubLine')
-            ? $manager->find(SubLineFixedField::class, $field)
-            : $manager->find(FixedFieldStandard::class, $field);
+        $entity = match($request->request->get('fixedFieldType')) {
+            FixedFieldByType::FIELD_TYPE => FixedFieldByType::class,
+            SubLineFixedField::FIELD_TYPE => SubLineFixedField::class,
+            default => FixedFieldStandard::class
+        };
+
+        $field = $manager->find($entity, $field);
 
         if ($field->getElementsType() == FixedFieldStandard::ELEMENTS_TYPE_FREE) {
             $field->setElements(explode(",", $request->request->get("elements")));

@@ -1,7 +1,5 @@
 {% import 'form.html.twig' as form %}
 
-{% set isSubLine = isSubLine is defined and isSubLine %}
-
 <div class="modal fade" id="modal-fixed-field-{{ modal | lower }}"
      role="dialog"
      aria-hidden="true"
@@ -13,6 +11,8 @@
                 title: "Modifier le paramétrage d'un champ fixe"
             } %}
             <input type="hidden" name="field" value="{{ field }}"/>
+
+            {{ form.hidden('fixedFieldType', fixedFieldType is defined ? fixedFieldType : constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_TYPE')) }}
 
             {% if elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE_FREE') %}
                 <div class="modal-body">
@@ -138,12 +138,11 @@
                         </div>
                     </div>
                 </template>
-
             {% endif %}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data submit-field-param', text: 'Enregistrer', value: field, type: 'submit', data: {'is-sub-line': isSubLine}}
+                    {classes: 'btn btn-success data submit-field-param', text: 'Enregistrer', value: field, type: 'submit'}
                 ],
                 hideErrorContainer: true,
             } %}

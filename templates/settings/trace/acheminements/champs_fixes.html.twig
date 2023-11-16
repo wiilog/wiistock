@@ -7,6 +7,7 @@
     field: emergency.field,
     elementsType: emergency.elementsType,
     elements: emergency.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
@@ -14,6 +15,7 @@
     field: businessUnit.field,
     elementsType: businessUnit.elementsType,
     elements: businessUnit.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
 {# Dispatch logistic unit fixed field settings #}
@@ -24,7 +26,7 @@
         field: values.field,
         elementsType: businessUnit.elementsType,
         elements: values.elements,
-        isSubLine: true,
+        fixedFieldType: constant('App\\Entity\\Fields\\SubLinefixedField::FIELD_TYPE'),
     } %}
 {% endfor %}
 
