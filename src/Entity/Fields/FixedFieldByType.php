@@ -61,7 +61,7 @@ class FixedFieldByType extends FixedField
     {
         $this->requiredCreate = new ArrayCollection();
         $this->requiredEdit = new ArrayCollection();
-        $this->keptInMemory = new ArrayCofllection();
+        $this->keptInMemory = new ArrayCollection();
         $this->displayedCreate = new ArrayCollection();
         $this->displayedEdit = new ArrayCollection();
         $this->onMobile = new ArrayCollection();
