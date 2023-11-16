@@ -11,12 +11,9 @@
         }) }}
     </div>
     <div class="col-md-6 col-12 my-1">
-        {{ form.checkbox(
-            setting('MANAGE_PREPARATIONS_WITH_PLANNING'),
-            'Faire le contrôle de la quantité au lancement de préparation',
-            false,
-            setting_value('MANAGE_PREPARATIONS_WITH_PLANNING')
-        ) }}
+        {{ form.checkbox(setting('MANAGE_PREPARATIONS_WITH_PLANNING'),'Faire le contrôle de la quantité au lancement de préparation',false,setting_value('MANAGE_PREPARATIONS_WITH_PLANNING'),{
+            tooltip: 'Lorsque ce paramétrage est activé, les préparations créées seront visibles <br>uniquement sur la page <strong>Ordre | Préparation - Planning</strong>.',
+        }) }}
     </div>
     <div class="col-md-6 col-12 my-1">
         {{ form.checkbox(setting('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), 'Ne pas gérer les quantités en stock', false, setting_value('MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY'), {
