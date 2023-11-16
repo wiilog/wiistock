@@ -11,6 +11,7 @@ use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Helper\QueryBuilderHelper;
 use App\Entity\Statut;
 use App\Entity\Type;
 use DateTime;
@@ -155,10 +156,10 @@ class EmplacementRepository extends EntityRepository
     }
 
     public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false): array {
-        $countTotal = $this->countAll();
-
         $queryBuilder = $this->createQueryBuilder('location');
         $exprBuilder = $queryBuilder->expr();
+
+        $countTotal = QueryBuilderHelper::count($queryBuilder, 'location');
 
         if ($excludeInactive) {
             $queryBuilder->andWhere('location.isActive = 1');
@@ -204,19 +205,27 @@ class EmplacementRepository extends EntityRepository
             }
         }
 
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'location');
+
         $queryBuilder
             ->select('location');
 
-        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
 
-        $query = $queryBuilder->getQuery();
-        $data = $query?->getResult();
-        $countQuery = count($data);
+        if ($params->getInt('length')) {
+            $queryBuilder->setMaxResults($params->getInt('length'));
+        }
+
+        $results = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
         return [
-            'data' => $data,
-            'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
-            'count' => $countQuery,
+            'data' => $results,
+            'allEmplacementDataTable' => !empty($params) ? $results : null,
+            'count' => $countFiltered,
             'total' => $countTotal
         ];
     }

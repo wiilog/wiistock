@@ -117,17 +117,17 @@ class ReceiptAssociationRepository extends EntityRepository
                         $qb
                             ->leftJoin('receipt_association.user', 'order_user')
                             ->orderBy('order_user.username', $order);
-                    } else if ($column === 'pack') {
+                    } else if ($column === 'logisticUnit') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->orderBy('order_pack.code', $order);
-                    } else if ($column === 'lastLocation') {
+                    } else if ($column === 'lastTrackingLocation') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
                             ->leftJoin('pack_lastTracking.emplacement', 'lastTracking_location')
                             ->orderBy('lastTracking_location.label', $order);
-                    } else if ($column === 'lastMovementDate') {
+                    } else if ($column === 'lastTrackingDate') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
@@ -185,8 +185,8 @@ class ReceiptAssociationRepository extends EntityRepository
             ->addSelect('join_location.label AS lastTrackingLocation')
             ->leftJoin('receipt_association.user', 'join_user')
             ->leftJoin('receipt_association.logisticUnits', 'join_logisticUnits')
-            ->leftJoin('logisticUnits.lastTracking', 'join_lastTracking')
-            ->leftJoin('lastTracking.emplacement', 'join_location')
+            ->leftJoin('join_logisticUnits.lastTracking', 'join_lastTracking')
+            ->leftJoin('join_lastTracking.emplacement', 'join_location')
             ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
 
         return $queryBuilder

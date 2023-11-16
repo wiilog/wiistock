@@ -93,7 +93,7 @@ class Nature {
     #[ORM\JoinTable(name: 'location_temperature_range')]
     private Collection $temperatureRanges;
 
-    #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
+    #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class, cascade: ['remove'])]
     private ?TranslationSource $labelTranslation = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]

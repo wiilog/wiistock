@@ -272,14 +272,13 @@ $(function() {
 
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
-        const isSubLine = Boolean($button.data('is-sub-line'));
         const $modal = $button.closest(`.modal`);
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
 
         if(data) {
             wrapLoadingOnActionButton($modal.find(`[type=submit]`), () => (
-                AJAX.route(POST, `settings_save_field_param`, {field, isSubLine})
+                AJAX.route(POST, `settings_save_field_param`, {field})
                     .json(data)
                     .then((response) => {
                         if(response.success){
@@ -693,8 +692,8 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `requiredCreate`, title: `Obligatoire`},
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
-                    {data: 'onMobile', title: `Afficher` },
-                    {data: 'onLabel', title: `Afficher` }
+                    // {data: 'onMobile', title: `Afficher` }, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+                    // {data: 'onLabel', title: `Afficher` }  TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
                 ],
             });
         })

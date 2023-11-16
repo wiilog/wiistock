@@ -6,7 +6,8 @@
     {% include 'filters/filter_item/filterLocation.html.twig' with {
         disabled: isPreFilled ? 'disabled',
         isPreFilled: isPreFilled,
-        locationsFilter: locationsFilter
+        locationsFilter: locationsFilter,
+        placeholder : "Emplacements"
     } %}
     {% include 'filters/filter_item/filterNaturePacks.html.twig' with {disabled: isPreFilled ? 'disabled'} %}
 {% endblock %}

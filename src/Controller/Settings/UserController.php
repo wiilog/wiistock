@@ -3,6 +3,7 @@
 namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
 use App\Entity\Language;
@@ -47,7 +48,7 @@ class UserController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
-            $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+            $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
 
             $user = $utilisateurRepository->find($data['id']);
 

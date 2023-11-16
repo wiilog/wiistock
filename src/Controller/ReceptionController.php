@@ -548,6 +548,7 @@ class ReceptionController extends AbstractController {
                 $receptionLine->removeReceptionReferenceArticle($receptionReferenceArticle);
                 $entityManager->remove($receptionReferenceArticle);
                 $entityManager->remove($receptionLine);
+                $entityManager->flush();
             }
 
             $entityManager->remove($receptionReferenceArticle);
@@ -2013,6 +2014,13 @@ class ReceptionController extends AbstractController {
     public function packingTemplate(Request                $request,
                                     Reception              $reception,
                                     EntityManagerInterface $entityManager): Response {
+        if($reception->getStatut()->getState() === Statut::TREATED) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
+            ]);
+        }
+
         $reference = $request->query->get('reference');
         $orderNumber = $request->query->get('orderNumber');
         $packId = $request->query->get('pack');
@@ -2065,6 +2073,13 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['receptionReferenceArticle']);
         $receptionLine = $receptionReferenceArticle->getReceptionLine();
         $reception = $receptionLine->getReception();
+
+        if($reception->getStatut()->getState() === Statut::TREATED) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
+            ]);
+        }
 
         $pack = $receptionLine->getPack()
             ?? (!empty($data['pack']) ? $packRepository->find($data['pack']) : null);
