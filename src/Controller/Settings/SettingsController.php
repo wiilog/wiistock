@@ -2653,7 +2653,8 @@ class SettingsController extends AbstractController {
 
 
             $filterOnly = in_array($field->getFieldCode(), FieldsParam::FILTER_ONLY_FIELDS) ? "disabled" : "";
-            $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS) ? "disabled" : "";
+            $requireDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_REQUIRED_FIELDS[$entity] ?? []) ? "disabled" : "";
+            $displayDisabled = $filterOnly || in_array($field->getFieldCode(), FieldsParam::ALWAYS_DISPLAYED_FIELDS[$entity] ?? []) ? "disabled" : "";
 
             if ($edit) {
                 $labelAttributes = "class='font-weight-bold'";
@@ -2664,8 +2665,8 @@ class SettingsController extends AbstractController {
 
                 $row = [
                     "label" => "<span $labelAttributes>$label</span> <input type='hidden' name='id' class='$class' value='{$field->getId()}'/>",
-                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $filterOnly/>",
-                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $filterOnly/>",
+                    "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate $displayDisabled/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit $displayDisabled/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate $requireDisabled/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit $requireDisabled/>",
                     "displayedFilters" => "<input type='checkbox' name='displayedFilters' class='$class' $displayedFilters $filtersDisabled/>",
