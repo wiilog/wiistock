@@ -368,12 +368,9 @@ class NatureController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
-            $translationSourceRepository = $entityManager->getRepository(TranslationSource::class);
 
             $nature = $natureRepository->find($data['nature']);
-            $translationSource = $translationSourceRepository->findOneBy(['nature' => $nature]);
 
-            $entityManager->remove($translationSource);
             $entityManager->remove($nature);
             $entityManager->flush();
             return new JsonResponse();
