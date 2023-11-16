@@ -8,7 +8,7 @@
         false,
         {
             type: 'location',
-            placeholder: placeholder,
+            placeholder: placeholder ?? '',
             multiple: multiple is defined and multiple,
             items: isPreFilled ? locationsFilter|sort((a, b) => a.label <=> b.label)|map((location) => {
                 label: location.label,
