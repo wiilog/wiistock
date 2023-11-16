@@ -57,6 +57,7 @@ class FiltreSup {
     const FIELD_DELIVERERS = 'deliverers';
     const FIELD_DRIVERS = 'drivers';
     const FIELD_LOGISTIC_UNITS = 'logisticUnits';
+    const FIELD_UNLOADING_LOCATION = 'unloadingLocation';
     const FIELD_REGISTRATION_NUMBER = 'registrationNumber';
     const FIELD_CARRIER_TRACKING_NUMBER = 'carrierTrackingNumber';
     const FIELD_TRUCK_ARRIVAL_NUMBER = 'truckArrivalNumber';

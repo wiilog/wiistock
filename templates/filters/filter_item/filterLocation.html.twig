@@ -1,19 +1,22 @@
+{% import 'form.html.twig' as form %}
+
 {% set isPreFilled = isPreFilled ?? false %}
-{% set removeId = removeId ?? false %}
-<div class="col-auto m-1 select-filter pr-0">
-    <div {{ multiple is defined ? 'class="select2-overflow"' }}>
-        <div class="input-group w-100 cursor-default">
-            <select class="form-control data min-150px cursor-default filter-select2 ajax-autocomplete-emplacements"
-                    name="{{ name ?? 'emplacement' }}"
-                    {% if not removeId %}id="emplacement"{% endif %}
-                    {{ multiple is defined ? 'multiple' }}
-                    {{ disabled }}>
-                {% if isPreFilled %}
-                    {% for location in locationsFilter|sort((a, b) => a.label <=> b.label) %}
-                        <option selected value="{{ location.id }}">{{ location.label }}</option>
-                    {% endfor %}
-                {% endif %}
-            </select>
-        </div>
-    </div>
+<div class="col-auto minw-300px m-1 pr-0 select-filter">
+    {{ form.select(
+        name ?? 'emplacement',
+        null,
+        false,
+        {
+            type: 'location',
+            placeholder: placeholder,
+            multiple: multiple is defined and multiple,
+            items: isPreFilled ? locationsFilter|sort((a, b) => a.label <=> b.label)|map((location) => {
+                label: location.label,
+                value: location.id,
+                selected: true
+            } ) : [],
+            disabled: disabled is defined and disabled,
+            inputClass : 'w-100 filter-select2'
+        }
+    ) }}
 </div>

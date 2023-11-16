@@ -419,7 +419,7 @@ class ArrivageService {
         $alertConfigs = [];
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $confirmEmergency = $settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL) !== null;
+        $confirmEmergency = boolval($settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
 
         $allMatchingEmergencies = [];
 
