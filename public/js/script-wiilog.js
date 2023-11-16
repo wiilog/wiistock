@@ -852,6 +852,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'drivers':
                 case 'logisticUnits':
                 case 'locationWithGroups':
+                case 'unloadingLocation':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
