@@ -181,7 +181,7 @@ class DispatchRepository extends EntityRepository
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb
-                        ->andWhere("arrival.businessUnit IN (:businessUnit)")
+                        ->andWhere("dispatch.businessUnit IN (:businessUnit)")
                         ->setParameter('businessUnit', $values);
                     break;
                 case FiltreSup::FIELD_PROJECT_NUMBER:
