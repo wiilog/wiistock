@@ -82,6 +82,21 @@
         } %}
     {% endif %}
 
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterBusinessUnit.html.twig' with {
+            disabled: fromDashboard ? 'disabled',
+            page: constant('App\\Entity\\Fields\\FixedFieldStandard::ENTITY_CODE_DISPATCH'),
+        } %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterProjectNumber.html.twig' with {
+            disabled: fromDashboard ? 'disabled',
+        } %}
+    {% endif %}
+
     {% include 'filters/filter_item/filterPacks.html.twig' with {
         multiple: true,
     } %}

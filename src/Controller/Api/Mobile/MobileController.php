@@ -2741,7 +2741,7 @@ class MobileController extends AbstractApiController
                         else {
                             $zoneLabel = $zone->getName();
                             $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
-                            throw new FormException("L'emplacement $locationLabel dans la zone $zoneLabel n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
+                            throw new FormException("L'emplacement \"$locationLabel\" dans la zone \"$zoneLabel\" n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
                         }
                     }
                 }

@@ -11,6 +11,8 @@ use App\Entity\Chauffeur;
 use App\Entity\Customer;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Inventory\InventoryCategory;
@@ -589,15 +591,13 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/business-unit", name="ajax_select_business_unit", options={"expose"=true})
-     */
+    #[Route("/select/business-unit",name: "ajax_select_business_unit",options: ["expose" => true], methods: ["GET"])]
     public function businessUnit(Request $request, EntityManagerInterface $manager): Response {
         $page = $request->query->get('page');
 
-        $businessUnitValues = $manager
-            ->getRepository(FixedFieldStandard::class)
-            ->getElements($page, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+        $fixedFieldRepository = $manager->getRepository(in_array($page, FixedField::ENTITY_CODES_MANAGE_BY_TYPE) ? FixedFieldByType::class : FixedFieldStandard::class);
+
+        $businessUnitValues = $fixedFieldRepository->getElements($page, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $results = Stream::from($businessUnitValues)
             ->map(fn(string $value) => [
