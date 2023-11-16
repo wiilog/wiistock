@@ -1319,9 +1319,7 @@ class SettingsController extends AbstractController {
                             ->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
-                        //$emergencyField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
-                        //$businessField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
                         $businessField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
@@ -1708,7 +1706,7 @@ class SettingsController extends AbstractController {
                             "value" => $format,
                         ])
                         ->toArray(),
-                    "dispatchBusinessUnits" => $fixedFieldStandardRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
@@ -2693,7 +2691,7 @@ class SettingsController extends AbstractController {
 
                 if ($entityNeeded === FixedFieldStandard::class) {
                     $filtersDisabled = !in_array($code, FixedField::FILTERED_FIELDS[$entity] ?? []);
-                    $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
+                    $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters();
                 }
 
                 $filterOnly = in_array($code, FixedField::FILTER_ONLY_FIELDS);
@@ -2710,16 +2708,16 @@ class SettingsController extends AbstractController {
 
                     $row = [
                         "label" => "<span class='font-weight-bold $labelAttributes'>$label</span>" . $formService->macro("hidden", "id", $field->getId(), []),
-                        "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayedCreate, [
+                        "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayDisabled || $displayedCreate, [
                             "disabled" => $filterOnly || $displayDisabled,
                         ]),
-                        "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayedEdit, [
+                        "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayDisabled || $displayedEdit, [
                             "disabled" => $filterOnly || $displayDisabled,
                         ]),
-                        "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requiredCreate, [
+                        "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requireDisabled || $requiredCreate, [
                             "disabled" => $requireDisabled,
                         ]),
-                        "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requiredEdit, [
+                        "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requireDisabled || $requiredEdit, [
                             "disabled" => $requireDisabled,
                         ]),
 

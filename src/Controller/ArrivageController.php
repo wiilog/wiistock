@@ -363,7 +363,7 @@ class ArrivageController extends AbstractController {
                 : null,
             'printPacks' => (isset($data['printPacks']) && $data['printPacks'] === 'true'),
             'printArrivage' => isset($data['printArrivage']) && $data['printArrivage'] === 'true',
-            'arrivageId' => $arrivage->getId(),
+            'arrivalId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
             "new_form" => $arrivalService->generateNewForm($entityManager),
@@ -427,7 +427,7 @@ class ArrivageController extends AbstractController {
     }
 
     /**
-     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest() && ('%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_ED') || '%client%' == constant('\\App\\Service\\SpecificService::CLIENT_SAFRAN_NS'))")
+     * @Route("/{arrival}/urgent", name="patch_arrivage_urgent", options={"expose"=true}, methods="PATCH", condition="request.isXmlHttpRequest()")
      * @Entity("arrival", expr="repository.find(arrival) ?: repository.findOneBy({'numeroArrivage': arrival})")
      */
     public function patchUrgentArrival(Arrivage $arrival,
@@ -648,8 +648,7 @@ class ArrivageController extends AbstractController {
         $isArrivalUrgent = isset($supplierEmergencyAlert);
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $confirmEmergency = $settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL) !== null;
-
+        $confirmEmergency = boolval($settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
         $alertConfig = $isArrivalUrgent
             ? [
                 $supplierEmergencyAlert,

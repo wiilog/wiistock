@@ -51,10 +51,10 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                 loadSpinner($alertModal.find('.spinner'));
             }
 
-            const {arrivageId} = response;
+            const {arrivalId} = response;
 
             if (isCreation) {
-                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivalId}))
                     .then(() => {
                         displayCurrentModal();
 
@@ -156,7 +156,7 @@ function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) {
+function printArrival({arrivalId, printPacks, printArrivage, packs, printAll}) {
     let templates;
     try {
         templates = JSON.parse($('#tagTemplates').val());
@@ -164,7 +164,7 @@ function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) 
         templates = [];
     }
     let params = {
-        arrivage: arrivageId,
+        arrivage: arrivalId,
         printPacks: printPacks ? 1 : 0,
         printArrivage: printArrivage ? 1 : 0,
         packs: packs || [],

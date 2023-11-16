@@ -152,7 +152,7 @@ class DispatchRepository extends EntityRepository
                         ->andWhere("filter_dispatch_packs_pack.id IN (:logisticUnitIds)")
                         ->setParameter('logisticUnitIds', $value);
                     break;
-                case FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS:
+                case FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS:
                     [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
 
                     $qb->leftJoin('dispatch.locationTo', 'drop_location')
@@ -164,7 +164,7 @@ class DispatchRepository extends EntityRepository
                         ->setParameter("filter_drop_location_groups", $locationGroups)
                         ->setParameter("filter_drop_locations", $locations);
                     break;
-                case FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS:
+                case FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS:
                     [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
 
                     $qb->leftJoin('dispatch.locationFrom', 'pick_location')

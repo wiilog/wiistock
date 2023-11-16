@@ -92,6 +92,9 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
             FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE,
         ],
+        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        ],
     ];
 
     public const FILTERED_FIELDS = [
@@ -151,11 +154,17 @@ abstract class FixedField {
         FixedFieldStandard::ENTITY_CODE_RECEPTION => [
             FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
         ],
+        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        ],
     ];
 
     public const ALWAYS_DISPLAYED_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_RECEPTION => [
             FixedFieldStandard::FIELD_CODE_EMPLACEMENT,
+        ],
+        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
+            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
         ],
     ];
 
