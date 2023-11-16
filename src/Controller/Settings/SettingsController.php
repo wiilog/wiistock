@@ -2693,7 +2693,7 @@ class SettingsController extends AbstractController {
 
                 if ($entityNeeded === FixedFieldStandard::class) {
                     $filtersDisabled = !in_array($code, FixedField::FILTERED_FIELDS[$entity] ?? []);
-                    $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters($type);
+                    $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters();
                 }
 
                 $filterOnly = in_array($code, FixedField::FILTER_ONLY_FIELDS);
