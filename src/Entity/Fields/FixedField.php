@@ -7,6 +7,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\MappedSuperclass()]
 abstract class FixedField {
+    public const ENTITY_CODES_MANAGE_BY_TYPE = [
+        FixedFieldStandard::ENTITY_CODE_DISPATCH,
+    ];
     public const ON_MOBILE_ENTITY = [
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL,
         // FixedFieldStandard::ENTITY_CODE_DISPATCH, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
