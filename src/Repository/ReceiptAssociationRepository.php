@@ -185,8 +185,8 @@ class ReceiptAssociationRepository extends EntityRepository
             ->addSelect('join_location.label AS lastTrackingLocation')
             ->leftJoin('receipt_association.user', 'join_user')
             ->leftJoin('receipt_association.logisticUnits', 'join_logisticUnits')
-            ->leftJoin('logisticUnits.lastTracking', 'join_lastTracking')
-            ->leftJoin('lastTracking.emplacement', 'join_location')
+            ->leftJoin('join_logisticUnits.lastTracking', 'join_lastTracking')
+            ->leftJoin('join_lastTracking.emplacement', 'join_location')
             ->andWhere('receipt_association.creationDate BETWEEN :dateMin AND :dateMax');
 
         return $queryBuilder

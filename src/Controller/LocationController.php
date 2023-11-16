@@ -57,6 +57,7 @@ class LocationController extends AbstractController {
      * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, EmplacementDataService $emplacementDataService): Response {
+        dump($request->request->all());
         return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
     }
 
