@@ -176,6 +176,20 @@ class DispatchRepository extends EntityRepository
                         ->setParameter("filter_pick_location_groups", $locationGroups)
                         ->setParameter("filter_pick_locations", $locations);
                     break;
+                case FiltreSup::FIELD_BUSINESS_UNIT:
+                    $values = Stream::explode(",", $filter['value'])
+                        ->map(fn(string $value) => strtok($value, ':'))
+                        ->toArray();
+                    $qb
+                        ->andWhere("arrival.businessUnit IN (:businessUnit)")
+                        ->setParameter('businessUnit', $values);
+                    break;
+                case FiltreSup::FIELD_PROJECT_NUMBER:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->andWhere('dispatch.projectNumber IN (:filter_project_number_value)')
+                        ->setParameter('filter_project_number_value', $value);
+                    break;
             }
         }
         if (!empty($params)) {
