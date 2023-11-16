@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: FixedFieldByTypeRepository::class)]
 class FixedFieldByType extends FixedField
 {
+    public const FIELD_TYPE = 'fixedFieldByType';
     public const ATTRIBUTE_REQUIRED_CREATE = 'requiredCreate';
     public const ATTRIBUTE_REQUIRED_EDIT = 'requiredEdit';
     public const ATTRIBUTE_KEPT_IN_MEMORY = 'keptInMemory';
