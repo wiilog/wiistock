@@ -14,6 +14,15 @@
         placeholder: 'N° de tracking transporteur',
     } %}
 
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION') %}
+    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
+        {% include 'filters/filter_item/filterLocation.html.twig' with {
+            name: 'unloadingLocation',
+            placeholder: "Emplacement de déchargement",
+            multiple: true,
+        } %}
+    {% endif %}
+
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER') %}
     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
         {% include 'filters/filter_item/filterCarrier.html.twig' with {

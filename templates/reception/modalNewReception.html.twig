@@ -167,7 +167,7 @@
                     {% if fieldsParam|isFieldRequired('storageLocation', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
                             <label class="wii-field-name">Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? '*' : '' }}</label>
-                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}"
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? 'needed' : '' }}"
                                     name="storageLocation">
                             </select>
                         </div>
