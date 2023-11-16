@@ -113,21 +113,22 @@ class ReceiptAssociationRepository extends EntityRepository
                 {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
+                    dump($column);
                     if ($column === 'user') {
                         $qb
                             ->leftJoin('receipt_association.user', 'order_user')
                             ->orderBy('order_user.username', $order);
-                    } else if ($column === 'pack') {
+                    } else if ($column === 'logisticUnit') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->orderBy('order_pack.code', $order);
-                    } else if ($column === 'lastLocation') {
+                    } else if ($column === 'lastTrackingLocation') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
                             ->leftJoin('pack_lastTracking.emplacement', 'lastTracking_location')
                             ->orderBy('lastTracking_location.label', $order);
-                    } else if ($column === 'lastMovementDate') {
+                    } else if ($column === 'lastTrackingDate') {
                         $qb
                             ->leftJoin('receipt_association.pack', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
