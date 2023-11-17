@@ -151,31 +151,54 @@ class MobileController extends AbstractApiController
                     $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
 
                     $channels = Stream::from($rights)
-                        ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                        ->filter(static fn($val, $key) => $val && in_array($key, ["handling", "collectOrder", "transferOrder", "dispatch", "preparation", "deliveryOrder", "group", "ungroup", "notifications"]))
                         ->takeKeys()
-                        ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
+                        ->map(static fn($right) => "{$_SERVER["APP_INSTANCE"]}-$right")
                         ->toArray();
 
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-stock", $channels)) {
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-preparation", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-preparation", $channels)]);
                         Stream::from($loggedUser->getDeliveryTypes())
                             ->each(function (Type $deliveryType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-preparation-order-" . $deliveryType->getId();
                             });
                     }
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-tracking", $channels)) {
+
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-deliveryOrder", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-deliveryOrder", $channels)]);
+                        Stream::from($loggedUser->getDeliveryTypes())
+                            ->each(function (Type $deliveryType) use (&$channels) {
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-order-" . $deliveryType->getId();
+                            });
+                    }
+
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-dispatch", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-dispatch", $channels)]);
                         Stream::from($loggedUser->getDispatchTypes())
                             ->each(function (Type $dispatchType) use (&$channels) {
                                 $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
                             });
                     }
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-demande", $channels)) {
+
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-handling", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-handling", $channels)]);
                         Stream::from($loggedUser->getHandlingTypes())
                             ->each(function (Type $handlingType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
+                                $channels[] = $_SERVER["APP_INSTANCE"] . "-request-handling-" . $handlingType->getId();
                             });
                     }
 
-                    $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-collectOrder", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-collectOrder", $channels)]);
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-collect-order-";
+                    }
+
+                    if (in_array("{$_SERVER["APP_INSTANCE"]}-transferOrder", $channels)) {
+                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-transferOrder", $channels)]);
+                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-transfer-order-";
+                    }
+
+                    $channels[] = "{$_SERVER["APP_INSTANCE"]}-{$userService->getUserFCMChannel($loggedUser)}";
 
                     $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE])
                         ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -198,7 +221,7 @@ class MobileController extends AbstractApiController
                 } else {
                     $data = [
                         'success' => false,
-                        'msg' => "Le nombre de licence utilisés en cours sur cette instance a déjà été atteint"
+                        'msg' => "Le nombre de licences utilisées sur cette instance a déjà été atteint."
                     ];
                 }
             } else {

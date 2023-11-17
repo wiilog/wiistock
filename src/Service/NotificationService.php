@@ -221,25 +221,25 @@ class NotificationService {
         }
     }
 
-    public static function GetChannelFromEntity($entity): ?string {
+    public static function GetChannelFromEntity(mixed $entity): ?string {
         $res = null;
         if ($entity instanceof Preparation) {
-            $res = "stock-delivery-" . $entity->getDemande()->getType()->getId();
+            $res = "stock-preparation-order-{$entity->getDemande()->getType()->getId()}";
         }
         else if ($entity instanceof Livraison) {
-            $res = "stock-delivery-" . $entity->getPreparation()->getDemande()->getType()->getId();
+            $res = "stock-delivery-order{$entity->getPreparation()->getDemande()->getType()->getId()}";
         }
         else if ($entity instanceof Dispatch) {
-            $res = "tracking-dispatch-" . $entity->getType()->getId();
+            $res = "tracking-dispatch-{$entity->getType()->getId()}";
         }
         else if ($entity instanceof Handling) {
-            $res = "demande-handling-" . $entity->getType()->getId();
+            $res = "request-handling-{$entity->getType()->getId()}";
         }
         else if ($entity instanceof OrdreCollecte) {
-            $res = "stock";
+            $res = "stock-collect-order-";
         }
         else if ($entity instanceof TransferOrder) {
-            $res = "tracking";
+            $res = "stock-transfer-order-";
         }
         return $res;
     }
