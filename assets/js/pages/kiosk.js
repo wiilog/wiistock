@@ -119,8 +119,8 @@ $(function () {
                 wrapLoadingOnActionButton($(this), () => (
                     AJAX.route(POST, 'check_article_is_valid', {token, barcode: $articleDataInput.val() || null, referenceLabel : $referenceRefInput.val() })
                         .json()
-                        .then(({success}) => {
-                            if(success){
+                        .then(({success, fromArticlePage}) => {
+                            if(success || !fromArticlePage){
                                 $current.removeClass('active').addClass('d-none');
                                 $($current.next()[0]).addClass('active').removeClass('d-none');
                                 $currentTimelineEvent.removeClass('current');

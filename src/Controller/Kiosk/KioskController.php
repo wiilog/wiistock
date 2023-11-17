@@ -106,16 +106,24 @@ class KioskController extends AbstractController
         $article = $articleRepository->findOneBy(['barCode' => $request->query->get('barcode')]);
         $reference = $referenceRepository->findOneBy(['reference' => $request->query->get('referenceLabel')]);
 
-        if($article && $article->getReferenceArticle() != $reference){
+        if(!$article){
             return new JsonResponse([
                 'success' => false,
+                'fromArticlePage' => true,
+            ]);
+        }
+
+        if($article && $reference && $article->getReferenceArticle() != $reference){
+            return new JsonResponse([
+                'success' => false,
+                'fromArticlePage' => true,
             ]);
         }
 
         $articleIsNotActive = $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF;
-
         return new JsonResponse([
             'success' => $articleIsNotActive,
+            'fromArticlePage' => $request->query->get('barCode') !== null,
         ]);
     }
 
