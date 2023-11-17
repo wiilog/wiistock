@@ -3,7 +3,10 @@
 {% set isClientSafranED =
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
+{% set displayScannedDeliveryNote =  setting_value('DISPLAY_SCANNED_DELIVERY_NOTE')%}
 <div class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
+    <input id="displayScannedDeliveryNote" value="{{ displayScannedDeliveryNote }}" hidden>
+
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {

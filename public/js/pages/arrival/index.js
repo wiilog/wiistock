@@ -467,6 +467,7 @@ function scanDeliveryNoteFile($input) {
     let files = $input[0].files;
     let file = files[0];
     let formData = new FormData();
+    const displayScannedDeliveryNote = parseInt($('#displayScannedDeliveryNote').val());
     formData.append("file", file)
     $.ajax({
         url: Routing.generate('api_delivery_note_file', true),
@@ -515,7 +516,9 @@ function scanDeliveryNoteFile($input) {
                     }
                 }
             }
-            window.open(data.file, '_blank');
+            if (displayScannedDeliveryNote !== 0) {
+                window.open(data.file, '_blank');
+            }
         },
         error: () => {
             Flash.add('danger', 'Il y a eu une erreur lors de l\'import et/ou traitement du fichier');
