@@ -12,6 +12,7 @@
     <div class="col-md-6 col-12 form-group">
         {{ form.select('truckArrivalLineNumber', "N° tracking transporteur", true, {
             emptyOption: new is defined and new ? {text: '', value: ''} : {},
+            disabled: new is defined and not new,
             items: availableTrackingNumber,
             type: '',
         }) }}
