@@ -1,20 +1,39 @@
 @import "variables";
 
-.score-low {
-    &, &.ql-snow {
-        background-color: $lightest-danger!important;
+.score {
+    &__low {
+        &, &.ql-snow {
+            background-color: $lightest-danger!important;
+        }
+    }
+    &__medium {
+        &, &.ql-snow{
+            background-color: $lightest-warning!important;
+        }
+    }
+    &__high {
+        &, &.ql-snow {
+            background-color: $lightest-success!important;
+        }
     }
 }
 
-.score-medium {
-   &, &.ql-snow{
-        background-color: $lightest-warning!important;
-    }
-}
-
-
-.score-high {
-    &, &.ql-snow {
-        background-color: $lightest-success!important;
+.ai-legend-container {
+    display: flex;
+    & li {
+        font-size: 0.75em;
+        padding: 0.25rem 0.55rem;
+        border-radius: 5px;
+        &.score {
+            &__low {
+                border: 1px solid $danger;
+            }
+            &__medium {
+                border: 1px solid $warning;
+            }
+            &__high {
+                border: 1px solid $success;
+            }
+        }
     }
 }

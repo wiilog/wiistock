@@ -482,6 +482,7 @@ function scanDeliveryNoteFile($input) {
                 $select = $('[name=' + field + ']');
                 let score = fields[field].score;
                 if ($select.prop('multiple')) {
+                    $select.empty();
                     if (Array.isArray(fields[field])) {
                         score = 0;
                         fields[field].forEach((optionValue) => {
@@ -507,12 +508,12 @@ function scanDeliveryNoteFile($input) {
                     let $coloredLabel = $select.next().hasClass('ql-toolbar')
                         ? $select.next()
                         : $select.next().find('.select2-selection');
-                    if (score > 0.90 ) {
-                        $coloredLabel.addClass('score-high');
-                    } else if (score <= 0.90 && score > 0.60) {
-                        $coloredLabel.addClass('score-medium');
+                    if (score >= 0.90 ) {
+                        $coloredLabel.addClass('score__high');
+                    } else if (score < 0.90 && score > 0.60) {
+                        $coloredLabel.addClass('score__medium');
                     } else if (score >= 0 && score <= 0.60) {
-                        $coloredLabel.addClass('score-low');
+                        $coloredLabel.addClass('score__low');
                     }
                 }
             }

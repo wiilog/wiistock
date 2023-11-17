@@ -16,24 +16,44 @@
             <div class="modal-body modal-input container-fluid">
                 {% set useAiArrivals = setting_value('USE_AI_ARRIVALS') %}
                 {% if useAiArrivals %}
-                    <div class="col-12">
-                        <div class="form-group">
-                            {% include 'attachment/attachment.html.twig' with {
-                                nameInput: 'uploadAndScan',
-                                'isNew': true,
-                                'required': false,
-                                fieldNameClass : 'wii-subtitle',
-                                override: true,
-                                noLabel: true,
-                                buttonOnly: true,
-                                buttonTitle: 'Importer BL',
-                                bigger: 'row',
-                                formats: 'image/png, image/jpeg, image/jpg, application/pdf',
-                            } %}
+                        <div class="d-flex justify-content-between">
+                                {% include 'attachment/attachment.html.twig' with {
+                                    nameInput: 'uploadAndScan',
+                                    'isNew': true,
+                                    'required': false,
+                                    fieldNameClass : 'wii-subtitle',
+                                    override: true,
+                                    noLabel: true,
+                                    buttonOnly: true,
+                                    buttonTitle: 'Importer BL',
+                                    bigger: 'form-group d-flex',
+                                    formats: 'image/png, image/jpeg, image/jpg, application/pdf',
+                                } %}
+
+                            {% if useAiArrivals %}
+                                    <div class="form-group">
+                                        <span class="wii-field-name ai-legend-title">
+                                            Rappel échelle de confiance IA
+                                        </span>
+                                        <ul class="ai-legend-container">
+                                            <li class="score__low points has-tooltip mr-1" title data-original-title="A vérifier soigneusement">
+                                                De 0% à 60%
+                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                            </li>
+                                            <li class="score__medium points has-tooltip mr-1" title data-original-title="A vérifier">
+                                                60% à 90%
+                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                            </li>
+                                            <li class="score__high points has-tooltip " title data-original-title="Information sûre">
+                                                De 90% à 100%
+                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                            {% endif %}
                         </div>
-                    </div>
                 {% endif %}
-                <div class="row fly-form">
+                <div class="row fly-form mt-2">
                     {% set supplierFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
