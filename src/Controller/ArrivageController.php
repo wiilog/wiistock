@@ -1562,16 +1562,21 @@ class ArrivageController extends AbstractController {
                                          KernelInterface        $kernel,
                                          EntityManagerInterface $entityManager): JsonResponse
     {
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
+
         if ($request->files->has('file')) {
+//            only the file from the api will be save as attachment
             $uploadedFile = $request->files->get('file');
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();
             $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
-            // the api output will be a base64 image, to fake it we encode the one uploaded
+//             the api output will be a base64 image, to fake it we encode the one uploaded
             $projectDir = $kernel->getProjectDir();
             $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
             $pattern = '/(.+)\.\w{3}/';
             preg_match($pattern, $originalUploadedFileName, $matches);
-            $downloadedFileName = $matches[1] . '-annotated.png';
+            $downloadedFileName = $matches[1] . '_annotated.png';
             $filepath = $attachmentService->createFile($downloadedFileName, base64_decode($encodedFile));
         }
 
@@ -1579,29 +1584,50 @@ class ArrivageController extends AbstractController {
 
         $apiOutput = [
             'values' => [
-                'supplier' => [
-                    'value' => '4030',
+                'fournisseur' => [
+                    'value' => $fournisseurRepository->findOneBy(["nom" => '4030'])->getId(),
                     'score' => 0.78,
                 ],
+                'transporteur' => [],
                 'numeroCommandeList' => [
-                    'value' => '123456789/P7T30',
-                    'score' => 0.62,
+                    [
+                        'value' => '123456789/P7T30',
+                        'score' => 0.62,
+                    ],
+                    [
+                        'value' => 'MI12456',
+                        'score' => 0.58,
+                    ],
                 ],
                 'noTracking' => [
                     'value' => 'SEY-BEL-610 230',
                     'score' => 0.85,
                 ],
-                'recipient' => [
-                    'value' => 'MONIN Raphaël',
+                'destinataire' => [
+                    'value' => $utilisateurRepository->findOneByName('thierry braisaz')->getId(),
                     'score' => 0.95,
                 ],
-                'comment' => [
+                'commentaire' => [
                     'value' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
                     'score' => 0.68,
                 ]
             ],
-            'file' => $filepath ?? null,
+            'file' => '/uploads/attachments/' . $downloadedFileName ?? null,
         ];
+
+        $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutput['values']['noTracking']['value']]);
+        if ($truckArrivalLine) {
+            $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
+            $apiOutput["values"]["transporteur"] = [
+                "value" => $carrierId,
+                "score" => 0.63,
+            ];
+            $apiOutput["values"]["noTruckArrival"] = [
+                "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
+            ];
+            $apiOutput["values"]["noTracking"]["id"] = $truckArrivalLine->getId();
+        }
+
 
         return $this->json($apiOutput);
     }

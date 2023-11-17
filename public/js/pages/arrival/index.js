@@ -422,6 +422,24 @@ function createArrival(form = null) {
             });
         }
     });
+
+    let aiFields = ['fournisseur', 'transporteur', 'numeroCommandeList', 'noTracking', 'destinataire'];
+
+    aiFields.forEach((field) => {
+        let $modalField = $modal.find('[name=' + field + ']');
+
+        $modalField.on('change', function () {
+            $(this).next().removeClass('score-low score-medium score-high');
+            $(this).prev().hasClass('wii-small-text') ? $(this).prev().html('') : $(this).prev().find('.wii-small-text').html('');
+        });
+    })
+
+    $modal.on('keyup', '.ql-editor', function(){
+        $(this).parent().prev().removeClass('score-low score-medium score-high');
+        $(this).parent().parent().find('.wii-small-text').html('');
+
+    });
+
     return $modal;
 }
 
@@ -458,7 +476,46 @@ function scanDeliveryNoteFile($input) {
         processData: false,
         dataType: 'json',
         success: function (data) {
-            console.log(data);
+            let fields = data.values;
+            for (const field in fields) {
+                $select = $('[name=' + field + ']');
+                let score = fields[field].score;
+                if ($select.prop('multiple')) {
+                    if (Array.isArray(fields[field])) {
+                        score = 0;
+                        fields[field].forEach((optionValue) => {
+                            let option = new Option(optionValue.value, optionValue.id ? optionValue.id : optionValue.value, true, true);
+                            score += optionValue.score;
+                            $select.append(option);
+                        })
+                        score /= fields[field].length;
+                    } else {
+                        let option = new Option(fields[field].value, fields[field].id ? fields[field].id : fields[field].value, true, true);
+                        $select.append(option);
+                    }
+                } else if (field === 'commentaire') {
+                    $('.ql-editor').find('p').html(fields[field].value);
+                } else {
+                    $select.val(fields[field].value);
+                }
+                $select.trigger('change');
+
+                if (score) {
+                    let $labelScore = $select.parent().find(".wii-small-text");
+                    $labelScore.html(score * 100 + '%');
+                    let $coloredLabel = $select.next().hasClass('ql-toolbar')
+                        ? $select.next()
+                        : $select.next().find('.select2-selection');
+                    if (score > 0.90 ) {
+                        $coloredLabel.addClass('score-high');
+                    } else if (score <= 0.90 && score > 0.60) {
+                        $coloredLabel.addClass('score-medium');
+                    } else if (score >= 0 && score <= 0.60) {
+                        $coloredLabel.addClass('score-low');
+                    }
+                }
+            }
+            window.open(data.file, '_blank');
         },
         error: () => {
             Flash.add('danger', 'Il y a eu une erreur lors de l\'import et/ou traitement du fichier');
