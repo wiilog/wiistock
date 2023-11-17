@@ -11,6 +11,24 @@
             } %}
 
             <div class="modal-body modal-input container-fluid">
+{#                display si droit IA #}
+                <div class="col-12">
+                    <div class="form-group">
+                        {% include 'attachment/attachment.html.twig' with {
+                            nameInput: 'uploadAndScan',
+                            'isNew': true,
+                            'required': false,
+                            fieldNameClass : 'wii-subtitle',
+                            override: true,
+                            noLabel: true,
+                            buttonOnly: true,
+                            buttonTitle: 'Importer BL',
+                            bigger: 'row',
+                            formats: 'image/png, image/jpeg, image/jpg, application/pdf',
+                        } %}
+                    </div>
+                </div>
+{#                fin du if #}
                 <div class="row fly-form">
                     {% set supplierFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
