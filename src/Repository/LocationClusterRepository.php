@@ -2,50 +2,40 @@
 
 namespace App\Repository;
 
+use App\Entity\Language;
 use App\Entity\LocationCluster;
 use App\Entity\Nature;
-use Doctrine\DBAL\Connection;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\Stream;
 
-/**
- * Class LocationClusterRepository
- * @package App\Repository
- */
 class LocationClusterRepository extends EntityRepository {
-    public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter): array {
+    public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage): array {
         $queryBuilder = $this->createQueryBuilder('cluster')
-            ->select('nature.id as natureId')
-            ->addSelect('nature.label as natureLabel')
-            ->addSelect('firstDrop.datetime AS firstTrackingDateTime')
-            ->addSelect('lastTracking.datetime AS lastTrackingDateTime')
-            ->addSelect('currentLocation.id AS currentLocationId')
-            ->addSelect('currentLocation.label AS currentLocationLabel')
-            ->addSelect('pack.code AS code')
-            ->addSelect('pack.id AS packId')
-            ->addSelect('pack.truckArrivalDelay AS truckArrivalDelay')
-
-            ->join('cluster.locationClusterRecords', 'record')
-            ->join('record.pack', 'pack')
-            ->join('record.firstDrop', 'firstDrop')
-            ->join('record.lastTracking', 'lastTracking')
-            ->join('lastTracking.emplacement', 'currentLocation')
-            ->leftJoin('pack.nature', 'nature')
-            ->where('record.active = true')
+            ->select('join_nature.id as natureId')
+            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_nature.label)) AS natureLabel")
+            ->addSelect('join_firstDrop.datetime AS firstTrackingDateTime')
+            ->addSelect('join_lastTracking.datetime AS lastTrackingDateTime')
+            ->addSelect('join_currentLocation.id AS currentLocationId')
+            ->addSelect('join_currentLocation.label AS currentLocationLabel')
+            ->addSelect('join_logisticUnit.code AS code')
+            ->addSelect('join_logisticUnit.id AS packId')
+            ->addSelect('join_logisticUnit.truckArrivalDelay AS truckArrivalDelay')
+            ->innerJoin('cluster.locationClusterRecords', 'record')
+            ->innerJoin('record.pack', 'join_logisticUnit')
+            ->innerJoin('record.firstDrop', 'join_firstDrop')
+            ->innerJoin('record.lastTracking', 'join_lastTracking')
+            ->innerJoin('join_lastTracking.emplacement', 'join_currentLocation')
+            ->andWhere('record.active = true')
             ->andWhere('cluster = :locationCluster')
             ->setParameter('locationCluster', $locationCluster);
 
+        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $defaultLanguage, $defaultLanguage, 'nature', ["alias" => "join_logisticUnit"]);
+
         if (!empty($naturesFilter)) {
             $queryBuilder
-                ->andWhere('nature.id IN (:naturesFilter)')
-                ->setParameter(
-                    'naturesFilter',
-                    array_map(function ($nature) {
-                        return ($nature instanceof Nature)
-                            ? $nature->getId()
-                            : $nature;
-                    }, $naturesFilter),
-                    Connection::PARAM_STR_ARRAY
-                );
+                ->andWhere('join_nature.id IN (:naturesFilter)')
+                ->setParameter("naturesFilter", Stream::from($naturesFilter)->map(static fn(Nature $nature) => $nature->getId())->toArray());
         }
 
         return $queryBuilder

@@ -174,13 +174,13 @@ class DispatchRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
                     if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', ["order" => $order]);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('dispatch.requester', 'sort_requester')
                             ->orderBy('sort_requester.username', $order);
                     } else if ($column === 'type') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', ["order" => $order]);
                     } else if ($column === 'locationFrom') {
                         $qb
                             ->leftJoin('dispatch.locationFrom', 'sort_locationFrom')
