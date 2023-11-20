@@ -10,6 +10,9 @@ use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
 
 class LocationClusterRepository extends EntityRepository {
+    /**
+     * @param Nature[] $naturesFilter
+     */
     public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage): array {
         $queryBuilder = $this->createQueryBuilder('cluster')
             ->select('join_nature.id as natureId')
