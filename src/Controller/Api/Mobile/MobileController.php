@@ -153,50 +153,27 @@ class MobileController extends AbstractApiController
                     $channels = Stream::from($rights)
                         ->filter(static fn($val, $key) => $val && in_array($key, ["handling", "collectOrder", "transferOrder", "dispatch", "preparation", "deliveryOrder", "group", "ungroup", "notifications"]))
                         ->takeKeys()
-                        ->map(static fn($right) => "{$_SERVER["APP_INSTANCE"]}-$right")
-                        ->toArray();
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-preparation", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-preparation", $channels)]);
-                        Stream::from($loggedUser->getDeliveryTypes())
-                            ->each(function (Type $deliveryType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-preparation-order-" . $deliveryType->getId();
-                            });
-                    }
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-deliveryOrder", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-deliveryOrder", $channels)]);
-                        Stream::from($loggedUser->getDeliveryTypes())
-                            ->each(function (Type $deliveryType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-order-" . $deliveryType->getId();
-                            });
-                    }
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-dispatch", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-dispatch", $channels)]);
-                        Stream::from($loggedUser->getDispatchTypes())
-                            ->each(function (Type $dispatchType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
-                            });
-                    }
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-handling", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-handling", $channels)]);
-                        Stream::from($loggedUser->getHandlingTypes())
-                            ->each(function (Type $handlingType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-request-handling-" . $handlingType->getId();
-                            });
-                    }
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-collectOrder", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-collectOrder", $channels)]);
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-collect-order-";
-                    }
-
-                    if (in_array("{$_SERVER["APP_INSTANCE"]}-transferOrder", $channels)) {
-                        unset($channels[array_search("{$_SERVER["APP_INSTANCE"]}-transferOrder", $channels)]);
-                        $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-transfer-order-";
-                    }
+                        ->flatMap(static function(string $right) use ($loggedUser) {
+                            return match ($right) {
+                                "preparation" => Stream::from($loggedUser->getDeliveryTypes())
+                                    ->map(static fn(Type $deliveryType) => "stock-preparation-order-{$deliveryType->getId()}")
+                                    ->toArray(),
+                                "deliveryOrder" => Stream::from($loggedUser->getDeliveryTypes())
+                                    ->map(static fn(Type $deliveryType) => "stock-delivery-order-{$deliveryType->getId()}")
+                                    ->toArray(),
+                                "dispatch" => Stream::from($loggedUser->getDispatchTypes())
+                                    ->map(static fn(Type $dispatchType) => "tracking-dispatch-{$dispatchType->getId()}")
+                                    ->toArray(),
+                                "handling" => Stream::from($loggedUser->getHandlingTypes())
+                                    ->map(static fn(Type $handlingType) => "request-handling-{$handlingType->getId()}")
+                                    ->toArray(),
+                                "collectOrder" => ["stock-collect-order"],
+                                "transferOrder" => ["stock-transfer-order"],
+                                default => [$right],
+                            };
+                        })
+                        ->map(static fn(string $channel) => "{$_SERVER["APP_INSTANCE"]}-$channel")
+                        ->values();
 
                     $channels[] = "{$_SERVER["APP_INSTANCE"]}-{$userService->getUserFCMChannel($loggedUser)}";
 
