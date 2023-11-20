@@ -18,7 +18,7 @@ use WiiCommon\Helper\Stream;
  */
 class ReceptionLineRepository extends EntityRepository {
     public function getByReception(Reception $reception, array $params): array {
-        $start = (int)$params['start'] ?? 0;
+        $start = $params['start'] ?? 0;
         $length = $params['length'] ?? 5;
         $search = $params['search'] ?? null;
         $paginationMode = $params['paginationMode'] ?? null;
