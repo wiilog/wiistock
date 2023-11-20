@@ -11,15 +11,15 @@
 <div class="row">
     <div class="col-md-6 col-12 form-group">
         {{ form.select('truckArrivalLineNumber', "N° tracking transporteur", true, {
-            emptyOption: new is defined and new ? {text: '', value: ''} : {},
-            disabled: new is defined and not new,
+            emptyOption: new ? {text: '', value: ''} : {},
+            disabled: not new,
             items: availableTrackingNumber,
             type: '',
         }) }}
     </div>
     <div class="col-md-6 col-12 form-group">
         {{ form.select('reserveType', "Type de réserve", true, {
-            emptyOption: new is defined and new ? {text: '', value: ''} : {},
+            emptyOption: new ? {text: '', value: ''} : {},
             items: reserveTypesLabels,
             value: 'value',
             type: '',
