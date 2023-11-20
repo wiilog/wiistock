@@ -16,6 +16,7 @@ use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -2236,7 +2237,8 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $projectRepository = $entityManager->getRepository(Project::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
@@ -2246,9 +2248,15 @@ class MobileController extends AbstractApiController
 
         $status = $statutRepository->getMobileStatus($rights['dispatch'], $rights['handling']);
 
-        $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL])
-            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+        $fieldsParamStandard = Stream::from([FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fixedFieldStandardRepository->getByEntity($entityCode)])
             ->toArray();
+
+        $fieldsParamByType = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fixedFieldByTypeRepository->getByEntity($entityCode)])
+            ->toArray();
+
+        $fieldsParam = array_merge($fieldsParamStandard, $fieldsParamByType);
 
         $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON]))
             ->map(fn(Type $type) => [
@@ -2479,7 +2487,7 @@ class MobileController extends AbstractApiController
                 'dispatchPacks' => $dispatchPacks,
                 'dispatchReferences' => $dispatchReferences,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
-            $elements = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+            $elements = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
             $dispatchEmergencies = Stream::from($elements)
                 ->toArray();
 

@@ -84,9 +84,9 @@ class DispatchController extends AbstractApiController
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
                 $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
-                $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
-                $locationTo = $locationRepository->find($dispatchArray['locationToId']);
-                $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
+                $locationFrom = $dispatchArray['locationFromId'] ? $locationRepository->find($dispatchArray['locationFromId']) : null;
+                $locationTo = $dispatchArray['locationToId'] ? $locationRepository->find($dispatchArray['locationToId']) : null;
+                $requester = $dispatchArray['requester'] ? $userRepository->findOneBy(['username' => $dispatchArray['requester']]) : null;
                 $wasDraft = true;
 
                 $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
