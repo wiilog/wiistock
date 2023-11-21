@@ -17,6 +17,10 @@ final class Version20231102092212 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if (!$schema->hasTable('fixed_field_standard')) {
+            return;
+        }
+
         ini_set("memory_limit", "-1");
         $this->addSql('CREATE TABLE IF NOT EXISTS receipt_association_logistic_unit (receipt_association_id INT NOT NULL, logistic_unit_id INT NOT NULL, INDEX IDX_61DC0EC0C2C6B1E5 (receipt_association_id), INDEX IDX_61DC0EC01919B217 (logistic_unit_id), PRIMARY KEY(receipt_association_id, logistic_unit_id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
 
