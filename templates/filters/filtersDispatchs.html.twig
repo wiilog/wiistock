@@ -15,14 +15,64 @@
         disabled: fromDashboard ? 'disabled',
     } %}
 
-    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
-        types: types,
-        filterTypes: typesFilter,
-        onchange : 'onFilterTypeChange($(this))',
-        disabled: fromDashboard ? 'disabled',
-    } %}
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GROUPED_SIGNATURE')) %}
+        {% include 'filters/filter_item/filterStatus.html.twig' with {
+            name: 'statut',
+            statuts: statuses,
+            placeholder: trans('Demande', 'Général', 'Statut', false),
+            filterStatus: statusFilter,
+            disabled: fromDashboard ? 'disabled',
+        } %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            disabled: fromDashboard ? 'disabled',
+        } %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocation.html.twig' with {
+                name: 'pickLocation',
+                removeId: true,
+                placeholder: 'Emplacement de prise',
+                disabled: fromDashboard ? 'disabled',
+            } %}
+        {% endif %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocation.html.twig' with {
+                name: 'dropLocation',
+                removeId: true,
+                placeholder: 'Emplacement de dépose',
+                disabled: fromDashboard ? 'disabled',
+            } %}
+        {% endif %}
+    {% else %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            onchange : 'onFilterTypeChange($(this))',
+            disabled: fromDashboard ? 'disabled',
+        } %}
 
-    {% include 'filters/filter_item/filterMultipleStatuses.html.twig' %}
+        {% include 'filters/filter_item/filterMultipleStatuses.html.twig' %}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
+                name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS'),
+                placeholder: 'Emplacement de prise',
+                disabled: fromDashboard ? 'disabled',
+            } %}
+        {% endif %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
+                name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS'),
+                placeholder: 'Emplacement de dépose',
+                disabled: fromDashboard ? 'disabled',
+            } %}
+        {% endif %}
+    {% endif %}
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
     {% if fieldCode in onFilterfields %}
@@ -62,22 +112,6 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
     {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterDestination.html.twig' with {
-            disabled: fromDashboard ? 'disabled',
-        } %}
-    {% endif %}
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
-    {% if fieldCode in onFilterfields %}
-        {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
-            name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS'),
-            placeholder: 'Emplacement de prise',
-            disabled: fromDashboard ? 'disabled',
-        } %}
-    {% endif %}
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
-    {% if fieldCode in onFilterfields %}
-        {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
-            name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS'),
-            placeholder: 'Emplacement de dépose',
             disabled: fromDashboard ? 'disabled',
         } %}
     {% endif %}
