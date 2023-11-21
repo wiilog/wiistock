@@ -547,9 +547,7 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-    * @Route("/{id}/consider", name="consider_purchase_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-    */
+    #[Route("/{id}/consider", name: "consider_purchase_request", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function consider(Request                    $request,
                              EntityManagerInterface     $entityManager,
                              PurchaseRequest            $purchaseRequest,
