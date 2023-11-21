@@ -347,7 +347,7 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('arrival.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
                     } else if ($column === 'type') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', ["order" => $order]);
                     } else if ($column === 'provider') {
                         $qb
                             ->leftJoin('arrival.fournisseur', 'order_fournisseur')
@@ -371,7 +371,7 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'totalWeight') {
                         $qb->orderBy('totalWeight', $order);
                     } else if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', ["order" => $order]);
                     } else if ($column === 'dropLocation') {
                         $qb
                             ->leftJoin('arrival.dropLocation', 'order_dropLocation')
