@@ -197,13 +197,13 @@ class PurchaseRequestService
 
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
-        $mails = [];
+        $emailRequesters = [];
 
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
         if ($buyerAbleToReceivedMail) {
             $buyer = $purchaseRequest->getBuyer();
             if ($buyer){
-                $mails[] = $buyer;
+                $emailRequesters[] = $buyer;
             }
         }
 
@@ -211,17 +211,17 @@ class PurchaseRequestService
         if ($requesterAbleToReceivedMail) {
             $requester = $purchaseRequest->getRequester();
             if ($requester){
-                $mails[] = $requester;
+                $emailRequesters[] = $requester;
             }
         }
 
-        if ( count($mails) > 0) {
+        if (!empty($emailRequesters)) {
             $needsRefsBuyer = !($buyer ?? null) ;
 
             if ($needsRefsBuyer) {
-                $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                $emailRequesters = Stream::from($purchaseRequest->getPurchaseRequestLines())
                     ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
-                    ->concat($mails)
+                    ->concat($emailRequesters)
                     ->toArray();
             }
 
@@ -252,17 +252,15 @@ class PurchaseRequestService
                 })
                 ->toArray();
 
-            if (isset($requester)) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // ' . $subject,
-                    $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
-                        'title' => $title,
-                        'purchaseRequest' => $purchaseRequest,
-                        'refsAndQuantities' => $refsAndQuantities
-                    ]),
-                    $mails
-                );
-            }
+            $this->mailerService->sendMail(
+                'FOLLOW GT // ' . $subject,
+                $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
+                    'title' => $title,
+                    'purchaseRequest' => $purchaseRequest,
+                    'refsAndQuantities' => $refsAndQuantities
+                ]),
+                $emailRequesters
+            );
         }
     }
 
