@@ -52,7 +52,7 @@ $(function() {
         if ($statutFilterOptionSelected.data('allowed-state')
             && $statutFilterOptionSelected.length === 1
             && $typeFilterOptionSelected.length === 1
-            && (pickLocationFilterValue !== null || dropLocationFilterValue !== null)){
+            && (pickLocationFilterValue || dropLocationFilterValue)){
             wrapLoadingOnActionButton($button, () => {
                 return saveFilters('acheminement', '#tableDispatches', null, 1).then(() => {
                     tableDispatches.clear().destroy();
