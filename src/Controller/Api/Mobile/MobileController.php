@@ -2722,7 +2722,7 @@ class MobileController extends AbstractApiController
             }
         }
 
-        // save sta
+        // save stats
         foreach ($zonesData as $zoneDatum) {
             /** @var InventoryLocationMission[] $lines */
             $lines = $zoneDatum["lines"] ?? [];
@@ -2733,23 +2733,16 @@ class MobileController extends AbstractApiController
                 ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
 
                 foreach ($lines as $line) {
-                    $line->setDone(true);
-                    if ($line->getLocation()) {
-                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()] ?? null;
-                        if (isset($inventoryDatum)) {
-                            $scannedAt = $validatedAt ?? $now;
-                            $line
-                                ->setOperator($validator)
-                                ->setScannedAt($scannedAt)
-                                ->setPercentage($inventoryDatum["ratio"])
-                                ->setArticles($inventoryDatum["articles"]);
-                        }
-                        else {
-                            $zoneLabel = $zone->getName();
-                            $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
-                            throw new FormException("L'emplacement \"$locationLabel\" dans la zone \"$zoneLabel\" n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
-                        }
-                    }
+                    $locationId = $line->getLocation()?->getId();
+                    $scannedAt = $validatedAt ?? $now;
+                    $inventoryDatum = $inventoryData[$locationId] ?? null;
+
+                    $line
+                        ->setOperator($validator)
+                        ->setScannedAt($scannedAt)
+                        ->setPercentage($inventoryDatum["ratio"] ?? 0)
+                        ->setArticles($inventoryDatum["articles"] ?? [])
+                        ->setDone(true);
                 }
             }
         }
