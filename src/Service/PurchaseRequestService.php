@@ -10,6 +10,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -196,17 +197,26 @@ class PurchaseRequestService
 
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
+        $mails = [];
+
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
+        if ($buyerAbleToReceivedMail) {
+            $buyer = $purchaseRequest->getBuyer();
+            if ($buyer){
+                $mails[] = $buyer;
+            }
+        }
+
         $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
+        if ($requesterAbleToReceivedMail) {
+            $requester = $purchaseRequest->getRequester();
+            if ($requester){
+                $mails[] = $requester;
+            }
+        }
 
-        if (isset($buyerAbleToReceivedMail) || isset($requesterAbleToReceivedMail)) {
-
-            $requester = $purchaseRequest->getRequester() ?? null;
-            $buyer = $purchaseRequest->getBuyer() ?? null;
-
-            $needsRefsBuyer = !$buyer;
-
-            $mails = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? [$buyer] : [$requester];
+        if ( count($mails) > 0) {
+            $needsRefsBuyer = !($buyer ?? null) ;
 
             if ($needsRefsBuyer) {
                 $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
