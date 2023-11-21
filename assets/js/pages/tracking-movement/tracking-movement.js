@@ -1,5 +1,8 @@
 let tableMvt;
 
+global.resetNewModal = resetNewModal;
+global.switchMvtCreationType = switchMvtCreationType;
+global.clearURL = clearURL;
 $(function () {
     $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');

@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Fields;
 
-use App\Repository\FieldsParamRepository;
+use App\Repository\Fields\FixedFieldStandardRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: FieldsParamRepository::class)]
-class FieldsParam {
+#[ORM\Entity(repositoryClass: FixedFieldStandardRepository::class)]
+class FixedFieldStandard extends FixedField {
+    public const FIELD_TYPE = 'fixedFieldStandard';
 
     const ELEMENTS_TYPE_FREE = 'FREE';
     const ELEMENTS_TYPE_FREE_NUMBER = 'FREE_NUMBER';
@@ -49,7 +50,7 @@ class FieldsParam {
     const FIELD_CODE_NUMERO_TRACKING_ARRIVAGE = 'noTracking';
     const FIELD_CODE_NUM_COMMANDE_ARRIVAGE = 'numeroCommandeList';
     const FIELD_CODE_DROP_LOCATION_ARRIVAGE = 'dropLocationArrival';
-    const FIELD_CODE_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_CODE_RECEIVERS = 'receivers';
     const FIELD_CODE_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_CODE_PRINT_ARRIVAGE = 'imprimerArrivage';
     const FIELD_CODE_COMMENTAIRE_ARRIVAGE = 'commentaire';
@@ -71,7 +72,7 @@ class FieldsParam {
     const FIELD_LABEL_CHAUFFEUR_ARRIVAGE = 'chauffeur';
     const FIELD_LABEL_NUMERO_TRACKING_ARRIVAGE = 'numéro tracking transporteur';
     const FIELD_LABEL_NUM_BL_ARRIVAGE = 'n° commande / BL';
-    const FIELD_LABEL_TARGET_ARRIVAGE = 'destinataire';
+    const FIELD_LABEL_RECEIVERS = 'destinataire(s)';
     const FIELD_LABEL_BUYERS_ARRIVAGE = 'acheteurs';
     const FIELD_LABEL_PRINT_ARRIVAGE = 'imprimer arrivage';
     const FIELD_LABEL_COMMENTAIRE_ARRIVAGE = 'commentaire';
@@ -209,86 +210,6 @@ class FieldsParam {
     const FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE = "code article interne";
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
-    public const MEMORY_UNKEEPABLE_FIELDS = [
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_PJ_ARRIVAGE,
-    ];
-
-    public const FILTER_ONLY_FIELDS = [
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
-        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
-    ];
-
-    public const FILTERED_FIELDS = [
-        // Arrivages UL
-        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE,
-        FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE,
-        FieldsParam::FIELD_CODE_FOURNISSEUR,
-        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE,
-        FieldsParam::FIELD_CODE_TRANSPORTEUR,
-        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
-        FieldsParam::FIELD_CODE_BUSINESS_UNIT,
-        FieldsParam::FIELD_CODE_PROJECT_NUMBER,
-        FieldsParam::FIELD_CODE_ARRIVAL_TYPE,
-        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
-
-        // Acheminements
-        FieldsParam::FIELD_CODE_EMERGENCY,
-        FieldsParam::FIELD_CODE_RECEIVER_DISPATCH,
-        FieldsParam::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
-        FieldsParam::FIELD_CODE_DESTINATION,
-        FieldsParam::FIELD_CODE_LOCATION_PICK,
-        FieldsParam::FIELD_CODE_LOCATION_DROP,
-        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_CARRIER_DISPATCH,
-
-        // Services
-        FieldsParam::FIELD_CODE_RECEIVERS_HANDLING,
-
-        // Arrivages camion
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
-
-        // Livraison
-        FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT
-    ];
-
-    public const NOT_EDITABLE_FIELDS = [
-        // Arrivages
-        FieldsParam::FIELD_CODE_PROJECT
-    ];
-
-    public const ON_NOMADE_FILEDS = [
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-        FieldsParam::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
-    ];
-
-    public const ALWAYS_REQUIRED_FIELDS = [
-        // Acheminements
-        FieldsParam::FIELD_CODE_REQUESTER_DISPATCH,
-        FieldsParam::FIELD_CODE_TYPE_DEMANDE,
-        FieldsParam::FIELD_CODE_DESTINATION_DEMANDE,
-    ];
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $entityCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldCode = null;
-
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $fieldLabel = null;
-
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
 
@@ -307,41 +228,11 @@ class FieldsParam {
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $displayedFilters = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $elements = [];
-
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
 
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $elementsType = null;
-
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
     private ?bool $onMobile = null;
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getEntityCode(): ?string {
-        return $this->entityCode;
-    }
-
-    public function setEntityCode(string $entityCode): self {
-        $this->entityCode = $entityCode;
-
-        return $this;
-    }
-
-    public function getFieldCode(): ?string {
-        return $this->fieldCode;
-    }
-
-    public function setFieldCode(string $fieldCode): self {
-        $this->fieldCode = $fieldCode;
-
-        return $this;
-    }
 
     public function isRequiredCreate(): ?bool {
         return $this->requiredCreate;
@@ -367,18 +258,9 @@ class FieldsParam {
         return $this->keptInMemory;
     }
 
-    public function setKeptInMemory(?bool $keptInMemory): self {
+    public function setKeptInMemory(?bool $keptInMemory): self
+    {
         $this->keptInMemory = $keptInMemory;
-
-        return $this;
-    }
-
-    public function getFieldLabel(): ?string {
-        return $this->fieldLabel;
-    }
-
-    public function setFieldLabel(string $fieldLabel): self {
-        $this->fieldLabel = $fieldLabel;
 
         return $this;
     }
@@ -410,33 +292,12 @@ class FieldsParam {
         return $this;
     }
 
-    public function getElements(): ?array {
-        return $this->elements;
-    }
-
-    public function setElements(?array $elements): self {
-        $this->elements = $elements;
-        return $this;
-    }
-
     public function getFieldRequiredHidden(): ?bool {
         return $this->fieldRequiredHidden;
     }
 
     public function setFieldRequiredHidden(?bool $fieldRequiredHidden): self {
         $this->fieldRequiredHidden = $fieldRequiredHidden;
-
-        return $this;
-    }
-
-    public function getElementsType(): ?string
-    {
-        return $this->elementsType;
-    }
-
-    public function setElementsType(?string $elementsType): self
-    {
-        $this->elementsType = $elementsType;
 
         return $this;
     }

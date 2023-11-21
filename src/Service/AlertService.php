@@ -167,4 +167,44 @@ class AlertService {
         }
     }
 
+    public function treatArticleAlert(EntityManagerInterface $entityManager,
+                                      Article                $article,
+                                      int|null               $expiryDelay): void
+    {
+        if (is_numeric($expiryDelay) && $article->getExpiryDate()) {
+            $now = new DateTime("now");
+            $expires = clone $now;
+            $expires->modify("$expiryDelay day");
+
+            $existing = $entityManager->getRepository(Alert::class)->findForArticle($article, Alert::EXPIRY);
+
+            //more than one expiry alert is an invalid state, so remove them to reset
+            if (count($existing) > 1) {
+                foreach ($existing as $alert) {
+                    $entityManager->remove($alert);
+                }
+
+                $existing = null;
+            }
+
+            if ($expires >= $article->getExpiryDate() && !$existing) {
+                $alert = new Alert();
+                $alert->setArticle($article);
+                $alert->setType(Alert::EXPIRY);
+                $alert->setDate($now);
+
+                $entityManager->persist($alert);
+
+                if ($article->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                    $managers = $article->getArticleFournisseur()
+                        ->getReferenceArticle()
+                        ->getManagers()
+                        ->toArray();
+                    $this->sendExpiryMails($managers, $article, $expiryDelay);
+                }
+            } else if ($now < $article->getExpiryDate() && $existing) {
+                $entityManager->remove($existing[0]);
+            }
+        }
+    }
 }
