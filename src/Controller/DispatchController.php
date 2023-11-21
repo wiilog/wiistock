@@ -25,6 +25,7 @@ use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -41,6 +42,7 @@ use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -1083,9 +1085,10 @@ class DispatchController extends AbstractController {
                                             TranslationService     $translationService,
                                             DispatchService        $dispatchService,
                                             NotificationService    $notificationService,
-                                            StatusHistoryService   $statusHistoryService): Response
-    {
+                                            StatusHistoryService   $statusHistoryService,
+                                            TrackingMovementService $trackingMovementService): Response {
         $status = $dispatch->getStatut();
+        $now = new DateTime('now');
 
         if(!$status || $status->isDraft()) {
             $data = json_decode($request->getContent(), true);
@@ -1097,14 +1100,40 @@ class DispatchController extends AbstractController {
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
+                    $settingRepository = $entityManager->getRepository(Setting::class);
                     if($dispatch->getType() &&
                         ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
                         $notificationService->toTreat($dispatch);
                     }
                     $dispatch
-                        ->setValidationDate(new DateTime('now'));
+                        ->setValidationDate($now);
 
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+
+                    $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
+                    if ($automaticallyCreateMovementOnValidation) {
+                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
+                        if(in_array($dispatch->getType()->getId(), $automaticallyCreateMovementOnValidationTypes)) {
+                            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                                $pack = $dispatchPack->getPack();
+                                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                                    $pack,
+                                    $dispatch->getLocationFrom(),
+                                    $this->getUser(),
+                                    $now,
+                                    false,
+                                    false,
+                                    TrackingMovement::TYPE_DEPOSE,
+                                    [
+                                        'from' => $dispatch,
+                                        "quantity" => $dispatchPack->getQuantity(),
+                                    ]
+                                );
+                                $entityManager->persist($trackingMovement);
+                            }
+                        }
+                    }
+
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
                 } catch (Exception $e) {
