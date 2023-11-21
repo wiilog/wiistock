@@ -16,6 +16,7 @@ use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -151,31 +152,31 @@ class MobileController extends AbstractApiController
                     $parameters = $this->mobileApiService->getMobileParameters($globalParametersRepository);
 
                     $channels = Stream::from($rights)
-                        ->filter(fn($val, $key) => $val && in_array($key, ["stock", "tracking", "group", "ungroup", "demande", "notifications"]))
+                        ->filter(static fn($val, $key) => $val && in_array($key, ["handling", "collectOrder", "transferOrder", "dispatch", "preparation", "deliveryOrder", "group", "ungroup", "notifications"]))
                         ->takeKeys()
-                        ->map(fn($right) => $_SERVER["APP_INSTANCE"] . "-" . $right)
-                        ->toArray();
+                        ->flatMap(static function(string $right) use ($loggedUser) {
+                            return match ($right) {
+                                "preparation" => Stream::from($loggedUser->getDeliveryTypes())
+                                    ->map(static fn(Type $deliveryType) => "stock-preparation-order-{$deliveryType->getId()}")
+                                    ->toArray(),
+                                "deliveryOrder" => Stream::from($loggedUser->getDeliveryTypes())
+                                    ->map(static fn(Type $deliveryType) => "stock-delivery-order-{$deliveryType->getId()}")
+                                    ->toArray(),
+                                "dispatch" => Stream::from($loggedUser->getDispatchTypes())
+                                    ->map(static fn(Type $dispatchType) => "tracking-dispatch-{$dispatchType->getId()}")
+                                    ->toArray(),
+                                "handling" => Stream::from($loggedUser->getHandlingTypes())
+                                    ->map(static fn(Type $handlingType) => "request-handling-{$handlingType->getId()}")
+                                    ->toArray(),
+                                "collectOrder" => ["stock-collect-order"],
+                                "transferOrder" => ["stock-transfer-order"],
+                                default => [$right],
+                            };
+                        })
+                        ->map(static fn(string $channel) => "{$_SERVER["APP_INSTANCE"]}-$channel")
+                        ->values();
 
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-stock", $channels)) {
-                        Stream::from($loggedUser->getDeliveryTypes())
-                            ->each(function (Type $deliveryType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-stock-delivery-" . $deliveryType->getId();
-                            });
-                    }
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-tracking", $channels)) {
-                        Stream::from($loggedUser->getDispatchTypes())
-                            ->each(function (Type $dispatchType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-tracking-dispatch-" . $dispatchType->getId();
-                            });
-                    }
-                    if (in_array($_SERVER["APP_INSTANCE"] . "-demande", $channels)) {
-                        Stream::from($loggedUser->getHandlingTypes())
-                            ->each(function (Type $handlingType) use (&$channels) {
-                                $channels[] = $_SERVER["APP_INSTANCE"] . "-demande-handling-" . $handlingType->getId();
-                            });
-                    }
-
-                    $channels[] = $_SERVER["APP_INSTANCE"] . "-" . $userService->getUserFCMChannel($loggedUser);
+                    $channels[] = "{$_SERVER["APP_INSTANCE"]}-{$userService->getUserFCMChannel($loggedUser)}";
 
                     $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE])
                         ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
@@ -198,7 +199,7 @@ class MobileController extends AbstractApiController
                 } else {
                     $data = [
                         'success' => false,
-                        'msg' => "Le nombre de licence utilisés en cours sur cette instance a déjà été atteint"
+                        'msg' => "Le nombre de licences utilisées sur cette instance a déjà été atteint."
                     ];
                 }
             } else {
@@ -2213,7 +2214,8 @@ class MobileController extends AbstractApiController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $projectRepository = $entityManager->getRepository(Project::class);
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
@@ -2223,9 +2225,15 @@ class MobileController extends AbstractApiController
 
         $status = $statutRepository->getMobileStatus($rights['dispatch'], $rights['handling']);
 
-        $fieldsParam = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL])
-            ->keymap(fn(string $entityCode) => [$entityCode, $fieldsParamRepository->getByEntity($entityCode)])
+        $fieldsParamStandard = Stream::from([FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fixedFieldStandardRepository->getByEntity($entityCode)])
             ->toArray();
+
+        $fieldsParamByType = Stream::from([FixedFieldStandard::ENTITY_CODE_DISPATCH])
+            ->keymap(fn(string $entityCode) => [$entityCode, $fixedFieldByTypeRepository->getByEntity($entityCode)])
+            ->toArray();
+
+        $fieldsParam = array_merge($fieldsParamStandard, $fieldsParamByType);
 
         $mobileTypes = Stream::from($typeRepository->findByCategoryLabels([CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::DEMANDE_LIVRAISON]))
             ->map(fn(Type $type) => [
@@ -2456,7 +2464,7 @@ class MobileController extends AbstractApiController
                 'dispatchPacks' => $dispatchPacks,
                 'dispatchReferences' => $dispatchReferences,
             ] = $this->mobileApiService->getDispatchesData($entityManager, $user);
-            $elements = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+            $elements = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
             $dispatchEmergencies = Stream::from($elements)
                 ->toArray();
 
