@@ -9,8 +9,9 @@
         }) }}
     </div>
     <div class="form-group col-md-6 col-12">
-        {% set defaultStatus = purchaseRequest.id ? null : statuses|filter((status) => status.defaultForCategory)|first %}
-        {% set selectedStatusId = (purchaseRequest.id ? purchaseRequest.status : (defaultStatus ? defaultStatus : statuses|first )).id %}
+        {% set defaultStatus = (statuses|filter((status) => status.defaultForCategory)|first) ?: (statuses|first) ?: null %}
+        {% set selectedStatus = purchaseRequest.id ? purchaseRequest.status : defaultStatus %}
+        {% set selectedStatusId = selectedStatus ? selectedStatus.id : null %}
 
         {{ form.select('status', 'Statut', true, {
             multiple: false,
