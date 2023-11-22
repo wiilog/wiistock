@@ -179,15 +179,22 @@ class PackController extends AbstractController
             ] : null);
         }
 
+        $location = $pack?->getLastDrop()?->getEmplacement();
+
         return new JsonResponse([
             'success' => true,
             'pack' => [
                 'code' => $packCode,
-                'quantity' => $pack ? $pack->getQuantity() : null,
-                'comment' => $pack ? $pack->getComment() : null,
-                'weight' => $pack ? $pack->getWeight() : null,
-                'volume' => $pack ? $pack->getVolume() : null,
-                'nature' => $nature
+                'quantity' => $pack?->getQuantity(),
+                'comment' => $pack?->getComment(),
+                'weight' => $pack?->getWeight(),
+                'volume' => $pack?->getVolume(),
+                'nature' => $nature,
+                'location' => $location
+                    ? [
+                        'id' => $location->getId(),
+                        'label' => $location->getLabel()
+                    ] : null
             ]
         ]);
     }
