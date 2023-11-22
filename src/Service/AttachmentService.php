@@ -26,9 +26,10 @@ class AttachmentService {
     }
 
     /**
+     * @param UploadedFile[]|FileBag $files
      * @return Attachment[]
      */
-	public function createAttachments($files): array {
+	public function createAttachments(array|FileBag $files): array {
 		$attachments = [];
 
         if ($files instanceof FileBag) {
