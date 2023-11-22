@@ -35,11 +35,11 @@ final class Version20231017092551 extends AbstractMigration
                 "category_type" => CategoryType::IMPORT,
             ]);
 
-            $this->addSql("INSERT INTO type (category_id, label) VALUE ((SELECT LAST_INSERT_ID()), :type)", [
+            $this->addSql("INSERT INTO type (category_id, label) VALUE ((SELECT category_type.id FROM category_type ORDER BY category_type.id DESC LIMIT 1), :type)", [
                 "type" => Type::LABEL_UNIQUE_IMPORT,
             ]);
 
-            $this->addSql("UPDATE import SET type_id = (SELECT LAST_INSERT_ID())");
+            $this->addSql("UPDATE import SET type_id = (SELECT type.id FROM type ORDER BY type.id DESC LIMIT 1)");
         }
     }
 

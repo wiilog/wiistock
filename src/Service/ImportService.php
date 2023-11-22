@@ -271,6 +271,9 @@ class ImportService
     #[Required]
     public FTPService $FTPService;
 
+    #[Required]
+    public ScheduleRuleService $scheduleRuleService;
+
     private EmplacementDataService $emplacementDataService;
 
     private Import $currentImport;
@@ -2483,177 +2486,6 @@ class ImportService
         }
     }
 
-    public function calculateNextExecutionDate(Import $import): ?DateTime
-    {
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-        $rule = $import->getScheduleRule();
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-        $executionDate = match ($rule->getFrequency()) {
-            ScheduleRule::ONCE => $this->calculateOnce($rule, $now),
-            ScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
-            ScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
-            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
-            ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
-            default => throw new RuntimeException('Invalid schedule rule frequency'),
-        };
-
-        if ($import->isForced()) {
-            $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
-            $executionDate = min($now, $executionDate);
-        }
-        return $executionDate;
-    }
-
-    public function calculateOnce(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        return $now <= $rule->getBegin()
-            ? $rule->getBegin()
-            : null;
-    }
-
-    public function calculateFromDailyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = $rule->getBegin();
-        // set time to 0
-        $start->setTime(0, 0);
-        $period = $rule->getPeriod();
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-
-        if ($now >= $start) {
-            $nextOccurrence = clone $start;
-            $daysDifferential = $now->diff($start)->days;
-
-            $add = $daysDifferential - $daysDifferential % $period;
-            if ($add < $daysDifferential) {
-                $add += $period;
-            }
-            $nextOccurrence->modify("+$add day");
-            $nextOccurrence->setTime($hour, $minute);
-
-            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
-                $nextOccurrence->modify("+1 day");
-            }
-        } else {
-            $nextOccurrence = clone $start;
-            $nextOccurrence->setTime($hour, $minute);
-        }
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromWeeklyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $DAY_LABEL = [
-            1 => "monday",
-            2 => "tuesday",
-            3 => "wednesday",
-            4 => "thursday",
-            5 => "friday",
-            6 => "saturday",
-            7 => "sunday",
-        ];
-
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-        $nextOccurrence = clone $rule->getBegin();
-
-        $weeksDifferential = floor($now->diff($rule->getBegin())->days / 7);
-        $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
-        $nextOccurrence->modify("+$add weeks");
-
-        $goToNextWeek = false;
-        if ($now->format("W") != $nextOccurrence->format("W")) {
-            $day = $rule->getWeekDays()[0];
-        } else {
-            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
-            $currentDay = $now->format("N");
-
-            $day = Stream::from($rule->getWeekDays())
-                ->filter(fn($day) => $isTimeEqualOrBefore ? $day > $currentDay : $day >= $currentDay)
-                ->firstOr(function () use ($rule, &$goToNextWeek) {
-                    $goToNextWeek = true;
-                    return $rule->getWeekDays()[0];
-                });
-        }
-
-        if ($goToNextWeek) {
-            $nextOccurrence->modify("+{$rule->getPeriod()} week");
-        }
-
-        $dayAsString = $DAY_LABEL[$day];
-        $nextOccurrence->modify("$dayAsString this week");
-        $nextOccurrence->setTime($hour, $minute);
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromHourlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = clone $rule->getBegin();
-        $start->setTime(0, 0, 0, 0);
-        $intervalPeriod = $rule->getIntervalPeriod();
-
-        if ($intervalPeriod) {
-            if ($now >= $start) {
-                $nextOccurrence = clone $now;
-                $hours = (int)$now->format('H');
-                $minutes = 0;
-                $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
-                $nextOccurrence->setTime($hours, $minutes);
-            } else {
-                $nextOccurrence = $this->calculateOnce($rule, $now);
-            }
-
-            return $nextOccurrence;
-        }
-        return null;
-    }
-
-    public function calculateFromMonthlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
-        $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
-
-        $year = $start->format("Y");
-        $currentMonth = $start->format("n");
-        $currentDay = (int)$start->format("j");
-        $currentLastDayMonth = (int)(clone $start)
-            ->modify('last day this month')
-            ->format("j");
-
-        $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay) {
-                $day = $day === Import::LAST_DAY_OF_WEEK ? 32 : $day;
-                return $isTimeEqualOrBefore
-                    ? $day > $currentDay
-                    : $day >= $currentDay;
-            })
-            ->firstOr(fn() => $rule->getMonthDays()[0]);
-
-        $day = $day !== Import::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
-        $isDayEqual = $day == $currentDay;
-        $isDayBefore = $day < $currentDay;
-
-        $ignoreCurrentMonth = $isDayBefore || ($isDayEqual && $isTimeEqualOrBefore);
-
-        $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function () use ($rule, &$year) {
-                $year += 1;
-                return $rule->getMonths()[0];
-            });
-
-        return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
-    }
-
-    private function isTimeEqualOrBefore(string $time, DateTime $date): string
-    {
-        [$hour, $minute] = explode(":", $time);
-        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
-    }
-
     public function updateScheduleRules(ImportScheduleRule $importScheduleRule,
                                         ParameterBag       $request): void
     {
@@ -2790,7 +2622,7 @@ class ImportService
     private function buildScheduledImportsCache(EntityManagerInterface $entityManager): array
     {
         return Stream::from($entityManager->getRepository(Import::class)->findScheduledImports())
-            ->keymap(fn(Import $import) => [$import->getId(), $this->calculateNextExecutionDate($import)])
+            ->keymap(fn(Import $import) => [$import->getId(), $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule())])
             ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
             ->map(fn(DateTime $date) => $this->getScheduleImportKeyCache($date))
             ->reduce(function ($accumulator, $date, $id) {

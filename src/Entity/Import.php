@@ -17,7 +17,7 @@ class Import {
     const STATUS_CANCELLED = 'annulé';
     const STATUS_IN_PROGRESS = 'en cours';
     const STATUS_FINISHED = 'terminé';
-    const STATUS_UPCOMING = 'planifié'; //import de plus de 500 lignes
+    const STATUS_UPCOMING = 'à venir'; //import de plus de 500 lignes
 
     const STATUS_SCHEDULED = 'planifié'; // import planifié
     const ENTITY_ART = 'ART';
@@ -292,7 +292,7 @@ class Import {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $recipient = null;
 
-    #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: "imports")]
+    #[ORM\ManyToOne(targetEntity: Type::class)]
     private ?Type $type = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]

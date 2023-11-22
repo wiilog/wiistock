@@ -15,6 +15,7 @@ use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FTPService;
 use App\Service\ImportService;
+use App\Service\ScheduleRuleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
@@ -41,7 +42,8 @@ class ImportController extends AbstractController
                         AttachmentService      $attachmentService,
                         EntityManagerInterface $entityManager,
                         ImportService          $importService,
-                        FTPService             $FTPService): Response
+                        FTPService             $FTPService,
+                        ScheduleRuleService    $scheduleRuleService): Response
     {
         $post = $request->request;
 
@@ -75,7 +77,7 @@ class ImportController extends AbstractController
                 throw new FormException($connect->getMessage());
             }
 
-            $nextExecutionDate = $importService->calculateNextExecutionDate($import);
+            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import
                 ->setScheduleRule($rule)
                 ->setNextExecutionDate($nextExecutionDate)
@@ -149,7 +151,8 @@ class ImportController extends AbstractController
     public function edit(Request                $request,
                          ImportService          $importService,
                          AttachmentService      $attachmentService,
-                         EntityManagerInterface $entityManager): Response
+                         EntityManagerInterface $entityManager,
+                         ScheduleRuleService    $scheduleRuleService): Response
     {
         $data = $request->request;
         $importRepository = $entityManager->getRepository(Import::class);
@@ -159,7 +162,7 @@ class ImportController extends AbstractController
         $importScheduleRule = $import->getScheduleRule();
         $importService->updateScheduleRules($importScheduleRule, $request->request);
 
-        $nextExecutionDate = $importService->calculateNextExecutionDate($import);
+        $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
 
         $import
             ->setNextExecutionDate($nextExecutionDate)
@@ -345,7 +348,8 @@ class ImportController extends AbstractController
     #[Route("/{import}/force", name: "import_force", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function forceImport(EntityManagerInterface $entityManager,
                                 Import                 $import,
-                                ImportService          $importService): JsonResponse
+                                ImportService          $importService,
+                                ScheduleRuleService    $scheduleRuleService): JsonResponse
     {
         if (!$import->isForced()
             && $import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT
@@ -353,7 +357,7 @@ class ImportController extends AbstractController
 
             $import->setForced(true);
 
-            $nextExecutionDate = $importService->calculateNextExecutionDate($import);
+            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import->setNextExecutionDate($nextExecutionDate);
 
             $entityManager->flush();

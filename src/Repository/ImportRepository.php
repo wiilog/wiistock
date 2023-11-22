@@ -6,6 +6,7 @@ use App\Entity\Import;
 use App\Entity\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -19,8 +20,7 @@ class ImportRepository extends EntityRepository
 	public function findByParamsAndFilters(InputBag $params, $filters): array
 	{
 		$qb = $this->createQueryBuilder('import')
-            ->innerJoin('import.status', 'join_status')
-            ->andWhere('join_status.nom != :draft')
+            ->innerJoin('import.status', 'join_status', Join::WITH, "join_status.code <> :draft")
             ->setParameter('draft', Import::STATUS_DRAFT)
             ->orderBy('import.createdAt', 'DESC');
 
@@ -141,10 +141,8 @@ class ImportRepository extends EntityRepository
 
     public function findScheduledImports(): array {
         return $this->createQueryBuilder("import")
-            ->innerJoin("import.type", "type")
-            ->innerJoin("import.status", "status")
-            ->andWhere("type.label = :type")
-            ->andWhere("status.nom = :status")
+            ->innerJoin("import.type", "join_type", Join::WITH, "join_type.label = :type")
+            ->innerJoin("import.status", "join_status", Join::WITH, "join_status.code = :status")
             ->setParameter("type", Type::LABEL_SCHEDULED_IMPORT)
             ->setParameter("status", Import::STATUS_SCHEDULED)
             ->getQuery()

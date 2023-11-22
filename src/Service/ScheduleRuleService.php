@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\ExportScheduleRule;
+use App\Entity\ImportScheduleRule;
 use App\Entity\ScheduleRule;
 use DateTime;
 use RuntimeException;
@@ -49,7 +50,13 @@ class ScheduleRuleService
         if ($rule instanceof ExportScheduleRule){
             $export = $rule->getExport();
             if ($export->isForced()) {
-                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
+                $executionDate = min($now, $executionDate);
+            }
+        } elseif ($rule instanceof ImportScheduleRule) {
+            $import = $rule->getImport();
+            if ($import->isForced()) {
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
                 $executionDate = min($now, $executionDate);
             }
         }

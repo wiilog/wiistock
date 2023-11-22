@@ -9,6 +9,7 @@ use App\Entity\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\ImportService;
+use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,6 +34,9 @@ class LaunchScheduledImportCommand extends Command {
 
     #[Required]
     public CacheService $cacheService;
+
+    #[Required]
+    public ScheduleRuleService $scheduleRuleService;
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $importRepository = $this->getEntityManager()->getRepository(Import::class);
@@ -77,7 +81,7 @@ class LaunchScheduledImportCommand extends Command {
                 ->setStartDate($start)
                 ->setFTPConfig($FTPConfig);
 
-            $nextExecutionDate = $this->importService->calculateNextExecutionDate($import);
+            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import->setNextExecutionDate($nextExecutionDate);
             $entityManager->persist($clone);
             $entityManager->flush();

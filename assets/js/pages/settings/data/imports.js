@@ -117,7 +117,7 @@ export function initializeImports() {
         Form.create($deleteImportModal)
             .clearSubmitListeners()
             .onSubmit((data, form) => {
-                form.loading(() => deleteImport(undefined, id), true, true)
+                form.loading(() => deleteImport(undefined, id), true, {closeModal: true})
             });
     });
 

@@ -186,12 +186,14 @@ export default class Form {
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait
      * @param {boolean} endLoading default to true
-     * @param {boolean} closeModal default to false
+     * @param {{
+     *    closeModal: boolean|undefined,
+     * }} options
      */
-    loading(action, endLoading = true, closeModal = false) {
+    loading(action, endLoading = true, options = {}) {
         const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
-        if(closeModal) {
+        if(options.closeModal) {
             this.element.modal(`hide`);
         }
     }
