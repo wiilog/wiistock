@@ -22,6 +22,7 @@ class Nature {
     private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
     private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
     private const PACK_SEPARATION_LABEL = 'Éclatement';
+    private const DISPATCH_LABEL = 'Acheminement';
 
     public const ENTITIES = [
         self::ARRIVAL_CODE => [
@@ -39,6 +40,10 @@ class Nature {
         self::TRANSPORT_DELIVERY_CODE => [
             'label' => self::TRANSPORT_DELIVERY_LABEL,
             'showTypes' => true,
+        ],
+        self::DISPATCH_CODE => [
+            'label' => self::DISPATCH_LABEL,
+            'showTypes' => false,
         ],
     ];
 
@@ -258,7 +263,7 @@ class Nature {
         return $this;
     }
 
-    public function getDisplayedOnForms(): ?bool
+    public function isDisplayedOnForms(): ?bool
     {
         return $this->displayedOnForms;
     }
@@ -268,6 +273,13 @@ class Nature {
         $this->displayedOnForms = $displayedOnForms;
 
         return $this;
+    }
+
+    public function isDisplayedOnForm(string $form): ?bool {
+        return (
+            $this->isDisplayedOnForms()
+            && array_key_exists($form, $this->getAllowedForms() ?? [])
+        );
     }
 
     public function getAllowedForms(): ?array

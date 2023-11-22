@@ -825,11 +825,13 @@ class DispatchService {
                 : "";
 
             $natureOptions = Stream::from($this->natures)
+                ->filter(static fn(Nature $nature) => array_key_exists(Nature::DISPATCH_CODE, $nature->getAllowedForms()))
                 ->map(fn(Nature $current) => [
                     "value" => $current->getId(),
                     "label" => $this->formatService->nature($current),
                     "selected" => $current->getId() === $nature?->getId() ? "selected" : "",
-                ]);
+                ])
+                ->toArray();
 
             $subLineFieldsParamRepository = $this->entityManager->getRepository(SubLineFixedField::class);
 

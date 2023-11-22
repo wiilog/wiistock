@@ -33,6 +33,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Printer;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
 use App\Entity\ReferenceArticle;
@@ -78,9 +79,9 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\PrinterService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceptionService;
-use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -3989,6 +3990,75 @@ class MobileController extends AbstractApiController
             'success' => true,
             'msg' => "Enregistrement"
         ]);
+    }
+
+    #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
+    #[Rest\View]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postPackSeparations(Request                $request,
+                                        EntityManagerInterface $entityManager,
+                                        PrinterService         $printerService,
+                                        PackService            $packService): JsonResponse
+    {
+        $packCode = $request->request->get('pack');
+        $subPacks = json_decode($request->request->get('subPacks'), true);
+        $locationLabel = $request->request->get('location');
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
+
+        $pack = $packRepository->findOneBy(['code' => $packCode]);
+
+        $user = $this->getUser();
+
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
+
+        if($dispatch && $request->request->get("printer")) {
+            $config = $printerService->configurationOf($dispatch);
+            if ($config) {
+                $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+                try {
+                    $zebraPrinter = $printerService->getPrinter($printer);
+                }
+                catch(Throwable) {
+                    return $this->json([
+                        'success' => false,
+                        'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué."
+                    ]);
+                }
+
+                //do pack separation after check printer connection
+                $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+
+                //remove the first pack (original pack) because it got removed from the dispatch
+                array_shift($movements);
+
+                $packs = Stream::from($movements)
+                    ->map(fn(TrackingMovement $movement) => $movement->getPack())
+                    ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
+                        ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                        ->first())
+                    ->filter()
+                    ->toArray();
+
+                $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}",
+                ]);
+            }
+        } else {
+            $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+        }
+
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
     }
 }
 

@@ -142,6 +142,11 @@ class NatureController extends AbstractController
                 if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
                     $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
                 }
+
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
+                }
+
                 $nature
                     ->setDisplayedOnForms(true)
                     ->setAllowedForms($allowedForms);
@@ -296,6 +301,10 @@ class NatureController extends AbstractController
 
                 if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
                     $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+                }
+
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
                 }
                 $currentNature
                     ->setDisplayedOnForms(true)
