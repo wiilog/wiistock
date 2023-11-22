@@ -46,6 +46,7 @@ class DispatchRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statuses-filter':
+                case 'statut':
                     if(!empty($filter['value'])) {
                         $value = explode(',', $filter['value']);
                         $qb
