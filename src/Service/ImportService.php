@@ -48,6 +48,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
+use JetBrains\PhpStorm\ArrayShape;
 use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
@@ -2758,8 +2759,14 @@ class ImportService
         return $res;
     }
 
-    public function validateImportAttachment(?array $fileConfig, bool $isUnique): array
-    {
+    #[ArrayShape([
+        'success' => "boolean",
+        'message' => "string",
+    ])]
+    public function validateImportAttachment(Attachment $attachment,
+                                             bool $isUnique): array {
+
+        $fileConfig = $this->getFileImportConfig($attachment);
         if (!$fileConfig) {
             $success = false;
             if ($isUnique) {
@@ -2775,8 +2782,8 @@ class ImportService
         }
 
         return [
-            'success' => $success,
-            'msg' => $message ?? ''
+            "success" => $success,
+            "message" => $message ?? ""
         ];
     }
 

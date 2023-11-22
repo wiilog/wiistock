@@ -104,8 +104,7 @@ class ImportController extends AbstractController
         $import->setCsvFile($csvAttachment);
 
         $entityManager->flush();
-        $fileImportConfig = $importService->getFileImportConfig($attachments[0]);
-        $fileValidationResponse = $importService->validateImportAttachment($fileImportConfig, !$isScheduled);
+        $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, !$isScheduled);
 
         if ($fileValidationResponse['success']) {
             $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $post, $import);
@@ -172,17 +171,13 @@ class ImportController extends AbstractController
             $oldCSVFile = $import->getCsvFile();
 
             if ($file->getClientOriginalExtension() !== 'csv') {
-                return $this->json([
-                    'success' => false,
-                    'msg' => 'Veuillez charger un fichier au format .csv.'
-                ]);
+                throw new FormException("Veuillez charger un fichier au format .csv.");
             }
 
             $attachments = $attachmentService->createAttachments([$file]);
             $csvAttachment = $attachments[0];
 
-            $fileHeaders = $importService->getFileImportConfig($attachments[0]);
-            $fileValidationResponse = $importService->validateImportAttachment($fileHeaders, false);
+            $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, false);
 
             if ($fileValidationResponse['success']) {
                 $import->setCsvFile(null);

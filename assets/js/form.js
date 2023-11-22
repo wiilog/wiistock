@@ -100,15 +100,27 @@ export default class Form {
         return this;
     }
 
-    submitTo(method, route, options) {
+    /**
+     * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method HTTP method
+     * @param {string} route Symfony route name
+     * @param {{
+     *    keepModal: boolean|undefined,
+     *    success: function|undefined,
+     *    tables: Datatable|Datatable[],
+     * }} options
+     * @returns {Form}
+     */
+    submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
                 () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
                         if(response.success) {
-                            if(!options.keepModal) {
-                                this.element.modal(`hide`);
+                            if (this.element.is('.modal')) {
+                                if (!options.keepModal) {
+                                    this.element.modal(`hide`);
+                                }
                             }
 
                             if(options.success) {

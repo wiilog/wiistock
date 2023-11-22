@@ -25,6 +25,9 @@ class AttachmentService {
         $this->attachmentDirectory = "{$kernel->getProjectDir()}/public/uploads/attachments";
     }
 
+    /**
+     * @return Attachment[]
+     */
 	public function createAttachments($files): array {
 		$attachments = [];
 
