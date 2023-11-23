@@ -529,7 +529,6 @@ class Reception {
 
     public function bulkInsertArrivals(array $arrivals): self
     {
-        dump($arrivals);
         foreach ($this->arrivals as $arrival) {
             $arrival->removeReception($this);
         }
