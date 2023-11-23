@@ -1,6 +1,6 @@
-import WysiwygManager from "./wysiwyg-manager";
-import Flash from "./flash";
-import AJAX, {POST} from "@app/ajax";
+import WysiwygManager from "@app/wysiwyg-manager";
+import Flash from "@app/flash";
+import AJAX from "@app/ajax";
 
 export default class Form {
 
@@ -193,8 +193,10 @@ export default class Form {
     loading(action, endLoading = true, options = {}) {
         const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
-        if(options.closeModal) {
-            this.element.modal(`hide`);
+        if (this.element.is(`.modal`)) {
+            if (options.closeModal) {
+                this.element.modal(`hide`);
+            }
         }
     }
 

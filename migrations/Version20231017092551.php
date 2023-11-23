@@ -4,24 +4,18 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Import;
 use App\Entity\Type;
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
 final class Version20231017092551 extends AbstractMigration
 {
-
-    public function __construct(Connection $connection, LoggerInterface $logger) {
-        parent::__construct($connection, $logger);
-    }
-
     public function getDescription(): string
     {
         return '';
@@ -35,11 +29,44 @@ final class Version20231017092551 extends AbstractMigration
                 "category_type" => CategoryType::IMPORT,
             ]);
 
-            $this->addSql("INSERT INTO type (category_id, label) VALUE ((SELECT category_type.id FROM category_type ORDER BY category_type.id DESC LIMIT 1), :type)", [
-                "type" => Type::LABEL_UNIQUE_IMPORT,
+            $this->addSql("
+                INSERT INTO type (category_id, label)
+                    VALUE (
+                        (SELECT category_type.id
+                         FROM category_type
+                            INNER JOIN category_type ON category_type.id = type.category_id AND category_type.label = :categoryLabel
+                         ORDER BY category_type.id DESC
+                         LIMIT 1),
+                        :typeLabel
+                    )", [
+                "typeCategory" => CategoryType::IMPORT,
+                "typeLabel" => Type::LABEL_UNIQUE_IMPORT,
             ]);
 
-            $this->addSql("UPDATE import SET type_id = (SELECT type.id FROM type ORDER BY type.id DESC LIMIT 1)");
+            $this->addSql("
+                UPDATE import SET type_id = (
+                    SELECT type.id
+                    FROM type
+                        INNER JOIN category_type ON category_type.id = type.category_id AND category_type.label = :categoryLabel
+                    WHERE type.label = :typeLabel
+                    ORDER BY type.id, category_type.id DESC
+                    LIMIT 1)
+            ", [
+                "typeCategory" => CategoryType::IMPORT,
+                "typeLabel" => Type::LABEL_UNIQUE_IMPORT,
+            ]);
+
+            $this->addSql("
+                UPDATE statut
+                    INNER JOIN categorie_statut ON statut.categorie_id = categorie_statut.id
+                SET statut.nom = :newStatusName
+                WHERE statut.nom = :oldStatusName
+                  AND categorie_statut.nom = :importStatusCategory
+            ", [
+                "oldStatusName" => "planifié",
+                "newStatusName" => Import::STATUS_UPCOMING,
+                "importStatusCategory" => CategorieStatut::IMPORT,
+            ]);
         }
     }
 
