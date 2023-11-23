@@ -528,7 +528,11 @@ class DispatchController extends AbstractController {
                 'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
             ],
             'dispatchTreat' => [
-                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED, Statut::PARTIAL])
+                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
+            ],
+            'dispatchPartial' => [
+                'partialStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::PARTIAL]),
+                'dispatchId' => $dispatch->getId(),
             ],
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
@@ -1168,7 +1172,7 @@ class DispatchController extends AbstractController {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
-            $data = json_decode($request->getContent(), true);
+            $data = !empty($request->request->all()) ? $request->request->all() : json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $statusId = $data['status'];
