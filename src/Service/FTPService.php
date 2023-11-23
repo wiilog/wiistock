@@ -64,7 +64,12 @@ class FTPService
     {
         try {
             $sftp = new SFTP($config["host"], intval($config["port"]));
-            return $sftp->login($config["user"], $config["pass"]);
+            $resLogin = $sftp->login($config["user"], $config["pass"]);
+            if ($resLogin) {
+                return true;
+            } else {
+                throw new FTPException(FTPException::INVALID_LOGINS);
+            }
         } catch (FTPException $rethrow) {
             return $rethrow;
         } catch (UnableToConnectException) {

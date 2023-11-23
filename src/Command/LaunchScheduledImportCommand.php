@@ -3,9 +3,9 @@
 namespace App\Command;
 
 use App\Entity\CategorieStatut;
-use App\Entity\Import;
-use App\Entity\ImportScheduleRule;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\ImportService;

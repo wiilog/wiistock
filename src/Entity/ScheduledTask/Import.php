@@ -1,8 +1,14 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask;
 
-use App\Repository\ImportRepository;
+use App\Entity\Attachment;
+use App\Entity\MouvementStock;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\Statut;
+use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Repository\ScheduledTask\ImportRepository;
 use DateTime;
 use DateTime as WiiDateTime;
 use Doctrine\Common\Collections\ArrayCollection;

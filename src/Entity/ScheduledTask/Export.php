@@ -1,8 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask;
 
-use App\Repository\ExportRepository;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\Statut;
+use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Repository\ScheduledTask\ExportRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;

@@ -5,7 +5,7 @@
 namespace App\Command;
 
 use App\Entity\CategorieStatut;
-use App\Entity\Import;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\Statut;
 use App\Service\ImportService;
 use DateTime;

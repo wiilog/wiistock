@@ -2,9 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\ExportScheduleRule;
-use App\Entity\ImportScheduleRule;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use DateTime;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;

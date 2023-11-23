@@ -7,7 +7,7 @@
     </div>
     <div class="form-group col-md-4 col-12">
         {{ form.select("entity", "Type de données à importer", true, {
-            items: constant('App\\Entity\\Import::ENTITY_LABEL')|map((label, value) => {
+            items: constant('App\\Entity\\ScheduledTask\\Import::ENTITY_LABEL')|map((label, value) => {
                 label,
                 value,
                 selected: import.id and import.entity == value,

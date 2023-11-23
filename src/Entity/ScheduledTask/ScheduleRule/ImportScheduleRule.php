@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask\ScheduleRule;
 
-use App\Repository\ImportScheduleRuleRepository;
+use App\Entity\ScheduledTask\Import;
+use App\Repository\ScheduledTask\StorageRule\ImportScheduleRuleRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

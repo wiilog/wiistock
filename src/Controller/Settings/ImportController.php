@@ -3,12 +3,13 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Import;
-use App\Entity\ImportScheduleRule;
 use App\Entity\Menu;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\FormException;
@@ -18,7 +19,6 @@ use App\Service\ImportService;
 use App\Service\ScheduleRuleService;
 use App\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

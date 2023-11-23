@@ -3,6 +3,7 @@
 namespace App\Controller\Settings;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
@@ -14,7 +15,6 @@ use App\Entity\Emplacement;
 use App\Entity\FieldsParam;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
-use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -28,7 +28,8 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -54,7 +55,6 @@ use App\Service\AttachmentService;
 use App\Service\CacheService;
 use App\Service\DispatchService;
 use App\Service\FormService;
-use App\Service\InventoryService;
 use App\Service\InvMissionService;
 use App\Service\LanguageService;
 use App\Service\PackService;
@@ -68,7 +68,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use RuntimeException;
-use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -78,7 +77,6 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
@@ -95,7 +93,7 @@ class SettingsController extends AbstractController {
     public SpecificService $specificService;
 
     #[Required]
-    public Environment $twig;
+    public Twig_Environment $twig;
 
     #[Required]
     public KernelInterface $kernel;

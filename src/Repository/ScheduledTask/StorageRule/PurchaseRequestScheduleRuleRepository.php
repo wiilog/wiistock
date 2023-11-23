@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\ScheduledTask\StorageRule;
 
-use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\Zone;
 use Doctrine\ORM\EntityRepository;
 

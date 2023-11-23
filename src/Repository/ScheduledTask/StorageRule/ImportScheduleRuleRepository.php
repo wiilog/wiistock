@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\ScheduledTask\StorageRule;
 
-use App\Entity\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use Doctrine\ORM\EntityRepository;
 
 /**

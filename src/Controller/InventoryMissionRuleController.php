@@ -9,16 +9,15 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Menu;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
-use App\Service\MailerService;
 
 
 #[Route('/inventaires/missions/planifier')]

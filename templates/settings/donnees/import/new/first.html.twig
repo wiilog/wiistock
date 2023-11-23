@@ -16,7 +16,7 @@
                 name="entity"
                 onchange="importTemplateChanged($(this))">
             <option></option>
-            {% for value, label in constant('App\\Entity\\Import::ENTITY_LABEL') %}
+            {% for value, label in constant('App\\Entity\\ScheduledTask\\Import::ENTITY_LABEL') %}
                 <option value="{{ value }}" {{ import and import.entity == value ? 'selected'}} >{{ label }}</option>
             {% endfor %}
         </select>

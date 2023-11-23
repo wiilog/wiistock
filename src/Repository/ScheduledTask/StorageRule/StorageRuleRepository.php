@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\ScheduledTask\StorageRule;
 
 use App\Entity\Article;
 use App\Entity\Fournisseur;
-use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\StorageRule;
 use App\Entity\Zone;
 use Doctrine\ORM\EntityRepository;

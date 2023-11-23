@@ -6,7 +6,7 @@ namespace DoctrineMigrations;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Import;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\Type;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;

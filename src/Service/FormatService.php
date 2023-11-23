@@ -422,9 +422,4 @@ class FormatService
         return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
     }
 
-    public static function parseDateAtMidnight(string $date, string $format = "Y-m-d"): DateTime {
-        $date = DateTime::createFromFormat($format, $date);
-        $date->setTimestamp($date->getTimestamp() - $date->getTimestamp() % 60);
-        return $date;
-    }
 }

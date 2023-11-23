@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\ScheduledTask;
 
-use App\Entity\Import;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\Type;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;

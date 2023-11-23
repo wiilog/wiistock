@@ -4,32 +4,31 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\DeliveryStationLine;
-use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\DeliveryStationLine;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Handling;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
-use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Symfony\Bundle\SecurityBundle\Security;
 
 class UserService
 {
