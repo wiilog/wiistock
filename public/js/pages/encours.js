@@ -25,7 +25,7 @@ $(function () {
 });
 
 function loadPage() {
-    let idLocationsToDisplay = $('#emplacement').val();
+    let idLocationsToDisplay = $('[name=emplacement]').val();
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
 
