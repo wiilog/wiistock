@@ -148,9 +148,28 @@ $(function() {
 function initTableDispatch(groupedSignatureMode = false) {
     const $filtersContainer = $(".filters-container");
     const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
+    const hasRightGroupedSignature = $filtersContainer.find('[name="hasRightGroupedSignature"]').val();
+    const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+    let statuts;
 
-    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, filterStatus: $('#filterStatus').val(), preFilledTypes: $typeFilter.val()}, true);
+    if(Boolean(hasRightGroupedSignature)){
+        statuts = $statutFilter.val();
+    } else {
+        statuts = $filtersContainer.find(`.statuses-filter [name*=statuses-filter]:checked`)
+            .map((index, line) => $(line).data('id'))
+            .toArray();
+
+        updateSelectedStatusesCount(statuts.length);
+    }
+
+    let pathDispatch = Routing.generate('dispatch_api', {
+        groupedSignatureMode,
+        fromDashboard,
+        filterStatus: statuts,
+        preFilledTypes: $typeFilter.val()
+    }, true);
+
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
     if(groupedSignatureMode || !initialVisible) {
         return $.post(Routing.generate('dispatch_api_columns', {groupedSignatureMode}))
