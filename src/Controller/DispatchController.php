@@ -38,6 +38,7 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\PackService;
+use App\Service\PDFGeneratorService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
@@ -51,6 +52,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -1885,5 +1887,20 @@ class DispatchController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());
 
         return $response;
+    }
+
+    #[Route("/etiquette-numero-acheminement/{dispatch}", name: "print_dispatch_number", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
+    public function printDispatchNumberLabel(Dispatch            $dispatch,
+                                             DispatchService     $dispatchService,
+                                             PDFGeneratorService $PDFGeneratorService,
+                                             AttachmentService   $attachmentService): Response
+    {
+        $fileName = $PDFGeneratorService->getBarcodeFileName([['code' => $dispatch->getNumber()]], 'acheminement', 'ETQ');
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, [['code' => $dispatch->getNumber()]]),
+            $fileName
+        );
     }
 }

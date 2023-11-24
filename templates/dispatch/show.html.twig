@@ -56,6 +56,11 @@
                                     <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
                                 </div>
                                 <div class="dropdown-menu dropdown-follow-gt pointer">
+                                    <a class="dropdown-item d-flex align-items-center"
+                                       href="{{ path('print_dispatch_number', {'dispatch': dispatch.id}) }}">
+                                        <span class="wii-icon wii-icon-printer-black mr-2"></span>
+                                        Imprimer un numéro d'acheminement
+                                    </a>
                                     {% if hasRightEdit %}
                                         {% if dispatch.statut.notTreated and not dispatch.statut.draft %}
                                             <a class="dropdown-item"
