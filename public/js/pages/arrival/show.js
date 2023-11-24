@@ -13,12 +13,11 @@ $(function () {
     let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
 
     if (printPacks || printArrivage) {
-        let params = {
-            arrivageId: Number($('#arrivageId').val()),
+        printArrival({
+            arrivalId: Number($('#arrivageId').val()),
             printPacks: printPacks,
             printArrivage: printArrivage
-        };
-        printArrival(params);
+        });
     }
     SetRequestQuery({});
 
