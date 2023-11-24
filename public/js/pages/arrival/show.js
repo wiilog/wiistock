@@ -93,7 +93,7 @@ $(function () {
             success: (data) => {
                 if (data.packs && data.packs.length > 0) {
                     printArrival({
-                        arrivageId: data.arrivageId,
+                        arrivalId: data.arrivageId,
                         printPacks: true,
                         printArrivage: false,
                         packs: data.packs.map(({id}) => id)

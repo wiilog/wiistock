@@ -1245,14 +1245,14 @@ class ArrivageController extends AbstractController {
      * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
      */
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
-                                               Request                $request,
-                                               EntityManagerInterface $entityManager,
-                                               PDFGeneratorService    $PDFGeneratorService,
-                                               PackService            $packService,
-                                               Pack                   $pack = null,
-                                               array                  $packIdsFilter = [],
-                                               TagTemplate $tagTemplate = null,
-                                               bool $forceTagEmpty = false): Response {
+                                              Request                $request,
+                                              EntityManagerInterface $entityManager,
+                                              PDFGeneratorService    $PDFGeneratorService,
+                                              PackService            $packService,
+                                              Pack                   $pack = null,
+                                              array                  $packIdsFilter = [],
+                                              TagTemplate            $tagTemplate = null,
+                                              bool                   $forceTagEmpty = false): Response {
         if (!$tagTemplate) {
             $tagTemplate = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
