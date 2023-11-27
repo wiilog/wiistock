@@ -1115,6 +1115,11 @@ class DispatchService {
             $dispatch['packLastTrackingDate'],
             $dispatch['packLastTrackingLocation'],
             $dispatch['packLastTrackingOperator'],
+            $dispatch['dueDate1'],
+            $dispatch['dueDate2'],
+            $dispatch['dueDate2Bis'],
+            $dispatch['productionOrderNumber'],
+            $dispatch['productionRequest'],
             ...(Stream::from($freeFieldsConfig['freeFields'])
                 ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                     $value = $freeFieldValues[$freeFieldId] ?? null;
