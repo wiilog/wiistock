@@ -1102,6 +1102,7 @@ class SettingsController extends AbstractController {
         $nativeCountryRepository = $entityManager->getRepository(NativeCountry::class);
         $sessionHistoryRepository = $entityManager->getRepository(SessionHistoryRecord::class);
         $roleRepository = $entityManager->getRepository(Role::class);
+        $printerRepository = $entityManager->getRepository(Printer::class);
 
         $categoryTypeArrivage = $entityManager->getRepository(CategoryType::class)->findBy(['label' => CategoryType::ARRIVAGE]);
         return [
@@ -1718,6 +1719,12 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "printers" => Stream::from($printerRepository->findAll())
+                        ->map(static fn(Printer $printer) => [
+                            "label" => $printer->getName(),
+                            "value" => $printer->getId(),
+                        ])
+                        ->toArray(),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),
@@ -2167,6 +2174,23 @@ class SettingsController extends AbstractController {
                                 "multiple" => true,
                                 "items" => $suggestedDropLocationOptions,
                             ]),
+                        ], [
+                            "label" => "Information à afficher sur le QR Code / Code barre d'acheminement",
+                            "value" => $formService->macro("select", "dispatchLabelField", null, false, [
+                                "type" => null,
+                                "items" => Stream::from(Type::DISPATCH_LABEL_FIELDS)
+                                    ->map(static fn(string $field, int $value) => [
+                                        "label" => $field,
+                                        "value" => $value,
+                                        "selected" => $type->getDispatchLabelField() === $value,
+                                    ]),
+                            ]),
+                        ], [
+                            "label" => "Afficher le nombre d'unités logistiques sur l'étiquette d'acheminement",
+                            "value" => $formService->macro("switch", "displayLogisticUnitsCountOnDispatchLabel", null, false, [
+                                ["label" => "Oui", "value" => 1, "checked" => (bool) ($type?->isDisplayLogisticUnitsCountOnDispatchLabel())],
+                                ["label" => "Non", "value" => 0, "checked" => $type ? !$type->isDisplayLogisticUnitsCountOnDispatchLabel() : null],
+                            ]),
                         ],
                     ]);
                 }
@@ -2317,6 +2341,12 @@ class SettingsController extends AbstractController {
                     ], [
                         "label" => "Emplacement(s) de dépose suggéré(s)",
                         "value" => $suggestedDropLocations,
+                    ], [
+                        "label" => "Information à afficher sur le QR Code / Code barre d'acheminement",
+                        "value" => Type::DISPATCH_LABEL_FIELDS[$type->getDispatchLabelField()] ?? null,
+                    ], [
+                        "label" => "Afficher le nombre d'unités logistiques sur l'étiquette d'acheminement",
+                        "value" => $type->isDisplayLogisticUnitsCountOnDispatchLabel() ? "Oui" : "Non",
                     ],
                 ]);
             }
@@ -2471,6 +2501,7 @@ class SettingsController extends AbstractController {
                 $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
                 $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
                 $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
+                $displayedOnLabel = $freeField->isDisplayedOnLabel() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
 
                 $categories = Stream::from($categoryLabels)
@@ -2494,6 +2525,9 @@ class SettingsController extends AbstractController {
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
                         : "",
+                    "displayedOnLabel" => $type->getCategory()->getLabel() === CategoryType::DEMANDE_DISPATCH
+                        ? "<input type='checkbox' name='displayedOnLabel' class='$class' $displayedOnLabel/>"
+                        : "",
                 ];
             } else {
                 $rows[] = [
@@ -2508,6 +2542,7 @@ class SettingsController extends AbstractController {
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
+                    "displayedOnLabel" => $freeField->isDisplayedOnLabel() ? "oui" : "non",
                 ];
             }
         }
@@ -2527,6 +2562,7 @@ class SettingsController extends AbstractController {
                 "requiredEdit" => "",
                 "defaultValue" => "",
                 "elements" => "",
+                "displayedOnLabel" => "",
             ];
         }
 

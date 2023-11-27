@@ -725,7 +725,9 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
-                    ->setColor($data["color"] ?? null);
+                    ->setColor($data["color"] ?? null)
+                    ->setDispatchLabelField($data["dispatchLabelField"] ?? null)
+                    ->setDisplayLogisticUnitsCountOnDispatchLabel($data["displayLogisticUnitsCountOnDispatchLabel"] ?? false);
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
@@ -789,7 +791,8 @@ class SettingsService {
                     ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
-                    ->setRequiredEdit($item["requiredEdit"]);
+                    ->setRequiredEdit($item["requiredEdit"])
+                    ->setDisplayedOnLabel($item["displayedOnLabel"] ?? false);
 
                 if(!$freeField->getLabelTranslation()) {
                     $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());

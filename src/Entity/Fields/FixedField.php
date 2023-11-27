@@ -16,7 +16,7 @@ abstract class FixedField {
     ];
 
     public const ON_LABEL_ENTITY = [
-        // FixedFieldStandard::ENTITY_CODE_DISPATCH, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+        FixedFieldStandard::ENTITY_CODE_DISPATCH,
     ];
 
     public const ON_MOBILE_FIELDS = [

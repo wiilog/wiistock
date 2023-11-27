@@ -65,40 +65,43 @@ class FreeField implements Serializable {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private $id;
+    private ?int $id = null;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
     #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
-    private $label;
+    private ?string $label = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'champsLibres')]
-    private $type;
+    private ?Type $type = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $typage;
+    private ?string $typage = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $defaultValue;
+    private ?string $defaultValue = null;
 
-    #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'champLibre')]
-    private $filters;
+    #[ORM\OneToMany(mappedBy: 'champLibre', targetEntity: FiltreRef::class)]
+    private Collection $filters;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
     #[ORM\Column(type: 'json', nullable: true)]
-    private $elements = [];
+    private ?array $elements = [];
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredCreate;
+    private ?bool $requiredCreate = null;
 
     #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredEdit;
+    private ?bool $requiredEdit = null;
 
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
-    private $displayedCreate;
+    private ?bool $displayedCreate = null;
+
+    #[ORM\Column(type: 'boolean', nullable: true)]
+    private ?bool $displayedOnLabel = null;
 
     #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
     private ?CategorieCL $categorieCL = null;
@@ -258,6 +261,15 @@ class FreeField implements Serializable {
 
     public function setDisplayedCreate(?bool $displayedCreate): self {
         $this->displayedCreate = $displayedCreate;
+        return $this;
+    }
+
+    public function isDisplayedOnLabel(): ?bool {
+        return $this->displayedOnLabel;
+    }
+
+    public function setDisplayedOnLabel(?bool $displayedOnLabel): self {
+        $this->displayedOnLabel = $displayedOnLabel;
         return $this;
     }
 

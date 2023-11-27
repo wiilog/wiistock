@@ -198,6 +198,7 @@ class MobileController extends AbstractApiController
                         'userId' => $loggedUser->getId(),
                         'fieldsParam' => $fieldsParam ?? [],
                         'dispatchDefaultWaybill' => $wayBillData ?? [],
+                        'defaultPrinter' => $loggedUser->getDefaultPrinter()?->getId()
                     ];
                 } else {
                     $data = [
@@ -2222,6 +2223,7 @@ class MobileController extends AbstractApiController
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
+        $printerRepository = $entityManager->getRepository(Printer::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2477,6 +2479,13 @@ class MobileController extends AbstractApiController
                 ->toArray();
         }
 
+        $printers = Stream::from($user->getAllowedPrinters())
+            ->map(static fn(Printer $printer) => [
+                "id" => $printer->getId(),
+                "name" => $printer->getName(),
+            ])
+            ->toArray();
+
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
@@ -2538,6 +2547,7 @@ class MobileController extends AbstractApiController
             'dispatchEmergencies' => $dispatchEmergencies ?? [],
             'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
             'reserveTypes' => $reserveTypes ?? [],
+            'printers' => $printers,
         ];
     }
 
@@ -4016,6 +4026,12 @@ class MobileController extends AbstractApiController
 
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
+
+        $dispatch = $entityManager->find(Dispatch::class, 5833);
+        $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+        $zebraPrinter = $printerService->getPrinter($printer);
+        $printerService->printDispatchPacks($zebraPrinter, $printer, $dispatch, $dispatch->getDispatchPacks()->toArray(), true);
+        die();
 
         if($dispatch && $request->request->get("printer")) {
             $config = $printerService->configurationOf($dispatch);

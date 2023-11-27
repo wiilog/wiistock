@@ -2,14 +2,16 @@
 
 namespace App\Service;
 
+use App\Entity\CategorieCL;
 use App\Entity\Dispatch;
-use App\Entity\DispatchLabelConfiguration;
-use App\Entity\DispatchLabelConfigurationField;
 use App\Entity\DispatchPack;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\FreeField;
 use App\Entity\Printer;
 use App\Entity\Setting;
+use App\Entity\Type;
 use Doctrine\ORM\EntityManagerInterface;
-use RuntimeException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
@@ -28,6 +30,8 @@ class PrinterService
     private const DEFAULT_PRINTER_PORT = 9100;
     private const DEFAULT_PRINTER_TIMEOUT = 5;
 
+    private const MAX_QR_CODE_LENGTH = 18;
+
     #[Required]
     public EntityManagerInterface $entityManager;
 
@@ -37,87 +41,124 @@ class PrinterService
     #[Required]
     public Environment $twig;
 
-    private bool $initialized = false;
-
-    private ?array $configurations = null;
+    #[Required]
+    public FormatService $formatService;
 
     private ?array $printers = null;
 
-    public function test(Printer $printer): void
-    {
-        $zebraPrinter = $this->getPrinter($printer);
-        $label = '~WC';
-
-        $client = SocketClient::create("127.0.0.1", 9100, 10);
-        $zebraPrinter->print($client, $label);
-    }
-
-    public function printDispatchPacks(ZebraPrinter $printer, Dispatch $dispatch, array $packs, bool $isSeparation): void
+    public function printDispatchPacks(ZebraPrinter $zebraPrinter, Printer $printer, Dispatch $dispatch, array $packs, bool $isSeparation): void
     {
         $settingsRepository = $this->entityManager->getRepository(Setting::class);
-        $logo = $settingsRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
+        $freeFieldRepository = $this->entityManager->getRepository(FreeField::class);
 
-        $configuration = $this->configurationOf($dispatch);
+        $logo = $settingsRepository->getOneParamByLabel(Setting::LABEL_LOGO);
+        $fixedFields = $fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]);
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($dispatch->getType(), CategorieCL::DEMANDE_DISPATCH);
+        $freeFieldValues = $dispatch->getFreeFields();
+
+        $getValueByFieldCode = function (string $fieldCode) use ($dispatch): ?string {
+            return match ($fieldCode) {
+                FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH => $this->formatService->type($dispatch->getType()),
+                FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH => $this->formatService->status($dispatch->getStatut()),
+                FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH => $this->formatService->datetime($dispatch->getStartDate()),
+                FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH => $this->formatService->datetime($dispatch->getEndDate()),
+                FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH => $this->formatService->user($dispatch->getRequester()),
+                FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH => $this->formatService->carrier($dispatch->getCarrier()),
+                FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH => $dispatch->getCarrierTrackingNumber(),
+                FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH => $this->formatService->users($dispatch->getReceivers()),
+                FixedFieldStandard::FIELD_CODE_EMAILS => implode(",", $dispatch->getEmails()),
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH => $dispatch->getCustomerPhone(),
+                FixedFieldStandard::FIELD_CODE_EMERGENCY => $dispatch->getEmergency(),
+                FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER => $dispatch->getProjectNumber(),
+                FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH => $dispatch->getCommandNumber(),
+                FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH => strip_tags($dispatch->getCommentaire()),
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH => $dispatch->getCustomerName(),
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH => $dispatch->getCustomerRecipient(),
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH => $dispatch->getCustomerAddress(),
+                FixedFieldStandard::FIELD_CODE_LOCATION_PICK => $this->formatService->location($dispatch->getLocationFrom()),
+                FixedFieldStandard::FIELD_CODE_LOCATION_DROP => $this->formatService->location($dispatch->getLocationTo()),
+                FixedFieldStandard::FIELD_CODE_DESTINATION => $dispatch->getDestination(),
+                FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT => $dispatch->getBusinessUnit(),
+            };
+        };
+
         $labels = Stream::from($packs)
             ->reindex()
-            ->map(function (DispatchPack $pack, int $i) use ($printer, $dispatch, $configuration, $logo, $packs, $isSeparation) {
-                if ($configuration->getCodeType() === "packNumber") {
-                    $code = $pack->getPack()->getCode();
-                } else if ($configuration->getCodeType() === "dispatchNumber") {
-                    $code = $pack->getDispatch()->getNumber();
-                } else {
-                    throw new RuntimeException("Unknown configuration code {$configuration->getCodeType()}");
-                }
+            ->map(function (DispatchPack $dispatchPack, int $i) use ($zebraPrinter, $dispatch, $logo, $packs, $isSeparation, $fixedFieldByTypeRepository, $freeFieldRepository, $fixedFields, $freeFieldValues, $freeFields, $getValueByFieldCode) {
+                $code = $dispatch->getType()->getDispatchLabelField() === Type::DISPATCH_NUMBER
+                    ? $dispatch->getNumber()
+                    : $dispatchPack->getPack()->getCode();
 
-                $labelStyle = new TextConfig(null, 7);
+                $labelStyle = new TextConfig(null, 5);
                 $paginationStyle = new TextConfig(null, 5);
 
                 $qr = QrCode::create(0, 20)
-                    ->setSize(9)
+                    ->setSize(7)
                     ->setAlignment(Align::CENTER)
                     ->setContent($code)
-                    ->setDisplayContent(true);
+                    ->setDisplayContent(strlen($code) <= self::MAX_QR_CODE_LENGTH);
 
-                $label = $printer->createLabel();
+                $label = $zebraPrinter->createLabel();
                 $label->with(
-                    Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/uploads/attachments/{$logo}")
+                    Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/$logo")
                         ->setWidth(30)
                         ->setHeight(15)
                 )
                     ->with($qr);
 
-                if ($isSeparation) {
-                    $label->with(Text::create(0, 89)
+                if(strlen($code) > self::MAX_QR_CODE_LENGTH) {
+                    $label->with(Text::create(0, 45)
                         ->setAlignment(Align::CENTER)
-                        ->setText(($i + 1) . "/" . count($packs))
+                        ->setText($code)
+                        ->setConfig(new TextConfig(null, 4, null))
+                    );
+                }
+
+                if ($isSeparation) {
+                    $label->with(Text::create(30, 8)
+                        ->setAlignment(Align::RIGHT)
+                        ->setText("Nb UL: ".($i + 1) . "/" . count($packs))
                         ->setConfig($paginationStyle)
                         ->setMaxLines(1));
                 }
 
-                if ($configuration->getShowPacksCount()) {
-                    $reindexed = Stream::from($pack->getDispatch()->getDispatchPacks()->getValues())
+                if($dispatch->getType()->isDisplayLogisticUnitsCountOnDispatchLabel()) {
+                    $reindexed = Stream::from($dispatchPack->getDispatch()->getDispatchPacks()->getValues())
                         ->reindex();
 
-                    $label->with(Text::create(0, 95)
+                    $label->with(Text::create(40, 8)
                         ->setAlignment(Align::CENTER)
-                        ->setText(($reindexed->indexOf($pack) + 1) . "/" . $reindexed->count())
+                        ->setText("Nb UL: ".($reindexed->indexOf($dispatchPack) + 1) . "/" . $reindexed->count())
                         ->setConfig($paginationStyle)
                         ->setMaxLines(1));
                 }
 
                 [, $height] = $labelStyle->dimensions();
 
-                Stream::from($configuration->getFields())
-                    ->sort(fn($a, $b) => $a->getPosition() <=> $b->getPosition())
-                    ->map(fn(DispatchLabelConfigurationField $field) => [$field->getFieldId(), trim($field->getValue($dispatch))])
-                    ->filter(fn(array $field) => $field[1])
+                $fixedFieldsToDisplay = Stream::from($fixedFields)
+                    ->filter(static fn(FixedFieldByType $fixedField) => $fixedField->isOnLabel($dispatch->getType()))
+                    ->map(static fn(FixedFieldByType $fixedField) => [
+                        strip_tags($fixedField->getFieldLabel()), $getValueByFieldCode($fixedField->getFieldCode())
+                    ])
                     ->reindex()
+                    ->toArray();
+
+                $freeFieldsToDisplay = Stream::from($freeFields)
+                    ->filter(static fn(FreeField $freeField) => $freeField->isDisplayedOnLabel())
+                    ->map(static fn(FreeField $freeField) => [
+                        $freeField->getLabel(), $freeFieldValues[$freeField->getId()] ?? null
+                    ])
+                    ->reindex()
+                    ->toArray();
+
+                Stream::from($fixedFieldsToDisplay, $freeFieldsToDisplay)
                     ->flatMap(function (array $field, int $i) use ($dispatch, $labelStyle, $height) {
                         [$key, $value] = $field;
                         $elements = [];
 
                         if (trim($value)) {
-                            $elements[] = Text::create(0, 57 + $i * $height)
+                            $elements[] = Text::create(0, 55 + $i * $height)
                                 ->setText($value)
                                 ->setConfig($labelStyle)
                                 ->setAlignment(Align::CENTER)
@@ -125,8 +166,8 @@ class PrinterService
                                 ->setMaxLines(8);
                         }
 
-                        if ($key === DispatchLabelConfigurationField::FIELD_TYPE && $dispatch->getType()->getLogo()?->getFullPath()) {
-                            $path = "{$this->kernel->getProjectDir()}/public/{$dispatch->getType()->getLogo()?->getFullPath()}";
+                        if ($key === FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH && $dispatch->getType()->getLogo()?->getFullPath()) {
+                            $path = "{$this->kernel->getProjectDir()}/public/{$dispatch->getType()->getLogo()->getFullPath()}";
                             $x = 58 - $labelStyle->dimensionsOf($value)[0] / 2;
                             $y = 57 + $i * $height - 1;
 
@@ -137,43 +178,23 @@ class PrinterService
 
                         return $elements;
                     })
-                    ->each(fn(Element $element) => $label->with($element));
+                    ->each(static fn(Element $element) => $label->with($element));
+
+                dump($label->toZPL());
 
                 return $label;
             })
             ->toArray();
 
-        $client = SocketClient::create("127.0.0.1", 9100, 10);
-        $printer->print($client, ...$labels);
-    }
-
-    private function initialize(): void
-    {
-        if (!$this->initialized) {
-            $this->initialized = true;
-
-            $configRepository = $this->entityManager->getRepository(DispatchLabelConfiguration::class);
-            $this->configurations = Stream::from($configRepository->findAll())
-                ->keymap(fn(DispatchLabelConfiguration $config) => [$config->getType()->getId(), $config])
-                ->toArray();
-        }
-    }
-
-    public function configurationOf($entity): ?DispatchLabelConfiguration
-    {
-        $this->initialize();
-
-        if ($entity instanceof Dispatch) {
-            return $this->configurations[$entity->getType()->getId()] ?? null;
-        } else {
-            throw new RuntimeException("Unknown entity type");
-        }
+        /*dump($e);*/
+        $client = SocketClient::create($printer->getAddress(), self::DEFAULT_PRINTER_PORT, self::DEFAULT_PRINTER_TIMEOUT);
+        $zebraPrinter->print($client, ...$labels);
     }
 
     public function getPrinter(Printer $printer): ZebraPrinter
     {
         if (!isset($this->printers[$printer->getId()])) {
-            $this->printers[$printer->getId()] = ZebraPrinter::create($printer->getAddress(), self::DEFAULT_PRINTER_PORT, self::DEFAULT_PRINTER_TIMEOUT)
+            $this->printers[$printer->getId()] = ZebraPrinter::create()
                 ->setDimension($printer->getWidth(), $printer->getHeight())
                 ->setDPI($printer->getDPI());
         }
