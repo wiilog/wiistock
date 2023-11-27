@@ -392,7 +392,7 @@ class DispatchService {
             [
                 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER,
                 'value' => $dispatch->getProductionOrderNumber() ?: '-',
-                'show' => ['fieldName' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER]
             ],
             [
                 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST,
@@ -421,17 +421,17 @@ class DispatchService {
             ],
             [
                 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE,
-                'value' => $dispatch->getCustomerAddress() ?: '-',
+                'value' => $this->formatService->datetime($dispatch->getDueDate1()),
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
             ],
             [
                 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO,
-                'value' => $dispatch->getCustomerAddress() ?: '-',
+                'value' => $this->formatService->datetime($dispatch->getDueDate2()),
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
             ],
             [
                 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS,
-                'value' => $dispatch->getCustomerAddress() ?: '-',
+                'value' => $this->formatService->datetime($dispatch->getDueDate2Bis()),
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
             ]
         ];

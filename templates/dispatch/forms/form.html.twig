@@ -174,7 +174,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {% set productionOrderNumber = arrival.productionOrderNumber ?? '' %}
+            {% set productionOrderNumber = dispatch.productionOrderNumber ?? '' %}
             {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER'), requiredOnform, productionOrderNumber, {
                 inputClass: 'needs-default',
                 additionalAttributes: [{
@@ -341,11 +341,13 @@
                 multiple: true,
                 type: '',
                 editable: true,
-                items: dispatch.emails|map((emails) => {
-                    value: emails,
-                    label: emails,
-                    selected: true,
-                }),
+                items: dispatch.emails
+                    ? dispatch.emails|map((emails) => {
+                        value: emails,
+                        label: emails,
+                        selected: true,
+                    })
+                    : {},
             }) }}
         </div>
     {% endif %}
@@ -418,7 +420,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
                 {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-                {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE'), requiredOnform, dispatch.dueDate1, {
+                {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE'), requiredOnform, dispatch.dueDate1|date('Y-m-d\\TH:i'), {
                     type: 'datetime-local',
                 }) }}
         </div>
@@ -432,7 +434,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO'), requiredOnform, dispatch.dueDate1, {
+            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO'), requiredOnform, dispatch.dueDate2|date('Y-m-d\\TH:i'), {
                 type: 'datetime-local',
             }) }}
         </div>
@@ -445,7 +447,7 @@
             {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
             class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
             {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS'), requiredOnform, dispatch.dueDate1, {
+            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS'), requiredOnform, dispatch.dueDate2Bis|date('Y-m-d\\TH:i'), {
                 type: 'datetime-local',
             }) }}
         </div>
