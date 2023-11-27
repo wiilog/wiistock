@@ -25,8 +25,8 @@ final class Version20231017092551 extends AbstractMigration
     {
         if(!$schema->getTable("import")->hasColumn("type")) {
             $this->addSql("ALTER TABLE import ADD COLUMN type_id INT NOT NULL");
-            $this->addSql("INSERT INTO category_type (label) VALUE (:category_type)", [
-                "category_type" => CategoryType::IMPORT,
+            $this->addSql("INSERT INTO category_type (label) VALUE (:importCategoryLabel)", [
+                "importCategoryLabel" => CategoryType::IMPORT,
             ]);
 
             $this->addSql("
@@ -34,26 +34,26 @@ final class Version20231017092551 extends AbstractMigration
                     VALUE (
                         (SELECT category_type.id
                          FROM category_type
-                            INNER JOIN category_type ON category_type.id = type.category_id AND category_type.label = :categoryLabel
-                         ORDER BY category_type.id DESC
+                         WHERE category_type.label = :importCategory
                          LIMIT 1),
-                        :typeLabel
+                        :importLabel
                     )", [
-                "typeCategory" => CategoryType::IMPORT,
-                "typeLabel" => Type::LABEL_UNIQUE_IMPORT,
+                "importCategory" => CategoryType::IMPORT,
+                "importLabel" => Type::LABEL_UNIQUE_IMPORT,
             ]);
 
             $this->addSql("
                 UPDATE import SET type_id = (
                     SELECT type.id
                     FROM type
-                        INNER JOIN category_type ON category_type.id = type.category_id AND category_type.label = :categoryLabel
-                    WHERE type.label = :typeLabel
+                        INNER JOIN category_type ON category_type.id = type.category_id AND category_type.label = :importCategory
+                    WHERE type.label = :importLabel
                     ORDER BY type.id, category_type.id DESC
                     LIMIT 1)
+                WHERE 1
             ", [
-                "typeCategory" => CategoryType::IMPORT,
-                "typeLabel" => Type::LABEL_UNIQUE_IMPORT,
+                "importCategory" => CategoryType::IMPORT,
+                "importLabel" => Type::LABEL_UNIQUE_IMPORT,
             ]);
 
             $this->addSql("

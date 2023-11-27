@@ -74,12 +74,9 @@ class LaunchScheduledImportCommand extends Command {
 
         foreach($clones as $clone) {
             $import->setForced(false);
-            $FTPConfig = $clone->getFTPConfig();
-            $FTPConfig['unableToConnect'] = false;
             $clone
                 ->setStatus($inProgressImport)
-                ->setStartDate($start)
-                ->setFTPConfig($FTPConfig);
+                ->setStartDate($start);
 
             $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import->setNextExecutionDate($nextExecutionDate);
@@ -88,12 +85,7 @@ class LaunchScheduledImportCommand extends Command {
 
             $output->writeln("Starting import {$import->getId()} at {$clone->getStartDate()->format('d/m/Y H:i:s')}");
 
-            try {
-                $this->importService->treatImport($entityManager, $clone, ImportService::IMPORT_MODE_RUN);
-            } catch (UnableToConnectException) {
-                $FTPConfig['unableToConnect'] = true;
-                $clone->setFTPConfig($FTPConfig);
-            }
+            $this->importService->treatImport($entityManager, $clone, ImportService::IMPORT_MODE_RUN);
 
             $clone = $this->importService->getImport();
             $endDate = $clone->getEndDate();
@@ -132,6 +124,7 @@ class LaunchScheduledImportCommand extends Command {
 
             $clones[] = (new Import())
                 ->setType($import->getType())
+                ->setFTPConfig($import->getFTPConfig())
                 ->setLabel($import->getLabel() . " - " . $start->format("d/m/Y H:i"))
                 ->setColumnToField($import->getColumnToField())
                 ->setCsvFile(null)

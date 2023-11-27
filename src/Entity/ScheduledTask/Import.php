@@ -265,6 +265,12 @@ class Import {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $updatedEntries = null;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $nbErrors = null;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $lastErrorMessage = null;
+
     #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
     private ?bool $forced;
 
@@ -273,9 +279,6 @@ class Import {
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $createdAt;
-
-    #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $nbErrors = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $startDate = null;
@@ -570,5 +573,14 @@ class Import {
 
     public function isDraft(): bool {
         return $this->status->getCode() === Import::STATUS_DRAFT;
+    }
+
+    public function getLastErrorMessage(): ?string {
+        return $this->lastErrorMessage;
+    }
+
+    public function setLastErrorMessage(?string $lastErrorMessage): self {
+        $this->lastErrorMessage = $lastErrorMessage;
+        return $this;
     }
 }

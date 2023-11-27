@@ -17,8 +17,6 @@ use App\Entity\FieldsParam;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
-use App\Entity\Import;
-use App\Entity\ImportScheduleRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
@@ -29,7 +27,9 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
@@ -37,9 +37,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
+use App\Exceptions\FTPException;
 use App\Exceptions\ImportException;
-use App\Repository\ZoneRepository;
-use Closure;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -49,11 +48,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
 use JetBrains\PhpStorm\ArrayShape;
-use phpseclib3\Exception\UnableToConnectException;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -347,10 +344,18 @@ class ImportService
             ScheduleRule::HOURLY => 'chaque heure'
         ];
 
+        $lastErrorMessage = $import->getLastErrorMessage();
+
         return [
             'id' => $import->getId(),
-            'unableToConnect' => ($import->getFTPConfig()['unableToConnect'] ?? false)
-                ? '<img src="/svg/urgence.svg" alt="Erreur" width="15px" title="Une erreur est survenue lors de la dernière tentative de connexion au serveur FTP. Veuillez vérifier vos paramétres de connexion.">'
+            'lastErrorMessage' => $import->getLastErrorMessage()
+                ? '<div class="d-flex>
+                       <img src="/svg/urgence.svg"
+                            alt="Erreur"
+                            class="has-tooltip"
+                            width="15px"
+                            title="' . $lastErrorMessage . '">
+                    </div>'
                 : "",
             'createdAt' => $this->formatService->datetime($import->getCreateAt()),
             'startDate' => $this->formatService->datetime($import->getStartDate()),
@@ -384,10 +389,11 @@ class ImportService
         $this->currentImport = $import;
         $this->entityManager = $entityManager;
         $this->resetCache();
+        $now = new DateTime('now');
 
-        $csvFile = $this->currentImport->getCsvFile();
         $importModeChosen = $mode;
 
+        $statusRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
 
@@ -396,48 +402,7 @@ class ImportService
             throw new Exception('Invalid import mode');
         }
 
-        ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
-        $logFileMapper = $this->getLogFileMapper();
-
-        if ($import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
-            $absoluteFilePath = $import->getScheduleRule()->getFilePath();
-
-            $name = uniqid() . ".csv";
-            $path = "/tmp/$name";
-            $FTPConfig = $import->getFTPConfig();
-
-            if(!is_bool($this->FTPService->try($FTPConfig))) {
-                throw new UnableToConnectException();
-            }
-
-            $data = $this->FTPService->get([
-                'host' => $FTPConfig['host'],
-                'port' => $FTPConfig['port'],
-                'user' => $FTPConfig['user'],
-                'pass' => $FTPConfig['pass'],
-            ], $absoluteFilePath);
-            file_put_contents($path, $data);
-        } else {
-            $path = $this->attachmentService->getServerPath($csvFile);
-        }
-
-        try {
-            $file = fopen($path, "r");
-            if (!$file) {
-                $logRow = ["Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path"];
-                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                $file = false;
-            }
-            else if (is_dir($path)) {
-                $logRow = ["Le chemin enregistré dans l'import indique un répertoire : $path"];
-                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                $file = false;
-            }
-        } catch (Exception) {
-            $logRow = ["Le fichier source n'existe pas, veuillez vérifier le chemin suivant : $path"];
-            $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-            $file = false;
-        }
+        $file = $this->fopenImportFile();
 
         $stats = [
             'news' => 0,
@@ -453,8 +418,6 @@ class ImportService
             }, ARRAY_FILTER_USE_KEY);
             $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $matches);
 
-            $headers = null;
-
             $refToUpdate = [];
 
             $rowCount = 0;
@@ -463,10 +426,8 @@ class ImportService
             while (($row = fgetcsv($file, 0, ';')) !== false
                 && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
 
-                if (empty($headers)) {
-                    $headers = $row;
-                    $logRow = [...$headers, 'Statut import'];
-                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                if (empty($headersLog)) {
+                    $headersLog = [...$row, 'Statut import'];
                 } else {
                     $firstRows[] = $row;
                     $rowCount++;
@@ -486,102 +447,95 @@ class ImportService
                     $importModeChosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
                     $this->currentImport->setForced($importForced);
 
-                    $statusRepository = $this->entityManager->getRepository(Statut::class);
-                    $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
-                    $this->currentImport->setStatus($statusPlanned);
+                    $upcomingStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
+                    $this->currentImport->setStatus($upcomingStatus);
                     $this->entityManager->flush();
                 } else {
                     $importModeChosen = self::IMPORT_MODE_NONE;
                 }
-            } else {
+            }
+            else {
                 $importModeChosen = self::IMPORT_MODE_RUN;
                 if ($smallFile) {
                     $this->currentImport->setFlash(true);
                 }
-                // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
-                $index = 0;
-                ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
-                $logFileMapper = $this->getLogFileMapper();
 
-                if (isset($headersLog)) {
-                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
-                }
+                if (empty($headersLog) || empty($firstRows)) {
+                    $this->currentImport->setLastErrorMessage("Le fichier d'import était vide. Il doit comporter au moins deux lignes dont une ligne d'entête.");
+                } else {
+                    // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
+                    $index = 0;
 
-                $import->setStartDate(new DateTime());
-                $this->entityManager->flush();
+                    ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
+                    $logAttachment = $this->persistLogAttachment($logFileName);
+                    $this->currentImport->setLogFile($logAttachment);
 
-                $this->eraseGlobalDataBefore();
+                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $this->scalarCache["logFileMapper"]);
 
-                foreach ($firstRows as $row) {
-                    $logRow = $this->treatImportRow(
-                        $row,
-                        $headers,
-                        $dataToCheck,
-                        $colChampsLibres,
-                        $refToUpdate,
-                        $stats,
-                        false,
-                        $index,
-                    );
-                    $index++;
-                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                }
+                    $import->setStartDate($now);
+                    $this->entityManager->flush();
 
-                $this->clearEntityManagerAndRetrieveImport();
-                if (!$smallFile) {
-                    while (($row = fgetcsv($file, 0, ';')) !== false) {
+                    $this->eraseGlobalDataBefore();
+
+                    foreach ($firstRows as $row) {
                         $logRow = $this->treatImportRow(
                             $row,
-                            $headers,
+                            $headersLog,
                             $dataToCheck,
                             $colChampsLibres,
                             $refToUpdate,
                             $stats,
-                            ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
+                            false,
                             $index,
                         );
                         $index++;
-                        $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                        $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
+                    }
+
+                    $this->clearEntityManagerAndRetrieveImport();
+                    if (!$smallFile) {
+                        while (($row = fgetcsv($file, 0, ';')) !== false) {
+                            $logRow = $this->treatImportRow(
+                                $row,
+                                $headersLog,
+                                $dataToCheck,
+                                $colChampsLibres,
+                                $refToUpdate,
+                                $stats,
+                                ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
+                                $index,
+                            );
+                            $index++;
+                            $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
+                        }
+                    }
+
+                    $this->eraseGlobalDataAfter();
+                    $this->entityManager->flush();
+
+                    @fclose($logFile);
+
+                    // mise à jour des quantités sur références par article
+                    foreach ($refToUpdate as $ref) {
+                        $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
                     }
                 }
 
-                $this->eraseGlobalDataAfter();
-                $this->entityManager->flush();
-
-                fclose($logFile);
-
-                // mise à jour des quantités sur références par article
-                foreach ($refToUpdate as $ref) {
-                    $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
+                $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+                if ($this->currentImport->getStatus()?->getCode() !== Import::STATUS_UPCOMING) {
+                    $this->currentImport
+                        ->setNewEntries($stats['news'])
+                        ->setUpdatedEntries($stats['updates'])
+                        ->setNbErrors($stats['errors'])
+                        ->setStatus($statusFinished)
+                        ->setForced(false)
+                        ->setEndDate($now);
+                    $this->entityManager->flush();
                 }
-
-                $this->entityManager->flush();
             }
 
-            if($import->isScheduled()) {
-                unlink($path);
-            } else {
-                fclose($file);
-            }
-        }
-
-        // création du fichier de log
-        $logAttachment = $this->persistLogAttachment($logFileName);
-
-        $statusRepository = $this->entityManager->getRepository(Statut::class);
-        $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
-        $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
-
-        if ($this->currentImport->getStatus() && $this->currentImport->getStatus() !== $statusPlanned) {
-            $this->currentImport
-                ->setLogFile($logAttachment)
-                ->setNewEntries($stats['news'])
-                ->setUpdatedEntries($stats['updates'])
-                ->setNbErrors($stats['errors'])
-                ->setStatus($statusFinished)
-                ->setForced(false)
-                ->setEndDate(new DateTime());
             $this->entityManager->flush();
+            $this->cleanImportFile($file);
         }
 
         return $importModeChosen;
@@ -724,18 +678,6 @@ class ImportService
             'fileName' => $fileName,
             'resource' => fopen($completeFileName, 'w'),
         ];
-    }
-
-    private function getLogFileMapper(): Closure
-    {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
-
-        return function ($row) use ($wantsUFT8) {
-            return !$wantsUFT8
-                ? array_map('utf8_decode', $row)
-                : $row;
-        };
     }
 
     private function persistLogAttachment(string $createdLogFile): Attachment
@@ -1850,7 +1792,6 @@ class ImportService
         $natureRepository = $this->entityManager->getRepository(Nature::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $zoneRepository = $this->entityManager->getRepository(Zone::class);
 
         $isNewEntity = false;
 
@@ -1983,7 +1924,7 @@ class ImportService
             }
         }
 
-        $this->treatLocationZone($data, $location, $zoneRepository);
+        $this->treatLocationZone($data, $location);
 
         $this->entityManager->persist($location);
 
@@ -1992,7 +1933,7 @@ class ImportService
         return $location;
     }
 
-    private function importProjectEntity(array $data, array &$stats)
+    private function importProjectEntity(array $data, array &$stats): void
     {
         $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
         $project = $projectAlreadyExists ?? new Project();
@@ -2421,14 +2362,20 @@ class ImportService
                 ->toArray()
             : [];
 
+        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
+
         $this->entityCache = [];
         $this->scalarCache = [
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
+            "logFileMapper" => fn($row) => !$wantsUFT8
+                ? array_map('utf8_decode', $row)
+                : $row
         ];
     }
 
-    private function treatLocationZone(array $data, Emplacement $location, ZoneRepository $zoneRepository): void
+    private function treatLocationZone(array $data, Emplacement $location): void
     {
+        $zoneRepository = $this->entityManager->getRepository(Zone::class);
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
@@ -2643,6 +2590,74 @@ class ImportService
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
         return $this->cacheService->get(CacheService::IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
+    }
+
+    /**
+     * @return resource|null
+     */
+    public function fopenImportFile(): mixed {
+        if ($this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            $absoluteFilePath = $this->currentImport->getScheduleRule()->getFilePath();
+
+            $name = uniqid() . ".csv";
+            $path = "/tmp/$name";
+            $this->scalarCache['importFilePath'] = $path;
+
+            $FTPConfig = $this->currentImport->getFTPConfig();
+
+            try {
+                $this->FTPService->try($FTPConfig);
+                $data = $this->FTPService->get([
+                    'host' => $FTPConfig['host'],
+                    'port' => $FTPConfig['port'],
+                    'user' => $FTPConfig['user'],
+                    'pass' => $FTPConfig['pass'],
+                ], $absoluteFilePath);
+                file_put_contents($path, $data);
+            }
+            catch (FTPException $FTPException) {
+                $errorMessage = $FTPException->getMessage();
+            }
+            catch(Throwable $throwable) {
+                $errorMessage = "Erreur lors de requête FTP : {$throwable->getMessage()}\n{$throwable->getTraceAsString()}";
+            }
+        } else {
+            $csvFile = $this->currentImport->getCsvFile();
+            $this->scalarCache["importFilePath"] = $csvFile;
+            $path = $this->attachmentService->getServerPath($csvFile);
+        }
+
+        if (empty($errorMessage)) {
+            try {
+                $file = fopen($path, "r") ?: null;
+                if (!$file) {
+                    $errorMessage = "Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path";
+                } else if (is_dir($path)) {
+                    $errorMessage = "Le chemin enregistré dans l'import indique un répertoire : $path";
+                }
+            } catch (Exception) {
+                $errorMessage = "Le fichier source n'existe pas, veuillez vérifier le chemin suivant : $path";
+            }
+        }
+
+        if ($errorMessage ?? false) {
+            $this->currentImport->setLastErrorMessage($errorMessage);
+        }
+
+        return $file ?? null;
+    }
+
+    public function cleanImportFile(mixed $file): void {
+        $importFilePath = $this->scalarCache["importFilePath"] ?? null;
+
+        if ($file) {
+            @fclose($file);
+        }
+
+        if ($importFilePath &&
+            $this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            @unlink($importFilePath);
+        }
     }
 
 }
