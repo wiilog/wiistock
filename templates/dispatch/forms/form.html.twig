@@ -167,6 +167,46 @@
         </div>
     {% endif %}
 
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {% set productionOrderNumber = arrival.productionOrderNumber ?? '' %}
+            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER'), requiredOnform, productionOrderNumber, {
+                inputClass: 'needs-default',
+                additionalAttributes: [{
+                        name: 'data-init',
+                        value: productionOrderNumber
+                }]
+            }) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {% set dispatchProductionRequest = dispatch.productionRequest %}
+            {{ form.select(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST'), false, {
+                items: productionRequests|map(item => ({
+                    value: item,
+                    label: item,
+                    selected: dispatchProductionRequest == item,
+                })),
+                emptyOption: {
+                    selected: not dispatchProductionRequest,
+                    label: trans('Demande', 'Général', 'Non urgent', false)
+                }
+            }) }}
+        </div>
+    {% endif %}
+
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
@@ -367,6 +407,46 @@
                 labelOptions: {
                     class: 'm-0',
                 },
+            }) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+                {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+                {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE'), requiredOnform, dispatch.dueDate1, {
+                    type: 'datetime-local',
+                }) }}
+        </div>
+    {% endif %}
+
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO'), requiredOnform, dispatch.dueDate1, {
+                type: 'datetime-local',
+            }) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS') %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div
+            {{ macros.dataAttributesFieldbyType(fieldsParam, fieldCode) }}
+            class="form-group col-md-4 col-12 {{ typeCanChange ? "d-none" : "" }}">
+            {% set requiredOnform = typeCanChange ? false : fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS'), requiredOnform, dispatch.dueDate1, {
+                type: 'datetime-local',
             }) }}
         </div>
     {% endif %}

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
@@ -112,6 +113,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'startDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
@@ -122,6 +125,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'endDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2Bis',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} <= :filter_dateMax_value")
@@ -191,6 +196,19 @@ class DispatchRepository extends EntityRepository
                         ->andWhere('dispatch.projectNumber IN (:filter_project_number_value)')
                         ->setParameter('filter_project_number_value', $value);
                     break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER:
+                    $qb
+                        ->andWhere("dispatch.productionOrderNumber = :productionOrderNumber")
+                        ->setParameter("productionOrderNumber", $filter['value']);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST:
+                    $values = Stream::explode(',', $filter['value'])
+                        ->map(static fn(string $value) => explode(':', $value)[0])
+                        ->toArray();
+                    dump($values);
+                    $qb
+                        ->andWhere('dispatch.productionRequest IN (:productionRequest)')
+                        ->setParameter('productionRequest', $values);
             }
         }
         if (!empty($params)) {
@@ -201,6 +219,9 @@ class DispatchRepository extends EntityRepository
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
                         "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
                         "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => "DATE_FORMAT(dispatch.dueDate1, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => "DATE_FORMAT(dispatch.dueDate2, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => "DATE_FORMAT(dispatch.dueDate2Bis, '%e/%m/%Y') LIKE :search_value",
                         "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "requester" => "search_requester.username LIKE :search_value",
@@ -214,6 +235,8 @@ class DispatchRepository extends EntityRepository
                         "customerPhone" => "dispatch.customerPhone LIKE :search_value",
                         "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
                         "customerAddress" => "dispatch.customerAddress LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => "dispatch.productionRequest LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => "dispatch.productionOrderNumber LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
