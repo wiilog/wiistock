@@ -255,6 +255,22 @@
                         </select>
                     </div>
                 </div>
+{#
+TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+
+                <div class="form-group row">
+                    <div class="col-12">
+                        {{ form.select("dispatchBusinessUnit", "Business unit (acheminements)", false, {
+                            type: null,
+                            items: dispatchBusinessUnits|map((businessUnit) => {
+                                label: businessUnit,
+                                value: businessUnit,
+                                selected: user.id and user.dispatchBusinessUnit == businessUnit
+                            }),
+                        }) }}
+                    </div>
+                </div>
+#}
                 <div class="form-group">
                     {{ form.checkbox('deliverer', 'Livreur', false, user.deliverer, {
                         labelClass: 'wii-field-text'

@@ -1,35 +1,24 @@
 import AJAX, {POST} from "@app/ajax";
 import Modal from "@app/modal";
+import Select2 from "../../select2";
 
 global.deleteTruckArrival = deleteTruckArrival;
 
 export function initTrackingNumberSelect($trackingNumberSelect, $warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {
     $trackingNumberSelect.off('change.lengthCheck').on('change.lengthCheck', function () {
-        let $options = $(this).find('option:selected')
-        let isInvalidLength = false;
-
-        // Wait for select2 to render the options
-        setTimeout(function () {
-            $options.each(function () {
-                let $option = $(this);
+        Select2.initSelectMultipleWarning(
+            $trackingNumberSelect,
+            $warningMessage,
+            async ($option) => {
                 let value = $option.val();
-
-                if ((Boolean(minTrackingNumberLength) && value.length < minTrackingNumberLength)
-                    || (Boolean(maxTrackingNumberLength) && value.length > maxTrackingNumberLength)) {
-                    $options.closest('label').find('.select2-container ul.select2-selection__rendered li.select2-selection__choice[title="' + value + '"]').addClass('warning');
-                    isInvalidLength = true;
-                    setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength);
-                } else {
-                    $option.removeClass('invalid');
+                return !((Boolean(minTrackingNumberLength) && value.length < minTrackingNumberLength) || (Boolean(maxTrackingNumberLength) && value.length > maxTrackingNumberLength));
+            },
+            {
+                onWarning: () => {
+                    setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength)
                 }
             });
-            if (isInvalidLength) {
-                $warningMessage.removeClass('d-none');
-            } else {
-                $warningMessage.addClass('d-none');
-            }
-        }, 10);
-    })
+    });
 }
 
 export function setTrackingNumberWarningMessage($warningMessage, minTrackingNumberLength, maxTrackingNumberLength) {

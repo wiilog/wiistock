@@ -1,14 +1,15 @@
-{% macro status_item(status_state_values, status, userLanguage, defaultLanguage) %}
+{% macro status_item(statusStateValues, status, userLanguage, defaultLanguage, checked) %}
     <li class="dropdown-item pl-2 pointer" data-type="{{ status.type.id }}" data-type-label="{{ status.type.label }}">
         <label>
             <input name="statuses-filter_{{ status.id }}"
                    data-id="{{ status.id }}"
+                   {{ checked ? 'checked' }}
                    class="styled data filter-checkbox"
                    type="checkbox">
             <span class="pointer">
                 {{ userLanguage is defined and defaultLanguage is defined and userLanguage is not null and defaultLanguage is not null
                     ? status.labelIn(userLanguage, defaultLanguage)
-                    : status.nom }} - <span class="italic">{{ trans('Demande', 'Acheminements', 'Général', status_state_values[status.state]) }}</span>
+                    : status.nom }} - <span class="italic">{{ trans('Demande', 'Acheminements', 'Général', statusStateValues[status.state]) }}</span>
             </span>
         </label>
     </li>
@@ -18,7 +19,7 @@
 
 <div class="col-auto m-1 select-filter statuses-filter pr-0">
     <div class="btn-group">
-        <button class="btn dropdown-filter dropdown-toggle filter-status-multiple" data-toggle="dropdown"  type="button">
+        <button class="btn dropdown-filter dropdown-toggle filter-status-multiple" data-toggle="dropdown"  type="button" {{ disabled }}>
             <span class="status-filter-title">{{ trans('Demande', 'Services', '', '{1} statut sélectionné', false, {'1':'0'}) }}</span>
             <span class="fa fa-angle-down"></span>
         </button>
@@ -33,7 +34,7 @@
             </li>
             <div class="dropdown-divider"></div>
             {% for status in statuses %}
-                {{ macros.status_item(status_state_values, status, userLanguage ?? null , defaultLanguage ?? null) }}
+                {{ macros.status_item(statusStateValues, status, userLanguage ?? null , defaultLanguage ?? null, status.id in filterStatus) }}
             {% endfor %}
         </ul>
     </div>

@@ -11,12 +11,14 @@ use App\Entity\ReceiptAssociation;
 use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
+use App\Entity\Utilisateur;
 use DateTime;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class ReceiptAssociationService
 {
@@ -41,9 +43,10 @@ class ReceiptAssociationService
     #[Required]
     public TrackingMovementService $trackingMovementService;
 
+    #[Required]
+    public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
 
@@ -51,10 +54,11 @@ class ReceiptAssociationService
         $queryResult = $receiptAssociationRepository->findByParamsAndFilters($params, $filters);
 
         $receiptAssocations = $queryResult['data'];
+        $user = $this->userService->getUser();
 
         $rows = [];
         foreach ($receiptAssocations as $receiptAssocation) {
-            $rows[] = $this->dataRowReceiptAssociation($receiptAssocation);
+            $rows[] = $this->dataRowReceiptAssociation($receiptAssocation, $user);
         }
 
         return [
@@ -64,22 +68,22 @@ class ReceiptAssociationService
         ];
     }
 
-    public function dataRowReceiptAssociation(ReceiptAssociation $receiptAssocation)
-    {
+    public function dataRowReceiptAssociation(array $receiptAssocation, Utilisateur $user): array {
         return [
-            'id' => $receiptAssocation->getId(),
-            'creationDate' => $this->formatService->datetime($receiptAssocation->getCreationDate(), "", false, $this->security->getUser()),
-            'packCode' => $receiptAssocation->getPackCode() ?? '',
-            'receptionNumber' => $receiptAssocation->getReceptionNumber() ?? '',
-            'user' => $this->formatService->user($receiptAssocation->getUser()),
+            'id' => $receiptAssocation["id"],
+            'creationDate' => $this->formatService->datetime($receiptAssocation["creationDate"], "", false, $user),
+            'logisticUnit' => $receiptAssocation["logisticUnit"] ?? "",
+            'lastTrackingDate' => $this->formatService->datetime($receiptAssocation["lastTrackingDate"]),
+            'lastTrackingLocation' => $receiptAssocation["lastTrackingLocation"] ?? "",
+            'receptionNumber' => $receiptAssocation["receptionNumber"],
+            'user' => $receiptAssocation["user"],
             'Actions' => $this->templating->render('receipt_association/datatableRowActions.html.twig', [
                 'receipt_association' => $receiptAssocation,
-            ])
+            ]),
         ];
     }
 
-    public function createMovements(array $receptions, array $packs = [])
-    {
+    public function createMovements(array $receptions, array $packs = []): void {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
 
         $now = new DateTime('now');
@@ -91,7 +95,7 @@ class ReceiptAssociationService
             //prise UL
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
-                $pack->getLastTracking()->getEmplacement(),
+                $pack->getLastTracking()?->getEmplacement(),
                 $this->userService->getUser(),
                 $now,
                 false,
@@ -126,5 +130,18 @@ class ReceiptAssociationService
             $this->entityManager->persist($dropMvt);
         }
         $this->entityManager->flush();
+    }
+
+    public function receiptAssociationPutLine($output ,array $receiptAssociation): void {
+        $row = [
+            $receiptAssociation['creationDate'],
+            $receiptAssociation['logisticUnit'],
+            $receiptAssociation['receptionNumber'],
+            $receiptAssociation['user'],
+            $receiptAssociation['lastTrackingDate'],
+            $receiptAssociation['lastTrackingLocation'],
+        ];
+
+        $this->CSVExportService->putLine($output, $row);
     }
 }

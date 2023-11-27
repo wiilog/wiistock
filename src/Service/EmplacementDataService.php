@@ -80,9 +80,9 @@ class EmplacementDataService {
             ->setAllowedNatures(!empty($data['allowed-natures']) ? $naturesRepository->findBy(["id" => $data["allowed-natures"]]) : [])
             ->setTemperatureRanges(!empty($data['allowedTemperatures']) ? $temperatureRangeRepository->findBy(["id" => $data["allowedTemperatures"]]) : [])
             ->setSignatories($signatories ?? [])
-            ->setEmail($data["email"] ?? null)
-            ->setZone($zone);
+            ->setEmail($data["email"] ?? null);
 
+        $location->setProperty('zone', $zone);
         $entityManager->persist($location);
 
         return $location;

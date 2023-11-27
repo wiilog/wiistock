@@ -8,6 +8,7 @@ use App\Entity\FreeField;
 use App\Entity\KioskToken;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Exceptions\FormException;
 use App\Service\Kiosk\KioskService;
 use DateInterval;
 use DateTime;
@@ -100,10 +101,29 @@ class KioskController extends AbstractController
     public function getArticleExistAndNotActive(Request $request, EntityManagerInterface $entityManager): Response
     {
         $articleRepository = $entityManager->getRepository(Article::class);
-        $article = $articleRepository->findOneBy(['barCode' => $request->query->get('articleLabel')]);
+        $referenceRepository = $entityManager->getRepository(ReferenceArticle::class);
+
+        $article = $articleRepository->findOneBy(['barCode' => $request->query->get('barcode')]);
+        $reference = $referenceRepository->findOneBy(['reference' => $request->query->get('referenceLabel')]);
+
+        if($request->query->get('barcode') && !$article){
+            return new JsonResponse([
+                'success' => false,
+                'fromArticlePage' => true,
+            ]);
+        }
+
+        if($article && $reference && $article->getReferenceArticle() != $reference){
+            return new JsonResponse([
+                'success' => false,
+                'fromArticlePage' => true,
+            ]);
+        }
+
+        $articleIsNotActive = $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF;
         return new JsonResponse([
-            'success' => $article && $article->getStatut()->getCode() === Article::STATUT_INACTIF,
-            'fromArticlePage' => $request->query->get('articleLabel') !== null
+            'success' => $articleIsNotActive,
+            'fromArticlePage' => $request->query->get('barCode') !== null,
         ]);
     }
 

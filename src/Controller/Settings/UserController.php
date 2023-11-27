@@ -3,8 +3,9 @@
 namespace App\Controller\Settings;
 
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Role;
@@ -47,6 +48,7 @@ class UserController extends AbstractController {
         if ($data = json_decode($request->getContent(), true)) {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
+            $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
@@ -71,6 +73,7 @@ class UserController extends AbstractController {
                             "selected" => $key == $user->getDateFormat()
                         ])
                         ->toArray(),
+                    "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 ])
             ]);
         }
@@ -250,7 +253,8 @@ class UserController extends AbstractController {
                 ->setPhone($data['phoneNumber'] ?? '')
                 ->setDeliverer($data['deliverer'] ?? false)
                 ->setLanguage($language)
-                ->setDateFormat($data['dateFormat']);
+                ->setDateFormat($data['dateFormat'])
+                ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
 
             $visibilityGroupsIds = is_string($data["visibility-group"]) ? explode(',', $data['visibility-group']) : $data["visibility-group"];
             if ($visibilityGroupsIds) {
@@ -496,7 +500,8 @@ class UserController extends AbstractController {
                 ->setDateFormat($data['dateFormat'] ?? Utilisateur::DEFAULT_DATE_FORMAT)
                 ->setMobileLoginKey($uniqueMobileKey)
                 ->setDeliverer($data['deliverer'] ?? false)
-                ->setSignatoryPassword($signatoryPassword);
+                ->setSignatoryPassword($signatoryPassword)
+                ->setDispatchBusinessUnit($data['dispatchBusinessUnit'] ?? null);
 
             if ($password !== '') {
                 $password = $encoder->hashPassword($utilisateur, $data['password']);

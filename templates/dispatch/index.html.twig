@@ -4,14 +4,16 @@
 {% block title_tooltip %}Demande | Acheminement{% endblock %}
 
 {% block page_filter %}
-    {% include 'filters/filtersAcheminements.html.twig' with {
+    {% include 'filters/filtersDispatchs.html.twig' with {
         page: 'PAGE_DISPATCHES',
         tableSelector: '#tableDispatches',
         needsDateFormatting: true,
         types: types,
         statusFilter: statusFilter,
+        statuses : statuses,
         typesFilter: typesFilter,
-        disabled: fromDashboard ? 'disabled',
+        disabled: fromDashboard ? 'disabled' : '',
+        hasRightGroupedSignature,
     } %}
 {% endblock %}
 
@@ -97,4 +99,5 @@
     {{ parent() }}
     <script src="{{ asset('js/pages/dispatch-common.js') }}?v={{ web_version }}"></script>
     <script src="{{ asset('js/pages/dispatch.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('filters') }}
 {% endblock %}

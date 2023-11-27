@@ -13,7 +13,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -516,9 +516,7 @@ class ImportService
                     @fclose($logFile);
 
                     // mise à jour des quantités sur références par article
-                    foreach ($refToUpdate as $ref) {
-                        $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
-                    }
+                    $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $refToUpdate);
                 }
 
                 $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
@@ -2379,7 +2377,7 @@ class ImportService
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
@@ -2392,7 +2390,7 @@ class ImportService
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
             } else if ($this->scalarCache['totalZone'] === 1) {
                 $zone = $zoneRepository->findOneBy([]);
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError("Le champ zone doit être renseigné");
             }
@@ -2453,7 +2451,7 @@ class ImportService
                                                Import                 $import): array
     {
 
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $importRepository = $entityManager->getRepository(Import::class);
 
         $fileImportConfig = $this->getFileImportConfig($import->getCsvFile());
@@ -2488,9 +2486,9 @@ class ImportService
             foreach ($fieldsToAssociate as $field) {
                 $fieldParamCode = Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field] ?? null;
                 if ($fieldParamCode) {
-                    $fieldParam = $fieldsParamRepository->findOneBy([
+                    $fieldParam = $fixedFieldStandardRepository->findOneBy([
                         'fieldCode' => $fieldParamCode,
-                        'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                        'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                     ]);
                     if ($fieldParam && $fieldParam->getRequiredCreate()) {
                         $fieldsNeeded[] = $field;

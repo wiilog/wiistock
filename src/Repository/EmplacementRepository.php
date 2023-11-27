@@ -11,6 +11,7 @@ use App\Entity\Pack;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Entity\Zone;
+use App\Helper\QueryBuilderHelper;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -152,12 +153,11 @@ class EmplacementRepository extends EntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false)
-    {
-        $countTotal = $this->countAll();
-
+    public function findByParamsAndExcludeInactive(InputBag $params = null, $excludeInactive = false): array {
         $queryBuilder = $this->createQueryBuilder('location');
         $exprBuilder = $queryBuilder->expr();
+
+        $countTotal = QueryBuilderHelper::count($queryBuilder, 'location');
 
         if ($excludeInactive) {
             $queryBuilder->andWhere('location.isActive = 1');
@@ -201,24 +201,29 @@ class EmplacementRepository extends EntityRepository
                     }
                 }
             }
-            $queryBuilder->select('count(location)');
-            $countQuery = (int) $queryBuilder->getQuery()->getSingleScalarResult();
         }
-        else {
-            $countQuery = $countTotal;
-        }
+
+        $countFiltered = QueryBuilderHelper::count($queryBuilder, 'location');
 
         $queryBuilder
             ->select('location');
 
-        if ($params->getInt('start')) $queryBuilder->setFirstResult($params->getInt('start'));
-        if ($params->getInt('length')) $queryBuilder->setMaxResults($params->getInt('length'));
+        if ($params->getInt('start')) {
+            $queryBuilder->setFirstResult($params->getInt('start'));
+        }
 
-        $query = $queryBuilder->getQuery();
+        if ($params->getInt('length')) {
+            $queryBuilder->setMaxResults($params->getInt('length'));
+        }
+
+        $results = $queryBuilder
+            ->getQuery()
+            ->getResult();
+
         return [
-            'data' => $query ? $query->getResult() : null,
-            'allEmplacementDataTable' => !empty($params) ? $query->getResult() : null,
-            'count' => $countQuery,
+            'data' => $results,
+            'allEmplacementDataTable' => !empty($params) ? $results : null,
+            'count' => $countFiltered,
             'total' => $countTotal
         ];
     }
@@ -533,5 +538,15 @@ class EmplacementRepository extends EntityRepository
             ->setParameter('zone', $zone)
             ->getQuery()
             ->getSingleScalarResult() > 0;
+    }
+
+    public function getWithGroupsForSelect(?string $term): array {
+        return $this->createQueryBuilder('location')
+            ->select("CONCAT('location-', location.id) AS id")
+            ->addSelect('location.label AS text')
+            ->andWhere("location.label LIKE :term")
+            ->setParameter("term", "%$term%")
+            ->getQuery()
+            ->getResult();
     }
 }

@@ -226,7 +226,7 @@ class LocationController extends AbstractController {
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
                 ->setSignatories($signatories ?? [])
                 ->setEmail($email)
-                ->setZone($zone);
+                ->setProperty("zone", $zone);
 
             $emplacement->getAllowedNatures()->clear();
 

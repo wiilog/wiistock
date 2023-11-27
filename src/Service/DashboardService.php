@@ -11,6 +11,7 @@ use App\Entity\Dashboard;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Handling;
 use App\Entity\Dispatch;
+use App\Entity\Language;
 use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
@@ -36,6 +37,7 @@ use App\Entity\Urgence;
 use App\Entity\WorkFreeDay;
 use App\Entity\Wiilock;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use App\Helper\QueryBuilderHelper;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -45,7 +47,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use InvalidArgumentException;
-use function PHPUnit\Framework\matches;
 
 class DashboardService {
 
@@ -648,7 +649,9 @@ class DashboardService {
         ];
 
         if (!empty($naturesFilter)) {
-            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter);
+            $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+            $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+            $packsOnCluster = $locationClusterRepository->getPacksOnCluster($locationCluster, $naturesFilter, $defaultLanguage);
             $packsOnClusterVerif = Stream::from(
                 $packsRepository->getCurrentPackOnLocations(
                     $locationCluster->getLocations()->toArray(),
