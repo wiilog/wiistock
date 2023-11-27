@@ -354,6 +354,11 @@ class DispatchRepository extends EntityRepository
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
+            ->addSelect('dispatch.dueDate1 AS dueDate1')
+            ->addSelect('dispatch.dueDate2 AS dueDate2')
+            ->addSelect('dispatch.dueDate2Bis AS dueDate2Bis')
+            ->addSelect('dispatch.productionOrderNumber AS productionOrderNumber')
+            ->addSelect('dispatch.productionRequest AS productionRequest')
             ->join('dispatch.requester', 'dispatch_requester')
             ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
@@ -372,24 +377,9 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("dispatch", $dispatch);
         } else {
             $queryBuilder
-                ->andWhere('type.id IN (:dispatchTypeIds)');
-            if ($offlineMode){
-                $queryBuilder
-                    ->andWhere('dispatch_created_by = :user')
-                    ->andWhere($queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->andX(
-                            'status.needsMobileSync = true',
-                            'status.state IN (:untreatedStates)',
-                        ),
-                        'status.state = :draftStatusState',
-                    ))
-                ->setParameter('user', $user);
-            } else {
-                $queryBuilder
-                    ->andWhere('status.needsMobileSync = true')
-                    ->andWhere('status.state IN (:untreatedStates)');
-            }
-            $queryBuilder
+                ->andWhere('type.id IN (:dispatchTypeIds)')
+                ->andWhere('status.needsMobileSync = true')
+                ->andWhere('status.state IN (:untreatedStates)')
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
