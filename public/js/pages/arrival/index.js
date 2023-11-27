@@ -78,7 +78,12 @@ $(function () {
                     'create_from_arrival_template',
                     {arrivals: arrivalsToDispatch},
                     $modalNewDispatch,
-                    $modalNewDispatch.find(`.modal-body`)
+                    $modalNewDispatch.find(`.modal-body`),
+                    {
+                        onOpen: () => {
+                            $modalNewDispatch.find('[name=type]').trigger('change')
+                        }
+                    }
                 )
         })
         .submitTo(

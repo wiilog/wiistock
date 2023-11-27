@@ -92,7 +92,7 @@ class DispatchController extends AbstractController {
 
         if (!empty($statusesFilter)) {
             $statusesFilter = Stream::from($statusesFilter)
-                ->map(fn($statusId) => $statutRepository->find($statusId)->getNom())
+                ->map(fn($statusId) => $statutRepository->find($statusId)->getId())
                 ->toArray();
         }
 
@@ -221,9 +221,11 @@ class DispatchController extends AbstractController {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
         $fromDashboard = $request->query->getBoolean('fromDashboard');
 
+        $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE);
+
         if ($fromDashboard) {
-            $preFilledStatuses = $request->query->has('preFilledStatuses')
-                ? implode(",", $request->query->all('preFilledStatuses'))
+            $preFilledStatuses = $request->query->has('filterStatus')
+                ? implode(",", $request->query->all('filterStatus'))
                 : [];
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
@@ -231,7 +233,7 @@ class DispatchController extends AbstractController {
 
             $preFilledFilters = [
                 [
-                    'field' => 'statuses-filter',
+                    'field' => $hasRightGroupedSignature ? 'statut' : 'statuses-filter',
                     'value' => $preFilledStatuses,
                 ],
                 [

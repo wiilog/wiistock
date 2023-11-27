@@ -578,7 +578,7 @@ class RefArticleDataService
             ->unique()
             ->toArray();
 
-        $typeColor = $refArticle->getType()->getColor();
+        $typeColor = $refArticle->getType()?->getColor() ?? '#3353D7';
 
         $formatService = $this->formatService;
 
