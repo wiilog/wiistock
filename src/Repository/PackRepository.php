@@ -655,7 +655,6 @@ class PackRepository extends EntityRepository
         }
 
         if ($options["alreadySelectedPacks"] ?? false) {
-            dump('65');
             $alreadySelectedPacks = explode(';', $options["alreadySelectedPacks"]);
             $qb->andWhere("pack.id NOT IN (:alreadySelectedPacks)")
                 ->setParameter('alreadySelectedPacks', $alreadySelectedPacks);
