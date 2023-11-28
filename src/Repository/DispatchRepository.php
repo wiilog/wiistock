@@ -331,6 +331,11 @@ class DispatchRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch_receiver.username AS receiver')
+            ->addSelect('dispatch_carrier.label AS carrier')
+            ->addSelect('dispatch.projectNumber AS projectNumber')
+            ->addSelect('dispatch.commandNumber AS commandNumber')
+            ->addSelect('dispatch.businessUnit AS businessUnit')
             ->addSelect('dispatch.id AS id')
             ->addSelect('dispatch_created_by.username AS createdBy')
             ->addSelect('dispatch.number AS number')
@@ -360,6 +365,8 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.productionOrderNumber AS productionOrderNumber')
             ->addSelect('dispatch.productionRequest AS productionRequest')
             ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.receivers', 'dispatch_receiver')
+            ->leftJoin('dispatch.carrier', 'dispatch_carrier')
             ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
             ->leftJoin('dispatch_packs.pack', 'pack')
