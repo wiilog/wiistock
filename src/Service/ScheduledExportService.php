@@ -209,7 +209,13 @@ class ScheduledExportService
             }
         } else { // ftp export
             try {
-                $this->ftpService->send($exportToRun->getFtpParameters(), $output);
+                $FTPParameters = $exportToRun->getFtpParameters();
+                $this->ftpService->send([
+                    'host' => $FTPParameters['host'],
+                    'port' => $FTPParameters['port'],
+                    'user' => $FTPParameters['user'],
+                    'pass' => $FTPParameters['pass'],
+                ], $FTPParameters['path'], $output);
             } catch(FTPException $exception) {
                 $exportToRun->setError($exception->getMessage());
             } finally {
@@ -224,7 +230,6 @@ class ScheduledExportService
             $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
             $exportToRun->setStatus($finished);
         }
-
 
         $exportToRun
             ->setForced(false)

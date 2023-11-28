@@ -13,6 +13,7 @@ use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Exceptions\FormException;
+use App\Exceptions\FTPException;
 use App\Service\AttachmentService;
 use App\Service\FTPService;
 use App\Service\ImportService;
@@ -23,6 +24,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 
 #[Route("/import")]
 class ImportController extends AbstractController
@@ -72,9 +74,14 @@ class ImportController extends AbstractController
                 "pass" => $post->get("pass"),
             ];
 
-            $connect = $FTPService->try($FTPConfig);
-            if(!is_bool($connect)) {
-                throw new FormException($connect->getMessage());
+            try {
+                $FTPService->try($FTPConfig);
+            }
+            catch(FTPException $exception) {
+                throw new FormException($exception->getMessage());
+            }
+            catch(Throwable) {
+                throw new FormException("Une erreur s'est produite lors de vérification de la connexion avec le serveur FTP");
             }
 
             $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());

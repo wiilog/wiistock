@@ -348,8 +348,8 @@ class ImportService
 
         return [
             'id' => $import->getId(),
-            'lastErrorMessage' => $import->getLastErrorMessage()
-                ? '<div class="d-flex>
+            'lastErrorMessage' => $lastErrorMessage
+                ? '<div class="d-flex">
                        <img src="/svg/urgence.svg"
                             alt="Erreur"
                             class="has-tooltip"
@@ -461,7 +461,7 @@ class ImportService
                 }
 
                 if (empty($headersLog) || empty($firstRows)) {
-                    $this->currentImport->setLastErrorMessage("Le fichier d'import était vide. Il doit comporter au moins deux lignes dont une ligne d'entête.");
+                    $this->currentImport->setLastErrorMessage("Le fichier source à importer était vide. Il doit comporter au moins deux lignes dont une ligne d'entête.");
                 } else {
                     // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
                     $index = 0;
@@ -2604,30 +2604,37 @@ class ImportService
      * @return resource|null
      */
     public function fopenImportFile(): mixed {
+        $errorMessage = false;
         if ($this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
             $absoluteFilePath = $this->currentImport->getScheduleRule()->getFilePath();
 
-            $name = uniqid() . ".csv";
-            $path = "/tmp/$name";
-            $this->scalarCache['importFilePath'] = $path;
-
             $FTPConfig = $this->currentImport->getFTPConfig();
 
-            try {
-                $this->FTPService->try($FTPConfig);
-                $data = $this->FTPService->get([
-                    'host' => $FTPConfig['host'],
-                    'port' => $FTPConfig['port'],
-                    'user' => $FTPConfig['user'],
-                    'pass' => $FTPConfig['pass'],
-                ], $absoluteFilePath);
-                file_put_contents($path, $data);
+            if ($FTPConfig) {
+                // file is on an external server
+                $name = uniqid() . ".csv";
+                $path = "/tmp/$name";
+                $this->scalarCache['importFilePath'] = $path;
+
+                try {
+                    $this->FTPService->try($FTPConfig);
+                    $data = $this->FTPService->get([
+                        'host' => $FTPConfig['host'],
+                        'port' => $FTPConfig['port'],
+                        'user' => $FTPConfig['user'],
+                        'pass' => $FTPConfig['pass'],
+                    ], $absoluteFilePath);
+                    file_put_contents($path, $data);
+                } catch (FTPException $FTPException) {
+                    $errorMessage = $FTPException->getMessage();
+                } catch (Throwable $throwable) {
+                    $errorMessage = "Erreur lors de requête FTP : {$throwable->getMessage()}\n{$throwable->getTraceAsString()}";
+                }
             }
-            catch (FTPException $FTPException) {
-                $errorMessage = $FTPException->getMessage();
-            }
-            catch(Throwable $throwable) {
-                $errorMessage = "Erreur lors de requête FTP : {$throwable->getMessage()}\n{$throwable->getTraceAsString()}";
+            else {
+                // file is on an external Symfony server
+                $path = $this->currentImport->getScheduleRule()?->getFilePath();
+                $this->scalarCache['importFilePath'] = $path;
             }
         } else {
             $csvFile = $this->currentImport->getCsvFile();
@@ -2638,17 +2645,19 @@ class ImportService
         if (empty($errorMessage)) {
             try {
                 $file = fopen($path, "r") ?: null;
-                if (!$file) {
-                    $errorMessage = "Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path";
-                } else if (is_dir($path)) {
-                    $errorMessage = "Le chemin enregistré dans l'import indique un répertoire : $path";
-                }
-            } catch (Exception) {
-                $errorMessage = "Le fichier source n'existe pas, veuillez vérifier le chemin suivant : $path";
+            } catch (Throwable) {
+                $file = null;
+            }
+
+            if (!$file) {
+                $errorMessage = "Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path";
+            } else if (is_dir($path)) {
+                $errorMessage = "Le chemin enregistré dans l'import indique un répertoire : $path";
+                $file = null;
             }
         }
 
-        if ($errorMessage ?? false) {
+        if ($errorMessage) {
             $this->currentImport->setLastErrorMessage($errorMessage);
         }
 
