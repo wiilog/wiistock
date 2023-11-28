@@ -1719,12 +1719,7 @@ class SettingsController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
-                    "printers" => Stream::from($printerRepository->findAll())
-                        ->map(static fn(Printer $printer) => [
-                            "label" => $printer->getName(),
-                            "value" => $printer->getId(),
-                        ])
-                        ->toArray(),
+                    "printers" => $printerRepository->findAll(),
                 ],
                 self::MENU_SESSIONS => fn() => [
                     "activeSessionsCount" => $sessionHistoryRepository->countOpenedSessions(),

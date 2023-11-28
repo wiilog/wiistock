@@ -244,7 +244,11 @@
                     <div class="col-12">
                         {{ form.select('allowedPrinters', "Imprimantes autorisées", false, {
                             type: null,
-                            items: printers,
+                            items: printers|map((printer) => {
+                                label: printer.name,
+                                value: printer.id,
+                                selected: user.allowedPrinters.contains(printer),
+                            }),
                             multiple: true,
                             inputClass : 'w-100',
                         }) }}
@@ -253,12 +257,15 @@
                 <div class="form-group row">
                     <div class="col-12">
                         {{ form.select('defaultPrinter', "Imprimante par défaut", false, {
-                            items: printers,
                             emptyOption: {
                                 text: '',
                                 value: ''
                             },
-                            value: user.defaultPrinter ? user.defaultPrinter.id,
+                            items: printers|map((printer) => {
+                                label: printer.name,
+                                value: printer.id,
+                                selected: user.defaultPrinter == printer,
+                            }),
                             inputClass : 'w-100',
                         }) }}
                     </div>

@@ -108,6 +108,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use ZplGenerator\Client\SocketClient;
 
 #[Rest\Route("/api")]
 class MobileController extends AbstractApiController
@@ -4017,57 +4018,40 @@ class MobileController extends AbstractApiController
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
-
         $pack = $packRepository->findOneBy(['code' => $packCode]);
+        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
 
         $user = $this->getUser();
 
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
-
-        $dispatch = $entityManager->find(Dispatch::class, 5833);
-        $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
-        $zebraPrinter = $printerService->getPrinter($printer);
-        $printerService->printDispatchPacks($zebraPrinter, $printer, $dispatch, $dispatch->getDispatchPacks()->toArray(), true);
-        die();
-
         if($dispatch && $request->request->get("printer")) {
-            $config = $printerService->configurationOf($dispatch);
-            if ($config) {
-                $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
-                try {
-                    $zebraPrinter = $printerService->getPrinter($printer);
-                }
-                catch(Throwable) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué."
-                    ]);
-                }
-
-                //do pack separation after check printer connection
-                $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
-
-                //remove the first pack (original pack) because it got removed from the dispatch
-                array_shift($movements);
-
-                $packs = Stream::from($movements)
-                    ->map(fn(TrackingMovement $movement) => $movement->getPack())
-                    ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
-                        ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
-                        ->first())
-                    ->filter()
-                    ->toArray();
-
-                $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
-            } else {
+            $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+            try {
+                $client = SocketClient::create($printer->getAddress(), PrinterService::DEFAULT_PRINTER_PORT, PrinterService::DEFAULT_PRINTER_TIMEOUT);
+                $zebraPrinter = $printerService->getPrinter($printer);
+            }
+            catch(Throwable) {
                 return $this->json([
                     'success' => false,
-                    'msg' => "Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}",
+                    'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.",
                 ]);
             }
+
+            $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+
+            array_shift($movements);
+
+            $packs = Stream::from($movements)
+                ->map(fn(TrackingMovement $movement) => $movement->getPack())
+                ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
+                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                    ->first())
+                ->filter()
+                ->toArray();
+
+            $printerService->printDispatchPacks($zebraPrinter, $client, $dispatch, $packs);
         } else {
             $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
         }

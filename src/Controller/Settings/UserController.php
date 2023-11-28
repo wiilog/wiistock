@@ -76,13 +76,7 @@ class UserController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
-                    "printers" => Stream::from($printerRepository->findAll())
-                        ->map(static fn(Printer $printer) => [
-                            "label" => $printer->getName(),
-                            "value" => $printer->getId(),
-                            "selected" => $user->getAllowedPrinters()->contains($printer),
-                        ])
-                        ->toArray(),
+                    "printers" => $printerRepository->findAll(),
                 ])
             ]);
         }
@@ -428,6 +422,7 @@ class UserController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
             $languageRepository = $entityManager->getRepository(Language::class);
+            $printerRepository = $entityManager->getRepository(Printer::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
@@ -551,6 +546,14 @@ class UserController extends AbstractController {
                 foreach ($types as $type) {
                     $utilisateur->addHandlingType($type);
                 }
+            }
+
+            if(isset($data["defaultPrinter"])) {
+                $utilisateur->setDefaultPrinter($printerRepository->find($data["defaultPrinter"]));
+            }
+
+            if(isset($data["allowedPrinters"])) {
+                $utilisateur->setAllowedPrinters($printerRepository->findBy(["id" => $data["allowedPrinters"]]));
             }
 
             $entityManager->persist($utilisateur);

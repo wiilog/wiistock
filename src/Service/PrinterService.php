@@ -27,8 +27,8 @@ use ZplGenerator\Printer\Printer as ZebraPrinter;
 
 class PrinterService
 {
-    private const DEFAULT_PRINTER_PORT = 9100;
-    private const DEFAULT_PRINTER_TIMEOUT = 5;
+    public const DEFAULT_PRINTER_PORT = 9100;
+    public const DEFAULT_PRINTER_TIMEOUT = 5;
 
     private const MAX_QR_CODE_LENGTH = 18;
 
@@ -46,7 +46,7 @@ class PrinterService
 
     private ?array $printers = null;
 
-    public function printDispatchPacks(ZebraPrinter $zebraPrinter, Printer $printer, Dispatch $dispatch, array $packs, bool $isSeparation): void
+    public function printDispatchPacks(ZebraPrinter $zebraPrinter, SocketClient $client, Dispatch $dispatch, array $packs): void
     {
         $settingsRepository = $this->entityManager->getRepository(Setting::class);
         $fixedFieldByTypeRepository = $this->entityManager->getRepository(FixedFieldByType::class);
@@ -83,9 +83,39 @@ class PrinterService
             };
         };
 
+        $fixedFieldsToDisplay = Stream::from($fixedFields)
+            ->filter(static fn(FixedFieldByType $fixedField) => $fixedField->isOnLabel($dispatch->getType()))
+            ->map(static fn(FixedFieldByType $fixedField) => [
+                strip_tags($fixedField->getFieldLabel()), $getValueByFieldCode($fixedField->getFieldCode())
+            ])
+            ->reindex()
+            ->toArray();
+
+        $freeFieldsToDisplay = Stream::from($freeFields)
+            ->filter(static fn(FreeField $freeField) => $freeField->isDisplayedOnLabel())
+            ->map(static fn(FreeField $freeField) => [
+                $freeField->getLabel(), $freeFieldValues[$freeField->getId()] ?? null
+            ])
+            ->reindex()
+            ->toArray();
+
         $labels = Stream::from($packs)
             ->reindex()
-            ->map(function (DispatchPack $dispatchPack, int $i) use ($zebraPrinter, $dispatch, $logo, $packs, $isSeparation, $fixedFieldByTypeRepository, $freeFieldRepository, $fixedFields, $freeFieldValues, $freeFields, $getValueByFieldCode) {
+            ->map(function (DispatchPack $dispatchPack) use (
+                $zebraPrinter,
+                $dispatch,
+                $logo,
+                $packs,
+                $fixedFieldByTypeRepository,
+                $freeFieldRepository,
+                $fixedFields,
+                $freeFieldValues,
+                $freeFields,
+                $getValueByFieldCode,
+                $fixedFieldsToDisplay,
+                $freeFieldsToDisplay)
+            {
+
                 $code = $dispatch->getType()->getDispatchLabelField() === Type::DISPATCH_NUMBER
                     ? $dispatch->getNumber()
                     : $dispatchPack->getPack()->getCode();
@@ -115,42 +145,18 @@ class PrinterService
                     );
                 }
 
-                if ($isSeparation) {
-                    $label->with(Text::create(30, 8)
-                        ->setAlignment(Align::RIGHT)
-                        ->setText("Nb UL: ".($i + 1) . "/" . count($packs))
-                        ->setConfig($paginationStyle)
-                        ->setMaxLines(1));
-                }
-
                 if($dispatch->getType()->isDisplayLogisticUnitsCountOnDispatchLabel()) {
                     $reindexed = Stream::from($dispatchPack->getDispatch()->getDispatchPacks()->getValues())
                         ->reindex();
 
-                    $label->with(Text::create(40, 8)
+                    $label->with(Text::create(80, 8)
                         ->setAlignment(Align::CENTER)
-                        ->setText("Nb UL: ".($reindexed->indexOf($dispatchPack) + 1) . "/" . $reindexed->count())
+                        ->setText(($reindexed->indexOf($dispatchPack) + 1) . "/" . $reindexed->count())
                         ->setConfig($paginationStyle)
                         ->setMaxLines(1));
                 }
 
                 [, $height] = $labelStyle->dimensions();
-
-                $fixedFieldsToDisplay = Stream::from($fixedFields)
-                    ->filter(static fn(FixedFieldByType $fixedField) => $fixedField->isOnLabel($dispatch->getType()))
-                    ->map(static fn(FixedFieldByType $fixedField) => [
-                        strip_tags($fixedField->getFieldLabel()), $getValueByFieldCode($fixedField->getFieldCode())
-                    ])
-                    ->reindex()
-                    ->toArray();
-
-                $freeFieldsToDisplay = Stream::from($freeFields)
-                    ->filter(static fn(FreeField $freeField) => $freeField->isDisplayedOnLabel())
-                    ->map(static fn(FreeField $freeField) => [
-                        $freeField->getLabel(), $freeFieldValues[$freeField->getId()] ?? null
-                    ])
-                    ->reindex()
-                    ->toArray();
 
                 Stream::from($fixedFieldsToDisplay, $freeFieldsToDisplay)
                     ->flatMap(function (array $field, int $i) use ($dispatch, $labelStyle, $height) {
@@ -180,14 +186,10 @@ class PrinterService
                     })
                     ->each(static fn(Element $element) => $label->with($element));
 
-                dump($label->toZPL());
-
                 return $label;
             })
             ->toArray();
 
-        /*dump($e);*/
-        $client = SocketClient::create($printer->getAddress(), self::DEFAULT_PRINTER_PORT, self::DEFAULT_PRINTER_TIMEOUT);
         $zebraPrinter->print($client, ...$labels);
     }
 
