@@ -1555,9 +1555,10 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($columns);
     }
 
+    //TODO methode GET
     #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
-    public function apiDeliveryNoteFile(Request                 $request,
+    public function apiDeliveryNoteFile( Request                $request,
                                          AttachmentService      $attachmentService,
                                          KernelInterface        $kernel,
                                          EntityManagerInterface $entityManager): JsonResponse
@@ -1565,27 +1566,34 @@ class ArrivageController extends AbstractController {
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
-
         if ($request->files->has('file')) {
-//            only the file from the api will be save as attachment
+            // TODO appel à l'api avec la pièce jointe
+
+            // we create the new filename based on the one uploaded
             $uploadedFile = $request->files->get('file');
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();
-            $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
-//             the api output will be a base64 image, to fake it we encode the one uploaded
-            $projectDir = $kernel->getProjectDir();
-            $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
             $pattern = '/(.+)\.\w{3}/';
             preg_match($pattern, $originalUploadedFileName, $matches);
             $downloadedFileName = $matches[1] . '_annotated.png';
+
+            // TODO : à supprimer, on créée une image en b64 pour les tests
+            $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
+            $projectDir = $kernel->getProjectDir();
+            $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
+
+            // TODO: decode b64 de l'output de l'api et enregistrer ce nouveau fichier en pj de l'arrivage
             $filepath = $attachmentService->createFile($downloadedFileName, base64_decode($encodedFile));
+        } else {
+            throw new FormException('Aucun fichier n\'a été importé');
         }
 
         $entityManager->flush();
 
+        // TODO: ici apiOutput correspond au fichier json de retour de l'api, à remplacer par les valuers réélles
         $apiOutput = [
             'values' => [
                 'fournisseur' => [
-                    'value' => $fournisseurRepository->findOneBy(["nom" => '4030'])->getId(),
+                    'value' => '4030',
                     'score' => 0.78,
                 ],
                 'transporteur' => [],
@@ -1604,31 +1612,37 @@ class ArrivageController extends AbstractController {
                     'score' => 0.85,
                 ],
                 'destinataire' => [
-                    'value' => $utilisateurRepository->findOneByName('thierry braisaz')->getId(),
+                    'value' => 'thierry braisaz',
                     'score' => 0.95,
                 ],
                 'commentaire' => [
                     'value' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
                     'score' => 0.68,
                 ]
-            ],
-            'file' => '/uploads/attachments/' . $downloadedFileName ?? null,
+            ]
+        ];
+
+        $data = $apiOutput;
+        $data['values']['fournisseur']['value'] = $fournisseurRepository->findOneBy(["nom" => $apiOutput['values']['fournisseur']['value']])->getId();
+        $data['values']['destinataire']['value'] = $utilisateurRepository->findOneByName($apiOutput['values']['destinataire']['value'])->getId();
+        $data['file'] = [
+            'name' => $downloadedFileName,
+            'path' => $filepath,
         ];
 
         $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutput['values']['noTracking']['value']]);
         if ($truckArrivalLine) {
             $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
-            $apiOutput["values"]["transporteur"] = [
+            $data["values"]["transporteur"] = [
                 "value" => $carrierId,
                 "score" => 0.63,
             ];
-            $apiOutput["values"]["noTruckArrival"] = [
+            $data["values"]["noTruckArrival"] = [
                 "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
             ];
-            $apiOutput["values"]["noTracking"]["id"] = $truckArrivalLine->getId();
+            $data["values"]["noTracking"]["id"] = $truckArrivalLine->getId();
         }
 
-
-        return $this->json($apiOutput);
+        return $this->json($data);
     }
 }

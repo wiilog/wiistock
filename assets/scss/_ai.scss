@@ -1,17 +1,18 @@
 @import "variables";
 
 .score {
-    &__low {
+    &-low {
+        border: 2px dotted red;
         &, &.ql-snow {
             background-color: $lightest-danger!important;
         }
     }
-    &__medium {
+    &-medium {
         &, &.ql-snow{
             background-color: $lightest-warning!important;
         }
     }
-    &__high {
+    &-high {
         &, &.ql-snow {
             background-color: $lightest-success!important;
         }
@@ -25,13 +26,13 @@
         padding: 0.25rem 0.55rem;
         border-radius: 5px;
         &.score {
-            &__low {
+            &-low {
                 border: 1px solid $danger;
             }
-            &__medium {
+            &-medium {
                 border: 1px solid $warning;
             }
-            &__high {
+            &-high {
                 border: 1px solid $success;
             }
         }

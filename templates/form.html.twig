@@ -44,7 +44,7 @@
                 {{ label | raw }}{{ required and options.removeAsterisk is not defined ? '*' }}
             {% endif %}
         </span>
-        <span class="wii-small-text"> {{ options.smallText ?? '' }}</span>
+        <span class="wii-small-text {{ options.isAiScore is defined ? 'ai-score-text' : '' }}"> {{ options.smallText ?? '' }}</span>
     {% endif %}
 {% endmacro %}
 

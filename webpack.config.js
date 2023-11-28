@@ -54,6 +54,7 @@ Encore
     .addEntry('delivery-station', './assets/js/pages/delivery-station.js')
     .addEntry('tracking-movement', './assets/js/pages/tracking-movement/tracking-movement.js')
     .addEntry('tracking-movement-wrong-location-warning', './assets/js/pages/tracking-movement/wrong-location-warning.js')
+    .addEntry('ai-create-arrival', './assets/js/pages/ai-create-arrival.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

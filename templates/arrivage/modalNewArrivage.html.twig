@@ -16,7 +16,7 @@
             <div class="modal-body modal-input container-fluid">
                 {% set useAiArrivals = setting_value('USE_AI_ARRIVALS') %}
                 {% if useAiArrivals %}
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between ai-form">
                                 {% include 'attachment/attachment.html.twig' with {
                                     nameInput: 'uploadAndScan',
                                     'isNew': true,
@@ -29,28 +29,26 @@
                                     bigger: 'form-group d-flex',
                                     formats: 'image/png, image/jpeg, image/jpg, application/pdf',
                                 } %}
-
-                            {% if useAiArrivals %}
-                                    <div class="form-group">
-                                        <span class="wii-field-name ai-legend-title">
-                                            Rappel échelle de confiance IA
-                                        </span>
-                                        <ul class="ai-legend-container">
-                                            <li class="score__low points has-tooltip mr-1" title data-original-title="A vérifier soigneusement">
-                                                De 0% à 60%
-                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
-                                            </li>
-                                            <li class="score__medium points has-tooltip mr-1" title data-original-title="A vérifier">
-                                                60% à 90%
-                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
-                                            </li>
-                                            <li class="score__high points has-tooltip " title data-original-title="Information sûre">
-                                                De 90% à 100%
-                                                <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                            {% endif %}
+                                <div class="form-group">
+                                    <span class="wii-field-name ai-legend-title">
+                                        Rappel échelle de confiance IA
+                                    </span>
+                                    <ul class="ai-legend-container">
+                                        <li class="score-low points has-tooltip mr-1" title data-original-title="A vérifier soigneusement">
+                                            De 0% à 60%
+                                            <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                        </li>
+                                        <li class="score-medium points has-tooltip mr-1" title data-original-title="A vérifier">
+                                            60% à 90%
+                                            <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                        </li>
+                                        <li class="score-high points has-tooltip " title data-original-title="Information sûre">
+                                            De 90% à 100%
+                                            <span class="wii-icon wii-icon-info wii-icon-10px-primary"></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            <button type="submit" class="d-none"></button>
                         </div>
                 {% endif %}
                 <div class="row fly-form mt-2">
@@ -61,8 +59,8 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }}{{ supplierRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text"></span>
-                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }}"
+                            <span class="wii-small-text ai-score-text"></span>
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }} ai-field"
                                     name="fournisseur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
@@ -91,8 +89,8 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur') }}{{ carrierRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text"></span>
-                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ carrierRequired ? 'needed' }}"
+                            <span class="wii-small-text ai-score-text"></span>
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur ai-field {{ carrierRequired ? 'needed' }}"
                                     name="transporteur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
@@ -231,24 +229,29 @@
                                             name: 'data-other-params',
                                         }],
                                         multiple: true,
-                                        inputClass: 'form-control input-sm data',
+                                        inputClass: 'form-control input-sm data ai-field',
                                         includeParams: '[name=transporteur]',
                                         type: 'truckArrivalLine',
                                         minLength: 0,
-                                        autoSelect: true
+                                        autoSelect: true,
+                                        isAiField: true,
+                                        labelOptions: {
+                                           isAiScore: true,
+                                        }
                                     }) }}
                                 </div>
                                 <div class="form-group col-4">
                                     {{ form.input('noTruckArrival', 'N° arrivage camion', false , null, {
                                         disabled: true,
+                                        inputClass: 'ai-field',
                                     }) }}
                             {% else %}
                                 <label class="wii-field-name" for="noTracking">
                                     {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
                                 </label>
-                                <span class="wii-small-text"></span>
+                                <span class="wii-small-text ai-score-text"></span>
                                 <input type="text"
-                                       class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
+                                       class="form-control input-sm data ai-field {{ trackingNumberRequired ? 'needed' }}"
                                        value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
                                        name="noTracking"
                                        maxlength="64">
@@ -262,8 +265,8 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }}{{ orderNumberRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text"></span>
-                            <select class="form-control input-sm data select2-free w-100 {{ orderNumberRequired ? 'needed' }}"
+                            <span class="wii-small-text ai-score-text"></span>
+                            <select class="form-control input-sm data select2-free w-100 ai-field {{ orderNumberRequired ? 'needed' }}"
                                     name="numeroCommandeList"
                                     multiple="multiple">
                                 {% set savedOrderNumber = keptFields[orderNumberFieldCode] ?? null %}
@@ -285,8 +288,8 @@
                                     <label class="wii-field-name">
                                         {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
                                     </label>
-                                    <span class="wii-small-text"></span>
-                                    <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
+                                    <span class="wii-small-text ai-score-text"></span>
+                                    <select class="form-control input-sm data ajax-autocomplete-user ai-field {{ targetRequired ? 'needed' }} ajax-autocomplete"
                                             name="destinataire">
                                         <option selected disabled>&nbsp;</option>
                                         {% for user in users %}
@@ -580,8 +583,8 @@
                             <label class="wii-subtitle" for="commentaire">
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text"></span>
-                            <input class="commentaire form-control input-sm data {{ commentRequired ? 'needed' }}"
+                            <span class="wii-small-text ai-score-text"></span>
+                            <input class="commentaire form-control input-sm data ai-field {{ commentRequired ? 'needed' }}"
                                    name="commentaire"
                                    type="hidden">
                             <div class="editor-container-new" data-wysiwyg>
