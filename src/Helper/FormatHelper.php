@@ -284,6 +284,7 @@ class FormatHelper {
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
                 $formatted = Stream::explode(';', $value)
+                    ->filter()
                     ->filter(fn(string $val) => in_array(trim($val),
                         Stream::from($freeField->getElements())
                             ->map(fn(string $element) => trim($element))

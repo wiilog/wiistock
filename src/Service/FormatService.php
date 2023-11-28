@@ -293,7 +293,9 @@ class FormatService
                     : '';
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
-                $values = Stream::explode(';', $value)->toArray();
+                $values = Stream::explode(';', $value)
+                    ->filter()
+                    ->toArray();
                 $translatedValues = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $values, true);
                 $formatted = Stream::from($translatedValues ?: [])->join(', ');
                 break;

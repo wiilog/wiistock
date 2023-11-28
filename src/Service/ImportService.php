@@ -993,9 +993,12 @@ class ImportService
             $usernames = Stream::explode([";", ","], $data["managers"])
                 ->unique()
                 ->map(fn(string $username) => trim($username))
+                ->filter()
                 ->toArray();
 
-            $managers = $userRepository->findByUsernames($usernames);
+            $managers = !empty($usernames)
+                ? $userRepository->findByUsernames($usernames)
+                : [];
             foreach ($managers as $manager) {
                 $refArt->addManager($manager);
             }
@@ -1519,6 +1522,7 @@ class ImportService
         }
         if (isset($data['visibilityGroup'])) {
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
+                ->filter()
                 ->unique()
                 ->map(fn(string $visibilityGroup) => trim($visibilityGroup))
                 ->map(function ($label) use ($visibilityGroupRepository) {
@@ -1839,7 +1843,9 @@ class ImportService
         }
 
         if (isset($data['allowedPackNatures'])) {
-            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])
+                ->filter()
+                ->toArray();
             $natures = $natureRepository->findBy(['label' => $elements]);
             $natureLabels = Stream::from($natures)
                 ->map(fn(Nature $nature) => $this->formatService->nature($nature))
@@ -1854,7 +1860,9 @@ class ImportService
         }
 
         if (isset($data['allowedDeliveryTypes'])) {
-            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])
+                ->filter()
+                ->toArray();
             $allowedDeliveryTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], $elements);
             $allowedDeliveryTypesLabels = Stream::from($allowedDeliveryTypes)
                 ->map(fn(Type $type) => $type->getLabel())
@@ -1869,7 +1877,9 @@ class ImportService
         }
 
         if (isset($data['allowedCollectTypes'])) {
-            $elements = Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedCollectTypes'])
+                ->filter()
+                ->toArray();
             $allowedCollectTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_COLLECTE], $elements);
             $allowedCollectTypesLabels = Stream::from($allowedCollectTypes)
                 ->map(fn(Type $type) => $type->getLabel())

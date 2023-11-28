@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6775e2fa7a62171eec3ae7868fcef98f",
+    "content-hash": "0d43d8f6a6e949797963dca53d81d547",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -10141,7 +10141,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/wiilog/common-php.git",
-                "reference": "2b03ec69046af66843d654dc7b13348f91163d96"
+                "reference": "f1f8292c0321761b4007e87448307ae137cbebfe"
             },
             "require": {
                 "ext-json": "*",
@@ -10159,7 +10159,7 @@
                     "WiiCommon\\": "src/"
                 }
             },
-            "time": "2023-09-19T19:00:17+00:00"
+            "time": "2023-11-27T19:33:45+00:00"
         },
         {
             "name": "wiilog/zpl-generator",
@@ -12365,7 +12365,8 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-json": "*",
-        "ext-mysqli": "*"
+        "ext-mysqli": "*",
+        "ext-intl": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"

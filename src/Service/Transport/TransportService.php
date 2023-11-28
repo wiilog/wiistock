@@ -834,6 +834,7 @@ class TransportService {
 
         $maxLineLength = 40;
         $cleanedContactAddress = Stream::explode("\n", $contactAddress)
+            ->filter()
             //mettre à la ligne les éléments de l'adresse pour le svg
             ->flatMap(function (string $part) use ($maxLineLength) {
                 $part = trim($part);
