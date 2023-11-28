@@ -67,30 +67,38 @@ class ImportController extends AbstractController
             $importService->updateScheduleRules($rule, $request->request);
             $import->setScheduleRule($rule);
 
-            $FTPConfig = [
-                "host" => $post->get("host"),
-                "port" => $post->get("port"),
-                "user" => $post->get("user"),
-                "pass" => $post->get("pass"),
-            ];
+            $FTPHost = $post->get("host");
+            $FTPPort = $post->get("port");
+            $FTPUser = $post->get("user");
+            $FTPPass = $post->get("pass");
 
-            try {
-                $FTPService->try($FTPConfig);
-            }
-            catch(FTPException $exception) {
-                throw new FormException($exception->getMessage());
-            }
-            catch(Throwable) {
-                throw new FormException("Une erreur s'est produite lors de vérification de la connexion avec le serveur FTP");
+            if ($FTPHost && $FTPPort && $FTPUser && $FTPPass) {
+                $FTPConfig = [
+                    "host" => $FTPHost,
+                    "port" => $FTPPort,
+                    "user" => $FTPUser,
+                    "pass" => $FTPPass,
+                ];
+
+                try {
+                    $FTPService->try($FTPConfig);
+                    $import->setFTPConfig($FTPConfig);
+                }
+                catch(FTPException $exception) {
+                    throw new FormException($exception->getMessage());
+                }
+                catch(Throwable) {
+                    throw new FormException("Une erreur s'est produite lors de vérification de la connexion avec le serveur FTP");
+                }
             }
 
             $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import
                 ->setScheduleRule($rule)
                 ->setNextExecutionDate($nextExecutionDate)
-                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT))
-                ->setFTPConfig($FTPConfig);
-        } else {
+                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT));
+        }
+        else {
             $import->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT));
         }
 
