@@ -273,6 +273,9 @@ class ArrivageController extends AbstractController {
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
         if (!empty($numeroCommandeList)) {
             $arrivage->setNumeroCommandeList($numeroCommandeList);
+
+            $receptions = $entityManager->getRepository(Reception::class)->findBy(['orderNumber' => $numeroCommandeList]);
+            $arrivage->setReceptions($receptions);
         }
 
         if (!empty($data['receivers'])) {
@@ -562,7 +565,11 @@ class ArrivageController extends AbstractController {
         }
 
         if($post->has('numeroCommandeList')){
-            $arrivage->setNumeroCommandeList(explode(',', $post->get('numeroCommandeList')));
+            $orderNumbers = explode(',', $post->get('numeroCommandeList'));
+            $arrivage->setNumeroCommandeList($orderNumbers);
+
+            $receptions = $entityManager->getRepository(Reception::class)->findBy(['orderNumber' => $orderNumbers]);
+            $arrivage->setReceptions($receptions);
         }
 
         if($post->has('fournisseur')){

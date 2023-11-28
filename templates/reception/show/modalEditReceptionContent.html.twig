@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="row">
     <div class="form-group col-6">
         <label class="wii-field-name" title="n° de réception">{{ trans('Ordre','Réceptions', 'n° de réception', false) }}</label>
@@ -44,12 +46,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('numCommande', 'displayedEdit') %}
         <div class="form-group col-6">
-            <label class="wii-field-name" for="numeroCommande">Numéro(s) de commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? '*' : '' }}</label>
-            <select name="orderNumber" data-s2 data-editable multiple class="form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredEdit') ? 'needed' : '' }}">
-                {% for orderNumber in reception.orderNumber %}
-                    <option value="{{ orderNumber }}" selected>{{ orderNumber }}</option>
-                {% endfor %}
-            </select>
+            {{ form.input('orderNumber', 'Numéro(s) de commande', fieldsParam|isFieldRequired('numCommande', 'requiredEdit'), reception.orderNumber ) }}
         </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('emplacement', 'displayedEdit') %}
@@ -65,9 +62,8 @@
         </div>
     {% endif %}
 </div>
-
-<div class="row fly-form">
-    {% if fieldsParam|isFieldRequired('fournisseur', 'displayedEdit') %}
+{% if fieldsParam|isFieldRequired('fournisseur', 'displayedEdit') %}
+    <div class="row fly-form">
         <div class="form-group col">
             <label class="wii-field-name" for="fournisseurs">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredEdit') ? '*' : '' }}</label>
             <select
@@ -104,48 +100,52 @@
                 </span>
             </div>
         {% endif %}
-    {% endif %}
-</div>
-
+    </div>
+{% endif %}
 
 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
     <div class="row align-items-start">
-        <div class="col-md-6 col-12 fly-form" style="height: 0">
-            <div class="row">
-                <div class="form-group col invisible" id="fournisseurDisplay">
-                    <label class="wii-field-name" for="newFournisseur">Nom*</label>
-                    <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly" name="name"
-                           maxlength="64">
-                    <label for="newFournisseurCode" class="wii-field-name mt-2">Code*</label>
-                    <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
-                           maxlength="64">
-                </div>
-                <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
-                    <span class="btn btn-primary"
-                          onclick="onFlyFormSubmit(Routing.generate('supplier_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
-                        <i class="fas fa-check-circle"></i>
-                    </span>
+        {% if fieldsParam|isFieldRequired('fournisseur', 'displayedEdit') %}
+            <div class="col-md-6 col-12 fly-form" style="height: 0">
+                <div class="row">
+                    <div class="form-group col invisible" id="fournisseurDisplay">
+                        <label class="wii-field-name" for="newFournisseur">Nom*</label>
+                        <input type="text" id="newFournisseur" class="form-control valeur newFormulaire neededNew copyOnTheFly" name="name"
+                               maxlength="64">
+                        <label for="newFournisseurCode" class="wii-field-name mt-2">Code*</label>
+                        <input type="text" id="newFournisseurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
+                               maxlength="64">
+                    </div>
+                    <div class="form-group col-auto invisible submit-button-container" id="addFournisseur">
+                        <span class="btn btn-primary"
+                              onclick="onFlyFormSubmit(Routing.generate('supplier_new', true), $(this), 'fournisseurDisplay', 'addFournisseur', $('#fournisseur'))">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6 col-12 fly-form" style="height: 0">
-            <div class="row">
-                <div class="form-group col invisible" id="transporteurDisplay">
-                    <label class="wii-field-name" for="newTransporteur">Nom*</label>
-                    <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly" name="label"
-                           maxlength="64">
-                    <label for="newTransporteurCode" class="wii-field-name mt-2">Code*</label>
-                    <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
-                           maxlength="64">
-                </div>
-                <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
+        {% endif %}
+        {% if fieldsParam|isFieldRequired('transporteur', 'displayedEdit') %}
+            <div class="col-md-6 col-12 fly-form" style="height: 0">
+                <div class="row">
+                    <div class="form-group col invisible" id="transporteurDisplay">
+                        <label class="wii-field-name" for="newTransporteur">Nom*</label>
+                        <input type="text" id="newTransporteur" class="form-control newFormulaire neededNew copyOnTheFly" name="label"
+                               maxlength="64">
+                        <label for="newTransporteurCode" class="wii-field-name mt-2">Code*</label>
+                        <input type="text" id="newTransporteurCode" class="form-control newFormulaire neededNew copiedOnTheFly" name="code"
+                               maxlength="64">
+                    </div>
+                    <div class="form-group col-auto invisible submit-button-container" id="addTransporteur">
                     <span class="btn btn-primary"
                           onclick="onFlyFormSubmit(Routing.generate('transporteur_save', true), $(this), 'transporteurDisplay', 'addTransporteur', $('#transporteur'))">
                         <i class="fas fa-check-circle"></i>
                     </span>
+                    </div>
                 </div>
             </div>
-        </div>
+
+        {% endif %}
     </div>
 {% endif %}
 
