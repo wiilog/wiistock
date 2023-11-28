@@ -48,18 +48,16 @@ class LaunchScheduledImportCommand extends Command {
 
         $importsCache = $this->importService->getScheduledCache($this->getEntityManager());
         $currentKeyImport = $this->importService->getScheduleImportKeyCache(new DateTime());
-dump($importsCache);
 
-//        if (isset($importsCache[$currentKeyImport])) {
-//            $imports = $importRepository->findBy(["id" => $importsCache[$currentKeyImport]]);
-            $imports = $importRepository->findBy(["id" => 375]);
+        if (isset($importsCache[$currentKeyImport])) {
+            $imports = $importRepository->findBy(["id" => $importsCache[$currentKeyImport]]);
 
             foreach ($imports as $import) {
                 $this->import($output, $import);
             }
 
             $this->importService->saveScheduledImportsCache($this->getEntityManager());
-//        }
+        }
 
         return 0;
     }
