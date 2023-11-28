@@ -8,11 +8,13 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
-use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
@@ -26,7 +28,6 @@ use App\Entity\Reception;
 use App\Entity\ReserveType;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\SubLineFieldsParam;
 use App\Entity\TagTemplate;
 use App\Entity\Translation;
 use App\Entity\TranslationSource;
@@ -44,6 +45,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use FOS\RestBundle\Request\ParameterBag;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionClass;
 use RuntimeException;
@@ -56,7 +58,6 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class SettingsService {
 
@@ -286,6 +287,7 @@ class SettingsService {
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
             $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -633,6 +635,7 @@ class SettingsService {
                 $types = [];
 
                 Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->filter()
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
@@ -725,6 +728,17 @@ class SettingsService {
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
+                if(isset($data["isDefault"])) {
+                    if($data["isDefault"]) {
+                        $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
+                        if($alreadyByDefaultType) {
+                            $alreadyByDefaultType->setDefault(false);
+                        }
+                    }
+
+                    $type->setDefault($data["isDefault"]);
+                }
+
                 if (isset($files["logo"])) {
                     $type->setLogo($this->attachmentService->createAttachments([$files["logo"]])[0]);
                 } else {
@@ -756,7 +770,7 @@ class SettingsService {
 
                 if (isset($item["elements"])) {
                     $elements = Stream::explode(";", $item["elements"])
-                        ->map(fn(string $element) => trim($element))
+                        ->filterMap(fn(string $element) => trim($element) ?: null)
                         ->toArray();
                 }
 
@@ -820,18 +834,18 @@ class SettingsService {
         if (isset($tables["fixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["fixedFields"]);
 
-            $fieldsParamRepository = $this->manager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $this->manager->getRepository(FixedFieldStandard::class);
             $fieldsParams = Stream::from($fieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
             foreach (array_filter($tables["fixedFields"]) as $item) {
-                /** @var FieldsParam $subLineFieldParam */
+                /** @var FixedFieldStandard $subLineFieldParam */
                 $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($subLineFieldParam) {
                     $code = $subLineFieldParam->getFieldCode();
-                    $alwaysRequired = in_array($code, FieldsParam::ALWAYS_REQUIRED_FIELDS);
+                    $alwaysRequired = in_array($code, FixedField::ALWAYS_REQUIRED_FIELDS);
                     $subLineFieldParam
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
@@ -844,20 +858,39 @@ class SettingsService {
             }
         }
 
+        if (isset($tables["fixedFieldsByType"]) && isset($data["type"])) {
+            $typeRepository = $typeRepository ?? $this->manager->getRepository(Type::class);
+            $fixedFieldByTypeRepository = $this->manager->getRepository(FixedFieldByType::class);
+            $type = $typeRepository->find($data["type"]);
+            $paramById =  Stream::from($tables["fixedFieldsByType"])
+                ->keymap(fn($fieldParam) => [$fieldParam["id"], $fieldParam]);
+
+            $fixedField = $fixedFieldByTypeRepository->findBy(["id" => Stream::keys($paramById)->toArray()]);
+            foreach ($fixedField as $field) {
+                $fieldParam = $paramById[$field->getId()];
+                foreach ($fieldParam as $key => $value) {
+                    if ($key !== "id") {
+                        $method = ($value ? 'add' : 'remove') . ucfirst($key);
+                        $field->$method($type);
+                    }
+                }
+            }
+        }
+
         if (isset($tables["subFixedFields"])) {
             $ids = array_map(fn($freeField) => $freeField["id"] ?? null, $tables["subFixedFields"]);
 
-            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFieldsParam::class);
+            $subLineFieldsParamRepository = $this->manager->getRepository(SubLineFixedField::class);
             $fieldsParams = Stream::from($subLineFieldsParamRepository->findBy(["id" => $ids]))
                 ->keymap(fn($day) => [$day->getId(), $day])
                 ->toArray();
 
             foreach (array_filter($tables["subFixedFields"]) as $item) {
-                /** @var SubLineFieldsParam|null $subLineFieldParam */
+                /** @var SubLineFixedField|null $subLineFieldParam */
                 $subLineFieldParam = $fieldsParams[$item["id"]] ?? null;
 
                 if ($subLineFieldParam) {
-                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
+                    $subLineFieldCanBeDisplayedUnderCondition = !in_array($subLineFieldParam->getFieldCode(), SubLineFixedField::DISABLED_DISPLAYED_UNDER_CONDITION[$subLineFieldParam->getEntityCode()] ?? []);
                     $displayedUnderCondition = ($item["displayedUnderCondition"] ?? false) && $subLineFieldCanBeDisplayedUnderCondition;
                     $conditionFixedFieldValue = Stream::explode(",", $subLineFieldCanBeDisplayedUnderCondition ? ($item["conditionFixedFieldValue"] ?? "") : "")
                         ->filter()
@@ -868,7 +901,7 @@ class SettingsService {
                     }
 
                     $subLineFieldRequired = ($item["required"] ?? false )
-                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFieldsParam::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
+                        && !in_array($subLineFieldParam->getFieldCode(), SubLineFixedField::DISABLED_REQUIRED[$subLineFieldParam->getEntityCode()] ?? []);
 
                     $subLineFieldParam
                         ->setDisplayed($item["displayed"] ?? null)
@@ -1281,9 +1314,9 @@ class SettingsService {
     public function getDefaultDeliveryLocationsByType(EntityManagerInterface $entityManager): array {
         $typeRepository = $entityManager->getRepository(Type::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
         $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
@@ -1322,9 +1355,9 @@ class SettingsService {
 
     public function getDefaultDeliveryLocationsByTypeId(EntityManagerInterface $entityManager): array {
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DESTINATION_DEMANDE);
+        $defaultDeliveryLocationsParam = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
         $defaultDeliveryLocationsIds = $defaultDeliveryLocationsParam;
 
         $defaultDeliveryLocations = [];
@@ -1403,6 +1436,24 @@ class SettingsService {
             $deliverer->setTransportRoundStartingHour(null);
         }
         $this->manager->remove($startingHour);
+    }
+
+    public function getSelectOptionsBySetting(EntityManagerInterface $entityManager, string $setting): array {
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $settingTypes = $settingRepository->getOneParamByLabel($setting);
+        $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $selectOptions = [];
+        foreach ($dispatchTypes as $type){
+            $selectOptions[] = [
+                'value' => $type->getId(),
+                'label' => $type->getLabel(),
+                'selected' => in_array($type->getId(), explode(',', $settingTypes)),
+            ];
+        }
+
+        return $selectOptions;
     }
 
 }

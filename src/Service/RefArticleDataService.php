@@ -20,6 +20,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\Reception;
@@ -577,7 +578,7 @@ class RefArticleDataService
             ->unique()
             ->toArray();
 
-        $typeColor = $refArticle->getType()->getColor();
+        $typeColor = $refArticle->getType()?->getColor() ?? '#3353D7';
 
         $formatService = $this->formatService;
 
@@ -858,78 +859,47 @@ class RefArticleDataService
         ];
     }
 
+    /**
+     * @param ReferenceArticle[] $references
+     */
     public function updateRefArticleQuantities(EntityManagerInterface $entityManager,
-                                               ReferenceArticle       $referenceArticle,
+                                               array                  $references,
                                                bool                   $fromCommand = false)
     {
-        $this->updateStockQuantity($entityManager, $referenceArticle);
-        $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
-        $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
-    }
-
-    public function updateInventoryStatus(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle)
-    {
-        $category = $referenceArticle->getCategory();
-        if ($category) {
-            $frequency = $category->getFrequency();
-            $articlesRepository = $entityManager->getRepository(Article::class);
-            $articles = $articlesRepository->findActiveArticles($referenceArticle);
-            $now = new DateTime();
-            $oldestInventoryDate = null;
-
-            foreach ($articles as $article) {
-                $inventoryDate = $article->getDateLastInventory();
-                $oldestInventoryDate = !$oldestInventoryDate
-                    ? $inventoryDate
-                    : ($inventoryDate < $oldestInventoryDate
-                        ? $inventoryDate
-                        : $oldestInventoryDate
-                    );
-            }
-            $diff = $oldestInventoryDate->diff($now);
-            $referenceArticle->setUpToDateInventory($diff->m < $frequency->getNbMonths());
+        $this->updateStockQuantities($entityManager, $references);
+        $this->updateReservedQuantity($entityManager, $references, $fromCommand);
+        foreach($references as $reference) {
+            $reference->setQuantiteDisponible($reference->getQuantiteStock() - $reference->getQuantiteReservee());
         }
     }
 
-    private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void
+    private function updateStockQuantities(EntityManagerInterface $entityManager,
+                                           array                  $references): void
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
+        $stockQuantities = $referenceArticleRepository->getStockQuantities($references);
+
+        /** @var ReferenceArticle $reference */
+        foreach ($references as $reference) {
+            $stockQuantity = $stockQuantities[$reference->getId()] ?? 0;
+            $reference->setQuantiteStock($stockQuantity);
         }
     }
 
+    /**
+     * @param ReferenceArticle[] $references
+     */
     private function updateReservedQuantity(EntityManagerInterface $entityManager,
-                                            ReferenceArticle       $referenceArticle,
+                                            array                  $references,
                                             bool                   $fromCommand = false): void
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $reservedQuantities = $referenceArticleRepository->getReservedQuantities($references, $fromCommand);
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
-        } else {
-            $totalReservedQuantity = 0;
-            $lignesArticlePrepaEnCours = $referenceArticle
-                ->getPreparationOrderReferenceLines()
-                ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
-                    $preparation = $ligneArticlePreparation->getPreparation();
-                    $livraison = $preparation->getLivraison();
-                    return $preparation->getStatut()?->getCode() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER
-                        || (
-                            $fromCommand &&
-                            $livraison &&
-                            $livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
-                        );
-                });
-            /**
-             * @var PreparationOrderReferenceLine $ligneArticlePrepaEnCours
-             */
-            foreach ($lignesArticlePrepaEnCours as $ligneArticlePrepaEnCours) {
-                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantityToPick();
-            }
-            $referenceArticle->setQuantiteReservee($totalReservedQuantity);
+        foreach ($references as $reference) {
+            $reservedQuantity = $reservedQuantities[$reference->getId()] ?? 0;
+            $reference->setQuantiteReservee($reservedQuantity);
         }
     }
 

@@ -1081,19 +1081,18 @@ function updateMultipleChartData(chart, data) {
     chart.data.datasets = [];
 
     const dataKeys = Object.keys(chartData);
+    const slug = mode === MODE_EXTERNAL ? 'french' : USER_SLUG;
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);
         for(const subKey of dataSubKeys) {
-            let dataset = chart.data.datasets.find(({label}) => (label ===
-                (data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                ? data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                : data.legends[subKey]['french'] || subKey)));
+            let legends = data.legends[subKey]
+                ? (data.legends[subKey][slug] || data.legends[subKey].french)
+                : subKey;
+            let dataset = chart.data.datasets.find(({label}) => (label === (legends || subKey)));
             if(!dataset) {
                 dataset = {
-                    label: data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                        ? data.legends[subKey][mode === MODE_EXTERNAL ? 'french' : USER_SLUG]
-                        : data.legends[subKey]['french'] || subKey,
+                    label: legends || subKey,
                     backgroundColor: (chartColors
                             ? (
                                 (chartColors && chartColors[subKey])

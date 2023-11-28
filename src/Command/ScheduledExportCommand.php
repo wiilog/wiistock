@@ -3,7 +3,7 @@
 
 namespace App\Command;
 
-use App\Entity\Export;
+use App\Entity\ScheduledTask\Export;
 use App\Service\ScheduledExportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;

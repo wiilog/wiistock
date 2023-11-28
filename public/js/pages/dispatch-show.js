@@ -9,7 +9,7 @@ $(function() {
         loadDispatchReferenceArticle();
     }
     getStatusHistory(dispatchId);
-    packsTable = initializePacksTable(dispatchId, isEdit);
+    packsTable = initializePacksTable(dispatchId, {modifiable: isEdit});
 
     const $modalEditDispatch = $('#modalEditDispatch');
     Form
@@ -151,7 +151,7 @@ function generateOverconsumptionBill($button, dispatchId) {
         $('button[name="newPack"]').addClass('d-none');
 
         packsTable.destroy();
-        packsTable = initializePacksTable(dispatchId, data.modifiable);
+        packsTable = initializePacksTable(dispatchId, data);
 
         AJAX.route(`GET`, `print_overconsumption_bill`, {dispatch: dispatchId})
             .file({
@@ -417,9 +417,9 @@ function savePackLine(dispatchId, $row, async = true) {
     return false;
 }
 
-function initializePacksTable(dispatchId, isEdit) {
+function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     const $table = $(`#packTable`);
-    const columns = $table.data('initial-visible');
+    const columns = $table.data('initial-visible') || (initialVisibleColumns ? JSON.parse(initialVisibleColumns) : undefined);
 
     const table = initDataTable($table, {
         serverSide: false,
@@ -433,7 +433,7 @@ function initializePacksTable(dispatchId, isEdit) {
         domConfig: {
             removeInfo: true,
         },
-        ordering: !isEdit,
+        ordering: !modifiable,
         paging: false,
         searching: false,
         scrollY: false,
@@ -475,7 +475,7 @@ function initializePacksTable(dispatchId, isEdit) {
 
                 savePackLine(dispatchId, $row);
             });
-            if(isEdit) {
+            if(modifiable) {
                 scrollToBottom();
             }
             if (!$table.data('initialized')) {
@@ -508,7 +508,7 @@ function initializePacksTable(dispatchId, isEdit) {
         columns,
     });
 
-    if(isEdit) {
+    if(modifiable) {
         scrollToBottom();
 
         WysiwygManager.initializeOneLineWYSIWYG($table);

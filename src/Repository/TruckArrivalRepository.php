@@ -2,7 +2,6 @@
 
 namespace App\Repository;
 
-use App\Entity\FieldsParam;
 use App\Entity\TruckArrival;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -111,7 +110,6 @@ class TruckArrivalRepository extends EntityRepository
                 }
             }
         }
-
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'dateMin':
@@ -167,6 +165,13 @@ class TruckArrivalRepository extends EntityRepository
                             ->leftJoin('filter_trackingLines_notAssigned.reserve', 'filter_reserve')
                             ->leftJoin('filter_reserve.reserveType', 'filter_reserveType');
                     }
+                    break;
+                case 'unloadingLocation':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->andWhere('filter_location.id IN (:filter_value_filteredLocation)')
+                        ->leftJoin('truckArrival.unloadingLocation', 'filter_location')
+                        ->setParameter('filter_value_filteredLocation', $value);
                     break;
             }
         }

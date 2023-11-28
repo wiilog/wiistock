@@ -167,7 +167,7 @@
                     {% if fieldsParam|isFieldRequired('storageLocation', 'displayedCreate') %}
                         <div class="form-group col-6 w-100">
                             <label class="wii-field-name">Emplacement de stockage{{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? '*' : '' }}</label>
-                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('emplacement', 'requiredCreate') ? 'needed' : '' }}"
+                            <select class="ajax-autocomplete-location data form-control {{ fieldsParam|isFieldRequired('storageLocation', 'requiredCreate') ? 'needed' : '' }}"
                                     name="storageLocation">
                             </select>
                         </div>
@@ -204,7 +204,7 @@
                             <div class="editor-container" data-wysiwyg></div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_ATTACHMENTS') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS') %}
                     {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
                         <div class="form-group col-4">
                             <div>

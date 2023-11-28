@@ -1,3 +1,8 @@
+import AJAX from "@app/ajax";
+import Form from "@app/form";
+import Flash from "@app/flash";
+import Modal from "@app/modal";
+
 global.importTemplateChanged = importTemplateChanged;
 global.displayFirstModal = displayFirstModal;
 global.deleteImport = deleteImport;
@@ -6,7 +11,7 @@ global.launchImport = launchImport;
 global.toggleImportType = toggleImportType;
 
 const CLICK_NUMBER_FORCE_IMPORT = 10;
-const TEMPLATES_DIRECTORY = `/template`;
+const TEMPLATES_DIRECTORY = `/modele`;
 const DOWNLOAD_TEMPLATES_CONFIG = {
     ART: {label: `articles`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles.csv`},
     REF: {label: `références`, url: `${TEMPLATES_DIRECTORY}/modele-import-references.csv`},
@@ -37,6 +42,7 @@ export function initializeImports() {
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis`},
             {data: `id`, visible: false},
+            {data: `lastErrorMessage`, title: ``, className: `noVis`, orderable: false},
             {data: `status`, title: `Statut`},
             {data: `createdAt`, title: `Date de création`},
             {data: `startDate`, title: `Date début`},
@@ -116,7 +122,7 @@ export function initializeImports() {
         Form.create($deleteImportModal)
             .clearSubmitListeners()
             .onSubmit((data, form) => {
-                form.loading(() => deleteImport(undefined, id), true, true)
+                form.loading(() => deleteImport(undefined, id), true, {closeModal: true})
             });
     });
 
@@ -255,11 +261,11 @@ function launchImport($modal, importId, force = false) {
                     AJAX.route(AJAX.POST, `import_launch`, {importId, force: Number(Boolean(force))})
                         .json()
                         .then(({success, message}) => {
-                            if (!force) {
-                                $modal.modal(`hide`);
+                            if (success) {
+                                if (!force) {
+                                    $modal.modal(`hide`);
+                                }
                             }
-
-                            Flash.add(success ? Flash.SUCCESS : Flash.ERROR, message);
                             tableImport.ajax.reload();
                         })
                 ))

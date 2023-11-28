@@ -8,10 +8,10 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
-use App\Entity\Export;
-use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -209,7 +209,13 @@ class ScheduledExportService
             }
         } else { // ftp export
             try {
-                $this->ftpService->send($exportToRun->getFtpParameters(), $output);
+                $FTPParameters = $exportToRun->getFtpParameters();
+                $this->ftpService->send([
+                    'host' => $FTPParameters['host'],
+                    'port' => $FTPParameters['port'],
+                    'user' => $FTPParameters['user'],
+                    'pass' => $FTPParameters['pass'],
+                ], $FTPParameters['path'], $output);
             } catch(FTPException $exception) {
                 $exportToRun->setError($exception->getMessage());
             } finally {
@@ -224,7 +230,6 @@ class ScheduledExportService
             $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
             $exportToRun->setStatus($finished);
         }
-
 
         $exportToRun
             ->setForced(false)

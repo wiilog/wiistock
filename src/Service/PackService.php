@@ -6,8 +6,10 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
@@ -20,7 +22,6 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Repository\PackRepository;
 use DateTime;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
@@ -502,20 +503,21 @@ class PackService {
         return $trackingPack;
     }
 
-    public function getBarcodePackConfig(Pack         $pack,
-                                         ?Utilisateur $destinataire = null,
-                                         ?string      $packIndex = '',
-                                         ?bool        $typeArrivalParamIsDefined = false,
-                                         ?bool        $usernameParamIsDefined = false,
-                                         ?bool        $dropzoneParamIsDefined = false,
-                                         ?bool        $packCountParamIsDefined = false,
-                                         ?bool        $commandAndProjectNumberIsDefined = false,
-                                         ?array       $firstCustomIconConfig = null,
-                                         ?array       $secondCustomIconConfig = null,
-                                         ?bool        $businessUnitParam = false,
-                                         ?bool        $projectParam = false,
-                                         ?bool        $showDateAndHourArrivalUl = false,
-    ): array {
+    public function getBarcodePackConfig(Pack                   $pack,
+                                         Utilisateur|array|null $receivers = null,
+                                         ?string                $packIndex = '',
+                                         ?bool                  $typeArrivalParamIsDefined = false,
+                                         ?bool                  $usernameParamIsDefined = false,
+                                         ?bool                  $dropzoneParamIsDefined = false,
+                                         ?bool                  $packCountParamIsDefined = false,
+                                         ?bool                  $commandAndProjectNumberIsDefined = false,
+                                         ?array                 $firstCustomIconConfig = null,
+                                         ?array                 $secondCustomIconConfig = null,
+                                         ?bool                  $businessUnitParam = false,
+                                         ?bool                  $projectParam = false,
+                                         ?bool                  $showDateAndHourArrivalUl = false,
+    ): array
+    {
 
         $arrival = $pack->getArrivage();
 
@@ -535,14 +537,34 @@ class PackService {
             ? $this->formatService->type($arrival->getType())
             : '';
 
-        $recipientUsername = ($usernameParamIsDefined && $destinataire)
-            ? $destinataire->getUsername()
-            : '';
+        $receivers = $receivers
+            ? (is_array($receivers)
+                ? $receivers
+                : [$receivers]
+            ) : [];
 
-        $dropZoneLabel = ($dropzoneParamIsDefined && $destinataire)
-            ? ($destinataire->getDropzone()
-                ? $destinataire->getDropzone()->getLabel()
-                : '')
+        $receiverUsernames = ($usernameParamIsDefined && !empty($receivers))
+            ? Stream::from($receivers)->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))->join(", ")
+            : '';
+        $receiverDropzones = Stream::from($receivers)
+            ->filter(static fn(Utilisateur $receiver) => $receiver->getDropzone())
+            ->map(function(Utilisateur $receiver) use ($usernameParamIsDefined) {
+                $dropZone = $receiver->getDropzone();
+                $userLabel = (!$usernameParamIsDefined ? "{$this->formatService->user($receiver)}: " : "");
+
+                if ($dropZone instanceof Emplacement) {
+                    $locationLabel = $this->formatService->location($dropZone);
+                } elseif ($dropZone instanceof LocationGroup) {
+                    $locationLabel = $this->formatService->locationGroup($dropZone);
+                } else {
+                    $locationLabel = "";
+                }
+                return $userLabel.$locationLabel;
+            })
+            ->join(", ");
+
+        $dropZoneLabel = ($dropzoneParamIsDefined && !empty($receiverDropzones))
+            ? $receiverDropzones
             : '';
 
         $arrivalCommand = [];
@@ -569,11 +591,11 @@ class PackService {
 
         $packLabel = ($packCountParamIsDefined ? $packIndex : '');
 
-        $usernameSeparator = ($recipientUsername && $dropZoneLabel) ? ' / ' : '';
+        $usernameSeparator = ($receiverUsernames && $dropZoneLabel) ? ' / ' : '';
 
         $labels = [$arrivalType];
 
-        $labels[] = $recipientUsername . $usernameSeparator . $dropZoneLabel;
+        $labels[] = $receiverUsernames . $usernameSeparator . $dropZoneLabel;
 
         if ($commandAndProjectNumberIsDefined) {
             if ($arrivalCommand && $arrivalProjectNumber) {

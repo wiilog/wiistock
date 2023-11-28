@@ -13,12 +13,10 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
-use App\Entity\Import;
-use App\Entity\ImportScheduleRule;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
@@ -29,7 +27,9 @@ use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
@@ -37,9 +37,8 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
+use App\Exceptions\FTPException;
 use App\Exceptions\ImportException;
-use App\Repository\ZoneRepository;
-use Closure;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -48,10 +47,11 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
+use phpseclib3\Exception\UnableToConnectException;
+use JetBrains\PhpStorm\ArrayShape;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Psr\Log\NullLogger;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -266,6 +266,12 @@ class ImportService
     #[Required]
     public CacheService $cacheService;
 
+    #[Required]
+    public FTPService $FTPService;
+
+    #[Required]
+    public ScheduleRuleService $scheduleRuleService;
+
     private EmplacementDataService $emplacementDataService;
 
     private Import $currentImport;
@@ -339,8 +345,19 @@ class ImportService
             ScheduleRule::HOURLY => 'chaque heure'
         ];
 
+        $lastErrorMessage = $import->getLastErrorMessage();
+
         return [
             'id' => $import->getId(),
+            'lastErrorMessage' => $lastErrorMessage
+                ? '<div class="d-flex">
+                       <img src="/svg/urgence.svg"
+                            alt="Erreur"
+                            class="has-tooltip"
+                            width="15px"
+                            title="' . $lastErrorMessage . '">
+                    </div>'
+                : "",
             'createdAt' => $this->formatService->datetime($import->getCreateAt()),
             'startDate' => $this->formatService->datetime($import->getStartDate()),
             'endDate' => $this->formatService->datetime($import->getEndDate()),
@@ -373,10 +390,11 @@ class ImportService
         $this->currentImport = $import;
         $this->entityManager = $entityManager;
         $this->resetCache();
+        $now = new DateTime('now');
 
-        $csvFile = $this->currentImport->getCsvFile();
         $importModeChosen = $mode;
 
+        $statusRepository = $this->entityManager->getRepository(Statut::class);
         $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $this->scalarCache['countReferenceArticleSyncNomade'] = $referenceArticleRepository->count(['needsMobileSync' => true]);
 
@@ -385,32 +403,7 @@ class ImportService
             throw new Exception('Invalid import mode');
         }
 
-        ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
-        $logFileMapper = $this->getLogFileMapper();
-
-        if ($import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
-            $path = $import->getScheduleRule()->getFilePath();
-        } else {
-            $path = $this->attachmentService->getServerPath($csvFile);
-        }
-
-        try {
-            $file = fopen($path, "r");
-            if (!$file) {
-                $logRow = ["Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path"];
-                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                $file = false;
-            }
-            else if (is_dir($path)) {
-                $logRow = ["Le chemin enregistré dans l'import indique un répertoire : $path"];
-                $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                $file = false;
-            }
-        } catch (Exception) {
-            $logRow = ["Le fichier source n'existe pas, veuillez vérifier le chemin suivant : $path"];
-            $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-            $file = false;
-        }
+        $file = $this->fopenImportFile();
 
         $stats = [
             'news' => 0,
@@ -426,8 +419,6 @@ class ImportService
             }, ARRAY_FILTER_USE_KEY);
             $dataToCheck = $this->getDataToCheck($this->currentImport->getEntity(), $matches);
 
-            $headers = null;
-
             $refToUpdate = [];
 
             $rowCount = 0;
@@ -436,10 +427,8 @@ class ImportService
             while (($row = fgetcsv($file, 0, ';')) !== false
                 && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
 
-                if (empty($headers)) {
-                    $headers = $row;
-                    $logRow = [...$headers, 'Statut import'];
-                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                if (empty($headersLog)) {
+                    $headersLog = [...$row, 'Statut import'];
                 } else {
                     $firstRows[] = $row;
                     $rowCount++;
@@ -459,102 +448,93 @@ class ImportService
                     $importModeChosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
                     $this->currentImport->setForced($importForced);
 
-                    $statusRepository = $this->entityManager->getRepository(Statut::class);
-                    $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
-                    $this->currentImport->setStatus($statusPlanned);
+                    $upcomingStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
+                    $this->currentImport->setStatus($upcomingStatus);
                     $this->entityManager->flush();
                 } else {
                     $importModeChosen = self::IMPORT_MODE_NONE;
                 }
-            } else {
+            }
+            else {
                 $importModeChosen = self::IMPORT_MODE_RUN;
                 if ($smallFile) {
                     $this->currentImport->setFlash(true);
                 }
-                // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
-                $index = 0;
-                ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
-                $logFileMapper = $this->getLogFileMapper();
 
-                if (isset($headersLog)) {
-                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $logFileMapper);
-                }
+                if (empty($headersLog) || empty($firstRows)) {
+                    $this->currentImport->setLastErrorMessage("Le fichier source à importer était vide. Il doit comporter au moins deux lignes dont une ligne d'entête.");
+                } else {
+                    // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
+                    $index = 0;
 
-                $import->setStartDate(new DateTime());
-                $this->entityManager->flush();
+                    ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
+                    $logAttachment = $this->persistLogAttachment($logFileName);
+                    $this->currentImport->setLogFile($logAttachment);
 
-                $this->eraseGlobalDataBefore();
+                    $this->attachmentService->putCSVLines($logFile, [$headersLog], $this->scalarCache["logFileMapper"]);
 
-                foreach ($firstRows as $row) {
-                    $logRow = $this->treatImportRow(
-                        $row,
-                        $headers,
-                        $dataToCheck,
-                        $colChampsLibres,
-                        $refToUpdate,
-                        $stats,
-                        false,
-                        $index,
-                    );
-                    $index++;
-                    $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
-                }
+                    $import->setStartDate($now);
+                    $this->entityManager->flush();
 
-                $this->clearEntityManagerAndRetrieveImport();
-                if (!$smallFile) {
-                    while (($row = fgetcsv($file, 0, ';')) !== false) {
+                    $this->eraseGlobalDataBefore();
+
+                    foreach ($firstRows as $row) {
                         $logRow = $this->treatImportRow(
                             $row,
-                            $headers,
+                            $headersLog,
                             $dataToCheck,
                             $colChampsLibres,
                             $refToUpdate,
                             $stats,
-                            ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
+                            false,
                             $index,
                         );
                         $index++;
-                        $this->attachmentService->putCSVLines($logFile, [$logRow], $logFileMapper);
+                        $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
                     }
+
+                    $this->clearEntityManagerAndRetrieveImport();
+                    if (!$smallFile) {
+                        while (($row = fgetcsv($file, 0, ';')) !== false) {
+                            $logRow = $this->treatImportRow(
+                                $row,
+                                $headersLog,
+                                $dataToCheck,
+                                $colChampsLibres,
+                                $refToUpdate,
+                                $stats,
+                                ($index % self::NB_ROW_WITHOUT_CLEARING === 0),
+                                $index,
+                            );
+                            $index++;
+                            $this->attachmentService->putCSVLines($logFile, [$logRow], $this->scalarCache["logFileMapper"]);
+                        }
+                    }
+
+                    $this->eraseGlobalDataAfter();
+                    $this->entityManager->flush();
+
+                    @fclose($logFile);
+
+                    // mise à jour des quantités sur références par article
+                    $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $refToUpdate);
                 }
 
-                $this->eraseGlobalDataAfter();
-                $this->entityManager->flush();
-
-                fclose($logFile);
-
-                // mise à jour des quantités sur références par article
-                foreach ($refToUpdate as $ref) {
-                    $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
+                $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
+                if ($this->currentImport->getStatus()?->getCode() !== Import::STATUS_UPCOMING) {
+                    $this->currentImport
+                        ->setNewEntries($stats['news'])
+                        ->setUpdatedEntries($stats['updates'])
+                        ->setNbErrors($stats['errors'])
+                        ->setStatus($statusFinished)
+                        ->setForced(false)
+                        ->setEndDate($now);
+                    $this->entityManager->flush();
                 }
-
-                $this->entityManager->flush();
             }
 
-            if($import->isScheduled()) {
-                unlink($path);
-            } else {
-                fclose($file);
-            }
-        }
-
-        // création du fichier de log
-        $logAttachment = $this->persistLogAttachment($logFileName);
-
-        $statusRepository = $this->entityManager->getRepository(Statut::class);
-        $statusPlanned = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
-        $statusFinished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_FINISHED);
-
-        if ($this->currentImport->getStatus() && $this->currentImport->getStatus() !== $statusPlanned) {
-            $this->currentImport
-                ->setLogFile($logAttachment)
-                ->setNewEntries($stats['news'])
-                ->setUpdatedEntries($stats['updates'])
-                ->setNbErrors($stats['errors'])
-                ->setStatus($statusFinished)
-                ->setForced(false)
-                ->setEndDate(new DateTime());
             $this->entityManager->flush();
+            $this->cleanImportFile($file);
         }
 
         return $importModeChosen;
@@ -697,18 +677,6 @@ class ImportService
             'fileName' => $fileName,
             'resource' => fopen($completeFileName, 'w'),
         ];
-    }
-
-    private function getLogFileMapper(): Closure
-    {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
-        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
-
-        return function ($row) use ($wantsUFT8) {
-            return !$wantsUFT8
-                ? array_map('utf8_decode', $row)
-                : $row;
-        };
     }
 
     private function persistLogAttachment(string $createdLogFile): Attachment
@@ -1026,9 +994,12 @@ class ImportService
             $usernames = Stream::explode([";", ","], $data["managers"])
                 ->unique()
                 ->map(fn(string $username) => trim($username))
+                ->filter()
                 ->toArray();
 
-            $managers = $userRepository->findByUsernames($usernames);
+            $managers = !empty($usernames)
+                ? $userRepository->findByUsernames($usernames)
+                : [];
             foreach ($managers as $manager) {
                 $refArt->addManager($manager);
             }
@@ -1552,6 +1523,7 @@ class ImportService
         }
         if (isset($data['visibilityGroup'])) {
             $visibilityGroups = Stream::explode([";", ","], $data["visibilityGroup"])
+                ->filter()
                 ->unique()
                 ->map(fn(string $visibilityGroup) => trim($visibilityGroup))
                 ->map(function ($label) use ($visibilityGroupRepository) {
@@ -1823,7 +1795,6 @@ class ImportService
         $natureRepository = $this->entityManager->getRepository(Nature::class);
         $typeRepository = $this->entityManager->getRepository(Type::class);
         $userRepository = $this->entityManager->getRepository(Utilisateur::class);
-        $zoneRepository = $this->entityManager->getRepository(Zone::class);
 
         $isNewEntity = false;
 
@@ -1873,7 +1844,9 @@ class ImportService
         }
 
         if (isset($data['allowedPackNatures'])) {
-            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedPackNatures'])
+                ->filter()
+                ->toArray();
             $natures = $natureRepository->findBy(['label' => $elements]);
             $natureLabels = Stream::from($natures)
                 ->map(fn(Nature $nature) => $this->formatService->nature($nature))
@@ -1888,7 +1861,9 @@ class ImportService
         }
 
         if (isset($data['allowedDeliveryTypes'])) {
-            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedDeliveryTypes'])
+                ->filter()
+                ->toArray();
             $allowedDeliveryTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_LIVRAISON], $elements);
             $allowedDeliveryTypesLabels = Stream::from($allowedDeliveryTypes)
                 ->map(fn(Type $type) => $type->getLabel())
@@ -1903,7 +1878,9 @@ class ImportService
         }
 
         if (isset($data['allowedCollectTypes'])) {
-            $elements = Stream::explode([";", ","], $data['allowedCollectTypes'])->toArray();
+            $elements = Stream::explode([";", ","], $data['allowedCollectTypes'])
+                ->filter()
+                ->toArray();
             $allowedCollectTypes = $typeRepository->findByCategoryLabelsAndLabels([CategoryType::DEMANDE_COLLECTE], $elements);
             $allowedCollectTypesLabels = Stream::from($allowedCollectTypes)
                 ->map(fn(Type $type) => $type->getLabel())
@@ -1956,7 +1933,7 @@ class ImportService
             }
         }
 
-        $this->treatLocationZone($data, $location, $zoneRepository);
+        $this->treatLocationZone($data, $location);
 
         $this->entityManager->persist($location);
 
@@ -1965,7 +1942,7 @@ class ImportService
         return $location;
     }
 
-    private function importProjectEntity(array $data, array &$stats)
+    private function importProjectEntity(array $data, array &$stats): void
     {
         $projectAlreadyExists = $this->entityManager->getRepository(Project::class)->findOneBy(['code' => $data['code']]);
         $project = $projectAlreadyExists ?? new Project();
@@ -2394,18 +2371,24 @@ class ImportService
                 ->toArray()
             : [];
 
+        $wantsUFT8 = $settingRepository->getOneParamByLabel(Setting::USES_UTF8) ?? true;
+
         $this->entityCache = [];
         $this->scalarCache = [
             Setting::REFERENCE_ARTICLE_ASSOCIATED_DOCUMENT_TYPE_VALUES => $associatedDocumentTypes,
+            "logFileMapper" => fn($row) => !$wantsUFT8
+                ? array_map('utf8_decode', $row)
+                : $row
         ];
     }
 
-    private function treatLocationZone(array $data, Emplacement $location, ZoneRepository $zoneRepository): void
+    private function treatLocationZone(array $data, Emplacement $location): void
     {
+        $zoneRepository = $this->entityManager->getRepository(Zone::class);
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
@@ -2418,7 +2401,7 @@ class ImportService
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
             } else if ($this->scalarCache['totalZone'] === 1) {
                 $zone = $zoneRepository->findOneBy([]);
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError("Le champ zone doit être renseigné");
             }
@@ -2459,177 +2442,6 @@ class ImportService
         }
     }
 
-    public function calculateNextExecutionDate(Import $import): ?DateTime
-    {
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-        $rule = $import->getScheduleRule();
-        $now = new DateTime();
-        $now->setTime($now->format('H'), $now->format('i'), 0, 0);
-
-        $executionDate = match ($rule->getFrequency()) {
-            ScheduleRule::ONCE => $this->calculateOnce($rule, $now),
-            ScheduleRule::DAILY => $this->calculateFromDailyRule($rule, $now),
-            ScheduleRule::WEEKLY => $this->calculateFromWeeklyRule($rule, $now),
-            ScheduleRule::HOURLY => $this->calculateFromHourlyRule($rule, $now),
-            ScheduleRule::MONTHLY => $this->calculateFromMonthlyRule($rule, $now),
-            default => throw new RuntimeException('Invalid schedule rule frequency'),
-        };
-
-        if ($import->isForced()) {
-            $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
-            $executionDate = min($now, $executionDate);
-        }
-        return $executionDate;
-    }
-
-    public function calculateOnce(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        return $now <= $rule->getBegin()
-            ? $rule->getBegin()
-            : null;
-    }
-
-    public function calculateFromDailyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = $rule->getBegin();
-        // set time to 0
-        $start->setTime(0, 0);
-        $period = $rule->getPeriod();
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-
-        if ($now >= $start) {
-            $nextOccurrence = clone $start;
-            $daysDifferential = $now->diff($start)->days;
-
-            $add = $daysDifferential - $daysDifferential % $period;
-            if ($add < $daysDifferential) {
-                $add += $period;
-            }
-            $nextOccurrence->modify("+$add day");
-            $nextOccurrence->setTime($hour, $minute);
-
-            if ($this->isTimeEqualOrBefore($rule->getIntervalTime(), $now)) {
-                $nextOccurrence->modify("+1 day");
-            }
-        } else {
-            $nextOccurrence = clone $start;
-            $nextOccurrence->setTime($hour, $minute);
-        }
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromWeeklyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $DAY_LABEL = [
-            1 => "monday",
-            2 => "tuesday",
-            3 => "wednesday",
-            4 => "thursday",
-            5 => "friday",
-            6 => "saturday",
-            7 => "sunday",
-        ];
-
-        [$hour, $minute] = explode(":", $rule->getIntervalTime());
-        $nextOccurrence = clone $rule->getBegin();
-
-        $weeksDifferential = floor($now->diff($rule->getBegin())->days / 7);
-        $add = $weeksDifferential + $weeksDifferential % $rule->getPeriod();
-        $nextOccurrence->modify("+$add weeks");
-
-        $goToNextWeek = false;
-        if ($now->format("W") != $nextOccurrence->format("W")) {
-            $day = $rule->getWeekDays()[0];
-        } else {
-            $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $now);
-            $currentDay = $now->format("N");
-
-            $day = Stream::from($rule->getWeekDays())
-                ->filter(fn($day) => $isTimeEqualOrBefore ? $day > $currentDay : $day >= $currentDay)
-                ->firstOr(function () use ($rule, &$goToNextWeek) {
-                    $goToNextWeek = true;
-                    return $rule->getWeekDays()[0];
-                });
-        }
-
-        if ($goToNextWeek) {
-            $nextOccurrence->modify("+{$rule->getPeriod()} week");
-        }
-
-        $dayAsString = $DAY_LABEL[$day];
-        $nextOccurrence->modify("$dayAsString this week");
-        $nextOccurrence->setTime($hour, $minute);
-
-        return $nextOccurrence;
-    }
-
-    public function calculateFromHourlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = clone $rule->getBegin();
-        $start->setTime(0, 0, 0, 0);
-        $intervalPeriod = $rule->getIntervalPeriod();
-
-        if ($intervalPeriod) {
-            if ($now >= $start) {
-                $nextOccurrence = clone $now;
-                $hours = (int)$now->format('H');
-                $minutes = 0;
-                $hours = $hours + ($intervalPeriod - ($hours % $intervalPeriod));
-                $nextOccurrence->setTime($hours, $minutes);
-            } else {
-                $nextOccurrence = $this->calculateOnce($rule, $now);
-            }
-
-            return $nextOccurrence;
-        }
-        return null;
-    }
-
-    public function calculateFromMonthlyRule(ImportScheduleRule $rule, DateTime $now): ?DateTime
-    {
-        $start = ($now > $rule->getBegin()) ? $now : $rule->getBegin();
-        $isTimeEqualOrBefore = $this->isTimeEqualOrBefore($rule->getIntervalTime(), $start);
-
-        $year = $start->format("Y");
-        $currentMonth = $start->format("n");
-        $currentDay = (int)$start->format("j");
-        $currentLastDayMonth = (int)(clone $start)
-            ->modify('last day this month')
-            ->format("j");
-
-        $day = Stream::from($rule->getMonthDays())
-            ->filter(function ($day) use ($isTimeEqualOrBefore, $currentDay) {
-                $day = $day === Import::LAST_DAY_OF_WEEK ? 32 : $day;
-                return $isTimeEqualOrBefore
-                    ? $day > $currentDay
-                    : $day >= $currentDay;
-            })
-            ->firstOr(fn() => $rule->getMonthDays()[0]);
-
-        $day = $day !== Import::LAST_DAY_OF_WEEK ? $day : $currentLastDayMonth;
-        $isDayEqual = $day == $currentDay;
-        $isDayBefore = $day < $currentDay;
-
-        $ignoreCurrentMonth = $isDayBefore || ($isDayEqual && $isTimeEqualOrBefore);
-
-        $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function () use ($rule, &$year) {
-                $year += 1;
-                return $rule->getMonths()[0];
-            });
-
-        return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
-    }
-
-    private function isTimeEqualOrBefore(string $time, DateTime $date): string
-    {
-        [$hour, $minute] = explode(":", $time);
-        return $date->format('H') > $hour || ($date->format('H') == $hour && $date->format('i') >= $minute);
-    }
-
     public function updateScheduleRules(ImportScheduleRule $importScheduleRule,
                                         ParameterBag       $request): void
     {
@@ -2650,7 +2462,7 @@ class ImportService
                                                Import                 $import): array
     {
 
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fixedFieldStandardRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $importRepository = $entityManager->getRepository(Import::class);
 
         $fileImportConfig = $this->getFileImportConfig($import->getCsvFile());
@@ -2685,9 +2497,9 @@ class ImportService
             foreach ($fieldsToAssociate as $field) {
                 $fieldParamCode = Import::IMPORT_FIELDS_TO_FIELDS_PARAM[$field] ?? null;
                 if ($fieldParamCode) {
-                    $fieldParam = $fieldsParamRepository->findOneBy([
+                    $fieldParam = $fixedFieldStandardRepository->findOneBy([
                         'fieldCode' => $fieldParamCode,
-                        'entityCode' => FieldsParam::ENTITY_CODE_RECEPTION,
+                        'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                     ]);
                     if ($fieldParam && $fieldParam->getRequiredCreate()) {
                         $fieldsNeeded[] = $field;
@@ -2735,8 +2547,14 @@ class ImportService
         return $res;
     }
 
-    public function validateImportAttachment(?array $fileConfig, bool $isUnique): array
-    {
+    #[ArrayShape([
+        'success' => "boolean",
+        'message' => "string",
+    ])]
+    public function validateImportAttachment(Attachment $attachment,
+                                             bool $isUnique): array {
+
+        $fileConfig = $this->getFileImportConfig($attachment);
         if (!$fileConfig) {
             $success = false;
             if ($isUnique) {
@@ -2752,15 +2570,15 @@ class ImportService
         }
 
         return [
-            'success' => $success,
-            'msg' => $message ?? ''
+            "success" => $success,
+            "message" => $message ?? ""
         ];
     }
 
     private function buildScheduledImportsCache(EntityManagerInterface $entityManager): array
     {
         return Stream::from($entityManager->getRepository(Import::class)->findScheduledImports())
-            ->keymap(fn(Import $import) => [$import->getId(), $this->calculateNextExecutionDate($import)])
+            ->keymap(fn(Import $import) => [$import->getId(), $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule())])
             ->filter(fn(?DateTime $nextExecutionDate) => isset($nextExecutionDate))
             ->map(fn(DateTime $date) => $this->getScheduleImportKeyCache($date))
             ->reduce(function ($accumulator, $date, $id) {
@@ -2781,6 +2599,83 @@ class ImportService
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
         return $this->cacheService->get(CacheService::IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
+    }
+
+    /**
+     * @return resource|null
+     */
+    public function fopenImportFile(): mixed {
+        $errorMessage = false;
+        if ($this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            $absoluteFilePath = $this->currentImport->getScheduleRule()->getFilePath();
+
+            $FTPConfig = $this->currentImport->getFTPConfig();
+
+            if ($FTPConfig) {
+                // file is on an external server
+                $name = uniqid() . ".csv";
+                $path = "/tmp/$name";
+                $this->scalarCache['importFilePath'] = $path;
+
+                try {
+                    $this->FTPService->try($FTPConfig);
+                    $data = $this->FTPService->get([
+                        'host' => $FTPConfig['host'],
+                        'port' => $FTPConfig['port'],
+                        'user' => $FTPConfig['user'],
+                        'pass' => $FTPConfig['pass'],
+                    ], $absoluteFilePath);
+                    file_put_contents($path, $data);
+                } catch (FTPException $FTPException) {
+                    $errorMessage = $FTPException->getMessage();
+                } catch (Throwable $throwable) {
+                    $errorMessage = "Erreur lors de requête FTP : {$throwable->getMessage()}\n{$throwable->getTraceAsString()}";
+                }
+            }
+            else {
+                // file is on an external Symfony server
+                $path = $this->currentImport->getScheduleRule()?->getFilePath();
+                $this->scalarCache['importFilePath'] = $path;
+            }
+        } else {
+            $csvFile = $this->currentImport->getCsvFile();
+            $this->scalarCache["importFilePath"] = $csvFile;
+            $path = $this->attachmentService->getServerPath($csvFile);
+        }
+
+        if (empty($errorMessage)) {
+            try {
+                $file = fopen($path, "r") ?: null;
+            } catch (Throwable) {
+                $file = null;
+            }
+
+            if (!$file) {
+                $errorMessage = "Le fichier source n'existe pas, ou vous n'avez pas les droits. Veuillez vérifier le chemin suivant : $path";
+            } else if (is_dir($path)) {
+                $errorMessage = "Le chemin enregistré dans l'import indique un répertoire : $path";
+                $file = null;
+            }
+        }
+
+        if ($errorMessage) {
+            $this->currentImport->setLastErrorMessage($errorMessage);
+        }
+
+        return $file ?? null;
+    }
+
+    public function cleanImportFile(mixed $file): void {
+        $importFilePath = $this->scalarCache["importFilePath"] ?? null;
+
+        if ($file) {
+            @fclose($file);
+        }
+
+        if ($importFilePath &&
+            $this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            @unlink($importFilePath);
+        }
     }
 
 }

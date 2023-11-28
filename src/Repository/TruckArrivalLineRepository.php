@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -176,14 +177,12 @@ class TruckArrivalLineRepository extends EntityRepository
     }
 
     public function getForReserve(?int $truckArrivalId): array {
-        $qb = $this
-            ->createQueryBuilder('truck_arrival_line')
+        $qb = $this->createQueryBuilder('truck_arrival_line')
             ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS number")
-            ->andWhere("truck_arrival.id = :truckArrivalId")
             ->andWhere("qualityReserve IS NULL")
             ->leftJoin("truck_arrival_line.reserve", 'qualityReserve')
-            ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
+            ->join('truck_arrival_line.truckArrival', 'truck_arrival', Join::WITH, "truck_arrival.id = :truckArrivalId")
             ->setParameter('truckArrivalId', "$truckArrivalId");
 
         return $qb->getQuery()->getArrayResult();

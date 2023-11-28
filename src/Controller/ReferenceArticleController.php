@@ -910,7 +910,7 @@ class ReferenceArticleController extends AbstractController
                                    ReferenceArticle $referenceArticle,
                                    RefArticleDataService $refArticleDataService) {
 
-        $refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticle, true);
+        $refArticleDataService->updateRefArticleQuantities($entityManager, [$referenceArticle], true);
         $entityManager->flush();
         $refArticleDataService->treatAlert($entityManager, $referenceArticle);
         $entityManager->flush();
@@ -1065,8 +1065,13 @@ class ReferenceArticleController extends AbstractController
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
         $referenceSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE);
 
-        $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]) ?? new ReferenceArticle();
-        $referenceExist = isset($data['article']);
+        $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]);
+        $referenceExist = isset($data['article']) && $reference;
+
+        if(!$reference){
+            $reference = new ReferenceArticle();
+        }
+
         $reference
             ->setReference($data['reference'])
             ->setLibelle($data['label'])

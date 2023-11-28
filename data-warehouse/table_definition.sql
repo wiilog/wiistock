@@ -23,7 +23,7 @@ CREATE TABLE dw_jours_horaires_travailles
 CREATE TABLE dw_association_br
 (
     date        timestamp(0),
-    codes_ul    varchar(255),
+    code_ul     varchar(255),
     reception   varchar(255),
     utilisateur varchar(255)
 );
@@ -264,7 +264,7 @@ CREATE TABLE dw_arrivage
     no_arrivage              varchar(255),
     date                     timestamp(0),
     nb_ul                    integer,
-    destinataire             varchar(255),
+    destinataires            varchar(255),
     fournisseur              varchar(255),
     transporteur             varchar(255),
     chauffeur                varchar(255),
@@ -567,7 +567,13 @@ CREATE TABLE dw_article
     date_assignation_projet     timestamp(0),
     code_ul                     varchar(255),
     prix_unitaire               integer,
-    anomalie                    varchar(255)
+    anomalie                    varchar(255),
+    tag_rfid                    varchar(255),
+    type                        varchar(255),
+    numero_commande             varchar(255),
+    numero_bon_livraison        varchar(255),
+    pays_origine                varchar(255),
+    date_fabrication            timestamp(0)
 );
 
 CREATE TABLE dw_unite_logistique

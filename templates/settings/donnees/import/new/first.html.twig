@@ -16,7 +16,7 @@
                 name="entity"
                 onchange="importTemplateChanged($(this))">
             <option></option>
-            {% for value, label in constant('App\\Entity\\Import::ENTITY_LABEL') %}
+            {% for value, label in constant('App\\Entity\\ScheduledTask\\Import::ENTITY_LABEL') %}
                 <option value="{{ value }}" {{ import and import.entity == value ? 'selected'}} >{{ label }}</option>
             {% endfor %}
         </select>
@@ -29,7 +29,7 @@
 <div class="row">
     <div class="form-group col-12">
         <div>
-            {% include '../../../../attachment/attachment.html.twig' with {
+            {% include '/attachment/attachment.html.twig' with {
                 'isNew': true,
                 'text': 'Faites glisser votre fichier csv',
                 'unique': true

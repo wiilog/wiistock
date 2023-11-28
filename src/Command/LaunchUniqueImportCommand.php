@@ -5,46 +5,33 @@
 namespace App\Command;
 
 use App\Entity\CategorieStatut;
-use App\Entity\Import;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\Statut;
-use App\Exceptions\ImportException;
 use App\Service\ImportService;
 use DateTime;
 use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
-use Doctrine\ORM\TransactionRequiredException;
 use Psr\Log\NullLogger;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
+use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: "app:launch:unique-imports",
+    description: "This command executes planified in next 30 minutes imports.",
+)]
 class LaunchUniqueImportCommand extends Command
 {
-    protected static $defaultName = 'app:launch:unique-imports';
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    private $entityManager;
-    private $importService;
+    #[Required]
+    public ImportService $importService;
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                ImportService $importService)
-    {
-        parent::__construct(self::$defaultName);
-        $this->entityManager = $entityManager;
-        $this->importService = $importService;
-    }
-
-    protected function configure()
-    {
-        $this->setDescription('This command executes planified in next 30 minutes imports.');
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $importRepository = $this->getEntityManager()->getRepository(Import::class);
         $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
@@ -84,7 +71,6 @@ class LaunchUniqueImportCommand extends Command
 
         $this->getEntityManager()->flush();
 
-        // 0 si tout s'est bien passé
         return 0;
     }
 

@@ -65,7 +65,7 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $inactiveSince = null;
 
-    #[ORM\Column(type: 'boolean')]
+    #[ORM\Column(type: 'boolean', options: ["default" => true])]
     private ?bool $conform = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]

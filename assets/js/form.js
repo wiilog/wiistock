@@ -1,6 +1,6 @@
-import WysiwygManager from "./wysiwyg-manager";
-import Flash from "./flash";
-import AJAX, {POST} from "@app/ajax";
+import WysiwygManager from "@app/wysiwyg-manager";
+import Flash from "@app/flash";
+import AJAX from "@app/ajax";
 
 export default class Form {
 
@@ -100,15 +100,27 @@ export default class Form {
         return this;
     }
 
-    submitTo(method, route, options) {
+    /**
+     * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method HTTP method
+     * @param {string} route Symfony route name
+     * @param {{
+     *    keepModal: boolean|undefined,
+     *    success: function|undefined,
+     *    tables: Datatable|Datatable[],
+     * }} options
+     * @returns {Form}
+     */
+    submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
                 () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
                         if(response.success) {
-                            if(!options.keepModal) {
-                                this.element.modal(`hide`);
+                            if (this.element.is('.modal')) {
+                                if (!options.keepModal) {
+                                    this.element.modal(`hide`);
+                                }
                             }
 
                             if(options.success) {
@@ -174,13 +186,17 @@ export default class Form {
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait
      * @param {boolean} endLoading default to true
-     * @param {boolean} closeModal default to false
+     * @param {{
+     *    closeModal: boolean|undefined,
+     * }} options
      */
-    loading(action, endLoading = true, closeModal = false) {
+    loading(action, endLoading = true, options = {}) {
         const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
-        if(closeModal) {
-            this.element.modal(`hide`);
+        if (this.element.is(`.modal`)) {
+            if (options.closeModal) {
+                this.element.modal(`hide`);
+            }
         }
     }
 
