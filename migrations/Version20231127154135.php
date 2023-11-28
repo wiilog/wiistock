@@ -21,24 +21,25 @@ final class Version20231127154135 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+
+        // [... "destinataire" ...]
+        // => [... "destinataire" ...]
         $this->addSql("
             UPDATE export
             SET column_to_export = (
-                IF(JSON_SEARCH(column_to_export, 'one', 'destinataire') IS NOT NULL,
-                   (SELECT JSON_REPLACE(column_to_export,
-                        JSON_UNQUOTE(
-                                JSON_SEARCH(column_to_export, 'one', 'destinataire')
-                        ), :field_code
-                   )),
-                   column_to_export
+                JSON_REPLACE(
+                    column_to_export,
+                    JSON_UNQUOTE(JSON_SEARCH(column_to_export, 'one', 'destinataire')),
+                    :field_code
                 )
             )
             WHERE entity = :entity
-                AND JSON_LENGTH(column_to_export) > 0", [
-                "entity" => Export::ENTITY_ARRIVAL,
-                "field_code" => FixedFieldStandard::FIELD_CODE_RECEIVERS,
-            ]
-        );
+                AND JSON_LENGTH(column_to_export) > 0
+                AND JSON_SEARCH(column_to_export, 'one', 'destinataire') IS NOT NULL
+        ", [
+            "entity" => Export::ENTITY_ARRIVAL,
+            "field_code" => FixedFieldStandard::FIELD_CODE_RECEIVERS,
+        ]);
     }
 
     public function down(Schema $schema): void
