@@ -708,6 +708,9 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false), 'name' => 'customerAddress'],
             ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST],
             ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
         ];
 
         if($groupedSignatureMode) {
