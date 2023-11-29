@@ -154,6 +154,7 @@ class TransportRoundService
                     $content = $message->getContent();
                     if ($content && $content !== '-1,-1') {
                         $coordinates = Stream::explode(',', $content)
+                            ->filter()
                             ->map(fn($coordinate) => floatval($coordinate))
                             ->toArray();
 

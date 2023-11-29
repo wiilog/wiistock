@@ -1350,3 +1350,19 @@ function openModal(modal) {
     let $modal = modal instanceof jQuery ? modal : $(modal);
     $modal.modal(`show`);
 }
+
+function onSelectAll() {
+    const $select = $(this).closest(`.input-group`).find(`select`);
+
+    $select.find(`option:not([disabled])`).each(function () {
+        $(this).prop(`selected`, true);
+    });
+
+    $select.trigger(`change`);
+}
+
+function getUserFiltersByPage(page) {
+    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
+        .json()
+        .then((data) => displayFiltersSup(data));
+}

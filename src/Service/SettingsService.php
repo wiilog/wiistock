@@ -287,6 +287,7 @@ class SettingsService {
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
             $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -634,6 +635,7 @@ class SettingsService {
                 $types = [];
 
                 Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->filter()
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
@@ -768,7 +770,7 @@ class SettingsService {
 
                 if (isset($item["elements"])) {
                     $elements = Stream::explode(";", $item["elements"])
-                        ->map(fn(string $element) => trim($element))
+                        ->filterMap(fn(string $element) => trim($element) ?: null)
                         ->toArray();
                 }
 

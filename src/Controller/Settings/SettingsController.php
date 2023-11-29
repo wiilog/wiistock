@@ -18,7 +18,6 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
-use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -32,7 +31,8 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -79,7 +79,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment;
+use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -95,7 +95,7 @@ class SettingsController extends AbstractController {
     public SpecificService $specificService;
 
     #[Required]
-    public Environment $twig;
+    public Twig_Environment $twig;
 
     #[Required]
     public KernelInterface $kernel;
@@ -1674,15 +1674,17 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
-                self::MENU_IMPORTS => fn() => [
-                    "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
+                self::MENU_IMPORTS => function () use ($typeRepository, $statusRepository) {
+                    $statuses = $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,
-                        [
-                            Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED,
-                            Import::STATUS_FINISHED,
-                        ]
-                    ),
-                ],
+                        [Import::STATUS_UPCOMING, Import::STATUS_SCHEDULED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                    );
+                    $types = $typeRepository->findByCategoryLabels([CategoryType::IMPORT]);
+                    return [
+                        "statuts" => $statuses,
+                        "types" => $types,
+                    ];
+                },
             ],
             self::CATEGORY_NOTIFICATIONS => [
                 self::MENU_ALERTS => function() use ($alertTemplateRepository) {
