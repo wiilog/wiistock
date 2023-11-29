@@ -46,7 +46,13 @@
                 value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
                 disabled: export.id is not null
-            }
+            },
+            {
+                label: 'Logs Serveurs',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_LOGS_SERVER'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_LOGS_SERVER'),
+                disabled: export.id is not null,
+            },
         ], {expanded: true}) }}
 
         <label class="references-sentence wii-small-text my-3">Les références exportées sont seulement ceux avec le groupe de visibilité rattaché à l'utilisateur.</label>
