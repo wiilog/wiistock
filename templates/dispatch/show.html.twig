@@ -29,7 +29,7 @@
 {% set hasRightToGenerateDeliveryNote = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DELIVERY_NOTE')) %}
 {% set hasRightToGenerateOverconsumptionBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_OVERCONSUMPTION_BILL')) %}
 {% set hasRightToGenerateWayBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_WAY_BILL')) %}
-{% set hasRightToGenerateLabel = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_LABEL')) and dispatch.statut.state in [constant('App\\Entity\\Statut::PARTIAL'), constant('App\\Entity\\Statut::TREATED')] %}
+{% set hasRightToGenerateLabel = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_LABEL')) and dispatch.statut.state in [constant('App\\Entity\\Statut::NOT_TREATED'), constant('App\\Entity\\Statut::PARTIAL'), constant('App\\Entity\\Statut::TREATED')] %}
 {% set hasRightToGenerateDispatchBill = hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_DISPATCH_BILL')) %}
 {% set hasRightToAddReferenceInLu = hasRight(constant('App\\Entity\\Menu::DEM'),constant('App\\Entity\\Action::ADD_REFERENCE_IN_LU')) and dispatch.statut.state == constant('App\\Entity\\Statut::DRAFT') %}
 
@@ -144,6 +144,9 @@
                             </span>
                             </div>
                         </div>
+                    </div>
+                    <div class="type-container" style="background: {{ dispatch.type.color ?? '#3353D7' }};">
+                        {{ dispatch.type|format_helper('type') }}
                     </div>
                     <div class="content bordered p-0">
                         <div class="content history-container p-0">

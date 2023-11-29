@@ -264,7 +264,7 @@ CREATE TABLE dw_arrivage
     no_arrivage              varchar(255),
     date                     timestamp(0),
     nb_ul                    integer,
-    destinataire             varchar(255),
+    destinataires            varchar(255),
     fournisseur              varchar(255),
     transporteur             varchar(255),
     chauffeur                varchar(255),

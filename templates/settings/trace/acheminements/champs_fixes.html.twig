@@ -3,17 +3,19 @@
 {# Dispatch fixed field settings #}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY'),
     field: emergency.field,
     elementsType: emergency.elementsType,
     elements: emergency.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
 {% include 'settings/fixed_field_elements.html.twig' with {
-    modal: constant('App\\Entity\\FieldsParam::FIELD_CODE_BUSINESS_UNIT'),
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT'),
     field: businessUnit.field,
     elementsType: businessUnit.elementsType,
     elements: businessUnit.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
 {# Dispatch logistic unit fixed field settings #}
@@ -24,7 +26,7 @@
         field: values.field,
         elementsType: businessUnit.elementsType,
         elements: values.elements,
-        isSubLine: true,
+        fixedFieldType: constant('App\\Entity\\Fields\\SubLinefixedField::FIELD_TYPE'),
     } %}
 {% endfor %}
 
@@ -36,11 +38,34 @@
 </div>
 
 <div class="wii-section-title">Entête</div>
+<div class="row p-3">
+    <div class="col-12 mb-3 wii-small-text">
+        {% block filters %}
+            {{ form.switch('type', null, false, types, {expanded: true}) }}
+        {% endblock %}
+    </div>
+</div>
+
 <div class="wii-section">
-    <table id="table-dispatch-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
+    <table id="table-dispatch-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
+{#
+TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+
         {% include 'datatable/main-header.html.twig' with {
-            cells: 6
+            needsOnMobileColumn: true,
+            needsFilterColumn: false,
+            needsOnLabelColumn: true,
+            needsMobileColumn: false,
+            cells: 7
         } %}
+#}
+        {% include 'datatable/main-header.html.twig' with {
+            needsOnMobileColumn: false,
+            needsFilterColumn: false,
+            needsOnLabelColumn: false,
+            cells: 5
+        } %}
+
     </table>
 </div>
 

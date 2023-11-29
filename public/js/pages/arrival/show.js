@@ -13,12 +13,11 @@ $(function () {
     let printArrivage = Number(Boolean(Number($('#printArrivage').val())));
 
     if (printPacks || printArrivage) {
-        let params = {
-            arrivageId: Number($('#arrivageId').val()),
+        printArrival({
+            arrivalId: Number($('#arrivageId').val()),
             printPacks: printPacks,
             printArrivage: printArrivage
-        };
-        printArrival(params);
+        });
     }
     SetRequestQuery({});
 
@@ -45,7 +44,12 @@ $(function () {
                     'create_from_arrival_template',
                     {arrival: $buttonNewDispatch.data(`id`)},
                     $modalNewDispatch,
-                    $modalNewDispatch.find(`.modal-body`)
+                    $modalNewDispatch.find(`.modal-body`),
+                    {
+                        onOpen: () => {
+                            $modalNewDispatch.find('[name=type]').trigger('change')
+                        }
+                    }
                 )
         })
         .submitTo(
@@ -88,7 +92,7 @@ $(function () {
             success: (data) => {
                 if (data.packs && data.packs.length > 0) {
                     printArrival({
-                        arrivageId: data.arrivageId,
+                        arrivalId: data.arrivageId,
                         printPacks: true,
                         printArrivage: false,
                         packs: data.packs.map(({id}) => id)

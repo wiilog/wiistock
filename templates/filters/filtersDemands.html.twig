@@ -40,7 +40,7 @@
 
     {% if page == 'PAGE_HAND' %}
         {% include 'filters/filter_item/filterSubject.html.twig' %}
-        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterUser.html.twig' with {
                 name: 'receivers',
@@ -50,7 +50,7 @@
     {% endif %}
 
     {% if emergencies is defined %}
-        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' %}
         {% endif %}
@@ -59,7 +59,7 @@
     {% endif %}
 
     {% if page == 'PAGE_DEM_LIVRAISON' %}
-        {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT') %}
         {% if fieldsParam|isFieldRequired(fieldCode, 'displayedFilters') %}
             {% include 'filters/filter_item/filterProject.html.twig' %}
         {% endif %}

@@ -9,6 +9,7 @@ use App\Helper\LanguageHelper;
 use App\Repository\TypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeRepository::class)]
@@ -144,6 +145,9 @@ class Type {
 
     #[ORM\ManyToMany(targetEntity: TagTemplate::class, mappedBy: 'types')]
     private Collection $tags;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $defaultType = null;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -874,5 +878,15 @@ class Type {
         }
 
         return $this;
+    }
+
+    public function setDefault(?bool $default): self {
+        $this->defaultType = $default;
+
+        return $this;
+    }
+
+    public function isDefault(): ?bool {
+        return $this->defaultType;
     }
 }

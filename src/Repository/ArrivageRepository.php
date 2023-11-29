@@ -185,8 +185,8 @@ class ArrivageRepository extends EntityRepository
                 case 'utilisateurs':
                     $value = explode(',', $filter['value']);
                     $qb
-                        ->join('arrival.destinataire', 'dest')
-                        ->andWhere("dest.id in (:userId)")
+                        ->innerJoin('arrival.receivers', 'filter_receivers')
+                        ->andWhere('filter_receivers.id IN (:userId)')
                         ->setParameter('userId', $value);
                     break;
                 case 'providers':
@@ -195,6 +195,22 @@ class ArrivageRepository extends EntityRepository
                         ->join('arrival.fournisseur', 'f2')
                         ->andWhere("f2.id in (:fournisseurId)")
                         ->setParameter('fournisseurId', $value);
+                    break;
+                case 'commandList':
+                    $values = Stream::explode(',', $filter['value'])
+                        ->map(static fn(string $value) => explode(':', $value)[0])
+                        ->toArray();
+
+                    if (!empty($values)) {
+                        $expr = $qb->expr()->orX();
+                        foreach ($values as $value) {
+                            $keyParameter = "search_order_number_{$expr->count()}";
+                            $expr->add("JSON_CONTAINS(arrival.numeroCommandeList, :$keyParameter, '$') = true");
+                            $qb->setParameter($keyParameter, "\"$value\"");
+                        }
+
+                        $qb->andWhere($expr);
+                    }
                     break;
                 case 'emplacement':
                     $value = explode(',', $filter['value']);
@@ -284,7 +300,7 @@ class ArrivageRepository extends EntityRepository
                         "orderNumber" => "arrival.numeroCommandeList LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "provider" => "search_provider.nom LIKE :search_value",
-                        "receiver" => "search_receivers.username LIKE :search_value",
+                        "receivers" => "search_receivers.username LIKE :search_value",
                         "buyers" => "search_buyers.username LIKE :search_value",
                         "nbUm" => null,
                         "customs" => null,
@@ -304,7 +320,7 @@ class ArrivageRepository extends EntityRepository
                         ->leftJoin('arrival.transporteur', 'search_carrier')
                         ->leftJoin('arrival.chauffeur', 'search_driver')
                         ->leftJoin('arrival.fournisseur', 'search_provider')
-                        ->leftJoin('arrival.destinataire', 'search_receivers')
+                        ->leftJoin('arrival.receivers', 'search_receivers')
                         ->leftJoin('arrival.acheteurs', 'search_buyers')
                         ->leftJoin('arrival.utilisateur', 'search_user')
                         ->leftJoin('arrival.type', 'search_type')
@@ -331,15 +347,16 @@ class ArrivageRepository extends EntityRepository
                             ->leftJoin('arrival.chauffeur', 'c2')
                             ->orderBy('c2.nom', $order);
                     } else if ($column === 'type') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', ["order" => $order]);
                     } else if ($column === 'provider') {
                         $qb
                             ->leftJoin('arrival.fournisseur', 'order_fournisseur')
                             ->orderBy('order_fournisseur.nom', $order);
-                    } else if ($column === 'receiver') {
+                    } else if ($column === 'receivers') {
                         $qb
-                            ->leftJoin('arrival.destinataire', 'a2')
-                            ->orderBy('a2.username', $order);
+                            ->leftJoin('arrival.receivers', 'order_receivers')
+                            ->orderBy('order_receivers.username', $order)
+                            ->groupBy('arrival.id, order_receivers.username');
                     } else if ($column === 'buyers') {
                         $qb
                             ->leftJoin('arrival.acheteurs', 'ach2')
@@ -354,7 +371,7 @@ class ArrivageRepository extends EntityRepository
                     } else if ($column === 'totalWeight') {
                         $qb->orderBy('totalWeight', $order);
                     } else if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', $order);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'statut', ["order" => $order]);
                     } else if ($column === 'dropLocation') {
                         $qb
                             ->leftJoin('arrival.dropLocation', 'order_dropLocation')
@@ -403,17 +420,20 @@ class ArrivageRepository extends EntityRepository
         ];
     }
 
-    public function countByUser($user)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(a)
-            FROM App\Entity\Arrivage a
-            WHERE a.utilisateur = :user OR a.destinataire = :user"
-        )->setParameter('user', $user);
+    public function countByUser($user): int {
+        $qb = $this->createQueryBuilder("arrival");
 
-        return $query->getSingleScalarResult();
+        $qb
+            ->select("COUNT(arrival)")
+            ->andWhere($qb->expr()->orX(
+                "arrival.utilisateur = :user",
+                ":user MEMBER OF arrival.receivers"
+            ))
+            ->setParameter('user', $user);
+
+        return $qb
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function getTotalWeightByArrivals(DateTime $from, DateTime $to): ?array {

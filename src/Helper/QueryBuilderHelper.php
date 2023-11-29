@@ -10,14 +10,21 @@ use Doctrine\ORM\QueryBuilder;
 class QueryBuilderHelper
 {
 
-    public static function count(QueryBuilder $query, string $alias): int
+    public static function count(QueryBuilder $query, string $alias, bool $distinct = true): int
     {
         $countQuery = clone $query;
 
-        $result = $countQuery
+        $countQuery
             ->resetDQLPart('orderBy')
-            ->resetDQLPart('groupBy')
-            ->select("COUNT(DISTINCT $alias) AS __query_count")
+            ->resetDQLPart('groupBy');
+
+        if($distinct) {
+            $countQuery->select("COUNT(DISTINCT $alias) AS __query_count");
+        } else {
+            $countQuery->select("COUNT($alias) AS __query_count");
+        }
+
+        $result = $countQuery
             ->getQuery()
             ->getSingleResult();
 
@@ -76,8 +83,12 @@ class QueryBuilderHelper
         }
     }
 
-    public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, string $order = null): QueryBuilder {
-        $alias = $qb->getRootAliases()[0];
+    public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, array $options = []): QueryBuilder {
+        $order = $options["order"] ?? null;
+        $alias = $options["alias"] ?? null;
+        $forSelect = $options["forSelect"] ?? false;
+
+        $alias = $alias ?: $qb->getRootAliases()[0];
         $entityToString = $entity === 'statut' || $entity === 'status' ? 'nom' : 'label';
         $qb
             ->leftJoin("$alias.$entity", "join_$entity")
@@ -91,7 +102,7 @@ class QueryBuilderHelper
                 ->addGroupBy("join_translation.translation")
                 ->addGroupBy("join_translation_default.translation")
                 ->addGroupBy("join_$entity.$entityToString");
-        } else {
+        } elseif($forSelect) {
             $qb->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString)) LIKE :term");
         }
 

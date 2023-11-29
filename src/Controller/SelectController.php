@@ -2,29 +2,34 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
-use App\Entity\Customer;
 use App\Entity\Chauffeur;
+use App\Entity\Customer;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\LocationGroup;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Project;
-use App\Entity\ReceptionLine;
-use App\Entity\Setting;
 use App\Entity\PurchaseRequest;
+use App\Entity\ReceptionLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
@@ -582,15 +587,13 @@ class SelectController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/select/business-unit", name="ajax_select_business_unit", options={"expose"=true})
-     */
+    #[Route("/select/business-unit",name: "ajax_select_business_unit",options: ["expose" => true], methods: ["GET"])]
     public function businessUnit(Request $request, EntityManagerInterface $manager): Response {
         $page = $request->query->get('page');
 
-        $businessUnitValues = $manager
-            ->getRepository(FieldsParam::class)
-            ->getElements($page, FieldsParam::FIELD_CODE_BUSINESS_UNIT);
+        $fixedFieldRepository = $manager->getRepository(in_array($page, FixedField::ENTITY_CODES_MANAGE_BY_TYPE) ? FixedFieldByType::class : FixedFieldStandard::class);
+
+        $businessUnitValues = $fixedFieldRepository->getElements($page, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
         $results = Stream::from($businessUnitValues)
             ->map(fn(string $value) => [
@@ -721,8 +724,8 @@ class SelectController extends AbstractController {
      * @Route("/select/delivery-logistic-units", name="ajax_select_delivery_logistic_units", options={"expose"=true})
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),
@@ -847,6 +850,20 @@ class SelectController extends AbstractController {
         $lines = $manager->getRepository(TruckArrivalLine::class)->getForSelect($term, ['carrierId' =>  $carrierId, 'truckArrivalId' => $truckArrivalId]);
         return $this->json([
             "results" => $lines,
+        ]);
+    }
+
+    #[Route('/select/location-with-group', name: 'ajax_select_location_with_group', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::DISPLAY_ACHE], mode: HasPermission::IN_JSON)]
+    public function locationWithGroup(Request $request, EntityManagerInterface $entityManager): JsonResponse {
+        $locationGroups = $entityManager->getRepository(LocationGroup::class)->getWithGroupsForSelect($request->query->get("term"));
+        $locations = $entityManager->getRepository(Emplacement::class)->getWithGroupsForSelect($request->query->get("term"));
+        $allLocations = Stream::from($locations, $locationGroups)
+            ->sort(static fn($a, $b) => strtolower($a['text']) <=> strtolower($b['text']))
+            ->toArray();
+
+        return $this->json([
+            'results' => $allLocations
         ]);
     }
 }

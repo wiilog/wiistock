@@ -13,7 +13,6 @@ $(function() {
     Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
     Select2Old.dispatch(filtersContainer.find('.filter-select2[name="dispatchNumber"]'), Translation.of('Demande', 'Acheminements', 'Général', 'N° demande', false));
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
-    Select2Old.initFree(filtersContainer.find('.filter-select2[name="commandList"]'), Translation.of('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=receivers]'), Translation.of('Demande', 'Général', 'Destinataire(s)', false));
     Select2Old.user(filtersContainer.find('.ajax-autocomplete-user[name=requesters]'), Translation.of('Demande', 'Général', 'Demandeurs', false));
     Select2Old.location(filtersContainer.find('[name=pickLocation]'), {}, Translation.of('Demande', 'Acheminements', 'Champs fixes','Emplacement de prise', false));
@@ -53,7 +52,7 @@ $(function() {
         if ($statutFilterOptionSelected.data('allowed-state')
             && $statutFilterOptionSelected.length === 1
             && $typeFilterOptionSelected.length === 1
-            && (pickLocationFilterValue !== null || dropLocationFilterValue !== null)){
+            && (pickLocationFilterValue || dropLocationFilterValue)){
             wrapLoadingOnActionButton($button, () => {
                 return saveFilters('acheminement', '#tableDispatches', null, 1).then(() => {
                     tableDispatches.clear().destroy();
@@ -142,15 +141,35 @@ $(function() {
     $(document).on(`change`, `.dispatch-checkbox:not(:disabled)`, function() {
         toggleValidateGroupedSignatureButton($dispatchsTable, $groupedSignatureModeContainer);
     });
+
+    initFilterStatusMutiple();
 });
 
 function initTableDispatch(groupedSignatureMode = false) {
     const $filtersContainer = $(".filters-container");
     const fromDashboard = $filtersContainer.find('[name="fromDashboard"]').val();
+    const hasRightGroupedSignature = $filtersContainer.find('[name="hasRightGroupedSignature"]').val();
     const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+    let statuts;
 
-    let pathDispatch = Routing.generate('dispatch_api', {groupedSignatureMode, fromDashboard, preFilledStatuses: $statutFilter.val(), preFilledTypes: $typeFilter.val()}, true);
+    if(Boolean(hasRightGroupedSignature)){
+        statuts = $statutFilter.val();
+    } else {
+        statuts = $filtersContainer.find(`.statuses-filter [name*=statuses-filter]:checked`)
+            .map((index, line) => $(line).data('id'))
+            .toArray();
+
+        updateSelectedStatusesCount(statuts.length);
+    }
+
+    let pathDispatch = Routing.generate('dispatch_api', {
+        groupedSignatureMode,
+        fromDashboard,
+        filterStatus: statuts,
+        preFilledTypes: $typeFilter.val()
+    }, true);
+
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);
     if(groupedSignatureMode || !initialVisible) {
         return $.post(Routing.generate('dispatch_api_columns', {groupedSignatureMode}))

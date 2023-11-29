@@ -70,6 +70,7 @@ class ReceptionLineRepository extends EntityRepository {
         if ($paginationMode === "references") {
             $total = QueryBuilderHelper::count($queryBuilder, 'join_receptionReferenceArticle');
             $queryBuilder
+                ->addOrderBy('join_referenceArticle.barCode')
                 ->setFirstResult($start)
                 ->setMaxResults($length);
         }
