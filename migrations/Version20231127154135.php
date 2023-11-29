@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\Export;
+use App\Entity\ScheduledTask\Export;
 use App\Entity\Fields\FixedFieldStandard;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
