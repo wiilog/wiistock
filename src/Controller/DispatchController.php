@@ -22,6 +22,7 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Printer;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -32,6 +33,7 @@ use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
+use App\Service\DispatchPackService;
 use App\Service\DispatchService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
@@ -536,6 +538,7 @@ class DispatchController extends AbstractController {
             "attachments" => $attachments,
             'addNewUlToDispatch' => $addNewUlToDispatch,
             "initial_visible_columns" => json_encode($dispatchService->getDispatckPacksColumnVisibleConfig($entityManager, true)),
+            "natures" => $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]),
         ]);
     }
 
@@ -1856,5 +1859,31 @@ class DispatchController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());
 
         return $response;
+    }
+
+    #[Route("/generate-packs", name: "generate_packs", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_LOGISTIC_UNITS], mode: HasPermission::IN_JSON)]
+    public function generatePacks(Request                $request,
+                                  EntityManagerInterface $manager,
+                                  DispatchPackService    $dispatchPackService): Response {
+        $post = $request->request;
+
+        $packs = Stream::from(json_decode($post->get("natures"), true))
+            ->flatten(true)
+            ->map(static fn($count) => intval($count))
+            ->toArray();
+
+        if(Stream::from($packs)->sum() == 0) {
+            throw new FormException("Vous devez incrémenter au moins une nature pour procéder à la génération d'unités logisitiques.");
+        }
+
+        $currentUser = $this->getUser();
+
+        $dispatch = $manager->find(Dispatch::class, $post->get("dispatchId"));
+        $printer = $post->get("printer")
+            ? $manager->find(Printer::class, $post->get("printer"))
+            : null;
+
+        return $this->json($dispatchPackService->generatePacks($packs, $dispatch, $printer, $currentUser, $manager));
     }
 }

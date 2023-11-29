@@ -268,6 +268,14 @@
                                 {% endif %}
                             </div>
                         {% endif %}
+                        {% if (dispatch.statut.draft or dispatch.statut.notTreated)
+                            and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GENERATE_LOGISTIC_UNITS')) %}
+                            <button class="btn btn-primary"
+                                    data-target='#modalGenerateLogisticUnit'
+                                    data-toggle='modal'>
+                                <i class="fa fa-plus mr-2"></i>Générer des UL
+                            </button>
+                        {% endif %}
                     </div>
                     <div class="p-3 table-container">
                         {% if dispatch.hasReferenceArticles %}
@@ -298,6 +306,11 @@
         {% include "dispatch/modalAddReference.html.twig" with {descriptionConfig: descriptionFormConfig } %}
     {% endif %}
     {% include "dispatch/modalAddLogisticUnit.html.twig" %}
+
+    {% include "dispatch/show/generate-pack.html.twig" with {
+        natures,
+        dispatchId: dispatch.id
+    } %}
 
     {% include 'utils/modal/empty-modal.html.twig' with {
         id: 'modalEditDispatch',

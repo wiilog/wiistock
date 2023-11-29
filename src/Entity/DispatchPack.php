@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\DispatchPackRepository;
+use App\Service\FormatService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -41,6 +42,9 @@ class DispatchPack {
 
     #[ORM\OneToMany(mappedBy: 'dispatchPack', targetEntity: DispatchReferenceArticle::class)]
     private Collection $dispatchReferenceArticles;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $fromGeneration = null;
 
     public function __construct() {
         $this->quantity = 1;
@@ -159,5 +163,34 @@ class DispatchPack {
 
     public function getLength(): ?float {
         return $this->length;
+    }
+
+    public function isFromGeneration(): ?bool {
+        return $this->fromGeneration;
+    }
+
+    public function setFromGeneration(?bool $fromGeneration): self {
+        $this->fromGeneration = $fromGeneration;
+
+        return $this;
+    }
+
+    public function serialize(FormatService $formatService): array {
+        return [
+            "id" => $this->getId(),
+            "code" => $formatService->pack($this->getPack(), null),
+            "comment" => $this->getPack()
+                ? substr(strip_tags($this->getPack()->getComment()), 0, 200)
+                : null,
+            "natureId" => $this->getPack() && $this->getPack()->getNature()
+                ? $this->getPack()->getNature()->getId()
+                : null,
+            "quantity" => $this->getQuantity(),
+            "dispatchId" => $this->getDispatch()?->getId(),
+            "lastLocation" => $this->getPack() && $this->getPack()->getLastTracking()
+                ? $formatService->location($this->getPack()->getLastTracking()->getEmplacement())
+                : null,
+            "already_treated" => $this->isTreated(),
+        ];
     }
 }
