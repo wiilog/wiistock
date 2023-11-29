@@ -1,5 +1,6 @@
 <?php
-
+// At every minute
+// * * * * *
 
 namespace App\Command;
 
@@ -20,7 +21,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 )]
 class ScheduledExportCommand extends Command
 {
-
 
     #[Required]
     public EntityManagerInterface $em;

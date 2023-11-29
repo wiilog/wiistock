@@ -1,4 +1,6 @@
 <?php
+// At each minute
+// * * * * *
 
 namespace App\Command;
 

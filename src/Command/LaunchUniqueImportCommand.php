@@ -1,6 +1,6 @@
 <?php
-// At every 5th minute
-// */5 * * * *
+// At every 30th minute
+// */30 * * * *
 
 namespace App\Command;
 
