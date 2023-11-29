@@ -47,6 +47,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
+use phpseclib3\Exception\UnableToConnectException;
 use JetBrains\PhpStorm\ArrayShape;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;

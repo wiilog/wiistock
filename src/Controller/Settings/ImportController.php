@@ -265,7 +265,7 @@ class ImportController extends AbstractController
             'html' => $this->renderView('settings/donnees/import/content.html.twig', [
                 'import' => $import ?? new Import(),
                 'isScheduledImport' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT,
-                'isUniqueImport' => $typeLabel === Type::LABEL_UNIQUE_IMPORT
+                'isUniqueImport' => $typeLabel === Type::LABEL_UNIQUE_IMPORT,
             ])
         ]);
     }
