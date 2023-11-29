@@ -1889,12 +1889,10 @@ class DispatchController extends AbstractController {
         return $response;
     }
 
-    #[Route("/etiquette-numero-acheminement/{dispatch}", name: "print_dispatch_number", options: ['expose' => true], methods: "GET")]
+    #[Route("/print-dispatch-number/{dispatch}", name: "print_dispatch_number", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
     public function printDispatchNumberLabel(Dispatch            $dispatch,
-                                             DispatchService     $dispatchService,
-                                             PDFGeneratorService $PDFGeneratorService,
-                                             AttachmentService   $attachmentService): Response
+                                             PDFGeneratorService $PDFGeneratorService): Response
     {
         $fileName = $PDFGeneratorService->getBarcodeFileName([['code' => $dispatch->getNumber()]], 'acheminement', 'ETQ');
 
