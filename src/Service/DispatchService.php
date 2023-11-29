@@ -201,6 +201,11 @@ class DispatchService {
             'customerPhone' => $dispatch->getCustomerPhone(),
             'customerRecipient' => $dispatch->getCustomerRecipient(),
             'customerAddress' => $dispatch->getCustomerAddress(),
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => $dispatch->getProductionOrderNumber(),
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => $dispatch->getProductionRequest(),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => $this->formatService->date($dispatch->getDueDate1()),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => $this->formatService->date($dispatch->getDueDate2()),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => $this->formatService->date($dispatch->getDueDate2Bis()),
         ];
 
         if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
@@ -385,6 +390,16 @@ class DispatchService {
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DESTINATION]
             ],
             [
+                'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER,
+                'value' => $dispatch->getProductionOrderNumber() ?: '-',
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER]
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST,
+                'value' => $dispatch->getProductionRequest() ?: '-',
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST]
+            ],
+            [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
                 'value' => $dispatch->getCustomerName() ?: '-',
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
@@ -404,6 +419,21 @@ class DispatchService {
                 'value' => $dispatch->getCustomerAddress() ?: '-',
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE,
+                'value' => $this->formatService->datetime($dispatch->getDueDate1()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO,
+                'value' => $this->formatService->datetime($dispatch->getDueDate2()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS,
+                'value' => $this->formatService->datetime($dispatch->getDueDate2Bis()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
+            ]
         ];
 
         if ($dispatch->isWithoutHistory()) {
@@ -676,6 +706,11 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false), 'name' => 'customerPhone'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false), 'name' => 'customerRecipient'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false), 'name' => 'customerAddress'],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
         ];
 
         if($groupedSignatureMode) {

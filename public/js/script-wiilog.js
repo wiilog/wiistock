@@ -847,6 +847,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'emergencyMultiple':
                 case 'businessUnit':
                 case 'article':
+                case 'productionRequest':
                 case 'managers':
                 case 'deliverers':
                 case 'drivers':

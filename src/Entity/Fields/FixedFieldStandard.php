@@ -210,6 +210,20 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE = "code article interne";
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
+    // Specific fields for nxt
+    const FIELD_CODE_DUE_DATE_ONE = 'dueDate1';
+    const FIELD_CODE_DUE_DATE_TWO = 'dueDate2';
+    const FIELD_CODE_DUE_DATE_TWO_BIS = 'dueDate2Bis';
+    const FIELD_CODE_PRODUCTION_ORDER_NUMBER = 'productionOrderNumber';
+    const FIELD_CODE_PRODUCTION_REQUEST = 'productionRequest';
+
+    const FIELD_LABEL_DUE_DATE_ONE = 'Date échéance CPL';
+    const FIELD_LABEL_DUE_DATE_TWO = 'Date livraison ligne initiale';
+    const FIELD_LABEL_DUE_DATE_TWO_BIS = 'Date livraison ligne modifiée';
+    const FIELD_LABEL_PRODUCTION_ORDER_NUMBER = 'N° OF';
+    const FIELD_LABEL_PRODUCTION_REQUEST = 'Appel';
+    // end of specific fields for nxt
+
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
 

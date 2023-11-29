@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -126,6 +127,8 @@ class FiltreSupController extends AbstractController
                 'drivers' => FiltreSup::FIELD_DRIVERS,
                 'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
                 'unloadingLocation' => FiltreSup::FIELD_UNLOADING_LOCATION,
+                FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => FiltreSup::FIELD_PRODUCTION_REQUEST,
+                FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => FiltreSup::FIELD_PRODUCTION_ORDER_NUMBER,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {

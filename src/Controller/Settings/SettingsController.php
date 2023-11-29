@@ -1332,6 +1332,7 @@ class SettingsController extends AbstractController {
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
                         $businessField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]);
+                        $productionRequestField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST]);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
                             'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
@@ -1362,6 +1363,17 @@ class SettingsController extends AbstractController {
                                 "field" => $businessField->getId(),
                                 "elementsType" => $businessField->getElementsType(),
                                 "elements" => Stream::from($businessField->getElements())
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "productionRequest" => [
+                                "field" => $productionRequestField->getId(),
+                                "elementsType" => $productionRequestField->getElementsType(),
+                                "elements" => Stream::from($productionRequestField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
@@ -2667,7 +2679,7 @@ class SettingsController extends AbstractController {
     }
 
     #[Route("/champ-fixe/{entity}", name: "settings_fixed_field_api", options: ['expose' => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    public function fixedFieldByTypeApi(Request                 $request,
+    public function fixedFieldApi(Request                 $request,
                                         EntityManagerInterface  $entityManager,
                                         FormService             $formService,
                                         string                  $entity): JsonResponse {
