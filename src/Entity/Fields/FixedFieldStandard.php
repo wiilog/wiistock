@@ -211,9 +211,9 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
     // Specific fields for nxt
-    const FIELD_CODE_DUE_DATE_ONE = 'dueDateOne';
-    const FIELD_CODE_DUE_DATE_TWO = 'dueDateTwo';
-    const FIELD_CODE_DUE_DATE_TWO_BIS = 'dueDateTwoBis';
+    const FIELD_CODE_DUE_DATE_ONE = 'dueDate1';
+    const FIELD_CODE_DUE_DATE_TWO = 'dueDate2';
+    const FIELD_CODE_DUE_DATE_TWO_BIS = 'dueDate2Bis';
     const FIELD_CODE_PRODUCTION_ORDER_NUMBER = 'productionOrderNumber';
     const FIELD_CODE_PRODUCTION_REQUEST = 'productionRequest';
 
