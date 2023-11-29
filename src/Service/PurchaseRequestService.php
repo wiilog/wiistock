@@ -204,6 +204,11 @@ class PurchaseRequestService
             $buyer = $purchaseRequest->getBuyer();
             if ($buyer){
                 $emailRequesters[] = $buyer;
+            } else {
+                $emailRequesters = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                    ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
+                    ->concat($emailRequesters)
+                    ->toArray();
             }
         }
 
@@ -216,15 +221,6 @@ class PurchaseRequestService
         }
 
         if (!empty($emailRequesters)) {
-            $needsRefsBuyer = !($buyer ?? null) ;
-
-            if ($needsRefsBuyer) {
-                $emailRequesters = Stream::from($purchaseRequest->getPurchaseRequestLines())
-                    ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
-                    ->concat($emailRequesters)
-                    ->toArray();
-            }
-
             $subject = $customSubject ?: (
                 $status->isTreated()
                     ? 'Traitement d\'une demande d\'achat'
