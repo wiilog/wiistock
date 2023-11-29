@@ -1361,3 +1361,9 @@ function onSelectAll() {
 
     $select.trigger(`change`);
 }
+
+function getUserFiltersByPage(page) {
+    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
+        .json()
+        .then((data) => displayFiltersSup(data));
+}

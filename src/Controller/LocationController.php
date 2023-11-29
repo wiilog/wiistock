@@ -201,8 +201,7 @@ class LocationController extends AbstractController {
             $signatoryIds = is_array($data['signatories'])
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
-                    ->filter()
-                    ->map(fn(string $id) => trim($id))
+                    ->filterMap(fn(string $id) => trim($id) ?: null)
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
