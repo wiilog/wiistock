@@ -128,6 +128,8 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
             FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
             FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER,
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST,
         ],
 
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
@@ -148,6 +150,8 @@ abstract class FixedField {
     public const ALWAYS_REQUIRED_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_DISPATCH => [
             FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
         ],
         FixedFieldStandard::ENTITY_CODE_DEMANDE => [
             FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,

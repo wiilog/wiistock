@@ -1,6 +1,8 @@
 @import "variables";
 
 .dropFrame {
+    display: flex;
+    flex-direction: column;
 
     &:not(&.button-only) {
         display: flex;

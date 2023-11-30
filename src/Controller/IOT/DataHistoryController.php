@@ -126,6 +126,7 @@ class DataHistoryController extends AbstractController {
                 $data[$sensorCode] = [];
             }
             $coordinates = Stream::explode(',', $message->getContent())
+                ->filter()
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {

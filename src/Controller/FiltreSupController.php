@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Service\FilterSupService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,15 +16,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/filtre-sup")
- */
+#[Route("/filtre-sup")]
 class FiltreSupController extends AbstractController
 {
 
-    /**
-     * @Route("/creer", name="filter_sup_new", options={"expose"=true})
-     */
+    #[Route("/creer", name: "filter_sup_new", options: ["expose" => true])]
     public function new(EntityManagerInterface $entityManager,
                         FilterSupService $filterSupService,
                         Request $request): Response
@@ -130,6 +127,8 @@ class FiltreSupController extends AbstractController
                 'drivers' => FiltreSup::FIELD_DRIVERS,
                 'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
                 'unloadingLocation' => FiltreSup::FIELD_UNLOADING_LOCATION,
+                FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => FiltreSup::FIELD_PRODUCTION_REQUEST,
+                FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => FiltreSup::FIELD_PRODUCTION_ORDER_NUMBER,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
@@ -222,15 +221,12 @@ class FiltreSupController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api", name="filter_get_by_page", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/api", name: "filter_get_by_page", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
     public function getByPage(Request                $request,
                               EntityManagerInterface $entityManager,
                               FilterSupService       $filterSupService): Response
     {
-        return $this->json(
-            $filterSupService->getFilters($entityManager, json_decode($request->getContent(), true))
-        );
+        $page = $request->query->get("page", json_decode($request->getContent(), true));
+        return $this->json($filterSupService->getFilters($entityManager, $page));
     }
 }

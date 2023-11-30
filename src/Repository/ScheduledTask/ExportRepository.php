@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\ScheduledTask;
 
-use App\Helper\QueryBuilderHelper;
-use App\Entity\Export;
+use App\Entity\ScheduledTask\Export;
 use App\Entity\Type;
+use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 

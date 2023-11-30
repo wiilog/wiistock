@@ -1,0 +1,21 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-auto m-1 select-filter pr-0">
+    <div class="select2-overflow">
+        {{ form.select(
+            constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST'),
+            null,
+            false,
+            {
+                type: '',
+                items: productionRequests|map(item => {
+                    label: item,
+                    value: item,
+                }),
+                multiple: true,
+                placeholder: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST'),
+                inputClass: 'filter-select2 w-100',
+            }
+        ) }}
+    </div>
+</div>

@@ -2725,7 +2725,7 @@ class MobileController extends AbstractApiController
             }
         }
 
-        // save sta
+        // save stats
         foreach ($zonesData as $zoneDatum) {
             /** @var InventoryLocationMission[] $lines */
             $lines = $zoneDatum["lines"] ?? [];
@@ -2736,23 +2736,16 @@ class MobileController extends AbstractApiController
                 ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
 
                 foreach ($lines as $line) {
-                    $line->setDone(true);
-                    if ($line->getLocation()) {
-                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()] ?? null;
-                        if (isset($inventoryDatum)) {
-                            $scannedAt = $validatedAt ?? $now;
-                            $line
-                                ->setOperator($validator)
-                                ->setScannedAt($scannedAt)
-                                ->setPercentage($inventoryDatum["ratio"])
-                                ->setArticles($inventoryDatum["articles"]);
-                        }
-                        else {
-                            $zoneLabel = $zone->getName();
-                            $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
-                            throw new FormException("L'emplacement \"$locationLabel\" dans la zone \"$zoneLabel\" n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
-                        }
-                    }
+                    $locationId = $line->getLocation()?->getId();
+                    $scannedAt = $validatedAt ?? $now;
+                    $inventoryDatum = $inventoryData[$locationId] ?? null;
+
+                    $line
+                        ->setOperator($validator)
+                        ->setScannedAt($scannedAt)
+                        ->setPercentage($inventoryDatum["ratio"] ?? 0)
+                        ->setArticles($inventoryDatum["articles"] ?? [])
+                        ->setDone(true);
                 }
             }
         }
@@ -3990,6 +3983,48 @@ class MobileController extends AbstractApiController
             'success' => true,
             'msg' => "Enregistrement"
         ]);
+    }
+
+    #[Rest\Post("/dispatch-edit", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function editDispatch(Request $request,
+                                 AttachmentService $attachmentService,
+                                 EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatch = $request->request->get('dispatch');
+        $comment = $request->request->get('comment');
+        $dispatch = $dispatchRepository->find($dispatch);
+
+        $id = $dispatch->getId();
+        $fileNames = [];
+
+        $signatureFile = $request->files->get("signature_$id");
+        if (!empty($signatureFile)) {
+            $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+        }
+
+        foreach ($request->files->all() as $key => $file) {
+            if (str_starts_with($key, "photos_$id")) {
+                $fileNames = array_merge($fileNames, $attachmentService->saveFile($file));
+            }
+        }
+
+        $attachments = $attachmentService->createAttachments($fileNames);
+
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $dispatch->addAttachment($attachment);
+        }
+
+        if (!empty($comment)) {
+            $dispatch->setCommentaire($comment);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse([]);
     }
 
     #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]

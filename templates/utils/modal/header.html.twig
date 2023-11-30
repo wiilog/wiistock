@@ -3,6 +3,7 @@
 {% set titleClasses = titleClasses is defined and titleClasses ? titleClasses %}
 {% set titleId = titleId is defined and titleId ? titleId %}
 {% set hideTimes = hideTimes is defined and hideTimes %}
+{% set onManualDismiss = onManualDismiss is defined ? onManualDismiss %}
 
 <div class="modal-header {{ headerClasses }}">
     <h5 class="modal-title wii-title {{ titleClasses }}"
@@ -12,7 +13,7 @@
     </h5>
     {% if not hideTimes %}
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+            <span aria-hidden="true" {% if onManualDismiss %}onclick="{{ onManualDismiss }}"{% endif %}>&times;</span>
         </button>
     {% endif %}
 </div>

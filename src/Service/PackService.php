@@ -10,6 +10,7 @@ use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
@@ -546,10 +547,21 @@ class PackService {
         $receiverUsernames = ($usernameParamIsDefined && !empty($receivers))
             ? Stream::from($receivers)->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))->join(", ")
             : '';
-
         $receiverDropzones = Stream::from($receivers)
             ->filter(static fn(Utilisateur $receiver) => $receiver->getDropzone())
-            ->map(fn(Utilisateur $receiver) => (!$usernameParamIsDefined ? "{$this->formatService->user($receiver)}: " : "") . $this->formatService->location($receiver->getDropzone()))
+            ->map(function(Utilisateur $receiver) use ($usernameParamIsDefined) {
+                $dropZone = $receiver->getDropzone();
+                $userLabel = (!$usernameParamIsDefined ? "{$this->formatService->user($receiver)}: " : "");
+
+                if ($dropZone instanceof Emplacement) {
+                    $locationLabel = $this->formatService->location($dropZone);
+                } elseif ($dropZone instanceof LocationGroup) {
+                    $locationLabel = $this->formatService->locationGroup($dropZone);
+                } else {
+                    $locationLabel = "";
+                }
+                return $userLabel.$locationLabel;
+            })
             ->join(", ");
 
         $dropZoneLabel = ($dropzoneParamIsDefined && !empty($receiverDropzones))

@@ -8,10 +8,10 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
-use App\Entity\Export;
-use App\Entity\ExportScheduleRule;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -209,7 +209,13 @@ class ScheduledExportService
             }
         } else { // ftp export
             try {
-                $this->ftpService->send($exportToRun->getFtpParameters(), $output);
+                $FTPParameters = $exportToRun->getFtpParameters();
+                $this->ftpService->send([
+                    'host' => $FTPParameters['host'],
+                    'port' => $FTPParameters['port'],
+                    'user' => $FTPParameters['user'],
+                    'pass' => $FTPParameters['pass'],
+                ], $FTPParameters['path'], $output);
             } catch(FTPException $exception) {
                 $exportToRun->setError($exception->getMessage());
             } finally {
@@ -224,7 +230,6 @@ class ScheduledExportService
             $finished = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_FINISHED);
             $exportToRun->setStatus($finished);
         }
-
 
         $exportToRun
             ->setForced(false)
@@ -243,12 +248,12 @@ class ScheduledExportService
 
     private function getFrequencyDescription(Export $export): string {
         $rule = $export->getExportScheduleRule();
-        if($rule->getFrequency() === ExportScheduleRule::DAILY) {
+        if($rule->getFrequency() === ScheduleRule::DAILY) {
             $period = $rule->getPeriod();
             $periodStr = $period && $period > 1
                 ? "$period jours"
                 : "jours";
-        } else if($rule->getFrequency() === ExportScheduleRule::WEEKLY) {
+        } else if($rule->getFrequency() === ScheduleRule::WEEKLY) {
             $days = Stream::from($rule->getWeekDays())
                 ->map(fn(int $weekDay) => FormatHelper::WEEK_DAYS[$weekDay])
                 ->join(", ");
@@ -256,7 +261,7 @@ class ScheduledExportService
             $periodStr = $period && $period > 1
                 ? "$period semaines"
                 : "semaines";
-        } else if($rule->getFrequency() === ExportScheduleRule::MONTHLY) {
+        } else if($rule->getFrequency() === ScheduleRule::MONTHLY) {
             $days = join(", ", $rule->getMonthDays());
             $months = Stream::from($rule->getMonths())
                 ->map(fn(int $month) => FormatHelper::MONTHS[$month])
@@ -264,11 +269,11 @@ class ScheduledExportService
         }
 
         return match($rule->getFrequency()) {
-            ExportScheduleRule::ONCE => "le {$rule->getBegin()?->format("d/m/Y H:i")}",
-            ExportScheduleRule::HOURLY => "toutes les {$rule->getIntervalPeriod()} heures",
-            ExportScheduleRule::DAILY => "tous les $periodStr à {$rule->getIntervalTime()}",
-            ExportScheduleRule::WEEKLY => "toutes les $periodStr à {$rule->getIntervalTime()} les $days",
-            ExportScheduleRule::MONTHLY => "les mois de $months le $days",
+            ScheduleRule::ONCE => "le {$rule->getBegin()?->format("d/m/Y H:i")}",
+            ScheduleRule::HOURLY => "toutes les {$rule->getIntervalPeriod()} heures",
+            ScheduleRule::DAILY => "tous les $periodStr à {$rule->getIntervalTime()}",
+            ScheduleRule::WEEKLY => "toutes les $periodStr à {$rule->getIntervalTime()} les $days",
+            ScheduleRule::MONTHLY => "les mois de $months le $days",
             default => null,
         };
     }
@@ -300,7 +305,7 @@ class ScheduledExportService
     }
 
     private function cloneScheduledExport(Export $export) {
-        if($export->getExportScheduleRule()->getFrequency() === ExportScheduleRule::ONCE) {
+        if($export->getExportScheduleRule()->getFrequency() === ScheduleRule::ONCE) {
             return $export;
         }
 

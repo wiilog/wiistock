@@ -273,6 +273,9 @@ class ArrivageController extends AbstractController {
         $numeroCommandeList = explode(',', $data['numeroCommandeList'] ?? '');
         if (!empty($numeroCommandeList)) {
             $arrivage->setNumeroCommandeList($numeroCommandeList);
+
+            $receptions = $entityManager->getRepository(Reception::class)->findBy(['orderNumber' => $numeroCommandeList]);
+            $arrivage->setReceptions($receptions);
         }
 
         if (!empty($data['receivers'])) {
@@ -562,7 +565,11 @@ class ArrivageController extends AbstractController {
         }
 
         if($post->has('numeroCommandeList')){
-            $arrivage->setNumeroCommandeList(explode(',', $post->get('numeroCommandeList')));
+            $orderNumbers = explode(',', $post->get('numeroCommandeList'));
+            $arrivage->setNumeroCommandeList($orderNumbers);
+
+            $receptions = $entityManager->getRepository(Reception::class)->findBy(['orderNumber' => $orderNumbers]);
+            $arrivage->setReceptions($receptions);
         }
 
         if($post->has('fournisseur')){
@@ -1249,14 +1256,14 @@ class ArrivageController extends AbstractController {
      * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
      */
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
-                                               Request                $request,
-                                               EntityManagerInterface $entityManager,
-                                               PDFGeneratorService    $PDFGeneratorService,
-                                               PackService            $packService,
-                                               Pack                   $pack = null,
-                                               array                  $packIdsFilter = [],
-                                               TagTemplate $tagTemplate = null,
-                                               bool $forceTagEmpty = false): Response {
+                                              Request                $request,
+                                              EntityManagerInterface $entityManager,
+                                              PDFGeneratorService    $PDFGeneratorService,
+                                              PackService            $packService,
+                                              Pack                   $pack = null,
+                                              array                  $packIdsFilter = [],
+                                              TagTemplate            $tagTemplate = null,
+                                              bool                   $forceTagEmpty = false): Response {
         if (!$tagTemplate) {
             $tagTemplate = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
