@@ -4025,10 +4025,7 @@ class MobileController extends AbstractApiController
                     $zebraPrinter = $printerService->getPrinter($printer);
                 }
                 catch(Throwable) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué."
-                    ]);
+                    throw new FormException("Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.");
                 }
 
                 //do pack separation after check printer connection
@@ -4047,10 +4044,7 @@ class MobileController extends AbstractApiController
 
                 $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
             } else {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}",
-                ]);
+                throw new FormException("Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}.");
             }
         } else {
             $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);

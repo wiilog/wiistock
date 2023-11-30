@@ -78,12 +78,13 @@ class PrinterService
                     ->setContent($code)
                     ->setDisplayContent(true);
 
+                $image = Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/uploads/attachments/{$logo}")
+                    ->setWidth(30)
+                    ->setHeight(15);
+
                 $label = $printer->createLabel();
-                $label->with(
-                    Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/uploads/attachments/{$logo}")
-                        ->setWidth(30)
-                        ->setHeight(15)
-                )
+                $label
+                    ->with($image)
                     ->with($qr);
 
                 if ($isSeparation) {

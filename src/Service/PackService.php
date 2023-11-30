@@ -251,6 +251,11 @@ class PackService {
     public function createPack(EntityManagerInterface $entityManager,
                                array $options = []): Pack
     {
+        $arrival = $options['arrival'] ?? null;
+        $dispatch = $options['dispatch'] ?? null;
+        $nature = $options['nature'] ?? null;
+        $originalPack = $options['originalPack'] ?? null;
+
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
@@ -317,6 +322,23 @@ class PackService {
                 }
             }
         }
+
+        if ($dispatch) {
+            $pack->setCreatingDispatch($dispatch);
+        }
+
+        if ($arrival) {
+            $arrival->addPack($pack);
+        }
+
+        if ($nature) {
+            $pack->setNature($nature);
+        }
+
+        if ($originalPack) {
+            $pack->setOriginalPack($originalPack);
+        }
+
         return $pack;
     }
 
@@ -679,7 +701,8 @@ class PackService {
                         'code' => $newCode,
                         'nature' => $nature,
                         'dispatch' => $originalPack->getCreatingDispatch(),
-                        'arrival' => $originalPack->getArrivage()
+                        'arrival' => $originalPack->getArrivage(),
+                        'originalPack' => $originalPack,
                     ]
                 );
 
@@ -696,10 +719,7 @@ class PackService {
                     $now,
                     $fromNomade,
                     true,
-                    TrackingMovement::TYPE_DEPOSE,
-                    [
-                        'originalPack' => $originalPack
-                    ]
+                    TrackingMovement::TYPE_DEPOSE
                 );
 
                 $entityManager->persist($newPack);
