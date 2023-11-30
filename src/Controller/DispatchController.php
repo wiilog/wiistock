@@ -25,6 +25,7 @@ use App\Entity\Pack;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -33,14 +34,17 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DispatchService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\NotificationService;
 use App\Service\PackService;
+use App\Service\PDFGeneratorService;
 use App\Service\RedirectService;
 use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\StatusService;
+use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -49,6 +53,7 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -90,7 +95,7 @@ class DispatchController extends AbstractController {
 
         if (!empty($statusesFilter)) {
             $statusesFilter = Stream::from($statusesFilter)
-                ->map(fn($statusId) => $statutRepository->find($statusId)->getNom())
+                ->map(fn($statusId) => $statutRepository->find($statusId)->getId())
                 ->toArray();
         }
 
@@ -125,6 +130,14 @@ class DispatchController extends AbstractController {
                 'name' => 'endDate',
                 'label' => 'Date d\'échéances',
             ],
+            [
+                'name' => 'dueDate1',
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE,
+            ],
+            [
+                'name' => 'dueDate2',
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO. ' et ' . FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS,
+            ],
         ];
 
         foreach ($dateChoices as &$choice) {
@@ -141,6 +154,7 @@ class DispatchController extends AbstractController {
             'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'productionRequests' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST),
             'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
@@ -219,9 +233,11 @@ class DispatchController extends AbstractController {
         $groupedSignatureMode = $request->query->getBoolean('groupedSignatureMode');
         $fromDashboard = $request->query->getBoolean('fromDashboard');
 
+        $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE);
+
         if ($fromDashboard) {
-            $preFilledStatuses = $request->query->has('preFilledStatuses')
-                ? implode(",", $request->query->all('preFilledStatuses'))
+            $preFilledStatuses = $request->query->has('filterStatus')
+                ? implode(",", $request->query->all('filterStatus'))
                 : [];
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
@@ -229,7 +245,7 @@ class DispatchController extends AbstractController {
 
             $preFilledFilters = [
                 [
-                    'field' => 'statuses-filter',
+                    'field' => $hasRightGroupedSignature ? 'statut' : 'statuses-filter',
                     'value' => $preFilledStatuses,
                 ],
                 [
@@ -254,7 +270,8 @@ class DispatchController extends AbstractController {
                         TranslationService     $translationService,
                         UniqueNumberService    $uniqueNumberService,
                         RedirectService        $redirectService,
-                        StatusHistoryService   $statusHistoryService): Response {
+                        StatusHistoryService   $statusHistoryService,
+                        FormatService            $formatService): Response {
         if(!$this->userService->hasRightFunction(Menu::DEM, Action::CREATE) ||
             !$this->userService->hasRightFunction(Menu::DEM, Action::CREATE_ACHE)) {
             return $this->json([
@@ -394,6 +411,23 @@ class DispatchController extends AbstractController {
 
         $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
+        $now = new DateTime();
+        $dueDate1 = $formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE )) ?? $preFill ? $now : null ;
+        $dueDate2 = $formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO)) ?? $preFill ? $now : null ;
+
+        if ($dueDate1 && $dueDate2 && $dueDate1 > $dueDate2) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
+            ]);
+        }
+        $dispatch
+            ->setProductionOrderNumber($post->get(FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER))
+            ->setProductionRequest($post->get(FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST))
+            ->setDueDate1($dueDate1)
+            ->setDueDate2($dueDate2)
+            ->setDueDate2Bis($formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS)));
+
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
             $dispatch->setCommentaire($comment);
         }
@@ -526,7 +560,11 @@ class DispatchController extends AbstractController {
                 'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
             ],
             'dispatchTreat' => [
-                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED, Statut::PARTIAL])
+                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
+            ],
+            'dispatchPartial' => [
+                'partialStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::PARTIAL]),
+                'dispatchId' => $dispatch->getId(),
             ],
             'printBL' => $printBL,
             'prefixPackCodeWithDispatchNumber' => $paramRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER),
@@ -599,8 +637,8 @@ class DispatchController extends AbstractController {
                          DispatchService        $dispatchService,
                          TranslationService     $translationService,
                          FreeFieldService       $freeFieldService,
-                         EntityManagerInterface $entityManager): Response
-    {
+                         EntityManagerInterface $entityManager,
+                         FormatService          $formatService): Response {
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
@@ -723,6 +761,36 @@ class DispatchController extends AbstractController {
             $dispatch->setEmails($emails);
         }
 
+
+        if ($post->has(FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE)) {
+            $dueDate1 = $formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE));
+            $dispatch->setDueDate1($dueDate1);
+        }
+
+        if ($post->has(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO)) {
+            $dueDate2 = $formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO));
+            $dispatch->setDueDate2($dueDate2);
+        }
+
+        if ($dispatch->getDueDate1() && $dispatch->getDueDate2() && $dispatch->getDueDate1() > $dispatch->getDueDate2()) {
+            return new JsonResponse([
+                'success' => false,
+                'msg' => 'La date de fin d\'échéance est inférieure à la date de début.'
+            ]);
+        }
+
+        if ($post->has(FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER)) {
+            $dispatch->setProductionOrderNumber($post->get(FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER));
+        }
+
+        if ($post->has(FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST)) {
+            $dispatch->setProductionRequest($post->get(FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST));
+        }
+
+        if ($post->has(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS)) {
+            $dispatch->setDueDate2Bis($formatService->parseDatetime($post->get(FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS)));
+        }
+
         if ($post->has(FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH)) {
             $receiversIds = Stream::explode(",", $post->get(FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH) ?: '')
                 ->filter()
@@ -809,6 +877,7 @@ class DispatchController extends AbstractController {
             'dispatchBusinessUnits' => !empty($dispatchBusinessUnits) ? $dispatchBusinessUnits : [],
             'dispatch' => $dispatch,
             'fieldsParam' => $fieldsParam,
+            'productionRequests' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST),
             'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'utilisateurs' => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
             'statuses' => $statuses,
@@ -1083,9 +1152,10 @@ class DispatchController extends AbstractController {
                                             TranslationService     $translationService,
                                             DispatchService        $dispatchService,
                                             NotificationService    $notificationService,
-                                            StatusHistoryService   $statusHistoryService): Response
-    {
+                                            StatusHistoryService   $statusHistoryService,
+                                            TrackingMovementService $trackingMovementService): Response {
         $status = $dispatch->getStatut();
+        $now = new DateTime('now');
 
         if(!$status || $status->isDraft()) {
             $data = json_decode($request->getContent(), true);
@@ -1097,14 +1167,40 @@ class DispatchController extends AbstractController {
 
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
+                    $settingRepository = $entityManager->getRepository(Setting::class);
                     if($dispatch->getType() &&
                         ($dispatch->getType()->isNotificationsEnabled() || $dispatch->getType()->isNotificationsEmergency($dispatch->getEmergency()))) {
                         $notificationService->toTreat($dispatch);
                     }
                     $dispatch
-                        ->setValidationDate(new DateTime('now'));
+                        ->setValidationDate($now);
 
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+
+                    $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
+                    if ($automaticallyCreateMovementOnValidation) {
+                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
+                        if(in_array($dispatch->getType()->getId(), $automaticallyCreateMovementOnValidationTypes)) {
+                            foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
+                                $pack = $dispatchPack->getPack();
+                                $trackingMovement = $trackingMovementService->createTrackingMovement(
+                                    $pack,
+                                    $dispatch->getLocationFrom(),
+                                    $this->getUser(),
+                                    $now,
+                                    false,
+                                    false,
+                                    TrackingMovement::TYPE_DEPOSE,
+                                    [
+                                        'from' => $dispatch,
+                                        "quantity" => $dispatchPack->getQuantity(),
+                                    ]
+                                );
+                                $entityManager->persist($trackingMovement);
+                            }
+                        }
+                    }
+
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
                 } catch (Exception $e) {
@@ -1139,7 +1235,7 @@ class DispatchController extends AbstractController {
         $status = $dispatch->getStatut();
 
         if(!$status || $status->isNotTreated() || $status->isPartial()) {
-            $data = json_decode($request->getContent(), true);
+            $data = !empty($request->request->all()) ? $request->request->all() : json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $statusId = $data['status'];
@@ -1856,5 +1952,18 @@ class DispatchController extends AbstractController {
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $dispatchLabel->getOriginalName());
 
         return $response;
+    }
+
+    #[Route("/print-dispatch-number/{dispatch}", name: "print_dispatch_number", options: ['expose' => true], methods: "GET")]
+    #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
+    public function printDispatchNumberLabel(Dispatch            $dispatch,
+                                             PDFGeneratorService $PDFGeneratorService): Response
+    {
+        $fileName = $PDFGeneratorService->getBarcodeFileName([['code' => $dispatch->getNumber()]], 'acheminement', 'ETQ');
+
+        return new PdfResponse(
+            $PDFGeneratorService->generatePDFBarCodes($fileName, [['code' => $dispatch->getNumber()]]),
+            $fileName
+        );
     }
 }

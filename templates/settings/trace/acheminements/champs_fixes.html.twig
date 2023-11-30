@@ -18,6 +18,14 @@
     fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST'),
+    field: productionRequest.field,
+    elementsType: productionRequest.elementsType,
+    elements: productionRequest.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
+} %}
+
 {# Dispatch logistic unit fixed field settings #}
 
 {% for field, values in dispatchLogisticUnitFixedFields %}

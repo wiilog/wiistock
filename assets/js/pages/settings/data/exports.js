@@ -16,6 +16,7 @@ const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
 const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
+const ENTITY_LOGS_SERVER = "logs_server";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -25,15 +26,9 @@ global.cancelExport = cancelExport;
 
 let tableExport = null;
 
-$(document).ready(() => {
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate(`filter_get_by_page`);
-    let params = JSON.stringify(PAGE_EXPORT);
-
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, `json`);
-
+export function initializeExports() {
+    initDateTimePicker('#dateMin, #dateMax');
+    getUserFiltersByPage(PAGE_EXPORT);
     createForm();
 
     tableExport = initDataTable(`tableExport`, {
@@ -60,8 +55,7 @@ $(document).ready(() => {
             needsRowClickAction: true
         },
     });
-
-});
+}
 
 function displayExportModal(exportId) {
     let $modal = $("#modalExport");
@@ -183,7 +177,11 @@ function createForm() {
                 if(content.type === EXPORT_UNIQUE) {
                     if (content.entityToExport === ENTITY_REFERENCE) {
                         window.open(Routing.generate(`settings_export_references`));
-                    } else if (content.entityToExport === ENTITY_ARTICLE) {
+                    }
+                    else if(content.entityToExport === ENTITY_LOGS_SERVER) {
+                        window.open(Routing.generate(`settings_export_logs_server`));
+                    }
+                    else if (content.entityToExport === ENTITY_ARTICLE) {
                         const referenceTypes = $modal.find(`[name=referenceTypes]`).val();
                         const statuses = $modal.find(`[name=statuses]`).val();
                         const suppliers = $modal.find(`[name=suppliers`).val();
@@ -328,12 +326,21 @@ function onFormEntityChange() {
     }
 }
 
+function toggleVisibilityInput(exportType, typeExcluded, $modal, value) {
+    // Toggle the visibility of a specific input based on the export type.
+    const input =  $modal.find(`input[value="${value}"]`).attr('id');
+    const label = $('label[for="'+input+'"]');
+    label.toggleClass('d-none', exportType !== typeExcluded);
+}
+
 function onFormTypeChange(resetFrequency = true) {
     const $modal = $('#modalExport');
     const exportType = $modal.find('[name=type]:checked').val()
     $modal.find('.unique-export-container').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
     $modal.find('.scheduled-export-container').toggleClass('d-none', exportType !== EXPORT_SCHEDULED);
     $modal.find('.article-date-limit').toggleClass('d-none', exportType !== EXPORT_UNIQUE);
+
+    toggleVisibilityInput(exportType,EXPORT_UNIQUE, $modal, 'logs_server');
 
     if (resetFrequency) {
         $modal.find('.frequencies').find('input[type=radio]').each(function () {

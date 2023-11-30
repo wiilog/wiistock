@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalConfirmCancel" role="dialog"
+<div class="modal fade" id="modalCancelImport" role="dialog"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -12,7 +12,7 @@
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Non'},
-                    {classes: 'btn btn-danger data', text: 'Oui', name: 'importId', id: 'submitCancelImport', dismiss: true}
+                    {classes: 'btn btn-success', text: 'Oui', type: 'submit'}
                 ],
                 hideErrorContainer: true,
             } %}

@@ -632,7 +632,9 @@ class RequestController extends AbstractController {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $logo = $settingRepository->getOneParamByLabel(Setting::LABEL_LOGO);
 
-        $packsFilter = Stream::explode(',', $request->query->get('packs'))->toArray();
+        $packsFilter = Stream::explode(',', $request->query->get('packs'))
+            ->filter()
+            ->toArray();
 
         $config = $transportService->createPrintPackConfig($transportRequest, $logo, $packsFilter);
 

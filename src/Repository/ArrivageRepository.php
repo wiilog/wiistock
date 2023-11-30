@@ -198,6 +198,7 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case 'commandList':
                     $values = Stream::explode(',', $filter['value'])
+                        ->filter()
                         ->map(static fn(string $value) => explode(':', $value)[0])
                         ->toArray();
 
@@ -253,6 +254,7 @@ class ArrivageRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_BUSINESS_UNIT:
                     $values = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb

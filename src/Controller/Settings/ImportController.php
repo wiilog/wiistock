@@ -1,0 +1,390 @@
+<?php
+
+namespace App\Controller\Settings;
+
+use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
+use App\Entity\Action;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\Menu;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\Statut;
+use App\Entity\Type;
+use App\Exceptions\FormException;
+use App\Exceptions\FTPException;
+use App\Service\AttachmentService;
+use App\Service\FTPService;
+use App\Service\ImportService;
+use App\Service\ScheduleRuleService;
+use App\Service\UserService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
+
+#[Route("/import")]
+class ImportController extends AbstractController
+{
+
+    #[Route("/api", name: "import_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function api(Request $request, ImportService $importDataService): Response
+    {
+        $user = $this->getUser();
+        $data = $importDataService->getDataForDatatable($user, $request->request);
+
+        return $this->json($data);
+    }
+
+    #[Route("/new", name: "import_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function new(Request                $request,
+                        AttachmentService      $attachmentService,
+                        EntityManagerInterface $entityManager,
+                        ImportService          $importService,
+                        FTPService             $FTPService,
+                        ScheduleRuleService    $scheduleRuleService): Response
+    {
+        $post = $request->request;
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $loggedUser = $this->getUser();
+
+        $import = (new Import())
+            ->setLabel($post->get('label'))
+            ->setEntity($post->get('entity'))
+            ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+            ->setEraseData($post->get('deleteDifData') ?? false)
+            ->setUser($loggedUser);
+
+        $isScheduled = $post->get("type") === "scheduled-import-checkbox";
+        if ($isScheduled) {
+            $rule = new ImportScheduleRule();
+            $importService->updateScheduleRules($rule, $request->request);
+            $import->setScheduleRule($rule);
+
+            $FTPHost = $post->get("host");
+            $FTPPort = $post->get("port");
+            $FTPUser = $post->get("user");
+            $FTPPass = $post->get("pass");
+
+            if ($FTPHost && $FTPPort && $FTPUser && $FTPPass) {
+                $FTPConfig = [
+                    "host" => $FTPHost,
+                    "port" => $FTPPort,
+                    "user" => $FTPUser,
+                    "pass" => $FTPPass,
+                ];
+
+                try {
+                    $FTPService->try($FTPConfig);
+                    $import->setFTPConfig($FTPConfig);
+                }
+                catch(FTPException $exception) {
+                    throw new FormException($exception->getMessage());
+                }
+                catch(Throwable) {
+                    throw new FormException("Une erreur s'est produite lors de vérification de la connexion avec le serveur FTP");
+                }
+            }
+
+            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
+            $import
+                ->setScheduleRule($rule)
+                ->setNextExecutionDate($nextExecutionDate)
+                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT));
+        }
+        else {
+            $import->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT));
+        }
+
+        $entityManager->persist($import);
+        $entityManager->flush();
+
+        $nbFiles = count($request->files);
+        if ($nbFiles !== 1) {
+            throw new FormException('Veuillez charger un ' . ($nbFiles > 1 ? 'seul ' : '') . 'fichier.');
+        }
+
+        $file = $request->files->all()['file0'];
+        if ($file->getClientOriginalExtension() !== 'csv') {
+            throw new FormException('Veuillez charger un fichier au format .csv.');
+        }
+
+        $attachments = $attachmentService->createAttachments([$file]);
+        $csvAttachment = $attachments[0];
+        $entityManager->persist($csvAttachment);
+        $import->setCsvFile($csvAttachment);
+
+        $entityManager->flush();
+        $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, !$isScheduled);
+
+        if ($fileValidationResponse['success']) {
+            $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $post, $import);
+
+            return $this->json([
+                'success' => true,
+                'importId' => $import->getId(),
+                'html' => $this->renderView('settings/donnees/import/new/second.html.twig', $secondModalConfig),
+            ]);
+        } else {
+            return $this->json($fileValidationResponse);
+        }
+    }
+
+    #[Route("/edit-api", name: "import_edit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function editApi(Request                $request,
+                            EntityManagerInterface $entityManager,
+                            UserService            $userService): Response
+    {
+        $data = $request->query->all();
+        if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
+            return $this->redirectToRoute('access_denied');
+        }
+        $importRepository = $entityManager->getRepository(Import::class);
+        $importScheduleRuleRepository = $entityManager->getRepository(ImportScheduleRule::class);
+
+        $import = $importRepository->findOneBy(['id' => $data['id']]);
+        $importScheduleRule = $importScheduleRuleRepository->findOneBy(['import' => $data['id']]);
+
+        return $this->json([
+            'html' => $this->renderView('settings/donnees/import/content.html.twig', [
+                'import' => $import,
+                'importScheduleRule' => $importScheduleRule,
+                'edit' => true,
+                'attachment' => $import->getCsvFile()
+            ]),
+        ]);
+    }
+
+    #[Route("/edit", name: "import_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
+    public function edit(Request                $request,
+                         ImportService          $importService,
+                         AttachmentService      $attachmentService,
+                         EntityManagerInterface $entityManager,
+                         ScheduleRuleService    $scheduleRuleService): Response
+    {
+        $data = $request->request;
+        $importRepository = $entityManager->getRepository(Import::class);
+
+        $import = $importRepository->find($data->get('sourceImport'));
+
+        $importScheduleRule = $import->getScheduleRule();
+        $importService->updateScheduleRules($importScheduleRule, $request->request);
+
+        $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
+
+        $import
+            ->setNextExecutionDate($nextExecutionDate)
+            ->setLabel($data->get('label'))
+            ->setEntity($data->get('entity'));
+
+        $file = $request->files->get('file0');
+        if ($file) {
+            $oldCSVFile = $import->getCsvFile();
+
+            if ($file->getClientOriginalExtension() !== 'csv') {
+                throw new FormException("Veuillez charger un fichier au format .csv.");
+            }
+
+            $attachments = $attachmentService->createAttachments([$file]);
+            $csvAttachment = $attachments[0];
+
+            $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, false);
+
+            if ($fileValidationResponse['success']) {
+                $import->setCsvFile(null);
+                if ($oldCSVFile) {
+                    $attachmentService->removeAndDeleteAttachment($oldCSVFile);
+                }
+                $import->setCsvFile($csvAttachment);
+                $entityManager->persist($csvAttachment);
+                $entityManager->flush();
+            } else {
+                return $this->json($fileValidationResponse);
+            }
+        }
+
+        $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $data, $import);
+        $entityManager->flush();
+
+        $importService->saveScheduledImportsCache($entityManager);
+        return $this->json([
+            'success' => true,
+            'importId' => $import->getId(),
+            'html' => $this->renderView('settings/donnees/import/new/second.html.twig', $secondModalConfig)
+        ]);
+    }
+
+    #[Route("/link", name: "import_links", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function defineLinks(Request $request, EntityManagerInterface $entityManager, ImportService $importService): Response
+    {
+        $importRepository = $entityManager->getRepository(Import::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $data = $request->request->all();
+
+        $importId = $data['importId'];
+        unset($data['importId']);
+        unset($data['id']);
+
+        $import = $importRepository->find($importId);
+        $import->setColumnToField($data);
+        $entityManager->flush();
+
+        $responseData = [
+            'success' => true
+        ];
+
+        $importTypeLabel = $this->formatService->type($import->getType());
+        if ($importTypeLabel === Type::LABEL_SCHEDULED_IMPORT) {
+            $import
+                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
+            $entityManager->flush();
+
+            $importService->saveScheduledImportsCache($entityManager);
+            $responseData['msg'] = "L'import planifié a bien été modifié.";
+        } else {
+            $responseData['html'] = $this->renderView('settings/donnees/import/new/confirm.html.twig');
+        }
+
+        return $this->json($responseData);
+    }
+
+    #[Route("/get-first-modal-content/{import}", name: "get_first_modal_content", options: ["expose" => true], defaults: ["import" => null], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    public function getFirstModalContent(?Import $import): Response
+    {
+        $type = $import?->getType();
+        $typeLabel = $type?->getLabel();
+
+        return $this->json([
+            'html' => $this->renderView('settings/donnees/import/content.html.twig', [
+                'import' => $import ?? new Import(),
+                'isScheduledImport' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT,
+                'isUniqueImport' => $typeLabel === Type::LABEL_UNIQUE_IMPORT,
+            ])
+        ]);
+    }
+
+    #[Route("/launch", name: "import_launch", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function launchImport(Request                $request,
+                                 EntityManagerInterface $entityManager,
+                                 ImportService          $importService): Response
+    {
+        $importId = $request->query->get('importId');
+        $force = $request->query->getBoolean('force');
+        $import = $entityManager->getRepository(Import::class)->find($importId);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $getImportSuccessMesage = static function(?int $mode) {
+            return match ($mode) {
+                ImportService::IMPORT_MODE_RUN => 'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.',
+                ImportService::IMPORT_MODE_FORCE_PLAN => 'Votre import a bien été lancé. Il sera effectué dans moins de 30min.',
+                ImportService::IMPORT_MODE_PLAN => 'Votre import a bien été lancé. Il sera effectué cette nuit.',
+                ImportService::IMPORT_MODE_NONE =>  'Votre import a déjà été lancé. Il sera effectué dans moins de 30min.',
+                default => "L'import planifié a été créé avec succès."
+            };
+        };
+
+        if ($import && $import->getType()->getLabel() === Type::LABEL_UNIQUE_IMPORT) {
+            $importModeTodo = $force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN;
+            $importModeDone = $importService->treatImport($entityManager, $import, $importModeTodo);
+
+            $success = true;
+            $message = $getImportSuccessMesage($importModeDone);
+        } else if ($import) {
+            $import
+                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
+            $entityManager->flush();
+            $success = true;
+            $message = $getImportSuccessMesage($force ? ImportService::IMPORT_MODE_FORCE_PLAN : null);
+        } else {
+            $success = false;
+            $message = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
+        }
+
+        return $this->json([
+            'success' => $success,
+            'message' => $message
+        ]);
+    }
+
+    #[Route("/{import}/cancel", name: "import_cancel", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function cancelImport(Import                 $import,
+                                 EntityManagerInterface $manager,
+                                 ImportService          $importService): JsonResponse
+    {
+        $statusRepository = $manager->getRepository(Statut::class);
+
+        $importType = $import->getType();
+        $importStatus = $import->getStatus();
+        if ($importType && $importStatus) {
+            if ($importType->getLabel() == Type::LABEL_UNIQUE_IMPORT
+                && $importStatus->getNom() == Import::STATUS_UPCOMING) {
+                $import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED));
+                $manager->flush();
+            } else if ($importType->getLabel() == Type::LABEL_SCHEDULED_IMPORT
+                && $importStatus->getNom() == Import::STATUS_SCHEDULED) {
+                $manager->remove($import);
+                $manager->flush();
+
+                $importService->saveScheduledImportsCache($manager);
+            }
+
+            return $this->json([
+                "success" => true,
+                "msg" => "L'import a bien été annulé.",
+            ]);
+        } else {
+            throw new FormException("Une erreur est survenue lors de l'annulation de l'import.");
+        }
+    }
+
+    #[Route("/{import}/delete", name: "import_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function deleteImport(Import $import, EntityManagerInterface $manager): Response
+    {
+        if ($import->getStatus()?->getCode() === Import::STATUS_DRAFT) {
+            $manager->remove($import);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "L'import a bien été supprimé."
+            ]);
+        } else {
+            throw new FormException("Une erreur est survenue lors de la suppression de l'import.");
+        }
+    }
+
+    #[Route("/{import}/force", name: "import_force", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function forceImport(EntityManagerInterface $entityManager,
+                                Import                 $import,
+                                ImportService          $importService,
+                                ScheduleRuleService    $scheduleRuleService): JsonResponse
+    {
+        if (!$import->isForced()
+            && $import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT
+            && $import->getStatus()->getNom() === Import::STATUS_SCHEDULED) {
+
+            $import->setForced(true);
+
+            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
+            $import->setNextExecutionDate($nextExecutionDate);
+
+            $entityManager->flush();
+            $importService->saveScheduledImportsCache($entityManager);
+
+            return $this->json([
+                'success' => true,
+                'msg' => "L'import va être exécuté dans les prochaines minutes."
+            ]);
+        } else {
+            throw new FormException("Une erreur est survenue lors du forçage de l'import.");
+        }
+    }
+}
+

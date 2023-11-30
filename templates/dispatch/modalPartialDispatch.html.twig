@@ -1,0 +1,58 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalPartialDispatch">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Avancer la demande'
+            } %}
+
+            <div class="modal-body modal-input">
+                {% if partialStatus is not empty %}
+                    <div class="form-group row">
+                        <div class="col-12">
+                            {{ form.select('status', 'Statut', true, {
+                                emptyOption: {label: '', value: ''},
+                                items: partialStatus|map(status => ({
+                                    label: status.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
+                                    value: status.id,
+                                }))
+                            }) }}
+                        </div>
+                    </div>
+                {% else %}
+                    {% include 'utils/warningSelectEmpty.html.twig' with {
+                        array: [],
+                        warningLabel: trans('Demande', 'Acheminements', 'Général', "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement", {
+                            '1': 'partiel'
+                        }),
+                        redirectPath: path('settings_item', {
+                            'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
+                            'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_DISPATCHES'),
+                            'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                        }),
+                        redirectLabel: trans('Demande', 'Général', 'Aller vers la création des statuts'),
+                        block: true,
+                        rights: {
+                            menu: constant('App\\Entity\\Menu::PARAM'),
+                            action: constant('App\\Entity\\Action::CREATE')
+                        }
+                    } %}
+                {% endif %}
+                {{ form.hidden('id', dispatchId, {
+                    data: true,
+                }) }}
+            </div>
+
+            {% if partialStatus is not empty %}
+                {% include 'utils/modal/footer.html.twig' with {
+                    elements: [
+                        {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                        {classes: 'btn btn-success submit-button', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'}
+                    ],
+                } %}
+
+            {% endif %}
+        </div>
+    </div>
+</div>

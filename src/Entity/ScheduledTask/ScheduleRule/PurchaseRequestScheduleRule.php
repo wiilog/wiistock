@@ -1,8 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask\ScheduleRule;
 
-use App\Repository\PurchaseRequestScheduleRuleRepository;
+use App\Entity\Fournisseur;
+use App\Entity\Statut;
+use App\Entity\Utilisateur;
+use App\Entity\Zone;
+use App\Repository\ScheduledTask\StorageRule\PurchaseRequestScheduleRuleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

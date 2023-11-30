@@ -247,6 +247,29 @@ function openTreatDispatchModal() {
     $modal.modal('show');
 }
 
+function openPartialDispatchModal() {
+    const $modalPartialDispatch = $('#modalPartialDispatch');
+    const dispatchId = $('#dispatchId').val();
+
+    Form.create($modalPartialDispatch)
+        .onSubmit((data, form) => {
+            form.loading(() => {
+                return AJAX
+                    .route(AJAX.POST, `dispatch_treat_request`, {id: dispatchId})
+                    .json(data)
+                    .then((response) => {
+                        console.log(response)
+                        if (response.success) {
+                            window.location.reload();
+                            $modalPartialDispatch.modal('hide');
+                        }
+                    });
+            });
+        });
+
+    $modalPartialDispatch.modal('show');
+}
+
 function runDispatchPrint($button) {
     const dispatchId = $('#dispatchId').val();
 

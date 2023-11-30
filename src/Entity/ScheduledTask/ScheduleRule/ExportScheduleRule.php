@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask\ScheduleRule;
 
-use App\Repository\ExportScheduleRuleRepository;
+use App\Entity\ScheduledTask\Export;
+use App\Repository\ScheduledTask\StorageRule\ExportScheduleRuleRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ExportScheduleRuleRepository::class)]

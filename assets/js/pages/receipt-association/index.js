@@ -18,7 +18,12 @@ $(function () {
     Form.create($modalNewReceiptAssociation)
         .submitTo(AJAX.POST, `receipt_association_form_submit`, {
             tables: [tableReceiptAssociation],
-            success: () => $(`#beep`)[0].play(),
+            success: function () {
+                $(`#beep`)[0].play();
+                setTimeout(function () {
+                    $modalNewReceiptAssociation.modal('show');
+                }, 500);
+            },
         })
         .onOpen(() => {
             Modal.load(`receipt_association_form_template`, {}, $modalNewReceiptAssociation, $modalNewReceiptAssociation.find(`.modal-body`), {

@@ -18,7 +18,7 @@
         {% endif %}
     </div>
 
-    {% if options.showNbRefUrgentInArrival %}
+    {% if options is defined and options.showNbRefUrgentInArrival %}
         <p>{{ arrivage.receptions|length }} réception(s) liée(s)</p>
         <p>Dont {{ nbRefUrgentInArrival }} références(s) en urgence</p>
     {% endif %}

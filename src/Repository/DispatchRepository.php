@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
@@ -47,6 +48,7 @@ class DispatchRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statuses-filter':
+                case 'statut':
                     if(!empty($filter['value'])) {
                         $value = explode(',', $filter['value']);
                         $qb
@@ -58,6 +60,7 @@ class DispatchRepository extends EntityRepository
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
                         $value = Stream::explode(',', $filter['value'])
+                            ->filter()
                             ->map(static fn($type) => explode(':', $type)[0])
                             ->toArray();
                         $qb
@@ -112,6 +115,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'startDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
@@ -122,6 +127,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'endDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2Bis',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} <= :filter_dateMax_value")
@@ -179,6 +186,7 @@ class DispatchRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_BUSINESS_UNIT:
                     $values = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb
@@ -191,6 +199,19 @@ class DispatchRepository extends EntityRepository
                         ->andWhere('dispatch.projectNumber IN (:filter_project_number_value)')
                         ->setParameter('filter_project_number_value', $value);
                     break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER:
+                    $qb
+                        ->andWhere("dispatch.productionOrderNumber = :productionOrderNumber")
+                        ->setParameter("productionOrderNumber", $filter['value']);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST:
+                    $values = Stream::explode(',', $filter['value'])
+                        ->map(static fn(string $value) => explode(':', $value)[0])
+                        ->toArray();
+                    dump($values);
+                    $qb
+                        ->andWhere('dispatch.productionRequest IN (:productionRequest)')
+                        ->setParameter('productionRequest', $values);
             }
         }
         if (!empty($params)) {
@@ -201,6 +222,9 @@ class DispatchRepository extends EntityRepository
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
                         "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
                         "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => "DATE_FORMAT(dispatch.dueDate1, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => "DATE_FORMAT(dispatch.dueDate2, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => "DATE_FORMAT(dispatch.dueDate2Bis, '%e/%m/%Y') LIKE :search_value",
                         "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "requester" => "search_requester.username LIKE :search_value",
@@ -214,6 +238,8 @@ class DispatchRepository extends EntityRepository
                         "customerPhone" => "dispatch.customerPhone LIKE :search_value",
                         "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
                         "customerAddress" => "dispatch.customerAddress LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => "dispatch.productionRequest LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => "dispatch.productionOrderNumber LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
@@ -331,6 +357,11 @@ class DispatchRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch_receiver.username AS receiver')
+            ->addSelect('dispatch_carrier.label AS carrier')
+            ->addSelect('dispatch.projectNumber AS projectNumber')
+            ->addSelect('dispatch.commandNumber AS commandNumber')
+            ->addSelect('dispatch.businessUnit AS businessUnit')
             ->addSelect('dispatch.id AS id')
             ->addSelect('dispatch_created_by.username AS createdBy')
             ->addSelect('dispatch.number AS number')
@@ -354,7 +385,14 @@ class DispatchRepository extends EntityRepository
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
+            ->addSelect('dispatch.dueDate1 AS dueDate1')
+            ->addSelect('dispatch.dueDate2 AS dueDate2')
+            ->addSelect('dispatch.dueDate2Bis AS dueDate2Bis')
+            ->addSelect('dispatch.productionOrderNumber AS productionOrderNumber')
+            ->addSelect('dispatch.productionRequest AS productionRequest')
             ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.receivers', 'dispatch_receiver')
+            ->leftJoin('dispatch.carrier', 'dispatch_carrier')
             ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
             ->leftJoin('dispatch_packs.pack', 'pack')
@@ -372,24 +410,9 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("dispatch", $dispatch);
         } else {
             $queryBuilder
-                ->andWhere('type.id IN (:dispatchTypeIds)');
-            if ($offlineMode){
-                $queryBuilder
-                    ->andWhere('dispatch_created_by = :user')
-                    ->andWhere($queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->andX(
-                            'status.needsMobileSync = true',
-                            'status.state IN (:untreatedStates)',
-                        ),
-                        'status.state = :draftStatusState',
-                    ))
-                ->setParameter('user', $user);
-            } else {
-                $queryBuilder
-                    ->andWhere('status.needsMobileSync = true')
-                    ->andWhere('status.state IN (:untreatedStates)');
-            }
-            $queryBuilder
+                ->andWhere('type.id IN (:dispatchTypeIds)')
+                ->andWhere('status.needsMobileSync = true')
+                ->andWhere('status.state IN (:untreatedStates)')
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
@@ -439,9 +462,14 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.freeFields AS freeFields')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.commandNumber AS orderNumber')
+            ->addSelect('dispatch.productionOrderNumber AS productionOrderNumber')
+            ->addSelect('dispatch.productionRequest AS productionRequest')
             ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
             ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
             ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate1, '$dateFormat') AS dueDate1")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2, '$dateFormat') AS dueDate2")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2Bis, '$dateFormat') AS dueDate2Bis")
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
             ->addSelect("GROUP_CONCAT(join_receivers.username SEPARATOR ',') AS receivers")
