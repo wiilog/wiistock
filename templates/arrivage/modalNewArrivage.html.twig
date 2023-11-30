@@ -16,7 +16,7 @@
             <div class="modal-body modal-input container-fluid">
                 {% set useAiArrivals = setting_value('USE_AI_ARRIVALS') %}
                 {% if useAiArrivals %}
-                        <div class="d-flex justify-content-between ai-form">
+                        <div class="d-flex justify-content-between">
                                 {% include 'attachment/attachment.html.twig' with {
                                     nameInput: 'uploadAndScan',
                                     'isNew': true,
@@ -51,7 +51,7 @@
                             <button type="submit" class="d-none"></button>
                         </div>
                 {% endif %}
-                <div class="row fly-form mt-2">
+                <div class="row fly-form mt-2 ai-fillable-fields-container">
                     {% set supplierFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
@@ -59,8 +59,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur') }}{{ supplierRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text ai-score-text"></span>
-                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }} ai-field"
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-fournisseur {{ supplierRequired ? 'needed' }}"
                                     name="fournisseur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for fournisseur in fournisseurs %}
@@ -89,8 +88,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur') }}{{ carrierRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text ai-score-text"></span>
-                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur ai-field {{ carrierRequired ? 'needed' }}"
+                            <select class="no-clear form-control input-sm data select2 ajax-autocomplete-transporteur {{ carrierRequired ? 'needed' }}"
                                     name="transporteur">
                                 <option selected disabled>&nbsp;</option>
                                 {% for carrier in carriers %}
@@ -142,7 +140,7 @@
                     {% endif %}
                 </div>
                 {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
-                    <div class="row align-items-start">
+                    <div class="row align-items-start ai-fillable-fields-container">
                         {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                             <div class="col fly-form">
                                 <div class="row">
@@ -216,7 +214,7 @@
                         {% endif %}
                     </div>
                 {% endif %}
-                <div class="row">
+                <div class="row ai-fillable-fields-container">
                     {% set trackingNumberFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(trackingNumberFieldCode, 'displayedCreate') %}
                         {% set trackingNumberRequired = fieldsParam|isFieldRequired(trackingNumberFieldCode, 'requiredCreate') %}
@@ -229,7 +227,7 @@
                                             name: 'data-other-params',
                                         }],
                                         multiple: true,
-                                        inputClass: 'form-control input-sm data ai-field',
+                                        inputClass: 'form-control input-sm data',
                                         includeParams: '[name=transporteur]',
                                         type: 'truckArrivalLine',
                                         minLength: 0,
@@ -243,15 +241,13 @@
                                 <div class="form-group col-4">
                                     {{ form.input('noTruckArrival', 'N° arrivage camion', false , null, {
                                         disabled: true,
-                                        inputClass: 'ai-field',
                                     }) }}
                             {% else %}
                                 <label class="wii-field-name" for="noTracking">
                                     {{  trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur') }}{{ trackingNumberRequired ? '*' }}
                                 </label>
-                                <span class="wii-small-text ai-score-text"></span>
                                 <input type="text"
-                                       class="form-control input-sm data ai-field {{ trackingNumberRequired ? 'needed' }}"
+                                       class="form-control input-sm data {{ trackingNumberRequired ? 'needed' }}"
                                        value="{{ keptFields[trackingNumberFieldCode] ?? null }}"
                                        name="noTracking"
                                        maxlength="64">
@@ -265,8 +261,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL') }}{{ orderNumberRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text ai-score-text"></span>
-                            <select class="form-control input-sm data select2-free w-100 ai-field {{ orderNumberRequired ? 'needed' }}"
+                            <select class="form-control input-sm data select2-free w-100 {{ orderNumberRequired ? 'needed' }}"
                                     name="numeroCommandeList"
                                     multiple="multiple">
                                 {% set savedOrderNumber = keptFields[orderNumberFieldCode] ?? null %}
@@ -288,8 +283,7 @@
                                     <label class="wii-field-name">
                                         {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire') }}{{ targetRequired ? '*' }}
                                     </label>
-                                    <span class="wii-small-text ai-score-text"></span>
-                                    <select class="form-control input-sm data ajax-autocomplete-user ai-field {{ targetRequired ? 'needed' }} ajax-autocomplete"
+                                    <select class="form-control input-sm data ajax-autocomplete-user {{ targetRequired ? 'needed' }} ajax-autocomplete"
                                             name="destinataire">
                                         <option selected disabled>&nbsp;</option>
                                         {% for user in users %}
@@ -579,12 +573,11 @@
                     {% set commentFieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(commentFieldCode, 'displayedCreate') %}
                         {% set commentRequired = fieldsParam|isFieldRequired(commentFieldCode, 'requiredCreate') %}
-                        <div class="form-group col-8 h-fit-content">
+                        <div class="form-group col-8 h-fit-content ai-fillable-fields-container">
                             <label class="wii-subtitle" for="commentaire">
                                 {{ trans('Général', null, 'Modale', 'Commentaire') }}{{ commentRequired ? '*' }}
                             </label>
-                            <span class="wii-small-text ai-score-text"></span>
-                            <input class="commentaire form-control input-sm data ai-field {{ commentRequired ? 'needed' }}"
+                            <input class="commentaire form-control input-sm data {{ commentRequired ? 'needed' }}"
                                    name="commentaire"
                                    type="hidden">
                             <div class="editor-container-new" data-wysiwyg>

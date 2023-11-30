@@ -419,19 +419,6 @@ function createArrival(form = null) {
         }
     });
 
-    let aiFields = $('.ai-field');
-
-    aiFields.on('change', function () {
-       $(this).next().children().first().children().first().removeClass('score-low score-medium score-high');
-       let aiScoreText = $(this).prev().hasClass('ai-score-text') ? $(this).prev() : $(this).prev().find('.ai-score-text');
-       aiScoreText.html('');
-    })
-
-    aiFields.parent().on('keyup', '.ql-editor', function(){
-        $(this).parent().prev().removeClass('score-low score-medium score-high');
-        $(this).parent().parent().find('.ai-score-text').html('');
-    });
-
     return $modal;
 }
 
