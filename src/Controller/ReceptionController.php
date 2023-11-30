@@ -355,7 +355,7 @@ class ReceptionController extends AbstractController {
         if ($arrivageId = $request->query->get('arrivage')) {
             $arrivageRepository = $entityManager->getRepository(Arrivage::class);
             $arrivage = $arrivageRepository->find($arrivageId);
-            if ($arrivage && $arrivage->getReceptions()->isEmpty()) {
+            if ($arrivage) {
                 $arrivageData = [
                     'id' => $arrivageId,
                     'fournisseur' => $arrivage->getFournisseur(),

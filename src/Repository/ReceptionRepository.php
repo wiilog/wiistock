@@ -176,9 +176,9 @@ class ReceptionRepository extends EntityRepository
                     if (!empty($value)) {
                         $ors = $qb->expr()->orX();
                         foreach ($value as $command) {
-                            $keyParameter = "search_command_{$ors->count()}";
-                            $ors->add("JSON_CONTAINS(reception.orderNumber, :$keyParameter, '$') = true");
-                            $qb->setParameter($keyParameter, "\"$command\"");
+                            $keyParameter = "search_orderNumber_{$ors->count()}";
+                            $ors->add("reception.orderNumber = :$keyParameter");
+                            $qb->setParameter($keyParameter, "$command");
                         }
 
                         $qb->andWhere($ors);
