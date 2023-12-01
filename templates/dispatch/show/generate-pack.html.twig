@@ -1,0 +1,81 @@
+{% import 'form.html.twig' as form %}
+
+<div class="modal fade" id="modalGenerateLogisticUnit" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: 'Générer des unités logistiques',
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                <div class="wii-section-title">Unité(s) logistique(s) à générer</div>
+                <div class="row mt-2">
+                    {% if natures is not empty %}
+                        <div class="col-12">
+                            <div class="row mt-2">
+                                {% for nature in natures %}
+                                    <div class="form-group col-6">
+                                        {% set quantity = nature.defaultQuantity ? nature.defaultQuantity : 0 %}
+                                        {{ form.number(nature.id, nature.label|capitalize, false, quantity, {
+                                            min: 0,
+                                            inputClass: "needs-default",
+                                            attributes: {
+                                                "data-init": quantity,
+                                            },
+                                            multipleKey: {
+                                                key: "natures",
+                                                index: loop.index,
+                                            }
+                                        }) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="mx-auto mt-2 mb-3">
+                            {% include 'utils/warningSelectEmpty.html.twig' with {
+                                block: true,
+                                array: natures,
+                                warningLabel: 'Attention ! Aucune nature de colis n\'a été créée',
+                                redirectPath: path('nature_param_index'),
+                                redirectLabel: 'Aller vers la création des natures'
+                            } %}
+                        </div>
+                    {% endif %}
+                </div>
+
+
+                <div class="wii-section-title">Impression</div>
+                <div class="row mt-3">
+                    <div class="col-12 d-flex align-items-center">
+                        {{ form.switch('printLabel', "Imprimer étiquette", true, [
+                            {label: 'Oui', value: '1', checked: true},
+                            {label: 'Non', value: '0'},
+                        ], {
+                            attributes: {
+                                onchange: "togglePrinters($(this))",
+                            },
+                        }) }}
+                    </div>
+
+
+                    <div class="col-12 form-group mt-2">
+                        {{ form.select("printer", "Imprimante", true, {
+                            type: "printer",
+                            value: app.user.defaultPrinter ? app.user.defaultPrinter.id : null,
+                        }) }}
+                    </div>
+                </div>
+            </div>
+
+            {{ form.hidden("dispatchId", dispatchId) }}
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success', text: 'Générer', type: "submit"},
+                ],
+            } %}
+        </div>
+    </div>
+</div>

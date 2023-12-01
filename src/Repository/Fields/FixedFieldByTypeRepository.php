@@ -3,6 +3,7 @@
 namespace App\Repository\Fields;
 
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use WiiCommon\Helper\Stream;
@@ -52,7 +53,8 @@ class FixedFieldByTypeRepository extends EntityRepository {
             ->toArray();
     }
 
-    public function getElements(string $entity, string $field): ?array {
+    public function getElements(string $entity, string $field): ?array
+    {
         $result = $this->createQueryBuilder("fixedFieldByType")
             ->select("fixedFieldByType.elements")
             ->where("fixedFieldByType.entityCode = :entity")

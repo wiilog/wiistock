@@ -800,4 +800,20 @@ class Dispatch extends StatusHistoryContainer {
 
         return $this;
     }
+
+    public function removePack(Pack $pack): self
+    {
+        $dispatchPacks = $this->getDispatchPacks();
+
+        $dispatchPackToRemove = null;
+
+        foreach ($dispatchPacks as $dispatchPack) {
+            if ($dispatchPack->getPack() === $pack) {
+                $dispatchPackToRemove = $dispatchPack;
+                break;
+            }
+        }
+
+        return $this->removeDispatchPack($dispatchPackToRemove);
+    }
 }

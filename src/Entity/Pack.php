@@ -132,6 +132,12 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?Dispatch $creatingDispatch = null;
 
+    #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "subPacks")]
+    private ?Pack $originalPack = null;
+
+    #[ORM\OneToMany(mappedBy: 'originalPack', targetEntity: Pack::class)]
+    private Collection $subPacks;
+
     public function __construct() {
         $this->disputes = new ArrayCollection();
         $this->trackingMovements = new ArrayCollection();
@@ -144,6 +150,7 @@ class Pack implements PairedEntity {
         $this->childArticles = new ArrayCollection();
         $this->projectHistoryRecords = new ArrayCollection();
         $this->receptionLines = new ArrayCollection();
+        $this->subPacks = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -836,6 +843,45 @@ class Pack implements PairedEntity {
     public function setCreatingDispatch(?Dispatch $creatingDispatch): self
     {
         $this->creatingDispatch = $creatingDispatch;
+
+        return $this;
+    }
+
+    public function getSubPacks(): Collection {
+        return $this->subPacks;
+    }
+
+    public function addSubPack(Pack $pack): self {
+        if (!$this->subPacks->contains($pack)) {
+            $this->subPacks[] = $pack;
+            $pack->setOriginalPack($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubPack(Pack $pack): self {
+        if ($this->subPacks->removeElement($pack)) {
+            if ($pack->getOriginalPack() === $this) {
+                $pack->setOriginalPack(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOriginalPack(): ?Pack {
+        return $this->originalPack;
+    }
+
+    public function setOriginalPack(?Pack $originalPack): self {
+        if($this->originalPack && $this->originalPack !== $originalPack) {
+            $this->originalPack->removeSubPack($this);
+        }
+        $this->originalPack = $originalPack;
+        if($originalPack) {
+            $originalPack->addSubPack($this);
+        }
 
         return $this;
     }

@@ -98,7 +98,8 @@ class NatureService
             'color' => $nature->getColor(),
             'hide' => !$nature->getNeedsMobileSync(),
             'defaultNature' => $nature->getDefaultNature(),
-            'isDisplayedOnDispatch' => $nature->isDisplayedOnForm(Nature::DISPATCH_CODE)
+            'isDisplayedOnPackSeparation' => $nature->isDisplayedOnForm(Nature::PACK_SEPARATION_CODE),
+            'isDisplayedOnDispatch' => $nature->isDisplayedOnForm(Nature::DISPATCH_CODE),
         ];
     }
 }

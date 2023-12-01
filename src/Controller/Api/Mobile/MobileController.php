@@ -33,6 +33,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\Printer;
 use App\Entity\Project;
 use App\Entity\ReceptionLine;
 use App\Entity\ReferenceArticle;
@@ -78,9 +79,9 @@ use App\Service\NotificationService;
 use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
+use App\Service\PrinterService;
 use App\Service\ProjectHistoryRecordService;
 use App\Service\ReceptionService;
-use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
 use App\Service\StatusHistoryService;
@@ -107,6 +108,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use ZplGenerator\Client\SocketClient;
 
 #[Rest\Route("/api")]
 class MobileController extends AbstractApiController
@@ -197,6 +199,7 @@ class MobileController extends AbstractApiController
                         'userId' => $loggedUser->getId(),
                         'fieldsParam' => $fieldsParam ?? [],
                         'dispatchDefaultWaybill' => $wayBillData ?? [],
+                        'defaultPrinter' => $loggedUser->getDefaultPrinter()?->getId()
                     ];
                 } else {
                     $data = [
@@ -2221,6 +2224,7 @@ class MobileController extends AbstractApiController
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
+        $printerRepository = $entityManager->getRepository(Printer::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2476,6 +2480,13 @@ class MobileController extends AbstractApiController
                 ->toArray();
         }
 
+        $printers = Stream::from($user->getAllowedPrinters())
+            ->map(static fn(Printer $printer) => [
+                "id" => $printer->getId(),
+                "name" => $printer->getName(),
+            ])
+            ->toArray();
+
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
@@ -2537,6 +2548,7 @@ class MobileController extends AbstractApiController
             'dispatchEmergencies' => $dispatchEmergencies ?? [],
             'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
             'reserveTypes' => $reserveTypes ?? [],
+            'printers' => $printers,
         ];
     }
 
@@ -3982,6 +3994,64 @@ class MobileController extends AbstractApiController
             'success' => true,
             'msg' => "Enregistrement"
         ]);
+    }
+
+    #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
+    #[Rest\View]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postPackSeparations(Request                $request,
+                                        EntityManagerInterface $entityManager,
+                                        PrinterService         $printerService,
+                                        PackService            $packService): JsonResponse
+    {
+        $packCode = $request->request->get('pack');
+        $subPacks = json_decode($request->request->get('subPacks'), true);
+        $locationLabel = $request->request->get('location');
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+        $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
+        $pack = $packRepository->findOneBy(['code' => $packCode]);
+        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
+
+        $user = $this->getUser();
+
+        if($dispatch && $request->request->get("printer")) {
+            $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+            try {
+                $client = SocketClient::create($printer->getAddress(), PrinterService::DEFAULT_PRINTER_PORT, PrinterService::DEFAULT_PRINTER_TIMEOUT);
+                $zebraPrinter = $printerService->getPrinter($printer);
+            }
+            catch(Throwable) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.",
+                ]);
+            }
+
+            $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+
+            array_shift($movements);
+
+            $packs = Stream::from($movements)
+                ->map(fn(TrackingMovement $movement) => $movement->getPack())
+                ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
+                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                    ->first())
+                ->filter()
+                ->toArray();
+
+            $printerService->printDispatchPacks($zebraPrinter, $client, $dispatch, $packs);
+        } else {
+            $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+        }
+
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
     }
 
     #[Rest\Post("/dispatch-edit", condition: "request.isXmlHttpRequest()")]

@@ -89,7 +89,7 @@
 
     <div class="form-group col-12 d-flex align-items-center">
         <div class="wii-checkbox pl-0 pointer">
-            {% set checked = nature.displayedOnForms ? 'checked' %}
+            {% set checked = nature.isDisplayedOnForms ? 'checked' %}
             <label class="pointer d-flex align-items-center wii-field-text">
                 <input class="checkbox data ml-2" type="checkbox" name="displayedOnForms" {{ checked }} onchange="toggleEntitiesContainer($(this))">
                 Affichage sur les formulaires ?
@@ -97,7 +97,7 @@
         </div>
     </div>
 
-    {% set hide = not nature.displayedOnForms ? 'd-none' %}
+    {% set hide = not nature.isDisplayedOnForms ? 'd-none' %}
     <div class="col entities-container ml-3 {{ hide }}">
         {% for index, entity in constant('App\\Entity\\Nature::ENTITIES') %}
             {% set checked = index in nature.allowedForms|keys %}

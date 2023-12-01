@@ -58,7 +58,7 @@ export function initUserPage($container) {
                 .closest(`.form-group`)
                 .removeClass(`mb-0`);
         }
-    })
+    });
 }
 
 function editRowUser(button) {
