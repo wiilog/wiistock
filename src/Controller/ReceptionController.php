@@ -599,7 +599,8 @@ class ReceptionController extends AbstractController {
             $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
             $reception = $receptionRepository->find($contentData['reception']);
 
-            if($reception->getStatut()->getState() === Statut::TREATED) {
+            $status = $reception->getStatut();
+            if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
                 return $this->json([
                     'success' => false,
                     'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
@@ -2202,7 +2203,8 @@ class ReceptionController extends AbstractController {
     public function packingTemplate(Request                $request,
                                     Reception              $reception,
                                     EntityManagerInterface $entityManager): Response {
-        if($reception->getStatut()->getState() === Statut::TREATED) {
+        $status = $reception->getStatut();
+        if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
             return $this->json([
                 'success' => false,
                 'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
@@ -2262,7 +2264,8 @@ class ReceptionController extends AbstractController {
         $receptionLine = $receptionReferenceArticle->getReceptionLine();
         $reception = $receptionLine->getReception();
 
-        if($reception->getStatut()->getState() === Statut::TREATED) {
+        $status = $reception->getStatut();
+        if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
             return $this->json([
                 'success' => false,
                 'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
