@@ -18,7 +18,6 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
-use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -33,7 +32,8 @@ use App\Entity\Nature;
 use App\Entity\Printer;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -80,7 +80,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment;
+use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -96,7 +96,7 @@ class SettingsController extends AbstractController {
     public SpecificService $specificService;
 
     #[Required]
-    public Environment $twig;
+    public Twig_Environment $twig;
 
     #[Required]
     public KernelInterface $kernel;
@@ -1333,6 +1333,7 @@ class SettingsController extends AbstractController {
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
                         $businessField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]);
+                        $productionRequestField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST]);
 
                         $dispatchLogisticUnitLengthField = $subLineFieldParamRepository->findOneBy([
                             'entityCode' => SubLineFixedField::ENTITY_CODE_DISPATCH_LOGISTIC_UNIT,
@@ -1363,6 +1364,17 @@ class SettingsController extends AbstractController {
                                 "field" => $businessField->getId(),
                                 "elementsType" => $businessField->getElementsType(),
                                 "elements" => Stream::from($businessField->getElements())
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                            "productionRequest" => [
+                                "field" => $productionRequestField->getId(),
+                                "elementsType" => $productionRequestField->getElementsType(),
+                                "elements" => Stream::from($productionRequestField->getElements())
                                     ->map(fn(string $element) => [
                                         "label" => $element,
                                         "value" => $element,
@@ -1686,15 +1698,17 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
-                self::MENU_IMPORTS => fn() => [
-                    "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
+                self::MENU_IMPORTS => function () use ($typeRepository, $statusRepository) {
+                    $statuses = $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,
-                        [
-                            Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED,
-                            Import::STATUS_FINISHED,
-                        ]
-                    ),
-                ],
+                        [Import::STATUS_UPCOMING, Import::STATUS_SCHEDULED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                    );
+                    $types = $typeRepository->findByCategoryLabels([CategoryType::IMPORT]);
+                    return [
+                        "statuts" => $statuses,
+                        "types" => $types,
+                    ];
+                },
             ],
             self::CATEGORY_NOTIFICATIONS => [
                 self::MENU_ALERTS => function() use ($alertTemplateRepository) {
@@ -2696,7 +2710,7 @@ class SettingsController extends AbstractController {
     }
 
     #[Route("/champ-fixe/{entity}", name: "settings_fixed_field_api", options: ['expose' => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    public function fixedFieldByTypeApi(Request                 $request,
+    public function fixedFieldApi(Request                 $request,
                                         EntityManagerInterface  $entityManager,
                                         FormService             $formService,
                                         string                  $entity): JsonResponse {

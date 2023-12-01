@@ -38,6 +38,8 @@ class Type {
     const LABEL_NOMADE_SESSION_HISTORY = 'session mobile';
     const LABEL_WEB_SESSION_HISTORY = 'session web';
 
+    const LABEL_SCHEDULED_IMPORT = 'Import planifié';
+    const LABEL_UNIQUE_IMPORT = 'Import unique';
 
     public const DISPATCH_NUMBER = 0;
     public const LOGISTIC_UNIT_CODE = 1;

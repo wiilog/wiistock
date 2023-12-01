@@ -26,7 +26,11 @@ class AttachmentService {
         $this->attachmentDirectory = "{$kernel->getProjectDir()}/public/uploads/attachments";
     }
 
-	public function createAttachments($files): array {
+    /**
+     * @param UploadedFile[]|FileBag $files
+     * @return Attachment[]
+     */
+	public function createAttachments(array|FileBag $files): array {
 		$attachments = [];
 
         if ($files instanceof FileBag) {
@@ -66,7 +70,7 @@ class AttachmentService {
         return [$file->getClientOriginalName() => $filename];
     }
 
-	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity): void
+	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity = null): void
 	{
 		if ($entity) {
             $entity->removeAttachment($attachment);

@@ -6,18 +6,18 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\Export;
-use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-use App\Entity\PurchaseRequest;
-use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\TrackingMovement;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PurchaseRequest;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\TransferOrder;
 use App\Entity\TransferRequest;
 use App\Entity\Transport\TransportOrder;
@@ -137,7 +137,8 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 PurchaseRequest::NOT_TREATED => Statut::NOT_TREATED,
             ],
             CategorieStatut::IMPORT => [
-                Import::STATUS_PLANNED => Statut::NOT_TREATED,
+                Import::STATUS_SCHEDULED => Statut::NOT_TREATED,
+                Import::STATUS_UPCOMING => Statut::NOT_TREATED,
                 Import::STATUS_FINISHED => Statut::TREATED,
                 Import::STATUS_IN_PROGRESS => Statut::NOT_TREATED,
                 Import::STATUS_CANCELLED => Statut::NOT_TREATED,

@@ -1,0 +1,41 @@
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <div class="dropdown-item has-tooltip"
+                 onclick="displayFirstModal($(this), {{ import.id }})">
+                <i class='fas fa-sync-alt mr-2'></i>Dupliquer l'import
+            </div>
+            {% if logFile is not null %}
+                <a href="/uploads/attachments/{{ logFile }}"
+                   class="dropdown-item has-tooltip">
+                    <i class='fas fa-search-plus mr-2'></i>Fichier trace
+                </a>
+            {% endif %}
+            {% if canEditOrDelete %}
+                <button class="dropdown-item has-tooltip edit-import"
+                        data-id="{{ import.id }}">
+                    <i class='fas fa-pen mr-2'></i>Modifier l'import
+                </button>
+                {% if import.draft %}
+                    <button class="dropdown-item has-tooltip delete-import"
+                            data-id="{{ import.id }}">
+                        <i class='fas fa-times mr-2'></i>Supprimer l'import
+                    </button>
+                {% endif %}
+            {% endif %}
+            {% if canForce %}
+                <button class="dropdown-item has-tooltip force-import"
+                        data-id="{{ import.id }}">
+                    <i class='fas fa-download mr-2'></i>Forcer l'import
+                </button>
+            {% endif %}
+            {% if canCancel %}
+                <button class="dropdown-item has-tooltip cancel-import"
+                        data-id="{{ import.id }}">
+                    <i class='fas fa-times mr-2'></i>Annuler l'import
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>

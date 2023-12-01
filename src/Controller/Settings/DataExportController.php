@@ -11,12 +11,12 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
-use App\Entity\Export;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -35,13 +35,17 @@ use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use LimitIterator;
+use SplFileObject;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\SecurityBundle\Security;
 use WiiCommon\Helper\Stream;
 
 
@@ -437,6 +441,44 @@ class DataExportController extends AbstractController {
             "success" => true,
             "msg" => "L'export a bien été forcé",
         ]);
+    }
+
+    #[Route('/export/logs', name: 'settings_export_logs_server', options: ['expose' => true], methods: ['GET'])]
+    public function downloadLogs(KernelInterface $kernelInterface,
+                                 DataExportService $dataExportService): Response {
+        $varDirectory = $kernelInterface->getLogDir();
+        $fileName = $varDirectory . '/' . $_ENV['APP_ENV'] . '.log';
+
+        if (file_exists($fileName)) {
+            $file = new SplFileObject($fileName, 'r');
+            $file->seek(PHP_INT_MAX);
+            $lastLineKey = $file->key();
+
+            $nLast = 500;
+            $offset = $lastLineKey - $nLast;
+            $positiveOffset = $offset > 0 ? $offset : 0;
+
+            $logContent = new LimitIterator($file, $positiveOffset, $lastLineKey);
+        }
+        else {
+            $logContent = ['NO LOGS'];
+        }
+
+        $response = new StreamedResponse(function () use ($logContent) {
+            $output = fopen("php://output", "wb");
+            foreach ($logContent as $line) {
+                fputs($output, $line);
+            }
+
+            fclose($output);
+        });
+
+        $disposition = HeaderUtils::makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, 'FollowNexter.log');
+
+        $response->headers->set('Content-Type', "text/plain");
+        $response->headers->set('Content-Disposition', $disposition);
+        $dataExportService->createUniqueExportLine(Export::ENTITY_LOGS_SERVER, new DateTime());
+        return $response;
     }
 }
 

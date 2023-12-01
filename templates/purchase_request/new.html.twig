@@ -11,7 +11,7 @@
 
             <div class="modal-body modal-input container-fluid">
                 {% include 'purchase_request/form_content_modal.html.twig' with {
-                    statuses: [statuses|first],
+                    statuses: statuses|sort((statusA, statusB) => statusA.displayOrder - statusB.displayOrder),
                 }%}
             </div>
             {% include 'utils/modal/footer.html.twig' with {

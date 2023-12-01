@@ -323,32 +323,46 @@ $wii-switch-height: $input-height;
     }
 
     input[type="radio"] {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         -webkit-appearance: none;
         -moz-appearance: none;
         appearance: none;
-        display: inline-block;
-        width: 15px;
-        height: 15px;
-        padding: 1.5px;
+        width: 16px;
+        height: 16px;
         background-clip: content-box;
         border: 2px solid var(--radio-color);
         background-color: $white;
         border-radius: 50%;
         margin-right: 5px;
+        cursor: pointer;
     }
 
     /* appearance for checked radio button */
     input[type="radio"]:checked {
-        background-color: var(--radio-color);
+        &::before {
+            content: "";
+            position: relative;
+            display: block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--radio-color);
+            border-radius: 50%;
+        }
     }
-    /* appearance for checked radio button */
+    /* appearance for disabled radio button */
     input[type="radio"]:disabled {
-        background-color: #d9d9d9;
         border-color: #cfcfcf;
         padding: 0;
         cursor: default;
         & + label {
             cursor: default;
+        }
+
+        &::before {
+            background-color: #d9d9d9;
         }
     }
 }

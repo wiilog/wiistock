@@ -21,7 +21,7 @@
                     {% endfor %}
                 {% else %}
                     {% for status in statuts | sort((a, b) => a.nom <=> b.nom) %}
-                        {% set selected = (filterStatus is defined and status.nom in filterStatus) ? 'selected' %}
+                        {% set selected = (filterStatus is defined and status.id in filterStatus) ? 'selected' %}
                         <option class="d-none" value="{{ status.id }}"
                                 {% if status.isDraft or status.isNotTreated or status.isPartial %}
                                     data-allowed-state="1"
