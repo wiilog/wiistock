@@ -119,17 +119,17 @@ class ReceiptAssociationRepository extends EntityRepository
                             ->orderBy('order_user.username', $order);
                     } else if ($column === 'logisticUnit') {
                         $qb
-                            ->leftJoin('receipt_association.pack', 'order_pack')
+                            ->leftJoin('receipt_association.logisticUnits', 'order_pack')
                             ->orderBy('order_pack.code', $order);
                     } else if ($column === 'lastTrackingLocation') {
                         $qb
-                            ->leftJoin('receipt_association.pack', 'order_pack')
+                            ->leftJoin('receipt_association.logisticUnits', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
                             ->leftJoin('pack_lastTracking.emplacement', 'lastTracking_location')
                             ->orderBy('lastTracking_location.label', $order);
                     } else if ($column === 'lastTrackingDate') {
                         $qb
-                            ->leftJoin('receipt_association.pack', 'order_pack')
+                            ->leftJoin('receipt_association.logisticUnits', 'order_pack')
                             ->leftJoin('order_pack.lastTracking', 'pack_lastTracking')
                             ->orderBy('pack_lastTracking.datetime', $order);
                     } else if (property_exists(ReceiptAssociation::class, $column)) {
