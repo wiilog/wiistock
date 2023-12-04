@@ -52,7 +52,7 @@
                         </div>
                 {% endif %}
                 <div class="row fly-form mt-2 ai-fillable-fields-container">
-                    {% set supplierFieldCode = constant('App\\Entity\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
+                    {% set supplierFieldCode = constant('App\\Entity\\FIelds\\FixedFieldStandard::FIELD_CODE_FOURNISSEUR') %}
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">

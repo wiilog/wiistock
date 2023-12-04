@@ -86,13 +86,6 @@ class ArrivageController extends AbstractController {
     public HttpService $httpService;
 
     private ?string $defaultLanguageSlug = null;
-    const AI_FIELDS = [
-        'destinataire' => FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
-        'noTracking' => FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
-        'fournisseur' => FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE,
-        'numeroCommandeList' => FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE,
-    ];
-
 
     /**
      * @Route("/", name="arrivage_index")
@@ -1603,7 +1596,7 @@ class ArrivageController extends AbstractController {
         if ($request->files->has('file')) {
 
             if (!isset($_SERVER["DN_READER_URL"]) || !isset($_SERVER["DN_READER_SECRET_KEY"])) {
-                throw new Exception("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
+                throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
             }
 
             $uploadedFile = $request->files->get('file');
@@ -1622,11 +1615,12 @@ class ArrivageController extends AbstractController {
                     "headers" => $headers,
                     "body" => $formData->bodyToIterable(),
                 ]);
+
+                $apiOutput = json_decode($apiRequest->getContent(), true);
             } catch (\Throwable $e) {
-                throw new \Exception('Une erreur s\'est produite lors de la récupération des informations du BL');
+                throw new FormException('Une erreur s\'est produite lors de la récupération des informations du BL');
             }
 
-            $apiOutput = json_decode($apiRequest->getContent(), true);
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();
             $pattern = '/(.+)\.\w{3}/';
             preg_match($pattern, $originalUploadedFileName, $matches);
@@ -1642,32 +1636,32 @@ class ArrivageController extends AbstractController {
         $fields = array_keys($apiOutput["values"]);
         $data = [
             "values" => [
-                FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE => [],
+                FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE => [],
             ],
         ];
         //TODO STREAM FROM
         foreach ($fields as $field) {
-            in_array($field, array_keys(self::AI_FIELDS)) ?
-                $fieldName = self::AI_FIELDS[$field]
-                : $fieldName = FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
+        in_array($field, array_keys(Arrivage::AI_FILABLE_FIELDS)) ?
+                $fieldName = Arrivage::AI_FILABLE_FIELDS[$field]
+                : $fieldName = FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
 
                 if (is_array($apiOutput["values"][$field])) {
                     foreach ($apiOutput["values"][$field] as $apiOutputFieldElement) {
                         switch ($fieldName){
-                            case FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE:
+                            case FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE:
                                 $fieldValue = $fournisseurRepository->findOneBy(["nom" => $apiOutputFieldElement["value"]])?->getId();
                                 break;
-                            case FieldsParam::FIELD_CODE_TARGET_ARRIVAGE:
+                            case FixedFieldStandard::FIELD_CODE_RECEIVERS:
                                 $fieldValue = $utilisateurRepository->findOneByName($apiOutputFieldElement["value"])?->getId();
                                 break;
-                            case FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
+                            case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
                                 $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutputFieldElement['value']]);
                                 if ($truckArrivalLine) {
                                     $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
-                                    $data["values"][FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE] = [
+                                    $data["values"][FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE] = [
                                         "value" => $carrierId,
                                     ];
-                                    $data["values"][FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
+                                    $data["values"][FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
                                         "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
                                     ];
                                     $data["values"][$field]["id"] = $truckArrivalLine->getId();
@@ -1692,6 +1686,9 @@ class ArrivageController extends AbstractController {
                 'path' => $filepath,
             ];
         }
-        return $this->json($data);
+        return $this->json([
+            "success" => true,
+            "data" => $data,
+        ]);
     }
 }

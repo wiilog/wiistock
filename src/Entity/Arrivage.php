@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ArrivageRepository;
@@ -16,6 +17,13 @@ class Arrivage {
 
     use CleanedCommentTrait;
     use FreeFieldsManagerTrait;
+
+    public const AI_FILABLE_FIELDS = [
+        'destinataire' => FixedFieldStandard::FIELD_CODE_RECEIVERS,
+        'noTracking' => FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
+        'fournisseur' => FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE,
+        'numeroCommandeList' => FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE,
+    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
