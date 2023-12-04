@@ -766,11 +766,11 @@ class ImportService
         if (empty($supplierArticle)) {
             $newEntity = true;
             $supplierArticle = new ArticleFournisseur();
-            $supplierArticle->setReference($data['reference']);
+            $supplierArticle->setReference(trim($data['reference']));
         }
 
         if (isset($data['label'])) {
-            $supplierArticle->setLabel($data['label']);
+            $supplierArticle->setLabel(trim($data['label']));
         }
 
         if (!empty($data['fournisseurReference'])) {
