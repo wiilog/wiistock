@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set fieldCodeReceiversHandling = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+    {% set fieldCodeReceiversHandling = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
     <input type="hidden"
            id="showReceiversColumn"
            value="{{ (fieldsParam|isFieldRequired(fieldCodeReceiversHandling, 'displayedCreate')
@@ -75,4 +75,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script src="{{ asset('js/pages/handling.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('filters') }}
 {% endblock %}

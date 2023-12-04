@@ -77,13 +77,15 @@ class DataHistoryController extends AbstractController {
         $query = $request->query;
         $type = $query->get('type');
         $id = $query->get('id');
+        $messageContentType = $query->get('messageContentType');
         if(!$id) {
             return $this->json(['colors' => []]);
         }
         $entity = $dataMonitoringService->getEntity($entityManager, $type, $id);
         $associatedMessages = $entity->getSensorMessagesBetween(
             $filters["start"],
-            $filters["end"]
+            $filters["end"],
+            ["messageContentType" => $messageContentType]
         );
 
         $data = $pairingService->buildChartDataFromMessages($associatedMessages);
@@ -109,7 +111,7 @@ class DataHistoryController extends AbstractController {
         $associatedMessages = $entity->getSensorMessagesBetween(
             $start,
             $now,
-            Sensor::GPS
+            ["sensorType" => Sensor::GPS]
         );
 
         $data = [];

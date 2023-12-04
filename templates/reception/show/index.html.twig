@@ -130,17 +130,21 @@
     {% include "reception/show/modalEditReception.html.twig" %}
     {% include "reception/show/modalEditReceptionReferenceArticle.html.twig" %}
     {% include "reception/show/modalDeleteReceptionReferenceArticle.html.twig" %}
-    {% include "reception/show/modalNewReceptionReferenceArticle.html.twig" %}
+    {% if reception.statut.state is not same as constant('App\\Entity\\Statut::TREATED') %}
+        {% include "reception/show/modalNewReceptionReferenceArticle.html.twig" %}
+        {% include 'reception/show/packing/modal.html.twig' with {
+            precheckedDelivery,
+            deliverySwitchLabel,
+            restrictedLocations,
+            reception
+        } %}
+        k
+    {% endif %}
+
     {% include "reception/show/modalChooseConditionnement.html.twig" %}
     {% include "article/modalDeleteArticle.html.twig" %}
     {% include 'reception/show/modalNewLitige.html.twig' %}
     {% include 'reception/show/modalEditLitige.html.twig' %}
-    {% include 'reception/show/packing/modal.html.twig' with {
-        precheckedDelivery,
-        deliverySwitchLabel,
-        restrictedLocations,
-        reception
-    } %}
     {% include 'reception/show/modalDeleteLitige.html.twig' %}
     {% include 'reception/show/modalFinishReception.html.twig' %}
     {% include 'reception/show/modalCancelReception.html.twig' %}

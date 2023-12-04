@@ -10,6 +10,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -196,22 +197,31 @@ class PurchaseRequestService
 
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
+        $emailRequesters = [];
+
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
+        if ($buyerAbleToReceivedMail) {
+            $buyer = $purchaseRequest->getBuyer();
+            if ($buyer){
+                $emailRequesters[] = $buyer;
+            }
+        }
+
         $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
+        if ($requesterAbleToReceivedMail) {
+            $requester = $purchaseRequest->getRequester();
+            if ($requester){
+                $emailRequesters[] = $requester;
+            }
+        }
 
-        if (isset($buyerAbleToReceivedMail) || isset($requesterAbleToReceivedMail)) {
-
-            $requester = $purchaseRequest->getRequester() ?? null;
-            $buyer = $purchaseRequest->getBuyer() ?? null;
-
-            $needsRefsBuyer = !$buyer;
-
-            $mails = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? [$buyer] : [$requester];
+        if (!empty($emailRequesters)) {
+            $needsRefsBuyer = !($buyer ?? null) ;
 
             if ($needsRefsBuyer) {
-                $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
+                $emailRequesters = Stream::from($purchaseRequest->getPurchaseRequestLines())
                     ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
-                    ->concat($mails)
+                    ->concat($emailRequesters)
                     ->toArray();
             }
 
@@ -242,17 +252,15 @@ class PurchaseRequestService
                 })
                 ->toArray();
 
-            if (isset($requester)) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // ' . $subject,
-                    $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
-                        'title' => $title,
-                        'purchaseRequest' => $purchaseRequest,
-                        'refsAndQuantities' => $refsAndQuantities
-                    ]),
-                    $mails
-                );
-            }
+            $this->mailerService->sendMail(
+                'FOLLOW GT // ' . $subject,
+                $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
+                    'title' => $title,
+                    'purchaseRequest' => $purchaseRequest,
+                    'refsAndQuantities' => $refsAndQuantities
+                ]),
+                $emailRequesters
+            );
         }
     }
 

@@ -54,7 +54,7 @@ function loadLUQuantity($selector) {
     const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
     const code = $selector.val();
 
-    AJAX.route(`GET`, `tracking_movement_logistic_unit_quantity`, {code})
+    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -77,7 +77,7 @@ function loadLULocation($input) {
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
     const code = $input.val();
 
-    AJAX.route(`GET`, `tracking_movement_logistic_unit_location`, {code})
+    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_location`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -181,7 +181,7 @@ function initPageModal(tableMvt) {
                         return resolve(true);
                     }
 
-                    AJAX.route(`GET`, `tracking_movement_is_in_lu`, {barcode: pack})
+                    AJAX.route(AJAX.GET, `tracking_movement_is_in_lu`, {barcode: pack})
                         .json()
                         .then(result => {
                             if(result.in_logistic_unit) {
@@ -262,38 +262,40 @@ function resetNewModal($modal) {
 }
 
 function switchMvtCreationType($input) {
-    let pathToGetAppropriateHtml = Routing.generate("mouvement_traca_get_appropriate_html", true);
     let paramsToGetAppropriateHtml = $input.val();
 
-    $(`#submitNewMvtTraca`).prop(`disabled`, false);
+    if(paramsToGetAppropriateHtml){
+        $(`#submitNewMvtTraca`).prop(`disabled`, false);
+        AJAX.route(AJAX.POST, "mouvement_traca_get_appropriate_html")
+            .json(paramsToGetAppropriateHtml)
+            .then((response) => {
+                if (response) {
+                    const $modal = $input.closest('.modal');
+                    $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
+                    $modal.find('.new-mvt-common-body').removeClass('d-none');
+                    $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
+                    Select2Old.location($modal.find('.ajax-autocomplete-location'));
+                    Select2Old.initFree($modal.find('.select2-free'));
 
-    $.post(pathToGetAppropriateHtml, JSON.stringify(paramsToGetAppropriateHtml), function (response) {
-        if (response) {
-            const $modal = $input.closest('.modal');
-            $modal.find('.more-body-new-mvt-traca').html(response.modalBody);
-            $modal.find('.new-mvt-common-body').removeClass('d-none');
-            $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
-            Select2Old.location($modal.find('.ajax-autocomplete-location'));
-            Select2Old.initFree($modal.find('.select2-free'));
+                    const $emptyRound = $modal.find('input[name=empty-round]');
+                    if ($input.find(':selected').text().trim() === $emptyRound.val()) {
+                        const $packInput = $modal.find('select[name=pack]');
+                        $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
+                        $packInput.val('passageavide');
+                        $packInput.prop('disabled', true);
+                    }
 
-            const $emptyRound = $modal.find('input[name=empty-round]');
-            if ($input.find(':selected').text().trim() === $emptyRound.val()) {
-                const $packInput = $modal.find('select[name=pack]');
-                $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
-                $packInput.val('passageavide');
-                $packInput.prop('disabled', true);
-            }
-
-            $modal.find(`select[name=pack]`).select2({
-                tags: true,
-                tokenSeparators: [" "],
-                tokenizer: (input, selection, callback) => {
-                    return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
-                },
-            }).trigger('ready');
-            $modal.find(`input[name=pack]`).trigger('ready');
-        }
-    });
+                    $modal.find(`select[name=pack]`).select2({
+                        tags: true,
+                        tokenSeparators: [" "],
+                        tokenizer: (input, selection, callback) => {
+                            return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
+                        },
+                    }).trigger('ready');
+                    $modal.find(`input[name=pack]`).trigger('ready');
+                }
+            });
+    }
 }
 
 /**

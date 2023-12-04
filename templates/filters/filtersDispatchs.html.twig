@@ -1,0 +1,142 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% set fromDashboard = statusFilter is defined and statusFilter is not empty and typesFilter is defined and typesFilter is not empty %}
+    {% set onFilterfields = setting_value('DISPATCH_FIXED_FIEDS_ON_FILTERS')|split(',') %}
+
+    <input name="fromDashboard" value="{{ fromDashboard }}" type="hidden"/>
+    <input name="hasRightGroupedSignature" value="{{ hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GROUPED_SIGNATURE')) }}" type="hidden"/>
+    {% if dateChoices is defined %}
+        {% include 'filters/filter_item/filterDateWithChoice.html.twig' %}
+    {% else %}
+        {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% endif %}
+
+    {% include 'filters/filter_item/filterDispatch.html.twig' with {
+        disabled: disabled,
+    } %}
+
+    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::GROUPED_SIGNATURE')) %}
+        {% include 'filters/filter_item/filterStatus.html.twig' with {
+            name: 'statut',
+            statuts: statuses,
+            placeholder: trans('Demande', 'Général', 'Statut', false),
+            filterStatus: statusFilter,
+            disabled,
+        } %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            disabled,
+        } %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocation.html.twig' with {
+                name: 'pickLocation',
+                removeId: true,
+                placeholder: 'Emplacement de prise',
+                disabled,
+            } %}
+        {% endif %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocation.html.twig' with {
+                name: 'dropLocation',
+                removeId: true,
+                placeholder: 'Emplacement de dépose',
+                disabled,
+            } %}
+        {% endif %}
+    {% else %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+            types: types,
+            filterTypes: typesFilter,
+            onchange : 'onFilterTypeChange($(this))',
+            disabled,
+        } %}
+
+        {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
+            filterStatus: statusFilter,
+            disabled,
+        }%}
+
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_PICK') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
+                name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS'),
+                placeholder: 'Emplacement de prise',
+                disabled,
+            } %}
+        {% endif %}
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+        {% if fieldCode in onFilterfields %}
+            {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
+                name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS'),
+                placeholder: 'Emplacement de dépose',
+                disabled,
+            } %}
+        {% endif %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            name: 'requesters',
+            placeholder: trans('Demande', 'Général', 'Demandeurs', false),
+            disabled,
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterCarrier.html.twig' with {
+            disabled,
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' with {
+            disabled,
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterUser.html.twig' with {
+            name: 'receivers',
+            placeholder: trans('Demande', 'Général', 'Destinataire(s)', false),
+            disabled,
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterCommandList.html.twig' with {
+            disabled,
+            title: trans('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
+        } %}
+    {% endif %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DESTINATION') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterDestination.html.twig' with {
+            disabled,
+        } %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterBusinessUnit.html.twig' with {
+            disabled,
+            page: constant('App\\Entity\\Fields\\FixedFieldStandard::ENTITY_CODE_DISPATCH'),
+        } %}
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+    {% if fieldCode in onFilterfields %}
+        {% include 'filters/filter_item/filterProjectNumber.html.twig' with {
+            disabled,
+        } %}
+    {% endif %}
+
+    {% include 'filters/filter_item/filterPacks.html.twig' with {
+        multiple: true,
+        disabled,
+    } %}
+{% endblock %}

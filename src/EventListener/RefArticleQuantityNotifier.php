@@ -5,27 +5,36 @@ namespace App\EventListener;
 use App\Entity\ReferenceArticle;
 use App\Service\RefArticleDataService;
 use Doctrine\ORM\EntityManagerInterface;
+use JetBrains\PhpStorm\Deprecated;
+use Symfony\Contracts\Service\Attribute\Required;
 
+#[Deprecated]
 class RefArticleQuantityNotifier {
 
-    private $refArticleService;
-    private $entityManager;
+    #[Required]
+    public RefArticleDataService $refArticleService;
 
-    public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService) {
-        $this->entityManager = $entityManager;
-        $this->refArticleService = $refArticleDataService;
-    }
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    public function postUpdate(ReferenceArticle $referenceArticle) {
+    public static bool $disableReferenceUpdate = false;
+
+    #[Deprecated]
+    public function postUpdate(ReferenceArticle $referenceArticle): void
+    {
         $this->handleReference($referenceArticle);
     }
 
-    public function postPersist(ReferenceArticle $referenceArticle) {
+    #[Deprecated]
+    public function postPersist(ReferenceArticle $referenceArticle): void
+    {
         $this->handleReference($referenceArticle);
     }
 
-    private function handleReference(ReferenceArticle $referenceArticle) {
-        if ($this->entityManager->isOpen()) {
+    #[Deprecated]
+    private function handleReference(ReferenceArticle $referenceArticle): void
+    {
+        if (!self::$disableReferenceUpdate && $this->entityManager->isOpen()) {
             $this->refArticleService->treatAlert($this->entityManager, $referenceArticle);
             $available = ($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
             $referenceArticle->setQuantiteDisponible($available);
