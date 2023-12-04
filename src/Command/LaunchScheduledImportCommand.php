@@ -80,21 +80,25 @@ class LaunchScheduledImportCommand extends Command {
             $entityManager->flush();
         }
         else {
-            $import->setLastErrorMessage(null);
+            $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
+            $import
+                ->setForced(false)
+                ->setNextExecutionDate($nextExecutionDate)
+                ->setLastErrorMessage(null);
+
             $entityManager->flush();
+
             foreach ($clones as $clone) {
-                $import->setForced(false);
+                $entityManager->persist($clone);
                 $clone
                     ->setStatus($inProgressImport)
                     ->setStartDate($start);
+                $output->writeln("Starting import {$clone->getId()} at {$start->format('d/m/Y H:i:s')}");
+            }
 
-                $nextExecutionDate = $this->scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
-                $import->setNextExecutionDate($nextExecutionDate);
-                $entityManager->persist($clone);
-                $entityManager->flush();
+            $entityManager->flush();
 
-                $output->writeln("Starting import {$import->getId()} at {$clone->getStartDate()->format('d/m/Y H:i:s')}");
-
+            foreach ($clones as $clone) {
                 $this->importService->treatImport($entityManager, $clone, ImportService::IMPORT_MODE_RUN);
 
                 $clone = $this->importService->getImport();

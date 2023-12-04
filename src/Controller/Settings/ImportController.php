@@ -53,11 +53,12 @@ class ImportController extends AbstractController
         $typeRepository = $entityManager->getRepository(Type::class);
 
         $loggedUser = $this->getUser();
+        $draftStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT);
 
         $import = (new Import())
             ->setLabel($post->get('label'))
             ->setEntity($post->get('entity'))
-            ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_DRAFT))
+            ->setStatus($draftStatus)
             ->setEraseData($post->get('deleteDifData') ?? false)
             ->setUser($loggedUser);
 
@@ -240,10 +241,10 @@ class ImportController extends AbstractController
             'success' => true
         ];
 
-        $importTypeLabel = $this->formatService->type($import->getType());
-        if ($importTypeLabel === Type::LABEL_SCHEDULED_IMPORT) {
+        if ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
+            $scheduleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED);
             $import
-                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
+                ->setStatus($scheduleStatus);
             $entityManager->flush();
 
             $importService->saveScheduledImportsCache($entityManager);
@@ -277,39 +278,40 @@ class ImportController extends AbstractController
     {
         $importId = $request->query->get('importId');
         $force = $request->query->getBoolean('force');
-        $import = $entityManager->getRepository(Import::class)->find($importId);
+
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $importRepository = $entityManager->getRepository(Import::class);
 
-        $getImportSuccessMesage = static function(?int $mode) {
-            return match ($mode) {
-                ImportService::IMPORT_MODE_RUN => 'Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.',
-                ImportService::IMPORT_MODE_FORCE_PLAN => 'Votre import a bien été lancé. Il sera effectué dans moins de 30min.',
-                ImportService::IMPORT_MODE_PLAN => 'Votre import a bien été lancé. Il sera effectué cette nuit.',
-                ImportService::IMPORT_MODE_NONE =>  'Votre import a déjà été lancé. Il sera effectué dans moins de 30min.',
-                default => "L'import planifié a été créé avec succès."
-            };
-        };
+        $import = $importRepository->find($importId);
 
-        if ($import && $import->getType()->getLabel() === Type::LABEL_UNIQUE_IMPORT) {
-            $importModeTodo = $force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN;
-            $importModeDone = $importService->treatImport($entityManager, $import, $importModeTodo);
-
-            $success = true;
-            $message = $getImportSuccessMesage($importModeDone);
-        } else if ($import) {
-            $import
-                ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
-            $entityManager->flush();
-            $success = true;
-            $message = $getImportSuccessMesage($force ? ImportService::IMPORT_MODE_FORCE_PLAN : null);
+        if ($import) {
+            switch ($import->getType()?->getLabel()) {
+                case Type::LABEL_UNIQUE_IMPORT:
+                    $importModeTodo = $force ? ImportService::IMPORT_MODE_FORCE_PLAN : ImportService::IMPORT_MODE_PLAN;
+                    $importModeDone = $importService->treatImport($entityManager, $import, $importModeTodo);
+                    break;
+                case Type::LABEL_SCHEDULED_IMPORT:
+                    $import
+                        ->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED));
+                    $entityManager->flush();
+                    $importModeDone = $force ? ImportService::IMPORT_MODE_FORCE_PLAN : null;
+                    break;
+                default:
+                    throw new FormException("Une erreur est survenue lors de l'import. Veuillez le renouveler.");
+            }
         } else {
-            $success = false;
-            $message = 'Une erreur est survenue lors de l\'import. Veuillez le renouveler.';
+            throw new FormException("Une erreur est survenue lors de l'import. Veuillez le renouveler.");
         }
 
         return $this->json([
-            'success' => $success,
-            'message' => $message
+            "success" => true,
+            "message" => match ($importModeDone) {
+                ImportService::IMPORT_MODE_RUN => "Votre import a bien été lancé. Vous pouvez poursuivre votre navigation.",
+                ImportService::IMPORT_MODE_FORCE_PLAN => "Votre import a bien été lancé. Il sera effectué dans moins de 30min.",
+                ImportService::IMPORT_MODE_PLAN => "Votre import a bien été lancé. Il sera effectué cette nuit.",
+                ImportService::IMPORT_MODE_NONE =>  "Votre import a déjà été lancé. Il sera effectué dans moins de 30min.",
+                default => "L'import planifié a été créé avec succès."
+            }
         ]);
     }
 
@@ -324,11 +326,11 @@ class ImportController extends AbstractController
         $importStatus = $import->getStatus();
         if ($importType && $importStatus) {
             if ($importType->getLabel() == Type::LABEL_UNIQUE_IMPORT
-                && $importStatus->getNom() == Import::STATUS_UPCOMING) {
+                && $importStatus->getCode() == Import::STATUS_UPCOMING) {
                 $import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED));
                 $manager->flush();
             } else if ($importType->getLabel() == Type::LABEL_SCHEDULED_IMPORT
-                && $importStatus->getNom() == Import::STATUS_SCHEDULED) {
+                && $importStatus->getCode() == Import::STATUS_SCHEDULED) {
                 $manager->remove($import);
                 $manager->flush();
 
