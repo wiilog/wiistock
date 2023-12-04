@@ -5,7 +5,7 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '7.6.1#nxt'
+    web_version: '7.6.2#nxt'
     nomade_version: '=7.6.1#nxt'
     nomade_apk: 'https://github.com/wiilog/wiistock-mobile-nexter/releases/download/v7.6.1%23nxt/app-7-6-1-nxt.apk'
     client: '%env(APP_CLIENT)%'
