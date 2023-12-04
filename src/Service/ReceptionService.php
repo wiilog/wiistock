@@ -357,7 +357,7 @@ class ReceptionService
             ["title" => "Date attendue", "name" => "dateAttendue", 'searchable' => true],
             ["title" => "Date fin", "name" => "DateFin", 'searchable' => true],
             ["title" => "Numéro(s) commande", "name" => "orderNumber", "searchable" => true, "orderable" => false],
-            ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true],
+            ["title" => "Destinataire(s)", "name" => "receiver", 'searchable' => true, "orderable" => false],
             ["title" => "Fournisseur", "name" => "Fournisseur", 'searchable' => true],
             ["title" => "Statut", "name" => "Statut", 'searchable' => true],
             ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
