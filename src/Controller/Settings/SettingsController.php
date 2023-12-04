@@ -1053,7 +1053,7 @@ class SettingsController extends AbstractController {
         $typeRepository = $this->manager->getRepository(Type::class);
         $types = Stream::from($typeRepository->findByCategoryLabels([$category]))
             ->map(fn(Type $type) => [
-                "label" => $type->getLabel(),
+                "label" => $this->formatService->type($type),
                 "value" => $type->getId(),
                 "iconUrl" => $type->getLogo()?->getFullPath(),
             ])
@@ -1730,10 +1730,17 @@ class SettingsController extends AbstractController {
             ]);
         }
 
+        $type = $request->request->has("entity") ? $this->manager->find(Type::class, $request->request->get('entity')) : null;
+
         return $this->json(array_merge(
             [
                 "success" => true,
                 "msg" => "Les nouveaux paramétrages ont été enregistrés",
+                ...$type
+                    ? [
+                        "labelTranslated" => $this->formatService->type($type),
+                        "typeId" => $type->getId(),
+                    ] : [],
             ],
             $result ?? [],
         ));
