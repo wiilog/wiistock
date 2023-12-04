@@ -22,6 +22,10 @@ final class Version20231122163207 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        if(!$schema->hasTable('fixed_field_by_type')) {
+            return;
+        }
+
         // this up() migration is auto-generated, please modify it to your needs
         $locationPickFixedFieldId = $this->connection->fetchOne("SELECT id FROM fixed_field_by_type WHERE entity_code = :entity_code AND field_code = :field_code", [
             "entity_code" => FixedFieldStandard::ENTITY_CODE_DISPATCH,
