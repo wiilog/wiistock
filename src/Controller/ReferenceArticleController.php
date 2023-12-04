@@ -1086,9 +1086,14 @@ class ReferenceArticleController extends AbstractController
                 ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
         }
 
-        foreach ([$applicant, $follower] as $user) {
-            $reference->addManager($user);
+        if($applicant){
+            $reference->addManager($applicant);
         }
+
+        if($follower){
+            $reference->addManager($follower);
+        }
+
         if(!$referenceExist){
             $reference->setBarCode($refArticleDataService->generateBarCode());
         }
