@@ -94,7 +94,13 @@ $(function () {
                 .json()
                 .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
                     $modalWaiting.modal('hide');
-                    if (exists && inStock) {
+                    const $articleDataInput = $('[name=reference-article-input]');
+                    if($articleDataInput && referenceForErrorModal === $referenceRefInput.val()) {
+                        $current.removeClass('active').addClass('d-none');
+                        $($current.next()[0]).addClass('active').removeClass('d-none');
+                        $currentTimelineEvent.removeClass('current');
+                        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
+                    } else if (exists && inStock) {
                         let $errorMessage = $modalInStockWarning.find('#stock-error-message');
                         $errorMessage.html(originalMessage
                             .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
