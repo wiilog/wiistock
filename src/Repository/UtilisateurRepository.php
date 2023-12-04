@@ -268,7 +268,9 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
     }
 
     public function findOneByName(string $fullname): ?Utilisateur {
-        list($first, $last) = explode(' ', $fullname);
+        $pattern = '/^M\s(.+)/';
+        preg_match($pattern, $fullname, $matches);
+        list($first, $last) = explode(' ', $matches[1] ?? $fullname);
         $queryBuilder = $this->createQueryBuilder("user");
         $exprBuilder = $queryBuilder->expr();
         $queryBuilder

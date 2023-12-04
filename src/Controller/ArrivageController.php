@@ -35,12 +35,16 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
 use App\Service\FilterSupService;
+use App\Service\HttpService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
 use App\Service\LanguageService;
 use App\Service\TagTemplateService;
 use App\Service\VisibleColumnService;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use App\Service\TrackingMovementService;
@@ -78,7 +82,17 @@ class ArrivageController extends AbstractController {
     #[Required]
     public LanguageService $languageService;
 
+    #[Required]
+    public HttpService $httpService;
+
     private ?string $defaultLanguageSlug = null;
+    const AI_FIELDS = [
+        'destinataire' => FieldsParam::FIELD_CODE_TARGET_ARRIVAGE,
+        'noTracking' => FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
+        'fournisseur' => FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE,
+        'numeroCommandeList' => FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE,
+    ];
+
 
     /**
      * @Route("/", name="arrivage_index")
@@ -1575,94 +1589,109 @@ class ArrivageController extends AbstractController {
         return new JsonResponse($columns);
     }
 
-    //TODO methode GET
     #[Route("/delivery-note-file", name: "api_delivery_note_file", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function apiDeliveryNoteFile( Request                $request,
                                          AttachmentService      $attachmentService,
                                          KernelInterface        $kernel,
+                                         HttpClientInterface    $client,
                                          EntityManagerInterface $entityManager): JsonResponse
     {
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
         if ($request->files->has('file')) {
-            // TODO appel à l'api avec la pièce jointe
 
-            // we create the new filename based on the one uploaded
+            if (!isset($_SERVER["DN_READER_URL"]) || !isset($_SERVER["DN_READER_SECRET_KEY"])) {
+                throw new Exception("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
+            }
+
             $uploadedFile = $request->files->get('file');
+            $file = DataPart::fromPath($uploadedFile->getRealPath());
+            $url = $_SERVER["DN_READER_URL"] . '/api/';
+
+            $formData = new FormDataPart([
+                "secretKey" => $_SERVER["DN_READER_SECRET_KEY"],
+                "file" => $file,
+            ]);
+
+            $headers = $formData->getPreparedHeaders()->toArray();
+
+            try {
+                $apiRequest = $client->request('POST', $url, [
+                    "headers" => $headers,
+                    "body" => $formData->bodyToIterable(),
+                ]);
+            } catch (\Throwable $e) {
+                throw new \Exception('Une erreur s\'est produite lors de la récupération des informations du BL');
+            }
+
+            $apiOutput = json_decode($apiRequest->getContent(), true);
             $originalUploadedFileName = $uploadedFile->getClientOriginalName();
             $pattern = '/(.+)\.\w{3}/';
             preg_match($pattern, $originalUploadedFileName, $matches);
             $downloadedFileName = $matches[1] . '_annotated.png';
+            $filepath = $attachmentService->createFile($downloadedFileName, base64_decode($apiOutput['image_with_boxes']));
 
-            // TODO : à supprimer, on créée une image en b64 pour les tests
-            $uploadedFileName = $attachmentService->saveFile($uploadedFile)[$uploadedFile->getClientOriginalName()];
-            $projectDir = $kernel->getProjectDir();
-            $encodedFile = base64_encode(file_get_contents($projectDir . '/public/uploads/attachments/' . $uploadedFileName));
-
-            // TODO: decode b64 de l'output de l'api et enregistrer ce nouveau fichier en pj de l'arrivage
-            $filepath = $attachmentService->createFile($downloadedFileName, base64_decode($encodedFile));
         } else {
             throw new FormException('Aucun fichier n\'a été importé');
         }
 
         $entityManager->flush();
 
-        // TODO: ici apiOutput correspond au fichier json de retour de l'api, à remplacer par les valuers réélles
-        $apiOutput = [
-            'values' => [
-                'fournisseur' => [
-                    'value' => '4030',
-                    'score' => 0.78,
-                ],
-                'transporteur' => [],
-                'numeroCommandeList' => [
-                    [
-                        'value' => '123456789/P7T30',
-                        'score' => 0.62,
-                    ],
-                    [
-                        'value' => 'MI12456',
-                        'score' => 0.58,
-                    ],
-                ],
-                'noTracking' => [
-                    'value' => 'SEY-BEL-610 230',
-                    'score' => 0.85,
-                ],
-                'destinataire' => [
-                    'value' => 'thierry braisaz',
-                    'score' => 0.95,
-                ],
-                'commentaire' => [
-                    'value' => 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-                    'score' => 0.68,
-                ]
-            ]
+        $fields = array_keys($apiOutput["values"]);
+        $data = [
+            "values" => [
+                FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE => [],
+            ],
         ];
+        //TODO STREAM FROM
+        foreach ($fields as $field) {
+            in_array($field, array_keys(self::AI_FIELDS)) ?
+                $fieldName = self::AI_FIELDS[$field]
+                : $fieldName = FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
 
-        $data = $apiOutput;
-        $data['values']['fournisseur']['value'] = $fournisseurRepository->findOneBy(["nom" => $apiOutput['values']['fournisseur']['value']])->getId();
-        $data['values']['destinataire']['value'] = $utilisateurRepository->findOneByName($apiOutput['values']['destinataire']['value'])->getId();
-        $data['file'] = [
-            'name' => $downloadedFileName,
-            'path' => $filepath,
-        ];
+                if (is_array($apiOutput["values"][$field])) {
+                    foreach ($apiOutput["values"][$field] as $apiOutputFieldElement) {
+                        switch ($fieldName){
+                            case FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE:
+                                $fieldValue = $fournisseurRepository->findOneBy(["nom" => $apiOutputFieldElement["value"]])?->getId();
+                                break;
+                            case FieldsParam::FIELD_CODE_TARGET_ARRIVAGE:
+                                $fieldValue = $utilisateurRepository->findOneByName($apiOutputFieldElement["value"])?->getId();
+                                break;
+                            case FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
+                                $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutputFieldElement['value']]);
+                                if ($truckArrivalLine) {
+                                    $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
+                                    $data["values"][FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE] = [
+                                        "value" => $carrierId,
+                                    ];
+                                    $data["values"][FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
+                                        "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
+                                    ];
+                                    $data["values"][$field]["id"] = $truckArrivalLine->getId();
+                                }
+                                $fieldValue = $apiOutputFieldElement["value"];
+                                break;
+                            default:
+                                $fieldValue = $apiOutputFieldElement["value"];
+                        }
 
-        $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutput['values']['noTracking']['value']]);
-        if ($truckArrivalLine) {
-            $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
-            $data["values"]["transporteur"] = [
-                "value" => $carrierId,
-                "score" => 0.63,
+                        if ($fieldValue != "") {
+                            $data["values"][$fieldName][] = [
+                                "value" => $fieldValue,
+                                "score" => $apiOutputFieldElement["score"],
+                            ];
+                        }
+                    }
+                }
+
+            $data['file'] = [
+                'name' => $downloadedFileName,
+                'path' => $filepath,
             ];
-            $data["values"]["noTruckArrival"] = [
-                "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
-            ];
-            $data["values"]["noTracking"]["id"] = $truckArrivalLine->getId();
         }
-
         return $this->json($data);
     }
 }

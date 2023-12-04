@@ -20,7 +20,9 @@ $(function () {
 function scanDeliveryNoteFile($input) {
     const $modal = $input.closest('.modal');
     const $aiFillableFieldsContainer = $.merge($modal.find('.ai-fillable-fields-container'), $input.parent().find('button'));
-    $aiFillableFieldsContainer.pushLoader(`black`);
+    $aiFillableFieldsContainer.each(function () {
+        $(this).pushLoader();
+    });
 
     let files = $input[0].files;
     let file = files[0];
@@ -33,54 +35,57 @@ function scanDeliveryNoteFile($input) {
         for (const field in fields) {
             const $field = $(`[name=${field}]`);
             $field.addClass('ai-field');
-            let score = fields[field].score;
-
-            if ($field.prop('multiple')) {
-                $field.empty();
-                score = 0;
-                const options = Array.isArray(fields[field]) ? fields[field] : [fields[field]];
-                options.forEach((optionValue) => {
-                    let option = new Option(optionValue.value, optionValue.id ? optionValue.id : optionValue.value, true, true);
-                    score += optionValue.score;
-                    $field.append(option);
-                })
-                score /= options.length;
-            } else if ($field.next().hasClass('ql-toolbar')) {
-                $field.parent().find('.ql-editor').find('p').html(fields[field].value);
-            } else {
-                $field.val(fields[field].value);
-            }
-
-            $field.trigger('change');
-            if (score) {
-                let $labelScore = $field.parent().find(".ai-score-text")
-                if ($labelScore.length === 0) {
-                    $labelScore = $field.parent().find("label").after('<span class="wii-small-text ai-score-text ml-2"></span>').next();
+            fields[field].forEach((fieldElement) => {
+                let score = fieldElement.score;
+                if ($field.prop('multiple')) {
+                    $field.empty();
+                    score = 0;
+                    const options = Array.isArray(fieldElement) ? fieldElement : [fieldElement];
+                    options.forEach((optionValue) => {
+                        let option = new Option(optionValue.value, optionValue.id ? optionValue.id : optionValue.value, true, true);
+                        score += optionValue.score;
+                        $field.append(option);
+                    })
+                    score /= options.length;
+                } else if ($field.next().hasClass('ql-toolbar')) {
+                    $field.parent().find('.ql-editor').append(`<p>${fieldElement.value}</p>`);
+                } else {
+                    $field.val(fieldElement.value);
                 }
 
-                $labelScore.html(score * 100 + '%');
-                let $coloredLabel = $field.next().hasClass('ql-toolbar')
-                    ? $field.next()
-                    : $field.next().find('.select2-selection');
-                switch (true) {
-                    case score >= 0.90:
-                        $coloredLabel.addClass('score-high');
-                        break;
-                    case score < 0.90 && score > 0.60:
-                        $coloredLabel.addClass('score-medium');
-                        break;
-                    case score >= 0 && score <= 0.60:
-                        $coloredLabel.addClass('score-low');
-                        break;
-                    default:
-                        break;
+                $field.trigger('change');
+                if (score) {
+                    let $labelScore = $field.parent().find(".ai-score-text")
+                    if ($labelScore.length === 0) {
+                        $labelScore = $field.parent().find("label").after('<span class="wii-small-text ai-score-text ml-2"></span>').next();
+                    }
+
+                    $labelScore.html((score * 100).toFixed(2) + '%');
+                    let $coloredLabel = $field.next().hasClass('ql-toolbar')
+                        ? $field.next()
+                        : $field.next().find('.select2-selection');
+                    switch (true) {
+                        case score >= 0.90:
+                            $coloredLabel.addClass('score-high');
+                            break;
+                        case score < 0.90 && score > 0.60:
+                            $coloredLabel.addClass('score-medium');
+                            break;
+                        case score >= 0 && score <= 0.60:
+                            $coloredLabel.addClass('score-low');
+                            break;
+                        default:
+                            break;
+                    }
                 }
-            }
+            })
         }
         if (displayScannedDeliveryNote !== 0) {
             window.open(`/uploads/attachments/${data.file.name}`, '_blank');
         }
-        $aiFillableFieldsContainer.popLoader();
+        $aiFillableFieldsContainer.each(function () {
+            $(this).popLoader();
+        });
     });
 
 }
