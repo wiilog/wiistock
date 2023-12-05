@@ -1096,22 +1096,30 @@ class DispatchService {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         foreach($packs as $pack) {
-            $comment = $pack['packComment'] ?? null;
-            $packId = $pack['packId'];
+            $packId = $pack['packId'] ?? null;
             $packQuantity = (int)$pack['packQuantity'];
-            $pack = $packRepository->find($packId);
-            $pack
-                ->setComment($comment);
-            $packDispatch = new DispatchPack();
-            $packDispatch
-                ->setPack($pack)
-                ->setTreated(false)
-                ->setQuantity($packQuantity)
-                ->setDispatch($dispatch);
+
+            if($packId) {
+                $comment = $pack['packComment'] ?? null;
+                $pack = $packRepository->find($packId);
+                $pack->setComment($comment);
+            }
+
+            $packDispatch = $this->createDispatchPack($pack, $dispatch, $packQuantity);
             $entityManager->persist($packDispatch);
         }
     }
 
+    public function createDispatchPack(Pack $pack, Dispatch $dispatch, int $packQuantity): DispatchPack {
+        $packDispatch = new DispatchPack();
+        $packDispatch
+            ->setPack($pack)
+            ->setTreated(false)
+            ->setQuantity($packQuantity)
+            ->setDispatch($dispatch);
+
+        return $packDispatch;
+    }
 
     public function putDispatchLine($handle,
                                     array $dispatch,

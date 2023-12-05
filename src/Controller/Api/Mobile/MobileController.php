@@ -3996,64 +3996,6 @@ class MobileController extends AbstractApiController
         ]);
     }
 
-    #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
-    #[Rest\View]
-    #[Wii\RestAuthenticated]
-    #[Wii\RestVersionChecked]
-    public function postPackSeparations(Request                $request,
-                                        EntityManagerInterface $entityManager,
-                                        PrinterService         $printerService,
-                                        PackService            $packService): JsonResponse
-    {
-        $packCode = $request->request->get('pack');
-        $subPacks = json_decode($request->request->get('subPacks'), true);
-        $locationLabel = $request->request->get('location');
-
-        $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-        $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
-        $pack = $packRepository->findOneBy(['code' => $packCode]);
-        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
-
-        $user = $this->getUser();
-
-        if($dispatch && $request->request->get("printer")) {
-            $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
-            try {
-                $client = SocketClient::create($printer->getAddress(), PrinterService::DEFAULT_PRINTER_PORT, PrinterService::DEFAULT_PRINTER_TIMEOUT);
-                $zebraPrinter = $printerService->getPrinter($printer);
-            }
-            catch(Throwable) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.",
-                ]);
-            }
-
-            $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
-
-            array_shift($movements);
-
-            $packs = Stream::from($movements)
-                ->map(fn(TrackingMovement $movement) => $movement->getPack())
-                ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
-                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
-                    ->first())
-                ->filter()
-                ->toArray();
-
-            $printerService->printDispatchPacks($zebraPrinter, $client, $dispatch, $packs);
-        } else {
-            $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
-        }
-
-        $entityManager->flush();
-
-        return $this->json(['success' => true]);
-    }
-
     #[Rest\Post("/dispatch-edit", condition: "request.isXmlHttpRequest()")]
     #[Wii\RestAuthenticated]
     #[Wii\RestVersionChecked]
@@ -4094,6 +4036,65 @@ class MobileController extends AbstractApiController
         $entityManager->flush();
 
         return new JsonResponse([]);
+    }
+
+    #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
+    #[Rest\View]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postPackSeparations(Request                $request,
+                                        EntityManagerInterface $entityManager,
+                                        PrinterService         $printerService,
+                                        PackService            $packService): JsonResponse
+    {
+        $packCode = $request->request->get('pack');
+        $subPacks = json_decode($request->request->get('subPacks'), true);
+        $locationLabel = $request->request->get('location');
+
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+        $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
+        $pack = $packRepository->findOneBy(['code' => $packCode]);
+        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
+
+        $user = $this->getUser();
+
+        if($dispatch && $request->request->get("printer")) {
+            $config = $printerService->configurationOf($dispatch);
+            if ($config) {
+                $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+                try {
+                    $zebraPrinter = $printerService->getPrinter($printer);
+                }
+                catch(Throwable) {
+                    throw new FormException("Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.");
+                }
+
+            $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+
+            array_shift($movements);
+
+            $packs = Stream::from($movements)
+                ->map(fn(TrackingMovement $movement) => $movement->getPack())
+                ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
+                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                    ->first())
+                ->filter()
+                ->toArray();
+
+                $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
+            } else {
+                throw new FormException("Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}.");
+            }
+        } else {
+            $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+        }
+
+        $entityManager->flush();
+
+        return $this->json(['success' => true]);
     }
 }
 
