@@ -303,6 +303,14 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $dispatchBusinessUnit = null;
 
+    #[ORM\ManyToOne(targetEntity: Printer::class, inversedBy: "defaultUsers")]
+    private ?Printer $defaultPrinter = null;
+
+    #[ORM\ManyToMany(targetEntity: Printer::class, inversedBy: "allowedUsers")]
+    #[ORM\JoinTable("user_printer")]
+    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id")]
+    #[ORM\InverseJoinColumn(name: "printer_id", referencedColumnName: "id")]
+    private Collection $allowedPrinters;
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -344,6 +352,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->keptFieldValues = new ArrayCollection();
         $this->sessionHistoryRecords = new ArrayCollection();
         $this->receivedArrivals = new ArrayCollection();
+        $this->allowedPrinters = new ArrayCollection();
 
         $this->recherche = Utilisateur::SEARCH_DEFAULT;
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
@@ -1979,6 +1988,56 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function setDispatchBusinessUnit(?string $businessUnit): self {
         $this->dispatchBusinessUnit = $businessUnit;
+
+        return $this;
+    }
+
+    public function getDefaultPrinter(): ?Printer {
+        return $this->defaultPrinter;
+    }
+
+    public function setDefaultPrinter(?Printer $defaultPrinter): self {
+        if ($this->defaultPrinter && $this->defaultPrinter !== $defaultPrinter) {
+            $this->defaultPrinter->removeDefaultUser($this);
+        }
+        $this->defaultPrinter = $defaultPrinter;
+        if ($defaultPrinter) {
+            $defaultPrinter->addDefaultUser($this);
+        }
+
+        return $this;
+    }
+
+    public function getAllowedPrinters(): Collection {
+        return $this->allowedPrinters;
+    }
+
+    public function addAllowedPrinter(Printer $allowedPrinter): self {
+        if (!$this->allowedPrinters->contains($allowedPrinter)) {
+            $this->allowedPrinters[] = $allowedPrinter;
+            $allowedPrinter->addAllowedUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAllowedPrinter(Printer $allowedPrinter): self {
+        if ($this->allowedPrinters->removeElement($allowedPrinter)) {
+            $allowedPrinter->removeAllowedUser($this);
+        }
+
+        return $this;
+    }
+
+    public function setAllowedPrinters(?array $allowedPrinters): self {
+        foreach ($this->getAllowedPrinters()->toArray() as $allowedPrinter) {
+            $this->removeAllowedPrinter($allowedPrinter);
+        }
+
+        $this->allowedPrinters = new ArrayCollection();
+        foreach ($allowedPrinters as $allowedPrinter) {
+            $this->addAllowedPrinter($allowedPrinter);
+        }
 
         return $this;
     }

@@ -693,8 +693,8 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `requiredCreate`, title: `Obligatoire`},
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
-                    // {data: 'onMobile', title: `Afficher` }, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
-                    // {data: 'onLabel', title: `Afficher` }  TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+                    // {data: 'onMobile', title: `Afficher` }, TODO WIIS-10645: à remettre en place quand la fonctionnalité sera terminée
+                    // {data: 'onLabel', title: `Afficher` }  TODO WIIS-10645: à remettre en place quand la fonctionnalité sera terminée
                 ],
             });
         })

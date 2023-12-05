@@ -24,6 +24,7 @@ use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Pack;
+use App\Entity\Printer;
 use App\Entity\Project;
 use App\Entity\PurchaseRequest;
 use App\Entity\ReceptionLine;
@@ -868,6 +869,18 @@ class SelectController extends AbstractController {
 
         return $this->json([
             'results' => $allLocations
+        ]);
+    }
+    #[Route("/select/printer", name: "ajax_select_printer", options: ["expose" => true])]
+    public function printer(Request $request, EntityManagerInterface $manager): Response {
+        $defaultPrinter = $request->query->get("defaultPrinter");
+        $allPrinters = $request->query->getBoolean("allPrinters");
+
+        $user = !$allPrinters ? $this->getUser() : null;
+        $results = $manager->getRepository(Printer::class)->getForSelect($request->query->get("term"), $defaultPrinter, $user);
+
+        return $this->json([
+            "results" => $results,
         ]);
     }
 }

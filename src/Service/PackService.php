@@ -309,6 +309,27 @@ class PackService {
                     ->setNature($nature);
 
                 $orderLine->setPack($pack);
+            } else if (isset($options['dispatch'])) {
+                $dispatch = $options['dispatch'];
+
+                /** @var Nature $nature */
+                $nature = $options['nature'];
+
+                $dispatchNumber = $dispatch->getNumber();
+                $newCounter = $dispatch->getDispatchPacks()->count() + 1;
+
+                if ($newCounter < 10) {
+                    $newCounter = "00" . $newCounter;
+                } elseif ($newCounter < 100) {
+                    $newCounter = "0" . $newCounter;
+                }
+
+                $code = (($nature->getPrefix() ?? '') . $dispatchNumber . $newCounter ?? '');
+
+                $pack = $this
+                    ->createPackWithCode($code)
+                    ->setNature($nature)
+                    ->setCreatingDispatch($dispatch);
             }
             else {
                 throw new RuntimeException('Unhandled pack configuration');

@@ -42,7 +42,7 @@
             {% else %}
                 {{ label | raw }}
             {% endif %}
-            {{ required and options.removeAsterisk is not defined ? '*' }}
+            {{ required and options.removeAsterisk is not defined ? "<span class='required-mark'>*</span>" }}
         </span>
         <span class="wii-small-text"> {{ options.smallText ?? '' }}</span>
     {% endif %}

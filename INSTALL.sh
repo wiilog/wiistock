@@ -114,14 +114,6 @@ chown -R "$USER:www-data" var/cache var/sessions cache
 chmod g+s var/cache var/sessions cache
 chmod g+w -R var/cache var/sessions cache
 
-if [ $is_first_install -eq 1 ]
-then
-    echo ">>>> configuration des droits"
-    chown -R "$USER:www-data" public/uploads var/
-    chmod g+s public/uploads var/log
-    chmod g+w -R public/uploads var/log
-fi
-
 declare -A TIMES
 TIMES[dashboard-feeds]="*/5 * * * *"
 TIMES[unique-imports]="*/30 * * * *"

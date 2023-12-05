@@ -55,10 +55,11 @@ function generateFreeFieldForm() {
         displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
         requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
         requiredEdit: `<input type="checkbox" name="requiredEdit" class="form-control data" data-global-error="Obligatoire à la modification"/>`,
+        displayedOnLabel: `<input type="checkbox" name="displayedOnLabel" class="form-control data" data-global-error="Affiché sur les étiquettes"/>`,
     };
 }
 
-function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
+function generateFreeFieldColumns(canEdit = true, appliesTo = false, displayedOnLabel = false) {
     return [
         ...(canEdit ? [{data: 'actions', name: 'actions', title: '', className: 'noVis hideOrder', orderable: false, width: `2%`}] : []),
         {data: `label`, title: `Libellé`, required: true},
@@ -69,6 +70,10 @@ function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
         {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`, width: `8%`},
+        ...(displayedOnLabel
+            ? [
+                {data: `displayedOnLabel`, title: `<div class='small-column'>Afficher sur les étiquettes</div>`, width: `8%`}
+            ] : []),
     ];
 }
 
@@ -147,7 +152,7 @@ export function createFreeFieldsPage($container, canEdit, mode) {
         table: {
             route: (type) => Routing.generate('settings_free_field_api', {type}, true),
             deleteRoute: `settings_free_field_delete`,
-            columns: generateFreeFieldColumns(canEdit),
+            columns: generateFreeFieldColumns(canEdit, false, mode === MODE_DISPATCH),
             form: generateFreeFieldForm(),
         },
         ...createFreeFieldsListeners($container, canEdit, mode),

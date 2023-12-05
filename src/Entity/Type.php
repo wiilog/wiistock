@@ -41,6 +41,13 @@ class Type {
     const LABEL_SCHEDULED_IMPORT = 'Import planifié';
     const LABEL_UNIQUE_IMPORT = 'Import unique';
 
+    public const DISPATCH_NUMBER = 0;
+    public const LOGISTIC_UNIT_CODE = 1;
+    public const DISPATCH_LABEL_FIELDS = [
+        self::DISPATCH_NUMBER => "Numéro d'acheminement",
+        self::LOGISTIC_UNIT_CODE => "Code d'unité logistique",
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
@@ -150,6 +157,12 @@ class Type {
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $defaultType = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $dispatchLabelField = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $displayLogisticUnitsCountOnDispatchLabel = null;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -890,5 +903,25 @@ class Type {
 
     public function isDefault(): ?bool {
         return $this->defaultType;
+    }
+
+    public function setDispatchLabelField(?int $dispatchLabelField): self {
+        $this->dispatchLabelField = $dispatchLabelField;
+
+        return $this;
+    }
+
+    public function getDispatchLabelField(): ?int {
+        return $this->dispatchLabelField;
+    }
+
+    public function setDisplayLogisticUnitsCountOnDispatchLabel(?bool $displayLogisticUnitsCountOnDispatchLabel): self {
+        $this->displayLogisticUnitsCountOnDispatchLabel = $displayLogisticUnitsCountOnDispatchLabel;
+
+        return $this;
+    }
+
+    public function isDisplayLogisticUnitsCountOnDispatchLabel(): ?bool {
+        return $this->displayLogisticUnitsCountOnDispatchLabel;
     }
 }

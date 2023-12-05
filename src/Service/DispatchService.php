@@ -116,7 +116,9 @@ class DispatchService {
 
     private ?array $freeFieldsConfig = null;
 
-    // cache for default nature
+    // cache
+    private ?int $prefixPackCodeWithDispatchNumber = null;
+    private ?array $natures = null;
     private ?Nature $defaultNature = null;
 
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
@@ -801,8 +803,9 @@ class DispatchService {
                             bool $autofocus,
                             bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
-            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $settingRepository = $this->entityManager->getRepository(Setting::class);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
+            $this->prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
             $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
          }
