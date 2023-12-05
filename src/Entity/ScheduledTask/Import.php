@@ -583,4 +583,19 @@ class Import {
         $this->lastErrorMessage = $lastErrorMessage;
         return $this;
     }
+
+    public function isCancellable(): bool {
+        return in_array(
+            $this->getStatus()?->getCode(),
+            [Import::STATUS_SCHEDULED, Import::STATUS_DRAFT, Import::STATUS_UPCOMING]
+        );
+    }
+
+    public function canBeForced(): bool {
+        return (
+            !$this->isForced()
+            && $this->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
+            && $this->getStatus()?->getCode() === Import::STATUS_UPCOMING
+        );
+    }
 }
