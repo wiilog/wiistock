@@ -45,8 +45,7 @@ class ImportController extends AbstractController
                         EntityManagerInterface $entityManager,
                         ImportService          $importService,
                         FTPService             $FTPService,
-                        ScheduleRuleService    $scheduleRuleService): Response
-    {
+                        ScheduleRuleService    $scheduleRuleService): Response {
         $post = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -64,6 +63,8 @@ class ImportController extends AbstractController
 
         $isScheduled = $post->get("type") === "scheduled-import-checkbox";
         if ($isScheduled) {
+            $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT);
+
             $rule = new ImportScheduleRule();
             $importService->updateScheduleRules($rule, $request->request);
             $import->setScheduleRule($rule);
@@ -96,17 +97,17 @@ class ImportController extends AbstractController
             $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
             $import
                 ->setScheduleRule($rule)
-                ->setNextExecutionDate($nextExecutionDate)
-                ->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_SCHEDULED_IMPORT));
+                ->setNextExecutionDate($nextExecutionDate);
         }
         else {
-            $import->setType($typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT));
+            $importType = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::IMPORT, Type::LABEL_UNIQUE_IMPORT);
         }
 
+        $import->setType($importType);
         $entityManager->persist($import);
         $entityManager->flush();
 
-        $nbFiles = count($request->files);
+        $nbFiles = $request->files->count();
         if ($nbFiles !== 1) {
             throw new FormException('Veuillez charger un ' . ($nbFiles > 1 ? 'seul ' : '') . 'fichier.');
         }
@@ -322,18 +323,13 @@ class ImportController extends AbstractController
     {
         $statusRepository = $manager->getRepository(Statut::class);
 
-        $importType = $import->getType();
-        $importStatus = $import->getStatus();
-        if ($importType && $importStatus) {
-            if ($importType->getLabel() == Type::LABEL_UNIQUE_IMPORT
-                && $importStatus->getCode() == Import::STATUS_UPCOMING) {
-                $import->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED));
-                $manager->flush();
-            } else if ($importType->getLabel() == Type::LABEL_SCHEDULED_IMPORT
-                && $importStatus->getCode() == Import::STATUS_SCHEDULED) {
-                $manager->remove($import);
-                $manager->flush();
-
+        $importStatus = $import->getStatus()->getCode();
+        if (in_array($importStatus, [Import::STATUS_SCHEDULED, Import::STATUS_DRAFT, Import::STATUS_UPCOMING])) {
+            $cancelledStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED);
+            $import
+                ->setStatus($cancelledStatus);
+            $manager->flush();
+            if ($import->getType()?->getLabel() == Type::LABEL_SCHEDULED_IMPORT) {
                 $importService->saveScheduledImportsCache($manager);
             }
 
