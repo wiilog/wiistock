@@ -742,7 +742,8 @@ class PackService {
                 $newPack->setOriginalPack($originalPack);
 
                 if ($currentDispatch) {
-                    $this->dispatchService->manageDispatchPacks($currentDispatch, [$newPack], $entityManager);
+                    $packDispatch = $this->dispatchService->createDispatchPack($newPack, $currentDispatch, $newPack->getQuantity());
+                    $entityManager->persist($packDispatch);
                 }
 
                 $trackingPackSeparationChildDrop = $this->trackingMovementService->createTrackingMovement(
