@@ -105,7 +105,6 @@ class ImportController extends AbstractController
 
         $import->setType($importType);
         $entityManager->persist($import);
-        $entityManager->flush();
 
         $nbFiles = $request->files->count();
         if ($nbFiles !== 1) {
@@ -122,10 +121,12 @@ class ImportController extends AbstractController
         $entityManager->persist($csvAttachment);
         $import->setCsvFile($csvAttachment);
 
-        $entityManager->flush();
         $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, !$isScheduled);
 
         if ($fileValidationResponse['success']) {
+            dump($import);
+            // We save import in database
+            $entityManager->flush();
             $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $post, $import);
 
             return $this->json([
@@ -253,6 +254,7 @@ class ImportController extends AbstractController
         } else {
             $responseData['html'] = $this->renderView('settings/donnees/import/new/confirm.html.twig');
         }
+        dump($import);
 
         return $this->json($responseData);
     }
