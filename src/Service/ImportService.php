@@ -375,9 +375,9 @@ class ImportService
                 'url' => $url,
                 'import' => $import,
                 'fournisseurId' => $importId,
-                'canEditOrDelete' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED,
-                'canForce' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED && !$import->isForced(),
-                'canCancel' => $typeLabel === Type::LABEL_UNIQUE_IMPORT && $statusLabel === Import::STATUS_UPCOMING,
+                'canEditOrDelete' => ($typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED) || Import::STATUS_DRAFT,
+                'canForce' => $import->canBeForced(),
+                'canCancel' => $import->isCancellable(),
                 'logFile' => $import->getLogFile()?->getFileName()
             ]),
         ];

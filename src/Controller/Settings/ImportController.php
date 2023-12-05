@@ -321,12 +321,10 @@ class ImportController extends AbstractController
     #[Route("/{import}/cancel", name: "import_cancel", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function cancelImport(Import                 $import,
                                  EntityManagerInterface $manager,
-                                 ImportService          $importService): JsonResponse
-    {
+                                 ImportService          $importService): JsonResponse {
         $statusRepository = $manager->getRepository(Statut::class);
 
-        $importStatus = $import->getStatus()->getCode();
-        if (in_array($importStatus, [Import::STATUS_SCHEDULED, Import::STATUS_DRAFT, Import::STATUS_UPCOMING])) {
+        if ($import->isCancellable()) {
             $cancelledStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_CANCELLED);
             $import
                 ->setStatus($cancelledStatus);
@@ -340,13 +338,12 @@ class ImportController extends AbstractController
                 "msg" => "L'import a bien été annulé.",
             ]);
         } else {
-            throw new FormException("Une erreur est survenue lors de l'annulation de l'import.");
+            throw new FormException("L'import ne peut pas être annulé.");
         }
     }
 
     #[Route("/{import}/delete", name: "import_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function deleteImport(Import $import, EntityManagerInterface $manager): Response
-    {
+    public function deleteImport(Import $import, EntityManagerInterface $manager): Response {
         if ($import->getStatus()?->getCode() === Import::STATUS_DRAFT) {
             $manager->remove($import);
             $manager->flush();
@@ -364,11 +361,8 @@ class ImportController extends AbstractController
     public function forceImport(EntityManagerInterface $entityManager,
                                 Import                 $import,
                                 ImportService          $importService,
-                                ScheduleRuleService    $scheduleRuleService): JsonResponse
-    {
-        if (!$import->isForced()
-            && $import->getType()->getLabel() === Type::LABEL_SCHEDULED_IMPORT
-            && $import->getStatus()->getNom() === Import::STATUS_SCHEDULED) {
+                                ScheduleRuleService    $scheduleRuleService): JsonResponse {
+        if ($import->canBeForced()) {
 
             $import->setForced(true);
 
@@ -383,7 +377,7 @@ class ImportController extends AbstractController
                 'msg' => "L'import va être exécuté dans les prochaines minutes."
             ]);
         } else {
-            throw new FormException("Une erreur est survenue lors du forçage de l'import.");
+            throw new FormException("L'import ne peut pas être forcé.");
         }
     }
 }
