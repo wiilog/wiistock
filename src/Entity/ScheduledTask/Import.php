@@ -591,6 +591,13 @@ class Import {
         );
     }
 
+    public function isDeletable(): bool {
+        return in_array(
+            $this->getStatus()?->getCode(),
+            [Import::STATUS_DRAFT]
+        );
+    }
+
     public function canBeForced(): bool {
         return (
             !$this->isForced()

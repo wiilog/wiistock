@@ -313,27 +313,17 @@ class ImportService
 
     public function dataRowImport(Import $import): array
     {
-        $importId = $import->getId();
-        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $importId]);
-
-        $status = $import->getStatus();
-        $statusLabel = $this->formatService->status($status);
-        $typeLabel = $this->formatService->type($import->getType());
-
         $statusTitle = '';
-        if ($typeLabel === Type::LABEL_UNIQUE_IMPORT
-            && $statusLabel === Import::STATUS_UPCOMING) {
+        $customClass = '';
+        if ($import->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
+            && $import->getStatus()?->getCode() === Import::STATUS_UPCOMING) {
             $statusTitle = $import->isForced()
                 ? "L'import sera réalisé dans moins de 30 minutes."
                 : "L'import sera réalisé la nuit suivante.";
+            $customClass = "import-scheduled-status has-tooltip";
         }
 
-        $statusClass = "user-select-none status-$statusLabel cursor-default";
-        if (!empty($statusTitle)) {
-            $statusClass .= ' has-tooltip';
-        }
-
-        $nextExecutionDate = ($typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED)
+        $nextExecutionDate = ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT && $import->getStatus()?->getCode() === Import::STATUS_SCHEDULED)
             ? $import->getNextExecutionDate()
             : null;
 
@@ -366,19 +356,13 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => "<span class='$statusClass' data-id='$importId' title='$statusTitle'>$statusLabel</span>",
+            'status' => "<span class='user-select-none cursor-default $customClass' data-id='{$import->getId()}' title='$statusTitle'>{$this->formatService->status($import->getStatus())}</span>",
             'user' => $this->formatService->user($import->getUser()),
-            'type' => $typeLabel,
+            'type' => $this->formatService->type($import->getType()),
             "nextExecutionDate" => $this->formatService->datetime($nextExecutionDate),
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('settings/donnees/import/row.html.twig', [
-                'url' => $url,
                 'import' => $import,
-                'fournisseurId' => $importId,
-                'canEditOrDelete' => ($typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED) || Import::STATUS_DRAFT,
-                'canForce' => $import->canBeForced(),
-                'canCancel' => $import->isCancellable(),
-                'logFile' => $import->getLogFile()?->getFileName()
             ]),
         ];
     }

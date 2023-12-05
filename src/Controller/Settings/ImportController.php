@@ -124,7 +124,6 @@ class ImportController extends AbstractController
         $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, !$isScheduled);
 
         if ($fileValidationResponse['success']) {
-            dump($import);
             // We save import in database
             $entityManager->flush();
             $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $post, $import);
@@ -137,91 +136,6 @@ class ImportController extends AbstractController
         } else {
             return $this->json($fileValidationResponse);
         }
-    }
-
-    #[Route("/edit-api", name: "import_edit_api", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    public function editApi(Request                $request,
-                            EntityManagerInterface $entityManager,
-                            UserService            $userService): Response
-    {
-        $data = $request->query->all();
-        if (!$userService->hasRightFunction(Menu::PARAM, Action::EDIT)) {
-            return $this->redirectToRoute('access_denied');
-        }
-        $importRepository = $entityManager->getRepository(Import::class);
-        $importScheduleRuleRepository = $entityManager->getRepository(ImportScheduleRule::class);
-
-        $import = $importRepository->findOneBy(['id' => $data['id']]);
-        $importScheduleRule = $importScheduleRuleRepository->findOneBy(['import' => $data['id']]);
-
-        return $this->json([
-            'html' => $this->renderView('settings/donnees/import/content.html.twig', [
-                'import' => $import,
-                'importScheduleRule' => $importScheduleRule,
-                'edit' => true,
-                'attachment' => $import->getCsvFile()
-            ]),
-        ]);
-    }
-
-    #[Route("/edit", name: "import_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PARAM, Action::EDIT])]
-    public function edit(Request                $request,
-                         ImportService          $importService,
-                         AttachmentService      $attachmentService,
-                         EntityManagerInterface $entityManager,
-                         ScheduleRuleService    $scheduleRuleService): Response
-    {
-        $data = $request->request;
-        $importRepository = $entityManager->getRepository(Import::class);
-
-        $import = $importRepository->find($data->get('sourceImport'));
-
-        $importScheduleRule = $import->getScheduleRule();
-        $importService->updateScheduleRules($importScheduleRule, $request->request);
-
-        $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
-
-        $import
-            ->setNextExecutionDate($nextExecutionDate)
-            ->setLabel($data->get('label'))
-            ->setEntity($data->get('entity'));
-
-        $file = $request->files->get('file0');
-        if ($file) {
-            $oldCSVFile = $import->getCsvFile();
-
-            if ($file->getClientOriginalExtension() !== 'csv') {
-                throw new FormException("Veuillez charger un fichier au format .csv.");
-            }
-
-            $attachments = $attachmentService->createAttachments([$file]);
-            $csvAttachment = $attachments[0];
-
-            $fileValidationResponse = $importService->validateImportAttachment($csvAttachment, false);
-
-            if ($fileValidationResponse['success']) {
-                $import->setCsvFile(null);
-                if ($oldCSVFile) {
-                    $attachmentService->removeAndDeleteAttachment($oldCSVFile);
-                }
-                $import->setCsvFile($csvAttachment);
-                $entityManager->persist($csvAttachment);
-                $entityManager->flush();
-            } else {
-                return $this->json($fileValidationResponse);
-            }
-        }
-
-        $secondModalConfig = $importService->getImportSecondModalConfig($entityManager, $data, $import);
-        $entityManager->flush();
-
-        $importService->saveScheduledImportsCache($entityManager);
-        return $this->json([
-            'success' => true,
-            'importId' => $import->getId(),
-            'html' => $this->renderView('settings/donnees/import/new/second.html.twig', $secondModalConfig)
-        ]);
     }
 
     #[Route("/link", name: "import_links", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
@@ -239,10 +153,6 @@ class ImportController extends AbstractController
         $import->setColumnToField($data);
         $entityManager->flush();
 
-        $responseData = [
-            'success' => true
-        ];
-
         if ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
             $scheduleStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_SCHEDULED);
             $import
@@ -250,13 +160,16 @@ class ImportController extends AbstractController
             $entityManager->flush();
 
             $importService->saveScheduledImportsCache($entityManager);
-            $responseData['msg'] = "L'import planifié a bien été modifié.";
+            return $this->json([
+                "success" => true,
+                "message" => "L'import planifié a bien été créé."
+            ]);
         } else {
-            $responseData['html'] = $this->renderView('settings/donnees/import/new/confirm.html.twig');
+            return $this->json([
+                "success" => true,
+                "html" => $this->renderView('settings/donnees/import/new/confirm.html.twig')
+            ]);
         }
-        dump($import);
-
-        return $this->json($responseData);
     }
 
     #[Route("/get-first-modal-content/{import}", name: "get_first_modal_content", options: ["expose" => true], defaults: ["import" => null], methods: "GET", condition: "request.isXmlHttpRequest()")]
@@ -344,7 +257,7 @@ class ImportController extends AbstractController
 
     #[Route("/{import}/delete", name: "import_delete", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function deleteImport(Import $import, EntityManagerInterface $manager): Response {
-        if ($import->getStatus()?->getCode() === Import::STATUS_DRAFT) {
+        if ($import->isDeletable()) {
             $manager->remove($import);
             $manager->flush();
 
@@ -353,7 +266,7 @@ class ImportController extends AbstractController
                 "msg" => "L'import a bien été supprimé."
             ]);
         } else {
-            throw new FormException("Une erreur est survenue lors de la suppression de l'import.");
+            throw new FormException("L'import ne peut pas être supprimé.");
         }
     }
 
