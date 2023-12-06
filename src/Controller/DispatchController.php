@@ -1303,33 +1303,74 @@ class DispatchController extends AbstractController {
                                      FreeFieldService       $freeFieldService,
                                      CSVExportService       $CSVExportService,
                                      EntityManagerInterface $entityManager,
-                                     DataExportService      $dataExportService): Response
+                                     DataExportService      $dataExportService,
+                                     StatusService          $statusService): Response
     {
-
         $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMin') . ' 00:00:00');
         $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMax') . ' 23:59:59');
 
-        if($dateTimeMin && $dateTimeMax) {
+        if ($dateTimeMin && $dateTimeMax) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $userDateFormat = $this->getUser()->getDateFormat();
-            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+
+            $withStatuses = $request->query->has('withStatuses') && $request->query->getBoolean('withStatuses');
+            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+            $statusConfig = $statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]);
+            $statusIds = array_keys($statusConfig);
+
+            ini_set('memory_limit', '1G');
+            ini_set('max_execution_time', '60');
+            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $withStatuses, $statusIds);
 
             $freeFieldsById = Stream::from($dispatches)
-                ->keymap(fn($dispatch) => [
+                ->keymap(static fn(array $dispatch) => [
                     $dispatch['id'], $dispatch['freeFields']
                 ])->toArray();
 
-            $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
             $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig);
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById) {
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById, $statusConfig, $withStatuses) {
                     foreach ($dispatches as $dispatch) {
-                        $dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+                        $dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById, $statusConfig, $withStatuses);
                     }
                 },
                 'export_acheminements.csv',
                 $headers
+            );
+        } else {
+            throw new BadRequestHttpException();
+        }
+    }
+
+    #[Route("/dispatch-statuses-csv", name: "get_dispatch_statuses_csv", options: ["expose" => true], methods: "GET")]
+    public function getDispatchStatusesCSV(Request                $request,
+                                           DispatchService        $dispatchService,
+                                           CSVExportService       $CSVExportService,
+                                           EntityManagerInterface $entityManager,
+                                           StatusService $statusService): Response
+    {
+        $dateTimeMin = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMin') . ' 00:00:00');
+        $dateTimeMax = DateTime::createFromFormat('Y-m-d H:i:s', $request->query->get('dateMax') . ' 23:59:59');
+
+        if ($dateTimeMin && $dateTimeMax) {
+            $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+
+            $statusFieldsConfig = $statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]);
+            ini_set('memory_limit', '1G');
+            ini_set('max_execution_time', '60');
+            $dispatches = $dispatchRepository->findByDates($dateTimeMin, $dateTimeMax);
+
+            return $CSVExportService->streamResponse(
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $statusFieldsConfig) {
+                    foreach ($dispatches as $dispatch) {
+                        $dispatchService->putDispatchLine($output, $dispatch, [], [], $statusFieldsConfig);
+                    }
+                },
+                'export_statuts_acheminements.csv',
+                [
+                    'numéro',
+                    ...$statusFieldsConfig
+                ]
             );
         } else {
             throw new BadRequestHttpException();

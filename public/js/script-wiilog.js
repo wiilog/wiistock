@@ -1065,13 +1065,13 @@ function saveExportFile(routeName,
                         routeParam = {},
                         needsAdditionalFilters = false,
                         errorMsgDates = Translation.of('Général', null, 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.'),
-                        needsDateFormatting = false) {
+                        needsDateFormatting = false,
+                        $button = $(`.fa-file-csv`).closest(`button`)) {
 
     const buttonTypeTransport = $("input[name='category']:checked")
     const $spinner = $('#spinner');
     loadSpinner($spinner);
 
-    const path = Routing.generate(routeName, routeParam, true);
     let format = 'd/m/Y';
     if (needsDateFormatting) {
         const $userFormat = $('#userDateFormat');
@@ -1088,26 +1088,37 @@ function saveExportFile(routeName,
             }
         }
     });
+
     if (data.dateMin && data.dateMax) {
         data.dateMin = moment(data.dateMin, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
         data.dateMax = moment(data.dateMax, DATE_FORMATS_TO_DISPLAY[format]).format('YYYY-MM-DD');
     }
-    const dataKeys = Object.keys(data);
-    const joinedData = dataKeys
-        .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-        .join('&');
 
     if ((data.dateMin && data.dateMax) || !needsDateFilters) {
-        if(needsAdditionalFilters) {
-            if (!buttonTypeTransport.is(':empty')) {
-                warningEmptyTypeTransportForCsv();
+        if(needsAdditionalFilters && !buttonTypeTransport.is(':empty')) {
+            warningEmptyTypeTransportForCsv();
+        } else {
+            if(Array.isArray(routeName)) {
+                wrapLoadingOnActionButton($button, () => (
+                    Promise
+                        .all([
+                            ...routeName.map((route) => AJAX
+                                .route(AJAX.GET, route, {...data, ...routeParam})
+                                .file({})
+                            )
+                        ])
+                        .then(() => showBSAlert(`Les fichiers ont bien été téléchargés.`, `success`))
+                        .catch(() => showBSAlert(`Une erreur est survenue lors de l'export des données. Veuillez réduire le volume de données exportées.`, `danger`))
+                ));
+            } else {
+                wrapLoadingOnActionButton($button, () => (
+                    AJAX
+                        .route(AJAX.GET, routeName, {...data, ...routeParam})
+                        .file({})
+                        .then(() => showBSAlert(`Le fichier a bien été téléchargé.`, `success`))
+                        .catch(() => showBSAlert(`Une erreur est survenue lors de l'export des données. Veuillez réduire le volume de données exportées.`, `danger`))
+                ));
             }
-            else {
-               window.location.href = `${path}?${joinedData}`;
-            }
-        }
-        else {
-            window.location.href = `${path}?${joinedData}`;
         }
     }
     else {
