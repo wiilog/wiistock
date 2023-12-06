@@ -171,6 +171,7 @@ class SettingsService {
             );
         }
         $updated = [];
+
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
         $this->manager->flush();
@@ -730,6 +731,8 @@ class SettingsService {
                     ->setColor($data["color"] ?? null)
                     ->setDispatchLabelField($data["dispatchLabelField"] ?? null)
                     ->setDisplayLogisticUnitsCountOnDispatchLabel($data["displayLogisticUnitsCountOnDispatchLabel"] ?? false);
+
+                $type->getLabelTranslation()->getTranslationIn(Language::FRENCH_SLUG)->setTranslation($data["label"]);
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {

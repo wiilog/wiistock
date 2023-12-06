@@ -92,6 +92,7 @@ class TypeController extends AbstractController {
         $type = $manager->find(Type::class, $data["type"]);
         if(isset($data["label"])) {
             $translationService->editEntityTranslations($manager, $type->getLabelTranslation(), $data["label"]);
+            $type->setLabel($type->getLabelIn(Language::FRENCH_SLUG));
         }
 
         unset($data["type"], $data["label"]);
