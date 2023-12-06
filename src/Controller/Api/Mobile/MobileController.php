@@ -35,7 +35,9 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Printer;
 use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\ReceptionLine;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
 use App\Entity\ReserveType;
@@ -4095,6 +4097,93 @@ class MobileController extends AbstractApiController
         $entityManager->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    #[Rest\Post("/logistic-unit-reference-association", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postPackAssociation(Request                 $request,
+                                         ReceptionService       $receptionService,
+                                         EntityManagerInterface $entityManager): JsonResponse
+    {
+        $response = [];
+        $receptionReferenceArticleId = $request->request->getInt('receptionReferenceArticle');
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $logisticUnit = $request->request->get('logisticUnit')
+            ? $packRepository->findOneBy(['code' => $request->request->get('logisticUnit')])
+            : null;
+
+        if (!$receptionReferenceArticleId || !$logisticUnit) {
+            if ($logisticUnit) {
+                $arrival = $logisticUnit->getArrivage();
+                if ($arrival) {
+                    $arrivalNumber = $arrival->getNumeroArrivage();
+
+                    $serializedReceptions = $receptionService->serializeReceptions($arrival, [Reception::STATUT_RECEPTION_TOTALE]);
+
+                    $response = [
+                        "arrivalNumber" => $arrivalNumber,
+                        "receptions" => $serializedReceptions['receptions'],
+                        "types" => $serializedReceptions['types'],
+                    ];
+                }
+            }
+
+            if(!$logisticUnit && !$logisticUnit?->getArrivage()) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Numéro d'unité logistique inconnu.",
+                ]);
+            }
+        }
+        else {
+            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+
+            $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
+            $receptionLine = $receptionReferenceArticle->getReceptionLine();
+            $reception = $receptionLine->getReception();
+            if (!$receptionLine->getPack()) {
+                $receptionLine->setPack($logisticUnit);
+            }
+
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+            if ($referenceArticle && $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                $articleLabels = Stream::from(json_decode($request->request->get('articles', "[]"), true))
+                    ->filter(static fn($label) => $label)
+                    ->toArray();
+
+                if (empty($articleLabels)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Les articles renseignés ne sont pas valides.",
+                    ]);
+                }
+                else {
+                    $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                }
+            }
+            if ($referenceArticle->getIsUrgent()) {
+                $reception->setUrgentArticles(true);
+
+                $receptionReferenceArticle
+                    ->setEmergencyTriggered(true)
+                    ->setEmergencyComment($referenceArticle->getEmergencyComment());
+
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setEmergencyComment(null);
+            }
+
+            $receptionService->amendReceptionStatus($entityManager, $reception);
+
+            $entityManager->flush();
+        }
+
+        return $this->json([
+            "success" => true,
+            ...$response,
+        ]);
     }
 }
 
