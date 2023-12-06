@@ -170,6 +170,7 @@ class SettingsService {
             );
         }
         $updated = [];
+
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
         $this->manager->flush();
@@ -727,6 +728,8 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
+
+                $type->getLabelTranslation()->getTranslationIn(Language::FRENCH_SLUG)->setTranslation($data["label"]);
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {

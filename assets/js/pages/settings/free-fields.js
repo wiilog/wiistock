@@ -352,7 +352,6 @@ export function initializeIotFreeFields($container, canEdit) {
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
-
 function updateCheckedType($container) {
     const $radio = $container.find(`[type=radio]:checked + label`);
     const $radioWrapper = $('<span />', {
