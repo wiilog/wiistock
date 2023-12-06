@@ -355,7 +355,7 @@ class DataExportController extends AbstractController {
             function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig) {
                 $dispatchRepository = $manager->getRepository(Dispatch::class);
                 $userDateFormat = $this->getUser()->getDateFormat();
-                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
+                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, false, [], $userDateFormat);
 
                 $freeFieldsById = Stream::from($dispatches)
                     ->keymap(fn($dispatch) => [

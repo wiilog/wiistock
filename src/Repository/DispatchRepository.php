@@ -446,7 +446,7 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax, bool $withStatuses = false, array $statusIds = [],  string $userDateFormat = Language::DMY_FORMAT): ?array
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, bool $withStatuses = false, array $statusIds = [], string $dateFormat = Language::DMY_FORMAT): ?array
     {
         $subQueryPackCount = $this->getEntityManager()->createQueryBuilder()
             ->from(DispatchPack::class, "sub_dispatch_packs")
