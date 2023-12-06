@@ -227,6 +227,10 @@ function createFreeFieldsListeners($container, canEdit, mode) {
                 }
             },
             onEditStop: () => {
+                if(mode !== MODE_TRACKING) {
+                    updateCheckedType($container);
+                }
+
                 $managementButtons.addClass('d-none');
                 $addRow.removeClass('d-none');
                 $filtersContainer.removeClass('d-none');
@@ -237,6 +241,12 @@ function createFreeFieldsListeners($container, canEdit, mode) {
                 $pageBody.find('.wii-title').remove();
             },
         };
+    } else {
+        return {
+            onEditStop: () => {
+                updateCheckedType($container);
+            },
+        }
     }
 }
 
@@ -341,4 +351,25 @@ export function initializeIotFreeFields($container, canEdit) {
 
     $container.on(`change`, `[name=type]`, defaultValueTypeChange);
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
+}
+function updateCheckedType($container) {
+    const $radio = $container.find(`[type=radio]:checked + label`);
+    const $radioWrapper = $('<span />', {
+        text: $container.find(`[name="label"]`).val(),
+        class: 'd-inline-flex align-items-center'
+    });
+    $radio.html($radioWrapper);
+
+    $radioWrapper.text($container.find(`[name="label"]`).val());
+    const $logo = $container.find(`[name="logo"]`);
+    const $logoPreview = $logo.siblings('.preview-container').find('.image');
+    if ($logo.exists() && $logoPreview.exists() && $logoPreview.attr('src')) {
+        const $clonedPreview = $logoPreview.clone();
+        $clonedPreview
+            .attr('id', null)
+            .attr('height', null)
+            .attr('width', '15px')
+            .attr('class', 'mr-2')
+        $radioWrapper.prepend($clonedPreview);
+    }
 }

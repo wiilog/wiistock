@@ -116,15 +116,6 @@ const initializers = {
 
 const saveCallbacks = {
     global_apparence_site: () => location.reload(),
-    trace_acheminements_types_champs_libres: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    stock_demandes_types_champs_libres_livraisons: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    stock_articles_types_champs_libres: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    stock_demandes_types_champs_libres_collectes: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    track_demande_transport_types_champs_libres_livraisons: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    track_demande_transport_types_champs_libres_collectes: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    trace_arrivages_types_champs_libres: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    trace_services_types_champs_libres: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
-    iot_types_champs_libres: ($container, {labelTranslated, typeId}) => refreshTypeLabel($container, labelTranslated, typeId),
     notifications_alertes: ($container, apiResult) => onHeaderPageEditStop($container, apiResult)
 };
 
@@ -1418,8 +1409,4 @@ function changeReceiverInput($checkbox) {
 
 function initializeDispatchConfiguration($container){
     $container.on(`click`, `.select-all-options`, onSelectAll);
-}
-
-function refreshTypeLabel($container, labelTranslated, typeId) {
-    $container.find(`input[name=entity][value=${typeId}]`).next().find('span').text(labelTranslated);
 }
