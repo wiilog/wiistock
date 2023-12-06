@@ -744,6 +744,8 @@ class SettingsService {
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
 
+                $type->getLabelTranslation()->getTranslationIn(Language::FRENCH_SLUG)->setTranslation($data["label"]);
+
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
                         $alreadyByDefaultType = $typeRepository->findOneBy(['category' => $type->getCategory(), 'defaultType' => true]);
