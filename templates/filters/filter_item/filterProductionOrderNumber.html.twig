@@ -1,0 +1,15 @@
+{% import 'form.html.twig' as form %}
+
+<div class="col-auto m-1 pr-0">
+    {{ form.input(
+        constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER'),
+        null,
+        null,
+        null,
+        {
+            placeholder: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER'),
+            inputClass: 'filter-input',
+            disabled: disabled ?? false,
+        }
+    ) }}
+</div>

@@ -18,6 +18,14 @@
     fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
 } %}
 
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST'),
+    field: productionRequest.field,
+    elementsType: productionRequest.elementsType,
+    elements: productionRequest.elements,
+    fixedFieldType: constant('App\\Entity\\Fields\\FixedFieldByType::FIELD_TYPE'),
+} %}
+
 {# Dispatch logistic unit fixed field settings #}
 
 {% for field, values in dispatchLogisticUnitFixedFields %}
@@ -48,8 +56,7 @@
 
 <div class="wii-section">
     <table id="table-dispatch-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
-{#
-TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+{# TODO WIIS-10645: à remettre en place quand la fonctionnalité sera terminée
 
         {% include 'datatable/main-header.html.twig' with {
             needsOnMobileColumn: true,
@@ -62,7 +69,6 @@ TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
         {% include 'datatable/main-header.html.twig' with {
             needsOnMobileColumn: false,
             needsFilterColumn: false,
-            needsOnLabelColumn: false,
             cells: 5
         } %}
 

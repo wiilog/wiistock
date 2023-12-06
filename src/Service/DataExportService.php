@@ -3,15 +3,11 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Dispatch;
-use App\Entity\Export;
-use App\Entity\ExportScheduleRule;
-use App\Entity\ScheduleRule;
-use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -193,9 +189,9 @@ class DataExportService
             $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
-            "Date d'échéance 1",
-            "Date d'échéance 2",
-            "Date d'échéance 2 bis",
+            "Date échéance CPL",
+            "Date livraison ligne initiale",
+            "Date livraison ligne modifiée",
             $this->translation->translate('Demande', 'Général', 'Type', false),
             $this->translation->translate('Demande', 'Général', 'Demandeur', false),
             $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),

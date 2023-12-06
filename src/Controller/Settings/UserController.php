@@ -8,6 +8,7 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreRef;
 use App\Entity\Language;
 use App\Entity\LocationGroup;
+use App\Entity\Printer;
 use App\Entity\Role;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -49,6 +50,7 @@ class UserController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $languageRepository = $entityManager->getRepository(Language::class);
             $fixedFieldRepository = $entityManager->getRepository(FixedFieldByType::class);
+            $printerRepository = $entityManager->getRepository(Printer::class);
 
             $user = $utilisateurRepository->find($data['id']);
 
@@ -74,6 +76,7 @@ class UserController extends AbstractController {
                         ])
                         ->toArray(),
                     "dispatchBusinessUnits" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
+                    "printers" => $printerRepository->findAll(),
                 ])
             ]);
         }
@@ -188,6 +191,7 @@ class UserController extends AbstractController {
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
             $roleRepository = $entityManager->getRepository(Role::class);
             $languageRepository = $entityManager->getRepository(Language::class);
+            $printerRepository = $entityManager->getRepository(Printer::class);
 
             $user = $utilisateurRepository->find($data['user']);
             $role = $roleRepository->find($data['role']);
@@ -335,7 +339,14 @@ class UserController extends AbstractController {
                 }
             }
 
-            $entityManager->persist($user);
+            if(isset($data["defaultPrinter"])) {
+                $user->setDefaultPrinter($printerRepository->find($data["defaultPrinter"]));
+            }
+
+            if(isset($data["allowedPrinters"])) {
+                $user->setAllowedPrinters($printerRepository->findBy(["id" => $data["allowedPrinters"]]));
+            }
+
             $entityManager->flush();
             $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
 
@@ -411,6 +422,7 @@ class UserController extends AbstractController {
             $typeRepository = $entityManager->getRepository(Type::class);
             $roleRepository = $entityManager->getRepository(Role::class);
             $languageRepository = $entityManager->getRepository(Language::class);
+            $printerRepository = $entityManager->getRepository(Printer::class);
 
             $password = $data['password'];
             $password2 = $data['password2'];
@@ -534,6 +546,14 @@ class UserController extends AbstractController {
                 foreach ($types as $type) {
                     $utilisateur->addHandlingType($type);
                 }
+            }
+
+            if(isset($data["defaultPrinter"])) {
+                $utilisateur->setDefaultPrinter($printerRepository->find($data["defaultPrinter"]));
+            }
+
+            if(isset($data["allowedPrinters"])) {
+                $utilisateur->setAllowedPrinters($printerRepository->findBy(["id" => $data["allowedPrinters"]]));
             }
 
             $entityManager->persist($utilisateur);

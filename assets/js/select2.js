@@ -51,6 +51,7 @@ const ROUTES = {
     driver: 'ajax_select_driver',
     truckArrivalLine: 'ajax_select_truck_arrival_line',
     locationWithGroups: `ajax_select_location_with_group`,
+    printer: `ajax_select_printer`,
 }
 
 const INSTANT_SELECT_TYPES = {

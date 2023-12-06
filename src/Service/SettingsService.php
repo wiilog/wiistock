@@ -288,6 +288,7 @@ class SettingsService {
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
             $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -635,6 +636,7 @@ class SettingsService {
                 $types = [];
 
                 Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->filter()
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
@@ -725,7 +727,9 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
-                    ->setColor($data["color"] ?? null);
+                    ->setColor($data["color"] ?? null)
+                    ->setDispatchLabelField($data["dispatchLabelField"] ?? null)
+                    ->setDisplayLogisticUnitsCountOnDispatchLabel($data["displayLogisticUnitsCountOnDispatchLabel"] ?? false);
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
@@ -769,7 +773,7 @@ class SettingsService {
 
                 if (isset($item["elements"])) {
                     $elements = Stream::explode(";", $item["elements"])
-                        ->map(fn(string $element) => trim($element))
+                        ->filterMap(fn(string $element) => trim($element) ?: null)
                         ->toArray();
                 }
 
@@ -789,7 +793,8 @@ class SettingsService {
                     ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
-                    ->setRequiredEdit($item["requiredEdit"]);
+                    ->setRequiredEdit($item["requiredEdit"])
+                    ->setDisplayedOnLabel($item["displayedOnLabel"] ?? false);
 
                 if(!$freeField->getLabelTranslation()) {
                     $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());

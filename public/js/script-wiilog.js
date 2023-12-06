@@ -847,6 +847,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'emergencyMultiple':
                 case 'businessUnit':
                 case 'article':
+                case 'productionRequest':
                 case 'managers':
                 case 'deliverers':
                 case 'drivers':
@@ -1371,4 +1372,10 @@ function onSelectAll() {
     });
 
     $select.trigger(`change`);
+}
+
+function getUserFiltersByPage(page) {
+    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
+        .json()
+        .then((data) => displayFiltersSup(data));
 }

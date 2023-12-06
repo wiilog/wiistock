@@ -148,6 +148,14 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_PHONE . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH, 'label' => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS . '<img src="/svg/information.svg" width="12px" height="12px" class="has-tooltip ml-1" title="Donnée provenant du référentiel client">', 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE, 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE, 'displayedFilters' => false, 'dependency' => [
+                    'time' => '12:00',
+                    'day' => 1,
+                ]],
+                ['code' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO, 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS, 'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST, 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST, 'displayedFilters' => false, 'values' => [], 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE],
             ],
         ];
 
@@ -184,8 +192,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                         ->setConditionFixedField($fieldCode['conditionFixedField'])
                         ->setConditionFixedFieldValue($fieldCode['conditionFixedFieldValue'])
                         ->setRequired($fieldCode['required'])
-                        ->setElements($fieldCode['values'] ?? null)
-                        ->setElementsType($fieldCode['elementsType'] ?? null);
+                        ->setElements($fieldCode['values'] ?? null);
 
                     $manager->persist($field);
                     $output->writeln('Champ fixe de ligne ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');
@@ -254,8 +261,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                         ->setFieldCode($fieldCode['code'])
                         ->setElements($fieldCode['values'] ?? null)
                         ->setDisplayedCreate(($fieldCode['displayedCreate'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setDisplayedEdit(($fieldCode['displayedEdit']) ? $entityTypes : $emptyCollection)
-                        ->setDisplayedFilters(($fieldCode['displayedFilters']) ? $entityTypes : $emptyCollection)
+                        ->setDisplayedEdit(($fieldCode['displayedEdit'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setRequiredEdit(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setOnMobile(($fieldCode['onMobile'] ?? false) ? $entityTypes : $emptyCollection)

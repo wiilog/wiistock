@@ -59,50 +59,6 @@
     </div>
 </div>
 
-<div class="wii-section-title">Validation d'un acheminemennt</div>
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 my-1">
-            {{ form.checkbox(
-                setting('AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION'),
-                "Créer automatiquement un mouvement de dépose sur l’emplacement de prise de l’acheminement à sa validation pour les types",
-                false,
-                setting_value('AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION'))
-            }}
-        </div>
-        <div class="col-6 my-1">
-            {{ form.select(setting('AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES'), '', false, {
-                type: 'dispatchType',
-                items: automaticallyCreateMovementOnValidationTypes | json_decode,
-                multiple: true,
-                selectAllLabel: 'Tous les types',
-            }) }}
-        </div>
-    </div>
-</div>
-
-<div class="wii-section-title">Groupage</div>
-<div class="wii-section">
-    <div class="row">
-        <div class="col-12 my-1">
-            {{ form.checkbox(
-                setting('AUTO_UNGROUP'),
-                "Dégroupage automatique à la dépose sur l’emplacement de dépose de l’acheminement pour les types",
-                false,
-                setting_value('AUTO_UNGROUP'))
-            }}
-        </div>
-        <div class="col-6 my-1">
-            {{ form.select(setting('AUTO_UNGROUP_TYPES'), '', false, {
-                type: 'dispatchType',
-                items: autoUngroupTypes | json_decode,
-                multiple: true,
-                selectAllLabel: 'Tous les types',
-            }) }}
-        </div>
-    </div>
-</div>
-
 <div class="wii-section-title">Filtres via champs fixes sur la page demande</div>
 <div class="wii-section">
     <div class="row">
@@ -147,7 +103,7 @@
 </div>
 
 {#
-TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+TODO WIIS-10644: à remettre en place quand la fonctionnalité sera terminée
 
 <div class="wii-section-title">Groupage</div>
 <div class="wii-section">

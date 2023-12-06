@@ -6,11 +6,15 @@ namespace App\Service;
 use App\Entity\Arrivage;
 use App\Entity\Article;
 use App\Entity\DaysWorked;
+use App\Entity\Dispatch;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
+use App\Entity\LocationGroup;
 use App\Entity\Pack;
 use App\Entity\Project;
 use App\Entity\Reception;
+use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Nature;
 use App\Entity\Transport\TransportDeliveryOrderPack;
@@ -64,7 +68,7 @@ class PackService {
     public FormatService $formatService;
 
     #[Required]
-    public ReceptionService $receptionService;
+    public DispatchService $dispatchService;
 
     #[Required]
     public PDFGeneratorService $PDFGeneratorService;
@@ -248,6 +252,11 @@ class PackService {
     public function createPack(EntityManagerInterface $entityManager,
                                array $options = []): Pack
     {
+        $arrival = $options['arrival'] ?? null;
+        $dispatch = $options['dispatch'] ?? null;
+        $nature = $options['nature'] ?? null;
+        $originalPack = $options['originalPack'] ?? null;
+
         if (!empty($options['code'])) {
             $pack = $this->createPackWithCode($options['code']);
         } else {
@@ -300,6 +309,27 @@ class PackService {
                     ->setNature($nature);
 
                 $orderLine->setPack($pack);
+            } else if (isset($options['dispatch'])) {
+                $dispatch = $options['dispatch'];
+
+                /** @var Nature $nature */
+                $nature = $options['nature'];
+
+                $dispatchNumber = $dispatch->getNumber();
+                $newCounter = $dispatch->getDispatchPacks()->count() + 1;
+
+                if ($newCounter < 10) {
+                    $newCounter = "00" . $newCounter;
+                } elseif ($newCounter < 100) {
+                    $newCounter = "0" . $newCounter;
+                }
+
+                $code = (($nature->getPrefix() ?? '') . $dispatchNumber . $newCounter ?? '');
+
+                $pack = $this
+                    ->createPackWithCode($code)
+                    ->setNature($nature)
+                    ->setCreatingDispatch($dispatch);
             }
             else {
                 throw new RuntimeException('Unhandled pack configuration');
@@ -314,6 +344,23 @@ class PackService {
                 }
             }
         }
+
+        if ($dispatch) {
+            $pack->setCreatingDispatch($dispatch);
+        }
+
+        if ($arrival) {
+            $arrival->addPack($pack);
+        }
+
+        if ($nature) {
+            $pack->setNature($nature);
+        }
+
+        if ($originalPack) {
+            $pack->setOriginalPack($originalPack);
+        }
+
         return $pack;
     }
 
@@ -543,10 +590,21 @@ class PackService {
         $receiverUsernames = ($usernameParamIsDefined && !empty($receivers))
             ? Stream::from($receivers)->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))->join(", ")
             : '';
-
         $receiverDropzones = Stream::from($receivers)
             ->filter(static fn(Utilisateur $receiver) => $receiver->getDropzone())
-            ->map(fn(Utilisateur $receiver) => (!$usernameParamIsDefined ? "{$this->formatService->user($receiver)}: " : "") . $this->formatService->location($receiver->getDropzone()))
+            ->map(function(Utilisateur $receiver) use ($usernameParamIsDefined) {
+                $dropZone = $receiver->getDropzone();
+                $userLabel = (!$usernameParamIsDefined ? "{$this->formatService->user($receiver)}: " : "");
+
+                if ($dropZone instanceof Emplacement) {
+                    $locationLabel = $this->formatService->location($dropZone);
+                } elseif ($dropZone instanceof LocationGroup) {
+                    $locationLabel = $this->formatService->locationGroup($dropZone);
+                } else {
+                    $locationLabel = "";
+                }
+                return $userLabel.$locationLabel;
+            })
             ->join(", ");
 
         $dropZoneLabel = ($dropzoneParamIsDefined && !empty($receiverDropzones))
@@ -620,5 +678,90 @@ class PackService {
             'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
             'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null
         ];
+    }
+
+    public function doPackSeparation(EntityManagerInterface $entityManager,
+                                     Pack                   $originalPack,
+                                     Emplacement            $dropLocation,
+                                     Utilisateur            $user,
+                                     array                  $subPacks,
+                                     bool                   $fromNomade): array {
+
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $packSeparationLocationParam = $settingRepository->getOneParamByLabel(Setting::PACK_SEPARATION_AUTO_DROP_LOCATION);
+        $packSeparationLocationId = $packSeparationLocationParam ? json_decode($packSeparationLocationParam) : null;
+        $packSeparationLocation = $packSeparationLocationId ? $locationRepository->find($packSeparationLocationId) : null;
+
+        $createdMovements = [];
+
+        $now = new DateTime();
+        $trackingPackSeparation = $this->trackingMovementService->createTrackingMovement($originalPack, null, $user, $now, $fromNomade, true, TrackingMovement::TYPE_PACK_SEPARATION);
+        $entityManager->persist($trackingPackSeparation);
+
+        $createdMovements[] = $trackingPackSeparation;
+
+        if ($packSeparationLocation) {
+            $trackingPackSeparationDrop = $this->trackingMovementService->createTrackingMovement($originalPack, $packSeparationLocation, $user, $now, $fromNomade, true, TrackingMovement::TYPE_DEPOSE);
+            $entityManager->persist($trackingPackSeparationDrop);
+            $createdMovements[] = $trackingPackSeparationDrop;
+        }
+
+        $originalCode = $originalPack->getCode();
+        $subPackIndex = $originalPack->getSubPacks()->count();
+
+        $currentDispatch = $dispatchRepository->findNotTreatedForPack($originalPack);
+
+        if ($currentDispatch) {
+            $currentDispatch->removePack($originalPack);
+        }
+
+        foreach ($subPacks as $subPackData) {
+            $natureId = $subPackData['natureId'];
+            $counter = $subPackData['counter'];
+
+            $nature = $natureRepository->find($natureId);
+
+            for ($nbCreation = 0; $nbCreation < $counter; $nbCreation++) {
+                $subPackIndex++;
+                $newCode = "$originalCode.$subPackIndex";
+                $newPack = $this->createPack(
+                    $entityManager,
+                    [
+                        'code' => $newCode,
+                        'nature' => $nature,
+                        'dispatch' => $originalPack->getCreatingDispatch(),
+                        'arrival' => $originalPack->getArrivage(),
+                        'originalPack' => $originalPack,
+                    ]
+                );
+
+                $newPack->setOriginalPack($originalPack);
+
+                if ($currentDispatch) {
+                    $packDispatch = $this->dispatchService->createDispatchPack($newPack, $currentDispatch, $newPack->getQuantity());
+                    $entityManager->persist($packDispatch);
+                }
+
+                $trackingPackSeparationChildDrop = $this->trackingMovementService->createTrackingMovement(
+                    $newPack,
+                    $dropLocation,
+                    $user,
+                    $now,
+                    $fromNomade,
+                    true,
+                    TrackingMovement::TYPE_DEPOSE
+                );
+
+                $entityManager->persist($newPack);
+                $entityManager->persist($trackingPackSeparationChildDrop);
+                $createdMovements[] = $trackingPackSeparationChildDrop;
+            }
+        }
+
+        return $createdMovements;
     }
 }
