@@ -378,6 +378,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.commentaire AS comment')
             ->addSelect('type.label AS typeLabel')
             ->addSelect('type.id AS typeId')
+            ->addSelect('type.color AS typeColor')
             ->addSelect('status.id AS statusId')
             ->addSelect('status.nom AS statusLabel')
             ->addSelect('status.groupedSignatureColor AS groupedSignatureStatusColor')
