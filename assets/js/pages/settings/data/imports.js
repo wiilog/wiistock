@@ -71,30 +71,6 @@ export function initializeImports() {
     };
     tableImport = initDataTable(`tableImport`, tableImportConfig);
 
-    $(document).on(`click`, `button.edit-import`, function() {
-        const $editImportModal = $(`#modal-edit-import`)
-        const id = $(this).data(`id`);
-
-        $editImportModal.modal(`show`);
-
-        Form.create($editImportModal)
-            .clearOpenListeners()
-            .clearSubmitListeners()
-            .onOpen(() => {
-                Modal.load(`import_edit_api`, {id}, $editImportModal);
-                toggleImportType($editImportModal.find(`[value=unique-import-checkbox]:checked, [value=scheduled-import-checkbox]:checked`));
-                toggleFrequencyInput($editImportModal.find(`[name=frequency]:checked`));
-                importTemplateChanged($editImportModal.find(`[name="entity"]`));
-            })
-            .submitTo(`POST`, `import_edit`, {
-                tables: [tableImport],
-                keepModal: true,
-                success: (data) => {
-                    displaySecondModalMaker($editImportModal, data)
-                },
-            });
-    });
-
     $(document).on(`click`, `button.force-import`, function() {
         const $forceImportModal = $(`#modalConfirmForce`);
         const id = $(this).data(`id`);
@@ -237,7 +213,7 @@ function updateOptions($select) {
 function registerForceInput() {
     let count = 0;
     let $modalLaunchPlanifiedImport = $(`#modalLaunchPlanifiedImport`);
-    $(document).on(`click`, `.status-planifié`, function() {
+    $(document).on(`click`, `.import-scheduled-status`, function() {
         count += 1;
         if (count === CLICK_NUMBER_FORCE_IMPORT) {
             const id = $(this).data(`id`);

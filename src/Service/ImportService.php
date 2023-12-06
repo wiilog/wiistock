@@ -313,26 +313,17 @@ class ImportService
 
     public function dataRowImport(Import $import): array
     {
-        $importId = $import->getId();
-        $url['edit'] = $this->router->generate('supplier_edit', ['id' => $importId]);
-
-        $status = $import->getStatus();
-        $statusLabel = $this->formatService->status($status);
-        $typeLabel = $this->formatService->type($import->getType());
-
         $statusTitle = '';
-        if ($typeLabel === Type::LABEL_UNIQUE_IMPORT && $statusLabel === Import::STATUS_UPCOMING) {
+        $customClass = '';
+        if ($import->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
+            && $import->getStatus()?->getCode() === Import::STATUS_UPCOMING) {
             $statusTitle = $import->isForced()
                 ? "L'import sera réalisé dans moins de 30 minutes."
                 : "L'import sera réalisé la nuit suivante.";
+            $customClass = "import-scheduled-status has-tooltip";
         }
 
-        $statusClass = "user-select-none status-$statusLabel cursor-default";
-        if (!empty($statusTitle)) {
-            $statusClass .= ' has-tooltip';
-        }
-
-        $nextExecutionDate = ($typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED)
+        $nextExecutionDate = ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT && $import->getStatus()?->getCode() === Import::STATUS_SCHEDULED)
             ? $import->getNextExecutionDate()
             : null;
 
@@ -365,19 +356,13 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => "<span class='$statusClass' data-id='$importId' title='$statusTitle'>$statusLabel</span>",
+            'status' => "<span class='user-select-none cursor-default $customClass' data-id='{$import->getId()}' title='$statusTitle'>{$this->formatService->status($import->getStatus())}</span>",
             'user' => $this->formatService->user($import->getUser()),
-            'type' => $typeLabel,
+            'type' => $this->formatService->type($import->getType()),
             "nextExecutionDate" => $this->formatService->datetime($nextExecutionDate),
             'entity' => Import::ENTITY_LABEL[$import->getEntity()] ?? "Non défini",
             'actions' => $this->templating->render('settings/donnees/import/row.html.twig', [
-                'url' => $url,
                 'import' => $import,
-                'fournisseurId' => $importId,
-                'canEditOrDelete' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED,
-                'canForce' => $typeLabel === Type::LABEL_SCHEDULED_IMPORT && $statusLabel === Import::STATUS_SCHEDULED && !$import->isForced(),
-                'canCancel' => $typeLabel === Type::LABEL_UNIQUE_IMPORT && $statusLabel === Import::STATUS_UPCOMING,
-                'logFile' => $import->getLogFile()?->getFileName()
             ]),
         ];
     }
@@ -420,35 +405,30 @@ class ImportService
 
             $refToUpdate = [];
 
-            $rowCount = 0;
-            $firstRows = [];
-
-            while (($row = fgetcsv($file, 0, ';')) !== false
-                && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
-
-                if (empty($headersLog)) {
-                    $headersLog = [...$row, 'Statut import'];
-                } else {
-                    $firstRows[] = $row;
-                    $rowCount++;
-                }
-            }
+            [
+                "rowCount" => $rowCount,
+                "firstRows" => $firstRows,
+                "headersLog" => $headersLog,
+            ] = $this->extractDataFromCSVFiles($file);
 
             // le fichier fait moins de MAX_LINES_FLASH_IMPORT lignes
             $smallFile = ($rowCount <= self::MAX_LINES_FLASH_IMPORT);
 
             if (!$smallFile
                 && ($mode !== self::IMPORT_MODE_RUN)) {
-                if (!$this->currentImport->isFlash() && !$this->currentImport->isForced()) {
+                if (!$this->currentImport->isFlash()
+                    && !$this->currentImport->isForced()) {
+                    $upcomingStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
                     $importForced = (
                         ($rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT)
                         || ($mode === self::IMPORT_MODE_FORCE_PLAN)
                     );
-                    $importModeChosen = $importForced ? self::IMPORT_MODE_FORCE_PLAN : self::IMPORT_MODE_RUN;
-                    $this->currentImport->setForced($importForced);
-
-                    $upcomingStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_UPCOMING);
-                    $this->currentImport->setStatus($upcomingStatus);
+                    $importModeChosen = $importForced
+                        ? self::IMPORT_MODE_FORCE_PLAN
+                        : self::IMPORT_MODE_RUN;
+                    $this->currentImport
+                        ->setForced($importForced)
+                        ->setStatus($upcomingStatus);
                     $this->entityManager->flush();
                 } else {
                     $importModeChosen = self::IMPORT_MODE_NONE;
@@ -460,7 +440,8 @@ class ImportService
                     $this->currentImport->setFlash(true);
                 }
 
-                if (empty($headersLog) || empty($firstRows)) {
+                if (empty($headersLog)
+                    || empty($firstRows)) {
                     $this->currentImport->setLastErrorMessage("Le fichier source à importer était vide. Il doit comporter au moins deux lignes dont une ligne d'entête.");
                 } else {
                     // les premières lignes <= MAX_LINES_AUTO_FORCED_IMPORT
@@ -468,11 +449,15 @@ class ImportService
 
                     ['resource' => $logFile, 'fileName' => $logFileName] = $this->fopenLogFile();
                     $logAttachment = $this->persistLogAttachment($logFileName);
-                    $this->currentImport->setLogFile($logAttachment);
 
                     $this->attachmentService->putCSVLines($logFile, [$headersLog], $this->scalarCache["logFileMapper"]);
 
-                    $import->setStartDate($now);
+                    $this->currentImport->setLogFile($logAttachment);
+
+                    if (!$this->currentImport->getStartDate()) {
+                        $this->currentImport->setStartDate($now);
+                    }
+
                     $this->entityManager->flush();
 
                     $this->eraseGlobalDataBefore();
@@ -2500,7 +2485,7 @@ class ImportService
                         'fieldCode' => $fieldParamCode,
                         'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                     ]);
-                    if ($fieldParam && $fieldParam->getRequiredCreate()) {
+                    if ($fieldParam && $fieldParam->isRequiredCreate()) {
                         $fieldsNeeded[] = $field;
                     }
                 }
@@ -2675,6 +2660,38 @@ class ImportService
             $this->currentImport->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT) {
             @unlink($importFilePath);
         }
+    }
+
+    /**
+     * @param resource $file
+     */
+    #[ArrayShape([
+        "rowCount" => "number",
+        "firstRows" => "array",
+        "headersLog" => "array|null",
+    ])]
+    private function extractDataFromCSVFiles(mixed $file): array {
+
+        $rowCount = 0;
+        $firstRows = [];
+        $headersLog = null;
+
+        while (($row = fgetcsv($file, 0, ';')) !== false
+            && $rowCount <= self::MAX_LINES_AUTO_FORCED_IMPORT) {
+
+            if (empty($headersLog)) {
+                $headersLog = [...$row, 'Statut import'];
+            } else {
+                $firstRows[] = $row;
+                $rowCount++;
+            }
+        }
+
+        return [
+            "rowCount" => $rowCount,
+            "firstRows" => $firstRows,
+            "headersLog" => $headersLog,
+        ];
     }
 
 }
