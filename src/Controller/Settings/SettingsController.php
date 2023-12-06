@@ -3133,7 +3133,7 @@ class SettingsController extends AbstractController {
 
         foreach ($typesLitige as $type) {
             if ($type->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+                $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
             }
         }
         $manager->flush();
