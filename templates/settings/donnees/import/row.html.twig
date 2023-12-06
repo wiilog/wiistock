@@ -6,8 +6,9 @@
                  onclick="displayFirstModal($(this), {{ import.id }})">
                 <i class='fas fa-sync-alt mr-2'></i>Dupliquer l'import
             </div>
-            {% if import.logFile?.fileName is not null %}
-                <a href="/uploads/attachments/{{ import.logFile?.fileName }}"
+            {% set logFile = import.logFile ? import.logFile.fileName %}
+            {% if logFile %}
+                <a href="/uploads/attachments/{{ logFile }}"
                    class="dropdown-item has-tooltip">
                     <i class='fas fa-search-plus mr-2'></i>Fichier trace
                 </a>
