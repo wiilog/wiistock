@@ -4130,7 +4130,7 @@ class MobileController extends AbstractApiController
                 }
             }
 
-            if(!$logisticUnit && !$logisticUnit->getArrivage()) {
+            if(!$logisticUnit && !$logisticUnit?->getArrivage()) {
                 return $this->json([
                     "success" => false,
                     "msg" => "Numéro d'unité logistique inconnu.",
