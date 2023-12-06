@@ -129,12 +129,13 @@ class PrinterService
                     ->setContent($code)
                     ->setDisplayContent(strlen($code) <= self::MAX_QR_CODE_LENGTH);
 
+                $image = Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/uploads/attachments/{$logo}")
+                    ->setWidth(30)
+                    ->setHeight(15);
+
                 $label = $zebraPrinter->createLabel();
-                $label->with(
-                    Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/$logo")
-                        ->setWidth(30)
-                        ->setHeight(15)
-                )
+                $label
+                    ->with($image)
                     ->with($qr);
 
                 if(strlen($code) > self::MAX_QR_CODE_LENGTH) {

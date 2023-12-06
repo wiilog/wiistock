@@ -2,8 +2,8 @@
 
 namespace App\Service;
 
-use App\Controller\Settings\StatusController;
 use App\Entity\Statut;
+use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
@@ -204,6 +204,12 @@ class StatusService {
         }
 
         return $statesStream->join('');
+    }
+
+    public function createExportArrayConfig(EntityManagerInterface $entityManager, array $fieldCategoryLabels): array {
+        return Stream::from($entityManager->getRepository(Statut::class)->findByCategorieName($fieldCategoryLabels))
+            ->keymap(static fn(Statut $status) => [$status->getId(), $status->getNom()])
+            ->toArray();
     }
 
 }

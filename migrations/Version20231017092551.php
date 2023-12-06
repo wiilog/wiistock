@@ -59,8 +59,8 @@ final class Version20231017092551 extends AbstractMigration
             $this->addSql("
                 UPDATE statut
                     INNER JOIN categorie_statut ON statut.categorie_id = categorie_statut.id
-                SET statut.nom = :newStatusName
-                WHERE statut.nom = :oldStatusName
+                SET statut.nom = :newStatusName, statut.code = :newStatusName
+                WHERE statut.code = :oldStatusName
                   AND categorie_statut.nom = :importStatusCategory
             ", [
                 "oldStatusName" => "planifié",

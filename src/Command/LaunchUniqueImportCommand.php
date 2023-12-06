@@ -37,13 +37,12 @@ class LaunchUniqueImportCommand extends Command
         $statutRepository = $this->getEntityManager()->getRepository(Statut::class);
 
         $upcomingImports = $importRepository->findByStatusLabel(Import::STATUS_UPCOMING);
+        $statusInProgress = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS);
 
         $now = new DateTime('now');
 
-        $nowHours = (int)$now->format('G'); // 0-23
-        $nowMinutes = (int)$now->format('i'); // 0-59
-
-        $statusEnCours = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::IMPORT, Import::STATUS_IN_PROGRESS);
+        $nowHours = (int) $now->format('G'); // 0-23
+        $nowMinutes = (int) $now->format('i'); // 0-59
 
         $importsToLaunch = [];
         // si on est au alentours de minuit => on commence tous les imports sinon uniquement ceux qui sont forcés
@@ -51,7 +50,7 @@ class LaunchUniqueImportCommand extends Command
         foreach ($upcomingImports as $import) {
             if (!$runOnlyForced
                 || $import->isForced()) {
-                $import->setStatus($statusEnCours);
+                $import->setStatus($statusInProgress);
                 $importsToLaunch[] = $import;
             }
         }

@@ -3998,6 +3998,48 @@ class MobileController extends AbstractApiController
         ]);
     }
 
+    #[Rest\Post("/dispatch-edit", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function editDispatch(Request $request,
+                                 AttachmentService $attachmentService,
+                                 EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatch = $request->request->get('dispatch');
+        $comment = $request->request->get('comment');
+        $dispatch = $dispatchRepository->find($dispatch);
+
+        $id = $dispatch->getId();
+        $fileNames = [];
+
+        $signatureFile = $request->files->get("signature_$id");
+        if (!empty($signatureFile)) {
+            $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+        }
+
+        foreach ($request->files->all() as $key => $file) {
+            if (str_starts_with($key, "photos_$id")) {
+                $fileNames = array_merge($fileNames, $attachmentService->saveFile($file));
+            }
+        }
+
+        $attachments = $attachmentService->createAttachments($fileNames);
+
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $dispatch->addAttachment($attachment);
+        }
+
+        if (!empty($comment)) {
+            $dispatch->setCommentaire($comment);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse([]);
+    }
+
     #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
     #[Rest\View]
     #[Wii\RestAuthenticated]
@@ -4022,17 +4064,15 @@ class MobileController extends AbstractApiController
         $user = $this->getUser();
 
         if($dispatch && $request->request->get("printer")) {
-            $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
-            try {
-                $client = SocketClient::create($printer->getAddress(), PrinterService::DEFAULT_PRINTER_PORT, PrinterService::DEFAULT_PRINTER_TIMEOUT);
-                $zebraPrinter = $printerService->getPrinter($printer);
-            }
-            catch(Throwable) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.",
-                ]);
-            }
+            $config = $printerService->configurationOf($dispatch);
+            if ($config) {
+                $printer = $entityManager->find(Printer::class, $request->request->getInt("printer"));
+                try {
+                    $zebraPrinter = $printerService->getPrinter($printer);
+                }
+                catch(Throwable) {
+                    throw new FormException("Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.");
+                }
 
             $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
 
@@ -4046,7 +4086,10 @@ class MobileController extends AbstractApiController
                 ->filter()
                 ->toArray();
 
-            $printerService->printDispatchPacks($zebraPrinter, $client, $dispatch, $packs);
+                $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
+            } else {
+                throw new FormException("Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}.");
+            }
         } else {
             $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
         }

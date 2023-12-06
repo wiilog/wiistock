@@ -85,6 +85,7 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true)]
     private ?ReferenceArticle $referenceArticle = null;
 
+    // Champ correspondant à l'unité logistique parente sélectionnée lors d'un mouvement de groupage
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'children')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Pack $parent = null;
@@ -132,9 +133,11 @@ class Pack implements PairedEntity {
     #[ORM\JoinColumn(nullable: true, onDelete: "SET NULL")]
     private ?Dispatch $creatingDispatch = null;
 
+    // Champ correspondant à l'unité logistique originale lors d'un mouvement d'éclatement
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: "subPacks")]
     private ?Pack $originalPack = null;
 
+    // Champ correspondant aux unités logistiques créées suite à un mouvement d'éclatement
     #[ORM\OneToMany(mappedBy: 'originalPack', targetEntity: Pack::class)]
     private Collection $subPacks;
 

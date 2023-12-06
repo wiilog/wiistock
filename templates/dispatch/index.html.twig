@@ -27,10 +27,16 @@
             <div class="col-auto ml-auto btn-group dispatch-button-container">
                 {% if hasRightToExport %}
                     <button type="button"
-                            class="btn btn-primary split-button"
-                            onclick="saveExportFile('get_dispatches_csv', true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true)">
+                            class="btn btn-primary mr-1"
+                            onclick="saveExportFile('get_dispatches_csv', true, {withStatuses: true}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true, $(this))">
                         <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
                         {{ trans('Général', null, 'Zone liste', 'Exporter au format CSV') }}
+                    </button>
+                    <button type="button"
+                            class="btn btn-primary split-button"
+                            onclick="saveExportFile(['get_dispatches_csv', 'get_dispatch_statuses_csv'], true, {}, false, '{{ trans('Général', '', 'Modale', 'Veuillez saisir des dates dans le filtre en haut de page.', false) }}', true, $(this))">
+                        <i class="fa fa-file-csv mr-2" style="padding: 0 2px"></i>
+                        Export double au format CSV
                     </button>
                     <button type="button"
                             class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split"
