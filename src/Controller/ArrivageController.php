@@ -1643,7 +1643,6 @@ class ArrivageController extends AbstractController {
             ],
         ];
 
-        dump($fields);
         foreach ($fields as $fieldName => $fieldPredictions) {
             $fieldPredictions = (array)$fieldPredictions;
             $field = Arrivage::AI_FILABLE_FIELDS[$fieldName] ?? FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
@@ -1674,13 +1673,12 @@ class ArrivageController extends AbstractController {
                                 "label" => $formatService->user($receiver),
                             ];
                             $score *= (float)$fieldPrediction["score"];
+                            $fieldValues[$field]["score"] = ceil(($score) * 100);
                         }
                     }
-                    $fieldValues[$field]["score"] = ceil(($score) * 100);
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
                     usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
-                    dump($fieldPredictions);
                     do {
                         $prediction = array_shift($fieldPredictions);
                         $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $prediction['value']]);
@@ -1729,9 +1727,9 @@ class ArrivageController extends AbstractController {
                                 "label" => $fieldPrediction["value"],
                             ];
                             $score *= (float)$fieldPrediction["score"];
+                            $fieldValues[$field]["score"] = ceil($score * 100);
                         }
                     }
-                    $fieldValues[$field]["score"] = ceil($score * 100);
                     break;
                 case FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE:
                 default:
