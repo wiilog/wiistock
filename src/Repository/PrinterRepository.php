@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Printer;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends EntityRepository<Printer>
@@ -16,5 +16,27 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PrinterRepository extends EntityRepository
 {
+    public function getForSelect(?string $term, ?int $default, ?Utilisateur $user): array {
+        $query = $this->createQueryBuilder("printer")
+            ->select("printer.id AS id, printer.name AS text")
+            ->andWhere("printer.name LIKE :term")
+            ->setParameter("term", "%$term%");
 
+        if ($default) {
+            $query
+                ->andWhere("printer.id != :default")
+                ->setParameter("default", $default);
+        }
+
+        if($user){
+            $query
+                ->andWhere(":user MEMBER OF printer.allowedUsers")
+                ->orWhere(":user MEMBER OF printer.defaultUsers")
+                ->setParameter("user", $user->getId());
+        }
+
+        return $query
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

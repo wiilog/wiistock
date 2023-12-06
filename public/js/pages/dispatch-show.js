@@ -133,6 +133,39 @@ $(function() {
         });
     });
 
+    const $modalGenerateLogisticUnit = $('#modalGenerateLogisticUnit');
+    Form.create($modalGenerateLogisticUnit)
+        .onOpen(() => {
+            $modalGenerateLogisticUnit
+                .find(`[name=printLabel]`)
+                .on(`change`, function () {
+                    const $printer = $(this)
+                        .closest(`.modal`)
+                        .find(`[name=printer]`);
+
+                    const needsPrintLabel = Number($(this).val()) === 1;
+                    $printer
+                        .prop(`disabled`, !needsPrintLabel)
+                        .prop(`required`, needsPrintLabel)
+                        .toggleClass(`needed`, needsPrintLabel)
+                        .val(null)
+                        .trigger(`change`);
+
+                    $printer
+                        .siblings(`.field-label`)
+                        .find(`.required-mark`)
+                        .toggleClass(`d-none`, !needsPrintLabel)
+                });
+        })
+        .submitTo(AJAX.POST, `generate_packs`, {
+            tables: [packsTable],
+            success: () => {
+                $modalGenerateLogisticUnit
+                    .find(`[name=printLabel]`)
+                    .val(1)
+                    .trigger(`change`);
+            },
+        });
 
     const queryParams = GetRequestQuery();
     const {'print-delivery-note': printDeliveryNote} = queryParams;
@@ -245,6 +278,29 @@ function openTreatDispatchModal() {
     clearModal(modalSelector);
 
     $modal.modal('show');
+}
+
+function openPartialDispatchModal() {
+    const $modalPartialDispatch = $('#modalPartialDispatch');
+    const dispatchId = $('#dispatchId').val();
+
+    Form.create($modalPartialDispatch)
+        .onSubmit((data, form) => {
+            form.loading(() => {
+                return AJAX
+                    .route(AJAX.POST, `dispatch_treat_request`, {id: dispatchId})
+                    .json(data)
+                    .then((response) => {
+                        console.log(response)
+                        if (response.success) {
+                            window.location.reload();
+                            $modalPartialDispatch.modal('hide');
+                        }
+                    });
+            });
+        });
+
+    $modalPartialDispatch.modal('show');
 }
 
 function runDispatchPrint($button) {

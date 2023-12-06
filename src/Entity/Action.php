@@ -67,6 +67,7 @@ class Action {
     const DISPATCH_REQUEST_OFFLINE_MODE = "Mode hors ligne pour les demandes d'acheminements et la signature groupée";
     const GENERATE_DISPATCH_BILL = "générer un bon d'acheminement";
     const DELETE_PROCESSED_DISPATCH = 'supprimer acheminements traités';
+    const GENERATE_LOGISTIC_UNITS = 'générer des unités logistiques';
     const DELETE_PROCESSED_HANDLING = 'supprimer services traités';
     const DISPLAY_PURCHASE_REQUESTS = "afficher demandes d'achat";
     const DELETE_DRAFT_PURCHASE_REQUEST = "supprimer demandes d'achat brouillon";
@@ -223,6 +224,7 @@ class Action {
     const MODULE_ACCESS_ARTICLES_UL_ASSOCIATION = 'Accès association articles-UL';
     const MODULE_ACCESS_HANDLING = 'Accès services';
     const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
+    const MODULE_ACCESS_LOGISTIC_UNIT_REFERENCE_ASSOCIATION = 'Accès association UL - Références';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -3,15 +3,11 @@
 namespace App\Service;
 
 use App\Entity\Arrivage;
-use App\Entity\Article;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Dispatch;
-use App\Entity\Export;
-use App\Entity\ExportScheduleRule;
-use App\Entity\ScheduleRule;
-use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\ScheduledTask\Export;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Entity\StorageRule;
 use App\Entity\Transport\TransportRound;
@@ -193,36 +189,45 @@ class DataExportService
             $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
+            "Date échéance CPL",
+            "Date livraison ligne initiale",
+            "Date livraison ligne modifiée",
             $this->translation->translate('Demande', 'Général', 'Type', false),
             $this->translation->translate('Demande', 'Général', 'Demandeur', false),
             $this->translation->translate('Demande', 'Général', 'Destinataire(s)', false),
-            $this->translation->translate('Demande', 'Général', 'Transporteur', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de prise', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Emplacement de dépose', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Destination', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),
             $this->translation->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),
             $this->translation->translate('Demande', 'Général', 'Statut', false),
             $this->translation->translate('Demande', 'Général', 'Urgence', false),
+            "Pièce(s) jointe(s)",
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)', false),
+            'Commentaire UL',
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
+            "Groupe",
+            $this->translation->translate('Demande', 'Général', 'Transporteur', false),
+            "Numéro de tracking transporteur",
+            "Appel",
+            "Numéro d'OF",
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Business unit', false),
+            "Numéro de projet",
             $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Nature', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Unité logistique', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Hauteur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Largeur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Longueur (m)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Volume (m3)', false),
-            'Commentaire UL',
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité UL', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Quantité à acheminer', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Poids (kg)', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date dernier mouvement', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Dernier emplacement', false),
-            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Opérateur', false),
             ...($freeFieldsConfig['freeFieldsHeader']),
         ];
     }

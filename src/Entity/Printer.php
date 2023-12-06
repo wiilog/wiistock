@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PrinterRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,6 +30,17 @@ class Printer
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $dpi = null;
+
+    #[ORM\OneToMany(mappedBy: "defaultPrinter", targetEntity: Utilisateur::class)]
+    private Collection $defaultUsers;
+
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class, mappedBy: "allowedPrinters")]
+    private Collection $allowedUsers;
+
+    public function __construct() {
+        $this->defaultUsers = new ArrayCollection();
+        $this->allowedUsers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -90,6 +103,76 @@ class Printer
     public function setDpi(int $dpi): static
     {
         $this->dpi = $dpi;
+
+        return $this;
+    }
+
+    public function getDefaultUsers(): Collection {
+        return $this->defaultUsers;
+    }
+
+    public function addDefaultUser(Utilisateur $defaultUser): self {
+        if(!$this->defaultUsers->contains($defaultUser)) {
+            $this->defaultUsers[] = $defaultUser;
+            $defaultUser->setDefaultPrinter($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDefaultUser(Utilisateur $defaultUser): self {
+        if($this->defaultUsers->removeElement($defaultUser)) {
+            if($defaultUser->getDefaultPrinter() === $this) {
+                $defaultUser->setDefaultPrinter(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setDefaultUsers(?array $defaultUsers): self {
+        foreach($this->getDefaultUsers()->toArray() as $defaultUser) {
+            $this->removeDefaultUser($defaultUser);
+        }
+
+        $this->defaultUsers = new ArrayCollection();
+        foreach($defaultUsers as $defaultUser) {
+            $this->addDefaultUser($defaultUser);
+        }
+
+        return $this;
+    }
+
+    public function getAllowedUsers(): Collection {
+        return $this->allowedUsers;
+    }
+
+    public function addAllowedUser(Utilisateur $allowedUser): self {
+        if(!$this->allowedUsers->contains($allowedUser)) {
+            $this->allowedUsers[] = $allowedUser;
+            $allowedUser->addAllowedPrinter($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAllowedUser(Utilisateur $allowedUser): self {
+        if($this->allowedUsers->removeElement($allowedUser)) {
+            $allowedUser->removeAllowedPrinter($this);
+        }
+
+        return $this;
+    }
+
+    public function setAllowedUsers(?array $allowedUsers): self {
+        foreach($this->getAllowedUsers()->toArray() as $allowedUser) {
+            $this->removeAllowedUser($allowedUser);
+        }
+
+        $this->allowedUsers = new ArrayCollection();
+        foreach($allowedUsers as $allowedUser) {
+            $this->addAllowedUser($allowedUser);
+        }
 
         return $this;
     }

@@ -2,9 +2,11 @@
 
 namespace App\Repository;
 
+use App\Entity\Attachment;
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
@@ -12,7 +14,6 @@ use App\Entity\Pack;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
-use Doctrine\ORM\Query\Expr\Select;
 use http\Exception\RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -47,6 +48,7 @@ class DispatchRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statuses-filter':
+                case 'statut':
                     if(!empty($filter['value'])) {
                         $value = explode(',', $filter['value']);
                         $qb
@@ -58,6 +60,7 @@ class DispatchRepository extends EntityRepository
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
                         $value = Stream::explode(',', $filter['value'])
+                            ->filter()
                             ->map(static fn($type) => explode(':', $type)[0])
                             ->toArray();
                         $qb
@@ -112,6 +115,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'startDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
@@ -122,6 +127,8 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'endDate',
+                        'dueDate1' => 'dueDate1',
+                        'dueDate2' => 'dueDate2Bis',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} <= :filter_dateMax_value")
@@ -179,6 +186,7 @@ class DispatchRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_BUSINESS_UNIT:
                     $values = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb
@@ -191,6 +199,19 @@ class DispatchRepository extends EntityRepository
                         ->andWhere('dispatch.projectNumber IN (:filter_project_number_value)')
                         ->setParameter('filter_project_number_value', $value);
                     break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER:
+                    $qb
+                        ->andWhere("dispatch.productionOrderNumber = :productionOrderNumber")
+                        ->setParameter("productionOrderNumber", $filter['value']);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST:
+                    $values = Stream::explode(',', $filter['value'])
+                        ->map(static fn(string $value) => explode(':', $value)[0])
+                        ->toArray();
+                    dump($values);
+                    $qb
+                        ->andWhere('dispatch.productionRequest IN (:productionRequest)')
+                        ->setParameter('productionRequest', $values);
             }
         }
         if (!empty($params)) {
@@ -201,6 +222,9 @@ class DispatchRepository extends EntityRepository
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
                         "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
                         "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => "DATE_FORMAT(dispatch.dueDate1, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => "DATE_FORMAT(dispatch.dueDate2, '%e/%m/%Y') LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => "DATE_FORMAT(dispatch.dueDate2Bis, '%e/%m/%Y') LIKE :search_value",
                         "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "requester" => "search_requester.username LIKE :search_value",
@@ -214,6 +238,8 @@ class DispatchRepository extends EntityRepository
                         "customerPhone" => "dispatch.customerPhone LIKE :search_value",
                         "customerRecipient" => "dispatch.customerRecipient LIKE :search_value",
                         "customerAddress" => "dispatch.customerAddress LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => "dispatch.productionRequest LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => "dispatch.productionOrderNumber LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'dispatch', $qb, $user, $search);
@@ -331,6 +357,11 @@ class DispatchRepository extends EntityRepository
         $queryBuilder = $this->createQueryBuilder('dispatch');
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
+            ->addSelect('dispatch_receiver.username AS receiver')
+            ->addSelect('dispatch_carrier.label AS carrier')
+            ->addSelect('dispatch.projectNumber AS projectNumber')
+            ->addSelect('dispatch.commandNumber AS commandNumber')
+            ->addSelect('dispatch.businessUnit AS businessUnit')
             ->addSelect('dispatch.id AS id')
             ->addSelect('dispatch_created_by.username AS createdBy')
             ->addSelect('dispatch.number AS number')
@@ -354,7 +385,14 @@ class DispatchRepository extends EntityRepository
             ->addSelect("reference_article.reference as packReferences")
             ->addSelect("dispatch_reference_articles.quantity as lineQuantity")
             ->addSelect("pack.code as packs")
+            ->addSelect('dispatch.dueDate1 AS dueDate1')
+            ->addSelect('dispatch.dueDate2 AS dueDate2')
+            ->addSelect('dispatch.dueDate2Bis AS dueDate2Bis')
+            ->addSelect('dispatch.productionOrderNumber AS productionOrderNumber')
+            ->addSelect('dispatch.productionRequest AS productionRequest')
             ->join('dispatch.requester', 'dispatch_requester')
+            ->leftJoin('dispatch.receivers', 'dispatch_receiver')
+            ->leftJoin('dispatch.carrier', 'dispatch_carrier')
             ->join('dispatch.createdBy', 'dispatch_created_by')
             ->leftJoin('dispatch.dispatchPacks', 'dispatch_packs')
             ->leftJoin('dispatch_packs.pack', 'pack')
@@ -372,24 +410,9 @@ class DispatchRepository extends EntityRepository
                 ->setParameter("dispatch", $dispatch);
         } else {
             $queryBuilder
-                ->andWhere('type.id IN (:dispatchTypeIds)');
-            if ($offlineMode){
-                $queryBuilder
-                    ->andWhere('dispatch_created_by = :user')
-                    ->andWhere($queryBuilder->expr()->orX(
-                        $queryBuilder->expr()->andX(
-                            'status.needsMobileSync = true',
-                            'status.state IN (:untreatedStates)',
-                        ),
-                        'status.state = :draftStatusState',
-                    ))
-                ->setParameter('user', $user);
-            } else {
-                $queryBuilder
-                    ->andWhere('status.needsMobileSync = true')
-                    ->andWhere('status.state IN (:untreatedStates)');
-            }
-            $queryBuilder
+                ->andWhere('type.id IN (:dispatchTypeIds)')
+                ->andWhere('status.needsMobileSync = true')
+                ->andWhere('status.state IN (:untreatedStates)')
                 ->setParameter('dispatchTypeIds', $user->getDispatchTypeIds())
                 ->setParameter('untreatedStates', [Statut::NOT_TREATED, Statut::PARTIAL]);
         }
@@ -423,16 +446,40 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax, string $userDateFormat = Language::DMY_FORMAT): array {
-        $dateMax = $dateMax->format('Y-m-d H:i:s');
-        $dateMin = $dateMin->format('Y-m-d H:i:s');
-        $dateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] . " %H:%i:%s";
-
-        $subQuery = $this->createQueryBuilder('sub_dispatch')
-            ->select('COUNT(join_sub_dispatch_packs)')
-            ->innerJoin('sub_dispatch.dispatchPacks', 'join_sub_dispatch_packs', Join::WITH, 'sub_dispatch.id = dispatch.id')
+    public function getByDates(DateTime $dateMin, DateTime $dateMax, bool $withStatuses = false, array $statusIds = [], string $dateFormat = Language::DMY_FORMAT): ?array
+    {
+        $subQueryPackCount = $this->getEntityManager()->createQueryBuilder()
+            ->from(DispatchPack::class, "sub_dispatch_packs")
+            ->select('COUNT(sub_dispatch_packs)')
+            ->where("sub_dispatch_packs.dispatch = dispatch.id")
             ->getQuery()
             ->getDQL();
+
+        $subQueryReceivers = $this->createQueryBuilder("sub_dispatch")
+            ->select("GROUP_CONCAT(join_receivers.username SEPARATOR ',')")
+            ->innerJoin("sub_dispatch.receivers", "join_receivers", Join::WITH, "sub_dispatch.id = dispatch.id")
+            ->getQuery()
+            ->getDQL();
+
+        $subQueryAttachments = $this->getEntityManager()->createQueryBuilder()
+            ->from(Attachment::class, "sub_attachment")
+            ->select("IF(COUNT(sub_attachment) > 1, 'oui', 'non')")
+            ->where("sub_attachment.dispatch = dispatch.id")
+            ->getQuery()
+            ->getDQL();
+
+        if($withStatuses) {
+            $historyStatusSubQueryCallback = function (int $statusId): string {
+                return $this->createQueryBuilder("sub_dispatch_$statusId")
+                    ->select("GROUP_CONCAT(DATE_FORMAT(join_status_history_$statusId.date, '%d/%m/%Y %H:%i') SEPARATOR ', ')")
+                    ->innerJoin("sub_dispatch_$statusId.statusHistory", "join_status_history_$statusId", Join::WITH, "sub_dispatch_$statusId = dispatch.id")
+                    ->innerJoin("join_status_history_$statusId.status", "join_status_history_status_$statusId")
+                    ->andWhere("sub_dispatch_$statusId.id = dispatch.id")
+                    ->andWhere("join_status_history_status_$statusId.id = $statusId")
+                    ->getQuery()
+                    ->getDQL();
+            };
+        }
 
         $queryBuilder = $this->createQueryBuilder('dispatch')
             ->select('dispatch.id AS id')
@@ -442,73 +489,89 @@ class DispatchRepository extends EntityRepository
             ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
             ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
             ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate1, '$dateFormat') AS dueDate1")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2, '$dateFormat') AS dueDate2")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2Bis, '$dateFormat') AS dueDate2Bis")
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
-            ->addSelect("GROUP_CONCAT(join_receivers.username SEPARATOR ',') AS receivers")
-            ->addSelect("join_treated_by.username AS treatedBy")
-            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("($subQueryReceivers) AS receivers")
             ->addSelect("join_location_from.label AS locationFrom")
             ->addSelect("join_location_to.label AS locationTo")
             ->addSelect("dispatch.destination AS destination")
-            ->addSelect("($subQuery) AS packCount")
+            ->addSelect("($subQueryPackCount) AS packCount")
             ->addSelect("join_status.nom AS status")
-            ->addSelect("dispatch.businessUnit AS businessUnit")
-            ->addSelect("dispatch.commentaire AS comment")
             ->addSelect("dispatch.emergency AS emergency")
+            ->addSelect("($subQueryAttachments) AS attachments")
+            ->addSelect("join_dispatch_packs_pack_nature.code AS packNature")
+            ->addSelect("join_dispatch_packs_pack.code AS packCode")
+            ->addSelect("join_dispatch_packs_pack.quantity AS packQuantity")
+            ->addSelect("join_dispatch_packs.quantity AS dispatchPackQuantity")
+            ->addSelect("join_dispatch_packs_pack.weight AS packWeight")
+            ->addSelect("join_dispatch_packs_pack.volume AS packVolume")
+            ->addSelect("join_dispatch_packs.height AS packHeight")
+            ->addSelect("join_dispatch_packs.width AS packWidth")
+            ->addSelect("join_dispatch_packs.length AS packLength")
+            ->addSelect("join_dispatch_packs_pack.comment AS packComment")
+            ->addSelect("DATE_FORMAT(join_dispatch_packs_pack_last_tracking.datetime, '%d/%m/%Y %H:%i') AS packLastTrackingDate")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_location.label AS packLastTrackingLocation")
+            ->addSelect("join_dispatch_packs_pack_last_tracking_operator.username AS packLastTrackingOperator")
+            ->addSelect("join_dispatch_packs_pack_parent.code AS group")
+            ->addSelect("join_carrier.label AS carrier")
+            ->addSelect("dispatch.carrierTrackingNumber AS carrierTrackingNumber")
+            ->addSelect("dispatch.productionRequest AS productionRequest")
+            ->addSelect("dispatch.productionOrderNumber AS productionOrderNumber")
+            ->addSelect("dispatch.businessUnit AS businessUnit")
+            ->addSelect("dispatch.projectNumber AS projectNumber")
+            ->addSelect("dispatch.commentaire AS comment")
+            ->addSelect("join_treated_by.username AS treatedBy")
             ->addSelect("dispatch.customerName AS customerName")
             ->addSelect("dispatch.customerPhone AS customerPhone")
             ->addSelect("dispatch.customerRecipient AS customerRecipient")
             ->addSelect("dispatch.customerAddress AS customerAddress")
-            ->addSelect("join_dispatch_packs_pack.code AS packCode")
-            ->addSelect("join_dispatch_packs_pack_nature.code AS packNature")
-            ->addSelect("join_dispatch_packs.height AS dispatchPackHeight")
-            ->addSelect("join_dispatch_packs.width AS dispatchPackWidth")
-            ->addSelect("join_dispatch_packs.length AS dispatchPackLength")
-            ->addSelect("join_dispatch_packs_pack.volume AS packVolume")
-            ->addSelect("join_dispatch_packs_pack.comment AS packComment")
-            ->addSelect("join_dispatch_packs_pack.quantity AS packQuantity")
-            ->addSelect("join_dispatch_packs.quantity AS dispatchPackQuantity")
-            ->addSelect("join_dispatch_packs_pack.weight AS packWeight")
-            ->addSelect("DATE_FORMAT(join_dispatch_packs_pack_last_tracking.datetime, '$dateFormat') AS packLastTrackingDate")
-            ->addSelect("join_dispatch_packs_pack_last_tracking_location.label AS packLastTrackingLocation")
-            ->addSelect("join_dispatch_packs_pack_last_tracking_operator.username AS packLastTrackingOperator")
             ->leftJoin('dispatch.type', 'join_type')
             ->leftJoin('dispatch.statut', 'join_status')
             ->leftJoin('dispatch.requester', 'join_requester')
-            ->leftJoin('dispatch.receivers', 'join_receivers')
             ->leftJoin('dispatch.treatedBy', 'join_treated_by')
             ->leftJoin('dispatch.carrier', 'join_carrier')
             ->leftJoin('dispatch.locationFrom', 'join_location_from')
             ->leftJoin('dispatch.locationTo', 'join_location_to')
             ->leftJoin('dispatch.dispatchPacks', 'join_dispatch_packs')
             ->leftJoin('join_dispatch_packs.pack', 'join_dispatch_packs_pack')
+            ->leftJoin('join_dispatch_packs_pack.parent', 'join_dispatch_packs_pack_parent')
             ->leftJoin('join_dispatch_packs_pack.nature', 'join_dispatch_packs_pack_nature')
             ->leftJoin('join_dispatch_packs_pack.lastTracking', 'join_dispatch_packs_pack_last_tracking')
             ->leftJoin('join_dispatch_packs_pack_last_tracking.emplacement', 'join_dispatch_packs_pack_last_tracking_location')
             ->leftJoin('join_dispatch_packs_pack_last_tracking.operateur', 'join_dispatch_packs_pack_last_tracking_operator')
             ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
-            ->groupBy('join_dispatch_packs.id');
-
-        Stream::from($queryBuilder->getDQLParts()['select'])
-            ->flatMap(fn($selectPart) => [$selectPart->getParts()[0]])
-            ->map(fn($selectString) => trim(explode('AS', $selectString)[1]))
-            ->filter(fn($selectAlias) => !in_array($selectAlias, ['receivers']))
-            ->each(fn($field) => $queryBuilder->addGroupBy($field));
-
-        return $queryBuilder
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
-            ])
+            ]);
+
+        if($withStatuses) {
+            foreach ($statusIds as $statusId) {
+                $queryBuilder->addSelect("({$historyStatusSubQueryCallback($statusId)}) AS statusHistory_$statusId");
+            }
+        }
+
+        return $queryBuilder
             ->getQuery()
             ->getResult();
     }
 
-    public function getDispatchNumbers($search) {
-        return $this->createQueryBuilder("dispatch")
-            ->select("dispatch.id, dispatch.number AS text")
-            ->where("dispatch.number LIKE :search")
-            ->setParameter("search", "%$search%")
+    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array {
+        $dateMax = $dateMax->format('Y-m-d H:i:s');
+        $dateMin = $dateMin->format('Y-m-d H:i:s');
+
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select("dispatch_pack")
+            ->from(DispatchPack::class, "dispatch_pack")
+            ->leftJoin("dispatch_pack.dispatch", "join_dispatch")
+            ->andWhere('join_dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+            ->setParameters([
+                'dateMin' => $dateMin,
+                'dateMax' => $dateMax
+            ])
             ->getQuery()
             ->getResult();
     }

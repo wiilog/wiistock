@@ -114,38 +114,33 @@ chown -R "$USER:www-data" var/cache var/sessions cache
 chmod g+s var/cache var/sessions cache
 chmod g+w -R var/cache var/sessions cache
 
-follow_nexter_translations_cache="$follow_nexter_home/var/cache/prod/translations"
-chmod -R a+rw "$follow_nexter_translations_cache"
+declare -A TIMES
+TIMES[dashboard-feeds]="*/5 * * * *"
+TIMES[unique-imports]="*/30 * * * *"
+TIMES[scheduled-imports]="* * * * *"
+TIMES[scheduled-export]="* * * * *"
+TIMES[close-inactive-sessions]="*/5 * * * *"
+TIMES[average-requests]="0 20 * * *"
 
-if [ $is_first_install -eq 1 ]
-then
-    echo ">>>> configuration des droits"
-    chown -R "$USER:www-data" public/uploads var/
-    chmod g+s public/uploads var/log
-    chmod g+w -R public/uploads var/log
-fi
+declare -A COMMANDS
+COMMANDS[dashboard-feeds]="/usr/bin/php $follow_nexter_home/bin/console app:feed:dashboards"
+COMMANDS[unique-imports]="/usr/bin/php $follow_nexter_home/bin/console app:launch:unique-imports"
+COMMANDS[scheduled-imports]="/usr/bin/php $follow_nexter_home/bin/console app:launch:scheduled-imports"
+COMMANDS[scheduled-export]="/usr/bin/php $follow_nexter_home/bin/console app:launch:scheduled-exports"
+COMMANDS[close-inactive-sessions]="/usr/bin/php $follow_nexter_home/bin/console app:sessions:close:inactives"
+COMMANDS[average-requests]="/usr/bin/php $follow_nexter_home/bin/console app:feed:average:requests"
 
-#declare -A TIMES
-#TIMES[unique-imports]="*/30 * * * *"
-#TIMES[scheduled-imports]="* * * * *"
-#TIMES[dashboard-feeds]="*/5 * * * *"
-#
-#declare -A COMMANDS
-#COMMANDS[unique-imports]="/usr/bin/php $follow_nexter_home/bin/console app:launch:unique-imports"
-#COMMANDS[scheduled-imports]="/usr/bin/php $follow_nexter_home/bin/console app:launch:scheduled-imports"
-#COMMANDS[dashboard-feeds]="/usr/bin/php $follow_nexter_home/bin/console app:feed:dashboards"
-#
-#commands_to_install=(unique-imports scheduled-imports dashboard-feeds)
-#
-#tmp_cron_file='/tmp/follow_nexter_cron.tmp'
-#echo "" > $tmp_cron_file
-#
-#for command_name in "${commands_to_install[@]}"; do
-#    echo "${TIMES[$command_name]} ${COMMANDS[$command_name]}" >> "$tmp_cron_file"
-#done
-#
-#crontab $tmp_cron_file
-#rm $tmp_cron_file
+commands_to_install=(dashboard-feeds unique-imports scheduled-imports scheduled-export close-inactive-sessions average-requests)
+
+tmp_cron_file='/tmp/follow_nexter_cron.tmp'
+echo "" > $tmp_cron_file
+
+for command_name in "${commands_to_install[@]}"; do
+    echo "${TIMES[$command_name]} ${COMMANDS[$command_name]}" >> "$tmp_cron_file"
+done
+
+crontab $tmp_cron_file
+rm $tmp_cron_file
 
 
 cd "$release_directory"

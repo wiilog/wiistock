@@ -151,6 +151,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::GENERATE_OVERCONSUMPTION_BILL,
                 Action::GENERATE_WAY_BILL,
                 Action::GENERATE_DISPATCH_LABEL,
+                Action::GENERATE_LOGISTIC_UNITS,
             ],
             self::SUB_MENU_TRANSFERS => [
                 Action::DISPLAY_TRANSFER_REQ,
@@ -375,6 +376,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_UNGROUP,
                 Action::MODULE_ACCESS_MOVEMENTS,
                 Action::MODULE_ACCESS_DISPATCHS,
+                Action::MODULE_ACCESS_LOGISTIC_UNIT_REFERENCE_ASSOCIATION,
             ],
             self::SUB_MENU_STOCK => [
                 Action::CREATE_ARTICLE_FROM_NOMADE,

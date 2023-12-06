@@ -10,6 +10,7 @@ use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
+use App\Entity\DispatchStatusHistory;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
@@ -21,6 +22,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
@@ -116,7 +118,9 @@ class DispatchService {
 
     private ?array $freeFieldsConfig = null;
 
-    // cache for default nature
+    // cache
+    private ?int $prefixPackCodeWithDispatchNumber = null;
+    private ?array $natures = null;
     private ?Nature $defaultNature = null;
 
     public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
@@ -201,6 +205,11 @@ class DispatchService {
             'customerPhone' => $dispatch->getCustomerPhone(),
             'customerRecipient' => $dispatch->getCustomerRecipient(),
             'customerAddress' => $dispatch->getCustomerAddress(),
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER => $dispatch->getProductionOrderNumber(),
+            FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST => $dispatch->getProductionRequest(),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => $this->formatService->date($dispatch->getDueDate1()),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => $this->formatService->date($dispatch->getDueDate2()),
+            FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => $this->formatService->date($dispatch->getDueDate2Bis()),
         ];
 
         if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
@@ -385,6 +394,16 @@ class DispatchService {
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DESTINATION]
             ],
             [
+                'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER,
+                'value' => $dispatch->getProductionOrderNumber() ?: '-',
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER]
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST,
+                'value' => $dispatch->getProductionRequest() ?: '-',
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST]
+            ],
+            [
                 'label' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Client', false),
                 'value' => $dispatch->getCustomerName() ?: '-',
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH]
@@ -404,6 +423,21 @@ class DispatchService {
                 'value' => $dispatch->getCustomerAddress() ?: '-',
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH]
             ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE,
+                'value' => $this->formatService->datetime($dispatch->getDueDate1()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO,
+                'value' => $this->formatService->datetime($dispatch->getDueDate2()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
+            ],
+            [
+                'label' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS,
+                'value' => $this->formatService->datetime($dispatch->getDueDate2Bis()),
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
+            ]
         ];
 
         if ($dispatch->isWithoutHistory()) {
@@ -676,6 +710,11 @@ class DispatchService {
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Téléphone client', false), 'name' => 'customerPhone'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false), 'name' => 'customerRecipient'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false), 'name' => 'customerAddress'],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_REQUEST , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_REQUEST],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCTION_ORDER_NUMBER , 'name' => FixedFieldStandard::FIELD_CODE_PRODUCTION_ORDER_NUMBER],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_ONE , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO],
+            ['title' => FixedFieldStandard::FIELD_LABEL_DUE_DATE_TWO_BIS , 'name' => FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS],
         ];
 
         if($groupedSignatureMode) {
@@ -766,8 +805,9 @@ class DispatchService {
                             bool $autofocus,
                             bool $isEdit): array {
         if(!isset($this->prefixPackCodeWithDispatchNumber, $this->natures, $this->defaultNature)) {
-            $this->prefixPackCodeWithDispatchNumber = $this->entityManager->getRepository(Setting::class)->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
+            $settingRepository = $this->entityManager->getRepository(Setting::class);
             $natureRepository = $this->entityManager->getRepository(Nature::class);
+            $this->prefixPackCodeWithDispatchNumber = $settingRepository->getOneParamByLabel(Setting::PREFIX_PACK_CODE_WITH_DISPATCH_NUMBER);
             $this->natures = $natureRepository->findByAllowedForms([Nature::DISPATCH_CODE]);
             $this->defaultNature = $natureRepository->findOneBy(["defaultNature" => true]);
          }
@@ -1058,75 +1098,114 @@ class DispatchService {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         foreach($packs as $pack) {
-            $comment = $pack['packComment'] ?? null;
-            $packId = $pack['packId'];
+            $packId = $pack['packId'] ?? null;
             $packQuantity = (int)$pack['packQuantity'];
-            $pack = $packRepository->find($packId);
-            $pack
-                ->setComment($comment);
-            $packDispatch = new DispatchPack();
-            $packDispatch
-                ->setPack($pack)
-                ->setTreated(false)
-                ->setQuantity($packQuantity)
-                ->setDispatch($dispatch);
+
+            if($packId) {
+                $comment = $pack['packComment'] ?? null;
+                $pack = $packRepository->find($packId);
+                $pack->setComment($comment);
+            }
+
+            $packDispatch = $this->createDispatchPack($pack, $dispatch, $packQuantity);
             $entityManager->persist($packDispatch);
         }
     }
 
+    public function createDispatchPack(Pack $pack, Dispatch $dispatch, int $packQuantity): DispatchPack {
+        $packDispatch = new DispatchPack();
+        $packDispatch
+            ->setPack($pack)
+            ->setTreated(false)
+            ->setQuantity($packQuantity)
+            ->setDispatch($dispatch);
+
+        return $packDispatch;
+    }
 
     public function putDispatchLine($handle,
-                                    array $dispatch,
+                                    array|DispatchPack $entity,
                                     array $freeFieldsConfig,
-                                    array $freeFieldsById): void {
+                                    array $freeFieldsById,
+                                    array $statusFieldsConfig,
+                                    bool $withStatuses = false): void
+    {
 
-        $freeFieldValues = $freeFieldsById[$dispatch['id']];
-        $row = [
-            $dispatch['number'],
-            $dispatch['orderNumber'],
-            $dispatch['creationDate'],
-            $dispatch['validationDate'],
-            $dispatch['treatmentDate'],
-            $dispatch['type'],
-            $dispatch['requester'],
-            $dispatch['receivers'],
-            $dispatch['carrier'],
-            $dispatch['locationFrom'],
-            $dispatch['locationTo'],
-            $dispatch['destination'],
-            $dispatch['treatedBy'],
-            $dispatch['packCount'],
-            $dispatch['status'],
-            $dispatch['emergency'] ?: $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
-            $dispatch['businessUnit'],
-            $this->formatService->html($dispatch['comment']),
-            $dispatch['customerName'],
-            $dispatch['customerPhone'],
-            $dispatch['customerRecipient'],
-            $dispatch['customerAddress'],
-            $dispatch['packNature'],
-            $dispatch['packCode'],
-            $dispatch['dispatchPackHeight'],
-            $dispatch['dispatchPackWidth'],
-            $dispatch['dispatchPackLength'],
-            $dispatch['packVolume'],
-            $this->formatService->html($dispatch['packComment']),
-            $dispatch['packQuantity'],
-            $dispatch['dispatchPackQuantity'],
-            $dispatch['packWeight'],
-            $dispatch['packLastTrackingDate'],
-            $dispatch['packLastTrackingLocation'],
-            $dispatch['packLastTrackingOperator'],
-            ...(Stream::from($freeFieldsConfig['freeFields'])
-                ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
-                    $value = $freeFieldValues[$freeFieldId] ?? null;
-                    return $value
-                        ? $this->formatService->freeField($value, $freeField)
-                        : $value;
-                })
-                ->values()
-            ),
-        ];
+        if (is_array($entity)) {
+            $freeFieldValues = $freeFieldsById[$entity['id']];
+            $row = [
+                $entity['number'],
+                $entity['orderNumber'],
+                $entity['creationDate'],
+                $entity['validationDate'],
+                $entity['treatmentDate'],
+                $entity['dueDate1'],
+                $entity['dueDate2'],
+                $entity['dueDate2Bis'],
+                $entity['type'],
+                $entity['requester'],
+                $entity['receivers'],
+                $entity['locationFrom'],
+                $entity['locationTo'],
+                $entity['destination'],
+                $entity['packCount'],
+                $entity['status'],
+                $entity['emergency'],
+                $entity['attachments'],
+                $entity['packNature'],
+                $entity['packCode'],
+                $entity['packQuantity'],
+                $entity['dispatchPackQuantity'],
+                $entity['packWeight'],
+                $entity['packVolume'],
+                $entity['packHeight'],
+                $entity['packWidth'],
+                $entity['packLength'],
+                $this->formatService->html($entity['packComment']),
+                $entity['packLastTrackingDate'],
+                $entity['packLastTrackingLocation'],
+                $entity['packLastTrackingOperator'],
+                $entity['group'],
+                $entity['carrier'],
+                $entity['carrierTrackingNumber'],
+                $entity['productionRequest'],
+                $entity['productionOrderNumber'],
+                $entity['businessUnit'],
+                $entity['projectNumber'],
+                $this->formatService->html($entity['comment']),
+                $entity['treatedBy'],
+                $entity['customerName'],
+                $entity['customerPhone'],
+                $entity['customerRecipient'],
+                $entity['customerAddress'],
+                ...(Stream::from($freeFieldsConfig['freeFields'])
+                    ->map(function (FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
+                        $value = $freeFieldValues[$freeFieldId] ?? null;
+                        return $value
+                            ? $this->formatService->freeField($value, $freeField)
+                            : $value;
+                    })
+                    ->values()
+                ),
+                ...($withStatuses
+                    ? Stream::from(array_keys($statusFieldsConfig))
+                        ->map(static fn($statusId) => $entity["statusHistory_$statusId"])
+                        ->toArray()
+                    : []
+                ),
+            ];
+        } else {
+            $dispatch = $entity->getDispatch();
+            $row = [
+                $dispatch->getNumber(),
+            ];
+            foreach (array_keys($statusFieldsConfig) as $statusId) {
+                $row[] = Stream::from($dispatch->getStatusHistory())
+                    ->filter(fn(StatusHistory $line) => $line->getStatus()->getId() === $statusId)
+                    ->map(fn(StatusHistory $line) => $this->formatService->datetime($line->getDate()))
+                    ->join(", ");
+            }
+        }
 
         $this->CSVExportService->putLine($handle, $row);
     }

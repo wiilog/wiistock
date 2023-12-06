@@ -35,7 +35,9 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Printer;
 use App\Entity\Project;
+use App\Entity\Reception;
 use App\Entity\ReceptionLine;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\Reserve;
 use App\Entity\ReserveType;
@@ -108,6 +110,7 @@ use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
+use ZplGenerator\Client\SocketClient;
 
 #[Rest\Route("/api")]
 class MobileController extends AbstractApiController
@@ -198,6 +201,7 @@ class MobileController extends AbstractApiController
                         'userId' => $loggedUser->getId(),
                         'fieldsParam' => $fieldsParam ?? [],
                         'dispatchDefaultWaybill' => $wayBillData ?? [],
+                        'defaultPrinter' => $loggedUser->getDefaultPrinter()?->getId()
                     ];
                 } else {
                     $data = [
@@ -2222,6 +2226,7 @@ class MobileController extends AbstractApiController
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $reserveTypeRepository = $entityManager->getRepository(ReserveType::class);
+        $printerRepository = $entityManager->getRepository(Printer::class);
 
         $rights = $userService->getMobileRights($user);
         $parameters = $this->mobileApiService->getMobileParameters($settingRepository);
@@ -2477,6 +2482,13 @@ class MobileController extends AbstractApiController
                 ->toArray();
         }
 
+        $printers = Stream::from($user->getAllowedPrinters())
+            ->map(static fn(Printer $printer) => [
+                "id" => $printer->getId(),
+                "name" => $printer->getName(),
+            ])
+            ->toArray();
+
         ['translations' => $translations] = $this->mobileApiService->getTranslationsData($entityManager, $this->getUser());
         return [
             'locations' => $emplacementRepository->getLocationsArray(),
@@ -2538,6 +2550,7 @@ class MobileController extends AbstractApiController
             'dispatchEmergencies' => $dispatchEmergencies ?? [],
             'associatedDocumentTypes' => $associatedDocumentTypes ?? [],
             'reserveTypes' => $reserveTypes ?? [],
+            'printers' => $printers,
         ];
     }
 
@@ -2725,7 +2738,7 @@ class MobileController extends AbstractApiController
             }
         }
 
-        // save sta
+        // save stats
         foreach ($zonesData as $zoneDatum) {
             /** @var InventoryLocationMission[] $lines */
             $lines = $zoneDatum["lines"] ?? [];
@@ -2736,23 +2749,16 @@ class MobileController extends AbstractApiController
                 ['inventoryData' => $inventoryData] = $inventoryService->summarizeLocationInventory($entityManager, $mission, $zone, $tags);
 
                 foreach ($lines as $line) {
-                    $line->setDone(true);
-                    if ($line->getLocation()) {
-                        $inventoryDatum = $inventoryData[$line->getLocation()->getId()] ?? null;
-                        if (isset($inventoryDatum)) {
-                            $scannedAt = $validatedAt ?? $now;
-                            $line
-                                ->setOperator($validator)
-                                ->setScannedAt($scannedAt)
-                                ->setPercentage($inventoryDatum["ratio"])
-                                ->setArticles($inventoryDatum["articles"]);
-                        }
-                        else {
-                            $zoneLabel = $zone->getName();
-                            $locationLabel = $line->getLocation()->getLabel() ?: "Non défini";
-                            throw new FormException("L'emplacement \"$locationLabel\" dans la zone \"$zoneLabel\" n'est associé à aucune règle de stockage. Impossible de terminer l'inventaire.");
-                        }
-                    }
+                    $locationId = $line->getLocation()?->getId();
+                    $scannedAt = $validatedAt ?? $now;
+                    $inventoryDatum = $inventoryData[$locationId] ?? null;
+
+                    $line
+                        ->setOperator($validator)
+                        ->setScannedAt($scannedAt)
+                        ->setPercentage($inventoryDatum["ratio"] ?? 0)
+                        ->setArticles($inventoryDatum["articles"] ?? [])
+                        ->setDone(true);
                 }
             }
         }
@@ -3992,6 +3998,48 @@ class MobileController extends AbstractApiController
         ]);
     }
 
+    #[Rest\Post("/dispatch-edit", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function editDispatch(Request $request,
+                                 AttachmentService $attachmentService,
+                                 EntityManagerInterface $entityManager): JsonResponse
+    {
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatch = $request->request->get('dispatch');
+        $comment = $request->request->get('comment');
+        $dispatch = $dispatchRepository->find($dispatch);
+
+        $id = $dispatch->getId();
+        $fileNames = [];
+
+        $signatureFile = $request->files->get("signature_$id");
+        if (!empty($signatureFile)) {
+            $fileNames = array_merge($fileNames, $attachmentService->saveFile($signatureFile));
+        }
+
+        foreach ($request->files->all() as $key => $file) {
+            if (str_starts_with($key, "photos_$id")) {
+                $fileNames = array_merge($fileNames, $attachmentService->saveFile($file));
+            }
+        }
+
+        $attachments = $attachmentService->createAttachments($fileNames);
+
+        foreach ($attachments as $attachment) {
+            $entityManager->persist($attachment);
+            $dispatch->addAttachment($attachment);
+        }
+
+        if (!empty($comment)) {
+            $dispatch->setCommentaire($comment);
+        }
+
+        $entityManager->flush();
+
+        return new JsonResponse([]);
+    }
+
     #[Rest\Post("/pack-separations", condition: "request.isXmlHttpRequest()")]
     #[Rest\View]
     #[Wii\RestAuthenticated]
@@ -4007,15 +4055,13 @@ class MobileController extends AbstractApiController
 
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $packRepository = $entityManager->getRepository(Pack::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
         $dropLocation = $locationRepository->findOneBy(['label' => $locationLabel]);
-
         $pack = $packRepository->findOneBy(['code' => $packCode]);
+        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
 
         $user = $this->getUser();
-
-        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-        $dispatch = $dispatchRepository->findNotTreatedForPack($pack);
 
         if($dispatch && $request->request->get("printer")) {
             $config = $printerService->configurationOf($dispatch);
@@ -4025,32 +4071,24 @@ class MobileController extends AbstractApiController
                     $zebraPrinter = $printerService->getPrinter($printer);
                 }
                 catch(Throwable) {
-                    return $this->json([
-                        'success' => false,
-                        'msg' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué."
-                    ]);
+                    throw new FormException("Problème de communication avec l'imprimante, la génération des unités logistiques a échoué.");
                 }
 
-                //do pack separation after check printer connection
-                $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
+            $movements = $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
 
-                //remove the first pack (original pack) because it got removed from the dispatch
-                array_shift($movements);
+            array_shift($movements);
 
-                $packs = Stream::from($movements)
-                    ->map(fn(TrackingMovement $movement) => $movement->getPack())
-                    ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
-                        ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
-                        ->first())
-                    ->filter()
-                    ->toArray();
+            $packs = Stream::from($movements)
+                ->map(fn(TrackingMovement $movement) => $movement->getPack())
+                ->map(fn(Pack $pack) => $dispatch->getDispatchPacks()
+                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack() === $pack)
+                    ->first())
+                ->filter()
+                ->toArray();
 
                 $printerService->printDispatchPacks($zebraPrinter, $dispatch, $packs, true);
             } else {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}",
-                ]);
+                throw new FormException("Aucune configuration d'étiquette pour le type {$dispatch->getType()->getLabel()}.");
             }
         } else {
             $packService->doPackSeparation($entityManager, $pack, $dropLocation, $user, $subPacks, true);
@@ -4059,6 +4097,93 @@ class MobileController extends AbstractApiController
         $entityManager->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    #[Rest\Post("/logistic-unit-reference-association", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postPackAssociation(Request                 $request,
+                                         ReceptionService       $receptionService,
+                                         EntityManagerInterface $entityManager): JsonResponse
+    {
+        $response = [];
+        $receptionReferenceArticleId = $request->request->getInt('receptionReferenceArticle');
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $logisticUnit = $request->request->get('logisticUnit')
+            ? $packRepository->findOneBy(['code' => $request->request->get('logisticUnit')])
+            : null;
+
+        if (!$receptionReferenceArticleId || !$logisticUnit) {
+            if ($logisticUnit) {
+                $arrival = $logisticUnit->getArrivage();
+                if ($arrival) {
+                    $arrivalNumber = $arrival->getNumeroArrivage();
+
+                    $serializedReceptions = $receptionService->serializeReceptions($arrival, [Reception::STATUT_RECEPTION_TOTALE]);
+
+                    $response = [
+                        "arrivalNumber" => $arrivalNumber,
+                        "receptions" => $serializedReceptions['receptions'],
+                        "types" => $serializedReceptions['types'],
+                    ];
+                }
+            }
+
+            if(!$logisticUnit && !$logisticUnit?->getArrivage()) {
+                return $this->json([
+                    "success" => false,
+                    "msg" => "Numéro d'unité logistique inconnu.",
+                ]);
+            }
+        }
+        else {
+            $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
+
+            $receptionReferenceArticle = $receptionReferenceArticleRepository->find($receptionReferenceArticleId);
+            $receptionLine = $receptionReferenceArticle->getReceptionLine();
+            $reception = $receptionLine->getReception();
+            if (!$receptionLine->getPack()) {
+                $receptionLine->setPack($logisticUnit);
+            }
+
+            $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+            if ($referenceArticle && $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
+                $articleLabels = Stream::from(json_decode($request->request->get('articles', "[]"), true))
+                    ->filter(static fn($label) => $label)
+                    ->toArray();
+
+                if (empty($articleLabels)) {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "Les articles renseignés ne sont pas valides.",
+                    ]);
+                }
+                else {
+                    $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                }
+            }
+            if ($referenceArticle->getIsUrgent()) {
+                $reception->setUrgentArticles(true);
+
+                $receptionReferenceArticle
+                    ->setEmergencyTriggered(true)
+                    ->setEmergencyComment($referenceArticle->getEmergencyComment());
+
+                $referenceArticle
+                    ->setIsUrgent(false)
+                    ->setEmergencyComment(null);
+            }
+
+            $receptionService->amendReceptionStatus($entityManager, $reception);
+
+            $entityManager->flush();
+        }
+
+        return $this->json([
+            "success" => true,
+            ...$response,
+        ]);
     }
 }
 

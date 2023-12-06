@@ -23,7 +23,7 @@ CREATE TABLE dw_jours_horaires_travailles
 CREATE TABLE dw_association_br
 (
     date        timestamp(0),
-    codes_ul    varchar(255),
+    code_ul     varchar(255),
     reception   varchar(255),
     utilisateur varchar(255)
 );

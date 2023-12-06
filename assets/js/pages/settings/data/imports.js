@@ -1,188 +1,184 @@
+import AJAX from "@app/ajax";
+import Form from "@app/form";
+import Flash from "@app/flash";
+import Modal from "@app/modal";
+
 global.importTemplateChanged = importTemplateChanged;
 global.displayFirstModal = displayFirstModal;
-global.openConfirmCancelModal = openConfirmCancelModal;
 global.deleteImport = deleteImport;
 global.updateOptions = updateOptions;
 global.launchImport = launchImport;
+global.toggleImportType = toggleImportType;
 
-let $modalNewImport = $("#modalNewImport");
-let $submitNewImport = $("#submitNewImport");
+const CLICK_NUMBER_FORCE_IMPORT = 10;
+const TEMPLATES_DIRECTORY = `/modele`;
+const DOWNLOAD_TEMPLATES_CONFIG = {
+    ART: {label: `articles`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles.csv`},
+    REF: {label: `références`, url: `${TEMPLATES_DIRECTORY}/modele-import-references.csv`},
+    FOU: {label: `fournisseurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-fournisseurs.csv`},
+    ART_FOU: {label: `articles fournisseurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles-fournisseurs.csv`},
+    RECEP: {label: `réceptions`, url: `${TEMPLATES_DIRECTORY}/modele-import-receptions.csv`},
+    USER: {label: `utilisateurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-utilisateurs.csv`},
+    DELIVERY: {label: `livraisons`, url: `${TEMPLATES_DIRECTORY}/modele-import-livraisons.csv`},
+    LOCATION: {label: `emplacements`, url: `${TEMPLATES_DIRECTORY}/modele-import-emplacements.csv`},
+    CUSTOMER: {label: `clients`, url: `${TEMPLATES_DIRECTORY}/modele-import-clients.csv`},
+    PROJECT: {label: `projets`, url: `${TEMPLATES_DIRECTORY}/modele-import-projets.csv`},
+    REF_LOCATION: {label: `quantités référence par emplacement`, url: `${TEMPLATES_DIRECTORY}/modele-import-reference-emplacement-quantites.csv`},
+};
+
 let tableImport;
 
 export function initializeImports() {
-    initDateTimePicker('#dateMin, #dateMax');
+    initDateTimePicker(`#dateMin, #dateMax`);
+    getUserFiltersByPage(PAGE_IMPORT);
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_IMPORT);
-
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, 'json');
-
-    let pathImport = Routing.generate('import_api');
     let tableImportConfig = {
         processing: true,
         serverSide: true,
         ajax: {
-            "url": pathImport,
-            "type": "POST"
+            url: Routing.generate(`import_api`),
+            type: `POST`
         },
         columns: [
-            {"data": 'actions', 'title': '', orderable: false, className: 'noVis'},
-            {"data": 'id', visible: false},
-            {"data": 'status', 'title': 'Statut'},
-            {"data": 'startDate', 'title': 'Date début'},
-            {"data": 'endDate', 'title': 'Date fin'},
-            {"data": 'label', 'title': 'Nom import'},
-            {"data": 'newEntries', 'title': 'Nvx enreg.'},
-            {"data": 'updatedEntries', 'title': 'Mises à jour'},
-            {"data": 'nbErrors', 'title': "Nombre d'erreurs"},
-            {"data": 'user', 'title': 'Utilisateur'},
-            {"data" : 'entity','title' : 'Type de données importées'},
+            {data: `actions`, title: ``, orderable: false, className: `noVis`},
+            {data: `id`, visible: false},
+            {data: `lastErrorMessage`, title: ``, className: `noVis`, orderable: false},
+            {data: `status`, title: `Statut`},
+            {data: `createdAt`, title: `Date de création`},
+            {data: `startDate`, title: `Date début`},
+            {data: `endDate`, title: `Date fin`},
+            {data: `nextExecutionDate`, title: `Prochaine exécution`, orderable: false},
+            {data: `frequency`, title: `Fréquence`, orderable: false},
+            {data: `label`, title: `Nom import`},
+            {data: `newEntries`, title: `Nvx enreg.`},
+            {data: `updatedEntries`, title: `Mises à jour`},
+            {data: `nbErrors`, title: `Nombre d'erreurs`},
+            {data: `user`, title: `Utilisateur`},
+            {data: `type`, title: `Type`},
+            {data: `entity`, title: `Type de données importées`},
         ],
         rowConfig: {
             needsRowClickAction: true
         },
         drawConfig: {
-            callback: () => initDoubleClick('.status-planifié'),
+            callback: () => {
+                registerForceInput();
+            },
             needsSearchOverride: true,
         },
-        order: [['id', "desc"]],
+        order: [[`id`, `desc`]],
+        page: `import`,
     };
-    tableImport = initDataTable('tableImport', tableImportConfig);
-}
+    tableImport = initDataTable(`tableImport`, tableImportConfig);
 
-export function initializeExports() {
-    initDateTimePicker('#dateMin, #dateMax');
-}
+    $(document).on(`click`, `button.force-import`, function() {
+        const $forceImportModal = $(`#modalConfirmForce`);
+        const id = $(this).data(`id`);
 
-function displayFirstModal(importId = null) {
-    let $inputImportId = $modalNewImport.find('[name="importId"]');
+        $forceImportModal.modal(`show`);
 
-    clearModal($modalNewImport);
-    $inputImportId.val('');
-    $submitNewImport.off();
-    let urlNewImportFirst = Routing.generate('import_new', true);
-    InitModal(
-        $modalNewImport,
-        $submitNewImport,
-        urlNewImportFirst,
-        {tables: [tableImport], success: displaySecondModal, keepModal: true}
-    );
+        Form.create($forceImportModal)
+            .clearOpenListeners()
+            .clearSubmitListeners()
+            .onSubmit((data, form) => {
+                form.loading(() => (
+                    AJAX.route(AJAX.POST, `import_force`, {import: id})
+                        .json()
+                        .then(() => tableImport.ajax.reload())
+                ), true, true)
+            });
+    });
 
-    $.get(Routing.generate('get_first_modal_content', {importId: importId}, true), function (resp) {
-        $modalNewImport.find('.modal-body').html(resp);
-        if (importId) {
-            $inputImportId.val(importId);
-        }
+    $(document).on(`click`, `button.delete-import`, function() {
+        const $deleteImportModal = $(`#modalDeleteImport`);
+        const id = $(this).data(`id`);
 
-        importTemplateChanged($modalNewImport.find("[name=entity]"));
+        $deleteImportModal.modal(`show`);
 
-        $modalNewImport.modal({
-            backdrop: 'static',
-            show: true
-        });
+        Form.create($deleteImportModal)
+            .clearSubmitListeners()
+            .onSubmit((data, form) => {
+                form.loading(() => deleteImport(undefined, id), true, {closeModal: true})
+            });
+    });
+
+    $(document).on(`click`, `button.cancel-import`, function() {
+        const $cancelImportModal = $(`#modalCancelImport`);
+        const id = $(this).data(`id`);
+
+        $cancelImportModal.modal(`show`);
+
+        Form.create($cancelImportModal)
+            .clearSubmitListeners()
+            .onSubmit((data, form) => {
+                form.loading(() => (
+                    AJAX.route(AJAX.POST, `import_cancel`, {import: id})
+                        .json()
+                        .then(() => tableImport.ajax.reload())
+                ))
+            });
     });
 }
 
-function displaySecondModal(data) {
-    if (data.success) {
-        const importId = data.importId;
-        $modalNewImport.find('.modal-body').html(data.html);
-        $modalNewImport.find('[name="importId"]').val(importId);
-        $submitNewImport.off();
+function displayFirstModal($button, importId = null) {
+    let $modalNewImport = $("#modalNewImport");
+    let $submitNewImport = $("#submitNewImport");
 
-        let urlNewImportSecond = Routing.generate('import_links', true);
-        InitModal(
-            $modalNewImport,
-            $submitNewImport,
-            urlNewImportSecond,
-            {
-                keepModal: true,
-                success: (data) => displayConfirmationModal(importId, data),
-                // WIIS-3187 validator: validateImport
-            }
-        );
+    let $inputImportId = $modalNewImport.find(`[name="importId"]`);
 
-        $(".import-options").each(function() {
-            updateOptions($(this));
-        });
-    }
-}
+    $inputImportId.val(``);
+    $submitNewImport.off();
 
-/*
-WIIS-3187
-Validator si sélection de doublons dans les champs
+    Form.create($modalNewImport)
+        .clearOpenListeners()
+        .clearSubmitListeners()
+        .onOpen(() => {
+            Modal.load(`get_first_modal_content`, {import: importId}, $modalNewImport, $modalNewImport.find(`.modal-body`), {
+                onOpen: () => {
+                    if (importId) {
+                        $inputImportId.val(importId);
+                    }
 
-function validateImport() {
-    const selects = $('.import-options');
-    const first_select = selects.first();
-
-    const required = first_select.children()
-        .map(function() {
-            return $(this);
+                    toggleImportType($modalNewImport.find(`[value=unique-import-checkbox]:checked, [value=scheduled-import-checkbox]:checked`));
+                    importTemplateChanged($modalNewImport.find(`[name=entity]`));
+                    toggleFrequencyInput($modalNewImport.find(`[name=frequency]:checked`));
+                }});
         })
-        .filter((_, option) => option.html().includes("*"))
-        .map((_, option) => option.val())
-        .toArray();
+        .submitTo(`POST`, `import_new`, {
+            tables: [tableImport],
+            keepModal: true,
+            success: (data) => {
+                displaySecondModalMaker($modalNewImport, data)
+            },
+        });
 
-    selects.each(function() {
-        const value = $(this).val();
-        let index;
-
-        if(value && (index = required.indexOf(value)) !== -1) {
-            required.splice(index, 1);
-        }
+    $modalNewImport.modal({
+        backdrop: `static`,
+        show: true
     });
+}
 
-    if(required.length) {
-        let error = "Les valeurs suivantes ne sont pas renseignées : ";
-
-        let iterations = required.length;
-        for(let value of required) {
-            error += $(`.import-options option[value="${value}"]`).html();
-
-            if (--iterations) {
-                error += ", ";
-            }
-        }
-
-        $('.error-msg').text(error);
+function displayConfirmationModal($modal, importId, {success, msg, html}) {
+    const $submitButton = $modal.find(`.submit-form`);
+    $submitButton.off();
+    if (html) {
+        $modal.find(`.modal-body`).html(html);
+        launchImport($modal, importId);
     }
 
-    return false;
-}
-*/
-
-function displayConfirmationModal(importId, data) {
-    $modalNewImport.find('.modal-body').html(data.html);
-    $submitNewImport.off();
-
-    $submitNewImport.click(() => {
-        wrapLoadingOnActionButton($submitNewImport, () => launchImport(importId));
-
-    });
+    if (msg && success) {
+        tableImport.ajax.reload();
+        $modal.modal(`hide`);
+    }
 }
 
-function openConfirmCancelModal(importId) {
-    let $submitCancelImport = $('#submitCancelImport');
-    $submitCancelImport.off();
-    $submitCancelImport.on('click', function () {
-        $.post(Routing.generate('import_cancel'), {importId: importId}, function () {
-            tableImport.ajax.reload();
-        });
-    });
-    $('#modalConfirmCancel').modal('show');
-}
+function deleteImport($button = undefined, id = undefined) {
+    const importId = id || $button.closest(`.modal`).find(`[name=importId]`).val();
 
-function deleteImport($btn) {
-    let importId = $btn.closest('.modal').find('[name="importId"]').val();
-
-    if (importId) {
-        $.post(Routing.generate('import_delete'), {importId: importId}, () => {
-            tableImport.ajax.reload();
-        });
+    if(importId) {
+        return AJAX.route(AJAX.POST, `import_delete`, {import: importId})
+            .json()
+            .then(() => tableImport.ajax.reload());
     }
 }
 
@@ -214,88 +210,153 @@ function updateOptions($select) {
     }
 }
 
-function initDoubleClick(elem) {
-    if ($(elem).length > 0) {
-        document.querySelector(elem).addEventListener('click', function (e) {
-            if (e.detail === 10) {
-                let $modal = $('#modalLaunchPlanifiedImport');
-                $modal.find('#importIdToLaunch').data('id', $(elem).data('id'));
-                $modal.modal('show');
-            }
-        });
-    }
+function registerForceInput() {
+    let count = 0;
+    let $modalLaunchPlanifiedImport = $(`#modalLaunchPlanifiedImport`);
+    $(document).on(`click`, `.import-scheduled-status`, function() {
+        count += 1;
+        if (count === CLICK_NUMBER_FORCE_IMPORT) {
+            const id = $(this).data(`id`);
+            $modalLaunchPlanifiedImport.find(`[name=importId]`).val($(this).data(`id`));
+            $modalLaunchPlanifiedImport.modal(`show`);
+            launchImport($modalLaunchPlanifiedImport, id, true);
+        }
+    });
+
+    $modalLaunchPlanifiedImport.on(`hidden.bs.modal`, () => {
+        count = 0;
+    });
 }
 
-function launchImport(importId, force = false) {
+function launchImport($modal, importId, force = false) {
     if (importId) {
-        const params = {
-            importId,
-            force: Number(Boolean(force))
-        };
-
-        return $.post(Routing.generate('import_launch'), params, (resp) => {
-            if (!force) {
-                $modalNewImport.modal('hide');
-            }
-
-            showBSAlert(resp.message, (resp.success ? 'success' : 'danger'));
-
-            tableImport.ajax.reload();
-        });
+        Form.create($modal)
+            .clearSubmitListeners()
+            .onSubmit((data, form) => {
+                form.loading(() => (
+                    AJAX.route(AJAX.POST, `import_launch`, {importId, force: Number(Boolean(force))})
+                        .json()
+                        .then(({success, message}) => {
+                            if (success) {
+                                if (!force) {
+                                    $modal.modal(`hide`);
+                                }
+                            }
+                            tableImport.ajax.reload();
+                        })
+                ))
+            });
     } else {
-        showBSAlert('Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.', 'danger');
-        return new Promise(() => {});
+        Flash.add(Flash.ERROR, `Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.`);
     }
 }
 
 function importTemplateChanged($dataTypeImport = null) {
-    const $linkToTemplate = $('#linkToTemplate');
+    const $linkToTemplate = $(`.link-to-template`);
 
     $linkToTemplate.empty();
 
-    const templateDirectory = '/modele';
-    const configDownloadLink = {
-        ART: {label: 'articles', url: `${templateDirectory}/modele-import-articles.csv`},
-        REF: {label: 'références', url: `${templateDirectory}/modele-import-references.csv`},
-        FOU: {label: 'fournisseurs', url: `${templateDirectory}/modele-import-fournisseurs.csv`},
-        ART_FOU: {label: 'articles fournisseurs', url: `${templateDirectory}/modele-import-articles-fournisseurs.csv`},
-        RECEP: {label: 'réceptions', url: `${templateDirectory}/modele-import-receptions.csv`},
-        USER: {label: 'utilisateurs', url: `${templateDirectory}/modele-import-utilisateurs.csv`},
-        DELIVERY: {label: 'livraisons', url: `${templateDirectory}/modele-import-livraisons.csv`},
-        LOCATION: {label: 'emplacements', url: `${templateDirectory}/modele-import-emplacements.csv`},
-        CUSTOMER: {label: 'clients', url: `${templateDirectory}/modele-import-clients.csv`},
-        PROJECT: {label: 'projets', url: `${templateDirectory}/modele-import-projets.csv`},
-        REF_LOCATION: {label: 'quantités référence par emplacement', url: `${templateDirectory}/modele-import-reference-emplacement-quantites.csv`},
-    };
-
-    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : ``;
     differentialDataToggle($dataTypeImport);
 
-    if (configDownloadLink[valTypeImport]) {
-        const {url, label} = configDownloadLink[valTypeImport];
+    if (DOWNLOAD_TEMPLATES_CONFIG[valTypeImport]) {
+        const {url, label} = DOWNLOAD_TEMPLATES_CONFIG[valTypeImport];
         $linkToTemplate
-            .append(`<div class="col-12">Un fichier de modèle d\'import est disponible pour les ${label}.</div>`)
-            .append(`<div class="col-12"><a class="btn btn-primary" href="${url}">Télécharger</a></div>`);
-        if(valTypeImport === 'USER') {
+            .append(`
+                <div class="col-12 wii-small-text">
+                    Un <a class="underlined" href="${url}">fichier de modèle d\'import</a>  est disponible pour les ${label}.
+                </div>`);
+        if(valTypeImport === `USER`) {
             $linkToTemplate
                 .append(`<div class="col-12 mt-3"><i class="fas fa-question-circle"></i>
-                            <span class="italic">Les nouveaux utilisateurs seront créés avec un mot de passe aléatoire. Ils devront configurer ce dernier via la fonctionnalité "<strong>Mot de passe oublié</strong>".</span>
+                            <span class="wii-small-text">Les nouveaux utilisateurs seront créés avec un mot de passe aléatoire. Ils devront configurer ce dernier via la fonctionnalité "<strong>Mot de passe oublié</strong>".</span>
                         </div>`)
         }
     }
-    else if (valTypeImport === '') {
-        $linkToTemplate.append('<div class="col-12">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>');
+    else if (valTypeImport === ``) {
+        $linkToTemplate.append(`<div class="col-12 wii-small-text">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>`);
     }
     else {
-        $linkToTemplate.append('<div class="col-12">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>');
+        $linkToTemplate.append(`<div class="col-12 wii-small-text">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>`);
     }
 }
 
 function differentialDataToggle($dataTypeImport) {
-    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : '';
+    const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : ``;
     const eraseData = valTypeImport !== `REF_LOCATION` && valTypeImport !== `ART_FOU`;
-    const $modal = $dataTypeImport.closest('.modal');
-    $modal.find('.delete-differential-data')
-        .toggleClass(`d-none`, eraseData)
-        .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
+    if($dataTypeImport) {
+        const $modal = $dataTypeImport.closest(`.modal`);
+        $modal.find(`.delete-differential-data`)
+            .toggleClass(`d-none`, eraseData)
+            .html(`<input type="checkbox" name="deleteDifData" class="form-control data"/><p>Supprimer la donnée différentielle</p>`);
+    }
+}
+
+function toggleImportType($input) {
+    const $modal = $input.closest(`.modal`);
+    const $attachmentLabel = $modal.find(`.attachment-label`);
+    const $uniqueImportInput = $modal.find(`[name="unique-import-checkbox"]`);
+    const $scheduledImportInput = $modal.find(`[name="scheduled-import-checkbox"]`);
+    const $uniqueImportForm = $modal.find(`.unique-import`);
+    const $scheduledImportForm = $modal.find(`.scheduled-import`);
+    const $scheduledImportFilePath = $scheduledImportForm.find(`[name="path-import-file"]`);
+    const $frequencies = $modal.find(`.frequency`);
+
+    if($input.prop(`checked`)) {
+        if($input.val() === `unique-import-checkbox`) {
+            $attachmentLabel.text(`Fichier d'import`);
+            $uniqueImportForm.removeClass(`d-none`);
+            $scheduledImportForm.addClass(`d-none`);
+            $scheduledImportFilePath.removeClass(`needed`);
+            $scheduledImportInput.prop(`checked`, false);
+            $frequencies
+                .find(`select.frequency-data, input.frequency-data`)
+                .removeClass(`data`)
+                .removeClass(`needed`);
+        }
+        else if ($input.val() === `scheduled-import-checkbox`) {
+            $attachmentLabel.text(`Fichier de paramétrage`);
+            $scheduledImportForm.removeClass(`d-none`);
+            $uniqueImportForm.addClass(`d-none`);
+            $scheduledImportFilePath.addClass(`needed`);
+            $uniqueImportInput.prop(`checked`, false);
+        }
+    } else {
+        if($input.val() === `unique-import-checkbox`) {
+            $modal.find(`input[name!="${$input.val()}"]`).first().prop(`checked`, true);
+            $uniqueImportForm.addClass(`d-none`);
+            $scheduledImportForm.removeClass(`d-none`);
+        } else if($input.val() === `scheduled-import-checkbox`) {
+            $modal.find(`input[name!="${$input.val()}"]`).first().prop(`checked`, true);
+            $scheduledImportForm.addClass(`d-none`)
+            $uniqueImportForm.removeClass(`d-none`);
+        }
+    }
+
+    importTemplateChanged();
+    clearFormErrors($modal);
+    $modal.find(`.attachement`).remove();
+    $modal.find(`.isRight`).removeClass(`isRight`);
+}
+
+function displaySecondModalMaker($modal, data) {
+    const $modalBody = $modal.find(`.modal-body`);
+    const importId = data.importId;
+
+    $modalBody.html(data.html);
+    $modal.find(`[name="importId"]`).val(importId);
+
+    $(".import-options").each(function() {
+        updateOptions($(this));
+    });
+
+    Form.create($modal)
+        .clearOpenListeners()
+        .clearSubmitListeners()
+        .submitTo(`POST`, `import_links`, {
+            keepModal: true,
+            success: (data) => {
+                displayConfirmationModal($modal, importId, data);
+            },
+        });
 }

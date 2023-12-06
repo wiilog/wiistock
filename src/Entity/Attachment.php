@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
