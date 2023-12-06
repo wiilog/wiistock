@@ -170,6 +170,8 @@ class SettingsService {
             );
         }
         $updated = [];
+
+        $this->saveTypeTranslation($request);
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
         $this->manager->flush();
@@ -204,6 +206,22 @@ class SettingsService {
         }
 
         return $result;
+    }
+
+    private function saveTypeTranslation(Request $request){
+        // Allow to change translation label to label of type
+        if($request->request->has('label') && $request->request->has('entity')){
+            $newLabel = $request->request->get('label');
+            $userLanguage = $this->userService->getUser()->getLanguage();
+
+            $type = $this->manager->getRepository(Type::class)->findOneBy(['id' => $request->request->get('entity')]);
+
+            /* @var $type Type */
+            if($type){
+                $labelTranslation = $type->getLabelTranslation();
+                $labelTranslation->getTranslationIn($userLanguage)->setTranslation($newLabel);
+            }
+        }
     }
 
     /**
