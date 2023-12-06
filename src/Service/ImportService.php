@@ -2486,7 +2486,7 @@ class ImportService
                         'fieldCode' => $fieldParamCode,
                         'entityCode' => FixedFieldStandard::ENTITY_CODE_RECEPTION,
                     ]);
-                    if ($fieldParam && $fieldParam->getRequiredCreate()) {
+                    if ($fieldParam && $fieldParam->isRequiredCreate()) {
                         $fieldsNeeded[] = $field;
                     }
                 }
