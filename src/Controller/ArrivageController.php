@@ -1643,6 +1643,7 @@ class ArrivageController extends AbstractController {
             ],
         ];
 
+        dump($fields);
         foreach ($fields as $fieldName => $fieldPredictions) {
             $fieldPredictions = (array)$fieldPredictions;
             $field = Arrivage::AI_FILABLE_FIELDS[$fieldName] ?? FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
@@ -1679,25 +1680,32 @@ class ArrivageController extends AbstractController {
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
                     usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
+                    dump($fieldPredictions);
                     do {
                         $prediction = array_shift($fieldPredictions);
-                        $truckArrivalLinePrediction = $fournisseurRepository->findOneBy(["nom" => $prediction["value"]]);
-                    } while ($truckArrivalLinePrediction === null && count($fieldPredictions) > 0);
-                    if ($truckArrivalLinePrediction) {
-                        $truckArrivalLine = $truckArrivalLinePrediction["value"];
+                        $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $prediction['value']]);
+                    } while ($truckArrivalLine === null && count($fieldPredictions) > 0);
+                    if ($truckArrivalLine) {
                         $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
-                        $score = ceil((float)$truckArrivalLinePrediction["score"] * 100);
+                        $score = ceil((float)$prediction["score"] * 100);
                         $fieldValues[FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE] = [
                             "values" => [[
                                 "value" => $carrierId,
-                                "label" => $truckArrivalLine->getTruckArrival()->getCarrier()->getName(),
+                                "label" => $truckArrivalLine->getTruckArrival()->getCarrier()?->getLabel(),
                             ],],
                             "score" => $score,
                         ];
                         $fieldValues[FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
                             "values" => [[
                                 "value" => $truckArrivalLine->getId(),
-                                "label" => $truckArrivalLine->getNumber()(),
+                                "label" => $truckArrivalLine->getNumber(),
+                            ],],
+                            "score" => $score,
+                        ];
+                        $fieldValues['noTruckArrival'] = [
+                            "values" => [[
+                                "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
+                                "label" => $truckArrivalLine->getTruckArrival()->getNumber(),
                             ],],
                             "score" => $score,
                         ];
