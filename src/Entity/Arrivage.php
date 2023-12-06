@@ -19,10 +19,10 @@ class Arrivage {
     use FreeFieldsManagerTrait;
 
     public const AI_FILABLE_FIELDS = [
-        'destinataire' => FixedFieldStandard::FIELD_CODE_RECEIVERS,
-        'noTracking' => FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE,
-        'fournisseur' => FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE,
-        'numeroCommandeList' => FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE,
+        FixedFieldStandard::FIELD_CODE_RECEIVERS => 'destinataire',
+        FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => 'noTracking',
+        FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE => 'fournisseur',
+        FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE => 'numeroCommandeList',
     ];
 
     #[ORM\Id]

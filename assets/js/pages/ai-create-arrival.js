@@ -34,53 +34,47 @@ function scanDeliveryNoteFile($input) {
         .route(POST, `api_delivery_note_file`, {}).json(formData).then(({success, data}) => {
             if(success) {
                 let fields = data.values;
-                for (const field in fields) {
-                    const $field = $(`[name=${field}]`);
+                for (const [fieldName, fieldData] of Object.entries(fields)) {
+                    const $field = $(`[name=${fieldName}]`);
                     $field.addClass('ai-field');
-                    fields[field].forEach((fieldElement) => {
-                        let score = fieldElement.score;
-                        if ($field.prop('multiple')) {
-                            $field.empty();
-                            score = 0;
-                            const options = Array.isArray(fieldElement) ? fieldElement : [fieldElement];
-                            options.forEach((optionValue) => {
-                                let option = new Option(optionValue.value, optionValue.id ? optionValue.id : optionValue.value, true, true);
-                                score += optionValue.score;
-                                $field.append(option);
-                            })
-                            score /= options.length;
+                    const score = fieldData.score;
+                    $field.empty();
+                    for (const [index, valueData] of Object.entries(fieldData.values)) {
+                        if ($field.hasClass('select2-hidden-accessible')) {
+                            let option = new Option(valueData.label, valueData.value || valueData.label, true, true);
+                            $field.append(option);
                         } else if ($field.next().hasClass('ql-toolbar')) {
-                            $field.parent().find('.ql-editor').append(`<p>${fieldElement.value}</p>`);
-                        } else {
-                            $field.val(fieldElement.value);
-                        }
 
-                        $field.trigger('change');
+                            $field.parent().find('.ql-editor').append(`<p>${valueData.value}</p>`);
+                        } else {
+                            $field.val(valueData.value);
+                        }
                         if (score) {
                             let $labelScore = $field.parent().find(".ai-score-text")
                             if ($labelScore.length === 0) {
                                 $labelScore = $field.parent().find("label").after('<span class="wii-small-text ai-score-text ml-2"></span>').next();
                             }
-
-                            $labelScore.html((score * 100).toFixed(2) + '%');
+                            $labelScore.html((score) + '%');
                             let $coloredLabel = $field.next().hasClass('ql-toolbar')
                                 ? $field.next()
                                 : $field.next().find('.select2-selection');
+                            let colorClass = '';
                             switch (true) {
-                                case score >= 0.90:
-                                    $coloredLabel.addClass('score-high');
+                                case score >= 90:
+                                    colorClass = 'score-high';
                                     break;
-                                case score < 0.90 && score > 0.60:
-                                    $coloredLabel.addClass('score-medium');
+                                case score < 90 && score > 60:
+                                    colorClass = 'score-medium';
                                     break;
-                                case score >= 0 && score <= 0.60:
-                                    $coloredLabel.addClass('score-low');
+                                case score >= 0 && score <= 60:
+                                    colorClass = 'score-low';
                                     break;
                                 default:
                                     break;
                             }
+                            $coloredLabel.addClass(colorClass);
                         }
-                    })
+                    }
                 }
                 if (displayScannedDeliveryNote !== 0) {
                     window.open(`/uploads/attachments/${data.file.name}`, '_blank');

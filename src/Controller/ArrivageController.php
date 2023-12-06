@@ -35,6 +35,7 @@ use App\Service\CSVExportService;
 use App\Service\DataExportService;
 use App\Service\DisputeService;
 use App\Service\FilterSupService;
+use App\Service\FormatService;
 use App\Service\HttpService;
 use App\Service\FreeFieldService;
 use App\Service\KeptFieldService;
@@ -1586,10 +1587,9 @@ class ArrivageController extends AbstractController {
     #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function apiDeliveryNoteFile( Request                $request,
                                          AttachmentService      $attachmentService,
-                                         KernelInterface        $kernel,
+                                         FormatService          $formatService,
                                          HttpClientInterface    $client,
-                                         EntityManagerInterface $entityManager): JsonResponse
-    {
+                                         EntityManagerInterface $entityManager): JsonResponse {
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
@@ -1633,59 +1633,122 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
 
-        $fields = array_keys($apiOutput["values"]);
-        $data = [
-            "values" => [
-                FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE => [],
+        $fields = $apiOutput["values"];
+        $fieldValues = [
+            "commentaire" => [
+                "score" => 1,
+                "values" => [
+                    ["value" => "<p><b>Informations récupérées depuis le BL</b> :</p>"],
+                ],
             ],
         ];
-        //TODO STREAM FROM
-        foreach ($fields as $field) {
-        in_array($field, array_keys(Arrivage::AI_FILABLE_FIELDS)) ?
-                $fieldName = Arrivage::AI_FILABLE_FIELDS[$field]
-                : $fieldName = FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
 
-                if (is_array($apiOutput["values"][$field])) {
-                    foreach ($apiOutput["values"][$field] as $apiOutputFieldElement) {
-                        switch ($fieldName){
-                            case FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE:
-                                $fieldValue = $fournisseurRepository->findOneBy(["nom" => $apiOutputFieldElement["value"]])?->getId();
-                                break;
-                            case FixedFieldStandard::FIELD_CODE_RECEIVERS:
-                                $fieldValue = $utilisateurRepository->findOneByName($apiOutputFieldElement["value"])?->getId();
-                                break;
-                            case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
-                                $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $apiOutputFieldElement['value']]);
-                                if ($truckArrivalLine) {
-                                    $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
-                                    $data["values"][FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE] = [
-                                        "value" => $carrierId,
-                                    ];
-                                    $data["values"][FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
-                                        "value" => $truckArrivalLine->getTruckArrival()->getNumber(),
-                                    ];
-                                    $data["values"][$field]["id"] = $truckArrivalLine->getId();
-                                }
-                                $fieldValue = $apiOutputFieldElement["value"];
-                                break;
-                            default:
-                                $fieldValue = $apiOutputFieldElement["value"];
-                        }
-
-                        if ($fieldValue != "") {
-                            $data["values"][$fieldName][] = [
-                                "value" => $fieldValue,
-                                "score" => $apiOutputFieldElement["score"],
+        foreach ($fields as $fieldName => $fieldPredictions) {
+            $fieldPredictions = (array)$fieldPredictions;
+            $field = Arrivage::AI_FILABLE_FIELDS[$fieldName] ?? FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE;
+            switch ($fieldName) {
+                case FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE:
+                    usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
+                    do {
+                        $prediction = array_shift($fieldPredictions);
+                        $provider = $fournisseurRepository->findOneBy(["nom" => $prediction["value"]]);
+                    } while ($provider === null && count($fieldPredictions) > 0);
+                    if ($provider) {
+                        $fieldValues[$field] = [
+                            "score" => ceil(((float)$prediction["score"]) * 100),
+                            "values" => [[
+                                "value" => $provider->getId(),
+                                "label" => $provider->getNom(),
+                            ],],
+                        ];
+                    }
+                    break;
+                case FixedFieldStandard::FIELD_CODE_RECEIVERS:
+                    $score = 1;
+                    foreach ($fieldPredictions as $fieldPrediction) {
+                        $receiver = $utilisateurRepository->findOneByName($fieldPrediction["value"]);
+                        if ($receiver) {
+                            $fieldValues[$field]["values"][] = [
+                                "value" => $receiver->getId(),
+                                "label" => $formatService->user($receiver),
                             ];
+                            $score *= (float)$fieldPrediction["score"];
                         }
                     }
-                }
-
-            $data['file'] = [
-                'name' => $downloadedFileName,
-                'path' => $filepath,
-            ];
+                    $fieldValues[$field]["score"] = ceil(($score) * 100);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
+                    usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
+                    do {
+                        $prediction = array_shift($fieldPredictions);
+                        $truckArrivalLinePrediction = $fournisseurRepository->findOneBy(["nom" => $prediction["value"]]);
+                    } while ($truckArrivalLinePrediction === null && count($fieldPredictions) > 0);
+                    if ($truckArrivalLinePrediction) {
+                        $truckArrivalLine = $truckArrivalLinePrediction["value"];
+                        $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
+                        $score = ceil((float)$truckArrivalLinePrediction["score"] * 100);
+                        $fieldValues[FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE] = [
+                            "values" => [[
+                                "value" => $carrierId,
+                                "label" => $truckArrivalLine->getTruckArrival()->getCarrier()->getName(),
+                            ],],
+                            "score" => $score,
+                        ];
+                        $fieldValues[FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE] = [
+                            "values" => [[
+                                "value" => $truckArrivalLine->getId(),
+                                "label" => $truckArrivalLine->getNumber()(),
+                            ],],
+                            "score" => $score,
+                        ];
+                        $fieldValues[$field] = [
+                            "score" => $score,
+                            "values" => [[
+                                "value" => $truckArrivalLine->getId(),
+                                "label" => $truckArrivalLine->getNumber(),
+                            ],],
+                        ];
+                    }
+                    break;
+                case FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE:
+                    $score = 1;
+                    $numbers = [];
+                    foreach ($fieldPredictions as $fieldPrediction) {
+                        if (!in_array($fieldPrediction["value"], $numbers)) {
+                            $numbers[] = $fieldPrediction["value"];
+                            $fieldValues[$field]["values"][] = [
+                                "value" => $fieldPrediction["value"],
+                                "label" => $fieldPrediction["value"],
+                            ];
+                            $score *= (float)$fieldPrediction["score"];
+                        }
+                    }
+                    $fieldValues[$field]["score"] = ceil($score * 100);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE:
+                default:
+                    $comment = "<b>$fieldName</b>:";
+                    $details = "";
+                    foreach ($fieldPredictions as $fieldPrediction) {
+                        if ($fieldPrediction['value'] !== null && $fieldPrediction['value'] !== "") {
+                            $score = ceil(((float)$fieldPrediction['score']) * 100);
+                            $details .= "{$fieldPrediction['value']} <i>({$score}%)</i>,";
+                            $fieldValues['commentaire']['score'] *= (float)$fieldPrediction['score'];
+                        }
+                    }
+                    if ($details !== "") {
+                        $fieldValues['commentaire']['values'][0]["value"] .= $comment . $details;
+                    }
+            }
         }
+        $fieldValues['commentaire']["score"] = ceil($fieldValues['commentaire']["score"] * 100);
+        $data = [
+            "values" => $fieldValues,
+            "file" => [
+                "name" => $downloadedFileName,
+                "path" => $filepath,
+            ],
+        ];
         return $this->json([
             "success" => true,
             "data" => $data,
