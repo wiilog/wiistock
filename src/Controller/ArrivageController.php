@@ -1673,18 +1673,18 @@ class ArrivageController extends AbstractController {
                                 "label" => $formatService->user($receiver),
                             ];
                             $score *= (float)$fieldPrediction["score"];
+                            $fieldValues[$field]["score"] = ceil(($score) * 100);
                         }
                     }
-                    $fieldValues[$field]["score"] = ceil(($score) * 100);
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
                     usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
                     do {
                         $prediction = array_shift($fieldPredictions);
-                        $truckArrivalLinePrediction = $fournisseurRepository->findOneBy(["nom" => $prediction["value"]]);
+                        $truckArrivalLinePrediction = $truckArrivalLineRepository->findOneBy(["number" => $prediction["value"]]);
                     } while ($truckArrivalLinePrediction === null && count($fieldPredictions) > 0);
                     if ($truckArrivalLinePrediction) {
-                        $truckArrivalLine = $truckArrivalLinePrediction["value"];
+                        $truckArrivalLine = $truckArrivalLinePrediction;
                         $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
                         $score = ceil((float)$truckArrivalLinePrediction["score"] * 100);
                         $fieldValues[FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE] = [
@@ -1721,9 +1721,9 @@ class ArrivageController extends AbstractController {
                                 "label" => $fieldPrediction["value"],
                             ];
                             $score *= (float)$fieldPrediction["score"];
+                            $fieldValues[$field]["score"] = ceil($score * 100);
                         }
                     }
-                    $fieldValues[$field]["score"] = ceil($score * 100);
                     break;
                 case FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE:
                 default:
