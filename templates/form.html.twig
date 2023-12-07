@@ -1,6 +1,6 @@
 {% macro custom_attributes(attributes = []) %}
     {% for key, value in attributes %}
-        {% if value %}
+        {% if value is not null %}
             {{ key }}="{{ value }}"
         {% else %}
             {{ key }}

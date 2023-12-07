@@ -166,6 +166,7 @@ class AttachmentService {
     public function getBase64(Attachment $attachment): ?string {
         $path = "$this->attachmentDirectory/{$attachment->getFileName()}";
         $type = pathinfo($path, PATHINFO_EXTENSION);
+        $type = $type === 'svg' ? 'svg+xml' : $type;
         $data = file_get_contents($path);
         $encodedImage = base64_encode($data);
 
