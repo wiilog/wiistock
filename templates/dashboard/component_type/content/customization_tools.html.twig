@@ -165,6 +165,14 @@
                         <input type="radio" class="data" name="date" value="endDate" {{ not referenceDate or referenceDate == "endDate" ? 'checked' }}>
                         Date d'échéance "Au"
                     </label>
+                    <div>
+                        <input type="radio" class="data" name="date" value="dueDate1" {{ referenceDate is defined and referenceDate == "dueDate1" ? 'checked' }}>
+                        <label for="dueDate1">Date échéance CPL</label>
+                    </div>
+                    <div>
+                        <input type="radio" class="data" name="date" value="dueDate2" {{ referenceDate is defined and referenceDate == "dueDate2" ? 'checked' }}>
+                        <label for="dueDate2">Date livraison ligne initiale et date livraison ligne modifiée</label>
+                    </div>
                 {% endif %}
                 {% if dailyDeliveryOrdersComponent %}
                     <label class="pointer">

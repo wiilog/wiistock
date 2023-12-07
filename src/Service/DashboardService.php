@@ -986,6 +986,12 @@ class DashboardService {
             case 'validationDate':
                 $type = "de validation";
                 break;
+            case 'dueDate1':
+                $type = "d'échéances CPL Du";
+                break;
+            case 'dueDate2':
+                $type = "de livraison ligne initiale et de livraison ligne modifiée";
+                break;
             case 'endDate':
             default:
                 $type = "d'échéances Au";

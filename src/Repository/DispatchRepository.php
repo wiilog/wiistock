@@ -599,6 +599,12 @@ class DispatchRepository extends EntityRepository
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
 
+        if ($date === 'dueDate2') {
+            $qb->andWhere('(dispatch.dueDate2Bis IS NOT NULL AND dispatch.dueDate2Bis BETWEEN :dateMin AND :dateMax) OR (dispatch.dueDate2Bis IS NULL AND dispatch.dueDate2 BETWEEN :dateMin AND :dateMax)');
+        } else {
+            $qb->andWhere("dispatch.$date BETWEEN :dateMin AND :dateMax");
+        }
+
         if ($separateType) {
             $qb
                 ->groupBy('type.id')
