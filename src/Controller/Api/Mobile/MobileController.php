@@ -3094,7 +3094,6 @@ class MobileController extends AbstractApiController
             }
 
             if ($includeReferences) {
-                $types = [];
                 $typeLogos = [];
                 $res['references'] = Stream::from($pack->getReceptionLines()->toArray())
                     ->map(function(ReceptionLine $receptionLine) use ($receptionService, $attachmentService, &$typeLogos) {
@@ -3120,7 +3119,7 @@ class MobileController extends AbstractApiController
                         ];
                     })
                     ->toArray();
-                $res['types'] = $types;
+                $res['types'] = $typeLogos;
             }
 
             if ($includeDispatches) {
@@ -4160,7 +4159,10 @@ class MobileController extends AbstractApiController
                     ]);
                 }
                 else {
-                    $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                    $response = $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                    if(!$response['success']){
+                        return $this->json($response);
+                    }
                 }
             }
             if ($referenceArticle->getIsUrgent()) {
