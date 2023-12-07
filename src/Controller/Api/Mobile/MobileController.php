@@ -4159,7 +4159,10 @@ class MobileController extends AbstractApiController
                     ]);
                 }
                 else {
-                    $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                    $response = $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
+                    if(!$response['success']){
+                        return $this->json($response);
+                    }
                 }
             }
             if ($referenceArticle->getIsUrgent()) {
