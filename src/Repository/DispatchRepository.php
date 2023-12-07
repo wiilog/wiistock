@@ -208,7 +208,6 @@ class DispatchRepository extends EntityRepository
                     $values = Stream::explode(',', $filter['value'])
                         ->map(static fn(string $value) => explode(':', $value)[0])
                         ->toArray();
-                    dump($values);
                     $qb
                         ->andWhere('dispatch.productionRequest IN (:productionRequest)')
                         ->setParameter('productionRequest', $values);

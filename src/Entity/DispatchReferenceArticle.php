@@ -33,6 +33,7 @@ class DispatchReferenceArticle
     private ?string $serialNumber = null;
 
     #[ORM\ManyToOne(targetEntity: DispatchPack::class, inversedBy: 'dispatchReferenceArticles')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?DispatchPack $dispatchPack = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class)]

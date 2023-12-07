@@ -80,6 +80,10 @@ class PrinterService
                 FixedFieldStandard::FIELD_CODE_LOCATION_DROP => $this->formatService->location($dispatch->getLocationTo()),
                 FixedFieldStandard::FIELD_CODE_DESTINATION => $dispatch->getDestination(),
                 FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT => $dispatch->getBusinessUnit(),
+                FixedFieldStandard::FIELD_CODE_DUE_DATE_ONE => $this->formatService->datetime($dispatch->getDueDate1()),
+                FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO => $this->formatService->datetime($dispatch->getDueDate2()),
+                FixedFieldStandard::FIELD_CODE_DUE_DATE_TWO_BIS => $this->formatService->datetime($dispatch->getDueDate2Bis()),
+                default => ""
             };
         };
 
@@ -129,7 +133,7 @@ class PrinterService
                     ->setContent($code)
                     ->setDisplayContent(strlen($code) <= self::MAX_QR_CODE_LENGTH);
 
-                $image = Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/uploads/attachments/{$logo}")
+                $image = Image::fromPath(3, 3, "{$this->kernel->getProjectDir()}/public/$logo")
                     ->setWidth(30)
                     ->setHeight(15);
 
