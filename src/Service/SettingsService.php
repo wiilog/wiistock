@@ -170,6 +170,7 @@ class SettingsService {
             );
         }
         $updated = [];
+
         $this->saveCustom($request, $settings, $updated, $result);
         $this->saveStandard($request, $settings, $updated);
         $this->manager->flush();
@@ -287,6 +288,7 @@ class SettingsService {
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
             $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -634,6 +636,7 @@ class SettingsService {
                 $types = [];
 
                 Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->filter()
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
@@ -712,9 +715,9 @@ class SettingsService {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }
-
+                $newLabel = $data["label"] ?? $type->getLabel();
                 $type
-                    ->setLabel($data["label"] ?? $type->getLabel())
+                    ->setLabel($newLabel)
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
@@ -725,6 +728,13 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
+
+                $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
+                if ($defaultTranslation) {
+                    $defaultTranslation->setTranslation($newLabel);
+                } else {
+                    $this->translationService->setDefaultTranslation($this->manager, $type, $newLabel);
+                }
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
@@ -768,7 +778,7 @@ class SettingsService {
 
                 if (isset($item["elements"])) {
                     $elements = Stream::explode(";", $item["elements"])
-                        ->map(fn(string $element) => trim($element))
+                        ->filterMap(fn(string $element) => trim($element) ?: null)
                         ->toArray();
                 }
 
@@ -790,18 +800,17 @@ class SettingsService {
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"]);
 
-                if(!$freeField->getLabelTranslation()) {
-                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());
+                $defaultTranslation = $freeField->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
+                if ($defaultTranslation) {
+                    $defaultTranslation->setTranslation($freeField->getLabel());
                 } else {
-                    $freeField->getLabelTranslation()
-                        ->getTranslationIn(Language::FRENCH_SLUG)
-                        ->setTranslation($freeField->getLabel());
+                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getLabel());
                 }
 
                 $defaultValue = $freeField->getDefaultValue();
                 $defaultValueTranslation = $freeField->getDefaultValueTranslation();
                 if($defaultValue && !$defaultValueTranslation) {
-                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
                 } else if($defaultValue && $defaultValueTranslation) {
                     $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
                         ?: (new Translation())
@@ -821,7 +830,7 @@ class SettingsService {
                 foreach($freeField->getElements() as $element) {
                     $source = $freeField->getElementTranslation($element);
                     if(!$source) {
-                        $this->translationService->setFirstTranslation($this->manager, $freeField, $element, "addElementTranslation");
+                        $this->translationService->setDefaultTranslation($this->manager, $freeField, $element, "addElementTranslation");
                     }
                 }
 
