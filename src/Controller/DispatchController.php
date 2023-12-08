@@ -1502,25 +1502,21 @@ class DispatchController extends AbstractController {
                                           Dispatch               $dispatch,
                                           StatusHistoryService   $statusHistoryService): Response
     {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $overConsumptionBill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
-        if($overConsumptionBill) {
-            $typeAndStatus = explode(';', $overConsumptionBill);
-            $typeId = intval($typeAndStatus[0]);
-            $statutsId = intval($typeAndStatus[1]);
+        $dispatchStatuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType());
+        $overConsumptionBillStatus = Stream::from($dispatchStatuses)
+            ->filter(fn(Statut $statut) => $statut->getOverconsumptionBillGenerationStatus());
 
-            if ($dispatch->getType()->getId() === $typeId) {
-                $untreatedStatus = $statutRepository->find($statutsId);
-                $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
-                if (!$dispatch->getValidationDate()) {
-                    $dispatch->setValidationDate(new DateTime('now'));
-                }
-
-                $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+        if($overConsumptionBillStatus->count() === 1) {
+            $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+            if (!$dispatch->getValidationDate()) {
+                $dispatch->setValidationDate(new DateTime('now'));
             }
+
+            $entityManager->flush();
+            $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
         }
 
         $dispatchStatus = $dispatch->getStatut();

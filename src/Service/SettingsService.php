@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\StatusController;
+use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -22,6 +23,7 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -52,6 +54,7 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -266,18 +269,6 @@ class SettingsService {
             }
 
             $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
-        }
-
-        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
-            $setting->setValue(
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
-            );
-
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
         }
 
         if ($request->request->has("temperatureRanges")) {
@@ -958,6 +949,9 @@ class SettingsService {
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
 
+                $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE);
+
+
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
                     StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
@@ -971,6 +965,10 @@ class SettingsService {
                 $persistedStatuses = $statusRepository->findBy([
                     'categorie' => $category,
                 ]);
+
+                $countOverconsumptionBillGenerationStatus = Stream::from($statusesData)
+                        ->filter(fn(array $statusData) => $statusData['overconsumptionBillGenerationStatus'] === "1")
+                        ->count();
 
                 foreach ($statusesData as $statusData) {
                     if (!in_array($statusData['state'], [
@@ -1001,6 +999,12 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
+                    if ($countOverconsumptionBillGenerationStatus > 1) {
+                        throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
+                    } else {
+                        $status->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
+                    }
+
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
@@ -1009,13 +1013,17 @@ class SettingsService {
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
-                        ->setSendReport($statusData['sendReport'] ?? false)
-                        ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                        ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
-                        ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
-                        ->setDisplayOrder($statusData['order'] ?? 0);
+                        ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false);
+
+                    if($hasRightGroupedSignature){
+                        $status
+                            ->setSendReport($statusData['sendReport'] ?? false)
+                            ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
+                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
+                            ->setDisplayOrder($statusData['order'] ?? 0);
+                    }
 
                     // label given on creation or edit is the French one
                     $labelTranslation = $status->getLabelTranslation();

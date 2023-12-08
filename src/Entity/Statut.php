@@ -106,6 +106,9 @@ class Statut {
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $sendReport = null;
 
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
+    private ?bool $overconsumptionBillGenerationStatus = null;
+
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'statuts')]
     private ?Type $type = null;
 
@@ -655,6 +658,16 @@ class Statut {
 
     public function setSendReport(?bool $sendReport): self {
         $this->sendReport = $sendReport;
+
+        return $this;
+    }
+
+    public function getOverconsumptionBillGenerationStatus(): ?bool {
+        return $this->overconsumptionBillGenerationStatus;
+    }
+
+    public function setOverconsumptionBillGenerationStatus(?bool $overconsumptionBillGenerationStatus): self {
+        $this->overconsumptionBillGenerationStatus = $overconsumptionBillGenerationStatus;
 
         return $this;
     }
