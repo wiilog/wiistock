@@ -49,6 +49,7 @@ function scanDeliveryNoteFile($input) {
                         } else {
                             $field.val(valueData.value);
                         }
+                        $field.trigger('change');
                         if (score) {
                             let $labelScore = $field.parent().find(".ai-score-text")
                             if ($labelScore.length === 0) {
