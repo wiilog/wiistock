@@ -18,7 +18,7 @@ interface PairedEntity {
     /**
      * @return SensorMessage[]
      */
-    public function getSensorMessagesBetween($start, $end, string $type = null): array;
+    public function getSensorMessagesBetween($start, $end, ?array $options = []): array;
 
     public function getLastMessage(): ?SensorMessage;
 

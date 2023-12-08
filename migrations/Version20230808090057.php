@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DoctrineMigrations;
 
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Service\SpecificService;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
@@ -26,16 +26,16 @@ final class Version20230808090057 extends AbstractMigration
         if($_SERVER["APP_CLIENT"] === SpecificService::CLIENT_AIA_CUERS) {
 
             $fields = [
-                FieldsParam::FIELD_CODE_CUSTOMER_NAME_DISPATCH => FieldsParam::FIELD_LABEL_CUSTOMER_NAME_DISPATCH,
-                FieldsParam::FIELD_CODE_CUSTOMER_PHONE_DISPATCH => FieldsParam::FIELD_LABEL_CUSTOMER_PHONE_DISPATCH,
-                FieldsParam::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH => FieldsParam::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH,
-                FieldsParam::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH => FieldsParam::FIELD_LABEL_CUSTOMER_ADDRESS_DISPATCH,
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH => FixedFieldStandard::FIELD_LABEL_CUSTOMER_NAME_DISPATCH,
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH => FixedFieldStandard::FIELD_LABEL_CUSTOMER_PHONE_DISPATCH,
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH => FixedFieldStandard::FIELD_LABEL_CUSTOMER_RECIPIENT_DISPATCH,
+                FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH => FixedFieldStandard::FIELD_LABEL_CUSTOMER_ADDRESS_DISPATCH,
             ];
             foreach ($fields as $code => $label) {
                 $this->addSql("
                     INSERT INTO fields_param (entity_code, field_code, field_label, displayed_create, displayed_edit, displayed_filters)
                     VALUES (:entityCode, :fieldCode, :fieldLabel, :displayedCreate, :displayedEdit, :displayedFilters)", [
-                        'entityCode' => FieldsParam::ENTITY_CODE_DISPATCH,
+                        'entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH,
                         'fieldCode' => $code,
                         'fieldLabel' => $label,
                         'displayedCreate' => true,

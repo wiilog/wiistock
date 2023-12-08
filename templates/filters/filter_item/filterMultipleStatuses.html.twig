@@ -1,4 +1,4 @@
-{% macro status_item(status_state_values, status, userLanguage, defaultLanguage) %}
+{% macro status_item(statusStateValues, status, userLanguage, defaultLanguage) %}
     <li class="dropdown-item pl-2 pointer" data-type="{{ status.type.id }}" data-type-label="{{ status.type.label }}">
         <label>
             <input name="statuses-filter_{{ status.id }}"
@@ -8,7 +8,7 @@
             <span class="pointer">
                 {{ userLanguage is defined and defaultLanguage is defined and userLanguage is not null and defaultLanguage is not null
                     ? status.labelIn(userLanguage, defaultLanguage)
-                    : status.nom }} - <span class="italic">{{ trans('Demande', 'Acheminements', 'Général', status_state_values[status.state]) }}</span>
+                    : status.nom }} - <span class="italic">{{ trans('Demande', 'Acheminements', 'Général', statusStateValues[status.state]) }}</span>
             </span>
         </label>
     </li>
@@ -33,7 +33,7 @@
             </li>
             <div class="dropdown-divider"></div>
             {% for status in statuses %}
-                {{ macros.status_item(status_state_values, status, userLanguage ?? null , defaultLanguage ?? null) }}
+                {{ macros.status_item(statusStateValues, status, userLanguage ?? null , defaultLanguage ?? null) }}
             {% endfor %}
         </ul>
     </div>

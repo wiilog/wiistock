@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -122,8 +123,9 @@ class TruckArrivalLineRepository extends EntityRepository
     }
 
     public function getForSelect(?string $term, $option = []): array {
-        $qb = $this->createQueryBuilder('truck_arrival_line')
-            ->select("truck_arrival_line.id AS id")
+        $qb = $this->createQueryBuilder('truck_arrival_line');
+
+        $qb ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
             ->addSelect("truck_arrival.id AS truck_arrival_id")
@@ -175,23 +177,29 @@ class TruckArrivalLineRepository extends EntityRepository
     }
 
     public function getForReserve(?int $truckArrivalId): array {
-        $qb = $this
-            ->createQueryBuilder('truck_arrival_line')
+        $qb = $this->createQueryBuilder('truck_arrival_line')
             ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS number")
-            ->andWhere("truck_arrival.id = :truckArrivalId")
             ->andWhere("qualityReserve IS NULL")
             ->leftJoin("truck_arrival_line.reserve", 'qualityReserve')
-            ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
+            ->join('truck_arrival_line.truckArrival', 'truck_arrival', Join::WITH, "truck_arrival.id = :truckArrivalId")
             ->setParameter('truckArrivalId', "$truckArrivalId");
 
         return $qb->getQuery()->getArrayResult();
     }
 
     public function getUnassociatedLines() {
-        return $this->createQueryBuilder('line')
+        $qb = $this->createQueryBuilder('line');
+
+        return $qb
             ->andWhere('arrivals.id IS NULL')
+            ->andWhere($qb->expr()->orX(
+                "join_reserveType.disableTrackingNumber IS NULL",
+                "join_reserveType.disableTrackingNumber = 0"
+            ))
             ->leftJoin('line.arrivals', 'arrivals')
+            ->leftJoin('line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
             ->getQuery()
             ->getResult();
     }

@@ -130,10 +130,12 @@ class MailerService
                     $fileName = basename($path);
                 }
                 $file = fopen($path, 'r');
-                $message->attach(
-                    $file,
-                    $fileName,
-                );
+                if($file){
+                    $message->attach(
+                        $file,
+                        $fileName,
+                    );
+                }
             }
 
             $mailer = (new Mailer($transport));

@@ -1,7 +1,5 @@
 {% import 'form.html.twig' as form %}
 
-{% set isSubLine = isSubLine is defined and isSubLine %}
-
 <div class="modal fade" id="modal-fixed-field-{{ modal | lower }}"
      role="dialog"
      aria-hidden="true"
@@ -14,7 +12,9 @@
             } %}
             <input type="hidden" name="field" value="{{ field }}"/>
 
-            {% if elementsType == constant('App\\Entity\\FieldsParam::ELEMENTS_TYPE_FREE') %}
+            {{ form.hidden('fixedFieldType', fixedFieldType is defined ? fixedFieldType : constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_TYPE')) }}
+
+            {% if elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE_FREE') %}
                 <div class="modal-body">
                     {{ form.select('elements', 'Valeurs possibles', false, {
                         type: null,
@@ -24,7 +24,7 @@
                         placeholder: 'Ajoutez des éléments',
                     }) }}
                 </div>
-            {% elseif elementsType == constant('App\\Entity\\FieldsParam::ELEMENTS_TYPE_USER') %}
+            {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE_USER') %}
                 <div class="modal-body pt-0">
                     <span class="wii-section-title">Destinataire par défaut par type</span>
                     <div class="zone-type">
@@ -50,7 +50,7 @@
                         {% include 'settings/fixed_field_elements_row.html.twig' %}
                     </template>
                 </div>
-            {% elseif elementsType == constant('App\\Entity\\FieldsParam::ELEMENTS_RECEIVER') %}
+            {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_RECEIVER') %}
                 <div class="modal-body pt-0">
                     <div class="wii-section-title">Destinataire par défaut</div>
                     <div class="row mt-2">
@@ -72,7 +72,7 @@
                         </div>
                     </div>
                 </div>
-            {% elseif elementsType == constant('App\\Entity\\FieldsParam::ELEMENTS_TYPE') %}
+            {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_TYPE') %}
                 <div class="modal-body pt-0">
                     <div class="wii-section-title">Type par défaut</div>
                     <div class="row mt-2">
@@ -86,7 +86,7 @@
                         </div>
                     </div>
                 </div>
-            {% elseif elementsType == constant('App\\Entity\\FieldsParam::ELEMENTS_LOCATION_BY_TYPE') %}
+            {% elseif elementsType == constant('App\\Entity\\Fields\\FixedFieldStandard::ELEMENTS_LOCATION_BY_TYPE') %}
                 <div class="wii-section mt-2">
                     <div class="row">
                         <div class="col-12">
@@ -138,12 +138,11 @@
                         </div>
                     </div>
                 </template>
-
             {% endif %}
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
                     {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                    {classes: 'btn btn-success data submit-field-param', text: 'Enregistrer', value: field, type: 'submit', data: {'is-sub-line': isSubLine}}
+                    {classes: 'btn btn-success data submit-field-param', text: 'Enregistrer', value: field, type: 'submit'}
                 ],
                 hideErrorContainer: true,
             } %}

@@ -2,7 +2,6 @@
 
 <div class="wii-section">
     <div class="row">
-
         <div class="col-md-6 col-12 my-1">
             {{ form.select(setting('ARRIVAL_EMERGENCY_TRIGGERING_FIELDS'), "Champs déclenchant une urgence", true, {
                 value: setting_value('ARRIVAL_EMERGENCY_TRIGGERING_FIELDS')|split(','),
@@ -11,6 +10,9 @@
                 type: null,
                 noEmptyOption: true,
             }) }}
+        </div>
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('CONFIRM_EMERGENCY_ON_ARRIVAL'), 'Afficher un pop up de confirmation de réception de l\'urgence via numéro de poste - code article interne et code article fournisseur', false, setting_value('CONFIRM_EMERGENCY_ON_ARRIVAL')) }}
         </div>
     </div>
 </div>

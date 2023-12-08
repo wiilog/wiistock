@@ -6,7 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Reserve;
@@ -16,7 +16,6 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
-use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
@@ -41,7 +40,7 @@ class TruckArrivalController extends AbstractController
                           EntityManagerInterface $entityManager,
                           FilterSupService $filterSupService ): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -53,7 +52,7 @@ class TruckArrivalController extends AbstractController
             'fields' => $truckArrivalService->getVisibleColumns($this->getUser()),
             'carriersForFilter' => $carrierRepository->findAll(),
             'initial_filters' => json_encode($filterSupService->getFilters($entityManager, FiltreSup::PAGE_TRUCK_ARRIVAL)),
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL),
             'newTruckArrival' => new TruckArrival(),
             'defaultLocation' => $defaultLocation,
         ]);
@@ -68,7 +67,9 @@ class TruckArrivalController extends AbstractController
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
             . '/'
-            . $truckArrival->getTrackingLines()->count();
+            . $truckArrival->getTrackingLines()
+                ->filter(fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()->isDisableTrackingNumber())
+                ->count();
         $carrier = $truckArrival->getCarrier();
         $minTrackingNumber = $carrier->getMinTrackingNumberLength();
         $maxTrackingNumber = $carrier->getMaxTrackingNumberLength();
@@ -186,13 +187,13 @@ class TruckArrivalController extends AbstractController
     #[Route('/form/edit/{id}', name: 'truck_arrival_form_edit', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
     public function formEdit(TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         return new JsonResponse([
             'success'=> true,
             'html' => $this->render('truck_arrival/form-truck-arrival.html.twig', [
                 'truckArrival' => $truckArrival,
-                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_TRUCK_ARRIVAL)
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL)
             ])->getContent()
         ]);
     }
@@ -263,7 +264,7 @@ class TruckArrivalController extends AbstractController
 
         $entityManager->persist($truckArrival);
 
-        if ($data->has('hasGeneralReserve') ?? false) {
+        if ($data->has('hasGeneralReserve') && $data->getBoolean('hasGeneralReserve')) {
             $generalReserve = new Reserve();
             $generalReserve
                 ->setComment($data->get('generalReserveComment'))
@@ -272,7 +273,7 @@ class TruckArrivalController extends AbstractController
             $entityManager->persist($generalReserve);
         }
 
-        if ($data->has('hasQuantityReserve') ?? false) {
+        if ($data->has('hasQuantityReserve') && $data->getBoolean('hasQuantityReserve')) {
             $quantityReserve = new Reserve();
             $quantityReserve
                 ->setComment($data->get('quantityReserveComment'))

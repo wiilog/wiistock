@@ -259,12 +259,13 @@ class PreparationsManagerService
                                      Emplacement $emplacement,
                                      array       $options = []): ?Preparation
     {
+        /** @var EntityManagerInterface $entityManager */
         $entityManager = $options["entityManager"] ?? $this->entityManager;
         $articleLinesToKeep = $options["articleLinesToKeep"] ?? [];
         $changeArticleLocation = $options["changeArticleLocation"] ?? true;
 
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+
         $demande = $preparation->getDemande();
 
         if ($changeArticleLocation) {
@@ -294,7 +295,7 @@ class PreparationsManagerService
 
         // TODO get remaining articles and refs
         if (!$isPreparationComplete) {
-            return $this->persistPreparationFromOldOne($preparation, $demande, $statutRepository, $preparationOrderArticleLineRepository, $articleLinesToKeep, $entityManager);
+            return $this->persistPreparationFromOldOne($entityManager, $preparation, $articleLinesToKeep);
         } else {
             return null;
         }
@@ -322,15 +323,15 @@ class PreparationsManagerService
         );
     }
 
-    private function persistPreparationFromOldOne(Preparation $preparation,
-                                                  Demande $demande,
-                                                  StatutRepository $statutRepository,
-                                                  PreparationOrderArticleLineRepository $preparationOrderArticleLineRepository,
-                                                  array $listOfArticleSplitted,
-                                                  EntityManagerInterface $entityManager = null): Preparation {
-        if (!isset($entityManager)) {
-            $entityManager = $this->entityManager;
-        }
+    private function persistPreparationFromOldOne(EntityManagerInterface $entityManager,
+                                                  Preparation $preparation,
+                                                  array $listOfArticleSplitted): Preparation {
+
+
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $preparationOrderArticleLineRepository = $entityManager->getRepository(PreparationOrderArticleLine::class);
+
+        $demande = $preparation->getDemande();
 
         $newPreparation = new Preparation();
         $date = new DateTime('now');
@@ -748,7 +749,7 @@ class PreparationsManagerService
         foreach ($preparation->getReferenceLines() as $ligneArticle) {
             $refArticle = $ligneArticle->getReference();
             if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
+                $this->refArticleDataService->updateRefArticleQuantities($entityManager, [$refArticle]);
             }
             // On ne touche pas aux références gérées par article : décrémentation du stock à la fin de la livraison
         }

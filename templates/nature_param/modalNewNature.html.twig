@@ -100,16 +100,16 @@
                                     <label class="d-flex align-items-center font-size-mini pointer mr-2 wii-field-text">
                                         <input class="checkbox data mr-2" type="checkbox" name="{{ index }}"
                                                onclick="toggleTypes($(this))">
-                                        {{ entity }}
+                                        {{ entity.label }}
                                     </label>
                                 </div>
-                                {% if index != constant('App\\Entity\\Nature::ARRIVAL_CODE') %}
+                                {% if entity.showTypes %}
                                     <div class="input-group row no-gutters">
                                         <div class="col-6 types-container">
                                             <select name="{{ index }}Types"
                                                     class="data form-control w-100"
-                                                    title="Types de {{ entity }}"
-                                                    data-label="Types de {{ entity }}"
+                                                    title="Types de {{ entity.label }}"
+                                                    data-label="Types de {{ entity.label }}"
                                                     data-s2
                                                     data-placeholder="Sélectionnez un ou plusieurs types"
                                                     disabled

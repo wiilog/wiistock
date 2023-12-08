@@ -42,11 +42,13 @@ use Closure;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\DBAL\Logging\Middleware;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -272,7 +274,7 @@ class ImportService
 
     public function __construct(EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService) {
         $this->entityManager = $entityManager;
-        $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
         $this->emplacementDataService = $emplacementDataService;
         $this->resetCache();
     }
@@ -490,9 +492,7 @@ class ImportService
             fclose($logFile);
 
             // mise à jour des quantités sur références par article
-            foreach ($refToUpdate as $ref) {
-                $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $ref);
-            }
+            $this->refArticleDataService->updateRefArticleQuantities($this->entityManager, $refToUpdate);
 
             // flush update quantities
             $this->entityManager->flush();
@@ -583,8 +583,8 @@ class ImportService
         } catch (Throwable $throwable) {
             // On réinitialise l'entity manager car il a été fermé
             if (!$this->entityManager->isOpen()) {
-                $this->entityManager = EntityManager::Create($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
-                $this->entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
+                $this->entityManager = new EntityManager($this->entityManager->getConnection(), $this->entityManager->getConfiguration());
+                $this->entityManager->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
             }
 
             $this->clearEntityManagerAndRetrieveImport();
@@ -2357,7 +2357,7 @@ class ImportService
         if (isset($data['zone'])) {
             $zone = $zoneRepository->findOneBy(['name' => trim($data['zone'])]);
             if ($zone) {
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError('La zone ' . $data['zone'] . ' n\'existe pas dans la base de données');
             }
@@ -2370,7 +2370,7 @@ class ImportService
                 $this->throwError("Aucune zone existante. Veuillez créer au moins une zone");
             } else if ($this->scalarCache['totalZone'] === 1) {
                 $zone = $zoneRepository->findOneBy([]);
-                $location->setZone($zone);
+                $location->setProperty("zone", $zone);
             } else {
                 $this->throwError("Le champ zone doit être renseigné");
             }
