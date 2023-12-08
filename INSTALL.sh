@@ -21,7 +21,14 @@ fi
 follow_nexter_home=$1
 origin_branch=$(git rev-parse --abbrev-ref HEAD)
 
+
 if [ ! -d "$follow_nexter_home" ]
+then
+    echo "Veuillez extaire le contenu de la release dans le répertoire $follow_nexter_home et réexécuter l'installation";
+    exit 1;
+fi
+
+if [ ! -f "$follow_nexter_home/.env.local" ]
 then
     is_first_install=1
     echo ">>>> Première installation de Follow Nexter";
