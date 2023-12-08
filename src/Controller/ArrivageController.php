@@ -474,8 +474,7 @@ class ArrivageController extends AbstractController {
                                                  TrackingMovementService $trackingMovementService,
                                                  EntityManagerInterface  $entityManager): Response
     {
-        $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
-
+        $location = $arrival->getDropLocation();
         if (isset($location)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
@@ -658,6 +657,8 @@ class ArrivageController extends AbstractController {
 
         if ($isArrivalUrgent) {
             $arrivage->setIsUrgent(true);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+            $arrivage->setDropLocation($emplacementRepository->find($dropLocationId));
             $entityManager->flush();
         }
 

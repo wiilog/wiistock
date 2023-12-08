@@ -289,6 +289,11 @@ class ArrivageService {
     {
         if (!empty($emergencies)) {
             $arrivage->setIsUrgent(true);
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+            $arrivage->setDropLocation($locationRepository->find($dropLocationId));
+
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
@@ -667,37 +672,6 @@ class ArrivageService {
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    public function getLocationForTracking(EntityManagerInterface $entityManager,
-                                           Arrivage               $arrivage): ?Emplacement
-    {
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
-            $location = $emplacementRepository->find($customsArrivalsLocation);
-        }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
-            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
-        }
-        else if (
-            (
-                $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-                || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)
-            ) && !$arrivage->getReceivers()->isEmpty()) {
-            $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
-        } else if ($arrivage->getDropLocation()) {
-            $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
-            $location = $emplacementRepository->find($defaultArrivalsLocation);
-        }
-        else {
-            $location = null;
-        }
-
-        return $location;
-    }
-
     public function sendMailForDeliveredPack(Emplacement            $location,
                                              Pack                   $pack,
                                              Utilisateur            $user,
@@ -883,8 +857,14 @@ class ArrivageService {
                     'nom' => $this->formatService->status($statut),
                 ])
                 ->toArray();
-            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+            $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocationId ? $emplacementRepository->find($defaultLocationId) : null;
+
+            $defaultLocationIdIfCustomId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+            $defaultLocationIfCustoms = $defaultLocationIdIfCustomId ? $emplacementRepository->find($defaultLocationIdIfCustomId) : null;
+
+            $defaultLocationIdifRecipient = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+            $defaultLocationIfRecipient = $defaultLocationIdifRecipient ? $emplacementRepository->find($defaultLocationIdifRecipient) : null;
 
             $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
                 ->map(fn(Nature $nature) => [
@@ -918,6 +898,8 @@ class ArrivageService {
                 "fieldsParam" => $fieldsParam,
                 "businessUnits" => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 "defaultLocation" => $defaultLocation,
+                "defaultLocationIfCustoms" => $defaultLocationIfCustoms,
+                "defaultLocationIfRecipient" => $defaultLocationIfRecipient,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,

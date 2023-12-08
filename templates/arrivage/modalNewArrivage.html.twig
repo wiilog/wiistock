@@ -3,7 +3,8 @@
 {% set isClientSafranED =
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
-<div class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
+{% set modalId = 'modalNewArrivage' %}
+<div class="modal fade" id="{{  modalId }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -288,6 +289,7 @@
                             } %}
                         </div>
                     </div>
+                    {% set dropLocationSelectName = "dropLocation" %}
                     {% set dropLocationFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(dropLocationFieldCode, 'displayedCreate') %}
                         {% set dropLocationRequired = fieldsParam|isFieldRequired(dropLocationFieldCode, 'requiredCreate') %}
@@ -295,7 +297,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose') }}{{ dropLocationRequired ? '*' }}
                             </label>
-                            <select name="dropLocation"
+                            <select name="{{ dropLocationSelectName }}"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ dropLocationRequired ? 'needed' }}">
                                 {% set keptDropLocation = keptFields[dropLocationFieldCode] ?? null %}
                                 {% if keptDropLocation %}
@@ -319,6 +321,10 @@
                                     value: user.id,
                                     selected: true,
                                 }),
+                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null ? [{
+                                    name: "onchange",
+                                    value: "if($(this).val().length > 0) $('#"~modalId~"').find('[name="~dropLocationSelectName~"]').append(new Option('"~defaultLocationIfRecipient.label~"', '"~defaultLocationIfRecipient.id~"', false, true))",
+                                }] : []
                             }) }}
                         </div>
                     {% endif %}
@@ -380,10 +386,13 @@
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
-                                <input class="checkbox mr-2"
-                                       type="checkbox"
-                                       name="customs"
-                                    {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
+                                <input  class="checkbox mr-2"
+                                        type="checkbox"
+                                        name="customs"
+                                        {{ keptFields[customsFieldCode] ?? false ? 'checked' }}
+                                        {% if defaultLocationIfCustoms is defined and defaultLocationIfCustoms is not null %}
+                                          onchange="if($(this).is(':checked')) $('#{{ modalId }}').find('[name={{ dropLocationSelectName }}]').append(new Option('{{ defaultLocationIfCustoms.label }}', '{{ defaultLocationIfCustoms.id }}', false, true))">
+                                        {% endif %}
                                 <label class="text-break text-wrap">
                                     {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
                                 </label>
