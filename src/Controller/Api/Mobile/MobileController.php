@@ -4144,6 +4144,7 @@ class MobileController extends AbstractApiController
             $reception = $receptionLine->getReception();
             if (!$receptionLine->getPack()) {
                 $receptionLine->setPack($logisticUnit);
+                $reception->setTransporteur($logisticUnit->getArrivage()->getTransporteur());
             }
 
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
