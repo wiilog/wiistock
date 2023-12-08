@@ -1649,9 +1649,11 @@ class ArrivageController extends AbstractController {
             switch ($fieldName) {
                 case FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE:
                     usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
+                    $providers = [];
                     do {
                         $prediction = array_shift($fieldPredictions);
                         $provider = $fournisseurRepository->findOneBy(["nom" => $prediction["value"]]);
+                        $providers[] = $prediction["value"];
                     } while ($provider === null && count($fieldPredictions) > 0);
                     if ($provider) {
                         $fieldValues[$field] = [
@@ -1662,11 +1664,17 @@ class ArrivageController extends AbstractController {
                             ],],
                         ];
                     }
+                    else {
+                        $providers = implode(", ", $providers);
+                        $fieldValues['commentaire']['values'][0]["value"] .= "<p><b>Fournisseur</b> : {$providers}</p>";
+                    }
                     break;
                 case FixedFieldStandard::FIELD_CODE_RECEIVERS:
                     $score = 1;
+                    $receivers = [];
                     foreach ($fieldPredictions as $fieldPrediction) {
                         $receiver = $utilisateurRepository->findOneByName($fieldPrediction["value"]);
+                        $receivers[] = $fieldPrediction["value"];
                         if ($receiver) {
                             $fieldValues[$field]["values"][] = [
                                 "value" => $receiver->getId(),
@@ -1675,13 +1683,19 @@ class ArrivageController extends AbstractController {
                             $score *= (float)$fieldPrediction["score"];
                             $fieldValues[$field]["score"] = ceil(($score) * 100);
                         }
+                        else {
+                            $receivers = implode(", ", $receivers);
+                            $fieldValues['commentaire']['values'][0]["value"] .= "<p><b>Destinataire</b> : {$receivers}</p>";
+                        }
                     }
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
                     usort($fieldPredictions, static fn($a, $b) => $b["score"] <=> $a["score"]);
+                    $trackingNumbers = [];
                     do {
                         $prediction = array_shift($fieldPredictions);
                         $truckArrivalLine = $truckArrivalLineRepository->findOneBy(["number" => $prediction['value']]);
+                        $trackingNumbers[] = $prediction["value"];
                     } while ($truckArrivalLine === null && count($fieldPredictions) > 0);
                     if ($truckArrivalLine) {
                         $carrierId = $truckArrivalLine->getTruckArrival()->getCarrier()->getId();
@@ -1714,6 +1728,9 @@ class ArrivageController extends AbstractController {
                                 "label" => $truckArrivalLine->getNumber(),
                             ],],
                         ];
+                    } else {
+                        $trackingNumbers = implode(", ", $trackingNumbers);
+                        $fieldValues['commentaire']['values'][0]["value"] .= "<p><b>Numéro(s) de tracking</b> : {$trackingNumbers}</p>";
                     }
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE:
@@ -1733,7 +1750,7 @@ class ArrivageController extends AbstractController {
                     break;
                 case FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE:
                 default:
-                    $comment = "<b>$fieldName</b>:";
+                    $comment = "<b>$fieldName</b>: ";
                     $details = "";
                     foreach ($fieldPredictions as $fieldPrediction) {
                         if ($fieldPrediction['value'] !== null && $fieldPrediction['value'] !== "") {
@@ -1743,7 +1760,7 @@ class ArrivageController extends AbstractController {
                         }
                     }
                     if ($details !== "") {
-                        $fieldValues['commentaire']['values'][0]["value"] .= $comment . $details;
+                        $fieldValues['commentaire']['values'][0]["value"] .= "<p>" . $comment . $details . "</p>";
                     }
             }
         }
