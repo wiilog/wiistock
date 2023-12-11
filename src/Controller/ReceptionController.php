@@ -1484,7 +1484,7 @@ class ReceptionController extends AbstractController {
     private function serializeReception(array $reception): array {
         return [
             $reception['number'] ?: '',
-            $reception['orderNumber'] ? join(', ', $reception['orderNumber']) : '',
+            $reception['orderNumber'] ?: '',
             $reception['providerName'] ?: '',
             $reception['userUsername'] ?: '',
             $reception['statusName'] ?: '',

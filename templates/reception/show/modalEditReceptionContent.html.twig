@@ -46,7 +46,7 @@
 <div class="row">
     {% if fieldsParam|isFieldRequired('numCommande', 'displayedEdit') %}
         <div class="form-group col-6">
-            {{ form.input('orderNumber', 'Numéro(s) de commande', fieldsParam|isFieldRequired('numCommande', 'requiredEdit'), reception.orderNumber ) }}
+            {{ form.input('orderNumber', 'Numéro de commande', fieldsParam|isFieldRequired('numCommande', 'requiredEdit'), reception.orderNumber ) }}
         </div>
     {% endif %}
     {% if fieldsParam|isFieldRequired('emplacement', 'displayedEdit') %}
