@@ -208,7 +208,6 @@ class DispatchRepository extends EntityRepository
                     $values = Stream::explode(',', $filter['value'])
                         ->map(static fn(string $value) => explode(':', $value)[0])
                         ->toArray();
-                    dump($values);
                     $qb
                         ->andWhere('dispatch.productionRequest IN (:productionRequest)')
                         ->setParameter('productionRequest', $values);
@@ -447,7 +446,10 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function getByDates(DateTime $dateMin, DateTime $dateMax, bool $withStatuses = false, array $statusIds = [], string $dateFormat = Language::DMY_FORMAT): ?array
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax,
+                               array $statusIds = [],
+                               string $mysqlDateFormat = Language::DMY_MYSQL_FORMAT): ?array
     {
         $subQueryPackCount = $this->getEntityManager()->createQueryBuilder()
             ->from(DispatchPack::class, "sub_dispatch_packs")
@@ -469,7 +471,7 @@ class DispatchRepository extends EntityRepository
             ->getQuery()
             ->getDQL();
 
-        if($withStatuses) {
+        if(!empty($statusIds)) {
             $historyStatusSubQueryCallback = function (int $statusId): string {
                 return $this->createQueryBuilder("sub_dispatch_$statusId")
                     ->select("GROUP_CONCAT(DATE_FORMAT(join_status_history_$statusId.date, '%d/%m/%Y %H:%i') SEPARATOR ', ')")
@@ -487,12 +489,12 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.freeFields AS freeFields')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.commandNumber AS orderNumber')
-            ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
-            ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
-            ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
-            ->addSelect("DATE_FORMAT(dispatch.dueDate1, '$dateFormat') AS dueDate1")
-            ->addSelect("DATE_FORMAT(dispatch.dueDate2, '$dateFormat') AS dueDate2")
-            ->addSelect("DATE_FORMAT(dispatch.dueDate2Bis, '$dateFormat') AS dueDate2Bis")
+            ->addSelect("DATE_FORMAT(dispatch.creationDate, '$mysqlDateFormat') AS creationDate")
+            ->addSelect("DATE_FORMAT(dispatch.validationDate, '$mysqlDateFormat') AS validationDate")
+            ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$mysqlDateFormat') AS treatmentDate")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate1, '$mysqlDateFormat') AS dueDate1")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2, '$mysqlDateFormat') AS dueDate2")
+            ->addSelect("DATE_FORMAT(dispatch.dueDate2Bis, '$mysqlDateFormat') AS dueDate2Bis")
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
             ->addSelect("($subQueryReceivers) AS receivers")
@@ -549,7 +551,7 @@ class DispatchRepository extends EntityRepository
                 'dateMax' => $dateMax
             ]);
 
-        if($withStatuses) {
+        if(!empty($statusIds)) {
             foreach ($statusIds as $statusId) {
                 $queryBuilder->addSelect("({$historyStatusSubQueryCallback($statusId)}) AS statusHistory_$statusId");
             }
@@ -560,21 +562,18 @@ class DispatchRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByDates(DateTime $dateMin, DateTime $dateMax): ?array {
+    public function findByDates(DateTime $dateMin, DateTime $dateMax): iterable {
         $dateMax = $dateMax->format('Y-m-d H:i:s');
         $dateMin = $dateMin->format('Y-m-d H:i:s');
 
-        return $this->getEntityManager()->createQueryBuilder()
-            ->select("dispatch_pack")
-            ->from(DispatchPack::class, "dispatch_pack")
-            ->leftJoin("dispatch_pack.dispatch", "join_dispatch")
-            ->andWhere('join_dispatch.creationDate BETWEEN :dateMin AND :dateMax')
+        return $this->createQueryBuilder("dispatch")
+            ->andWhere('dispatch.creationDate BETWEEN :dateMin AND :dateMax')
             ->setParameters([
                 'dateMin' => $dateMin,
                 'dateMax' => $dateMax
             ])
             ->getQuery()
-            ->getResult();
+            ->toIterable();
     }
 
     /**

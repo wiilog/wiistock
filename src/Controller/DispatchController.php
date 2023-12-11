@@ -1314,19 +1314,23 @@ class DispatchController extends AbstractController {
 
             $withStatuses = $request->query->has('withStatuses') && $request->query->getBoolean('withStatuses');
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
-            $statusConfig = $statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]);
+            $statusConfig = $withStatuses ? $statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]) : [];
             $statusIds = array_keys($statusConfig);
 
             ini_set('memory_limit', '1G');
             ini_set('max_execution_time', '60');
-            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $withStatuses, $statusIds);
+            $userDateFormat = $this->getUser()->getDateFormat();
+            $mysqlUserDateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] ?? Language::DMY_MYSQL_FORMAT;
+            $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $statusIds, $mysqlUserDateFormat);
 
             $freeFieldsById = Stream::from($dispatches)
                 ->keymap(static fn(array $dispatch) => [
-                    $dispatch['id'], $dispatch['freeFields']
-                ])->toArray();
+                    $dispatch['id'],
+                    $dispatch['freeFields']
+                ])
+                ->toArray();
 
-            $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+            $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig, $withStatuses ? $statusConfig : []);
 
             return $CSVExportService->streamResponse(
                 function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById, $statusConfig, $withStatuses) {

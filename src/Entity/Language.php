@@ -18,9 +18,9 @@ class Language {
     private const MDY_FORMAT = 'm-d-Y';
     private const YMD_FORMAT = 'Y-m-d';
 
-    private const DMY_MYSQL_FORMAT = '%d/%m/%Y';
-    private const MDY_MYSQL_FORMAT = '%m-%d-%Y';
-    private const YMD_MYSQL_FORMAT = '%Y-%m-%d';
+    public const DMY_MYSQL_FORMAT = '%d/%m/%Y';
+    public const MDY_MYSQL_FORMAT = '%m-%d-%Y';
+    public const YMD_MYSQL_FORMAT = '%Y-%m-%d';
 
     public const DATE_FORMATS = [
         "jj/mm/aaaa" => self::DMY_FORMAT,
