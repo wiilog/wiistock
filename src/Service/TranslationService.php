@@ -301,10 +301,10 @@ class TranslationService {
         }
     }
 
-    public function setFirstTranslation(EntityManagerInterface $entityManager,
-                                        mixed                  $entity,
-                                        string                 $firstLabel,
-                                        string                 $setter = null) {
+    public function setDefaultTranslation(EntityManagerInterface $entityManager,
+                                          mixed                  $entity,
+                                          string                 $firstLabel,
+                                          string                 $setter = null): void {
         $languageRepository = $entityManager->getRepository(Language::class);
         $language = $languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG]);
 
