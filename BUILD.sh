@@ -11,7 +11,7 @@ fi
 
 archive_target=$1
 
-composer install --no-script
+composer install --no-scripts
 yarn install
 
 rm -rf ./var/log/*
