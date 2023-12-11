@@ -34,7 +34,6 @@ then
     echo ">>>> Première installation de Follow Nexter";
 
     echo ">>>> Création du répertoire";
-    cp -r . "$follow_nexter_home"
     cp "$follow_nexter_home/.env" "$follow_nexter_home/.env.local"
 
     ## now loop through the above array
