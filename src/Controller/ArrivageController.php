@@ -97,7 +97,7 @@ class ArrivageController extends AbstractController {
         if($receptionId) {
             $reception = $entityManager->getRepository(Reception::class)->find($receptionId);
             $receptionData['id'] = $reception->getId();
-            $receptionData['orderNumber'] = implode(',', $reception->getOrderNumber());
+            $receptionData['orderNumber'] = $reception->getOrderNumber();
             $request->request->add(['receptionFilter' => $receptionData["orderNumber"]]);
         }
 

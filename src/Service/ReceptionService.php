@@ -26,6 +26,7 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -81,6 +82,9 @@ class ReceptionService
 
     #[Required]
     public ArticleDataService $articleDataService;
+
+    #[Required]
+    public AttachmentService $attachmentService;
 
     public function getDataForDatatable(Utilisateur $user, $params = null, $arrivalFilter = null, $purchaseRequestFilter = null)
     {
@@ -706,7 +710,7 @@ class ReceptionService
                 if ($existing) {
                     return [
                         "success" => false,
-                        "msg" => "Un article avec le libellé {$label} existe déjà en base de données",
+                        "msg" => "Un article avec le libellé $label existe déjà en base de données.",
                     ];
                 }
                 if (!$line->getReception()->getFournisseur()) {
@@ -745,5 +749,67 @@ class ReceptionService
             }
         }
         return ['success' => true];
+    }
+
+    public function serializeReceptions(Arrivage $arrival, array $excludeReceptionStatuses = []): array {
+        $types = [];
+        $serializedReceptions = [];
+        $receptions = $arrival
+            ->getReceptions()
+            ->filter(static fn(Reception $reception) => (
+                !in_array($reception->getStatut()->getNom(), $excludeReceptionStatuses)
+                && !empty($reception->getReceptionReferenceArticles())
+                && Stream::from($reception->getReceptionReferenceArticles())
+                    ->some(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => !$receptionReferenceArticle->getReceptionLine()->getPack())
+            ))
+            ->matching(Criteria::create()->orderBy(['date' => 'ASC']));
+
+        foreach ($receptions as $reception) {
+            $serializedReception = [
+                'number' => $reception->getNumber(),
+                'orderNumber' => $reception->getOrderNumber(),
+                'expectedDate' => $this->formatService->date($reception->getDateAttendue()),
+                'supplier' => $this->formatService->supplier($reception->getFournisseur()),
+                'references' => []
+            ];
+
+            /** @var ReceptionReferenceArticle $line */
+            foreach ($reception->getReceptionReferenceArticles() as $line) {
+                if(!$line->getReceptionLine()->getPack()) {
+                    $serializedReception['references'][] = $this->serializeReceptionLine($line, $types);
+                }
+            }
+
+            $serializedReceptions[] = $serializedReception;
+        }
+
+        return [
+            'receptions' => $serializedReceptions,
+            'types' => $types
+        ];
+    }
+
+    public function serializeReceptionLine(ReceptionReferenceArticle $line, array &$typeLogos): array {
+        $referenceArticle = $line->getReferenceArticle();
+        $referenceArticleType = $referenceArticle->getType();
+        $typeId = $referenceArticleType?->getId();
+        if ($referenceArticleType) {
+            $logo = $referenceArticleType->getLogo();
+            if ($logo) {
+                $base64 = $this->attachmentService->getBase64($logo);
+                if ($base64) {
+                    $typeLogos[$typeId] = $base64;
+                }
+            }
+        }
+
+        return [
+            'receptionReferenceArticleId' => $line->getId(),
+            'quantityType' => $referenceArticle->getTypeQuantite(),
+            'reference' => $referenceArticle?->getReference(),
+            'label' => $referenceArticle?->getLibelle(),
+            'emergency' => $line->getEmergencyTriggered(),
+            'typeId' => $typeId
+        ];
     }
 }

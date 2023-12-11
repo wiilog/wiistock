@@ -3,6 +3,8 @@ let tableMvt;
 global.resetNewModal = resetNewModal;
 global.switchMvtCreationType = switchMvtCreationType;
 global.clearURL = clearURL;
+global.onPackCodeChange = onPackCodeChange;
+
 $(function () {
     $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
@@ -360,3 +362,22 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
     );
 }
 
+function onPackCodeChange($input) {
+    const packCode = $input.val();
+    if (packCode) {
+        wrapLoadingOnActionButton($input.closest(`.modal-body`), () => (
+            AJAX.route(AJAX.GET, `get_pack_intel`, {packCode})
+                .json()
+                .then(({success, pack}) => {
+                    console.log(pack);
+                    console.log(success);
+                    if (success && pack && pack.location) {
+                        const $modal = $input.closest('.modal');
+                        const $location = $modal.find('[name="emplacement"]');
+                        let option = new Option(pack.location.label, pack.location.id, true, true);
+                        $location.append(option).trigger('change');
+                    }
+                })
+        ));
+    }
+}

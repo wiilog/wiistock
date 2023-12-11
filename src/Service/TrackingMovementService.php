@@ -20,13 +20,14 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\ReceptionLine;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
-use App\Helper\FormatHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -38,7 +39,6 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment as Twig_Environment;
 use DateTimeInterface;
-use WiiCommon\Helper\StringHelper;
 
 class TrackingMovementService extends AbstractController
 {
@@ -243,6 +243,39 @@ class TrackingMovementService extends AbstractController
             $packCode = $movement->getPackArticle() ? "" : $movement->getPack()->getCode();
         }
 
+        $receptionLines = $movement->getPack()->getReceptionLines();
+        if(!$receptionLines->isEmpty()) {
+            $values = Stream::from($receptionLines)
+                ->map(static fn(ReceptionLine $line) => Stream::from($line->getReceptionReferenceArticles())
+                    ->map(static function(ReceptionReferenceArticle $receptionReferenceArticle) {
+                        $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
+
+                        return [
+                            "reference" => $referenceArticle->getReference(),
+                            "label" => $referenceArticle->getReference(),
+                        ];
+                    })
+                    ->toArray()
+                )
+                ->toArray();
+
+            $reference = Stream::from($values)->map(static fn(array $value) => $value[0]["reference"])->join(", ");
+            $label = Stream::from($values)->map(static fn(array $value) => $value[0]["label"])->join(", ");
+        } elseif($movement->getReferenceArticle()) {
+            $referenceArticle = $movement->getReferenceArticle();
+
+            $reference = $referenceArticle->getReference();
+            $label = $referenceArticle->getReference();
+        } elseif($movement->getPackArticle()) {
+            $reference = $movement->getPackArticle()->getArticleFournisseur()->getReferenceArticle()->getReference();
+            $label = $movement->getPackArticle()->getLabel();
+        } else {
+            $article = $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle();
+
+            $reference = $article?->getArticleFournisseur()?->getReferenceArticle()?->getReference();
+            $label = $article?->getLabel();
+        }
+
         $row = [
             'id' => $movement->getId(),
             'date' => $this->formatService->datetime($movement->getDatetime()),
@@ -252,16 +285,8 @@ class TrackingMovementService extends AbstractController
                 ? ($movement->getPackParent()->getCode() . '-' . ($movement->getGroupIteration() ?: '?'))
                 : '',
             'location' => $this->formatService->location($movement->getEmplacement()),
-            'reference' => $movement->getReferenceArticle()
-                ? $movement->getReferenceArticle()->getReference()
-                : ($movement->getPackArticle()
-                    ? $movement->getPackArticle()->getArticleFournisseur()->getReferenceArticle()->getReference()
-                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getArticleFournisseur()?->getReferenceArticle()?->getReference()),
-            "label" => $movement->getReferenceArticle()
-                ? $movement->getReferenceArticle()->getLibelle()
-                : ($movement->getPackArticle()
-                    ? $movement->getPackArticle()->getLabel()
-                    : $trackingPack?->getLastTracking()?->getMouvementStock()?->getArticle()?->getLabel()),
+            'reference' => $reference,
+            "label" => $label,
             "quantity" => $movement->getQuantity(),
             "article" => $article,
             "type" => $this->translation->translate('Traçabilité', 'Mouvements', $movement->getType()->getNom()) ,

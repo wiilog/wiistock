@@ -12,6 +12,7 @@ use App\Entity\FreeField;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\TrackingMovement;
 use App\Entity\Setting;
@@ -24,6 +25,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
 use App\Service\FreeFieldService;
+use App\Service\PackService;
 use App\Service\TrackingMovementService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
@@ -147,17 +149,20 @@ class TrackingMovementController extends AbstractController
      * @Route("/creer", name="mvt_traca_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
      * @HasPermission({Menu::TRACA, Action::CREATE}, mode=HasPermission::IN_JSON)
      */
-    public function new(Request $request,
-                        AttachmentService $attachmentService,
+    public function new(Request                 $request,
+                        AttachmentService       $attachmentService,
                         TrackingMovementService $trackingMovementService,
-                        FreeFieldService $freeFieldService,
-                        EntityManagerInterface $entityManager): Response {
+                        FreeFieldService        $freeFieldService,
+                        EntityManagerInterface  $entityManager,
+                        PackService             $packService): Response
+    {
 
         $post = $request->request;
         $forced = $post->get('forced', false);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
         $operatorId = $post->get('operator');
         if (!empty($operatorId)) {
@@ -201,8 +206,33 @@ class TrackingMovementController extends AbstractController
                 }
 
                 $createdMouvements = $groupTreatment['createdMovements'];
-            }
-            else if (empty($post->get('is-mass'))) {
+            } else if($post->getBoolean('is-separation')) {
+                $pack = $packRepository->findOneBy(["code" => $packCode]);
+                if($pack) {
+                    $location = $emplacementRepository->find($post->get('emplacement'));
+                    $quantities = json_decode($post->get("quantities"), true);
+
+                    $filteredQuantities = Stream::from($quantities ?: [])
+                        ->filter(fn (array $config) => $config['counter'] > 0)
+                        ->toArray();
+
+                    if (!empty($quantities)) {
+                        $createdMouvements += $packService->doPackSeparation($entityManager, $pack, $location, $operator, $filteredQuantities, false);
+                    }
+                    else {
+                        return $this->json([
+                            "success" => false,
+                            "msg" => "Aucun sous-objet n'a été créé",
+                        ]);
+                    }
+                }
+                else {
+                    return $this->json([
+                        "success" => false,
+                        "msg" => "L'unité logistique $packCode n'existe pas",
+                    ]);
+                }
+            } else if (empty($post->get('is-mass'))) {
                 $location = $emplacementRepository->find($post->get('emplacement'));
 
                 $res = $trackingMovementService->persistTrackingMovementForPackOrGroup(
@@ -232,8 +262,7 @@ class TrackingMovementController extends AbstractController
                 else {
                     return $this->json($this->treatPersistTrackingError($res));
                 }
-            }
-            else {
+            } else {
                 $packArrayFiltered = Stream::explode(',', $packCode)
                     ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
@@ -625,6 +654,7 @@ class TrackingMovementController extends AbstractController
     {
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
 
             $templateDirectory = "mouvement_traca";
 
@@ -633,11 +663,17 @@ class TrackingMovementController extends AbstractController
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
                 TrackingMovement::TYPE_DROP_LU => "$templateDirectory/newLUMvtTraca.html.twig",
+                TrackingMovement::TYPE_PACK_SEPARATION => "$templateDirectory/newPackSeparationTrackingMovement.html.twig",
                 default => "$templateDirectory/newSingleMvtTraca.html.twig"
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender, [
+                    ...$appropriateType?->getCode() === TrackingMovement::TYPE_PACK_SEPARATION
+                        ? [
+                            "natures" => $natureRepository->findByAllowedForms([Nature::PACK_SEPARATION_CODE]),
+                        ] : [],
+                ]),
             ]);
         }
 
