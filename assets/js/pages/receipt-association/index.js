@@ -15,19 +15,40 @@ $(function () {
     }, `json`);
 
     const $modalNewReceiptAssociation = $(`#modalNewReceiptAssociation`);
+    initReceiptAssociationModal($modalNewReceiptAssociation)
     Form.create($modalNewReceiptAssociation)
+        .addProcessor((data, errors, $form) => {
+            if ($form.find('.logistic-unit-container [name=logisticUnit]').length === 0) {
+                $form.find('.add-logistic-unit').trigger('click');
+                errors.push({
+                    elements: [$form.find('.logistic-unit-container [name=logisticUnit]')],
+                    global: false,
+                });
+            }
+        })
+        .addProcessor((data, errors, $form) => {
+            if ($form.find('.reception-number-container [name=receptionNumber]').length === 0) {
+                $form.find('.add-reception-number').trigger('click');
+                errors.push({
+                    elements: [$form.find('.reception-number-container [name=receptionNumber]')],
+                    global: false,
+                });
+            }
+        })
         .submitTo(AJAX.POST, `receipt_association_form_submit`, {
             tables: [tableReceiptAssociation],
             success: () => $(`#beep`)[0].play(),
         })
         .onOpen(() => {
-            Modal.load(`receipt_association_form_template`, {}, $modalNewReceiptAssociation, $modalNewReceiptAssociation.find(`.modal-body`), {
-                onOpen: () => onOpenNewReceiptAssociationModal($modalNewReceiptAssociation),
-            });
+            $modalNewReceiptAssociation.find('.add-logistic-unit, .add-reception-number').trigger('click');
+            $modalNewReceiptAssociation.find(`[name=existingLogisticUnits][data-init=checked]`).prop(`checked`, true).trigger(`change`);;
+        })
+        .onClose(() => {
+            $modalNewReceiptAssociation.find('.delete-line').trigger('click');
         });
 });
 
-function onOpenNewReceiptAssociationModal($modal) {
+function initReceiptAssociationModal($modal) {
     $modal.find(`[name=logisticUnit]`).trigger(`focus`);
 
     const $logisticUnitContainerTemplate = $(`.logistic-unit-container-template`);

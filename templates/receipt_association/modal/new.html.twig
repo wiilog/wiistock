@@ -7,7 +7,43 @@
                 title: trans('Traçabilité', 'Association BR', 'Enregistrer une réception')
             } %}
 
-            <div class="modal-body modal-input container-fluid"></div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="col-12 form-lu">
+                        <label class="wii-field-name mb-1">Unité(s) logistique(s)<span class="required-mark">*</span></label>
+                        <div class="d-flex justify-content-between logistic-unit-container"
+                             data-multiple-key="logisticUnits"
+                             data-multiple-object-index="1">
+
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-primary d-flex align-items-center add-logistic-unit ml-auto">
+                            <span class='wii-icon wii-icon-plus'></span>
+                        </button>
+                    </div>
+                    <div class="col-12 mt-3 form-reception-number">
+                        <label class="wii-field-name mb-1">Numéro(s) de réception*</label>
+                        <div class="d-flex justify-content-between reception-number-container"
+                             data-multiple-key="receptionNumbers"
+                             data-multiple-object-index="1">
+
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-outline-primary d-flex align-items-center add-reception-number ml-auto">
+                            <span class='wii-icon wii-icon-plus'></span>
+                        </button>
+                    </div>
+                    <div class="col-12 mt-3">
+                        {{ form.switch('existingLogisticUnits', "Unité(s) logistique(s) existante(s)", true, [
+                            {label: 'Oui', value: '1', checked: true},
+                            {label: 'Non', value: '0'},
+                        ]) }}
+                    </div>
+                </div>
+                {{ form.hidden("limit", 10) }}
+            </div>
 
             {% include 'utils/modal/footer.html.twig' with {
                 elements: [
