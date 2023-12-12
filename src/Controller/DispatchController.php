@@ -1506,7 +1506,7 @@ class DispatchController extends AbstractController {
 
         $dispatchStatuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType());
         $overConsumptionBillStatus = Stream::from($dispatchStatuses)
-            ->filter(fn(Statut $status) => $status->getOverconsumptionBillGenerationStatus());
+            ->filter(static fn(Statut $status) => $status->getOverconsumptionBillGenerationStatus());
 
         if($overConsumptionBillStatus->count() === 1) {
             $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
