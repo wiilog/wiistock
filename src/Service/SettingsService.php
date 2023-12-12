@@ -347,10 +347,16 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveStandard(Request $request, array $settings, array &$updated, array $allFormSettingNames = []): void {
+    private function saveStandard(Request   $request,
+                                  array     $settings,
+                                  array     &$updated,
+                                  array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
-            if (isset($setting) && !in_array($key, $updated) && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames) && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
+            if (isset($setting)
+                && !in_array($key, $updated)
+                && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
+                && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
                 if (is_array($value)) {
                     $value = json_encode($value);
                 }
