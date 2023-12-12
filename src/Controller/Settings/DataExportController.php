@@ -13,6 +13,7 @@ use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ScheduledTask\Export;
@@ -31,6 +32,7 @@ use App\Service\DataExportService;
 use App\Service\FreeFieldService;
 use App\Service\RefArticleDataService;
 use App\Service\ScheduleRuleService;
+use App\Service\StatusService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UserService;
 use DateTime;
@@ -334,14 +336,16 @@ class DataExportController extends AbstractController {
 
     #[Route("/export/unique/dispatches", name: "settings_export_dispatches", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
-    public function exportDispatches(EntityManagerInterface $manager,
+    public function exportDispatches(EntityManagerInterface $entityManager,
                                      CSVExportService       $csvService,
                                      DataExportService      $dataExportService,
                                      FreeFieldService       $freeFieldService,
+                                     StatusService          $statusService,
                                      Request                $request): StreamedResponse {
 
-        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::DEMANDE_DISPATCH]);
-        $header = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+        $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+        $statusConfig = $statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]);
+        $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig, $statusConfig);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
@@ -351,23 +355,31 @@ class DataExportController extends AbstractController {
         $dateTimeMin = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMin 00:00:00");
         $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
 
+
+        ini_set('memory_limit', '1G');
+        ini_set('max_execution_time', '60');
         return $csvService->streamResponse(
-            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig) {
-                $dispatchRepository = $manager->getRepository(Dispatch::class);
+            function ($output) use ($dateTimeMax, $dateTimeMin, $entityManager, $dataExportService, $csvService, $freeFieldsConfig, $statusConfig) {
+                $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 $userDateFormat = $this->getUser()->getDateFormat();
-                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, false, [], $userDateFormat);
+                $mysqlUserDateFormat = Language::MYSQL_DATE_FORMATS[$userDateFormat] ?? Language::DMY_MYSQL_FORMAT;
+                $statusIds = array_keys($statusConfig);
+
+                $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $statusIds, $mysqlUserDateFormat);
 
                 $freeFieldsById = Stream::from($dispatches)
-                    ->keymap(fn($dispatch) => [
-                        $dispatch['id'], $dispatch['freeFields']
-                    ])->toArray();
+                    ->keymap(static fn(array $dispatch) => [
+                        $dispatch['id'],
+                        $dispatch['freeFields']
+                    ])
+                    ->toArray();
 
                 $start = new DateTime();
-                $dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+                $dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById, $statusConfig);
                 $dataExportService->createUniqueExportLine(Export::ENTITY_DISPATCH, $start);
             },
             "export_acheminements-$today.csv",
-            $header
+            $headers
         );
     }
 

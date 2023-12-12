@@ -182,7 +182,8 @@ class DataExportService
         ];
     }
 
-    public function createDispatchesHeader(array $freeFieldsConfig): array {
+    public function createDispatchesHeader(array $freeFieldsConfig,
+                                           array $statusConfig): array {
         return [
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'N° demande', false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
@@ -229,6 +230,7 @@ class DataExportService
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', "À l'attention de", false),
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'Adresse de livraison', false),
             ...($freeFieldsConfig['freeFieldsHeader']),
+            ...$statusConfig,
         ];
     }
 
@@ -348,10 +350,11 @@ class DataExportService
     public function exportDispatch(array $dispatches,
                                    mixed $output,
                                    array $freeFieldsConfig,
-                                   array $freeFieldsById): void
+                                   array $freeFieldsById,
+                                   array $statusConfig): void
     {
         foreach ($dispatches as $dispatch) {
-            $this->dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+            $this->dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById, $statusConfig, true);
         }
     }
 

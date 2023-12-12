@@ -1123,61 +1123,61 @@ class DispatchService {
         return $packDispatch;
     }
 
-    public function putDispatchLine($handle,
-                                    array|DispatchPack $entity,
-                                    array $freeFieldsConfig,
-                                    array $freeFieldsById,
-                                    array $statusFieldsConfig,
-                                    bool $withStatuses = false): void
+    public function putDispatchLine(               $handle,
+                                    array|Dispatch $dispatch,
+                                    array          $freeFieldsConfig,
+                                    array          $freeFieldsById,
+                                    array          $statusFieldsConfig,
+                                    bool           $withStatuses = false): void
     {
 
-        if (is_array($entity)) {
-            $freeFieldValues = $freeFieldsById[$entity['id']];
+        if (is_array($dispatch)) {
+            $freeFieldValues = $freeFieldsById[$dispatch['id']];
             $row = [
-                $entity['number'],
-                $entity['orderNumber'],
-                $entity['creationDate'],
-                $entity['validationDate'],
-                $entity['treatmentDate'],
-                $entity['dueDate1'],
-                $entity['dueDate2'],
-                $entity['dueDate2Bis'],
-                $entity['type'],
-                $entity['requester'],
-                $entity['receivers'],
-                $entity['locationFrom'],
-                $entity['locationTo'],
-                $entity['destination'],
-                $entity['packCount'],
-                $entity['status'],
-                $entity['emergency'],
-                $entity['attachments'],
-                $entity['packNature'],
-                $entity['packCode'],
-                $entity['packQuantity'],
-                $entity['dispatchPackQuantity'],
-                $entity['packWeight'],
-                $entity['packVolume'],
-                $entity['packHeight'],
-                $entity['packWidth'],
-                $entity['packLength'],
-                $this->formatService->html($entity['packComment']),
-                $entity['packLastTrackingDate'],
-                $entity['packLastTrackingLocation'],
-                $entity['packLastTrackingOperator'],
-                $entity['group'],
-                $entity['carrier'],
-                $entity['carrierTrackingNumber'],
-                $entity['productionRequest'],
-                $entity['productionOrderNumber'],
-                $entity['businessUnit'],
-                $entity['projectNumber'],
-                $this->formatService->html($entity['comment']),
-                $entity['treatedBy'],
-                $entity['customerName'],
-                $entity['customerPhone'],
-                $entity['customerRecipient'],
-                $entity['customerAddress'],
+                $dispatch['number'],
+                $dispatch['orderNumber'],
+                $dispatch['creationDate'],
+                $dispatch['validationDate'],
+                $dispatch['treatmentDate'],
+                $dispatch['dueDate1'],
+                $dispatch['dueDate2'],
+                $dispatch['dueDate2Bis'],
+                $dispatch['type'],
+                $dispatch['requester'],
+                $dispatch['receivers'],
+                $dispatch['locationFrom'],
+                $dispatch['locationTo'],
+                $dispatch['destination'],
+                $dispatch['packCount'],
+                $dispatch['status'],
+                $dispatch['emergency'],
+                $dispatch['attachments'],
+                $dispatch['packNature'],
+                $dispatch['packCode'],
+                $dispatch['packQuantity'],
+                $dispatch['dispatchPackQuantity'],
+                $dispatch['packWeight'],
+                $dispatch['packVolume'],
+                $dispatch['packHeight'],
+                $dispatch['packWidth'],
+                $dispatch['packLength'],
+                $this->formatService->html($dispatch['packComment']),
+                $dispatch['packLastTrackingDate'],
+                $dispatch['packLastTrackingLocation'],
+                $dispatch['packLastTrackingOperator'],
+                $dispatch['group'],
+                $dispatch['carrier'],
+                $dispatch['carrierTrackingNumber'],
+                $dispatch['productionRequest'],
+                $dispatch['productionOrderNumber'],
+                $dispatch['businessUnit'],
+                $dispatch['projectNumber'],
+                $this->formatService->html($dispatch['comment']),
+                $dispatch['treatedBy'],
+                $dispatch['customerName'],
+                $dispatch['customerPhone'],
+                $dispatch['customerRecipient'],
+                $dispatch['customerAddress'],
                 ...(Stream::from($freeFieldsConfig['freeFields'])
                     ->map(function (FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                         $value = $freeFieldValues[$freeFieldId] ?? null;
@@ -1189,13 +1189,12 @@ class DispatchService {
                 ),
                 ...($withStatuses
                     ? Stream::from(array_keys($statusFieldsConfig))
-                        ->map(static fn($statusId) => $entity["statusHistory_$statusId"])
+                        ->map(static fn($statusId) => $dispatch["statusHistory_$statusId"])
                         ->toArray()
                     : []
                 ),
             ];
         } else {
-            $dispatch = $entity->getDispatch();
             $row = [
                 $dispatch->getNumber(),
             ];

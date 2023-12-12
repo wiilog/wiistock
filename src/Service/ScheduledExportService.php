@@ -52,6 +52,9 @@ class ScheduledExportService
     public FreeFieldService $freeFieldService;
 
     #[Required]
+    public StatusService $statusService;
+
+    #[Required]
     public MailerService $mailerService;
 
     #[Required]
@@ -162,16 +165,20 @@ class ScheduledExportService
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
 
             $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+            $statusConfig = $this->statusService->createExportArrayConfig($entityManager, [CategorieStatut::DISPATCH]);
+            $statusIds = array_keys($statusConfig);
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
-            $dispatches = $dispatchRepository->getByDates($startDate, $endDate);
+            $dispatches = $dispatchRepository->getByDates($startDate, $endDate, $statusIds);
 
             $freeFieldsById = Stream::from($dispatches)
-                ->keymap(fn($dispatch) => [
-                    $dispatch['id'], $dispatch['freeFields']
-                ])->toArray();
+                ->keymap(static fn(array $dispatch) => [
+                    $dispatch['id'],
+                    $dispatch['freeFields']
+                ])
+                ->toArray();
 
-            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($freeFieldsConfig));
-            $this->dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($freeFieldsConfig, $statusConfig));
+            $this->dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById, $statusConfig);
         } else {
             throw new RuntimeException("Unknown entity type");
         }
