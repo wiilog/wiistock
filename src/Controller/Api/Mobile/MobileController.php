@@ -78,6 +78,8 @@ use App\Service\OrdreCollecteService;
 use App\Service\PackService;
 use App\Service\PreparationsManagerService;
 use App\Service\ProjectHistoryRecordService;
+use App\Service\ReceiptAssociationService;
+use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
 use App\Service\ReserveService;
 use App\Service\SessionHistoryRecordService;
@@ -3918,6 +3920,35 @@ class MobileController extends AbstractApiController
             'success' => true,
             'msg' => "Enregistrement"
         ]);
+    }
+
+    #[Rest\Post("/receipt-association", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function postReceiptAssociation(Request                   $request,
+                                           EntityManagerInterface    $manager,
+                                           ReceiptAssociationService $receiptAssociationService): Response
+    {
+        $receptionNumber = $request->request->get('receptionNumber');
+        $logisticUnits = json_decode($request->request->get("logisticUnits", "[]"), true);
+        $user = $this->getUser();
+
+        if (!empty($receptionNumber) && !empty($logisticUnits)) {
+            $logisticUnits = $manager->getRepository(Pack::class)->findBy(['code' => $logisticUnits]);
+
+            $receiptAssociationService->persistReceiptAssociation($manager, [$receptionNumber], $logisticUnits, $user);
+            $manager->flush();
+
+            return $this->json([
+                "success" => true,
+                "message" => "L'association BR a bien été effectuée.",
+            ]);
+        } else {
+            return $this->json([
+                "success" => false,
+                "message" => "La réception et les unités logistiques doivent être renseignées pour effectuer l'association BR.",
+            ]);
+        }
     }
 }
 

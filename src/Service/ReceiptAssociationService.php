@@ -13,12 +13,12 @@ use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\Stream;
 
 class ReceiptAssociationService
 {
@@ -83,10 +83,9 @@ class ReceiptAssociationService
         ];
     }
 
-    public function createMovements(array $receptions, array $packs = []): void {
+    public function createMovements(array $receptions, array $packs, Utilisateur $user, DateTime $now): void {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
 
-        $now = new DateTime('now');
         $defaultLocationUL = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
         $defaultLocationReception = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
 
@@ -96,7 +95,7 @@ class ReceiptAssociationService
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $pack->getLastTracking()?->getEmplacement(),
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -108,7 +107,7 @@ class ReceiptAssociationService
             $dropMvtLU = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $defaultLocationUL,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -122,7 +121,7 @@ class ReceiptAssociationService
             //dépose
             $dropMvt = $this->trackingMovementService->createTrackingMovement($reception,
                 $defaultLocationReception,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -143,5 +142,32 @@ class ReceiptAssociationService
         ];
 
         $this->CSVExportService->putLine($output, $row);
+    }
+
+    public function persistReceiptAssociation(EntityManagerInterface $manager,
+                                              array                  $receptionNumbers,
+                                              array                  $logisticUnits,
+                                              Utilisateur            $user): void
+    {
+        $now = new DateTime();
+        $settingRepository = $manager->getRepository(Setting::class);
+
+        foreach ($receptionNumbers as $receptionNumber) {
+            $receiptAssociation = (new ReceiptAssociation())
+                ->setReceptionNumber($receptionNumber)
+                ->setUser($user)
+                ->setCreationDate($now);
+
+            if (!empty($logisticUnits)) {
+                $receiptAssociation->setLogisticUnits(new ArrayCollection($logisticUnits));
+            }
+
+            $manager->persist($receiptAssociation);
+        }
+
+        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
+            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            $this->createMovements($receptionNumbers, $logisticUnits, $user, $now);
+        }
     }
 }

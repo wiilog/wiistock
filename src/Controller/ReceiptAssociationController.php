@@ -125,23 +125,7 @@ class ReceiptAssociationController extends AbstractController
             }
         }
 
-        foreach ($receptionNumbers as $receptionNumber) {
-            $receiptAssociation = (new ReceiptAssociation())
-                ->setReceptionNumber($receptionNumber)
-                ->setUser($user)
-                ->setCreationDate($now);
-
-            if (!empty($logisticUnits)) {
-                $receiptAssociation->setLogisticUnits(new ArrayCollection($logisticUnits));
-            }
-
-            $manager->persist($receiptAssociation);
-        }
-
-        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
-            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
-            $this->receiptAssociationService->createMovements($receptionNumbers, $logisticUnits);
-        }
+        $this->receiptAssociationService->persistReceiptAssociation($manager, $receptionNumbers, $logisticUnits, $user);
 
         $manager->flush();
         return $this->json([
