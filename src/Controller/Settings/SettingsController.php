@@ -2269,7 +2269,7 @@ class SettingsController extends AbstractController {
                 ]);
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Logo*",
                     "value" => $this->renderView("form_element.html.twig", [
@@ -2385,7 +2385,7 @@ class SettingsController extends AbstractController {
                 }
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARTICLE, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $type?->getLogo()
@@ -2742,6 +2742,11 @@ class SettingsController extends AbstractController {
                     $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters();
                 }
 
+                if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
+                    $onLabel = $field->isOnLabel(...$isParams);
+                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FIELDS[$entity] ?? []);
+                }
+
                 $filterOnly = in_array($code, FixedField::FILTER_ONLY_FIELDS);
                 $requireDisabled = $filterOnly || in_array($code, FixedField::ALWAYS_REQUIRED_FIELDS[$entity] ?? []);
                 $displayDisabled = $filterOnly || in_array($field->getFieldCode(), FixedField::ALWAYS_DISPLAYED_FIELDS[$entity] ?? []);
@@ -2768,7 +2773,6 @@ class SettingsController extends AbstractController {
                         "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requireDisabled || $requiredEdit, [
                             "disabled" => $requireDisabled,
                         ]),
-
                     ];
 
                     if ($entityNeeded === FixedFieldStandard::class) {
@@ -2780,6 +2784,12 @@ class SettingsController extends AbstractController {
                     if ($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
                         $row["keptInMemory"] = $formService->macro("checkbox", "keptInMemory", null, false, $keptInMemory, [
                             "disabled" => $keptInMemoryDisabled,
+                        ]);
+                    }
+
+                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
+                        $row["onLabel"] = $formService->macro("checkbox", "onLabel", null, false, $onLabel, [
+                            "disabled" => $onLabelDisabled,
                         ]);
                     }
                 } else {
@@ -2794,6 +2804,12 @@ class SettingsController extends AbstractController {
 
                     if ($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
                         $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory(...$isParams));
+                    }
+
+                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
+                        $row["onLabel"] = $formService->macro("checkbox", "onLabel", null, false, $onLabel, [
+                            "disabled" => $onLabelDisabled,
+                        ]);
                     }
                 }
                 return $row;

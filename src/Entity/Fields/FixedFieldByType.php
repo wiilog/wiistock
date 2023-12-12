@@ -17,7 +17,6 @@ class FixedFieldByType extends FixedField
     public const ATTRIBUTE_KEPT_IN_MEMORY = 'keptInMemory';
     public const ATTRIBUTE_DISPLAYED_CREATE = 'displayedCreate';
     public const ATTRIBUTE_DISPLAYED_EDIT = 'displayedEdit';
-    public const ATTRIBUTE_ON_MOBILE = 'onMobile';
     public const ATTRIBUTE_ON_LABEL = 'onLabel';
 
     public const ATTRIBUTES = [
@@ -26,7 +25,6 @@ class FixedFieldByType extends FixedField
         self::ATTRIBUTE_KEPT_IN_MEMORY,
         self::ATTRIBUTE_DISPLAYED_CREATE,
         self::ATTRIBUTE_DISPLAYED_EDIT,
-        self::ATTRIBUTE_ON_MOBILE,
         self::ATTRIBUTE_ON_LABEL,
     ];
 
@@ -50,6 +48,10 @@ class FixedFieldByType extends FixedField
     #[ORM\JoinTable(name: 'fixed_field_by_type_displayed_edit')]
     private Collection $displayedEdit;
 
+    #[ORM\ManyToMany(targetEntity: Type::class)]
+    #[ORM\JoinTable(name: 'fixed_field_by_type_on_label')]
+    private Collection $onLabel;
+
     public function __construct()
     {
         $this->requiredCreate = new ArrayCollection();
@@ -57,6 +59,7 @@ class FixedFieldByType extends FixedField
         $this->keptInMemory = new ArrayCollection();
         $this->displayedCreate = new ArrayCollection();
         $this->displayedEdit = new ArrayCollection();
+        $this->onLabel = new ArrayCollection();
     }
 
     public function getRequiredCreate(): Collection
@@ -224,6 +227,39 @@ class FixedFieldByType extends FixedField
     public function removeDisplayedEdit(Type $displayedEdit): static
     {
         $this->displayedEdit->removeElement($displayedEdit);
+
+        return $this;
+    }
+
+    public function getOnLabel(): Collection
+    {
+        return $this->onLabel;
+    }
+
+    public function addOnLabel(Type $onLabel): static
+    {
+        if (!$this->onLabel->contains($onLabel)) {
+            $this->onLabel->add($onLabel);
+        }
+
+        return $this;
+    }
+
+    public function setOnLabel(Collection $onLabel): static
+    {
+        $this->onLabel = $onLabel;
+
+        return $this;
+    }
+
+    public function isOnLabel(Type $type): bool
+    {
+        return $this->onLabel->contains($type);
+    }
+
+    public function removeOnLabel(Type $onLabel): static
+    {
+        $this->onLabel->removeElement($onLabel);
 
         return $this;
     }

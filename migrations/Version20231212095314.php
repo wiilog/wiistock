@@ -21,7 +21,6 @@ final class Version20231212095314 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql("DROP TABLE IF EXISTS fixed_field_by_type_on_mobile");
-        $this->addSql("DROP TABLE IF EXISTS fixed_field_by_type_on_label");
     }
 
     public function down(Schema $schema): void
