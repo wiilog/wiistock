@@ -2737,16 +2737,6 @@ class SettingsController extends AbstractController {
                 $keptInMemoryDisabled = in_array($code, FixedField::MEMORY_UNKEEPABLE_FIELDS[$entity] ?? []);
                 $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory(...$isParams);
 
-                if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                    $onMobile = $field->isOnMobile(...$isParams);
-                    $onMobileDisabled = !in_array($code, FixedField::ON_MOBILE_FIELDS[$entity] ?? []);
-                }
-
-                if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                    $onLabel = $field->isOnLabel(...$isParams);
-                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FIELDS[$entity] ?? []);
-                }
-
                 if ($entityNeeded === FixedFieldStandard::class) {
                     $filtersDisabled = !in_array($code, FixedField::FILTERED_FIELDS[$entity] ?? []);
                     $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters();
@@ -2792,18 +2782,6 @@ class SettingsController extends AbstractController {
                             "disabled" => $keptInMemoryDisabled,
                         ]);
                     }
-
-                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                        $row["onMobile"] = $formService->macro("checkbox", "onMobile", null, false, $onMobile, [
-                            "disabled" => $onMobileDisabled,
-                        ]);
-                    }
-
-                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                        $row["onLabel"] = $formService->macro("checkbox", "onLabel", null, false, $onLabel, [
-                            "disabled" => $onLabelDisabled,
-                        ]);
-                    }
                 } else {
                     $row = [
                         "label" => "<span class='font-weight-bold'>$label</span>",
@@ -2816,14 +2794,6 @@ class SettingsController extends AbstractController {
 
                     if ($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
                         $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory(...$isParams));
-                    }
-
-                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                        $row["onMobile"] = $this->formatService->bool($field->isOnMobile(...$isParams));
-                    }
-
-                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                        $row["onLabel"] = $this->formatService->bool($field->isOnLabel(...$isParams));
                     }
                 }
                 return $row;

@@ -56,22 +56,12 @@
 
 <div class="wii-section">
     <table id="table-dispatch-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFieldsByType">
-{# TODO WIIS-10645: à remettre en place quand la fonctionnalité sera terminée
-
         {% include 'datatable/main-header.html.twig' with {
             needsOnMobileColumn: true,
             needsFilterColumn: false,
             needsOnLabelColumn: true,
-            needsMobileColumn: false,
-            cells: 7
+            cells: 6
         } %}
-#}
-        {% include 'datatable/main-header.html.twig' with {
-            needsOnMobileColumn: false,
-            needsFilterColumn: false,
-            cells: 5
-        } %}
-
     </table>
 </div>
 

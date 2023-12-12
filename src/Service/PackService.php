@@ -557,6 +557,7 @@ class PackService {
                                          ?bool                  $commandAndProjectNumberIsDefined = false,
                                          ?array                 $firstCustomIconConfig = null,
                                          ?array                 $secondCustomIconConfig = null,
+                                         ?bool                  $showTypeLogoArrivalUl = null,
                                          ?bool                  $businessUnitParam = false,
                                          ?bool                  $projectParam = false,
                                          ?bool                  $showDateAndHourArrivalUl = false,
@@ -672,11 +673,14 @@ class PackService {
             $labels[] = $packLabel;
         }
 
+        $typeLogoPath = $showTypeLogoArrivalUl ? $arrival->getType()?->getLogo()->getFullPath() : null;
+
         return [
             'code' => $pack->getCode(),
             'labels' => $labels,
             'firstCustomIcon' => $arrival?->getCustoms() ? $firstCustomIconConfig : null,
-            'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null
+            'secondCustomIcon' => $arrival?->getIsUrgent() ? $secondCustomIconConfig : null,
+            'typeLogoArrivalUl' => $typeLogoPath,
         ];
     }
 

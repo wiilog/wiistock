@@ -263,9 +263,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                         ->setDisplayedCreate(($fieldCode['displayedCreate'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setDisplayedEdit(($fieldCode['displayedEdit'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setRequiredEdit(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setOnMobile(($fieldCode['onMobile'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setOnLabel(($fieldCode['onLabel'] ?? true) ? $entityTypes : $emptyCollection);
+                        ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection);
 
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');

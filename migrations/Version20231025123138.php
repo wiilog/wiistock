@@ -53,8 +53,7 @@ final class Version20231025123138 extends AbstractMigration implements Container
                 ->setRequiredEdit($field->isRequiredEdit() ? $types : $emptyCollection)
                 ->setKeptInMemory($field->isKeptInMemory() ? $types : $emptyCollection)
                 ->setDisplayedCreate($field->isDisplayedCreate() ? $types : $emptyCollection)
-                ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection)
-                ->setOnMobile($field->isOnMobile() ? $types : $emptyCollection);
+                ->setDisplayedEdit($field->isDisplayedEdit() ? $types : $emptyCollection);
 
             if ($field->isDisplayedFilters()) {
                 $onFilerFields[] = $field->getFieldCode();

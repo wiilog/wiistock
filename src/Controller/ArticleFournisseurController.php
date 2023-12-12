@@ -117,7 +117,7 @@ class ArticleFournisseurController extends AbstractController {
             $articleFournisseur
                 ->setFournisseur($fournisseur)
                 ->setReferenceArticle($referenceArticle)
-                ->setLabel($data['label'] ?: null);
+                ->setLabel($data['label'] ? trim($data['label']) : null);
 
             $entityManager->flush();
 
