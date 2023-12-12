@@ -46,7 +46,6 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Request\ParameterBag;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionClass;
 use RuntimeException;
@@ -173,9 +172,10 @@ class SettingsService {
         $updated = [];
 
         $this->saveCustom($request, $settings, $updated, $result);
-        $this->saveStandard($request, $settings, $updated);
+        $this->saveStandard($request, $settings, $updated, $allFormSettingNames);
         $this->manager->flush();
         $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
+
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
         $this->clearSettings($settingToClear);
@@ -349,10 +349,16 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveStandard(Request $request, array $settings, array &$updated): void {
+    private function saveStandard(Request   $request,
+                                  array     $settings,
+                                  array     &$updated,
+                                  array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
-            if (isset($setting) && !in_array($key, $updated)) {
+            if (isset($setting)
+                && !in_array($key, $updated)
+                && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
+                && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
                 if (is_array($value)) {
                     $value = json_encode($value);
                 }
@@ -378,7 +384,7 @@ class SettingsService {
             }
         }
 
-        $logosToSave = [
+        $defaultLogosToSave = [
             [Setting::FILE_WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
             [Setting::FILE_MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
             [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
@@ -394,29 +400,28 @@ class SettingsService {
             [Setting::LABEL_LOGO, null],
         ];
 
-        foreach ($logosToSave as [$settingLabel, $default]) {
-            if (in_array($settingLabel, $allFormSettingNames)) {
-                $setting = $this->getSetting($settings, $settingLabel);
-                if (isset($default)
-                    && !$request->request->getBoolean('keep-' . $settingLabel)
-                    && !$request->files->has($settingLabel)) {
+        foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
+            if (in_array($defaultLogoLabel, $allFormSettingNames)) {
+                $setting = $this->getSetting($settings, $defaultLogoLabel);
+                if (!$request->request->getBoolean('keep-' . $defaultLogoLabel)
+                    && !isset($files[$defaultLogoLabel])) {
                     $setting->setValue($default);
                 }
             }
-            $updated[] = $settingLabel;
+            $updated[] = $defaultLogoLabel;
         }
 
         foreach($request->request->all() as $key => $value) {
             if (str_ends_with($key, '_DELETED')) {
-                $settingLabel = str_replace('_DELETED', '', $key);
-                $linkedLabel = $settingLabel . '_FILE_NAME';
-                $setting = $this->getSetting($settings, $settingLabel);
+                $defaultLogoLabel = str_replace('_DELETED', '', $key);
+                $linkedLabel = $defaultLogoLabel . '_FILE_NAME';
+                $setting = $this->getSetting($settings, $defaultLogoLabel);
                 $linkedSetting = $this->getSetting($settings, $linkedLabel);
                 if ($value === "1") {
                     $setting->setValue(null);
                     $linkedSetting->setValue(null);
                 }
-                $updated[] = $settingLabel;
+                $updated[] = $defaultLogoLabel;
             }
         }
     }
