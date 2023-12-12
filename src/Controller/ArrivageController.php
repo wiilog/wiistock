@@ -1684,9 +1684,12 @@ class ArrivageController extends AbstractController {
                             $fieldValues[$field]["score"] = ceil(($score) * 100);
                         }
                         else {
-                            $receivers = implode(", ", $receivers);
-                            $fieldValues['commentaire']['values'][0]["value"] .= "<p><b>Destinataire</b> : {$receivers}</p>";
+                            $receivers[] = $fieldPrediction["value"];
                         }
+                    }
+                    if (count($receivers) > 0) {
+                        $receivers = implode(", ", $receivers);
+                        $fieldValues['commentaire']['values'][0]["value"] .= "<p><b>Destinataire</b> : {$receivers}</p>";
                     }
                     break;
                 case FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE:
