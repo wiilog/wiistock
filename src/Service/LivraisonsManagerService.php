@@ -275,8 +275,8 @@ class LivraisonsManagerService
             }
 
             $title = $demandeIsPartial
-                ? 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
-                : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
+                ? 'Follow Nexter // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) . ' effectuée partiellement'
+                : 'Follow Nexter // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
             $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
             $sendMailCallback = function(array $to) use ($title, $demande, $preparation, $bodyTitle, $nextLocation): void {

@@ -20,10 +20,6 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        nomade_apk:
-            pattern: ^/telecharger/nomade.apk$
-            security: false
-
         api_logos:
             pattern: ^/api/logos$
             security: false

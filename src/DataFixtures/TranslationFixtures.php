@@ -308,12 +308,12 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Have a nice day,",
                         ],
                         [
-                            "fr" => "L'équipe GT Logistics.",
-                            "en" => "The GT Logistics team",
+                            "fr" => "L'équipe Follow.",
+                            "en" => "The Follow team",
                         ],
                         [
-                            "fr" => "Cliquez ici pour accéder à Follow GT",
-                            "en" => "Click here to access Follow GT",
+                            "fr" => "Cliquez ici pour accéder à Follow Nexter",
+                            "en" => "Click here to access Follow Nexter",
                         ],
                     ]
                 ]
@@ -552,8 +552,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "tooltip" => "Email de confirmation de livraison d'unité logistique (pour la date)"
                     ],
                     [
-                        "fr" => "FOLLOW GT // Dépose effectuée",
-                        "en" => "FOLLOW GT // Drop done",
+                        "fr" => "Follow Nexter // Dépose effectuée",
+                        "en" => "Follow Nexter // Drop done",
                         "tooltip" => "Email de confirmation de livraison d'unité logistique",
                     ],
                     [
@@ -895,13 +895,13 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Email arrivage UL" => [
                     "content" => [
                         [
-                            "fr" => "FOLLOW GT // Arrivage UL",
-                            "en" => "FOLLOW GT // LU Arrivals",
+                            "fr" => "Follow Nexter // Arrivage UL",
+                            "en" => "Follow Nexter // LU Arrivals",
                             "tooltip" => "Email arrivage UL : objet ",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Arrivage UL urgent",
-                            "en" => "FOLLOW GT // Urgent LU arrival",
+                            "fr" => "Follow Nexter // Arrivage UL urgent",
+                            "en" => "Follow Nexter // Urgent LU arrival",
                             "tooltip" => "Email arrivage UL : objet ",
                         ],
                         [
@@ -939,18 +939,18 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                 "Email litige" => [
                     "content" => [
                         [
-                            "fr" => "FOLLOW GT // Litige sur {1}",
-                            "en" => "FOLLOW GT // Dispute on {1}",
+                            "fr" => "Follow Nexter // Litige sur {1}",
+                            "en" => "Follow Nexter // Dispute on {1}",
                             "tooltip" => "Email litige : objet",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Changement de statut d'un litige sur {1}",
+                            "fr" => "Follow Nexter // Changement de statut d'un litige sur {1}",
                             "en" => "Change of status of a dispute on {1}",
                             "tooltip" => "Email litige : objet",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Récapitulatif de vos litiges",
-                            "en" => "FOLLOW GT // Summary of your disputes",
+                            "fr" => "Follow Nexter // Récapitulatif de vos litiges",
+                            "en" => "Follow Nexter // Summary of your disputes",
                             "tooltip" => "Email litige : objet",
                         ],
 
@@ -2664,23 +2664,23 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Notification de traitement d'une demande d'acheminement",
-                            "en" => "FOLLOW GT // Notification upon transfer operation finishing",
+                            "fr" => "Follow Nexter // Notification de traitement d'une demande d'acheminement",
+                            "en" => "Follow Nexter // Notification upon transfer operation finishing",
                             "tooltip" => "Email traitement acheminement",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Création d'une demande d'acheminement",
-                            "en" => "FOLLOW GT // Transfer operation has been updated",
+                            "fr" => "Follow Nexter // Création d'une demande d'acheminement",
+                            "en" => "Follow Nexter // Transfer operation has been updated",
                             "tooltip" => "Email traitement acheminement",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Changement de statut d'une demande d'acheminement",
-                            "en" => "FOLLOW GT // Status change for a transfer operation",
+                            "fr" => "Follow Nexter // Changement de statut d'une demande d'acheminement",
+                            "en" => "Follow Nexter // Status change for a transfer operation",
                             "tooltip" => "Email changement statut acheminement",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Urgence : Notification de traitement d'une demande d'acheminement",
-                            "en" => "FOLLOW GT // Emergency : Notification upon transfer operation finishing",
+                            "fr" => "Follow Nexter // Urgence : Notification de traitement d'une demande d'acheminement",
+                            "en" => "Follow Nexter // Emergency : Notification upon transfer operation finishing",
                             "tooltip" => "Email traitement acheminement",
                         ],
                         [
@@ -2888,8 +2888,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email de création",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Création d'une demande de service",
-                            "en" => "FOLLOW GT // Creation of a service operation",
+                            "fr" => "Follow Nexter // Création d'une demande de service",
+                            "en" => "Follow Nexter // Creation of a service operation",
                             "tooltip" => "Email de création",
                         ],
                         [
@@ -2903,8 +2903,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "tooltip" => "Email changement de statut",
                         ],
                         [
-                            "fr" => "FOLLOW GT // Demande de service effectuée",
-                            "en" => "FOLLOW GT // Service operation completed",
+                            "fr" => "Follow Nexter // Demande de service effectuée",
+                            "en" => "Follow Nexter // Service operation completed",
                             "tooltip" => "Email traitement demande de service",
                         ],
                         [

@@ -192,7 +192,7 @@ class ScheduledExportService
                 $exportToRun->setError("L'export est trop volumineux pour être envoyé par mail (maximum 20MO)");
             } else {
                 $this->mailerService->sendMail(
-                    "FOLLOW GT // Export des $entity",
+                    "Follow Nexter // Export des $entity",
                     $this->templating->render("mails/contents/mailExportDone.twig", [
                         "entity" => $entity,
                         "export" => $exportToRun,

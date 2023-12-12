@@ -7,7 +7,6 @@ parameters:
     locale: '%env(APP_LOCALE)%'
     web_version: '7.6.9#nxt'
     nomade_version: '=7.6.8#nxt'
-    nomade_apk: 'https://github.com/wiilog/wiistock-mobile-nexter/releases/download/v7.6.8%23nxt/app-7-6-8-nxt.apk'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
 

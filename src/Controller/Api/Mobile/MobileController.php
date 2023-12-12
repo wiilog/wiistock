@@ -2785,7 +2785,7 @@ class MobileController extends AbstractApiController
 
         if ($mission->getRequester()) {
             $mailerService->sendMail(
-                "Follow GT // Validation d’une mission d’inventaire",
+                "Follow Nexter // Validation d’une mission d’inventaire",
                 $templating->render('mails/contents/mailInventoryMissionValidation.html.twig', [
                     'mission' => $mission,
                 ]),

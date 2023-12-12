@@ -307,7 +307,7 @@ class OrdreCollecteService
                 $to = array_merge([$to], $managers);
             }
             $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
+                'Follow Nexter // Collecte effectuée',
                 $this->templating->render(
                     'mails/contents/mailCollecteDone.html.twig',
                     [

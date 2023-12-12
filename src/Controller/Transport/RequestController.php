@@ -207,7 +207,7 @@ class RequestController extends AbstractController {
 
             if(!empty($receivers)) {
                 $mailerService->sendMail(
-                    'FOLLOW GT // Nouvelle demande de transport à valider',
+                    'Follow Nexter // Nouvelle demande de transport à valider',
                     $templating->render('mails/contents/mailAwaitingTransportRequest.html.twig', [
                         'transportRequest' => $mainTransportRequest,
                         'urlSuffix' => $router->generate("transport_subcontract_index"),

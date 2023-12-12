@@ -308,7 +308,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.'
             ],
             Setting::SCAN_ARTICLE_LABEL_MESSAGE => [
-                'default' => 'Veuillez scanner l’étiquette de GT Logistics déjà présente sur le lot pour renseigner automatiquement l’article à remettre en stock.'
+                'default' => 'Veuillez scanner l’étiquette déjà présente sur le lot pour renseigner automatiquement l’article à remettre en stock.'
             ],
             Setting::VALIDATION_REFERENCE_ENTRY_MESSAGE => [
                 'default' => 'La nouvelle référence @reference a bien été entrée en stock, une étiquette vient d’être imprimée.'

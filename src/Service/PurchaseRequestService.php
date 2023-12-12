@@ -249,7 +249,7 @@ class PurchaseRequestService
                 ->toArray();
 
             $this->mailerService->sendMail(
-                'FOLLOW GT // ' . $subject,
+                'Follow Nexter // ' . $subject,
                 $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
                     'title' => $title,
                     'purchaseRequest' => $purchaseRequest,

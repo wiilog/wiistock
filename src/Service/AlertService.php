@@ -95,7 +95,7 @@ class AlertService {
             'machinePDTValue' => $freeFieldValue
         ]);
 
-        $this->mailer->sendMail("FOLLOW GT // $type atteint", $content, $reference->getManagers()->toArray());
+        $this->mailer->sendMail("Follow Nexter // $type atteint", $content, $reference->getManagers()->toArray());
     }
 
     public function sendExpiryMails($manager, $articles, $delay) {
@@ -108,7 +108,7 @@ class AlertService {
             "delay" => $delay,
         ]);
 
-        $this->mailer->sendMail('FOLLOW GT // Seuil de péremption atteint', $content, $manager);
+        $this->mailer->sendMail('Follow Nexter // Seuil de péremption atteint', $content, $manager);
     }
 
     public function putLineAlert(EntityManagerInterface $entityManager,

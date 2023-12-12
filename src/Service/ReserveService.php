@@ -90,7 +90,7 @@ class ReserveService
 
     public function sendTruckArrivalMail(TruckArrival $truckArrival, ReserveType $reserveType, array $reserves, array $attachments): void {
         $this->mailerService->sendMail(
-            'FOLLOW GT // Réserve arrivage camion',
+            'Follow Nexter // Réserve arrivage camion',
             $this->templating->render('mails/contents/mailTruckArrival.html.twig', [
                 'truckArrival' => $truckArrival,
                 'reserves' => $reserves,

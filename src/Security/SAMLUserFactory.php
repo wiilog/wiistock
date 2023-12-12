@@ -58,7 +58,7 @@ class SAMLUserFactory implements SamlUserFactoryInterface
             $userMailByRole = $userRepository->getUserMailByIsMailSendRole();
             if(!empty($userMailByRole)) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Notification de création d\'un compte utilisateur',
+                    'Follow Nexter // Notification de création d\'un compte utilisateur',
                     $this->templating->render('mails/contents/mailNouvelUtilisateur.html.twig', [
                         'user' => $user->getUsername(),
                         'mail' => $user->getEmail(),

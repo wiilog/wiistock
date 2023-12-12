@@ -75,12 +75,13 @@
 <body style="margin-bottom: 3cm; display: block; width: 24cm; height: 2.5cm;">
     <div class="split">
         <div>
-            {# Commented code waiting for logo settings be back  #}
-{#            {% if logo %}#}
-{#                <img src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachments/" ~ logo }}"#}
-{#                     alt="GT Logistics"#}
-{#                     class="image-title"/>#}
-{#            {% endif %}#}
+            {% if logo %}
+                <img src="{{ 'https://' ~ app.request.httpHost ~ "/uploads/attachments/" ~ logo }}"
+                     alt="Follow"
+                     class="image-title"/>
+            {% endif %}
+
+            <div style="float: right; margin-right: 1cm">{{ dn.consignor | nl2br }}</div>
         </div>
         <div class="header">
             {{ trans('Demande', 'Acheminements', 'Bon de livraison', "Bon de livraison - Original") }}

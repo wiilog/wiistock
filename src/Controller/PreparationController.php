@@ -950,7 +950,7 @@ class PreparationController extends AbstractController
 
                     $nowDate = new DateTime('now');
                     $mailerService->sendMail(
-                        'FOLLOW GT // Validation d\'une demande vous concernant',
+                        'Follow Nexter // Validation d\'une demande vous concernant',
                         $this->renderView('mails/contents/mailDemandeLivraisonValidate.html.twig', [
                             'demande' => $demande,
                             'title' => 'La ' . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . ' ' . $demande->getNumero() . ' de type '

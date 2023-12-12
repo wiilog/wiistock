@@ -43,7 +43,7 @@ class InactiveSensorsCommand extends Command {
 
             if ($lastMessage && $lastMessage->getDate() < $nowMinus48Hours && $wrapper->getManager()) {
                 $this->mailerService->sendMail(
-                    'FOLLOW GT // Aucune donnée capteur détectée',
+                    'Follow Nexter // Aucune donnée capteur détectée',
                     $this->templating->render('mails/contents/iot/mailSensorInactive.html.twig', [
                         'sensorCode' => $sensor->getCode(),
                         'sensorName' => $wrapper->getName(),

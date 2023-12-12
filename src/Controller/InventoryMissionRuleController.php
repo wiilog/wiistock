@@ -158,8 +158,8 @@ class InventoryMissionRuleController extends AbstractController
         $entityManager->flush();
 
         $subject = $edit
-            ? 'FOLLOW GT // Modification planification mission d’inventaire'
-            : 'FOLLOW GT // Création planification mission d’inventaire';
+            ? 'Follow Nexter // Modification planification mission d’inventaire'
+            : 'Follow Nexter // Création planification mission d’inventaire';
 
         $mailerService->sendMail(
             $subject,

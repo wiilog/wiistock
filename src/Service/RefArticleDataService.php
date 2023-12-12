@@ -1025,7 +1025,7 @@ class RefArticleDataService
             "Votre référence vient d'être validée avec les informations suivantes :";
 
         $this->mailerService->sendMail(
-            'FOLLOW GT // ' . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
+            'Follow Nexter // ' . ($state ? "Création d'une nouvelle référence" : "Validation de votre référence"),
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [
@@ -1044,7 +1044,7 @@ class RefArticleDataService
         $supplierArticles = $refArticle->getArticlesFournisseur();
 
         $this->mailerService->sendMail(
-            'FOLLOW GT // Entrée de stock',
+            'Follow Nexter // Entrée de stock',
             $this->templating->render(
                 'mails/contents/mailCreateDraftOrDraftToActive.html.twig',
                 [

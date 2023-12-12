@@ -493,7 +493,7 @@ class PackService {
             $lastDrop = $pack->getLastDrop();
 
             $this->mailerService->sendMail(
-                "Follow GT // Unité logistique non récupéré$titleSuffix",
+                "Follow Nexter // Unité logistique non récupéré$titleSuffix",
                 $this->templating->render('mails/contents/mailPackDeliveryDone.html.twig', [
                     'title' => 'Votre unité logistique est toujours présente dans votre magasin',
                     'orderNumber' => implode(', ', $arrival->getNumeroCommandeList()),

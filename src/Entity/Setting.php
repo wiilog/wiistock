@@ -8,11 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SettingRepository::class)]
 class Setting {
 
-    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/followGTwhite.svg';
-    const DEFAULT_EMAIL_LOGO_VALUE = '/img/gtlogistics.jpg';
-    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.svg';
-    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.svg';
-    const DEFAULT_TOP_LEFT_VALUE = '/img/followGTblack.svg';
+    const DEFAULT_WEBSITE_LOGO_VALUE = '/img/website_logo.png';
+    const DEFAULT_EMAIL_LOGO_VALUE = '/img/default_logo.png';
+    const DEFAULT_MOBILE_LOGO_LOGIN_VALUE = '/img/mobile_logo_login.png';
+    const DEFAULT_MOBILE_LOGO_HEADER_VALUE = '/img/mobile_logo_header.png';
+    const DEFAULT_TOP_LEFT_VALUE = '/img/default_logo.png';
     const DEFAULT_LABEL_EXAMPLE_VALUE = '/img/exemple_etiquette_article.png';
 
     const DEFAULT_DELIVERY_WAYBILL_TEMPLATE_VALUE = 'modele/waybill/delivery_template.dotx';
