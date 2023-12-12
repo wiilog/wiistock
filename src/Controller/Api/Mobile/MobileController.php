@@ -64,6 +64,7 @@ use App\Service\ArrivageService;
 use App\Service\ArticleDataService;
 use App\Service\AttachmentService;
 use App\Service\DeliveryRequestService;
+use App\Service\DispatchPackService;
 use App\Service\DispatchService;
 use App\Service\EmplacementDataService;
 use App\Service\ExceptionLoggerService;
@@ -4094,6 +4095,145 @@ class MobileController extends AbstractApiController
         }
 
         $entityManager->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    #[Rest\Post("/dispatches/{dispatch}/generate-logistic-units", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function generateLogisticUnits(Request                $request,
+                                          Dispatch               $dispatch,
+                                          EntityManagerInterface $entityManager,
+                                          PackService            $packService,
+                                          DispatchService        $dispatchService,
+                                          TranslationService     $translationService,
+                                          DispatchPackService    $dispatchPackService,
+                                          FormatService          $formatService): Response
+    {
+        $singleCreation = $request->request->getBoolean('single');
+
+        if ($singleCreation) {
+            $logisticUnitCode = $request->request->get('logisticUnit');
+            $forced = $request->request->getBoolean('forced');
+
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $packRepository = $entityManager->getRepository(Pack::class);
+
+            $logisticUnitMustBeNew = $settingRepository->getOneParamByLabel(Setting::PACK_MUST_BE_NEW);
+            $logisticUnit = $packRepository->findOneBy(['code' => $logisticUnitCode]);
+            if ($logisticUnitMustBeNew && $logisticUnit) {
+                return $this->json([
+                    'success' => false,
+                    'message' => "L'unité logistique $logisticUnitCode existe déjà en base de données."
+                ]);
+            } else if ($logisticUnit && $logisticUnit->getActiveDispatch()) {
+                if ($logisticUnit->getActiveDispatch()->getId() === $dispatch->getId()) {
+                    return $this->json([
+                        'success' => false,
+                        'message' => "L'unité logistique $logisticUnitCode se trouve déjà dans l'acheminement."
+                    ]);
+                }
+                else if (!$forced) {
+                    return $this->json([
+                        'success' => false,
+                        'hasToBeForced' => true,
+                        'current' => $logisticUnit->getActiveDispatch()->getNumber(),
+                        'message' => "L'unité logistique $logisticUnitCode se trouve déjà dans un acheminement en cours."
+                    ]);
+                }
+            }
+
+            if(empty($logisticUnit)) {
+                $logisticUnit = $packService->createPack($entityManager, ['code' => $logisticUnitCode, 'dispatch' => $dispatch]);
+                $entityManager->persist($logisticUnit);
+            }
+
+            if ($forced) {
+                $existingDispatch = $logisticUnit->getActiveDispatch();
+                $existingDispatchPack = $existingDispatch
+                    ->getDispatchPacks()
+                    ->filter(fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getId() === $logisticUnit->getId())
+                    ->first() ?: null;
+
+                if ($existingDispatchPack) {
+                    $entityManager->remove($existingDispatchPack);
+                }
+            }
+
+            $dispatchPack = $dispatchService->createDispatchPack($logisticUnit, $dispatch, 1);
+            $entityManager->persist($dispatchPack);
+            $entityManager->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => $translationService->translate("Acheminements", "Détails acheminement - Liste des unités logistiques", "L'unité logistique {1} a bien été ajoutée", [
+                    "1" => "<strong>{$logisticUnit->getCode()}</strong>",
+                ]),
+                'dispatchPack' => $dispatchPack->serialize($formatService)
+            ]);
+        }
+        else {
+            $packs = json_decode($request->request->get('logisticUnits', "[]"), true);
+
+            $user = $this->getUser();
+
+            $printerId = $request->request->getInt('printer');
+            $printer = $printerId
+                ? $entityManager->find(Printer::class, $printerId)
+                : null;
+
+            $generationResults = $dispatchPackService->generatePacks($packs, $dispatch, $printer, $user, $entityManager);
+            $generationResults['message'] = $generationResults['msg'];
+
+            return $this->json($generationResults);
+        }
+    }
+
+    #[Rest\Post("/print-dispatch-logistic-units", condition: "request.isXmlHttpRequest()")]
+    #[Rest\View]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
+    public function printDispatchLogisticUnits(Request                $request,
+                                               EntityManagerInterface $entityManager,
+                                               PrinterService         $printerService): JsonResponse
+    {
+        $dispatchID = $request->request->getInt('dispatch');
+        $printer = $request->request->getInt("printer");
+        $dispatchPacks = json_decode($request->request->get('dispatchPacks', "[]"));
+
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatch = $dispatchRepository->find($dispatchID);
+
+        if ($dispatch && $printer) {
+            $printer = $entityManager->find(Printer::class, $printer);
+            try {
+                $client = SocketClient::create($printer->getAddress(), PrinterService::DEFAULT_PRINTER_PORT, PrinterService::DEFAULT_PRINTER_TIMEOUT);
+                $zebraPrinter = $printerService->getPrinter($printer);
+            } catch (Throwable) {
+                return $this->json([
+                    'success' => false,
+                    'message' => "Problème de communication avec l'imprimante, la génération des unités logistiques a échoué."
+                ]);
+            }
+
+            $packsToPrint = $dispatch->getDispatchPacks()
+                ->filter(fn(DispatchPack $dispatchPack) => in_array($dispatchPack->getPack()->getCode(), $dispatchPacks))
+                ->toArray();
+
+            if (!empty($packsToPrint)) {
+                $printerService->printDispatchPacks($zebraPrinter, $client, $dispatch, $packsToPrint);
+                return $this->json([
+                    'success' => true,
+                    'message' => "L'impression des unités logistiques a bien été effectuée."
+                ]);
+            } else {
+                return $this->json([
+                    'success' => false,
+                    'message' => 'Aucune unité logistique à imprimer.'
+                ]);
+            }
+        }
 
         return $this->json(['success' => true]);
     }

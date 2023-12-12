@@ -888,4 +888,11 @@ class Pack implements PairedEntity {
 
         return $this;
     }
+
+    public function getActiveDispatch(): ?Dispatch {
+        return $this->dispatchPacks
+            ->filter(fn(DispatchPack $dispatchPack) => !$dispatchPack->getDispatch()->getStatut()->isTreated())
+            ->map(fn(DispatchPack $dispatchPack) => $dispatchPack->getDispatch())
+            ->first() ?: null;
+    }
 }
