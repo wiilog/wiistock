@@ -850,7 +850,6 @@ class SettingsService {
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setOnMobile($item["onMobile"] ?? null)
                         ->setDisplayedEdit($item["displayedEdit"] ?? null)
                         ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
