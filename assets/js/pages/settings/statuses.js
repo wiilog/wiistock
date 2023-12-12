@@ -50,6 +50,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     const $statusStateOptions = $container.find('[name=status-state-options]');
     const statusStateOptions = JSON.parse($statusStateOptions.val());
     const $groupedSignatureTypes = $container.find('[name=grouped-signature-types]');
+    const hasRightGroupedSignature = $container.find('[name=has-right-grouped-signature]').val();
     const groupedSignatureTypes = $groupedSignatureTypes.val() ? JSON.parse($groupedSignatureTypes.val()) : '';
     const tableSelector = `#${mode}-statuses-table`;
     const type = $('[name=type]:checked').val();
@@ -102,8 +103,8 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
             canTranslate = true;
             $pageBody.find('.wii-title').remove();
         },
-        columns: getStatusesColumn(mode),
-        form: getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes),
+        columns: getStatusesColumn(mode, hasRightGroupedSignature),
+        form: getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature),
     });
 
     let submitEditTranslations = $modalEditTranslations.find("[type=submit]");
@@ -132,7 +133,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     return table;
 }
 
-function getStatusesColumn(mode) {
+function getStatusesColumn(mode, hasRightGroupedSignature) {
     const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
     const singleBuyer = [MODE_PURCHASE_REQUEST].includes(mode) ? [`à`, `l'acheteur`] : [`aux`, `acheteurs`];
 
@@ -161,21 +162,22 @@ function getStatusesColumn(mode) {
             title: `<div class='small-column'>Envoi d'emails aux destinataires</div>`,
             modes: [MODE_HANDLING, MODE_DISPATCH]
         },
-        {
-            data: `sendReport`,
-            title: `<div class='small-column'>Envoi compte rendu</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureType`,
-            title: `<div class='small-column'>Signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureColor`,
-            title: `<div class='small-column'>Couleur signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
+        ...(hasRightGroupedSignature ? [
+            {
+                data: `sendReport`,
+                title: `<div class='small-column'>Envoi compte rendu</div>`,
+                modes: [MODE_DISPATCH]
+            },
+            {
+                data: `groupedSignatureType`,
+                title: `<div class='small-column'>Signature groupée</div>`,
+                modes: [MODE_DISPATCH]
+            },
+            {
+                data: `groupedSignatureColor`,
+                title: `<div class='small-column'>Couleur signature groupée</div>`,
+                modes: [MODE_DISPATCH]
+            }] : []),
         {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
@@ -191,16 +193,16 @@ function getStatusesColumn(mode) {
             title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
             modes: [MODE_HANDLING]
         },
-        {
+        ...(hasRightGroupedSignature ? [{
             data: `commentNeeded`,
             title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
             modes: [MODE_DISPATCH]
-        },
+        }] : []),
         {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
-function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes){
+function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes, hasRightGroupedSignature){
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
@@ -228,11 +230,11 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         sendMailBuyers: `<div class='checkbox-container'><input type='checkbox' name='sendMailBuyers' class='form-control data'/></div>`,
         sendMailRequesters: `<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data'/></div>`,
         needsMobileSync: `<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data'/></div>`,
-        commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
+        commentNeeded: hasRightGroupedSignature ? `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>` : null,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
-        sendReport: `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>`,
-        groupedSignatureType: `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>`,
-        groupedSignatureColor: `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
+        sendReport: hasRightGroupedSignature ? `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>` : null,
+        groupedSignatureType:  hasRightGroupedSignature ? `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>` : null,
+        groupedSignatureColor: hasRightGroupedSignature ? `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
                         <datalist id='type-color'>
                             <option>#D76433</option>
                             <option>#D7B633</option>
@@ -242,7 +244,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
                             <option>#3353D7</option>
                             <option>#6433D7</option>
                             <option>#D73353</option>
-                        </datalist>`,
+                        </datalist>` : null,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
