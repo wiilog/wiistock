@@ -33,7 +33,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
-import {onSelectAll} from '@app/pages/settings/utils';
+import {onSelectAll, setCheckboxBehavior} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -595,6 +595,11 @@ function initializeStockArticlesLabels($container) {
     });
 }
 
+function initializeFixedFieldsBehavior($container) {
+    setCheckboxBehavior($container, 'requiredCreate', 'displayedCreate');
+    setCheckboxBehavior($container, 'requiredEdit', 'displayedEdit');
+}
+
 function initializeReceptionFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-reception-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
@@ -617,6 +622,7 @@ function initializeReceptionFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeDemandesFixedFields($container, canEdit) {
@@ -665,6 +671,8 @@ function initializeDemandesFixedFields($container, canEdit) {
     });
 
     initializeLocationByTypeForDeliveries();
+    initializeFixedFieldsBehavior($container);
+    setCheckboxBehavior($container, 'required', 'displayed');
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
@@ -716,6 +724,7 @@ function initializeDispatchFixedFields($container, canEdit) {
             {data: `required`, title: `Obligatoire`},
         ],
     });
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeArticleFixedFields($container, canEdit) {
@@ -740,6 +749,7 @@ function initializeArticleFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeArrivalFixedFields($container, canEdit) {
@@ -765,6 +775,7 @@ function initializeArrivalFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeHandlingFixedFields($container, canEdit) {
@@ -790,6 +801,7 @@ function initializeHandlingFixedFields($container, canEdit) {
         ],
     });
     initializeType();
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeLocationByTypeForDeliveries() {
@@ -1277,6 +1289,7 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
         ],
     });
     initializeType();
+    initializeFixedFieldsBehavior($container);
 }
 
 function initializeTruckArrivalReserves() {
@@ -1377,6 +1390,7 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `displayedFilters`, title: `Afficher`},
         ],
     });
+    initializeFixedFieldsBehavior($container);
 }
 
 function changeDisplayRefArticleTable($checkbox) {
