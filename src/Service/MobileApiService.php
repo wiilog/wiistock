@@ -218,6 +218,7 @@ class MobileApiService {
             "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
             "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
             "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
+            "displayWarningWrongLocation" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
         ])
             ->toArray();
     }
