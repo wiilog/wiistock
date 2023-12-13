@@ -2191,7 +2191,7 @@ class SettingsController extends AbstractController {
                                     ->map(static fn(string $field, int $value) => [
                                         "label" => $field,
                                         "value" => $value,
-                                        "selected" => $type->getDispatchLabelField() === $value,
+                                        "selected" => $type?->getDispatchLabelField() === $value,
                                     ]),
                             ]),
                         ], [
