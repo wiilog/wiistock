@@ -180,7 +180,7 @@ function getStatusesColumn(mode) {
             data: `groupedSignatureColor`,
             title: `<div class='small-column'>Couleur signature groupée</div>`,
             modes: [MODE_DISPATCH]
-        }
+        },
         {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
@@ -196,6 +196,7 @@ function getStatusesColumn(mode) {
             title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
             modes: [MODE_HANDLING]
         },
+        {
             data: `commentNeeded`,
             title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
             modes: [MODE_DISPATCH]
@@ -247,7 +248,7 @@ function getFormColumn(mode, statusStateOptions, categoryType) {
                             <option>#3353D7</option>
                             <option>#6433D7</option>
                             <option>#D73353</option>
-                        </datalist>`
+                        </datalist>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
