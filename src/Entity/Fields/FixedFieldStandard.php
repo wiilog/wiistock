@@ -231,9 +231,6 @@ class FixedFieldStandard extends FixedField {
     #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private ?bool $fieldRequiredHidden;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
-    private ?bool $onMobile = null;
-
     public function isRequiredCreate(): ?bool {
         return $this->requiredCreate;
     }
@@ -298,18 +295,6 @@ class FixedFieldStandard extends FixedField {
 
     public function setFieldRequiredHidden(?bool $fieldRequiredHidden): self {
         $this->fieldRequiredHidden = $fieldRequiredHidden;
-
-        return $this;
-    }
-
-    public function isOnMobile(): ?bool
-    {
-        return $this->onMobile;
-    }
-
-    public function setOnMobile(?bool $onMobile): self
-    {
-        $this->onMobile = $onMobile;
 
         return $this;
     }

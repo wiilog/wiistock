@@ -50,14 +50,6 @@ class FixedFieldByType extends FixedField
     #[ORM\JoinTable(name: 'fixed_field_by_type_displayed_edit')]
     private Collection $displayedEdit;
 
-    #[ORM\ManyToMany(targetEntity: Type::class)]
-    #[ORM\JoinTable(name: 'fixed_field_by_type_on_mobile')]
-    private Collection $onMobile;
-
-    #[ORM\ManyToMany(targetEntity: Type::class)]
-    #[ORM\JoinTable(name: 'fixed_field_by_type_on_label')]
-    private Collection $onLabel;
-
     public function __construct()
     {
         $this->requiredCreate = new ArrayCollection();
@@ -65,8 +57,6 @@ class FixedFieldByType extends FixedField
         $this->keptInMemory = new ArrayCollection();
         $this->displayedCreate = new ArrayCollection();
         $this->displayedEdit = new ArrayCollection();
-        $this->onMobile = new ArrayCollection();
-        $this->onLabel = new ArrayCollection();
     }
 
     public function getRequiredCreate(): Collection
@@ -234,72 +224,6 @@ class FixedFieldByType extends FixedField
     public function removeDisplayedEdit(Type $displayedEdit): static
     {
         $this->displayedEdit->removeElement($displayedEdit);
-
-        return $this;
-    }
-
-    public function getOnMobile(): Collection
-    {
-        return $this->onMobile;
-    }
-
-    public function isOnMobile(Type $type): bool
-    {
-        return $this->onMobile->contains($type);
-    }
-
-    public function addOnMobile(Type $onMobile): static
-    {
-        if (!$this->onMobile->contains($onMobile)) {
-            $this->onMobile->add($onMobile);
-        }
-
-        return $this;
-    }
-
-    public function setOnMobile(Collection $onMobile): static
-    {
-        $this->onMobile = $onMobile;
-
-        return $this;
-    }
-
-    public function removeOnMobile(Type $onMobile): static
-    {
-        $this->onMobile->removeElement($onMobile);
-
-        return $this;
-    }
-
-    public function getOnLabel(): Collection
-    {
-        return $this->onLabel;
-    }
-
-    public function addOnLabel(Type $onLabel): static
-    {
-        if (!$this->onLabel->contains($onLabel)) {
-            $this->onLabel->add($onLabel);
-        }
-
-        return $this;
-    }
-
-    public function setOnLabel(Collection $onLabel): static
-    {
-        $this->onLabel = $onLabel;
-
-        return $this;
-    }
-
-    public function isOnLabel(Type $type): bool
-    {
-        return $this->onLabel->contains($type);
-    }
-
-    public function removeOnLabel(Type $onLabel): static
-    {
-        $this->onLabel->removeElement($onLabel);
 
         return $this;
     }
