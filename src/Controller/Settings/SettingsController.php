@@ -2208,14 +2208,15 @@ class SettingsController extends AbstractController {
             }
 
             if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARRIVAGE])) {
+                $requiredMark = !in_array($categoryLabel, [CategoryType::ARRIVAGE]) ? "*" : "";
                 $data[] = [
-                    "label" => "Logo*",
+                    "label" => "Logo$requiredMark",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            true,
+                            !!$requiredMark,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
