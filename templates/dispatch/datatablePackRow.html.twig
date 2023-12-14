@@ -1,13 +1,18 @@
-{% if dispatch.statut and dispatch.statut.draft %}
-    {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::MANAGE_PACK')) %}
-        <button class="btn btn-silent delete-pack-row" data-id="{{ dispatchPack ? dispatchPack.id }}">
-            <i class="wii-icon wii-icon-trash text-primary"></i>
-        </button>
-    {% endif %}
-{% else %}
-    {% if dispatchPack and dispatchPack.pack.arrivage %}
-        <a href="{{ path('arrivage_show', {id: dispatchPack.pack.arrivage.id}) }}">
-            <i class="fas fa-exchange-alt" title="Arrivage lié N°{{ dispatchPack.pack.arrivage.numeroArrivage }}"></i>
-        </a>
-    {% endif %}
-{% endif %}
+<div class="d-flex">
+    <div class="dropdown dropright">
+        {% include 'datatable/dotsRow.html.twig' %}
+        <div class="dropdown-menu dropdown-follow-gt pointer">
+            <button onclick="printSingleTicket($(this))" class="dropdown-item pointer d-flex align-items-center print-pack-row" data-id="{{ dispatchPack ? dispatchPack.pack.id }}">
+                <i class="wii-icon wii-icon-printer-black text-primary mr-2"></i>
+                {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Impression') }}
+            </button>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::MANAGE_PACK')) %}
+                <button onclick="deletePackRow($(this))" class="dropdown-item pointer d-flex align-items-center delete-pack-row" data-id="{{ dispatchPack ? dispatchPack.id }}">
+                    <i class="wii-icon wii-icon-trash-black text-primary mr-2"></i>
+                    Supprimer
+                </button>
+            {% endif %}
+
+        </div>
+    </div>
+</div>

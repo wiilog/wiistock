@@ -453,7 +453,8 @@ function savePackLine(dispatchId, $row, async = true) {
                 data,
                 async,
                 success: response => {
-                    $row.find(`.delete-pack-row`).data(`id`, response.id);
+                    $row.find(`.delete-pack-row`).data(`id`, response.id).attr(`data-id`, response.id);
+                    $row.find(`.print-pack-row`).data(`id`, response.id).attr(`data-id`, response.packId.toString());
                     if(!response.success) {
                         showBSAlert(response.msg, `danger`);
                     }
@@ -659,26 +660,6 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
         });
     }
 
-    let $modalDeletePack = $('#modalDeletePack');
-    let $submitDeletePack = $('#submitDeletePack');
-    $table.on(`click`, `.delete-pack-row`, function() {
-        $modalDeletePack.modal(`show`);
-
-        $submitDeletePack.off(`click.deleteRow`).on(`click.deleteRow`, () => {
-            const data = JSON.stringify({
-                pack: $(this).data(`id`) || null,
-            });
-
-            $.post(Routing.generate('dispatch_delete_pack', true), data, response => {
-                table.row($(this).closest(`tr`))
-                    .remove()
-                    .draw();
-
-                showBSAlert(response.msg, response.success ? `success` : `danger`)
-            });
-        });
-    });
-
     $(window).on(`beforeunload`, () =>  {
         const $focus = $(`tr :focus`);
         if($focus.exists()) {
@@ -689,6 +670,28 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     });
 
     return table;
+}
+
+function deletePackRow($deleteButton) {
+    let table = packsTable;
+    let $modalDeletePack = $('#modalDeletePack');
+    let $submitDeletePack = $('#submitDeletePack');
+
+    $modalDeletePack.modal(`show`);
+
+    $submitDeletePack.off(`click.deleteRow`).on(`click.deleteRow`, () => {
+        const data = JSON.stringify({
+            pack: $deleteButton.data('id') || null,
+        });
+
+        $.post(Routing.generate('dispatch_delete_pack', true), data, response => {
+            table.row($deleteButton.closest(`tr`))
+                .remove()
+                .draw();
+
+            showBSAlert(response.msg, response.success ? `success` : `danger`)
+        });
+    });
 }
 
 function addPackRow(table, $button) {
@@ -923,4 +926,38 @@ function registerVolumeCompute() {
             }
         });
     });
+}
+
+
+function printSingleTicket($button){
+    const $dispatchId = $('#dispatchId').val();
+    const $packVal = $button.attr('data-id');
+    postPrintTickets($dispatchId, [$packVal]);
+}
+
+function printAllTickets() {
+    const $table = $('#packTable');
+    const $rows = $table.find('tbody tr');
+    const $dispatchId = $('#dispatchId').val();
+
+    let codeULs = [];
+    $rows.each(function() {
+        const $row = $(this);
+        const $packVal = $row.find(`.print-pack-row`).attr('data-id');
+        codeULs.push($packVal);
+    });
+
+    // last row is empty
+    codeULs = codeULs.filter((codeUL) => codeUL !== undefined);
+
+    postPrintTickets($dispatchId, codeULs);
+}
+
+function postPrintTickets(dispatchId, codeULs) {
+    return AJAX.route(`POST`, `print_all_tickets`, {dispatch: dispatchId, codeULs})
+        .file({
+            success: "Vos tickets ont bien été imprimés.",
+            error: "Erreur lors de l'impression des tickets."
+        })
+        .then(() =>  window.location.reload())
 }

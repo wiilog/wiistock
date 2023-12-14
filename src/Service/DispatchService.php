@@ -8,6 +8,8 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
+use App\Entity\DispatchLabelConfiguration;
+use App\Entity\DispatchLabelConfigurationField;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\DispatchStatusHistory;
@@ -2201,6 +2203,87 @@ class DispatchService {
         return [
             'file' => $pdfContent,
             'name' => $originalName
+        ];
+    }
+
+
+    public function getBarcodeDispatchConfig(Pack                   $pack,
+                                             Dispatch               $dispatch,
+                                             ?Array                 $fieldsParam): array
+    {
+        $code = $pack->getCode();
+        $labels = [];
+
+        if(empty($fieldsParam)){
+            return [
+                'code' => $code,
+                'labels' => $labels,
+            ];
+        }
+
+        if (isset($fieldsParam['comment']) && $fieldsParam['comment']['onLabel']) {
+            $labels[] = $dispatch->getCommentaire() ? $this->formatService->html(str_replace("<br/>", "\n", $dispatch->getCommentaire()), '-') : '';
+        }
+
+        if (isset($fieldsParam['receiver']) && $fieldsParam['receiver']['onLabel']) {
+            $labels[] = $dispatch->getReceivers() ? Stream::from($dispatch->getReceivers())->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))->join(", ") : '';
+        }
+
+        if (isset($fieldsParam['carrier']) && $fieldsParam['carrier']['onLabel']) {
+            $labels[] = $dispatch->getCarrier() ? $dispatch->getCarrier() : '';
+        }
+
+        if (isset($fieldsParam['carrierTrackingNumber']) && $fieldsParam['carrierTrackingNumber']['onLabel']) {
+            $labels[] = $dispatch->getCarrierTrackingNumber() ? $dispatch->getCarrierTrackingNumber() : '';
+        }
+
+        if (isset($fieldsParam['deadline']) && $fieldsParam['deadline']['onLabel']) {
+            $labels[] = $dispatch->getEndDate() ? $dispatch->getEndDate()->format('d/m/Y') : '';
+        }
+
+        if (isset($fieldsParam['emails']) && $fieldsParam['emails']['onLabel']) {
+            $labels[] = $dispatch->getEmails() ? Stream::from($dispatch->getEmails())->join(', ') : '';
+        }
+
+        if (isset($fieldsParam['emergency']) && $fieldsParam['emergency']['onLabel']) {
+            $labels[] = $dispatch->getEmergency() ? $dispatch->getEmergency() : '';
+        }
+
+        if (isset($fieldsParam['commandNumber']) && $fieldsParam['commandNumber']['onLabel']) {
+            $labels[] = $dispatch->getCommandNumber() ? $dispatch->getCommandNumber() : '';
+        }
+
+        if (isset($fieldsParam['pickLocation']) && $fieldsParam['pickLocation']['onLabel']) {
+            $labels[] = $dispatch->getLocationFrom() ? $this->formatService->location($dispatch->getLocationFrom()) : '';
+        }
+
+        if (isset($fieldsParam['dropLocation']) && $fieldsParam['dropLocation']['onLabel']) {
+            $labels[] = $dispatch->getLocationTo() ? $this->formatService->location($dispatch->getLocationTo()) : '';
+        }
+
+        if (isset($fieldsParam['destination']) && $fieldsParam['destination']['onLabel']) {
+            $labels[] = $dispatch->getDestination() ? $dispatch->getDestination() : '';
+        }
+
+        if (isset($fieldsParam['requester']) && $fieldsParam['requester']['onLabel']) {
+            $labels[] = $dispatch->getRequester() ? $this->formatService->user($dispatch->getRequester()) : '';
+        }
+
+        if (isset($fieldsParam['customerName']) && $fieldsParam['customerName']['onLabel']) {
+            $labels[] = $dispatch->getCustomerName() ? $dispatch->getCustomerName() : '';
+        }
+
+        if (isset($fieldsParam['customerPhone']) && $fieldsParam['customerPhone']['onLabel']) {
+            $labels[] = $dispatch->getCustomerPhone() ? $dispatch->getCustomerPhone() : '';
+        }
+
+        if (isset($fieldsParam['customerAddress']) && $fieldsParam['customerAddress']['onLabel']) {
+            $labels[] = $dispatch->getCustomerAddress() ? $dispatch->getCustomerAddress() : '';
+        }
+
+        return [
+            'code' => $code,
+            'labels' => $labels,
         ];
     }
 }

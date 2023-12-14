@@ -254,6 +254,12 @@
                 <div class="wii-box focus-shadow drop-below">
                     <div class="header wii-title d-flex justify-content-between align-items-center">
                         {{ trans('Demande', 'Acheminements', 'Détails acheminement - Liste des unités logistiques', 'Liste des UL', false) }}
+                        <button
+                                class="btn btn-primary ml-auto d-flex align-items-center mr-2"
+                                onclick="printAllTickets()">
+                            <span class="wii-icon-printer-white wii-icon wii-icon-17px mr-2"></span>
+                            {{ trans('Traçabilité', 'Arrivages UL', 'Divers', 'Impression') }}
+                        </button>
                         {% if hasRightToAddReferenceInLu %}
                             <div class="btn-group">
                                 <button

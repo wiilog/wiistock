@@ -566,7 +566,7 @@ class PackService {
 
         $arrival = $pack->getArrivage();
 
-        $dateAndHour = $arrival->getDate()
+        $dateAndHour = $arrival?->getDate()
             ? $arrival->getDate()->format('d/m/Y H:i')
             : '';
 
