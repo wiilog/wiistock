@@ -116,9 +116,9 @@ mkdir -p var/sessions
 mkdir -p cache
 
 php bin/console cache:clear
-chown -R "$USER:www-data" var/cache var/sessions cache
-chmod g+s var/cache var/sessions cache
-chmod g+w -R var/cache var/sessions cache
+chown -R "$USER:www-data" public/uploads var/cache var/sessions cache
+chmod g+s public/uploads var/cache var/sessions cache
+chmod g+w -R public/uploads var/cache var/sessions cache
 
 declare -A TIMES
 TIMES[dashboard-feeds]="*/5 * * * *"
