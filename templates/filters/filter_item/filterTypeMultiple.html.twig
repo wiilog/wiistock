@@ -5,6 +5,7 @@
                 class="form-control data select2 filter-select2"
                 name="multipleTypes"
                 multiple="multiple"
+                data-placeholder="Types"
                 {% if onchange is defined %}onchange="{{ onchange }}"{% endif %}
                 {{ disabled }}>
                 {% for type in types|sort((a, b) => a.label <=> b.label) %}
