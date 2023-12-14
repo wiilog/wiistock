@@ -147,7 +147,7 @@
     {% set landscape = landscape is defined and landscape %}
     {% set separated = config.separated is defined and config.separated %}
 
-    {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined %}
+    {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined or typeLogoArrivalUl %}
 
     {% set labelsLength = config.labels|length %}
     {% set barcodeHeight = (labelsLength == 0 or landscape
