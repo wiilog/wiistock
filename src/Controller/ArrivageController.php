@@ -1618,6 +1618,9 @@ class ArrivageController extends AbstractController {
 
                 $apiOutput = json_decode($apiRequest->getContent(), true);
             } catch (\Throwable $e) {
+                if ($e->getCode() === 400 && $e->getMessage()) {
+                    throw new FormException($e->getMessage());
+                }
                 throw new FormException('Une erreur s\'est produite lors de la récupération des informations du BL');
             }
 
