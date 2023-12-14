@@ -305,11 +305,6 @@ class SettingsController extends AbstractController {
                             "save" => true,
                         ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_OVERCONSUMPTION_BILL => [
-                            "label" => "Bon de surconsommation",
-                            "save" => true,
-                            "discard" => true,
-                        ],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
@@ -661,7 +656,6 @@ class SettingsController extends AbstractController {
     public const MENU_STATUSES = "statuts";
     public const MENU_FIXED_FIELDS = "champs_fixes";
     public const MENU_RESERVES = "reserves";
-    public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
     public const MENU_MOVEMENTS = "mouvements";
     public const MENU_FREE_FIELDS = "champs_libres";
@@ -1302,20 +1296,6 @@ class SettingsController extends AbstractController {
                         "autoUngroupTypes" => json_encode($this->settingsService->getSelectOptionsBySetting($this->manager, Setting::AUTO_UNGROUP_TYPES)),
                         "dispatchFixedFieldsFilterable" => Stream::from($fixedFieldByTypeRepository->findBy(['entityCode'=> FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_DISPATCH]))
-                            ->toArray(),
-                    ],
-                    self::MENU_OVERCONSUMPTION_BILL => fn() => [
-                        "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                            ->map(fn(Type $type) => [
-                                "value" => $type->getId(),
-                                "label" => $type->getLabel(),
-                            ])->toArray(),
-                        "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
-                            ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
-                            ->map(fn(Statut $status) => [
-                                "value" => $status->getId(),
-                                "label" => $this->getFormatter()->status($status),
-                            ])
                             ->toArray(),
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
@@ -3105,7 +3085,7 @@ class SettingsController extends AbstractController {
 
         foreach ($typesLitige as $type) {
             if ($type->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+                $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
             }
         }
         $manager->flush();
