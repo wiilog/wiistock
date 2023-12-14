@@ -5,7 +5,9 @@ namespace App\Helper;
 use App\Entity\Language;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\QueryBuilder;
+use WiiCommon\Helper\Stream;
 
 class QueryBuilderHelper
 {
@@ -109,5 +111,15 @@ class QueryBuilderHelper
         return $qb
             ->setParameter("language", $language)
             ->setParameter("default", $defaultLanguage);
+    }
+
+    public static function setGroupBy(QueryBuilder $queryBuilder, array $ignored = []): QueryBuilder {
+        Stream::from($queryBuilder->getDQLParts()['select'])
+            ->flatMap(static fn(Select $selectPart) => [$selectPart->getParts()[0]])
+            ->map(static fn(string $selectString) => trim(explode('AS', $selectString)[1]))
+            ->filter(static fn(string $selectAlias) => !in_array($selectAlias, $ignored))
+            ->each(static fn(string $field) => $queryBuilder->addGroupBy($field));
+
+        return $queryBuilder;
     }
 }

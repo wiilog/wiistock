@@ -17,8 +17,6 @@ class FixedFieldByType extends FixedField
     public const ATTRIBUTE_KEPT_IN_MEMORY = 'keptInMemory';
     public const ATTRIBUTE_DISPLAYED_CREATE = 'displayedCreate';
     public const ATTRIBUTE_DISPLAYED_EDIT = 'displayedEdit';
-    public const ATTRIBUTE_ON_MOBILE = 'onMobile';
-    public const ATTRIBUTE_ON_LABEL = 'onLabel';
 
     public const ATTRIBUTES = [
         self::ATTRIBUTE_REQUIRED_CREATE,
@@ -26,8 +24,6 @@ class FixedFieldByType extends FixedField
         self::ATTRIBUTE_KEPT_IN_MEMORY,
         self::ATTRIBUTE_DISPLAYED_CREATE,
         self::ATTRIBUTE_DISPLAYED_EDIT,
-        self::ATTRIBUTE_ON_MOBILE,
-        self::ATTRIBUTE_ON_LABEL,
     ];
 
     #[ORM\ManyToMany(targetEntity: Type::class)]

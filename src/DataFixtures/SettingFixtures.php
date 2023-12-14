@@ -138,9 +138,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
-            Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
-                'default' => null,
-            ],
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
@@ -377,6 +374,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
             ],
             Setting::AUTO_UNGROUP_TYPES => [
+                'default' => null,
+            ],
+            Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
                 'default' => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [

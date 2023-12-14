@@ -20,20 +20,6 @@
             </div>
         </th>
     {% endif %}
-    {% if needsOnMobileColumn is defined and needsOnMobileColumn %}
-        <th class="datatable-main-header" colspan="1">
-            <div class="d-flex align-items-center">
-                <img src="{{ asset('svg/menu-terminal-mobile.svg') }}" width="17px" class="mr-2">Sur le nomade
-            </div>
-        </th>
-    {% endif %}
-    {% if needsOnLabelColumn is defined and needsOnLabelColumn %}
-        <th class="datatable-main-header" colspan="1">
-            <div class="d-flex align-items-center">
-                <img src="{{ asset('svg/tag.svg') }}" width="19px" class="mr-2">Sur l'étiquette
-            </div>
-        </th>
-    {% endif %}
 </tr>
 <tr>
     {% for i in 0..(cells - 1) %}
