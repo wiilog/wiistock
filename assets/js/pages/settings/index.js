@@ -672,6 +672,7 @@ function initializeDemandesFixedFields($container, canEdit) {
 
     initializeLocationByTypeForDeliveries();
     initializeFixedFieldsBehavior($container);
+    setCheckboxBehavior($container, 'required', 'displayed');
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
