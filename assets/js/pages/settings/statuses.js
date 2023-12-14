@@ -205,7 +205,7 @@ function getStatusesColumn(mode) {
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
-function getFormColumn(mode, statusStateOptions, categoryType) {
+function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes) {
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
