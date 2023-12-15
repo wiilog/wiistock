@@ -90,20 +90,20 @@ class DispatchController extends AbstractController {
         $typesFilter = $query->has('types') ? $query->all('types', '') : [];
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
         if (!empty($statusesFilter)) {
-            $statusesFilter = Stream::from($statusesFilter)
-                ->filterMap(fn($statusId) => $statutRepository->find($statusId)?->getId())
+            $statusesFilter = Stream::from($statutRepository->findBy(['id' => $statusesFilter]))
+                ->map(fn(Statut $status) => $status->getId())
                 ->toArray();
         }
 
         if (!empty($typesFilter)) {
-            $typesFilter = Stream::from($typesFilter)
-                ->map(fn($typeId) => $typeRepository->find($typeId)->getLabel())
+            $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
+                ->filterMap(fn(Type $type) => $type->getLabelIn($currentUser->getLanguage()))
                 ->toArray();
         }
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
