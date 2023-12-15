@@ -309,7 +309,7 @@ class ArrivageController extends AbstractController {
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
         if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
+            $arrivalService->setArrivalUrgent($entityManager, $arrivage, true);
         }
 
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
@@ -451,7 +451,7 @@ class ArrivageController extends AbstractController {
         $success = !empty($urgencesMatching);
 
         if ($success) {
-            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
             $entityManager->flush();
         }
 
@@ -655,10 +655,8 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivageDataService->createArrivalAlertConfig($arrivage, $confirmEmergency);
 
-        if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
-            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
-            $arrivage->setDropLocation($emplacementRepository->find($dropLocationId));
+        if ($isArrivalUrgent && !$confirmEmergency) {
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrivage, true);
             $entityManager->flush();
         }
 
@@ -1320,7 +1318,7 @@ class ArrivageController extends AbstractController {
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
-                    $forceTagEmpty ? null :$tagTemplate,
+                    $forceTagEmpty ? null : $tagTemplate,
                     $forceTagEmpty
                 );
             }
