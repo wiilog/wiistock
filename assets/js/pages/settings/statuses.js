@@ -162,6 +162,11 @@ function getStatusesColumn(mode) {
             modes: [MODE_HANDLING, MODE_DISPATCH]
         },
         {
+            data: `overconsumptionBillGenerationStatus`,
+            title: `<div class='small-column'>Passage au statut à la génération du bon de surconsommation</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
             data: `sendReport`,
             title: `<div class='small-column'>Envoi compte rendu</div>`,
             modes: [MODE_DISPATCH]
@@ -200,7 +205,7 @@ function getStatusesColumn(mode) {
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }
 
-function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes){
+function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureTypes) {
     return {
         actions: `
             <button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>
@@ -231,6 +236,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         commentNeeded: `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>`,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
         sendReport: `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>`,
+        overconsumptionBillGenerationStatus: `<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data'/></div>`,
         groupedSignatureType: `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>`,
         groupedSignatureColor: `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>
                         <datalist id='type-color'>

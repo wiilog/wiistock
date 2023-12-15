@@ -79,9 +79,9 @@ class ArticleFournisseurService
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
                 ->setFournisseur($fournisseur)
-                ->setReference($generatedReference)
+                ->setReference(trim($generatedReference))
                 ->setReferenceArticle($referenceArticle)
-                ->setLabel($label)
+                ->setLabel(trim($label))
                 ->setVisible($isVisible);
         }
         else {

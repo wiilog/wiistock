@@ -143,10 +143,11 @@
 {% for config in barcodeConfigs %}
     {% set firstCustomIconIsDefined = (config.firstCustomIcon is defined and config.firstCustomIcon is not null) %}
     {% set secondCustomIconIsDefined = (config.secondCustomIcon is defined and config.secondCustomIcon is not null) %}
+    {% set typeLogoArrivalUl = (config.typeLogoArrivalUl is defined and config.typeLogoArrivalUl is not null) ? config.typeLogoArrivalUl %}
     {% set landscape = landscape is defined and landscape %}
     {% set separated = config.separated is defined and config.separated %}
 
-    {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined %}
+    {% set hasHeader = logo or firstCustomIconIsDefined or secondCustomIconIsDefined or typeLogoArrivalUl %}
 
     {% set labelsLength = config.labels|length %}
     {% set barcodeHeight = (labelsLength == 0 or landscape
@@ -175,6 +176,10 @@
                 <div class="header">
                     {% if logo %}
                         <img class="logo" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
+                    {% endif %}
+
+                    {% if typeLogoArrivalUl %}
+                        <img class="logo" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ typeLogoArrivalUl }}" alt="Type logo">
                     {% endif %}
 
                     {% if firstCustomIconIsDefined or secondCustomIconIsDefined %}
