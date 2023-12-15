@@ -1677,7 +1677,6 @@ class ArrivageController extends AbstractController {
                     $receivers = [];
                     foreach ($fieldPredictions as $fieldPrediction) {
                         $receiver = $utilisateurRepository->findOneByName($fieldPrediction["value"]);
-                        $receivers[] = $fieldPrediction["value"];
                         if ($receiver) {
                             $fieldValues[$field]["values"][] = [
                                 "value" => $receiver->getId(),
