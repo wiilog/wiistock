@@ -18,7 +18,6 @@ use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
-use App\Entity\Import;
 use App\Entity\Inventory\InventoryCategory;
 use App\Entity\Inventory\InventoryFrequency;
 use App\Entity\Inventory\InventoryMission;
@@ -32,7 +31,8 @@ use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\ReferenceArticle;
 use App\Entity\Role;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\Import;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\SessionHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -79,7 +79,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
-use Twig\Environment;
+use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 use WiiCommon\Helper\StringHelper;
 
@@ -95,7 +95,7 @@ class SettingsController extends AbstractController {
     public SpecificService $specificService;
 
     #[Required]
-    public Environment $twig;
+    public Twig_Environment $twig;
 
     #[Required]
     public KernelInterface $kernel;
@@ -305,11 +305,6 @@ class SettingsController extends AbstractController {
                             "save" => true,
                         ],
                         self::MENU_TYPES_FREE_FIELDS => ["label" => "Types et champs libres", "wrapped" => false],
-                        self::MENU_OVERCONSUMPTION_BILL => [
-                            "label" => "Bon de surconsommation",
-                            "save" => true,
-                            "discard" => true,
-                        ],
                     ],
                 ],
                 self::MENU_ARRIVALS => [
@@ -661,7 +656,6 @@ class SettingsController extends AbstractController {
     public const MENU_STATUSES = "statuts";
     public const MENU_FIXED_FIELDS = "champs_fixes";
     public const MENU_RESERVES = "reserves";
-    public const MENU_OVERCONSUMPTION_BILL = "bon_surconsommation";
     public const MENU_ARRIVALS = "arrivages";
     public const MENU_MOVEMENTS = "mouvements";
     public const MENU_FREE_FIELDS = "champs_libres";
@@ -1304,20 +1298,6 @@ class SettingsController extends AbstractController {
                             ->filter(static fn(FixedFieldByType $fixedField) => in_array($fixedField->getFieldCode(), FixedField::FILTERED_FIELDS[FixedFieldStandard::ENTITY_CODE_DISPATCH]))
                             ->toArray(),
                     ],
-                    self::MENU_OVERCONSUMPTION_BILL => fn() => [
-                        "types" => Stream::from($typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]))
-                            ->map(fn(Type $type) => [
-                                "value" => $type->getId(),
-                                "label" => $type->getLabel(),
-                            ])->toArray(),
-                        "statuses" => Stream::from($statusRepository->findByCategorieName(CategorieStatut::DISPATCH))
-                            ->filter(fn(Statut $status) => $status->getState() === Statut::NOT_TREATED)
-                            ->map(fn(Statut $status) => [
-                                "value" => $status->getId(),
-                                "label" => $this->getFormatter()->status($status),
-                            ])
-                            ->toArray(),
-                    ],
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository, $subLineFieldParamRepository, $fixedFieldByTypeRepository) {
                         $emergencyField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_EMERGENCY]);
                         $businessField = $fixedFieldByTypeRepository->findOneBy(['entityCode' => FixedFieldStandard::ENTITY_CODE_DISPATCH, 'fieldCode' => FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT]);
@@ -1674,15 +1654,17 @@ class SettingsController extends AbstractController {
                 self::MENU_CSV_EXPORTS => fn() => [
                     "statuts" => $statusRepository->findByCategorieName(CategorieStatut::EXPORT),
                 ],
-                self::MENU_IMPORTS => fn() => [
-                    "statuts" => $statusRepository->findByCategoryNameAndStatusCodes(
+                self::MENU_IMPORTS => function () use ($typeRepository, $statusRepository) {
+                    $statuses = $statusRepository->findByCategoryNameAndStatusCodes(
                         CategorieStatut::IMPORT,
-                        [
-                            Import::STATUS_PLANNED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED,
-                            Import::STATUS_FINISHED,
-                        ]
-                    ),
-                ],
+                        [Import::STATUS_UPCOMING, Import::STATUS_SCHEDULED, Import::STATUS_IN_PROGRESS, Import::STATUS_CANCELLED, Import::STATUS_FINISHED]
+                    );
+                    $types = $typeRepository->findByCategoryLabels([CategoryType::IMPORT]);
+                    return [
+                        "statuts" => $statuses,
+                        "types" => $types,
+                    ];
+                },
             ],
             self::CATEGORY_NOTIFICATIONS => [
                 self::MENU_ALERTS => function() use ($alertTemplateRepository) {
@@ -2225,15 +2207,16 @@ class SettingsController extends AbstractController {
                 ]);
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARRIVAGE])) {
+                $requiredMark = !in_array($categoryLabel, [CategoryType::ARRIVAGE]) ? "*" : "";
                 $data[] = [
-                    "label" => "Logo*",
+                    "label" => "Logo$requiredMark",
                     "value" => $this->renderView("form_element.html.twig", [
                         "element" => "image",
                         "arguments" => [
                             "logo",
                             null,
-                            true,
+                            !!$requiredMark,
                             $type?->getLogo()?->getFullPath(),
                         ],
                     ]),
@@ -2335,7 +2318,7 @@ class SettingsController extends AbstractController {
                 }
             }
 
-            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT])) {
+            if(in_array($categoryLabel, [CategoryType::DELIVERY_TRANSPORT, CategoryType::COLLECT_TRANSPORT, CategoryType::ARRIVAGE])) {
                 $data[] = [
                     "label" => "Logo",
                     "value" => $type?->getLogo()
@@ -2681,16 +2664,6 @@ class SettingsController extends AbstractController {
                 $keptInMemoryDisabled = in_array($code, FixedField::MEMORY_UNKEEPABLE_FIELDS[$entity] ?? []);
                 $keptInMemory = !$keptInMemoryDisabled && $field->isKeptInMemory(...$isParams);
 
-                if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                    $onMobile = $field->isOnMobile(...$isParams);
-                    $onMobileDisabled = !in_array($code, FixedField::ON_MOBILE_FIELDS[$entity] ?? []);
-                }
-
-                if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                    $onLabel = $field->isOnLabel(...$isParams);
-                    $onLabelDisabled = !in_array($code, FixedField::ON_LABEL_FIELDS[$entity] ?? []);
-                }
-
                 if ($entityNeeded === FixedFieldStandard::class) {
                     $filtersDisabled = !in_array($code, FixedField::FILTERED_FIELDS[$entity] ?? []);
                     $displayedFilters = !$filtersDisabled && $field->isDisplayedFilters();
@@ -2736,18 +2709,6 @@ class SettingsController extends AbstractController {
                             "disabled" => $keptInMemoryDisabled,
                         ]);
                     }
-
-                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                        $row["onMobile"] = $formService->macro("checkbox", "onMobile", null, false, $onMobile, [
-                            "disabled" => $onMobileDisabled,
-                        ]);
-                    }
-
-                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                        $row["onLabel"] = $formService->macro("checkbox", "onLabel", null, false, $onLabel, [
-                            "disabled" => $onLabelDisabled,
-                        ]);
-                    }
                 } else {
                     $row = [
                         "label" => "<span class='font-weight-bold'>$label</span>",
@@ -2760,14 +2721,6 @@ class SettingsController extends AbstractController {
 
                     if ($entity === FixedFieldStandard::ENTITY_CODE_ARRIVAGE) {
                         $row["keptInMemory"] = $this->formatService->bool($field->isKeptInMemory(...$isParams));
-                    }
-
-                    if (in_array($entity, FixedField::ON_MOBILE_ENTITY)) {
-                        $row["onMobile"] = $this->formatService->bool($field->isOnMobile(...$isParams));
-                    }
-
-                    if (in_array($entity, FixedField::ON_LABEL_ENTITY)) {
-                        $row["onLabel"] = $this->formatService->bool($field->isOnLabel(...$isParams));
                     }
                 }
                 return $row;
@@ -3133,7 +3086,7 @@ class SettingsController extends AbstractController {
 
         foreach ($typesLitige as $type) {
             if ($type->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+                $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
             }
         }
         $manager->flush();

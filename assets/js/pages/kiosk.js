@@ -89,38 +89,42 @@ $(function () {
 
         if($current.hasClass('reference-container')){
             const {token, scannedreference} = GetRequestQuery();
-            if (!scannedreference) {
-                $modalWaiting.modal('show');
-                AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference: $referenceRefInput.val()})
-                    .json()
-                    .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
-                        $modalWaiting.modal('hide');
-                        if (exists && inStock) {
-                            let $errorMessage = $modalInStockWarning.find('#stock-error-message');
-                            $errorMessage.html(originalMessage
-                                .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
-                                .replace('@codearticle', `<span class="bold">${codeArticle}</span>`)
-                            );
-                            $modalInStockWarning.modal('show');
-                            $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
-                            $modalInStockWarning.find('button.outline').on('click', function () {
-                                window.location.href = Routing.generate('kiosk_index', {token}, true);
-                            });
-                        } else if (exists) {
-                            window.location.href = Routing.generate('kiosk_form', {token, scannedReference: $referenceRefInput.val()});
-                        }
-                    });
-            }
+            $modalWaiting.modal('show');
+            AJAX.route(GET, `reference_article_check_quantity`, {token, scannedReference: $referenceRefInput.val()})
+                .json()
+                .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
+                    $modalWaiting.modal('hide');
+                    const $articleDataInput = $('[name=reference-article-input]');
+                    if($articleDataInput && referenceForErrorModal === $referenceRefInput.val()) {
+                        $current.removeClass('active').addClass('d-none');
+                        $($current.next()[0]).addClass('active').removeClass('d-none');
+                        $currentTimelineEvent.removeClass('current');
+                        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
+                    } else if (exists && inStock) {
+                        let $errorMessage = $modalInStockWarning.find('#stock-error-message');
+                        $errorMessage.html(originalMessage
+                            .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
+                            .replace('@codearticle', `<span class="bold">${codeArticle}</span>`)
+                        );
+                        $modalInStockWarning.modal('show');
+                        $modalInStockWarning.find('.bookmark-icon').removeClass('d-none');
+                        $modalInStockWarning.find('button.outline').on('click', function () {
+                            window.location.href = Routing.generate('kiosk_index', {token}, true);
+                        });
+                    } else if ((scannedreference && scannedreference !== $referenceRefInput.val()) || exists) {
+                        window.location.href = Routing.generate('kiosk_form', {token, scannedReference: $referenceRefInput.val()});
+                    }
+                });
         }
         if ($current.find('.invalid').length === 0) {
             if ($($current.next()[0]).hasClass('summary-container')) {
                 const $articleDataInput = $('input[name=reference-article-input]');
                 const {token} = GetRequestQuery();
                 wrapLoadingOnActionButton($(this), () => (
-                    AJAX.route(POST, 'check_article_is_valid', {token, articleLabel: $articleDataInput.val() || null})
+                    AJAX.route(POST, 'check_article_is_valid', {token, barcode: $articleDataInput.val() || null, referenceLabel : $referenceRefInput.val() })
                         .json()
                         .then(({success, fromArticlePage}) => {
-                            if (success || !fromArticlePage) {
+                            if(success || !fromArticlePage){
                                 $current.removeClass('active').addClass('d-none');
                                 $($current.next()[0]).addClass('active').removeClass('d-none');
                                 $currentTimelineEvent.removeClass('current');
@@ -155,9 +159,9 @@ $(function () {
                                     || $freeFieldLabel.find('select').find('option:selected').text());
                                 $('.reference-commentary').html($('input[name=reference-comment]').val());
                             } else {
-                                $modalArticleIsNotValid.modal('show');
-                                $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
-                            }
+                                    $modalArticleIsNotValid.modal('show');
+                                    $modalArticleIsNotValid.find('.bookmark-icon').removeClass('d-none');
+                                }
                         })));
             } else {
                 $current.removeClass('active').addClass('d-none');

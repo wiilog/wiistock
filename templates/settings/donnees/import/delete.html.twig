@@ -1,0 +1,21 @@
+<div class="modal fade" id="modalDeleteImport" role="dialog"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Suppression de l'import"
+            } %}
+
+            <div class="modal-body">
+                Voulez-vous réellement supprimer cet import ?
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Non'},
+                    {classes: 'btn btn-success', text: 'Oui', type: 'submit'}
+                ],
+                hideErrorContainer: true,
+            } %}
+        </div>
+    </div>
+</div>

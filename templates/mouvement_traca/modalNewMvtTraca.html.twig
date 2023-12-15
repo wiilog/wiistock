@@ -11,55 +11,49 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="row">
-                            {% if isSafran %}
-                                <div class="col-12">
-                                    {% include 'mouvement_traca/newMassMvtTraca.html.twig' %}
-                                </div>
-                            {% else %}
-                                <div class="form-group col-12">
-                                    <label class="wii-field-name" for="datetime">{{ trans('Traçabilité', 'Général', 'Date', false) }}*</label>
-                                    <input type="text"
-                                           id="datetime"
-                                           name="datetime"
-                                           class="form-control data datetime-field needed no-clear pointer"
-                                           data-init="now"
-                                           placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
-                                           autocomplete="off"/>
-                                </div>
-                                <input type="hidden" class="data" name="forced" value="0">
-                                <div class="form-group col-12">
-                                    <label class="wii-field-name" for="operator my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Opérateur', false) }}*</label>
-                                    <select name="operator"
-                                            class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
-                                    </select>
-                                    <input hidden
-                                           name="logged-user"
-                                           data-username="{{ app.user.username }}"
-                                           data-id="{{ app.user.id }}"/>
-                                </div>
-                                <div class="form-group col-12">
-                                    {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
-                                    {{ form.select('type', trans('Traçabilité', 'Mouvements', 'Action', false), true, {
-                                        type: '',
-                                        inputClass: 'no-clear',
-                                        additionalAttributes: [
-                                            { name: 'onchange', value: 'switchMvtCreationType($(this))' },
-                                        ],
-                                        items : form_statuses
-                                            |filter(status =>
-                                                status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
-                                                or status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight
-                                            )
-                                            |map(status => ({
-                                                value: status.id,
-                                                label: status.nom,
-                                                selected: status.nom == constant('App\\Entity\\TrackingMovement::DEFAULT_TYPE')
-                                            }))
-                                    }) }}
-                                </div>
-                                <div class="more-body-new-mvt-traca col-12">
-                                </div>
-                            {% endif %}
+                            <div class="form-group col-12">
+                                <label class="wii-field-name" for="datetime">{{ trans('Traçabilité', 'Général', 'Date', false) }}*</label>
+                                <input type="text"
+                                       id="datetime"
+                                       name="datetime"
+                                       class="form-control data datetime-field needed no-clear pointer"
+                                       data-init="now"
+                                       placeholder="{{ app.user.displayedDateFormat ~ ' hh:mm' }}"
+                                       autocomplete="off"/>
+                            </div>
+                            <input type="hidden" class="data" name="forced" value="0">
+                            <div class="form-group col-12">
+                                <label class="wii-field-name" for="operator my-auto mr-2">{{ trans('Traçabilité', 'Général', 'Opérateur', false) }}*</label>
+                                <select name="operator"
+                                        class="form-control ajax-autocomplete-user data needed operator no-clear w-100">
+                                </select>
+                                <input hidden
+                                       name="logged-user"
+                                       data-username="{{ app.user.username }}"
+                                       data-id="{{ app.user.id }}"/>
+                            </div>
+                            <div class="form-group col-12">
+                                {% set hasEmptyRoundRight = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EMPTY_ROUND')) %}
+                                {{ form.select('type', trans('Traçabilité', 'Mouvements', 'Action', false), true, {
+                                    type: '',
+                                    inputClass: 'no-clear',
+                                    additionalAttributes: [
+                                        { name: 'onchange', value: 'switchMvtCreationType($(this))' },
+                                    ],
+                                    items : form_statuses
+                                        |filter(status =>
+                                            status.nom != constant('App\\Entity\\TrackingMovement::TYPE_UNGROUP')
+                                            or status.nom == constant('App\\Entity\\TrackingMovement::TYPE_EMPTY_ROUND') and hasEmptyRoundRight
+                                        )
+                                        |map(status => ({
+                                            value: status.id,
+                                            label: status.nom,
+                                            selected: status.nom == constant('App\\Entity\\TrackingMovement::DEFAULT_TYPE')
+                                        }))
+                                }) }}
+                            </div>
+                            <div class="more-body-new-mvt-traca col-12">
+                            </div>
                         </div>
                     </div>
                     <div class="col-6">

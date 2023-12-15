@@ -293,7 +293,9 @@ class FormatService
                     : '';
                 break;
             case FreeField::TYPE_LIST_MULTIPLE:
-                $values = Stream::explode(';', $value)->toArray();
+                $values = Stream::explode(';', $value)
+                    ->filter()
+                    ->toArray();
                 $translatedValues = $this->translationService->translateFreeFieldListValues(Language::FRENCH_SLUG, $userLanguage, $freeField, $values, true);
                 $formatted = Stream::from($translatedValues ?: [])->join(', ');
                 break;
@@ -421,4 +423,5 @@ class FormatService
     public function triggerActionTemplateType(?TriggerAction $triggerAction,string $else = ""): string {
         return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
     }
+
 }

@@ -156,10 +156,12 @@ function treatFetchCallback(json) {
         return;
     }
 
-    if(json.success === false && json.msg) {
-        Flash.add(ERROR, json.msg, true, true);
-    } else if(json.success === true && json.msg) {
-        Flash.add(SUCCESS, json.msg, true, true);
+    const message = (json.message || json.msg);
+    if (json.success === false && message) {
+        Flash.add(ERROR, message, true, true);
+    }
+    else if(json.success === true && message) {
+        Flash.add(SUCCESS, message, true, true);
     }
 
     if(json.reload === true) {

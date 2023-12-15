@@ -46,6 +46,7 @@ class DispatchRepository extends EntityRepository
         foreach ($filters as $filter) {
             switch ($filter['field']) {
                 case 'statuses-filter':
+                case 'statut':
                     if(!empty($filter['value'])) {
                         $value = explode(',', $filter['value']);
                         $qb
@@ -57,6 +58,7 @@ class DispatchRepository extends EntityRepository
                 case FiltreSup::FIELD_MULTIPLE_TYPES:
                     if(!empty($filter['value'])){
                         $value = Stream::explode(',', $filter['value'])
+                            ->filter()
                             ->map(static fn($type) => explode(':', $type)[0])
                             ->toArray();
                         $qb
@@ -178,6 +180,7 @@ class DispatchRepository extends EntityRepository
                     break;
                 case FiltreSup::FIELD_BUSINESS_UNIT:
                     $values = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn(string $value) => strtok($value, ':'))
                         ->toArray();
                     $qb

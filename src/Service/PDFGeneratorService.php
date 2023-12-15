@@ -111,6 +111,7 @@ class PDFGeneratorService {
                 'separated' => $separated,
                 'firstCustomIcon' => $config['firstCustomIcon'] ?? null,
                 'secondCustomIcon' => $config['secondCustomIcon'] ?? null,
+                'typeLogoArrivalUl' => $config['typeLogoArrivalUl'] ?? null,
                 'businessUnit' => $config['businessUnit'] ?? false,
             ];
         }, $barcodeConfigs);

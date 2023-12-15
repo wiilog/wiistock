@@ -1,0 +1,87 @@
+{% import 'form.html.twig' as form %}
+
+{% set edit = edit is defined and edit %}
+
+{% if not edit %}
+    <div class="row mb-4">
+        <div class="col-12">
+            {{ form.radio('type', null, false, [
+                {
+                    label: 'Import unique',
+                    value: "unique-import-checkbox",
+                    checked: not import.type or import.type.label == constant('App\\Entity\\Type::LABEL_UNIQUE_IMPORT'),
+                },
+                {
+                    label: 'Import planifié',
+                    value: "scheduled-import-checkbox",
+                    checked: import.type and import.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_IMPORT'),
+                },
+            ], {
+                onChange: "toggleImportType($(this))"
+            }) }}
+        </div>
+    </div>
+{% endif %}
+
+{% include 'settings/donnees/import/base.html.twig' %}
+
+<div class="unique-import"></div>
+
+<div class="{{ edit and import.type.label == constant('App\\Entity\\Type::LABEL_SCHEDULED_IMPORT') ? '' : 'd-none' }} scheduled-import">
+    <div>
+        {% include 'planner/planner.html.twig' with {
+            frequency: import.scheduleRule ? import.scheduleRule.frequency : null,
+            begin: import.scheduleRule ? import.scheduleRule.begin : null,
+            intervalPeriod: import.scheduleRule ? import.scheduleRule.intervalPeriod : null,
+            intervalTime: import.scheduleRule ? import.scheduleRule.intervalTime : null,
+            period: import.scheduleRule ? import.scheduleRule.period : null,
+            weekDays: import.scheduleRule ? import.scheduleRule.weekDays : null,
+            months: import.scheduleRule ? import.scheduleRule.months : null,
+            monthDays: import.scheduleRule ? import.scheduleRule.monthDays : null,
+            intervalTime: import.scheduleRule ? import.scheduleRule.intervalTime : null,
+            required: true,
+        } %}
+    </div>
+    <div class="row mt-3">
+        <div class="form-group col-12">
+            {{ form.input("path-import-file", "Chemin absolu vers le fichier d'import", true, import.scheduleRule ? import.scheduleRule.filePath) }}
+        </div>
+    </div>
+    <div class="wii-section-title my-3">Paramétrage du serveur</div>
+    <div class="row">
+        <div class="form-group col-md-6 col-12">
+            {{ form.input("host", "Serveur hôte", true, import.FTPConfig['host'] ?? '') }}
+        </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.input("port", "Port", true, import.FTPConfig['port'] ?? '', {
+                type: "number",
+            }) }}
+        </div>
+
+        <div class="form-group col-md-6 col-12">
+            {{ form.input("user", "Utilisateur", true, import.FTPConfig['user'] ?? '') }}
+        </div>
+        <div class="form-group col-md-6 col-12">
+            {{ form.input("pass", "Mot de passe", true, import.FTPConfig['pass'] ?? '', {
+                type: 'password',
+                attributes: {
+                    autocomplete: "new-password"
+                },
+            }) }}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="form-group col-12">
+        {% include 'attachment/attachment.html.twig' with {
+            'isNew': edit and definedRule ? false : true,
+            'text': 'Faites glisser votre fichier csv',
+            label: "Fichier d'import",
+            required: not edit,
+            unique: true
+        } %}
+    </div>
+</div>
+
+{% include 'settings/donnees/import/disclaimer.html.twig' %}

@@ -114,6 +114,7 @@ class StatusController extends AbstractController
                 $sendMailRequesters = $status->getSendNotifToDeclarant() ? 'checked' : "";
                 $sendMailDest = $status->getSendNotifToRecipient() ? 'checked' : "";
                 $sendReport = $status->getSendReport() ? 'checked' : "";
+                $overconsumptionBillGenerationStatus = $status->getOverconsumptionBillGenerationStatus() ? 'checked' : "";
                 $needsMobileSync = (!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()) ? 'checked' : "";
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
@@ -131,6 +132,7 @@ class StatusController extends AbstractController
                     "sendMailRequesters" => "<div class='checkbox-container'><input type='checkbox' name='sendMailRequesters' class='form-control data' {$sendMailRequesters}/></div>",
                     "sendMailDest" => "<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data' {$sendMailDest}/></div>",
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
+                    "overconsumptionBillGenerationStatus" => "<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data' {$overconsumptionBillGenerationStatus}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
                     "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
                         <datalist id='type-color'>
@@ -160,6 +162,7 @@ class StatusController extends AbstractController
                     "sendMailRequesters" => $this->formatService->bool($status->getSendNotifToDeclarant()),
                     "sendMailDest" => $this->formatService->bool($status->getSendNotifToRecipient()),
                     "sendReport" => $this->formatService->bool($status->getSendReport()),
+                    "overconsumptionBillGenerationStatus" => $this->formatService->bool($status->getOverconsumptionBillGenerationStatus()),
                     "groupedSignatureType" => $status->getGroupedSignatureType(),
                     "groupedSignatureColor" => "<div class='dt-type-color' style='background: {$groupedSignatureColor}'></div>",
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
@@ -265,7 +268,7 @@ class StatusController extends AbstractController
 
         foreach ($statuses as $status) {
             if ($status->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $status, $status->getNom());
+                $translationService->setDefaultTranslation($manager, $status, $status->getNom());
             }
         }
         $manager->flush();
