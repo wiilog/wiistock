@@ -2,6 +2,7 @@ imports:
     - { resource: './menu.yaml' }
     - { resource: './generated.yaml' }
 
+
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'

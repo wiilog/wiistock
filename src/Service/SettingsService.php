@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\StatusController;
+use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -22,6 +23,7 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -52,6 +54,7 @@ use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -268,18 +271,6 @@ class SettingsService {
             }
 
             $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
-        }
-
-        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
-            $setting->setValue(
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
-            );
-
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
         }
 
         if ($request->request->has("temperatureRanges")) {
@@ -987,6 +978,13 @@ class SettingsService {
                     'categorie' => $category,
                 ]);
 
+                $countOverconsumptionBillGenerationStatus = Stream::from($statusesData)
+                    ->filter(fn(array $statusData) => ($statusData['overconsumptionBillGenerationStatus'] ?? null) === "1")
+                    ->count();
+                if ($countOverconsumptionBillGenerationStatus > 1) {
+                    throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
+                }
+
                 foreach ($statusesData as $statusData) {
                     if (!in_array($statusData['state'], [
                         Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
@@ -1030,6 +1028,7 @@ class SettingsService {
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOrder($statusData['order'] ?? 0);
 
                     // label given on creation or edit is the French one

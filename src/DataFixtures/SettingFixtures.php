@@ -138,9 +138,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
                 'default' => null,
             ],
-            Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
-                'default' => null,
-            ],
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
                 'default' => null,
             ],
@@ -232,6 +229,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MVT_DEPOSE_DESTINATION => [],
             Setting::DROP_OFF_LOCATION_IF_CUSTOMS => [],
             Setting::DROP_OFF_LOCATION_IF_EMERGENCY => [],
+            Setting::DROP_OFF_LOCATION_IF_RECIPIENT => [],
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
                 "default" => json_encode(["provider", "commande"]),
             ],
@@ -384,6 +382,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
             ],
             Setting::AUTO_UNGROUP_TYPES => [
+                'default' => null,
+            ],
+            Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
                 'default' => null,
             ],
             Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [

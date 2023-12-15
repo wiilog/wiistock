@@ -56,25 +56,25 @@ class Statut {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $code = null;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $nom = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $displayOrder = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $state = null;
 
     #[ORM\ManyToOne(targetEntity: CategorieStatut::class, inversedBy: 'statuts')]
@@ -110,10 +110,10 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'status', targetEntity: Dispute::class)]
     private Collection $disputes;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendNotifToBuyer = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => true])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => true])]
     private ?bool $commentNeeded = null;
 
     #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Arrivage::class)]
@@ -125,25 +125,28 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'status', targetEntity: TransferOrder::class)]
     private Collection $transferOrders;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendNotifToDeclarant = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => false])]
     private ?bool $sendReport = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => false])]
+    private ?bool $overconsumptionBillGenerationStatus = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'statuts')]
     private ?Type $type = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $sendNotifToRecipient = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $needsMobileSync = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $automaticReceptionCreation = null;
 
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private ?bool $defaultForCategory = false;
 
     #[ORM\OneToMany(mappedBy: 'status', targetEntity: PurchaseRequest::class)]
@@ -155,10 +158,10 @@ class Statut {
     #[ORM\OneToOne(mappedBy: "status", targetEntity: TranslationSource::class)]
     private ?TranslationSource $labelTranslation = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $groupedSignatureType = '';
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
     private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
@@ -712,6 +715,16 @@ class Statut {
 
     public function setSendReport(?bool $sendReport): self {
         $this->sendReport = $sendReport;
+
+        return $this;
+    }
+
+    public function getOverconsumptionBillGenerationStatus(): ?bool {
+        return $this->overconsumptionBillGenerationStatus;
+    }
+
+    public function setOverconsumptionBillGenerationStatus(?bool $overconsumptionBillGenerationStatus): self {
+        $this->overconsumptionBillGenerationStatus = $overconsumptionBillGenerationStatus;
 
         return $this;
     }

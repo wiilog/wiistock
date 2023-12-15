@@ -434,7 +434,7 @@ class PackService {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $location = $persistTrackingMovements
-            ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
+            ? $arrivage->getDropLocation()
             : null;
 
         $totalPacks = Stream::from($packByNatures)->sum();

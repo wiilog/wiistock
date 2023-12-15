@@ -3043,6 +3043,7 @@ class MobileController extends AbstractApiController
         $includeSuppliers = $request->query->getBoolean('suppliers');
         $includeOrderNumbers = $request->query->getBoolean('orderNumbers');
         $includeDispatches = $request->query->getBoolean('dispatches');
+        $includeLocation = $request->query->getBoolean('location');
 
         $res = ['success' => true];
 
@@ -3071,6 +3072,11 @@ class MobileController extends AbstractApiController
                 $res['nature'] = !empty($nature)
                     ? $natureService->serializeNature($nature, $this->getUser())
                     : null;
+            }
+
+            if ($includeLocation) {
+                $location = $pack->getLastTracking()?->getEmplacement();
+                $res["location"] = $location?->getId();
             }
 
             if ($includeExisting) {
@@ -3137,6 +3143,7 @@ class MobileController extends AbstractApiController
             $res['existing'] = false;
             $res['suppliers'] = false;
             $res['orderNumbers'] = false;
+            $res['location'] = null;
         }
 
         return $this->json($res);
