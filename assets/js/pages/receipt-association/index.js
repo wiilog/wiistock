@@ -64,13 +64,15 @@ function initReceiptAssociationModal($modal) {
         .on(`change`, function() {
             const existingLogisticUnits = Number($(this).val());
 
-            $modal
-                .find(`[name=logisticUnit], .add-logistic-unit`)
-                .prop(`disabled`, !existingLogisticUnits)
+            const $logisticUnitField = $modal.find(`[name=logisticUnit]`);
+            $logisticUnitField
                 .prop(`required`, existingLogisticUnits)
                 .toggleClass(`needed`, existingLogisticUnits)
-                .closest(`.row`)
-                .find(`.required-mark`)
+                .toggleClass(`data`, existingLogisticUnits)
+                .toggleClass(`d-none`, !existingLogisticUnits);
+
+            const $logisticUnitAddButton = $modal.find(`.add-logistic-unit`);
+            $logisticUnitAddButton
                 .toggleClass(`d-none`, !existingLogisticUnits);
 
             $modal
