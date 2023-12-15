@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Controller\Settings\StatusController;
+use App\Entity\Action;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
@@ -22,6 +23,7 @@ use App\Entity\IOT\HandlingRequestTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\RequestTemplateLine;
 use App\Entity\Language;
+use App\Entity\Menu;
 use App\Entity\NativeCountry;
 use App\Entity\Nature;
 use App\Entity\Reception;
@@ -45,13 +47,13 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use FOS\RestBundle\Request\ParameterBag;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionClass;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Process;
@@ -170,10 +172,12 @@ class SettingsService {
             );
         }
         $updated = [];
+
         $this->saveCustom($request, $settings, $updated, $result);
-        $this->saveStandard($request, $settings, $updated);
+        $this->saveStandard($request, $settings, $updated, $allFormSettingNames);
         $this->manager->flush();
         $this->saveFiles($request, $settings, $allFormSettingNames, $updated);
+
         $settingNamesToClear = array_diff($allFormSettingNames, $settingNames, $updated);
         $settingToClear = !empty($settingNamesToClear) ? $settingRepository->findByLabel($settingNamesToClear) : [];
         $this->clearSettings($settingToClear);
@@ -268,18 +272,6 @@ class SettingsService {
             $this->alertTemplateService->updateAlertTemplate($request, $this->manager, $template);
         }
 
-        if ($request->request->has("DISPATCH_OVERCONSUMPTION_BILL_TYPE") && $request->request->has("DISPATCH_OVERCONSUMPTION_BILL_STATUS")) {
-            $setting = $this->manager->getRepository(Setting::class)
-                ->findOneBy(["label" => Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS]);
-            $setting->setValue(
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_TYPE") . ";" .
-                $request->request->get("DISPATCH_OVERCONSUMPTION_BILL_STATUS")
-            );
-
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_TYPE";
-            $updated[] = "DISPATCH_OVERCONSUMPTION_BILL_STATUS";
-        }
-
         if ($request->request->has("temperatureRanges")) {
             $temperatureRepository = $this->manager->getRepository(TemperatureRange::class);
             $existingRanges = Stream::from($temperatureRepository->findAll())
@@ -287,6 +279,7 @@ class SettingsService {
                 ->toArray();
             $removedRanges = Stream::from($existingRanges)->toArray();
             $submittedTemperatureRanges = Stream::explode(",", $request->request->get("temperatureRanges"))
+                ->filter()
                 ->unique()
                 ->toArray();
 
@@ -346,10 +339,16 @@ class SettingsService {
     /**
      * @param Setting[] $settings Existing settings
      */
-    private function saveStandard(Request $request, array $settings, array &$updated): void {
+    private function saveStandard(Request   $request,
+                                  array     $settings,
+                                  array     &$updated,
+                                  array     $allFormSettingNames = []): void {
         foreach ($request->request->all() as $key => $value) {
             $setting = $this->getSetting($settings, $key);
-            if (isset($setting) && !in_array($key, $updated)) {
+            if (isset($setting)
+                && !in_array($key, $updated)
+                && !in_array('keep-' . $setting->getLabel(), $allFormSettingNames)
+                && !in_array($setting->getLabel() . '_DELETED', $allFormSettingNames)) {
                 if (is_array($value)) {
                     $value = json_encode($value);
                 }
@@ -375,7 +374,7 @@ class SettingsService {
             }
         }
 
-        $logosToSave = [
+        $defaultLogosToSave = [
             [Setting::FILE_WEBSITE_LOGO, Setting::DEFAULT_WEBSITE_LOGO_VALUE],
             [Setting::FILE_MOBILE_LOGO_LOGIN, Setting::DEFAULT_MOBILE_LOGO_LOGIN_VALUE],
             [Setting::FILE_EMAIL_LOGO, Setting::DEFAULT_EMAIL_LOGO_VALUE],
@@ -391,29 +390,28 @@ class SettingsService {
             [Setting::LABEL_LOGO, null],
         ];
 
-        foreach ($logosToSave as [$settingLabel, $default]) {
-            if (in_array($settingLabel, $allFormSettingNames)) {
-                $setting = $this->getSetting($settings, $settingLabel);
-                if (isset($default)
-                    && !$request->request->getBoolean('keep-' . $settingLabel)
-                    && !$request->files->has($settingLabel)) {
+        foreach ($defaultLogosToSave as [$defaultLogoLabel, $default]) {
+            if (in_array($defaultLogoLabel, $allFormSettingNames)) {
+                $setting = $this->getSetting($settings, $defaultLogoLabel);
+                if (!$request->request->getBoolean('keep-' . $defaultLogoLabel)
+                    && !isset($files[$defaultLogoLabel])) {
                     $setting->setValue($default);
                 }
             }
-            $updated[] = $settingLabel;
+            $updated[] = $defaultLogoLabel;
         }
 
         foreach($request->request->all() as $key => $value) {
             if (str_ends_with($key, '_DELETED')) {
-                $settingLabel = str_replace('_DELETED', '', $key);
-                $linkedLabel = $settingLabel . '_FILE_NAME';
-                $setting = $this->getSetting($settings, $settingLabel);
+                $defaultLogoLabel = str_replace('_DELETED', '', $key);
+                $linkedLabel = $defaultLogoLabel . '_FILE_NAME';
+                $setting = $this->getSetting($settings, $defaultLogoLabel);
                 $linkedSetting = $this->getSetting($settings, $linkedLabel);
                 if ($value === "1") {
                     $setting->setValue(null);
                     $linkedSetting->setValue(null);
                 }
-                $updated[] = $settingLabel;
+                $updated[] = $defaultLogoLabel;
             }
         }
     }
@@ -634,6 +632,7 @@ class SettingsService {
                 $types = [];
 
                 Stream::explode(',', $tagTemplateData['natureOrType'])
+                    ->filter()
                     ->each(function(int $id) use ($tagTemplateData, $natureRepository, $typeRepository, $tagTemplate, &$natures, &$types) {
                         if($tagTemplateData['module'] === CategoryType::ARRIVAGE) {
                             $nature = $natureRepository->find($id);
@@ -712,9 +711,9 @@ class SettingsService {
                         throw new RuntimeException("L'emplacement de prise par défaut doit être compris dans les emplacements de prise suggérés");
                     }
                 }
-
+                $newLabel = $data["label"] ?? $type->getLabel();
                 $type
-                    ->setLabel($data["label"] ?? $type->getLabel())
+                    ->setLabel($newLabel)
                     ->setDescription($data["description"] ?? null)
                     ->setPickLocation(isset($data["pickLocation"]) ? $this->manager->find(Emplacement::class, $data["pickLocation"]) : null)
                     ->setDropLocation(isset($data["dropLocation"]) ? $this->manager->find(Emplacement::class, $data["dropLocation"]) : null)
@@ -725,6 +724,13 @@ class SettingsService {
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
                     ->setColor($data["color"] ?? null);
+
+                $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
+                if ($defaultTranslation) {
+                    $defaultTranslation->setTranslation($newLabel);
+                } else {
+                    $this->translationService->setDefaultTranslation($this->manager, $type, $newLabel);
+                }
 
                 if(isset($data["isDefault"])) {
                     if($data["isDefault"]) {
@@ -768,7 +774,7 @@ class SettingsService {
 
                 if (isset($item["elements"])) {
                     $elements = Stream::explode(";", $item["elements"])
-                        ->map(fn(string $element) => trim($element))
+                        ->filterMap(fn(string $element) => trim($element) ?: null)
                         ->toArray();
                 }
 
@@ -790,18 +796,17 @@ class SettingsService {
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"]);
 
-                if(!$freeField->getLabelTranslation()) {
-                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getLabel());
+                $defaultTranslation = $freeField->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
+                if ($defaultTranslation) {
+                    $defaultTranslation->setTranslation($freeField->getLabel());
                 } else {
-                    $freeField->getLabelTranslation()
-                        ->getTranslationIn(Language::FRENCH_SLUG)
-                        ->setTranslation($freeField->getLabel());
+                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getLabel());
                 }
 
                 $defaultValue = $freeField->getDefaultValue();
                 $defaultValueTranslation = $freeField->getDefaultValueTranslation();
                 if($defaultValue && !$defaultValueTranslation) {
-                    $this->translationService->setFirstTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                    $this->translationService->setDefaultTranslation($this->manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
                 } else if($defaultValue && $defaultValueTranslation) {
                     $translation = $defaultValueTranslation->getTranslationIn(Language::FRENCH_SLUG)
                         ?: (new Translation())
@@ -821,7 +826,7 @@ class SettingsService {
                 foreach($freeField->getElements() as $element) {
                     $source = $freeField->getElementTranslation($element);
                     if(!$source) {
-                        $this->translationService->setFirstTranslation($this->manager, $freeField, $element, "addElementTranslation");
+                        $this->translationService->setDefaultTranslation($this->manager, $freeField, $element, "addElementTranslation");
                     }
                 }
 
@@ -848,7 +853,6 @@ class SettingsService {
                         ->setDisplayedCreate($item["displayedCreate"] ?? null)
                         ->setRequiredCreate($alwaysRequired || ($item["requiredCreate"] ?? null))
                         ->setKeptInMemory($item["keptInMemory"] ?? null)
-                        ->setOnMobile($item["onMobile"] ?? null)
                         ->setDisplayedEdit($item["displayedEdit"] ?? null)
                         ->setRequiredEdit($alwaysRequired || ($item["requiredEdit"] ?? null))
                         ->setDisplayedFilters($item["displayedFilters"] ?? null);
@@ -970,6 +974,10 @@ class SettingsService {
                     'categorie' => $category,
                 ]);
 
+                $countOverconsumptionBillGenerationStatus = Stream::from($statusesData)
+                        ->filter(fn(array $statusData) => $statusData['overconsumptionBillGenerationStatus'] === "1")
+                        ->count();
+
                 foreach ($statusesData as $statusData) {
                     if (!in_array($statusData['state'], [
                         Statut::TREATED, Statut::NOT_TREATED, Statut::DRAFT, Statut::IN_PROGRESS, Statut::DISPUTE,
@@ -997,6 +1005,12 @@ class SettingsService {
                             $status->setType($typeRepository->find($statusData['type']));
                         }
                         $persistedStatuses[] = $status;
+                    }
+
+                    if ($countOverconsumptionBillGenerationStatus > 1) {
+                        throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
+                    } else {
+                        $status->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
                     }
 
                     $status

@@ -3018,6 +3018,7 @@ class MobileController extends AbstractApiController
         $code = $request->query->get('code');
         $includeNature = $request->query->getBoolean('nature');
         $includeGroup = $request->query->getBoolean('group');
+        $includeLocation = $request->query->getBoolean('location');
         $res = ['success' => true];
 
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -3041,9 +3042,15 @@ class MobileController extends AbstractApiController
                     ? $natureService->serializeNature($nature, $this->getUser())
                     : null;
             }
+
+            if ($includeLocation) {
+                $location = $pack->getLastTracking()?->getEmplacement();
+                $res["location"] = $location?->getId();
+            }
         } else {
             $res['isGroup'] = false;
             $res['isPack'] = false;
+            $res['location'] = null;
         }
 
         return $this->json($res);

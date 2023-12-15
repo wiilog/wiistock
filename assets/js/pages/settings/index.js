@@ -4,7 +4,8 @@ import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
 import {initializeLicencesPage} from "./users/licences";
-import {initializeExports, initializeImports} from "./data/imports.js";
+import {initializeImports} from "./data/imports";
+import {initializeExports} from "./data/exports";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
 import {initializeCollectRequestAndCreateRef} from "./kiosk";
@@ -691,8 +692,6 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `requiredCreate`, title: `Obligatoire`},
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
-                    // {data: 'onMobile', title: `Afficher` }, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
-                    // {data: 'onLabel', title: `Afficher` }  TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
                 ],
             });
         })
@@ -1275,7 +1274,6 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
-            {data: `onMobile`, title: `Afficher`},
         ],
     });
     initializeType();

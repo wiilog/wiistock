@@ -10,73 +10,6 @@ abstract class FixedField {
     public const ENTITY_CODES_MANAGE_BY_TYPE = [
         FixedFieldStandard::ENTITY_CODE_DISPATCH,
     ];
-    public const ON_MOBILE_ENTITY = [
-        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL,
-        // FixedFieldStandard::ENTITY_CODE_DISPATCH, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
-    ];
-
-    public const ON_LABEL_ENTITY = [
-        // FixedFieldStandard::ENTITY_CODE_DISPATCH, TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
-    ];
-
-    public const ON_MOBILE_FIELDS = [
-        FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
-            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER,
-            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER,
-            FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION,
-        ],
-
-        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
-            FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_EMAILS,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_EMERGENCY,
-            FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
-            FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
-            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
-            FixedFieldStandard::FIELD_CODE_DESTINATION,
-            FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
-        ],
-    ];
-
-    public const ON_LABEL_FIELDS = [
-        FixedFieldStandard::ENTITY_CODE_DISPATCH => [
-            FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_STATUS_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_START_DATE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_END_DATE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_EMAILS,
-            FixedFieldStandard::FIELD_CODE_EMERGENCY,
-            FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_NAME_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_PHONE_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH,
-            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
-            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
-            FixedFieldStandard::FIELD_CODE_DESTINATION,
-            FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
-        ],
-    ];
 
     public const MEMORY_UNKEEPABLE_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_ARRIVAGE => [
@@ -148,6 +81,8 @@ abstract class FixedField {
     public const ALWAYS_REQUIRED_FIELDS = [
         FixedFieldStandard::ENTITY_CODE_DISPATCH => [
             FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+            FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
         ],
         FixedFieldStandard::ENTITY_CODE_DEMANDE => [
             FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE,
