@@ -75,10 +75,10 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
-                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onMobile' => true, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onMobile' => true, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onMobile' => true, 'default' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'onMobile' => true, 'default' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_UNLOADING_LOCATION, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_REGISTRATION_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_DRIVER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_DRIVER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER, 'label' => FixedFieldStandard::FIELD_LABEL_TRUCK_ARRIVAL_CARRIER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'default' => true],
             ],
 
             FixedFieldStandard::ENTITY_CODE_ARTICLE => [
@@ -257,9 +257,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                         ->setDisplayedEdit(($fieldCode['displayedEdit']) ? $entityTypes : $emptyCollection)
                         ->setDisplayedFilters(($fieldCode['displayedFilters']) ? $entityTypes : $emptyCollection)
                         ->setRequiredEdit(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setOnMobile(($fieldCode['onMobile'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setOnLabel(($fieldCode['onLabel'] ?? true) ? $entityTypes : $emptyCollection);
+                        ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection);
 
                     $manager->persist($field);
                     $output->writeln('Champ fixe ' . $fieldEntity . ' / ' . $fieldCode['code'] . ' créé.');

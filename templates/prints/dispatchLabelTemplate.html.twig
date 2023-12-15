@@ -33,7 +33,7 @@
              width: 24cm;
         }
 
-        .visa-container {
+        .requester-container {
             padding: 0.2rem;
             border: black 2px solid;
         }
@@ -140,7 +140,7 @@
         </div>
         <div class="client-container">
             <div class="small-text mb-3px">Destinataire: <strong>{{ config.dispatch.customerName }}</strong></div>
-            <div class="small-text mb-3px">A l'attention: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
+            <div class="small-text mb-3px">A l'attention de: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
             <div class="small-text">N° téléphone: <strong>{{ config.dispatch.customerPhone }}</strong></div>
             <div class="small-text mb-3px" style="word-break: break-word;">Adresse de livraison: <strong>{{ config.dispatch.customerAddress }}</strong></div>
         </div>
@@ -164,11 +164,10 @@
                 </tr>
             </table>
         </div>
-        <div class="visa-container small-text">
-            <div style="font-weight: bold">Visa</div>
+        <div class="requester-container small-text">
             <div>
                 <span>Matricule: <strong>{{ config.requester }}</strong></span>
-                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("m/d/Y") }}</span>
+                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("d/m/Y") }}</span>
             </div>
         </div>
     </div>

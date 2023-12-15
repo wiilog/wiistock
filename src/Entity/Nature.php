@@ -27,10 +27,6 @@ class Nature {
             'label' => self::ARRIVAL_LABEL,
             'showTypes' => false,
         ],
-        self::DISPATCH_CODE => [
-            'label' => self::DISPATCH_LABEL,
-            'showTypes' => false,
-        ],
         self::TRANSPORT_COLLECT_CODE => [
             'label' => self::TRANSPORT_COLLECT_LABEL,
             'showTypes' => true,
@@ -38,6 +34,10 @@ class Nature {
         self::TRANSPORT_DELIVERY_CODE => [
             'label' => self::TRANSPORT_DELIVERY_LABEL,
             'showTypes' => true,
+        ],
+        self::DISPATCH_CODE => [
+            'label' => self::DISPATCH_LABEL,
+            'showTypes' => false,
         ],
     ];
 
@@ -257,7 +257,7 @@ class Nature {
         return $this;
     }
 
-    public function getDisplayedOnForms(): ?bool
+    public function isDisplayedOnForms(): ?bool
     {
         return $this->displayedOnForms;
     }
@@ -267,6 +267,13 @@ class Nature {
         $this->displayedOnForms = $displayedOnForms;
 
         return $this;
+    }
+
+    public function isDisplayedOnForm(string $form): ?bool {
+        return (
+            $this->isDisplayedOnForms()
+            && array_key_exists($form, $this->getAllowedForms() ?? [])
+        );
     }
 
     public function getAllowedForms(): ?array

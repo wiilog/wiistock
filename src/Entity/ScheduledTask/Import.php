@@ -1,12 +1,19 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\ScheduledTask;
 
-use App\Repository\ImportRepository;
+use App\Entity\Attachment;
+use App\Entity\MouvementStock;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\Statut;
+use App\Entity\Type;
+use App\Entity\Utilisateur;
+use App\Repository\ScheduledTask\ImportRepository;
 use DateTime;
 use DateTime as WiiDateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ImportRepository::class)]
@@ -16,7 +23,9 @@ class Import {
     const STATUS_CANCELLED = 'annulé';
     const STATUS_IN_PROGRESS = 'en cours';
     const STATUS_FINISHED = 'terminé';
-    const STATUS_PLANNED = 'planifié';
+    const STATUS_UPCOMING = 'à venir'; //import de plus de 500 lignes
+
+    const STATUS_SCHEDULED = 'planifié'; // import planifié
     const ENTITY_ART = 'ART';
     const ENTITY_REF = 'REF';
     const ENTITY_FOU = 'FOU';
@@ -41,6 +50,9 @@ class Import {
         self::ENTITY_PROJECT => "Projets",
         self::ENTITY_REF_LOCATION => "Quantité référence par emplacement"
     ];
+
+    CONST LAST_DAY_OF_WEEK = 'last';
+
     const FIELDS_NEEDED = [
         self::ENTITY_ART_FOU => [
             'referenceReference',
@@ -229,13 +241,13 @@ class Import {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'string', length: 64)]
+    #[ORM\Column(type: Types::STRING, length: 64)]
     private ?string $entity = null;
 
     #[ORM\OneToOne(inversedBy: 'importCsv', targetEntity: Attachment::class)]
@@ -247,44 +259,59 @@ class Import {
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     private ?Utilisateur $user = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $newEntries = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $updatedEntries = null;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private ?bool $forced;
-
-    #[ORM\Column(type: 'boolean', nullable: false)]
-    private ?bool $flash;
-
-    #[ORM\Column(type: 'datetime', nullable: false)]
-    private ?DateTime $createdAt;
-
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $nbErrors = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $lastErrorMessage = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
+    private ?bool $forced;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
+    private ?bool $flash;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
+    private ?DateTime $createdAt;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $startDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $endDate = null;
 
     #[ORM\OneToOne(inversedBy: 'importLog', targetEntity: Attachment::class)]
     private ?Attachment $logFile = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $columnToField = null;
 
     #[ORM\OneToMany(mappedBy: 'import', targetEntity: MouvementStock::class)]
     private Collection $mouvements;
 
-    #[ORM\Column(type: 'boolean', nullable: false)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false)]
     private ?bool $eraseData = false;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $recipient = null;
+
+    #[ORM\ManyToOne(targetEntity: Type::class)]
+    private ?Type $type = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $nextExecutionDate = null;
+
+    #[ORM\OneToOne(mappedBy: "import", targetEntity: ImportScheduleRule::class, cascade: ["persist", "remove"])]
+    private ?ImportScheduleRule $scheduleRule = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $FTPConfig = null;
 
     public function __construct() {
         $this->createdAt = new WiiDateTime();
@@ -493,4 +520,89 @@ class Import {
         return $this;
     }
 
+    public function getScheduleRule(): ?ImportScheduleRule {
+        return $this->scheduleRule;
+    }
+
+    public function setScheduleRule(?ImportScheduleRule $scheduleRule): self {
+        if ($this->getScheduleRule() && $this->getScheduleRule() !== $scheduleRule) {
+            $this->getScheduleRule()->setImport(null);
+        }
+
+        $this->scheduleRule = $scheduleRule;
+
+        if($scheduleRule->getImport() !== $this) {
+            $scheduleRule->setImport($this);
+        }
+
+        return $this;
+    }
+
+    public function getNextExecutionDate(): ?DateTime {
+        return $this->nextExecutionDate;
+    }
+
+    public function setNextExecutionDate(?DateTime $nextExecutionDate): self {
+        $this->nextExecutionDate = $nextExecutionDate;
+        return $this;
+    }
+
+    public function getType(): ?Type {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getFTPConfig(): ?array {
+        return $this->FTPConfig;
+    }
+
+    public function setFTPConfig(array $FTPConfig): self {
+        $this->FTPConfig = $FTPConfig;
+
+        return $this;
+    }
+
+    public function isScheduled(): bool {
+        return $this->type->getLabel() === Import::STATUS_SCHEDULED;
+    }
+
+    public function isDraft(): bool {
+        return $this->status->getCode() === Import::STATUS_DRAFT;
+    }
+
+    public function getLastErrorMessage(): ?string {
+        return $this->lastErrorMessage;
+    }
+
+    public function setLastErrorMessage(?string $lastErrorMessage): self {
+        $this->lastErrorMessage = $lastErrorMessage;
+        return $this;
+    }
+
+    public function isCancellable(): bool {
+        return in_array(
+            $this->getStatus()?->getCode(),
+            [Import::STATUS_SCHEDULED, Import::STATUS_DRAFT, Import::STATUS_UPCOMING]
+        );
+    }
+
+    public function isDeletable(): bool {
+        return in_array(
+            $this->getStatus()?->getCode(),
+            [Import::STATUS_DRAFT]
+        );
+    }
+
+    public function canBeForced(): bool {
+        return (
+            !$this->isForced()
+            && $this->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
+            && $this->getStatus()?->getCode() === Import::STATUS_UPCOMING
+        );
+    }
 }

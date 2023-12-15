@@ -37,7 +37,12 @@ $(function () {
         })
         .submitTo(AJAX.POST, `receipt_association_form_submit`, {
             tables: [tableReceiptAssociation],
-            success: () => $(`#beep`)[0].play(),
+            success: function () {
+                $(`#beep`)[0].play();
+                setTimeout(function () {
+                    $modalNewReceiptAssociation.modal('show');
+                }, 500);
+            },
         })
         .onOpen(() => {
             $modalNewReceiptAssociation.find('.add-logistic-unit, .add-reception-number').trigger('click');

@@ -2,8 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\ExportScheduleRule;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use DateTime;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -49,7 +50,13 @@ class ScheduleRuleService
         if ($rule instanceof ExportScheduleRule){
             $export = $rule->getExport();
             if ($export->isForced()) {
-                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
+                $executionDate = min($now, $executionDate);
+            }
+        } elseif ($rule instanceof ImportScheduleRule) {
+            $import = $rule->getImport();
+            if ($import->isForced()) {
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
                 $executionDate = min($now, $executionDate);
             }
         }

@@ -2,8 +2,10 @@
 
 <div class="wii-section-title">Création d'un article</div>
 <div class="wii-section">
-    <div class="row">
-        <div class="col-12 wii-small-text mb-3"></div>
+    <div class="row wii-form mb-3">
+        <div class="col-12">
+            {{ form.checkbox(setting('ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES'), "Activation du blocage de la dépose sur un des emplacements des règles de gestion de la référence.", false, setting_value('ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES')) }}
+        </div>
     </div>
     <div class="row wii-form">
         <div class="form-group col-4">

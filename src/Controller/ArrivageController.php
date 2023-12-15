@@ -1245,14 +1245,14 @@ class ArrivageController extends AbstractController {
      * @Route("/{arrivage}/UL/{pack}/etiquette", name="print_arrivage_single_pack_bar_codes", options={"expose"=true}, methods="GET")
      */
     public function printArrivagePackBarCodes(Arrivage               $arrivage,
-                                               Request                $request,
-                                               EntityManagerInterface $entityManager,
-                                               PDFGeneratorService    $PDFGeneratorService,
-                                               PackService            $packService,
-                                               Pack                   $pack = null,
-                                               array                  $packIdsFilter = [],
-                                               TagTemplate $tagTemplate = null,
-                                               bool $forceTagEmpty = false): Response {
+                                              Request                $request,
+                                              EntityManagerInterface $entityManager,
+                                              PDFGeneratorService    $PDFGeneratorService,
+                                              PackService            $packService,
+                                              Pack                   $pack = null,
+                                              array                  $packIdsFilter = [],
+                                              TagTemplate            $tagTemplate = null,
+                                              bool                   $forceTagEmpty = false): Response {
         if (!$tagTemplate) {
             $tagTemplate = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
@@ -1274,6 +1274,7 @@ class ArrivageController extends AbstractController {
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
         $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
         $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
+        $showTypeLogoArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_TYPE_LOGO_ON_TAG);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1313,6 +1314,7 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
+                    $showTypeLogoArrivalUl,
                     $packIdsFilter,
                     $businessUnitParam,
                     $projectParam,
@@ -1353,6 +1355,7 @@ class ArrivageController extends AbstractController {
                 $commandAndProjectNumberIsDefined,
                 $firstCustomIconConfig,
                 $secondCustomIconConfig,
+                $showTypeLogoArrivalUl,
                 $businessUnitParam,
                 $projectParam,
                 $showDateAndHourArrivalUl,
@@ -1407,6 +1410,7 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $commandAndProjectNumberIsDefined = false,
                                                    ?array       $firstCustomIconConfig = null,
                                                    ?array       $secondCustomIconConfig = null,
+                                                   ?bool        $showTypeLogoArrivalUl = null,
                                                    array        $packIdsFilter = [],
                                                    ?bool        $businessUnitParam = false,
                                                    ?bool        $projectParam = false,
@@ -1434,6 +1438,7 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
+                    $showTypeLogoArrivalUl,
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
