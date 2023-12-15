@@ -49,6 +49,16 @@
                 type: 'location'
             }) }}
         </div>
+
+        <div class="col-md-6 col-12 my-1">
+            {% set location = setting_value('DROP_OFF_LOCATION_IF_RECIPIENT', 'App\\Entity\\Emplacement') %}
+
+            {{ form.select(setting('DROP_OFF_LOCATION_IF_RECIPIENT'), 'Emplacement de dépose des arrivages UL si destinataire renseigné', false, {
+                value: location ? location.id,
+                items: location ? [{value: location.id, label: location.label}],
+                type: 'location'
+            }) }}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Utilisation de l'intelligence artificielle</div>
