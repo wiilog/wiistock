@@ -332,7 +332,7 @@ class DemandeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("voir/{id}", name: "demande_show", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[Route("/voir/{id}", name: "demande_show", options: ["expose" => true], methods: ["GET", "POST"])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR])]
     public function show(EntityManagerInterface $entityManager,
                          DeliveryRequestService $deliveryRequestService,
