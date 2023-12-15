@@ -8,6 +8,18 @@ $(function () {
     $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
         onExistingDispatchSelected($(this));
     });
+
+    $(document)
+        .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
+            if($(this).val().length > 0) {
+                $('[name=dropLocation]').append(new Option($(this).data('default-location-if-recipient-label'), $(this).data('default-location-if-recipient-id'), false, true))
+            }
+        })
+        .on(`change`, '#modalNewArrivage [name=customs]', function () {
+            if ($(this).is(':checked')) {
+                $('[name=dropLocation]').append(new Option($(this).data('default-location-if-customs-label'), $(this).data('default-location-if-customs-id'), false, true))
+            }
+        });
 });
 
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {

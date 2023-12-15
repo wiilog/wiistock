@@ -289,7 +289,6 @@
                             } %}
                         </div>
                     </div>
-                    {% set dropLocationSelectName = "dropLocation" %}
                     {% set dropLocationFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE') %}
                     {% if fieldsParam|isFieldRequired(dropLocationFieldCode, 'displayedCreate') %}
                         {% set dropLocationRequired = fieldsParam|isFieldRequired(dropLocationFieldCode, 'requiredCreate') %}
@@ -297,7 +296,7 @@
                             <label class="wii-field-name">
                                 {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose') }}{{ dropLocationRequired ? '*' }}
                             </label>
-                            <select name="{{ dropLocationSelectName }}"
+                            <select name="dropLocation"
                                     class="form-control data ajax-autocomplete-location no-clear d-block {{ dropLocationRequired ? 'needed' }}">
                                 {% set keptDropLocation = keptFields[dropLocationFieldCode] ?? null %}
                                 {% if keptDropLocation %}
@@ -321,10 +320,15 @@
                                     value: user.id,
                                     selected: true,
                                 }),
-                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null ? [{
-                                    name: "onchange",
-                                    value: "if($(this).val().length > 0) $('#"~modalId~"').find('[name="~dropLocationSelectName~"]').append(new Option('"~defaultLocationIfRecipient.label~"', '"~defaultLocationIfRecipient.id~"', false, true))",
-                                }] : []
+                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null ? [
+                                    {
+                                        name: "data-default-location-if-recipient-id",
+                                        value: defaultLocationIfRecipient.id,
+                                    },{
+                                        name: "data-default-location-if-recipient-label",
+                                        value: defaultLocationIfRecipient.label,
+                                    }
+                                ] : []
                             }) }}
                         </div>
                     {% endif %}
@@ -391,7 +395,8 @@
                                         name="customs"
                                         {{ keptFields[customsFieldCode] ?? false ? 'checked' }}
                                         {% if defaultLocationIfCustoms is defined and defaultLocationIfCustoms is not null %}
-                                          onchange="if($(this).is(':checked')) $('#{{ modalId }}').find('[name={{ dropLocationSelectName }}]').append(new Option('{{ defaultLocationIfCustoms.label }}', '{{ defaultLocationIfCustoms.id }}', false, true))">
+                                            data-default-location-if-customs-id="{{ defaultLocationIfCustoms.id }}"
+                                            data-default-location-if-customs-label="{{ defaultLocationIfCustoms.label }}"
                                         {% endif %}
                                 <label class="text-break text-wrap">
                                     {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
