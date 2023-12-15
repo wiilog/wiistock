@@ -285,15 +285,20 @@ class ArrivageService {
         }
     }
 
-    public function setArrivalUrgent(EntityManager $entityManager, Arrivage $arrivage, array $emergencies): void
-    {
-        if (!empty($emergencies)) {
-            $arrivage->setIsUrgent(true);
+    public function setArrivalUrgent(EntityManagerInterface $entityManager,
+                                     Arrivage               $arrivage,
+                                     bool                   $urgent,
+                                     array                  $emergencies = []): void {
+        if ($urgent) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
             $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
-            $arrivage->setDropLocation($locationRepository->find($dropLocationId));
+            $arrivage
+                ->setIsUrgent(true)
+                ->setDropLocation($locationRepository->find($dropLocationId));
+        }
 
+        if ($urgent && !empty($emergencies)) {
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
@@ -406,7 +411,7 @@ class ArrivageService {
             : null;
     }
 
-    public function processEmergenciesOnArrival(EntityManager $entityManager, Arrivage $arrival): array
+    public function processEmergenciesOnArrival(EntityManagerInterface $entityManager, Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
@@ -427,7 +432,7 @@ class ArrivageService {
 
                 if (!empty($urgencesMatching)) {
                     if (!$confirmEmergency) {
-                        $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $confirmEmergency) {

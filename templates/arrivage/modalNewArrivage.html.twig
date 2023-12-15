@@ -321,10 +321,12 @@
                                     value: user.id,
                                     selected: true,
                                 }),
-                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null ? [{
-                                    name: "onchange",
-                                    value: "if($(this).val().length > 0) $('#"~modalId~"').find('[name="~dropLocationSelectName~"]').append(new Option('"~defaultLocationIfRecipient.label~"', '"~defaultLocationIfRecipient.id~"', false, true))",
-                                }] : []
+                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null
+                                    ? [{
+                                        name: "onchange",
+                                        value: "if($(this).val().length > 0) $('#"~modalId~"').find('[name="~dropLocationSelectName~"]').append(new Option('"~defaultLocationIfRecipient.label~"', '"~defaultLocationIfRecipient.id~"', false, true))",
+                                    }]
+                                    : []
                             }) }}
                         </div>
                     {% endif %}
