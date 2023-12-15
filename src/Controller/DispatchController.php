@@ -92,7 +92,7 @@ class DispatchController extends AbstractController {
 
         if (!empty($statusesFilter)) {
             $statusesFilter = Stream::from($statusesFilter)
-                ->map(fn($statusId) => $statutRepository->find($statusId)->getId())
+                ->filterMap(fn($statusId) => $statutRepository->find($statusId)?->getId())
                 ->toArray();
         }
 
