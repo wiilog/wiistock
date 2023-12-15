@@ -11,13 +11,27 @@ $(function () {
 
     $(document)
         .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
-            if($(this).val().length > 0) {
-                $('[name=dropLocation]').append(new Option($(this).data('default-location-if-recipient-label'), $(this).data('default-location-if-recipient-id'), false, true))
+            const $recipient = $(this);
+            const $modal = $recipient.closest('.modal');
+            const defaultLocationIfRecipient = {
+                id: $recipient.data('default-location-if-recipient-id'),
+                label: $recipient.data('default-location-if-recipient-label'),
+            };
+            if($recipient.val() && $recipient.val().length > 0) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
             }
         })
         .on(`change`, '#modalNewArrivage [name=customs]', function () {
-            if ($(this).is(':checked')) {
-                $('[name=dropLocation]').append(new Option($(this).data('default-location-if-customs-label'), $(this).data('default-location-if-customs-id'), false, true))
+            const $customs = $(this);
+            const $modal = $customs.closest('.modal');
+            const defaultLocationIfCustoms = {
+                id: $customs.data('default-location-if-customs-id'),
+                label: $customs.data('default-location-if-customs-label'),
+            };
+            if ($customs.is(':checked')) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
             }
         });
 });
