@@ -1887,7 +1887,7 @@ class MobileController extends AbstractApiController
         $dataResponse['success'] = true;
 
         $rights = $userService->getMobileRights($nomadUser);
-        if ($rights['demande']) {
+        if ($rights['deliveryRequest']) {
             $dataResponse['data'] = [
                 'demandeLivraisonArticles' => $referenceArticleRepository->getByNeedsMobileSync(),
                 'demandeLivraisonTypes' => array_map(function (Type $type) {
