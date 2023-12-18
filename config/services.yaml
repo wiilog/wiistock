@@ -6,7 +6,7 @@ imports:
 parameters:
     cards_directory: "%kernel.project_dir%/public/uploads/cards"
     locale: '%env(APP_LOCALE)%'
-    web_version: '7.7.3#nxt'
+    web_version: '7.7.4#nxt'
     nomade_version: '=7.7.3#nxt'
     client: '%env(APP_CLIENT)%'
     appLocale: '%env(APP_LOCALE)%'
