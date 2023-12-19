@@ -94,7 +94,7 @@ function loadEncoursDatatable($table, useTruckArrivals) {
             domConfig: {
                 removeInfo: true,
             },
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
             columnDefs: [
                 {
                     type: "date",
