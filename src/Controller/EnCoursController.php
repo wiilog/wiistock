@@ -20,19 +20,14 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
-
-/**
- * @Route("/encours")
- */
+#[Route("/encours")]
 class EnCoursController extends AbstractController
 {
-    /**
-     * @Route("/", name="en_cours", methods={"GET"})
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_ENCO})
-     */
-    public function index(Request $request,
+    #[Route("/", name: "en_cours", methods: "GET")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO])]
+    public function index(Request                $request,
                           EntityManagerInterface $entityManager,
-                          LanguageService $languageService): Response
+                          LanguageService        $languageService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -42,6 +37,8 @@ class EnCoursController extends AbstractController
 
         $locationsFilterStr = $query->has('locations') ? $query->get('locations', '') : '';
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
+        $useTruckArrivals = $query->getBoolean('useTruckArrivalsFromDashboard');
+
         if (!empty($locationsFilterStr)) {
             $locationsFilterId = explode(',', $locationsFilterStr);
             $locationsFilter = !empty($locationsFilterId)
@@ -60,14 +57,13 @@ class EnCoursController extends AbstractController
             'minLocationFilter' => $minLocationFilter,
             'multiple' => true,
             'fromDashboard' => $fromDashboard,
+            'useTruckArrivalsFromDashboard' => $useTruckArrivals,
         ]);
     }
 
-    /**
-     * @Route("/api", name="en_cours_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-    public function apiForEmplacement(Request $request,
-                                      EnCoursService $enCoursService,
+    #[Route("/api", name: "en_cours_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function apiForEmplacement(Request                $request,
+                                      EnCoursService         $enCoursService,
                                       EntityManagerInterface $entityManager): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -75,6 +71,8 @@ class EnCoursController extends AbstractController
         $emplacement = $emplacementRepository->find($request->request->get('id'));
         $query = $request->query;
         $fromDashboard = $query->has('fromDashboard') && $query->get('fromDashboard');
+        $useTruckArrivals = $request->request->getBoolean('useTruckArrivals');
+
         if (!$fromDashboard) {
             $filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(
                 FiltreSup::FIELD_NATURES,
@@ -91,15 +89,13 @@ class EnCoursController extends AbstractController
             },
             $filtersParam ? explode(',', $filtersParam) : []
         );
-        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser());
+        $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser(), $useTruckArrivals);
         return new JsonResponse([
             'data' => $response
         ]);
     }
 
-    /**
-     * @Route("/verification-temps-travaille", name="check_time_worked_is_defined", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/check-time-worked-is-defined", name: "check_time_worked_is_defined", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     public function checkTimeWorkedIsDefined(EntityManagerInterface $entityManager): JsonResponse
     {
         $daysRepository = $entityManager->getRepository(DaysWorked::class);
@@ -109,16 +105,11 @@ class EnCoursController extends AbstractController
 
     }
 
-    /**
-     * @Route ("/{emplacement}/csv", name="ongoing_pack_csv",options={"expose"=true}, methods={"GET"})
-     * @param Emplacement $emplacement
-     * @param CSVExportService $CSVExportService
-     * @param EnCoursService $encoursService
-     * @return Response
-     */
-    public function getOngoingPackCSV(Emplacement $emplacement,
+    #[Route("/{emplacement}/csv", name: "ongoing_pack_csv", options: ["expose" => true], methods: "GET")]
+    #[HasPermission([Menu::TRACA, Action::EXPORT])]
+    public function getOngoingPackCSV(Emplacement      $emplacement,
                                       CSVExportService $CSVExportService,
-                                      EnCoursService $encoursService): Response
+                                      EnCoursService   $encoursService): Response
     {
         $headers = [
             'Emplacement',
@@ -141,13 +132,7 @@ class EnCoursController extends AbstractController
             }, "Export_encours_" . $emplacement->getLabel() . ".csv", $headers);
     }
 
-
-    /**
-     * @Route ("/check-location-delay", name="check_location_delay",options={"expose"=true}, methods={"POST"})
-     * @param EntityManagerInterface $entityManager
-     * @param Request $request
-     * @return Response
-     */
+    #[Route("/check-location-delay", name: "check_location_delay", options: ["expose" => true], methods: "POST")]
     public function checkLocationMaxDelay(Request $request, EntityManagerInterface $entityManager): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
