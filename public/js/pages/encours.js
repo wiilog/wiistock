@@ -59,6 +59,7 @@ function loadPage() {
 function loadEncoursDatatable($table) {
     const tableId = $table.attr('id');
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
+    extendsDateSort('customDate');
     if (tableAlreadyInit) {
         $table.DataTable().ajax.reload();
     }
@@ -88,10 +89,10 @@ function loadEncoursDatatable($table) {
             domConfig: {
                 removeInfo: true,
             },
-            order: [[2, "desc"]],
+            order: [[3, "desc"]],
             columnDefs: [
                 {
-                    type: "date",
+                    type: "customDate",
                     targets: 2
                 }
             ],
