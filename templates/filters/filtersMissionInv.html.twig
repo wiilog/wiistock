@@ -2,12 +2,11 @@
 
 {% block filters %}
     {% set disabled = typeLocation is defined and not done ? 'disabled' : '' %}
-    {% set placeholder = 'Types de mission' %}
     {% include 'filters/filter_item/filterDate.html.twig' with {disabled: disabled} %}
     {% if typeLocation is defined and not typeLocation %}
         {% include 'filters/filter_item/filterAnomaly.html.twig' %}
     {% endif %}
     {% if types is defined %}
-        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types, placeholder: 'Types de mission'} %}
     {% endif %}
 {% endblock %}
