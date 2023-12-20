@@ -354,14 +354,11 @@ export default class Select2 {
                     .removeData(`s2-initialized`);
             }
         }
-
-        return this;
     }
 
     static reload($element) {
-        Select2
-            .destroy($element)
-            .proceed($element, true);
+        Select2.destroy($element);
+        Select2.proceed($element, true);
     }
 
     static tokenizer(input, selection, callback, delimiter) {
@@ -404,9 +401,11 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => $(`[data-s2]`).each((id, elem) => {
-    Select2.proceed($(elem))
-}));
+$(document).ready(() => {
+    $(`[data-s2]`).each((id, elem) => {
+        Select2.proceed($(elem))
+    });
+});
 
 $(document).arrive(`[data-s2]`, function() {
     Select2.proceed($(this));
