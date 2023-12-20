@@ -86,6 +86,10 @@ $(function () {
                 break;
         }
     });
+
+    $(`#buttonPrintMultipleBarcodes`).on(`click`, function () {
+        printBarcodes($(this), {reception: $(this).data(`id`)});
+    });
 });
 
 function initNewReferenceArticleEditor($modal) {
@@ -981,4 +985,15 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                 }
             });
     });
+}
+
+function printBarcodes($container, params) {
+    wrapLoadingOnActionButton($container, () => (
+        AJAX
+            .route('GET', `reception_bar_codes_print`, params)
+            .file({
+                success: "Les étiquettes ont bien été imprimées.",
+                error: "Il n'y a aucune étiquette à imprimer."
+            })
+    ));
 }
