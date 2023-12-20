@@ -26,9 +26,12 @@ final class Version20231219103036 extends AbstractMigration
 
         $oldSetting = $this->connection->executeQuery("SELECT value FROM setting WHERE label = 'DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS'")->fetchOne();
 
-        $values = Stream::explode(";", $oldSetting)->filter()->toArray();
+        $values = Stream::explode(";", $oldSetting ?: "")->filter()->toArray();
         if(!empty($values)) {
-            $this->addSql("UPDATE statut SET overconsumption_bill_generation_status = true WHERE statut.id = $values[1] AND statut.type_id = $values[0]");
+            $this->addSql("UPDATE statut SET overconsumption_bill_generation_status = TRUE WHERE statut.id = :statusId AND statut.type_id = :typeId", [
+                "statusId" => $values[1],
+                "typeId" => $values[0],
+            ]);
         }
         $this->addSql("DELETE FROM setting WHERE label = 'DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS'");
     }
