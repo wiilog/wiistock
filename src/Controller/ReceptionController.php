@@ -1302,7 +1302,7 @@ class ReceptionController extends AbstractController {
             $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag);
             return new PdfResponse($pdf, $fileName);
         } else {
-            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+            throw new NotFoundHttpException('Aucune étiquette à imprimer.');
         }
     }
 

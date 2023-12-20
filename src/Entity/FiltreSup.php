@@ -104,6 +104,7 @@ class FiltreSup {
     const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
     const PAGE_SHIPPING = 'shipping_request';
     const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
+    const FIELD_USE_TRUCK_ARRIVALS = 'useTruckArrivals';
     const FIELD_PRODUCTION_REQUEST = 'productionRequest';
     const FIELD_PRODUCTION_ORDER_NUMBER = 'productionOrderNumber';
 

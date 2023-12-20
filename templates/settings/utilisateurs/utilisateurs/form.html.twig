@@ -105,7 +105,7 @@
                     <div class="col-12">
                         <input type="password"
                                title="Mot de passe"
-                               class="form-control data optional-password w-100"
+                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
                                name="password"
                                autocomplete="new-password">
                         <div class="password-error-msg"></div>
@@ -116,7 +116,7 @@
                     <div class="col-12">
                         <input type="password"
                                title="Confirmer le mot de passe"
-                               class="form-control data optional-password w-100"
+                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
                                name="password2">
                     </div>
                 </div>
