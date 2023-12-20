@@ -61,6 +61,7 @@ function loadEncoursDatatable($table, useTruckArrivals) {
     }
 
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
+    extendsDateSort('customDate');
     if (tableAlreadyInit) {
         // modification des paramètres POST de la requête AJAX pour tenir compte du changement dans les filtres
         // settings() retourne les paramètres du datatable, ce qui permet de les modifier sans entièrement le redéfinir
@@ -94,10 +95,10 @@ function loadEncoursDatatable($table, useTruckArrivals) {
             domConfig: {
                 removeInfo: true,
             },
-            order: [[3, "desc"]],
+            order: [["delay", "desc"]],
             columnDefs: [
                 {
-                    type: "date",
+                    type: "customDate",
                     targets: 2
                 }
             ],
