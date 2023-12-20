@@ -89,7 +89,7 @@ function loadEncoursDatatable($table) {
             domConfig: {
                 removeInfo: true,
             },
-            order: [[3, "desc"]],
+            order: [["delay", "desc"]],
             columnDefs: [
                 {
                     type: "customDate",
