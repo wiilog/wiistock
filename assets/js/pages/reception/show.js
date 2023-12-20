@@ -683,7 +683,6 @@ function onReferenceToReceiveChange() {
     const $referenceToReceive = $firstStepForm.find('[name="referenceToReceive"]');
     const [referenceToReceive] = $referenceToReceive.select2('data');
 
-    $referenceToReceive.select2();
     const $selectArticleFournisseur = $firstStepForm.find('[name=articleFournisseurDefault]');
     const $selectArticleFournisseurFormGroup = $selectArticleFournisseur.closest('.form-group');
 
@@ -701,7 +700,7 @@ function onReferenceToReceiveChange() {
             .attr('data-other-params-order-number', orderNumber);
 
         // remove old options
-        Select2.reload($selectPack)
+        Select2.reload($selectPack);
 
         // if the reference is only in the reception without a pack
         // => pack == null

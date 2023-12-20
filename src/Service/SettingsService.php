@@ -975,8 +975,11 @@ class SettingsService {
                 ]);
 
                 $countOverconsumptionBillGenerationStatus = Stream::from($statusesData)
-                        ->filter(fn(array $statusData) => $statusData['overconsumptionBillGenerationStatus'] === "1")
-                        ->count();
+                    ->filter(fn(array $statusData) => ($statusData['overconsumptionBillGenerationStatus'] ?? null) === "1")
+                    ->count();
+                if ($countOverconsumptionBillGenerationStatus > 1) {
+                    throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
+                }
 
                 foreach ($statusesData as $statusData) {
                     if (!in_array($statusData['state'], [
@@ -1007,12 +1010,6 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
-                    if ($countOverconsumptionBillGenerationStatus > 1) {
-                        throw new FormException('Un seul statut peut être sélectionné pour le changement dès génération du bon de surconsommation');
-                    } else {
-                        $status->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
-                    }
-
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
@@ -1027,6 +1024,7 @@ class SettingsService {
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOrder($statusData['order'] ?? 0);
 
                     // label given on creation or edit is the French one
