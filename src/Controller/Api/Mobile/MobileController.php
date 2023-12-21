@@ -1887,7 +1887,7 @@ class MobileController extends AbstractApiController
         $dataResponse['success'] = true;
 
         $rights = $userService->getMobileRights($nomadUser);
-        if ($rights['demande']) {
+        if ($rights['deliveryRequest']) {
             $dataResponse['data'] = [
                 'demandeLivraisonArticles' => $referenceArticleRepository->getByNeedsMobileSync(),
                 'demandeLivraisonTypes' => array_map(function (Type $type) {
@@ -3019,6 +3019,8 @@ class MobileController extends AbstractApiController
         $includeNature = $request->query->getBoolean('nature');
         $includeGroup = $request->query->getBoolean('group');
         $includeLocation = $request->query->getBoolean('location');
+        $includeExisting = $request->query->getBoolean('existing');
+
         $res = ['success' => true];
 
         $packRepository = $entityManager->getRepository(Pack::class);
@@ -3047,10 +3049,15 @@ class MobileController extends AbstractApiController
                 $location = $pack->getLastTracking()?->getEmplacement();
                 $res["location"] = $location?->getId();
             }
+
+            if($includeExisting) {
+                $res['isExisting'] = true;
+            }
         } else {
             $res['isGroup'] = false;
             $res['isPack'] = false;
             $res['location'] = null;
+            $res['isExisting'] = false;
         }
 
         return $this->json($res);
