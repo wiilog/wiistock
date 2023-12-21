@@ -99,15 +99,11 @@ class SensorWrapperController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/creer", name="sensor_wrapper_new", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::IOT, Action::CREATE})
-     */
+    #[Route("/creer", name: "sensor_wrapper_new", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[HasPermission([Menu::IOT, Action::CREATE])]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        FreeFieldService $freeFieldService): Response
-    {
-
+                        FreeFieldService $freeFieldService): Response {
         $post = json_decode($request->getContent(), true);
 
         $name = PostHelper::string($post, 'name');
