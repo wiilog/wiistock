@@ -20,8 +20,9 @@ $(function () {
 });
 
 function loadPage() {
-    let idLocationsToDisplay = $('[name=emplacement]').val();
+    const idLocationsToDisplay = $('[name=emplacement]').val();
     const useTruckArrivals = $(`.filters-container input[name=useTruckArrivals]`).is(`:checked`) ? 1 : 0;
+    const natures = $(`.filters-container [name=natures]`).val();
 
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
@@ -39,7 +40,7 @@ function loadPage() {
             if (locationFiltersCounter === 0
                 || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
                 $blockEncours.removeClass('d-none');
-                loadEncoursDatatable($tableEncours, useTruckArrivals);
+                loadEncoursDatatable($tableEncours, useTruckArrivals, natures);
             } else {
                 $blockEncours.addClass('d-none');
             }
@@ -53,11 +54,12 @@ function loadPage() {
     });
 }
 
-function loadEncoursDatatable($table, useTruckArrivals) {
+function loadEncoursDatatable($table, useTruckArrivals, natures) {
     const tableId = $table.attr('id');
     const data = {
         id: tableId,
         useTruckArrivals,
+        natures,
     }
 
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);

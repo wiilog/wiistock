@@ -1291,10 +1291,12 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];
+                $natures = $config['natures'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
                     ? $this->router->generate('en_cours', [
                         'locations' => implode(',', $locations),
+                        'natures' => implode(',', $natures),
                         'fromDashboard' => true,
                         'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
                     ]) : null;
