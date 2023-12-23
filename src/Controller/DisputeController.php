@@ -305,7 +305,7 @@ class DisputeController extends AbstractController
                 'codeArticle' => $article ? $article->getBarCode() : '',
                 'status' => FormatHelper::status($article->getStatut()),
                 'libelle' => $article->getLabel() ?: '',
-                'reference' => $article->getReference() ?: '',
+                'reference' => $article->getReferenceArticle()->getReference() ?: '',
                 'quantity' => $article ? $article->getQuantite() : 'non renseigné',
             ];
         }

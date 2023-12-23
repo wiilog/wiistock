@@ -1309,12 +1309,6 @@ class ImportService
             $articleFournisseur = $article->getArticleFournisseur();
         }
 
-        if ($isNewEntity) {
-            $refReferenceArticle = $refArticle->getReference();
-            $date = new DateTime('now');
-            $formattedDate = $date->format('YmdHis');
-            $article->setReference($refReferenceArticle . $formattedDate . $rowIndex);
-        }
         $article->setType($articleFournisseur->getReferenceArticle()->getType());
 
         // liaison emplacement

@@ -226,11 +226,13 @@ class InventoryMissionRepository extends EntityRepository {
                     $qb
                         ->andWhere('
                             a.label LIKE :value
-                            OR a.reference LIKE :value
+                            OR search_referenceArticle.reference LIKE :value
                             OR a.barCode LIKE :value
                             OR join_emplacement.label LIKE :value
                             OR join_logisticUnit.code LIKE :value
                         ')
+                        ->leftJoin("a.articleFournisseur", "search_supplierArticle")
+                        ->leftJoin("search_supplierArticle.referenceArticle", "search_referenceArticle")
                         ->leftJoin('a.emplacement', 'join_emplacement')
                         ->leftJoin('a.currentLogisticUnit', 'join_logisticUnit')
                         ->setParameter('value', '%' . $search . '%');

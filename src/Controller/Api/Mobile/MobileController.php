@@ -1268,7 +1268,7 @@ class MobileController extends AbstractApiController
                 ->filter(fn(Article $article) => !$article->isInTransit())
                 ->map(fn(Article $article) => [
                     'barcode' => $article->getBarCode(),
-                    'reference' => $article->getReference(),
+                    'reference' => $article->getReferenceArticle()->getReference(),
                     'quantity' => $article->getQuantite(),
                     'label' => $article->getLabel(),
                     'location' => $article->getEmplacement()->getLabel(),
@@ -2101,7 +2101,6 @@ class MobileController extends AbstractApiController
             ->setStatut($statut)
             ->setCommentaire(!empty($commentStr) ? $commentStr : null)
             ->setPrixUnitaire(floatval($priceStr))
-            ->setReference($ref)
             ->setQuantite($quantityStr)
             ->setEmplacement($destination)
             ->setArticleFournisseur($articleSupplier)
@@ -2822,7 +2821,7 @@ class MobileController extends AbstractApiController
             'label' => $article->getLabel(),
             'location' => $article->getEmplacement()?->getLabel(),
             'quantity' => $article->getQuantite(),
-            'reference' => $article->getReference()
+            'reference' => $article->getReferenceArticle()->getReference(),
         ]);
 
         return $this->json($articles);

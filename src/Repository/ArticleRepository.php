@@ -89,16 +89,16 @@ class ArticleRepository extends EntityRepository {
             ->getSingleScalarResult();
     }
 
-    public function getReferencesByRefAndDate($refPrefix, $date)
+    public function getReferencesByRefAndDate($refPrefix, $date): array
 	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			'SELECT article.reference
-            FROM App\Entity\Article article
-            WHERE article.reference LIKE :refPrefix'
-		)->setParameter('refPrefix', $refPrefix . $date . '%');
-
-		return array_column($query->execute(), 'reference');
+        return $this->createQueryBuilder("article")
+            ->select("join_referenceArticle.reference AS reference")
+            ->innerJoin("article.articleFournisseur", "join_supplierArticle")
+            ->innerJoin("join_supplierArticle.referenceArticle", "join_referenceArticle")
+            ->andWhere("join_referenceArticle.reference LIKE :referenceArticlePrefix")
+            ->setParameter("referenceArticlePrefix", "$refPrefix$date%")
+            ->getQuery()
+            ->getResult();
 	}
 
     public function setNullByReception($id)
@@ -564,8 +564,9 @@ class ArticleRepository extends EntityRepository {
                             $queryBuilder->leftJoin('article.emplacement', 'e')
                                 ->orderBy('e.label', $order);
                             break;
-                        case "reference":
-                            $queryBuilder->leftJoin('article.articleFournisseur', 'af2')
+                        case "articleReference":
+                            $queryBuilder
+                                ->leftJoin('article.articleFournisseur', 'af2')
                                 ->leftJoin('af2.referenceArticle', 'ra2')
                                 ->orderBy('ra2.reference', $order);
                             break;
@@ -639,7 +640,7 @@ class ArticleRepository extends EntityRepository {
 
     public function getByPreparationsIds($preparationsIds): array {
         return $this->createQueryBuilder('article')
-            ->select('article.reference AS reference')
+            ->select('join_referenceArticle.reference AS reference')
             ->addSelect('join_location.label AS location')
             ->addSelect('article.label AS label')
             ->addSelect('join_preparationLine.quantityToPick AS quantity')
@@ -653,14 +654,14 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('join_lineLogisticUnitNature.id AS lineLogisticUnitNatureId')
             ->addSelect('join_lineLogisticUnitLastDropLocation.label AS lineLogisticUnitLocation')
             ->leftJoin('article.emplacement', 'join_location')
-            ->join('article.preparationOrderLines', 'join_preparationLine')
+            ->innerJoin('article.preparationOrderLines', 'join_preparationLine')
             ->leftJoin('join_preparationLine.pack', 'join_lineLogisticUnit')
             ->leftJoin('join_lineLogisticUnit.lastDrop', 'join_lineLogisticUnitLastDrop')
             ->leftJoin('join_lineLogisticUnitLastDrop.emplacement', 'join_lineLogisticUnitLastDropLocation')
             ->leftJoin('join_lineLogisticUnit.nature', 'join_lineLogisticUnitNature')
-            ->join('join_preparationLine.preparation', 'join_preparation')
-            ->join('article.articleFournisseur', 'join_supplierArticle')
-            ->join('join_supplierArticle.referenceArticle', 'join_referenceArticle')
+            ->innerJoin('join_preparationLine.preparation', 'join_preparation')
+            ->innerJoin('article.articleFournisseur', 'join_supplierArticle')
+            ->innerJoin('join_supplierArticle.referenceArticle', 'join_referenceArticle')
             ->leftJoin('join_preparationLine.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_preparation.id IN (:preparationsIds)')
             ->andWhere('article.quantite > 0')
@@ -671,7 +672,7 @@ class ArticleRepository extends EntityRepository {
 
     public function getArticlePrepaForPickingByUser($user, array $preparationIdsFilter = [], ?bool $displayPickingLocation = false) {
         $queryBuilder = $this->createQueryBuilder('article')
-            ->select('DISTINCT article.reference AS reference')
+            ->select('DISTINCT referenceArticle.reference AS reference')
             ->addSelect('article.label AS label')
             ->addSelect('join_article_location.label AS location')
             ->addSelect('article.quantite AS quantity')
@@ -694,14 +695,14 @@ class ArticleRepository extends EntityRepository {
                 END) AS management_order
             ')
             ->addSelect('IF(:displayPickingLocation = true AND join_targetLocationPicking.id = join_article_location.id, 1, 0) AS pickingPriority')
-            ->join('article.articleFournisseur', 'articleFournisseur')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->join('article.statut', 'articleStatut')
+            ->innerJoin('article.articleFournisseur', 'articleFournisseur')
+            ->innerJoin('articleFournisseur.referenceArticle', 'referenceArticle')
+            ->innerJoin('article.statut', 'articleStatut')
             ->leftJoin('article.emplacement', 'join_article_location')
-            ->join('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
+            ->innerJoin('referenceArticle.preparationOrderReferenceLines', 'preparationOrderReferenceLines')
             ->leftJoin('preparationOrderReferenceLines.targetLocationPicking', 'join_targetLocationPicking')
-            ->join('preparationOrderReferenceLines.preparation', 'preparation')
-            ->join('preparation.statut', 'statutPreparation')
+            ->innerJoin('preparationOrderReferenceLines.preparation', 'preparation')
+            ->innerJoin('preparation.statut', 'statutPreparation')
             ->andWhere('(statutPreparation.nom = :preparationToTreat OR (statutPreparation.nom = :preparationInProgress AND preparation.utilisateur = :preparationOperator))')
             ->andWhere('articleStatut.nom = :articleActif')
             ->andWhere('article.quantite IS NOT NULL')
@@ -824,17 +825,15 @@ class ArticleRepository extends EntityRepository {
 		);
 	}
 
-    public function findOneByReference($reference)
+    public function findOneByReference($reference): ?Article
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT article
-			FROM App\Entity\Article article
-			WHERE article.reference = :reference"
-		)->setParameter('reference', $reference);
-
-		return $query->getOneOrNullResult();
+        return $this->createQueryBuilder("article")
+            ->innerJoin("article.articleFournisseur", "join_supplierArticle")
+            ->innerJoin("join_supplierArticle.referenceArticle", "join_referenceArticle")
+            ->andWhere("join_referenceArticle.reference = :reference")
+            ->setParameter("reference", $reference)
+            ->getQuery()
+            ->getOneOrNullResult();
 	}
 
     public function countByEmplacement($emplacementId)

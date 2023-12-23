@@ -377,7 +377,7 @@ class CartController extends AbstractController
                 $article->getCurrentLogisticUnit()?->getId() ?: 0,
                 [
                     'id' => $article->getId(),
-                    'reference' => $article->getReference(),
+                    'reference' => $article->getReferenceArticle()->getReference(),
                     'barCode' => $article->getBarCode(),
                     'label' => $article->getLabel(),
                     'batch' => $article->getBatch(),

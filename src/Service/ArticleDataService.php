@@ -361,7 +361,6 @@ class ArticleDataService
                 ->setStatut($statut)
                 ->setCommentaire($data->get('commentaire'))
                 ->setPrixUnitaire($data->has('prix') ? max(0, $data->getInt('prix')) : null)
-                ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
                 ->setEmplacement($location)
                 ->setArticleFournisseur($articleFournisseurId ? $articleFournisseurRepository->find($articleFournisseurId) : null)

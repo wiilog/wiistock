@@ -44,9 +44,6 @@ class Article implements PairedEntity {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $reference = null;
-
     #[ORM\Column(type: 'string', length: 15, nullable: true)]
     private ?string $barCode = null;
 
@@ -186,16 +183,6 @@ class Article implements PairedEntity {
 
     public function getId(): ?int {
         return $this->id;
-    }
-
-    public function getReference(): ?string {
-        return $this->reference;
-    }
-
-    public function setReference(?string $reference): self {
-        $this->reference = $reference;
-
-        return $this;
     }
 
     public function getQuantite(): ?int {
