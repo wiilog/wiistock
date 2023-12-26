@@ -252,7 +252,7 @@ class IOTService
         $needsTrigger = Stream::from([
             TriggerAction::ACTION_TYPE_ZONE_ENTER => IOTService::DATA_TYPE_ZONE_ENTER,
             TriggerAction::ACTION_TYPE_ZONE_EXIT => IOTService::DATA_TYPE_ZONE_EXIT
-        ])->some(static fn ($dataType, $actionType) => ($config[$actionType] ?? false) === $messageData);
+        ])->some(static fn ($dataType, $actionType) => ($config[$actionType] ?? false) === $messageData && $dataType === $sensorMessage->getContentType());
 
         if ($needsTrigger) {
 
