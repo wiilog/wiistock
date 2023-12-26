@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
+use App\Entity\Dashboard\ComponentType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -15,8 +15,6 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
-use App\Entity\Transporteur;
-use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -1145,13 +1143,15 @@ class DashboardSettingsService {
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
-                                        $component->setType($type);
-                                        $component->setRow($row);
-                                        $component->setColumnIndex($jsonComponent["columnIndex"]);
-                                        $component->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null);
-                                        $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
+                                        $component
+                                            ->setType($type)
+                                            ->setRow($row)
+                                            ->setColumnIndex($jsonComponent["columnIndex"])
+                                            ->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null)
+                                            ->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
+                                        $this->initializeLocationClusters($entityManager, $component, $type);
                                     }
 
                                     if (isset($jsonComponent["id"], $componentsToDelete[$jsonComponent["id"]])) {
@@ -1291,10 +1291,12 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];
+                $natures = $config['natures'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
                     ? $this->router->generate('en_cours', [
                         'locations' => implode(',', $locations),
+                        'natures' => implode(',', $natures),
                         'fromDashboard' => true,
                         'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
                     ]) : null;
@@ -1371,5 +1373,14 @@ class DashboardSettingsService {
 
         $values['multiple'] = true;
         return $values;
+    }
+
+    public function initializeLocationClusters(EntityManagerInterface  $entityManager,
+                                               Dashboard\Component     $component,
+                                               Dashboard\ComponentType $componentType): void {
+        if(in_array($componentType->getMeterKey(), [ComponentType::ENTRIES_TO_HANDLE, ComponentType::PACK_TO_TREAT_FROM, ComponentType::DROP_OFF_DISTRIBUTED_PACKS])){
+            $this->dashboardService->updateComponentLocationCluster($entityManager, $component, 'locations');
+            $entityManager->flush();
+        }
     }
 }
