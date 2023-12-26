@@ -82,6 +82,7 @@ function submitSensor(val = null) {
 
 function onTemplateTypeChange($select) {
     const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templatesFor]');
+    console.log($templatesSelect)
 
     if ($select.val()) {
         AJAX

@@ -18,10 +18,10 @@ $(function () {
     initReceiptAssociationModal($modalNewReceiptAssociation)
     Form.create($modalNewReceiptAssociation)
         .addProcessor((data, errors, $form) => {
-            if ($form.find('.logistic-unit-container [name=logisticUnit]').length === 0) {
+            if ($form.find('.logistic-unit-wrapper [name=logisticUnit]').length === 0) {
                 $form.find('.add-logistic-unit').trigger('click');
                 errors.push({
-                    elements: [$form.find('.logistic-unit-container [name=logisticUnit]')],
+                    elements: [$form.find('.logistic-unit-wrapper [name=logisticUnit]')],
                     global: false,
                 });
             }
@@ -56,7 +56,7 @@ $(function () {
 function initReceiptAssociationModal($modal) {
     $modal.find(`[name=logisticUnit]`).trigger(`focus`);
 
-    const $logisticUnitContainerTemplate = $(`.logistic-unit-container-template`);
+    const $logisticUnitContainerTemplate = $modal.find(`.logistic-unit-wrapper-template`);
     const $receptionNumberContainerTemplate = $(`.reception-number-container-template`);
 
     $modal
@@ -86,13 +86,13 @@ function initReceiptAssociationModal($modal) {
         .on(`click`, function() {
             if($(this).is(`.add-logistic-unit`)) {
                 $modal
-                    .find(`.logistic-unit-container`)
+                    .find(`.logistic-unit-wrapper`)
                     .last()
                     .after($logisticUnitContainerTemplate.html());
 
-                const index = $modal.find(`.logistic-unit-container`).length;
+                const index = $modal.find(`.logistic-unit-wrapper`).length;
                 $modal
-                    .find(`.logistic-unit-container`)
+                    .find(`.logistic-unit-wrapper`)
                     .last()
                     .data(`multiple-object-index`, index)
                     .attr(`data-multiple-object-index`, index);
@@ -119,7 +119,7 @@ function initReceiptAssociationModal($modal) {
 
         $parent.remove();
         $modal
-            .find($previous.is(`.logistic-unit-container`) ? `[name=logisticUnit]` : `[name=receptionNumber]`)
+            .find($previous.is(`.logistic-unit-wrapper`) ? `[name=logisticUnit]` : `[name=receptionNumber]`)
             .last()
             .trigger(`focus`);
     });

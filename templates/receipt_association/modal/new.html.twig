@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-12 form-lu">
                         <label class="wii-field-name mb-1">Unité(s) logistique(s)<span class="required-mark">*</span></label>
-                        <div class="d-flex justify-content-between logistic-unit-container"
+                        <div class="d-flex justify-content-between logistic-unit-wrapper"
                              data-multiple-key="logisticUnits"
                              data-multiple-object-index="1">
 
@@ -53,31 +53,32 @@
             } %}
         </div>
     </div>
+
+    <template class="logistic-unit-wrapper-template" >
+        <div class="logistic-unit-wrapper d-flex justify-content-between mt-2"
+             data-multiple-key="logisticUnits">
+            {{ form.input("logisticUnit", null, true, null, {
+                width: "w-75",
+                attributes: {
+                    "data-global-error": "Unité(s) logistique(s)",
+                }
+            }) }}
+            <button class="btn delete-line d-flex align-items-center">
+                <i class="wii-icon wii-icon-trash text-primary"></i>
+            </button>
+        </div>
+    </template>
+
+    <template class="reception-number-container-template">
+        <div class="reception-number-container d-flex justify-content-between mt-2"
+             data-multiple-key="receptionNumbers">
+            {{ form.input("receptionNumber", null, true, null, {
+                width: "w-75",
+            }) }}
+            <button class="btn delete-line d-flex align-items-center">
+                <i class="wii-icon wii-icon-trash text-primary"></i>
+            </button>
+        </div>
+    </template>
 </div>
 
-<template class="logistic-unit-container-template">
-    <div class="logistic-unit-container d-flex justify-content-between mt-2"
-         data-multiple-key="logisticUnits">
-        {{ form.input("logisticUnit", null, true, null, {
-            width: "w-75",
-            attributes: {
-                "data-global-error": "Unité(s) logistique(s)",
-            }
-        }) }}
-        <button class="btn delete-line d-flex align-items-center">
-            <i class="wii-icon wii-icon-trash text-primary"></i>
-        </button>
-    </div>
-</template>
-
-<template class="reception-number-container-template">
-    <div class="reception-number-container d-flex justify-content-between mt-2"
-         data-multiple-key="receptionNumbers">
-        {{ form.input("receptionNumber", null, true, null, {
-            width: "w-75",
-        }) }}
-        <button class="btn delete-line d-flex align-items-center">
-            <i class="wii-icon wii-icon-trash text-primary"></i>
-        </button>
-    </div>
-</template>
