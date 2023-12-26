@@ -131,6 +131,7 @@ class ImportController extends AbstractController
             return $this->json([
                 'success' => true,
                 'importId' => $import->getId(),
+                'msg' => 'L\'import a bien été créé.',
                 'html' => $this->renderView('settings/donnees/import/new/second.html.twig', $secondModalConfig),
             ]);
         } else {

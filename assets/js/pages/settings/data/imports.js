@@ -357,7 +357,6 @@ function displaySecondModalMaker($modal, data) {
             keepModal: true,
             success: (data) => {
                 displayConfirmationModal($modal, importId, data);
-                $modal.modal(`hide`)
             },
         });
 }
