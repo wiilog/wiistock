@@ -189,6 +189,10 @@ class IOTService
                     case IOTService::DATA_TYPE_HYGROMETRY:
                         $this->treatDataTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper, 'hygrometry');
                         break;
+                    case IOTService::DATA_TYPE_ZONE_EXIT:
+                    case IOTService::DATA_TYPE_ZONE_ENTER:
+                        $this->treatZoneTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper);
+                        break;
                     default:
                         break;
                 }
@@ -234,7 +238,38 @@ class IOTService
         }
     }
 
-    private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
+    public function treatZoneTrigger(   TriggerAction          $triggerAction,
+                                        SensorMessage          $sensorMessage,
+                                        EntityManagerInterface $entityManager,
+                                        SensorWrapper          $wrapper) : void {
+        $config = $triggerAction->getConfig();
+        $messageData = $sensorMessage->getContent();
+
+        if(!$config || !$messageData){
+            return;
+        }
+
+        $needsTrigger = Stream::from([
+            TriggerAction::ACTION_TYPE_ZONE_ENTER => IOTService::DATA_TYPE_ZONE_ENTER,
+            TriggerAction::ACTION_TYPE_ZONE_EXIT => IOTService::DATA_TYPE_ZONE_EXIT
+        ])->some(static fn ($dataType, $actionType) => ($config[$actionType] ?? false) === $messageData);
+
+        if ($needsTrigger) {
+
+            if ($triggerAction->getRequestTemplate()) {
+                $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+            } else if ($triggerAction->getAlertTemplate()) {
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+            }
+        }
+    }
+
+
+
+    private function treatActionTrigger(    SensorWrapper $wrapper,
+                                            TriggerAction $triggerAction,
+                                            SensorMessage $sensorMessage,
+                                            EntityManagerInterface $entityManager): void {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
         if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
             $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)

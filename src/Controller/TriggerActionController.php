@@ -11,6 +11,7 @@ use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
+use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,17 +22,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/iot/actionneurs")
- */
-
+#[Route("/iot/actionneurs")]
 class TriggerActionController extends AbstractController
 {
-
-    /**
-     * @Route("/liste", name="trigger_action_index")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_TRIGGER})
-     */
+    #[Route("/liste", name: "trigger_action_index")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_TRIGGER])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([
@@ -42,20 +37,16 @@ class TriggerActionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="trigger_action_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_TRIGGER})
-     */
+    #[Route("/api", name: "trigger_action_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_TRIGGER])]
     public function api(Request $request,
                         TriggerActionService $triggerActionService): Response {
         $data = $triggerActionService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="trigger_action_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "trigger_action_new", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
                         TriggerActionService $triggerActionService): Response
@@ -68,7 +59,10 @@ class TriggerActionController extends AbstractController
             } else {
                 $sensorWrapper = null;
             }
+
             if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
+
+                // temp and temp && hygro
                 $triggerActionConfigs = [
                     "sensorHygrometryLimitLower" => [
                         "limit" => TriggerAction::LOWER,
@@ -113,6 +107,8 @@ class TriggerActionController extends AbstractController
                     }
                 }
 
+
+                // button
                 if(isset($data['zone'])) {
                     $config = ['zone' => $data['zone']];
                     if (isset($data['buttonIndex'])) {
@@ -140,6 +136,19 @@ class TriggerActionController extends AbstractController
                     $entityManager->persist($triggerAction);
                 }
 
+                // tracer
+                if(isset($data['zoneId'])) {
+                    $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
+                        $entityManager,
+                        $sensorWrapper,
+                        $data["templateType"],
+                        $data["templates"],
+                        [
+                            $data["action"] => $data["zoneId"],
+                        ]
+                    );
+                    $entityManager->persist($triggerAction);
+                }
 
 
 
@@ -174,10 +183,8 @@ class TriggerActionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="trigger_action_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "trigger_action_delete", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
 
@@ -198,10 +205,8 @@ class TriggerActionController extends AbstractController
 
     }
 
-    /**
-     * @Route("/api-modifier", name="trigger_action_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "trigger_action_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -236,10 +241,8 @@ class TriggerActionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="trigger_action_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "trigger_action_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          TriggerActionService $triggerActionService): Response {
@@ -325,9 +328,7 @@ class TriggerActionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/get-sensor-by-name", name="get_sensor_by_name", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/get-sensor-by-name", name: "get_sensor_by_name", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function getSensorByName(EntityManagerInterface $entityManager,
                                     Request $request): Response {
 
@@ -368,6 +369,10 @@ class TriggerActionController extends AbstractController
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::HYGROMETRY) {
             $html = $this->renderView('trigger_action/modalMultipleHygrometry.html.twig', [
+                "templateTypes" => TriggerAction::TEMPLATE_TYPES,
+            ]);
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TRACER) {
+            $html = $this->renderView('trigger_action/modalTracer.html.twig', [
                 "templateTypes" => TriggerAction::TEMPLATE_TYPES,
             ]);
         }
