@@ -10,6 +10,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -196,25 +197,30 @@ class PurchaseRequestService
 
         /** @var Statut $status */
         $status = $purchaseRequest->getStatus();
+        $emailRequesters = [];
+
         $buyerAbleToReceivedMail = $status->getSendNotifToBuyer();
-        $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
-
-        if (isset($buyerAbleToReceivedMail) || isset($requesterAbleToReceivedMail)) {
-
-            $requester = $purchaseRequest->getRequester() ?? null;
-            $buyer = $purchaseRequest->getBuyer() ?? null;
-
-            $needsRefsBuyer = !$buyer;
-
-            $mails = ($status->isNotTreated() && $buyerAbleToReceivedMail && $buyer) ? [$buyer] : [$requester];
-
-            if ($needsRefsBuyer) {
-                $mails = Stream::from($purchaseRequest->getPurchaseRequestLines())
+        if ($buyerAbleToReceivedMail) {
+            $buyer = $purchaseRequest->getBuyer();
+            if ($buyer){
+                $emailRequesters[] = $buyer;
+            } else {
+                $emailRequesters = Stream::from($purchaseRequest->getPurchaseRequestLines())
                     ->filterMap(fn(PurchaseRequestLine $line) => $line->getReference()->getBuyer())
-                    ->concat($mails)
+                    ->concat($emailRequesters)
                     ->toArray();
             }
+        }
 
+        $requesterAbleToReceivedMail = $status->getSendNotifToDeclarant();
+        if ($requesterAbleToReceivedMail) {
+            $requester = $purchaseRequest->getRequester();
+            if ($requester){
+                $emailRequesters[] = $requester;
+            }
+        }
+
+        if (!empty($emailRequesters)) {
             $subject = $customSubject ?: (
                 $status->isTreated()
                     ? 'Traitement d\'une demande d\'achat'
@@ -227,7 +233,7 @@ class PurchaseRequestService
             $number = $purchaseRequest->getNumber();
             $processingDate = $this->formatService->datetime($purchaseRequest->getProcessingDate(), "", true);
             $title = $status->isTreated()
-                ? "Demande d'achat ${number} traitée le ${processingDate} avec le statut ${statusName}"
+                ? "Demande d'achat {$number} traitée le {$processingDate} avec le statut {$statusName}"
                 : ($status->isNotTreated()
                     ? 'Une demande d\'achat vous concerne'
                     : 'Changement de statut d\'une demande d\'achat vous concernant');
@@ -242,17 +248,15 @@ class PurchaseRequestService
                 })
                 ->toArray();
 
-            if (isset($requester)) {
-                $this->mailerService->sendMail(
-                    'FOLLOW GT // ' . $subject,
-                    $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
-                        'title' => $title,
-                        'purchaseRequest' => $purchaseRequest,
-                        'refsAndQuantities' => $refsAndQuantities
-                    ]),
-                    $mails
-                );
-            }
+            $this->mailerService->sendMail(
+                'FOLLOW GT // ' . $subject,
+                $this->templating->render('mails/contents/mailPurchaseRequestEvolution.html.twig', [
+                    'title' => $title,
+                    'purchaseRequest' => $purchaseRequest,
+                    'refsAndQuantities' => $refsAndQuantities
+                ]),
+                $emailRequesters
+            );
         }
     }
 

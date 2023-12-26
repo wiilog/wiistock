@@ -200,16 +200,25 @@ class Action {
 
     // menu nomade
     const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
-    const MODULE_ACCESS_STOCK = 'Accès Stock';
-    const MODULE_ACCESS_TRACA = 'Accès Traçabilité';
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
     const MODULE_ACCESS_UNGROUP = 'Accès Dégroupage';
-    const MODULE_ACCESS_HAND = 'Accès Demande';
     const MODULE_NOTIFICATIONS = 'Activer les notifications';
     const MODULE_TRACK = 'Accès Track';
     const DEMO_MODE = 'Mode découverte';
     const CREATE_ARTICLE_FROM_NOMADE = 'Accès création article RFID';
     const MODULE_ACCESS_TRUCK_ARRIVALS = 'Accès arrivages camion';
+    const MODULE_ACCESS_MOVEMENTS = 'Accès mouvements';
+    const MODULE_ACCESS_DISPATCHS = 'Accès acheminements';
+    const MODULE_ACCESS_PREPARATIONS = 'Accès préparations';
+    const MODULE_ACCESS_DELIVERY_ORDER = 'Accès ordre de livraison';
+    const MODULE_ACCESS_MANUAL_DELIVERY = 'Accès livraison manuelle';
+    const MODULE_ACCESS_COLLECT_ORDER = 'Accès ordre de collecte';
+    const MODULE_ACCESS_TRANSFER_ORDER = 'Accès ordre de transfert';
+    const MODULE_ACCESS_MANUAL_TRANSFER = 'Accès transfert manuel';
+    const MODULE_ACCESS_INVENTORY = 'Accès inventaire';
+    const MODULE_ACCESS_ARTICLES_UL_ASSOCIATION = 'Accès association articles-UL';
+    const MODULE_ACCESS_HANDLING = 'Accès services';
+    const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

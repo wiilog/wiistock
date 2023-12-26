@@ -298,6 +298,7 @@ class InventoryMissionController extends AbstractController
 
             /* Management of each barcode entered by the user */
             Stream::explode([",", " ", ";", "\t"], $data['articles'])
+                ->filter(fn($barcode) => $barcode !== '')
                 ->filterMap(function($barcode) use ($articleRepository, $refArtRepository, $mission, $inventoryService) {
                     $barcode = trim($barcode);
                     /* The barcode must be from an article or an article reference */
@@ -364,6 +365,7 @@ class InventoryMissionController extends AbstractController
                 if (isset($barcodesWithUL) && !empty($barcodesWithUL)) {
                     /* We retrieve the articles associated with LUs */
                     Stream::explode([",", " ", ";", "\t"], $barcodesWithUL)
+                        ->filter(fn($barcode) => $barcode !== '')
                         ->each(function($barcode) use ($articleRepository, &$barcodeErrors, &$articlesWithULToAdd) {
                             $barcode = trim($barcode);
 
@@ -429,6 +431,7 @@ class InventoryMissionController extends AbstractController
             $mission = $inventoryMissionRepository->find($data['missionId']);
             $barcodeErrors = [];
             Stream::explode([",", " ", ";", "\t"], $data['emplacements'])
+                ->filter()
                 ->filterMap(function($locationId) use ($mission, $inventoryService, $locationRepository) {
                     if($location = $locationRepository->find($locationId)) {
                         return $location;
@@ -528,7 +531,7 @@ class InventoryMissionController extends AbstractController
                     $inventoryEntryService->putMissionEntryLine($refArticle, $inventoryEntries[$barcode] ?? null, $output);
                 }
             },
-            "Export_Mission_Inventaire_${missionStartDateStr}_${missionEndDateStr}.csv",
+            "Export_Mission_Inventaire_{$missionStartDateStr}_{$missionEndDateStr}.csv",
             [
                 ['MISSION DU ' . $missionStartDate->format('d/m/Y') . ' AU ' . $missionEndDate->format('d/m/Y')],
                 $headers
@@ -550,6 +553,7 @@ class InventoryMissionController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         $missionData = Stream::explode(";", $data['missionData'])
+            ->filter()
             ->keymap(fn($data) => explode(":", $data))
             ->toArray();
 

@@ -1,0 +1,25 @@
+{% extends 'delivery_station/layout.thml.twig' %}
+
+{% block title %} Caisse automatique | Lien invalide {% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('delivery-station') }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="main-page-container d-flex flex-column justify-content-between">
+        <div class="sa bookmark-icon bookmark-warning m-auto">
+            <div class="sa-wrapper sa-warning">
+                <div class="sa-warning-body"></div>
+                <div class="sa-warning-dot"></div>
+            </div>
+        </div>
+        <div class="form-header mt-2">Le lien d'accès à la caisse automatique n'est pas valide.</div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('delivery-station') }}
+{% endblock %}

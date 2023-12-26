@@ -14,7 +14,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
 use App\Entity\Menu;
@@ -42,6 +42,7 @@ use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\DisputeService;
+use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\LivraisonsManagerService;
 use App\Service\MailerService;
@@ -74,7 +75,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 /**
  * @Route("/reception")
@@ -137,8 +137,10 @@ class ReceptionController extends AbstractController {
                          FreeFieldService $champLibreService,
                          ReceptionService $receptionService,
                          AttachmentService $attachmentService,
+                         FormatService $formatService,
                          Request $request): Response {
-        if($data = $request->request->all()) {
+        $data = $request->request;
+        if($data->all()) {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -146,51 +148,67 @@ class ReceptionController extends AbstractController {
             $receptionRepository = $entityManager->getRepository(Reception::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
 
-            $reception = $receptionRepository->find($data['receptionId']);
+            $reception = $receptionRepository->find($data->getInt('receptionId'));
 
-            $statut = $statutRepository->find(intval($data['statut']));
+            $statut = $statutRepository->find($data->getInt('statut'));
             $reception->setStatut($statut);
 
-            $fournisseur = !empty($data['fournisseur']) ? $fournisseurRepository->find($data['fournisseur']) : null;
-            $reception->setFournisseur($fournisseur);
+            if ($data->has('fournisseur')) {
+                $fournisseur = $data->getInt('fournisseur') ? $fournisseurRepository->find($data->getInt('fournisseur')) : null;
+                $reception->setFournisseur($fournisseur);
+            }
 
-            $utilisateur = !empty($data['utilisateur']) ? $utilisateurRepository->find($data['utilisateur']) : null;
-            $reception->setUtilisateur($utilisateur);
+            if ($data->has('utilisateur')) {
+                $utilisateur = $data->getInt('utilisateur') ? $utilisateurRepository->find($data->getInt('utilisateur')) : null;
+                $reception->setUtilisateur($utilisateur);
+            }
 
-            $transporteur = !empty($data['transporteur']) ? $transporteurRepository->find($data['transporteur']) : null;
-            $reception->setTransporteur($transporteur);
+            if ($data->has('transporteur')) {
+                $transporteur = $data->getInt('transporteur') ? $transporteurRepository->find($data->getInt('transporteur')) : null;
+                $reception->setTransporteur($transporteur);
+            }
 
-            $location = !empty($data['location']) ? $emplacementRepository->find($data['location']) : null;
-            $reception->setLocation($location);
+            if ($data->has('location')) {
+                $location = $data->getInt('location') ? $emplacementRepository->find($data->getInt('location')) : null;
+                $reception->setLocation($location);
+            }
 
-            $storageLocation = !empty($data['storageLocation']) ? $emplacementRepository->find($data['storageLocation']) : null;
-            $reception->setStorageLocation($storageLocation);
+            if ($data->has('storageLocation')) {
+                $storageLocation = $data->getInt('storageLocation') ? $emplacementRepository->find($data->getInt('storageLocation')) : null;
+                $reception->setStorageLocation($storageLocation);
+            }
 
-            $emergency = !empty($data['emergency'])
-                ? (
-                    $data['emergency'] === "false"
-                    ? null
-                    : $data['emergency']
-                )
-                : null;
-            $reception->setManualUrgent($emergency);
-            $reception
-                ->setOrderNumber(!empty($data['orderNumber']) ? explode(",", $data['orderNumber']) : null)
-                ->setDateAttendue(
-                    !empty($data['dateAttendue'])
-                        ? new DateTime(str_replace('/', '-', $data['dateAttendue']))
-                        : null)
-                ->setDateCommande(
-                    !empty($data['dateCommande'])
-                        ? new DateTime(str_replace('/', '-', $data['dateCommande']))
-                        : null)
-                ->setCommentaire($data['commentaire'] ?? null);
+            if ($data->has('emergency')) {
+                $emergency = $data->getBoolean('emergency');
+                $reception->setManualUrgent($emergency);
+            }
 
-            $reception->removeIfNotIn($data['files'] ?? []);
+            if ($data->has('orderNumber')) {
+                $orderNumber = explode(",", $data->get('orderNumber'));
+                $reception->setOrderNumber($orderNumber);
+            }
+
+            if ($data->has('dateAttendue')) {
+                $dateAttendue = $formatService->parseDatetime($data->get('dateAttendue'));
+                $reception->setDateAttendue($dateAttendue);
+            }
+
+            if ($data->has('dateCommande')) {
+                $dateCommande = $formatService->parseDatetime($data->get('dateCommande'));
+                $reception->setDateCommande($dateCommande);
+            }
+
+            if ($data->has('commentaire')) {
+                $reception->setCommentaire($data->get('commentaire'));
+            }
+
+            if ($data->has('files')) {
+                $reception->removeIfNotIn($data->get('files') ?: []);
+            }
 
             $entityManager->flush();
 
-            $champLibreService->manageFreeFields($reception, $data, $entityManager);
+            $champLibreService->manageFreeFields($reception, $data->all(), $entityManager);
             $attachmentService->manageAttachments($entityManager, $reception, $request->files);
 
             $entityManager->flush();
@@ -220,7 +238,7 @@ class ReceptionController extends AbstractController {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $reception = $receptionRepository->find($data['id']);
 
@@ -251,7 +269,7 @@ class ReceptionController extends AbstractController {
                 ];
             }
 
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
             $json = $this->renderView('reception/show/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
@@ -278,8 +296,8 @@ class ReceptionController extends AbstractController {
 
         $data = $receptionService->getDataForDatatable($user, $request->request, $purchaseRequestFilter);
 
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getHiddenByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
         $data['columnsToHide'] = $fieldsParam;
 
         return new JsonResponse($data);
@@ -353,11 +371,11 @@ class ReceptionController extends AbstractController {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         //TODO à modifier si plusieurs types possibles pour une réception
         $listType = $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
 
         $typeChampLibre = [];
         foreach($listType as $type) {
@@ -473,7 +491,6 @@ class ReceptionController extends AbstractController {
                                                     RefArticleDataService  $refArticleDataService,
                                                     Request                $request): Response {
         if($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
             $receptionReferenceArticleRepository = $entityManager->getRepository(ReceptionReferenceArticle::class);
             $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
@@ -522,6 +539,7 @@ class ReceptionController extends AbstractController {
                 && $receptionLine->getReceptionReferenceArticles()->isEmpty()) {
                 $receptionLine->setReception(null);
                 $entityManager->remove($receptionLine);
+                $entityManager->flush();
             }
 
             $entityManager->remove($ligneArticle);
@@ -544,7 +562,7 @@ class ReceptionController extends AbstractController {
 
                 $stockMovement->setReceptionOrder($reception);
                 $date = new DateTime('now');
-                $mouvementStockService->finishMouvementStock($stockMovement, $date, $reception->getLocation());
+                $mouvementStockService->finishStockMovement($stockMovement, $date, $reception->getLocation());
                 $entityManager->persist($stockMovement);
             }
 
@@ -580,6 +598,15 @@ class ReceptionController extends AbstractController {
             $refArticleId = (int)$contentData['referenceArticle'];
             $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
             $reception = $receptionRepository->find($contentData['reception']);
+
+            $status = $reception->getStatut();
+            if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
+                ]);
+            }
+
             $commande = $contentData['commande'];
 
             $packId = $contentData['pack'] ?? null;
@@ -771,8 +798,8 @@ class ReceptionController extends AbstractController {
                 $now = new DateTime('now');
 
                 if($diffReceivedQuantity != 0) {
-                    $newRefQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
-                    if($newRefQuantity - $referenceArticle->getQuantiteReservee() < 0) {
+                    $newStockQuantity = $referenceArticle->getQuantiteStock() + $diffReceivedQuantity;
+                    if($newStockQuantity - $referenceArticle->getQuantiteReservee() < 0) {
                         return new JsonResponse([
                             'success' => false,
                             'msg' =>
@@ -791,7 +818,7 @@ class ReceptionController extends AbstractController {
                         );
                         $mouvementStock->setReceptionOrder($reception);
 
-                        $mouvementStockService->finishMouvementStock(
+                        $mouvementStockService->finishStockMovement(
                             $mouvementStock,
                             $now,
                             $receptionLocation
@@ -815,7 +842,8 @@ class ReceptionController extends AbstractController {
 
                         $receptionReferenceArticle->setQuantite($newReceivedQuantity);
                         $trackingMovementService->persistSubEntities($entityManager, $createdMvt);
-                        $referenceArticle->setQuantiteStock($newRefQuantity);
+                        $referenceArticle
+                            ->setQuantiteStock($newStockQuantity);
                         $entityManager->persist($createdMvt);
                     }
                 }
@@ -825,6 +853,12 @@ class ReceptionController extends AbstractController {
                 $articleFournisseur = $articleFournisseurRepository->find($data['articleFournisseur']);
                 $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
+
+            // Le double flush est nécessaire. Dans le cas contraire, la quantité disponible de la référence ne se recalcule pas.
+            // Déclenchement de deux triggers :
+            //      - RefArticleQuantityNotifier (premier flush)
+            //      - RefArticleStateNotifier (second flush)
+            $entityManager->flush();
 
             $reception->setStatut($receptionService->getNewStatus($reception));
 
@@ -859,7 +893,7 @@ class ReceptionController extends AbstractController {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $listTypesDL = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $typeChampLibreDL = [];
@@ -903,7 +937,7 @@ class ReceptionController extends AbstractController {
             'needsCurrentUser' => $needsCurrentUser,
             'detailsHeader' => $receptionService->createHeaderDetailsConfig($reception),
             'restrictedLocations' => $restrictedLocations,
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             "tag_templates" => $tagTemplateService->serializeTagTemplates($entityManager, CategoryType::ARTICLE),
         ]);
     }
@@ -1413,26 +1447,23 @@ class ReceptionController extends AbstractController {
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $articleIds = json_decode($request->query->get('articleIds'), true);
-        $forceTagEmpty = $request->query->get('forceTagEmpty', false);
-        $tag = $forceTagEmpty
-            ? null
-            : ($request->query->get('template')
+        $tag = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
-                : null);
+                : null;
         if(empty($articleIds)) {
             $barcodeConfigs = Stream::from($reception->getReceptionReferenceArticles())
-                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag, $forceTagEmpty) {
+                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
-                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE && $forceTagEmpty) {
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
                         return [$refArticleDataService->getBarcodeConfig($referenceArticle)];
                     } else {
                         $articlesReception = $recepRef->getArticles()->toArray();
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
-                                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                                ->filter(function(Article $article) use ($tag) {
                                     return
-                                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                                        $article->getType()?->getTags()?->isEmpty() &&
                                         (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
                                 })
                                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
@@ -1446,9 +1477,9 @@ class ReceptionController extends AbstractController {
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
-                ->filter(function(Article $article) use ($forceTagEmpty, $tag) {
+                ->filter(function(Article $article) use ($tag) {
                     return
-                        (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
+                        $article->getType()?->getTags()?->isEmpty() &&
                         (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
                 })
                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
@@ -1460,7 +1491,7 @@ class ReceptionController extends AbstractController {
             $pdf = $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag);
             return new PdfResponse($pdf, $fileName);
         } else {
-            throw new NotFoundHttpException('Aucune étiquette à imprimer');
+            throw new NotFoundHttpException('Aucune étiquette à imprimer.');
         }
     }
 
@@ -1670,7 +1701,6 @@ class ReceptionController extends AbstractController {
                                    EntityManagerInterface     $entityManager,
                                    Reception                  $reception,
                                    ArticleDataService         $articleDataService,
-                                   FreeFieldService           $champLibreService,
                                    TrackingMovementService    $trackingMovementService,
                                    MouvementStockService      $mouvementStockService,
                                    PreparationsManagerService $preparationsManagerService,
@@ -1757,7 +1787,7 @@ class ReceptionController extends AbstractController {
                 $needCreatePrepa = $paramCreatePrepa && $paramCreatePrepa->getValue();
                 $data['needPrepa'] = $needCreatePrepa && !$createDirectDelivery;
 
-                $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+                $demande = $demandeLivraisonService->newDemande($data, $entityManager);
                 if ($demande instanceof Demande) {
                     $entityManager->persist($demande);
 
@@ -1776,7 +1806,7 @@ class ReceptionController extends AbstractController {
                             $locationEndPreparation = $demande->getDestination();
 
                             $preparationsManagerService->treatPreparation($preparation, $this->getUser(), $locationEndPreparation, ["articleLinesToKeep" => $articlesNotPicked]);
-                            $preparationsManagerService->closePreparationMouvement($preparation, $dateEnd, $locationEndPreparation);
+                            $preparationsManagerService->closePreparationMovements($preparation, $dateEnd, $locationEndPreparation);
 
                                 $mouvementRepository = $entityManager->getRepository(MouvementStock::class);
                                 $mouvements = $mouvementRepository->findByPreparation($preparation);
@@ -1932,7 +1962,7 @@ class ReceptionController extends AbstractController {
                 );
                 $mouvementStock->setReceptionOrder($reception);
 
-                $mouvementStockService->finishMouvementStock($mouvementStock, $now, $receptionLocation);
+                $mouvementStockService->finishStockMovement($mouvementStock, $now, $receptionLocation);
 
                 $entityManager->persist($mouvementStock);
 
@@ -2173,6 +2203,14 @@ class ReceptionController extends AbstractController {
     public function packingTemplate(Request                $request,
                                     Reception              $reception,
                                     EntityManagerInterface $entityManager): Response {
+        $status = $reception->getStatut();
+        if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
+            ]);
+        }
+
         $reference = $request->query->get('reference');
         $orderNumber = $request->query->get('orderNumber');
         $packId = $request->query->get('pack');
@@ -2225,6 +2263,14 @@ class ReceptionController extends AbstractController {
         $receptionReferenceArticle = $receptionReferenceArticleRepository->find($data['receptionReferenceArticle']);
         $receptionLine = $receptionReferenceArticle->getReceptionLine();
         $reception = $receptionLine->getReception();
+
+        $status = $reception->getStatut();
+        if($status->getState() === Statut::TREATED && $status->getCode() !== Reception::STATUT_RECEPTION_PARTIELLE) {
+            return $this->json([
+                'success' => false,
+                'msg' => 'La réception est terminée, vous ne pouvez plus ajouter de références',
+            ]);
+        }
 
         $pack = $receptionLine->getPack()
             ?? (!empty($data['pack']) ? $packRepository->find($data['pack']) : null);

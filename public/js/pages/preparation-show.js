@@ -151,7 +151,7 @@ function submitSplitting($submit) {
                 }, {})
 
             AJAX
-                .route(AJAX.POST, 'submit_splitting', params)
+                .route(AJAX.POST, 'submit_splitting')
                 .json( {
                     articles: chosenArticles,
                     quantite: $submit.data('qtt'),
@@ -286,6 +286,7 @@ function finishPrepa($button) {
 
     const canProceed = data
         .flat()
+        .filter(value => typeof value === 'number')
         .reduce((total, elem) => total + elem, 0) > 0;
     if (!canProceed) {
         showBSAlert('Veuillez sélectionner au moins une ligne.', 'danger');

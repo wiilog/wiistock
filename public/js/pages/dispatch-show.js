@@ -9,7 +9,7 @@ $(function() {
         loadDispatchReferenceArticle();
     }
     getStatusHistory(dispatchId);
-    packsTable = initializePacksTable(dispatchId, isEdit);
+    packsTable = initializePacksTable(dispatchId, {modifiable: isEdit});
 
     const $modalEditDispatch = $('#modalEditDispatch');
     Form
@@ -151,7 +151,7 @@ function generateOverconsumptionBill($button, dispatchId) {
         $('button[name="newPack"]').addClass('d-none');
 
         packsTable.destroy();
-        packsTable = initializePacksTable(dispatchId, data.modifiable);
+        packsTable = initializePacksTable(dispatchId, data);
 
         AJAX.route(`GET`, `print_overconsumption_bill`, {dispatch: dispatchId})
             .file({
@@ -171,26 +171,38 @@ function generateDispatchLabel($button, dispatchId) {
         .then(() => window.location.reload())
 }
 
-function forbiddenPhoneNumberValidator(data, errors, $form) {
+function forbiddenPhoneNumberValidator($form, data = undefined, errors = undefined) {
     const $inputs = $form.find(".forbidden-phone-numbers");
     const numbers = ($('#forbiddenPhoneNumbers').val() || '')
         .split(';')
         .map((number) => number.replace(/[^0-9]/g, ''));
 
+    const $invalidElements = [];
+    const errorMessages = [];
     $inputs.each(function() {
         const $input = $(this);
         const rawValue = ($input.val() || '');
         const value = rawValue.replace(/[^0-9]/g, '');
 
         if(value && numbers.indexOf(value) !== -1) {
-            errors.push({
-                message: `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`,
-                global: true,
-            });
+            const message = `Le numéro de téléphone ${rawValue} ne peut pas être utilisé ici.`;
+            if(errors || data) {
+                errors.push({
+                    message,
+                    global: true,
+                });
+            } else {
+                errorMessages.push(message);
+                $invalidElements.push($input);
+            }
         }
     });
 
-    return errors;
+    return errors || {
+        success: $invalidElements.length === 0,
+        errorMessages,
+        $isInvalidElements: $invalidElements,
+    };
 }
 
 function openValidateDispatchModal() {
@@ -267,7 +279,7 @@ function initDeliveryNoteModal(dispatchId) {
     const $modalBody = $modal.find(`.modal-body`);
 
     Form.create($modal)
-        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator(data, errors, $form))
+        .addProcessor((data, errors, $form) => forbiddenPhoneNumberValidator($form, data, errors))
         .submitTo(AJAX.POST, `delivery_note_dispatch`, {
             success: ({attachmentId, headerDetailsConfig}) => {
                 $(`.zone-entete`).html(headerDetailsConfig);
@@ -405,9 +417,9 @@ function savePackLine(dispatchId, $row, async = true) {
     return false;
 }
 
-function initializePacksTable(dispatchId, isEdit) {
+function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     const $table = $(`#packTable`);
-    const columns = $table.data('initial-visible');
+    const columns = $table.data('initial-visible') || (initialVisibleColumns ? JSON.parse(initialVisibleColumns) : undefined);
 
     const table = initDataTable($table, {
         serverSide: false,
@@ -421,7 +433,7 @@ function initializePacksTable(dispatchId, isEdit) {
         domConfig: {
             removeInfo: true,
         },
-        ordering: !isEdit,
+        ordering: !modifiable,
         paging: false,
         searching: false,
         scrollY: false,
@@ -449,15 +461,21 @@ function initializePacksTable(dispatchId, isEdit) {
                 const $relatedTarget = $(event.relatedTarget);
 
                 const wasPackSelect = $target.closest(`td`).find(`select[name="pack"]`).exists();
+                const isStillInSelect = ($relatedTarget.is('input') || $relatedTarget.is('select'))
+                    && ($target.closest('label').find('select[name=width]').exists()
+                        || $target.closest('label').find('select[name=length]').exists()
+                        || $target.closest('label').find('select[name=height]').exists());
+
                 if ((event.relatedTarget && $.contains(this, event.relatedTarget))
                     || $relatedTarget.is(`button.delete-pack-row`)
-                    || wasPackSelect) {
+                    || wasPackSelect
+                    || isStillInSelect) {
                     return;
                 }
 
                 savePackLine(dispatchId, $row);
             });
-            if(isEdit) {
+            if(modifiable) {
                 scrollToBottom();
             }
             if (!$table.data('initialized')) {
@@ -490,7 +508,7 @@ function initializePacksTable(dispatchId, isEdit) {
         columns,
     });
 
-    if(isEdit) {
+    if(modifiable) {
         scrollToBottom();
 
         WysiwygManager.initializeOneLineWYSIWYG($table);

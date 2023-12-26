@@ -48,7 +48,7 @@ class AlertTemplateController extends AbstractController
             if (!$alertTemplate->getTriggers()->isEmpty()) {
                 return $this->json([
                     'success' => false,
-                    'msg' => "Le modèle d'alerte <strong>${name}</strong> est lié à un ou plusieurs actionneurs, veuillez les supprimer avant."
+                    'msg' => "Le modèle d'alerte <strong>{$name}</strong> est lié à un ou plusieurs actionneurs, veuillez les supprimer avant."
                 ]);
             }
             foreach ($alertTemplate->getNotifications() as $notification) {
@@ -61,7 +61,7 @@ class AlertTemplateController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => "Le modèle d'alerte <strong>${name}</strong> a bien été supprimé"
+                'msg' => "Le modèle d'alerte <strong>{$name}</strong> a bien été supprimé"
             ]);
         }
 
@@ -149,7 +149,7 @@ class AlertTemplateController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "Le modèle d'alerte <strong>${name}</strong> a bien été créé"
+            'msg' => "Le modèle d'alerte <strong>{$name}</strong> a bien été créé"
         ]);
     }
 
@@ -236,7 +236,7 @@ class AlertTemplateController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "Le modèle d'alerte <strong>${name}</strong> a bien été modifié"
+            'msg' => "Le modèle d'alerte <strong>{$name}</strong> a bien été modifié"
         ]);
     }
 

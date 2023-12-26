@@ -11,7 +11,7 @@ use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -70,7 +70,7 @@ class NatureService
             'displayedOnForms' => !empty($nature->getAllowedForms())
                 ? Stream::from($nature->getAllowedForms())
                     ->map(fn(array|string $types, string $index) =>
-                        Nature::ENTITIES[$index] .
+                        Nature::ENTITIES[$index]['label'] .
                         (
                             is_array($types)
                                 ? (' : ' . Stream::from($typeRepository->findBy(['id' => $types]))
@@ -98,6 +98,7 @@ class NatureService
             'color' => $nature->getColor(),
             'hide' => !$nature->getNeedsMobileSync(),
             'defaultNature' => $nature->getDefaultNature(),
+            'isDisplayedOnDispatch' => $nature->isDisplayedOnForm(Nature::DISPATCH_CODE)
         ];
     }
 }

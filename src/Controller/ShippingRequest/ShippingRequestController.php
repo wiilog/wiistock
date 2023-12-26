@@ -782,14 +782,21 @@ class ShippingRequestController extends AbstractController {
             ],
         );
 
+        $grossWeightStr = $scheduleData['grossWeight'] ?? null;
+        $grossWeight = $grossWeightStr !== "" ? $grossWeightStr : null;
+
+        $trackingNumberStr = $scheduleData['trackingNumber'] ?? null;
+        $trackingNumber = $trackingNumberStr !== "" ? $trackingNumberStr : null;
+
+
         $scheduleData = $data['scheduleData'] ?? [];
         $shippingRequest
             ->setPlannedBy($this->getUser())
             ->setPlannedAt($now)
-            ->setGrossWeight($scheduleData['grossWeight'] ?? null)
-            ->setCarrier(isset($scheduleData['carrier']) ? $carrierRepository->find($scheduleData['carrier']) : null)
-            ->setTrackingNumber($scheduleData['trackingNumber'] ?? null)
-            ->setExpectedPickedAt(isset($scheduleData['expectedPicketAt']) ? new DateTime($scheduleData['expectedPicketAt']) : null);
+            ->setGrossWeight($grossWeight)
+            ->setCarrier(!empty($scheduleData['carrier']) ? $carrierRepository->find($scheduleData['carrier']) : null)
+            ->setTrackingNumber($trackingNumber)
+            ->setExpectedPickedAt(!empty($scheduleData['expectedPicketAt']) ? new DateTime($scheduleData['expectedPicketAt']) : null);
 
         $entityManager->flush();
 
@@ -1053,7 +1060,7 @@ class ShippingRequestController extends AbstractController {
     public function printDeliverySlip(Attachment      $attachment,
                                       KernelInterface $kernel): Response {
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT,$attachment->getOriginalName());
 
         return $response;

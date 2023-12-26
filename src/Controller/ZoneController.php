@@ -7,10 +7,10 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
-use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\Zone;
-use App\Service\ZoneService;
 use App\Exceptions\FormException;
+use App\Service\ZoneService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use DateTime;
+use WiiCommon\Helper\Stream;
 
 /**
  * @Route("/zones")
@@ -128,7 +128,9 @@ class ZoneController extends AbstractController
             throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est liée à un ou plusieurs emplacements. Vous pouvez la rendre inactive en modifiant la zone.");
         }
 
-        $purchaseRequestCounter = $purchaseRequestScheduleRuleRepository->count(['zones' => $zone]);
+        $purchaseRequestCounter = Stream::from($purchaseRequestScheduleRuleRepository->findAll())
+            ->filter(fn(PurchaseRequestScheduleRule $purchaseRequestScheduleRule) => $purchaseRequestScheduleRule->getZones()->contains($zone))
+            ->count();
         if ($purchaseRequestCounter > 0){
             throw new FormException("Vous ne pouvez pas supprimer cette zone car elle est lié à une ou plusieurs planifications de demandes d'achat. Vous pouvez la rendre inactive en modifiant la zone.");
         }

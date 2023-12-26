@@ -29,6 +29,9 @@ class ReserveType
     #[ORM\Column(type: "boolean", nullable: true, options: ["default" => true])]
     private ?bool $active = null;
 
+    #[ORM\Column(type: "boolean", nullable: true)]
+    private ?bool $disableTrackingNumber = null;
+
     public function __construct() {
         $this->notifiedUsers = new ArrayCollection();
     }
@@ -106,6 +109,18 @@ class ReserveType
     public function setActive(?bool $active): self
     {
         $this->active = $active;
+
+        return $this;
+    }
+
+    public function isDisableTrackingNumber(): ?bool
+    {
+        return $this->disableTrackingNumber;
+    }
+
+    public function setDisableTrackingNumber(bool $disableTrackingNumber): self
+    {
+        $this->disableTrackingNumber = $disableTrackingNumber;
 
         return $this;
     }

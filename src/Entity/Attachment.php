@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Repository\AttachmentRepository;
@@ -12,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: AttachmentRepository::class)]
 class Attachment {
 
-    const MAIN_PATH = '/uploads/attachements';
+    const MAIN_PATH = '/uploads/attachments';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

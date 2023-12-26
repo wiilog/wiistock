@@ -28,11 +28,15 @@ class ArticleFournisseurService
      * @return ArticleFournisseur
      * @throws Exception
      */
-    public function createArticleFournisseur(array $data, bool $generateReference = false): ArticleFournisseur
+    public function createArticleFournisseur(array $data, bool $generateReference = false, EntityManagerInterface $entityManager = null): ArticleFournisseur
     {
-        $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
-        $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
-        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
+        if (!isset($entityManager)) {
+            $entityManager = $this->entityManager;
+        }
+
+        $articleFournisseurRepository = $entityManager->getRepository(ArticleFournisseur::class);
+        $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+        $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
         $fournisseur = ($data['fournisseur'] instanceof Fournisseur)
             ? $data['fournisseur']
@@ -75,16 +79,16 @@ class ArticleFournisseurService
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
                 ->setFournisseur($fournisseur)
-                ->setReference($generatedReference)
+                ->setReference(trim($generatedReference))
                 ->setReferenceArticle($referenceArticle)
-                ->setLabel($label)
+                ->setLabel(trim($label))
                 ->setVisible($isVisible);
         }
         else {
             throw new Exception(self::ERROR_REFERENCE_ALREADY_EXISTS);
         }
 
-        $this->entityManager->persist($articleFournisseur);
+        $entityManager->persist($articleFournisseur);
 
         return $articleFournisseur;
     }

@@ -7,7 +7,7 @@ use App\Entity\Language;
 use App\Entity\Setting;
 use App\Entity\Transport\TransportHistory;
 use App\Entity\Utilisateur;
-use App\Service\FieldsParamService;
+use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\SpecificService;
@@ -39,7 +39,7 @@ class AppExtension extends AbstractExtension {
     public SpecificService $specificService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public KernelInterface $kernel;
@@ -58,7 +58,7 @@ class AppExtension extends AbstractExtension {
 
     private array $settingsCache = [];
 
-    public function getFunctions() {
+    public function getFunctions(): array {
         return [
             new TwigFunction('hasRight', [$this, 'hasRightFunction']),
             new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction']),
@@ -86,7 +86,7 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getFilters() {
+    public function getFilters(): array {
         return [
             new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter']),
             new TwigFilter('isFieldRequired', [$this, 'isFieldRequiredFunction']),
@@ -102,13 +102,13 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getTests() {
+    public function getTests(): array {
         return [
             new TwigTest('instanceof', [$this, 'isInstanceOf']),
         ];
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel) {
+    public function hasRightFunction(string $menuCode, string $actionLabel): bool {
         return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
 
@@ -116,11 +116,11 @@ class AppExtension extends AbstractExtension {
      * @param string[]|string $clientName
      * @return bool
      */
-    public function isCurrentClientNameFunction($clientName) {
+    public function isCurrentClientNameFunction($clientName): bool {
         return $this->specificService->isCurrentClientNameFunction($clientName);
     }
 
-    public function withoutExtensionFilter(string $filename) {
+    public function withoutExtensionFilter(string $filename): string {
         $array = explode('.', $filename);
         return $array[0];
     }
@@ -129,7 +129,7 @@ class AppExtension extends AbstractExtension {
         return $this->fieldsParamService->isFieldRequired($config, $fieldName, $action);
     }
 
-    public function base64(string $relativePath) {
+    public function base64(string $relativePath): string {
         $absolutePath = $this->kernel->getProjectDir() . "/$relativePath";
         if (file_exists($absolutePath)) {
             $type = pathinfo($absolutePath, PATHINFO_EXTENSION);
@@ -179,7 +179,7 @@ class AppExtension extends AbstractExtension {
         }
     }
 
-    public function wordwrap(string $value, int $length) {
+    public function wordwrap(string $value, int $length): string|Markup {
         if(strlen($value) > $length) {
             return new Markup(implode("<br>", str_split($value, $length)), "UTF-8");
         } else {
@@ -244,7 +244,7 @@ class AppExtension extends AbstractExtension {
 
     public function isInstanceOf($entity, string $class): bool {
         $reflexionClass = new ReflectionClass($class);
-        return $reflexionClass->isInstance($entity);
+        return is_object($entity) && $reflexionClass->isInstance($entity);
     }
 
     public function flip(array $array): array {

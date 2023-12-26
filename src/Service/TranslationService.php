@@ -301,10 +301,10 @@ class TranslationService {
         }
     }
 
-    public function setFirstTranslation(EntityManagerInterface $entityManager,
-                                        mixed                  $entity,
-                                        string                 $firstLabel,
-                                        string                 $setter = null) {
+    public function setDefaultTranslation(EntityManagerInterface $entityManager,
+                                          mixed                  $entity,
+                                          string                 $firstLabel,
+                                          string                 $setter = null): void {
         $languageRepository = $entityManager->getRepository(Language::class);
         $language = $languageRepository->findOneBy(["slug" => Language::FRENCH_SLUG]);
 
@@ -328,7 +328,7 @@ class TranslationService {
     public function translateFreeFieldListValues(Language|string|array $sources,
                                                  Language|string       $target,
                                                  FreeField             $freeField,
-                                                 array|string          $values,
+                                                 array|string|null     $values,
                                                  bool                  $keepDefault = false,
                                                  bool                  $clearSources = true): array|string|null {
 

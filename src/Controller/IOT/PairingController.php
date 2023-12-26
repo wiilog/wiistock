@@ -220,7 +220,7 @@ class PairingController extends AbstractController
             $number = $sensorWrapper->getName();
             return $this->json([
                 'success' => true,
-                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+                'msg' => "L'assocation avec le capteur <strong>{$number}</strong> a bien été créée"
             ]);
         }
 
@@ -238,7 +238,7 @@ class PairingController extends AbstractController
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $start,
             $now,
-            Sensor::GPS
+            ["sensorType" => Sensor::GPS]
         );
         $data = [];
         foreach ($associatedMessages as $message) {
@@ -252,6 +252,7 @@ class PairingController extends AbstractController
                 $data[$sensorCode] = [];
             }
             $coordinates = Stream::explode(',', $message->getContent())
+                ->filter()
                 ->map(fn($coordinate) => floatval($coordinate))
                 ->toArray();
             if ($coordinates[0] !== -1.0 || $coordinates[1] !== -1.0) {
@@ -270,7 +271,7 @@ class PairingController extends AbstractController
         $associatedMessages = $pairing->getSensorMessagesBetween(
             $filters["start"],
             $filters["end"],
-            $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())
+            ["sensorType" => $this->formatService->type($pairing->getSensorWrapper()->getSensor()->getType())]
         );
 
         return new JsonResponse($pairingService->buildChartDataFromMessages($associatedMessages));

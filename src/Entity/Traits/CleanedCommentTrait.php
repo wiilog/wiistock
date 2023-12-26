@@ -15,7 +15,8 @@ trait CleanedCommentTrait {
     }
 
     public function setCleanedComment(?string $comment): self {
-        $this->cleanedComment = strip_tags($comment);
+        $cleanedComment = $comment !== null ? strip_tags($comment) : null;
+        $this->cleanedComment = $cleanedComment !== "" ? $cleanedComment : null;
 
         return $this;
     }

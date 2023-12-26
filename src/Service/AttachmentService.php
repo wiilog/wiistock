@@ -8,31 +8,28 @@ use ReflectionClass;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\FileBag;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
 class AttachmentService {
 
-    const LABEL_LOGO = 'logo_for_label';
-    const CUSTOM_ICON = 'icon_for_custom';
-    const EMERGENCY_ICON = 'icon_for_emergency';
-    const DELIVERY_NOTE_LOGO = 'logo_for_delivery_note';
-    const WAYBILL_LOGO = 'logo_for_waybill';
-    const OVERCONSUMPTION_LOGO = 'logo_for_overconsumption';
-    const WEBSITE_LOGO = 'website_logo';
-    const EMAIL_LOGO = 'email_logo';
-    const MOBILE_LOGO_LOGIN = 'mobile_logo_login';
-    const MOBILE_LOGO_HEADER = 'mobile_logo_header';
+    private string $attachmentDirectory;
 
-    private $attachmentDirectory;
-	private $em;
+    #[Required]
+	public EntityManagerInterface $em;
 
-    public function __construct(EntityManagerInterface $em,
-                                KernelInterface $kernel) {
-        $this->attachmentDirectory = $kernel->getProjectDir() . '/public/uploads/attachements';
-    	$this->em = $em;
+    #[Required]
+    public KernelInterface $kernel;
+
+    public function __construct(KernelInterface $kernel) {
+        $this->attachmentDirectory = "{$kernel->getProjectDir()}/public/uploads/attachments";
     }
 
-	public function createAttachements($files) {
+    /**
+     * @param UploadedFile[]|FileBag $files
+     * @return Attachment[]
+     */
+	public function createAttachments(array|FileBag $files): array {
 		$attachments = [];
 
         if ($files instanceof FileBag) {
@@ -54,7 +51,7 @@ class AttachmentService {
                 $attachment
                     ->setOriginalName($originalFileName)
                     ->setFileName($fileName)
-                    ->setFullPath("/uploads/attachements/$fileName");
+                    ->setFullPath("/uploads/attachments/$fileName");
                 $attachments[] = $attachment;
 			}
 		}
@@ -72,8 +69,7 @@ class AttachmentService {
         return [$file->getClientOriginalName() => $filename];
     }
 
-	public function removeAndDeleteAttachment(Attachment $attachment,
-                                              $entity)
+	public function removeAndDeleteAttachment(Attachment $attachment, mixed $entity = null): void
 	{
 		if ($entity) {
             $entity->removeAttachment($attachment);
@@ -103,9 +99,6 @@ class AttachmentService {
         }
     }
 
-    /**
-     * @return Attachment[]
-     */
     public function manageAttachments(EntityManagerInterface $entityManager, $attachmentEntity, FileBag $files): array {
         $reflect = new ReflectionClass($attachmentEntity);
         $dedicatedAttachmentFolder = strtolower($reflect->getShortName()) . '/' . $attachmentEntity->getId();
@@ -150,10 +143,22 @@ class AttachmentService {
             ->setFileName($fileName);
     }
 
-    public function deleteAttachment(Attachment $attachment) {
+    public function deleteAttachment(Attachment $attachment): void {
         $path = $this->getServerPath($attachment);
         if(file_exists($path)) {
             unlink($path);
         }
+    }
+
+    public function createFile(string $fileName, string $data): string {
+        $attachmentsDirectory = $this->attachmentDirectory;
+        if (!file_exists($attachmentsDirectory)) {
+            mkdir($attachmentsDirectory);
+        }
+
+        $filePath = "$attachmentsDirectory/$fileName";
+        file_put_contents($filePath, $data);
+
+        return $filePath;
     }
 }

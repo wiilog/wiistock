@@ -115,8 +115,7 @@ class GeoService
             ];
         }
 
-        try {
-            $request = $this->httpService->request("GET", $url, [
+        $url .= "?".http_build_query([
                 "f" => "json",
                 "token" => $_SERVER["ARCGIS_API_KEY"],
                 "returnRoutes" => false,
@@ -127,6 +126,9 @@ class GeoService
                     "features" => $stops,
                 ]),
             ]);
+
+        try {
+            $request = $this->httpService->request("GET", $url);
             $result = json_decode($request->getContent(), true);
             foreach ($result['directions'] as $direction) {
                 preg_match("^Route (\d+) to \d+$^", $direction["routeName"], $matches);
@@ -181,22 +183,24 @@ class GeoService
             ->toArray();
         $url = "https://route.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World/solve";
         try {
-            $request = $this->httpService->request("GET", $url, [
-                "f" => "json",
-                "token" => $_SERVER["ARCGIS_API_KEY"],
-                "returnRoutes" => false,
-                "stops" => json_encode([
-                    "spatialReference" => [
-                        "wkid" => 4326,
-                    ],
-                    "features" => $coordinates,
-                ]),
-            ]);
+            $url .= "?".http_build_query([
+                    "f" => "json",
+                    "token" => $_SERVER["ARCGIS_API_KEY"],
+                    "returnRoutes" => false,
+                    "stops" => json_encode([
+                        "spatialReference" => [
+                            "wkid" => 4326,
+                        ],
+                        "features" => $coordinates,
+                    ]),
+                ]);
+            $request = $this->httpService->request("GET", $url );
             $result = json_decode($request->getContent(), true);
             $distance = round($result['directions'][0]['summary']['totalLength'] * self::MILES_TO_KM, 2);
             $stopsData['distance'] = $distance;
-        } catch (Exception) {
-            throw new GeoException('Erreur lors de la récupération des informations GPS');
+        } catch (Exception $e) {
+            throw $e;
+            //throw new GeoException('Erreur lors de la récupération des informations GPS');
         }
         return $stopsData;
     }

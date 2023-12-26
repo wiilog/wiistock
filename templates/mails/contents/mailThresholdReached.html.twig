@@ -10,7 +10,7 @@
         <li>Quantité réservée : <strong>{{ reference.quantiteReservee }}</strong></li>
         <li>Quantité en stock : <strong>{{ reference.quantiteStock }}</strong></li>
         <li>Seuil d'alerte : <strong>{{ reference.limitWarning }}</strong></li>
-        <li>Seul de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
+        <li>Seuil de sécurité : <strong>{{ reference.limitSecurity }}</strong></li>
         {% if isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_CEA_LETI')) %}
             <li>Machine PDT : <strong>{{ machinePDTValue }}</strong></li>
             <li>Fournisseur(s) :</li>

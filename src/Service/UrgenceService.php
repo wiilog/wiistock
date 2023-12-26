@@ -5,18 +5,17 @@ namespace App\Service;
 
 
 use App\Entity\Arrivage;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\Setting;
 use App\Entity\Transporteur;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
-use DateTime;
-use Symfony\Component\Security\Core\Security;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\EntityManagerInterface;
 
 class UrgenceService
 {
@@ -80,6 +79,8 @@ class UrgenceService
                 'urgence' => $urgence
             ]),
             'type' => $urgence->getType(),
+            'internalArticleCode' => $urgence->getInternalArticleCode() ?? '',
+            'supplierArticleCode' => $urgence->getSupplierArticleCode() ?? '',
         ];
     }
 
@@ -100,35 +101,43 @@ class UrgenceService
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_BUYER, $data)) {
-            $buyer = $data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER] ? $utilisateurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_BUYER]) : null;
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER, $data)) {
+            $buyer = $data[FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER] ? $utilisateurRepository->find($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_BUYER]) : null;
             $emergency->setBuyer($buyer);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER, $data)) {
-            $provider = $data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER] ? $fournisseurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_PROVIDER]) : null;
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER, $data)) {
+            $provider = $data[FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER] ? $fournisseurRepository->find($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_PROVIDER]) : null;
             $emergency->setProvider($provider);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER, $data)) {
-            $carrier = $data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER] ? $transporteurRepository->find($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER]) : null;
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER, $data)) {
+            $carrier = $data[FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER] ? $transporteurRepository->find($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER]) : null;
             $emergency->setCarrier($carrier);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, $data)) {
-            $emergency->setCommande($data[FieldsParam::FIELD_CODE_EMERGENCY_COMMAND_NUMBER]);
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER, $data)) {
+            $emergency->setCommande($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_COMMAND_NUMBER]);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER, $data)) {
-            $emergency->setPostNb($data[FieldsParam::FIELD_CODE_EMERGENCY_POST_NUMBER]);
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER, $data)) {
+            $emergency->setPostNb($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_POST_NUMBER]);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, $data)) {
-            $emergency->setTrackingNb($data[FieldsParam::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER]);
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER, $data)) {
+            $emergency->setTrackingNb($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_CARRIER_TRACKING_NUMBER]);
         }
 
-        if (array_key_exists(FieldsParam::FIELD_CODE_EMERGENCY_TYPE, $data)) {
-            $emergency->setType($data[FieldsParam::FIELD_CODE_EMERGENCY_TYPE]);
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE, $data)) {
+            $emergency->setType($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE]);
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, $data)) {
+            $emergency->setInternalArticleCode($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE]);
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, $data)) {
+            $emergency->setSupplierArticleCode($data[FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE]);
         }
 
         return $emergency;

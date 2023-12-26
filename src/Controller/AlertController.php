@@ -168,7 +168,7 @@ class AlertController extends AbstractController {
                 foreach ($alerts as $alert) {
                     $alertService->putLineAlert($entityManager, $specificService, $CSVExportService, $output, $alert);
                 }
-            }, "export_alert_${todayStr}.csv", $header);
+            }, "export_alert_{$todayStr}.csv", $header);
         } else {
             throw new BadRequestHttpException();
         }

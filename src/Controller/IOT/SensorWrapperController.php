@@ -92,7 +92,7 @@ class SensorWrapperController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => "Le capteur <strong>${name}</strong> a bien été supprimé"
+                'msg' => "Le capteur <strong>{$name}</strong> a bien été supprimé"
             ]);
         }
 
@@ -151,7 +151,7 @@ class SensorWrapperController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "Le capteur <strong>${name}</strong> a bien été créé"
+            'msg' => "Le capteur <strong>{$name}</strong> a bien été créé"
         ]);
     }
 
@@ -215,7 +215,7 @@ class SensorWrapperController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "Le capteur <strong>${name}</strong> a bien été modifié."
+            'msg' => "Le capteur <strong>{$name}</strong> a bien été modifié."
         ]);
     }
 

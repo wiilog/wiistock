@@ -106,23 +106,23 @@ class ReserveController extends AbstractController
             $reserve = $reserveRepository->find($request->query->get('reserveId'));
         }
 
-        $availableTrackingNumber = $truckArrivalLineRepository->getForReserve($request->query->getInt('truckArrival'));
-
-        $availableTrackingNumber = Stream::from($availableTrackingNumber)
-            ->map(function($line) use ($reserve) {
-                return [
-                    "label" => $line['number'],
-                    "value" => $line['id'],
-                    "selected" => $reserve instanceof Reserve && $reserve->getLine()->getNumber() === $line['number']
-                ];
-            })
-            ->toArray();
-        if(count($availableTrackingNumber) === 0 && $reserve instanceof Reserve){
-            $availableTrackingNumber[] = [
+        if($reserve instanceof Reserve){
+            $availableTrackingNumber = [[
                 "label" => $reserve->getLine()->getNumber(),
                 "value" => $reserve->getLine()->getId(),
                 "selected" => true
-            ];
+            ]];
+        } else {
+            $availableTrackingNumber = $truckArrivalLineRepository->getForReserve($request->query->getInt('truckArrival'));
+
+            $availableTrackingNumber = Stream::from($availableTrackingNumber)
+                ->map(function($line) use ($reserve) {
+                    return [
+                        "label" => $line['number'],
+                        "value" => $line['id'],
+                    ];
+                })
+                ->toArray();
         }
         $isNew = !($reserve instanceof Reserve);
 
@@ -161,7 +161,7 @@ class ReserveController extends AbstractController
 
     private function persistAttachmentsForEntity($entity, AttachmentService $attachmentService, Request $request, EntityManagerInterface $entityManager)
     {
-        $attachments = $attachmentService->createAttachements($request->files);
+        $attachments = $attachmentService->createAttachments($request->files);
         foreach ($attachments as $attachment) {
             $entityManager->persist($attachment);
             $entity->addAttachment($attachment);

@@ -5,19 +5,28 @@ namespace App\Helper;
 use App\Entity\Language;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Query\Expr\Select;
 use Doctrine\ORM\QueryBuilder;
+use WiiCommon\Helper\Stream;
 
 class QueryBuilderHelper
 {
 
-    public static function count(QueryBuilder $query, string $alias): int
+    public static function count(QueryBuilder $query, string $alias, bool $distinct = true): int
     {
         $countQuery = clone $query;
 
-        $result = $countQuery
+        $countQuery
             ->resetDQLPart('orderBy')
-            ->resetDQLPart('groupBy')
-            ->select("COUNT(DISTINCT $alias) AS __query_count")
+            ->resetDQLPart('groupBy');
+
+        if($distinct) {
+            $countQuery->select("COUNT(DISTINCT $alias) AS __query_count");
+        } else {
+            $countQuery->select("COUNT($alias) AS __query_count");
+        }
+
+        $result = $countQuery
             ->getQuery()
             ->getSingleResult();
 
@@ -36,7 +45,7 @@ class QueryBuilderHelper
             $qb
                 ->select("COUNT(entity)")
                 ->from($entity, 'entity')
-                ->innerJoin("entity.${statusProperty}", 'status')
+                ->innerJoin("entity.{$statusProperty}", 'status')
                 ->innerJoin("entity.type", 'type')
                 ->andWhere('status IN (:statuses)')
                 ->andWhere('type IN (:types)')
@@ -63,7 +72,7 @@ class QueryBuilderHelper
             $qb
                 ->select("COUNT(entity)")
                 ->from($entity, 'entity')
-                ->innerJoin("entity.${statusProperty}", 'status')
+                ->innerJoin("entity.{$statusProperty}", 'status')
                 ->andWhere('status IN (:statuses)')
                 ->setParameter('statuses', $statuses);
 
@@ -76,8 +85,12 @@ class QueryBuilderHelper
         }
     }
 
-    public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, string $order = null): QueryBuilder {
-        $alias = $qb->getRootAliases()[0];
+    public static function joinTranslations(QueryBuilder $qb, Language $language, Language $defaultLanguage, string $entity, array $options = []): QueryBuilder {
+        $order = $options["order"] ?? null;
+        $alias = $options["alias"] ?? null;
+        $forSelect = $options["forSelect"] ?? false;
+
+        $alias = $alias ?: $qb->getRootAliases()[0];
         $entityToString = $entity === 'statut' || $entity === 'status' ? 'nom' : 'label';
         $qb
             ->leftJoin("$alias.$entity", "join_$entity")
@@ -91,12 +104,22 @@ class QueryBuilderHelper
                 ->addGroupBy("join_translation.translation")
                 ->addGroupBy("join_translation_default.translation")
                 ->addGroupBy("join_$entity.$entityToString");
-        } else {
+        } elseif($forSelect) {
             $qb->andWhere("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_$entity.$entityToString)) LIKE :term");
         }
 
         return $qb
             ->setParameter("language", $language)
             ->setParameter("default", $defaultLanguage);
+    }
+
+    public static function setGroupBy(QueryBuilder $queryBuilder, array $ignored = []): QueryBuilder {
+        Stream::from($queryBuilder->getDQLParts()['select'])
+            ->flatMap(static fn(Select $selectPart) => [$selectPart->getParts()[0]])
+            ->map(static fn(string $selectString) => trim(explode('AS', $selectString)[1]))
+            ->filter(static fn(string $selectAlias) => !in_array($selectAlias, $ignored))
+            ->each(static fn(string $field) => $queryBuilder->addGroupBy($field));
+
+        return $queryBuilder;
     }
 }

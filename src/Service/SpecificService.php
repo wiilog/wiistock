@@ -45,19 +45,13 @@ class SpecificService
         self::CLIENT_AIA_CUERS => 'AIA Cuers',
     ];
 
-	const ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE = 'CHARIOT UL';
-
     public const EVERY_MINUTE_REFRESH_RATE_CLIENTS = [
         self::CLIENT_SAFRAN_MC,
         self::CLIENT_COLLINS_VERNON,
         self::CLIENT_SAFRAN_CS
     ];
 
-    /**
-     * @param string[]|string $clientName
-     * @return bool
-     */
-	public function isCurrentClientNameFunction($clientName): bool
+	public function isCurrentClientNameFunction(string|array $clientName): bool
 	{
 	    if(!is_array($clientName)) {
 	        $clientName = [$clientName];

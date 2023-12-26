@@ -20,7 +20,7 @@
                         {% for attachment in record.attachments %}
                             {% set path = (attachment.fullPath is defined and attachment.fullPath is not null)
                                 ? attachment.fullPath
-                                : ('/uploads/attachements/' ~ attachment.fileName) %}
+                                : ('/uploads/attachments/' ~ attachment.fileName) %}
                             {% set name = attachment.originalName %}
                             <div class="attachment-line mt-2">
                                 {% if isImage('public' ~ path) %}

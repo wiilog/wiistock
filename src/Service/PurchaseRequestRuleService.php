@@ -5,7 +5,7 @@ namespace App\Service;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\Fournisseur;
-use App\Entity\PurchaseRequestScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\StorageRule;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;

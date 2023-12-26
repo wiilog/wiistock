@@ -783,6 +783,11 @@ label.required:after {
             }
         }
     }
+
+    .type-container {
+        color: $white;
+        padding: 5px 15px;
+    }
 }
 
 /** Main classes for text, labels & inputs **/

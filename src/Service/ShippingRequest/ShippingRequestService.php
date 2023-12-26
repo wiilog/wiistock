@@ -41,7 +41,7 @@ use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -216,10 +216,17 @@ class ShippingRequestService {
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_USER_WITH_ROLES)){
-                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))->toArray()]);
+                $roleIdsToSendMail = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_TO_TREAT_SEND_TO_ROLES))
+                    ->filter()
+                    ->toArray();
+                $rolesToSendMail = !empty($roleIdsToSendMail)
+                    ? $roleRepository->findBy(['id' => $roleIdsToSendMail])
+                    : [];
                 $to = array_merge(
                     $to,
-                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                    !empty($rolesToSendMail)
+                        ? $userRepository->findBy(["role" => $rolesToSendMail])
+                        : [],
                 );
             }
         }
@@ -232,10 +239,18 @@ class ShippingRequestService {
                 $to = array_merge($to, $shippingRequest->getRequesters()->toArray());
             }
             if($settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_USER_WITH_ROLES)){
-                $rolesToSendMail = $roleRepository->findBy(['id' => Stream::explode(',',$settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))->toArray()]);
+                $roleIdsToSendMail = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::SHIPPING_SHIPPED_SEND_TO_ROLES))
+                    ->filter()
+                    ->toArray();
+                $rolesToSendMail = !empty($roleIdsToSendMail)
+                    ? $roleRepository->findBy(['id' => $roleIdsToSendMail])
+                    : [];
+
                 $to = array_merge(
                     $to,
-                    $userRepository->findBy(["role" => $rolesToSendMail]),
+                    !empty($rolesToSendMail)
+                        ? $userRepository->findBy(["role" => $rolesToSendMail])
+                        : [],
                 );
             }
         }
@@ -644,7 +659,7 @@ class ShippingRequestService {
 
         $nakedFileName = uniqid();
 
-        $deliverySlipOutdir = "$projectDir/public/uploads/attachements";
+        $deliverySlipOutdir = "$projectDir/public/uploads/attachments";
         $docxPath = "$deliverySlipOutdir/$nakedFileName.docx";
 
         rename($tmpDocxPath, $docxPath);

@@ -21,7 +21,7 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -86,6 +86,7 @@ class InvMissionService {
             : ((($nbArtInMission + $nbRefInMission) != 0)
                 ? ($nbEntriesInMission * 100 / ($nbArtInMission + $nbRefInMission))
                 : 0);
+
         return [
             'name' => $mission->getName() ?? '',
             'start' => $this->formatService->date($mission->getStartPrevDate()),
@@ -160,7 +161,7 @@ class InvMissionService {
                         ? $this->templating->render("utils/action-buttons/dropdown.html.twig", [
                             "actions" => [
                                 [
-                                    "title" => "Annuler la planification",
+                                    "title" => "Voir les articles",
                                     "actionOnClick" => true,
                                     "attributes" => [
                                         "data-id" => $inventoryLocation->getId(),
@@ -169,7 +170,7 @@ class InvMissionService {
                                 ],
                                 [
                                     "title" => "Voir les articles",
-                                    "icon" => "bg-black fas fa-eye",
+                                    "icon" => "fas fa-eye",
                                     "attributes" => [
                                         "class" => "pointer",
                                         "data-id" => $inventoryLocation->getId(),
@@ -223,7 +224,7 @@ class InvMissionService {
 
         $row['Actions'] = $this->templating->render('saisie_inventaire/inventoryEntryRefArticleRow.html.twig', [
             'inventoryData' => Stream::from($actionData)
-                ->map(fn(string $value, string $key) => "${key}: ${value}")
+                ->map(fn(string $value, string $key) => "{$key}: {$value}")
                 ->join(';'),
         ]);
 

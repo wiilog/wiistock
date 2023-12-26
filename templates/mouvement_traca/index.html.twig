@@ -14,9 +14,6 @@
 {% endblock %}
 
 {% block page_content %}
-    {% set isSafran =
-        isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
-        or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
     {% set hasRightCreate = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::CREATE')) %}
     {% set hasRightExport = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EXPORT')) %}
     {% set editAttachments = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT')) %}
@@ -36,7 +33,7 @@
                                 "data-target": "#modalNewMvtTraca",
                                 "data-backdrop": "static",
                                 "data-keyboard": "false",
-                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca'))"
+                                "onclick": "clearModal('#modalNewMvtTraca'), resetNewModal($('#modalNewMvtTraca')), switchMvtCreationType($('#modalNewMvtTraca [name=type]'))"
                             },
                         },
                         {
@@ -92,12 +89,15 @@
     {% include "mouvement_traca/modalDeleteMvtTraca.html.twig" %}
     {% include "utils/visible_columns.html.twig" with {
         'fields': fields,
-        'table': 'tableMvt',
+        'table': 'tableMvts',
         'route': 'save_column_visible_for_tracking_movement'
     } %}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('js/pages/tracking_movement.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('tracking-movement') }}
+    {% if setting_value('DISPLAY_WARNING_WRONG_LOCATION') %}
+        {{ encore_entry_script_tags('tracking-movement-wrong-location-warning') }}
+    {% endif %}
 {% endblock %}

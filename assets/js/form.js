@@ -1,6 +1,6 @@
-import WysiwygManager from "./wysiwyg-manager";
-import Flash from "./flash";
-import AJAX, {POST} from "@app/ajax";
+import WysiwygManager from "@app/wysiwyg-manager";
+import Flash from "@app/flash";
+import AJAX from "@app/ajax";
 
 export default class Form {
 
@@ -100,14 +100,28 @@ export default class Form {
         return this;
     }
 
-    submitTo(method, route, options) {
+    /**
+     * @param {"GET"|"POST"|"PUT"|"PATCH"|"DELETE"} method HTTP method
+     * @param {string} route Symfony route name
+     * @param {{
+     *    keepModal: boolean|undefined,
+     *    success: function|undefined,
+     *    tables: Datatable|Datatable[],
+     * }} options
+     * @returns {Form}
+     */
+    submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
                 () => AJAX.route(method, route)
                     .json(data)
                     .then(response => {
                         if(response.success) {
-                            this.element.modal(`hide`);
+                            if (this.element.is('.modal')) {
+                                if (!options.keepModal) {
+                                    this.element.modal(`hide`);
+                                }
+                            }
 
                             if(options.success) {
                                 options.success(response);
@@ -172,10 +186,18 @@ export default class Form {
      * Launch loading on submit button of the form and wait for the given promise
      * @param {function} action Function returning a promise to wait
      * @param {boolean} endLoading default to true
+     * @param {{
+     *    closeModal: boolean|undefined,
+     * }} options
      */
-    loading(action, endLoading = true) {
+    loading(action, endLoading = true, options = {}) {
         const $submit = this.element.find(`[type=submit]`);
         wrapLoadingOnActionButton($submit, action, endLoading);
+        if (this.element.is(`.modal`)) {
+            if (options.closeModal) {
+                this.element.modal(`hide`);
+            }
+        }
     }
 
     static getFieldNames(form, config = {}) {
@@ -205,23 +227,21 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
-            if (value !== null && value !== "") {
-                if($input.is('[data-intl-tel-input]')){
-                    $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+            if($input.is('[data-intl-tel-input]')){
+                $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
+            }
+            const $multipleKey = $input.closest(`[data-multiple-key]`);
+            if ($multipleKey.exists()) {
+                const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
+                if (!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
+                    multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
                 }
-                const $multipleKey = $input.closest(`[data-multiple-key]`);
-                if ($multipleKey.exists()) {
-                    const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
-                    if (!multipleKey[$multipleKey.data(`multiple-object-index`)]) {
-                        multipleKey[$multipleKey.data(`multiple-object-index`)] = {};
-                    }
 
-                    const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
-                    multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = value;
-                    data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
-                } else {
-                    data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), value);
-                }
+                const multipleObject = multipleKey[$multipleKey.data(`multiple-object-index`)];
+                multipleObject[$input.attr(`name`) || $input.attr(`data-wysiwyg`)] = serializeFormValue(value);
+                data.set($multipleKey.data(`multiple-key`), JSON.stringify(multipleKey));
+            } else {
+                data.set($input.attr(`name`) || $input.attr(`data-wysiwyg`), serializeFormValue(value));
             }
         });
 
@@ -316,7 +336,7 @@ export default class Form {
         if($field.is(`[data-wysiwyg]`)) {
             $parent = $field.parent();
         } else {
-            $parent = $field.closest(`label, .wii-checkbox, .wii-radio-container`);
+            $parent = $field.closest(`label, .wii-checkbox, .wii-radio-container, .dropFrame`);
         }
 
         $field.addClass(`is-invalid`);
@@ -336,7 +356,7 @@ export default class Form {
             Flash.add(`danger`, `${prefixMessage}${message}`);
         } else {
             if (message) {
-                $parent.append(`<span class="invalid-feedback">${message}</span>`);
+                $parent.append(`<span class="invalid-feedback d-inline-block">${message}</span>`);
             }
         }
     }
@@ -589,5 +609,11 @@ export function formatIconSelector(state) {
             ${state.text}
         </span>
     `);
+}
+
+function serializeFormValue(value) {
+    return (value === null || value === undefined)
+        ? '' // value for clear the field
+        : value;
 }
 

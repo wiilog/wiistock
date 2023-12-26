@@ -7,7 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Entity\PurchaseRequest;
@@ -17,26 +17,21 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
-use App\Service\PurchaseRequestRuleService;
+use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
 use App\Service\ReceptionLineService;
 use App\Service\ReceptionService;
 use App\Service\RefArticleDataService;
-use DateTime;
-use App\Service\CSVExportService;
 use App\Service\UserService;
-
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Iterator;
-
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 /**
@@ -381,8 +376,8 @@ class PurchaseRequestController extends AbstractController
                 $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
                 $purchaseRequestLine = $purchaseRequestLineRepository->find($data['id']);
 
-                $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
-                $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_RECEPTION);
+                $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+                $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_RECEPTION);
                 $html = $this->renderView('purchase_request/line/edit_content_modal.html.twig', [
                     'line' => $purchaseRequestLine,
                     'fieldsParam' => $fieldsParam
@@ -504,7 +499,7 @@ class PurchaseRequestController extends AbstractController
             ->setRequester($requester)
             ->setSupplier($supplier ?? null);
 
-        $purchaseRequest->removeIfNotIn($data['files'] ?? []);
+        $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
 
         $entityManager->flush();
@@ -514,7 +509,7 @@ class PurchaseRequestController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'msg' => "La demande d'achat <strong>${number}</strong> a bien été modifiée",
+            'msg' => "La demande d'achat <strong>{$number}</strong> a bien été modifiée",
             'entete' => $this->renderView('purchase_request/show_header.html.twig', [
                 'request' => $purchaseRequest,
                 'modifiable' => $purchaseRequestStatus && $purchaseRequestStatus->isDraft(),
@@ -552,9 +547,7 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-    * @Route("/{id}/consider", name="consider_purchase_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-    */
+    #[Route("/{id}/consider", name: "consider_purchase_request", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     public function consider(Request                    $request,
                              EntityManagerInterface     $entityManager,
                              PurchaseRequest            $purchaseRequest,
@@ -709,7 +702,7 @@ class PurchaseRequestController extends AbstractController
 
             return $this->json([
                 'success' => true,
-                'msg' => "La demande d'achat <strong>${number}</strong> a bien été validée",
+                'msg' => "La demande d'achat <strong>{$number}</strong> a bien été validée",
                 'entete' => $this->renderView('purchase_request/show_header.html.twig', [
                     'modifiable' => $status->isDraft(),
                     'request' => $purchaseRequest,

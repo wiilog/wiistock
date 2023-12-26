@@ -20,6 +20,7 @@ use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\Project;
 use App\Entity\Reception;
@@ -87,6 +88,7 @@ class RefArticleDataService
         ["title" => "Dernière entrée le", "name" => "lastStockEntry", "type" => "date"],
         ["title" => "Dernière sortie le", "name" => "lastStockExit", "type" => "date"],
         ["title" => "Inventaire à jour", "name" => "upToDateInventory", "type" => "booleen"],
+        ["title" => "Gestion quantité", "name" => "quantityType", "type" => "text"],
         ["title" => FiltreRef::FIXED_FIELD_VISIBILITY_GROUP, "name" => "visibilityGroups", "type" => "list multiple", "orderable" => true],
     ];
 
@@ -342,7 +344,7 @@ class RefArticleDataService
                         'label' => $supplierReferenceLine['labelFournisseur'],
                         'reference' => $referenceArticleFournisseur,
                         'visible' => $isVisible
-                    ]);
+                    ], false, $entityManager);
 
                     $entityManager->persist($supplierArticle);
                 } catch (Exception $exception) {
@@ -388,20 +390,22 @@ class RefArticleDataService
             $article->setVisible($isVisible);
         }
 
-        $managersIds = $data->get('managers');
-        $refArticle->getManagers()->clear();
-        if (!empty($managersIds)) {
-            $managers = is_string($managersIds)
-                ? explode(',', $managersIds)
-                : $managersIds;
-            foreach ($managers as $manager) {
-                $refArticle->addManager($userRepository->find($manager));
+        if($data->has('managers')) {
+            $managersIds = $data->get('managers');
+            $refArticle->getManagers()->clear();
+            if (!empty($managersIds)) {
+                $managers = is_string($managersIds)
+                    ? explode(',', $managersIds)
+                    : $managersIds;
+                foreach ($managers as $manager) {
+                    $refArticle->addManager($userRepository->find($manager));
+                }
             }
         }
 
         $typeId = $data->getInt('type');
         $type = $typeId ? $typeRepository->find($typeId) : null;
-        if ($type) {
+        if (!$refArticle->getId() && $type) {
             $refArticle->setType($type);
         }
 
@@ -409,18 +413,54 @@ class RefArticleDataService
             $refArticle->setLibelle($data->get('libelle'));
         }
 
-        $categoryId = $data->getInt('categorie');
-        $category = $categoryId ? $inventoryCategoryRepository->find($categoryId) : null;
+        if($data->has('categorie')) {
+            $categoryId = $data->getInt('categorie');
+            $refArticle->setCategory($inventoryCategoryRepository->find($categoryId));
+        }
 
-        $buyerId = $data->getInt('buyer');
-        $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+        if($data->has('buyer')) {
+            $buyerId = $data->getInt('buyer');
+            $buyer = $buyerId ? $userRepository->find($buyerId) : null;
+            $refArticle->setBuyer($buyer);
+        }
 
-        $visibilityGroupId = $data->getInt('visibility-group');
-        $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
+        if($data->has('visibility-group')) {
+            $visibilityGroupId = $data->getInt('visibility-group');
+            $visibilityGroup = $visibilityGroupId ? $visibilityGroupRepository->find($visibilityGroupId) : null;
 
-        $isUrgent = $data->getBoolean('urgence');
+            $refArticle->setProperties(['visibilityGroup' => $visibilityGroup]);
+        }
 
-        $mobileSync= $data->getBoolean('mobileSync');
+        if ($data->has('limitWarning')) {
+            $limitWarning = $data->get('limitWarning');
+            $refArticle
+                ->setLimitWarning($limitWarning >= 0 ? $limitWarning : null);
+        }
+
+        if ($data->has('limitSecurity')) {
+            $limitSecurity = $data->get('limitSecurity');
+            $refArticle
+                ->setLimitSecurity($limitSecurity >= 0 ? $limitSecurity : null);
+        }
+
+        if ($data->has('prix')) {
+            $unitPrice = $data->get('prix');
+            $refArticle
+                ->setPrixUnitaire(($unitPrice !== null && $unitPrice >= 0) ? max(0, $unitPrice) : null);
+        }
+
+        if ($data->has('urgence')) {
+            $isUrgent = $data->getBoolean('urgence');
+            $emergencyQuantity = $data->get('emergencyQuantity');
+            $refArticle
+                ->setIsUrgent($isUrgent)
+                ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
+                ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
+                ->setEmergencyQuantity(($isUrgent && $emergencyQuantity >= 0) ? $emergencyQuantity : null);
+        }
+
+
+        $mobileSync = $data->getBoolean('mobileSync');
         if ($mobileSync) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
             $syncCount = $referenceArticleRepository->count(['needsMobileSync' => true]);
@@ -433,24 +473,16 @@ class RefArticleDataService
         }
 
         $refArticle
-            ->setCategory($category)
             ->setReference($data->get('reference'))
-            ->setIsUrgent($isUrgent)
-            ->setUserThatTriggeredEmergency($isUrgent ? $user : null)
-            ->setEmergencyComment($isUrgent ? $data->get('emergencyComment') : '')
-            ->setEmergencyQuantity($isUrgent ? ($data->getInt('emergencyQuantity') >= 0) ? $data->getInt('emergencyQuantity') : null : null)
-            ->setPrixUnitaire(max(0, $data->get('prix')))
             ->setCommentaire($data->get('commentaire'))
             ->setNeedsMobileSync($mobileSync)
-            ->setBuyer($buyer)
-            ->setLimitWarning(($data->getInt('limitWarning') >= 0) ? $data->getInt('limitWarning') : null)
-            ->setLimitSecurity(($data->getInt('limitSecurity') >= 0) ? $data->getInt('limitSecurity') : null)
             ->setStockManagement($data->get('stockManagement'))
             ->setNdpCode($data->get('ndpCode'))
             ->setDangerousGoods($data->getBoolean('security'))
             ->setOnuCode($data->get('onuCode'))
             ->setProductClass($data->get('productClass'))
-            ->setProperties(['visibilityGroup' => $visibilityGroup]);
+            ->setEditedBy($user)
+            ->setEditedAt(new DateTime('now'));;
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE &&
             $refArticle->getQuantiteStock() > 0 &&
@@ -462,7 +494,7 @@ class RefArticleDataService
                 $refArticle,
                 MouvementStock::TYPE_ENTREE
             );
-            $this->mouvementStockService->finishMouvementStock(
+            $this->mouvementStockService->finishStockMovement(
                 $mvtStock,
                 new DateTime('now'),
                 $refArticle->getEmplacement()
@@ -470,22 +502,18 @@ class RefArticleDataService
             $entityManager->persist($mvtStock);
         }
 
-        $refArticle
-            ->setEditedBy($user)
-            ->setEditedAt(new DateTime('now'));
-
         $entityManager->persist($refArticle);
         //modification ou création des champsLibres
         $this->freeFieldService->manageFreeFields($refArticle, $data->all(), $entityManager);
 
         if ($fileBag) {
             if ($fileBag->has('image')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('image')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('image')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setImage($attachments[0]);
                 $fileBag->remove('image');
-            } elseif ($data->getBoolean('deletedImage')) {
+            } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getImage();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -495,12 +523,12 @@ class RefArticleDataService
             }
 
             if ($fileBag->has('fileSheet')) {
-                $attachments = $this->attachmentService->createAttachements([$fileBag->get('fileSheet')]);
+                $attachments = $this->attachmentService->createAttachments([$fileBag->get('fileSheet')]);
                 $entityManager->persist($attachments[0]);
 
                 $refArticle->setSheet($attachments[0]);
                 $fileBag->remove('fileSheet');
-            } else {
+            } else if ($data->getBoolean('deletedImage')) {
                 $image = $refArticle->getSheet();
                 if ($image) {
                     $this->attachmentService->deleteAttachment($image);
@@ -550,7 +578,7 @@ class RefArticleDataService
             ->unique()
             ->toArray();
 
-        $typeColor = $refArticle->getType()->getColor();
+        $typeColor = $refArticle->getType()?->getColor() ?? '#3353D7';
 
         $formatService = $this->formatService;
 
@@ -561,7 +589,7 @@ class RefArticleDataService
             ]),
             "label" => $formatService->referenceArticle($refArticle,  "Non défini", true),
             "reference" => $refArticle->getReference() ?? "Non défini",
-            "quantityType" => $refArticle->getTypeQuantite() ?? "Non défini",
+            "quantityType" => $refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE ? 'Article' : 'Référence',
             "type" => "<div class='d-flex align-items-center'><span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>"
                 . $formatService->type($refArticle->getType())
                 . "</div>",
@@ -831,78 +859,47 @@ class RefArticleDataService
         ];
     }
 
+    /**
+     * @param ReferenceArticle[] $references
+     */
     public function updateRefArticleQuantities(EntityManagerInterface $entityManager,
-                                               ReferenceArticle       $referenceArticle,
+                                               array                  $references,
                                                bool                   $fromCommand = false)
     {
-        $this->updateStockQuantity($entityManager, $referenceArticle);
-        $this->updateReservedQuantity($entityManager, $referenceArticle, $fromCommand);
-        $referenceArticle->setQuantiteDisponible($referenceArticle->getQuantiteStock() - $referenceArticle->getQuantiteReservee());
-    }
-
-    public function updateInventoryStatus(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle)
-    {
-        $category = $referenceArticle->getCategory();
-        if ($category) {
-            $frequency = $category->getFrequency();
-            $articlesRepository = $entityManager->getRepository(Article::class);
-            $articles = $articlesRepository->findActiveArticles($referenceArticle);
-            $now = new DateTime();
-            $oldestInventoryDate = null;
-
-            foreach ($articles as $article) {
-                $inventoryDate = $article->getDateLastInventory();
-                $oldestInventoryDate = !$oldestInventoryDate
-                    ? $inventoryDate
-                    : ($inventoryDate < $oldestInventoryDate
-                        ? $inventoryDate
-                        : $oldestInventoryDate
-                    );
-            }
-            $diff = $oldestInventoryDate->diff($now);
-            $referenceArticle->setUpToDateInventory($diff->m < $frequency->getNbMonths());
+        $this->updateStockQuantities($entityManager, $references);
+        $this->updateReservedQuantity($entityManager, $references, $fromCommand);
+        foreach($references as $reference) {
+            $reference->setQuantiteDisponible($reference->getQuantiteStock() - $reference->getQuantiteReservee());
         }
     }
 
-    private function updateStockQuantity(EntityManagerInterface $entityManager, ReferenceArticle $referenceArticle): void
+    private function updateStockQuantities(EntityManagerInterface $entityManager,
+                                           array                  $references): void
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $referenceArticle->setQuantiteStock($referenceArticleRepository->getStockQuantity($referenceArticle));
+        $stockQuantities = $referenceArticleRepository->getStockQuantities($references);
+
+        /** @var ReferenceArticle $reference */
+        foreach ($references as $reference) {
+            $stockQuantity = $stockQuantities[$reference->getId()] ?? 0;
+            $reference->setQuantiteStock($stockQuantity);
         }
     }
 
+    /**
+     * @param ReferenceArticle[] $references
+     */
     private function updateReservedQuantity(EntityManagerInterface $entityManager,
-                                            ReferenceArticle       $referenceArticle,
+                                            array                  $references,
                                             bool                   $fromCommand = false): void
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
+        $reservedQuantities = $referenceArticleRepository->getReservedQuantities($references, $fromCommand);
 
-        if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
-            $referenceArticle->setQuantiteReservee($referenceArticleRepository->getReservedQuantity($referenceArticle));
-        } else {
-            $totalReservedQuantity = 0;
-            $lignesArticlePrepaEnCours = $referenceArticle
-                ->getPreparationOrderReferenceLines()
-                ->filter(function (PreparationOrderReferenceLine $ligneArticlePreparation) use ($fromCommand) {
-                    $preparation = $ligneArticlePreparation->getPreparation();
-                    $livraison = $preparation->getLivraison();
-                    return $preparation->getStatut()?->getCode() === Preparation::STATUT_EN_COURS_DE_PREPARATION
-                        || $preparation->getStatut()?->getCode() === Preparation::STATUT_A_TRAITER
-                        || (
-                            $fromCommand &&
-                            $livraison &&
-                            $livraison->getStatut()?->getCode() === Livraison::STATUT_A_TRAITER
-                        );
-                });
-            /**
-             * @var PreparationOrderReferenceLine $ligneArticlePrepaEnCours
-             */
-            foreach ($lignesArticlePrepaEnCours as $ligneArticlePrepaEnCours) {
-                $totalReservedQuantity += $ligneArticlePrepaEnCours->getQuantityToPick();
-            }
-            $referenceArticle->setQuantiteReservee($totalReservedQuantity);
+        foreach ($references as $reference) {
+            $reservedQuantity = $reservedQuantities[$reference->getId()] ?? 0;
+            $reference->setQuantiteReservee($reservedQuantity);
         }
     }
 
@@ -1188,9 +1185,8 @@ class RefArticleDataService
     public function getDraftDefaultReference(EntityManagerInterface $entityManager): string
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-        $prefix = "A DEFINIR";
-        $referenceCount = $referenceArticleRepository->countByReference($prefix, null, "LIKE");
-        return $prefix . ($referenceCount + 1);
+        $lastDraftReferenceNumber = $referenceArticleRepository->getLastDraftReferenceNumber();
+        return ReferenceArticle::TO_DEFINE_LABEL . ($lastDraftReferenceNumber + 1);
     }
 
     public function putReferenceLine($handle,

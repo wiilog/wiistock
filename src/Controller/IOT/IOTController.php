@@ -12,18 +12,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-
-/**
- * Class IOTController
- * @package App\Controller
- */
+#[Rest\Route("/api")]
 class IOTController extends AbstractFOSRestController
 {
 
-    /**
-     * @Rest\Post("/api/iot")
-     * @Rest\View()
-     */
+    #[Rest\Post("/iot")]
+    #[Rest\View]
     public function postMessage(Request $request,
                                EntityManagerInterface $entityManager,
                                IOTService $IOTService): Response

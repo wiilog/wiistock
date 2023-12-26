@@ -8,18 +8,19 @@ use App\Helper\FormatHelper;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 
 class FournisseurDataService
 {
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $entityManager;
 
     public function getFournisseurDataByParams(?InputBag $params = null): array

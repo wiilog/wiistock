@@ -23,7 +23,7 @@ CREATE TABLE dw_jours_horaires_travailles
 CREATE TABLE dw_association_br
 (
     date        timestamp(0),
-    codes_colis varchar(255),
+    code_ul     varchar(255),
     reception   varchar(255),
     utilisateur varchar(255)
 );
@@ -72,11 +72,11 @@ CREATE TABLE dw_demande_livraison_champs_libres
     valeur               text
 );
 
-CREATE TABLE dw_arrivage_nature_colis
+CREATE TABLE dw_arrivage_nature_ul
 (
-    arrivage_id    integer,
-    nature_colis   varchar(255),
-    quantite_colis integer
+    arrivage_id integer,
+    nature_ul   varchar(255),
+    quantite_ul integer
 );
 
 CREATE TABLE dw_indicateur_arrivage
@@ -181,6 +181,9 @@ CREATE TABLE dw_reference_article
     date_derniere_sortie     timestamp(0),
     materiel_hors_format     varchar(3),
     code_fabricant           varchar(255),
+    longueur                 varchar(255),
+    largeur                  varchar(255),
+    hauteur                  varchar(255),
     volume                   varchar(255),
     poids                    varchar(255),
     types_documents_associes varchar(255),
@@ -219,7 +222,7 @@ CREATE TABLE dw_service_champs_libres
 CREATE TABLE dw_tracabilite
 (
     date_mouvement        timestamp(0),
-    code_colis            varchar(255),
+    code_ul               varchar(255),
     code_barre_article    varchar(255),
     type_mouvement        varchar(255),
     groupe                varchar(255),
@@ -255,14 +258,13 @@ CREATE TABLE dw_urgence
     date_creation          timestamp(0)
 );
 
--- Nouvelle table SED
 CREATE TABLE dw_arrivage
 (
     id                       integer,
     no_arrivage              varchar(255),
     date                     timestamp(0),
-    nb_colis                 integer,
-    destinataire             varchar(255),
+    nb_ul                    integer,
+    destinataires            varchar(255),
     fournisseur              varchar(255),
     transporteur             varchar(255),
     chauffeur                varchar(255),
@@ -296,7 +298,7 @@ CREATE TABLE dw_acheminement
     numero_tracking_transporteur varchar(255),
     numero_commande              varchar(255),
     demandeur                    varchar(255),
-    destinataire                 varchar(255),
+    destinataires                varchar(255),
     code_ul                      varchar(255),
     quantite_ul                  integer,
     quantite_a_acheminer         integer,
@@ -496,7 +498,7 @@ CREATE TABLE dw_litige
     fournisseur         varchar(255),
     reference           varchar(255),
     transporteur        varchar(255),
-    colis_article       varchar(255),
+    ul_article          varchar(255),
     libelle_article     varchar(255),
     reference_article   varchar(255),
     quantite_article    integer
@@ -563,9 +565,15 @@ CREATE TABLE dw_article
     label_reference_fournisseur varchar(255),
     projet                      varchar(255),
     date_assignation_projet     timestamp(0),
-    code_UL                     varchar(255),
+    code_ul                     varchar(255),
     prix_unitaire               integer,
-    anomalie                    varchar(255)
+    anomalie                    varchar(255),
+    tag_rfid                    varchar(255),
+    type                        varchar(255),
+    numero_commande             varchar(255),
+    numero_bon_livraison        varchar(255),
+    pays_origine                varchar(255),
+    date_fabrication            timestamp(0)
 );
 
 CREATE TABLE dw_unite_logistique
@@ -611,9 +619,9 @@ CREATE TABLE dw_demande_expedition
     envoi                          varchar(255),
     port                           varchar(255),
     poids_net_transport            integer,
-    dimension_colis                varchar(255),
-    valeur_total_transport         integer,
-    nombre_colis                   integer,
+    dimension_ul                   varchar(255),
+    valeur_totale_transport        integer,
+    nombre_ul                      integer,
     poids_brut_transport           integer
 );
 

@@ -4,6 +4,7 @@ namespace App\Service\Transport;
 
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\IOT\TriggerAction;
 use App\Entity\Nature;
 use App\Entity\Setting;
 use App\Entity\Statut;
@@ -17,6 +18,7 @@ use App\Entity\Transport\TransportDeliveryRequestLine;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRequestContact;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
@@ -25,6 +27,7 @@ use App\Service\CSVExportService;
 use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
+use App\Service\IOT\IOTService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
@@ -34,21 +37,27 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class TransportService {
 
     private const LYON_POSTAL_CODES = [
-        69001, 69002, 69003, 69004, 69005,
-        69006, 69007, 69008, 69009, 69110,
-        69120, 69130, 69140, 69150, 69160,
-        69190, 69200, 69230, 69260, 69270,
-        69280, 69300, 69310, 69320, 69330,
-        69340, 69350, 69380, 69390, 69410,
-        69450, 69500, 69520, 69540, 69570,
-        69580, 69650, 69660, 69680, 69730,
-        69760, 69800, 69890, 69960
+        69250, 69500, 69270, 69300, 69410,
+        69260, 69390, 69680, 69660, 69960,
+        69270, 69290, 69250, 69570, 69150,
+        69130, 69320, 69250, 69270, 69270,
+        69340, 69730, 69700, 69520, 69540,
+        69330, 69760, 69380, 69000, 69280,
+        69330, 69780, 69250, 69350, 69250,
+        69600, 69310, 69250, 69650, 69140,
+        69270, 69450, 69370, 69190, 69230,
+        69290, 69650, 69800, 69270, 69110,
+        69580, 69580, 69360, 69160, 69890,
+        69120, 69200, 69390, 69100
+
     ];
 
     #[Required]
@@ -77,6 +86,12 @@ class TransportService {
 
     #[Required]
     public TranslationService $translation;
+
+    #[Required]
+    public IOTService $iotService;
+
+    #[Required]
+    public RouterInterface $router;
 
     public function persistTransportRequest(EntityManagerInterface $entityManager,
                                             Utilisateur $user,
@@ -473,10 +488,15 @@ class TransportService {
         $treatedNatures = [];
         $createdPacks = [];
 
+
+        $lines = Stream::from($lines)
+            ->filter(static fn($line) => ($line['selected'] ?? false))
+            ->toArray();
+
         foreach ($lines as $line) {
             $selected = (bool) ($line['selected'] ?? false);
             $natureId = $line['natureId'] ?? null;
-            $quantity = $line['quantity'] ?? null;
+            $quantity = ($line['quantity'] ?? null) ?: null;
             $temperatureId = $line['temperature'] ?? null;
             $nature = $natureId ? $natureRepository->find($natureId) : null;
             if ($selected && $nature) {
@@ -503,9 +523,7 @@ class TransportService {
 
                 if ($line instanceof TransportDeliveryRequestLine) {
                     $temperature = $temperatureId ? $temperatureRangeRepository->find($temperatureId) : null;
-                    $line->setTemperatureRange($temperature);
-
-                    // adding packs in modification form
+                    $line->setProperty('temperatureRange', $temperature);
                     if ($transportOrder) {
                         $orderPackCountForNature = $transportOrder->getPacksForLine($line)->count();
                         $quantityDelta = $quantity - $orderPackCountForNature;
@@ -816,6 +834,7 @@ class TransportService {
 
         $maxLineLength = 40;
         $cleanedContactAddress = Stream::explode("\n", $contactAddress)
+            ->filter()
             //mettre à la ligne les éléments de l'adresse pour le svg
             ->flatMap(function (string $part) use ($maxLineLength) {
                 $part = trim($part);
@@ -904,4 +923,56 @@ class TransportService {
             ));
     }
 
+    public function getTemperatureChartConfig(TransportRound $round): array {
+        $urls = [];
+        foreach ($round?->getLocations() ?? [] as $location) {
+            if(!$round->getBeganAt()) {
+                continue;
+            }
+
+            $triggerActions = $location->getActivePairing()?->getSensorWrapper()?->getTriggerActions();
+            if($triggerActions) {
+                $minTriggerActionThreshold = Stream::from($triggerActions)
+                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'lower')
+                    ->last();
+                $maxTriggerActionThreshold = Stream::from($triggerActions)
+                    ->filter(fn(TriggerAction $triggerAction) => $triggerAction->getConfig()['limit'] === 'higher')
+                    ->last();
+                $minThreshold = $minTriggerActionThreshold?->getConfig()['temperature'];
+                $maxThreshold = $maxTriggerActionThreshold?->getConfig()['temperature'];
+            }
+            if(!$round->getEndedAt()) {
+                $end = clone ($round->getBeganAt() ?? new DateTime("now"));
+                $end->setTime(23, 59);
+            } else {
+                $end = min((clone ($round->getBeganAt()))->setTime(23, 59), $round->getEndedAt());
+            }
+
+            $urls[] = [
+                "fetch_url" => $this->router->generate("chart_data_history", [
+                    "type" => IOTService::getEntityCodeFromEntity($location),
+                    "id" => $location->getId(),
+                    'start' => $round->getBeganAt()->format('Y-m-d\TH:i'),
+                    'end' => $end->format('Y-m-d\TH:i'),
+                    'messageContentType' => IOTService::DATA_TYPE_TEMPERATURE,
+                ], UrlGeneratorInterface::ABSOLUTE_URL),
+                "minTemp" => $minThreshold ?? 0,
+                "maxTemp" => $maxThreshold ?? 0,
+            ];
+        }
+        if (empty($urls)) {
+            $urls[] = [
+                "fetch_url" => $this->router->generate("chart_data_history", [
+                    "type" => null,
+                    "id" => null,
+                    'start' => new DateTime('now'),
+                    'end' => new DateTime('tomorrow'),
+                ], UrlGeneratorInterface::ABSOLUTE_URL),
+                "minTemp" => 0,
+                "maxTemp" => 0,
+            ];
+        }
+
+        return $urls;
+    }
 }

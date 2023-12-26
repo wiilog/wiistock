@@ -13,7 +13,7 @@ use DateTime;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
 use Doctrine\ORM\EntityManagerInterface;
@@ -321,7 +321,7 @@ class DisputeService {
     public function createDisputeAttachments(Dispute                $dispute,
                                              Request                $request,
                                              EntityManagerInterface $entityManager): void {
-        $attachments = $this->attachmentService->createAttachements($request->files);
+        $attachments = $this->attachmentService->createAttachments($request->files);
         foreach($attachments as $attachment) {
             $entityManager->persist($attachment);
             $dispute->addAttachment($attachment);
@@ -341,7 +341,7 @@ class DisputeService {
         $historyRecord = new DisputeHistoryRecord();
         $historyRecord
             ->setDate(new DateTime('now'))
-            ->setComment($comment ?: null)
+            ->setComment(empty($comment) ? $dispute->getStatus()?->getComment() : $comment)
             ->setDispute($dispute)
             ->setUser($user);
 

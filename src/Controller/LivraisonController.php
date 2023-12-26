@@ -11,7 +11,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
@@ -23,6 +23,7 @@ use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Exceptions\NegativeQuantityException;
+use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DeliveryRequestService;
 use App\Service\LivraisonService;
@@ -36,13 +37,13 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Throwable;
 use WiiCommon\Helper\Stream;
 
@@ -117,8 +118,7 @@ class LivraisonController extends AbstractController {
                         $user,
                         $livraison,
                         $dateEnd,
-                        $livraison->getDemande()->getDestination(),
-                        false,
+                        $livraison->getDemande()->getDestination()
                     );
                     $entityManager->flush();
                 }
@@ -395,10 +395,10 @@ class LivraisonController extends AbstractController {
             []
         );
 
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         $html = $this->renderView('dispatch/modalPrintDeliveryNoteContent.html.twig', array_merge($deliveryNoteData, [
-            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EMERGENCY),
+            'dispatchEmergencyValues' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             'fromDelivery' => $request->query->getBoolean('fromDelivery'),
             'deliveryOrder' => $deliveryOrder->getId(),
         ]));
@@ -501,7 +501,7 @@ class LivraisonController extends AbstractController {
                                       PDFGeneratorService       $pdfService,
                                       SpecificService           $specificService,
                                       TranslationService        $translation,
-                                      KernelInterface           $kernel): Response {
+                                      AttachmentService $attachmentService): Response {
         if(!$deliveryOrder->getDeliveryNoteData()) {
             return $this->json([
                 "success" => false,
@@ -519,10 +519,9 @@ class LivraisonController extends AbstractController {
 
         $attachments = $deliveryOrder->getAttachments();
         $fileName = $attachments->last()->getFilename();
-        $filePath = $kernel->getProjectDir() . '/public/uploads/attachements/' . $fileName;
 
         $content = $pdfService->generatePDFDeliveryNote($title, $logo, $deliveryOrder);
-        file_put_contents($filePath, $content);
+        $attachmentService->createFile($fileName, $content);
 
         return new PdfResponse(
             $content,
@@ -668,7 +667,7 @@ class LivraisonController extends AbstractController {
             ]);
         }
 
-        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachements/' . $attachment->getFileName()));
+        $response = new BinaryFileResponse(($kernel->getProjectDir() . '/public/uploads/attachments/' . $attachment->getFileName()));
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $attachment->getOriginalName());
 
         return $response;

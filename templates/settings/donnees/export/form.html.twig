@@ -13,38 +13,38 @@
         {{ form.switch('entityToExport', null, true, [
             {
                 label: 'Références',
-                value: constant('App\\Entity\\Export::ENTITY_REFERENCE'),
-                checked: export.id is null or export.entity == constant('App\\Entity\\Export::ENTITY_REFERENCE'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_REFERENCE'),
+                checked: export.id is null or export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_REFERENCE'),
                 disabled: export.id is not null
             },
             {
                 label: 'Articles',
-                value: constant('App\\Entity\\Export::ENTITY_ARTICLE'),
-                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARTICLE'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_ARTICLE'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_ARTICLE'),
                 disabled: export.id is not null
             },
             {
                 label: 'Tournées',
-                value: constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
-                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DELIVERY_ROUND'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DELIVERY_ROUND'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DELIVERY_ROUND'),
                 disabled: export.id is not null
             },
             {
                 label: 'Arrivages',
-                value: constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
-                checked: export.entity == constant('App\\Entity\\Export::ENTITY_ARRIVAL'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_ARRIVAL'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_ARRIVAL'),
                 disabled: export.id is not null
             },
             {
                 label: 'Référence emplacement',
-                value: constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
-                checked: export.entity == constant('App\\Entity\\Export::ENTITY_REF_LOCATION'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_REF_LOCATION'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_REF_LOCATION'),
                 disabled: export.id is not null
             },
             {
                 label: 'Acheminements',
-                value: constant('App\\Entity\\Export::ENTITY_DISPATCH'),
-                checked: export.entity == constant('App\\Entity\\Export::ENTITY_DISPATCH'),
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
                 disabled: export.id is not null
             }
         ], {expanded: true}) }}
@@ -213,18 +213,18 @@
                 {{ form.select('periodInterval', null, false, {
                     value: export.periodInterval,
                     items: [
-                        {label: 'le jour', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_DAY')},
-                        {label: 'la semaine', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_WEEK')},
-                        {label: 'le mois', value: constant('App\\Entity\\Export::PERIOD_INTERVAL_MONTH')},
-                        {label: "l'année", value: constant('App\\Entity\\Export::PERIOD_INTERVAL_YEAR')}
+                        {label: 'le jour', value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_INTERVAL_DAY')},
+                        {label: 'la semaine', value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_INTERVAL_WEEK')},
+                        {label: 'le mois', value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_INTERVAL_MONTH')},
+                        {label: "l'année", value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_INTERVAL_YEAR')}
                     ],
                     labelClass: 'mr-3 w-100'
                 }) }}
                 {{ form.select('period', null, false, {
                     value: export.period,
                     items: [
-                        {label: 'en cours (jour J)', value: constant('App\\Entity\\Export::PERIOD_CURRENT')},
-                        {label: 'dernier (jour J-1)', value: constant('App\\Entity\\Export::PERIOD_PREVIOUS')},
+                        {label: 'en cours (jour J)', value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_CURRENT')},
+                        {label: 'dernier (jour J-1)', value: constant('App\\Entity\\ScheduledTask\\Export::PERIOD_PREVIOUS')},
                     ]
                 }) }}
             </div>
@@ -258,8 +258,8 @@
             {% set createExport = not emailDestination and not ftpDestination %}
 
             {{ form.radio('destinationType', null, false, [
-                {label: 'Envoi email', value: constant('App\\Entity\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: createExport ?: emailDestination },
-                {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\Export::DESTINATION_SFTP'), class: 'export-by-sftp', checked: ftpDestination }
+                {label: 'Envoi email', value: constant('App\\Entity\\ScheduledTask\\Export::DESTINATION_EMAIL'), class: 'export-by-email', checked: createExport ?: emailDestination },
+                {label: 'Envoi vers serveur SFTP', value: constant('App\\Entity\\ScheduledTask\\Export::DESTINATION_SFTP'), class: 'export-by-sftp', checked: ftpDestination }
             ], {
                 onChange: 'destinationExportChange()'
             }) }}
@@ -311,5 +311,4 @@
             </div>
         </div>
     </div>
-</div>
 </div>

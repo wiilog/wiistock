@@ -110,6 +110,9 @@ const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
     #[ORM\Column(type: Types::JSON , nullable: true)]
     private ?array $visibleColumns;
 
+    #[ORM\Column(type: Types::BOOLEAN , nullable: true)]
+    private ?bool $fastDelivery = false;
+
     public function __construct() {
         $this->preparations = new ArrayCollection();
         $this->referenceLines = new ArrayCollection();
@@ -474,6 +477,15 @@ const DEFAULT_VISIBLE_COLUMNS = ['barcode','location', 'label'];
     public function setVisibleColumns(?array $visibleColumns): self {
         $this->visibleColumns = $visibleColumns;
 
+        return $this;
+    }
+
+    public function isFastDelivery(): ?bool {
+        return $this->fastDelivery;
+    }
+
+    public function setFastDelivery(bool $fastDelivery): self {
+        $this->fastDelivery = $fastDelivery;
         return $this;
     }
 }

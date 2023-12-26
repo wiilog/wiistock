@@ -20,12 +20,12 @@
         }
 
         .barcode-container {
-            margin-top: 0.5rem;
+            margin-top: 0.1rem;
             position: relative;
             float: right;
-            height: 35mm;
-            width: 40mm;
-            margin-right: 0.5rem;
+            height: 30mm;
+            width: 45mm;
+            margin-right: 0.1rem;
         }
 
         .table-container {
@@ -33,7 +33,7 @@
              width: 24cm;
         }
 
-        .visa-container {
+        .requester-container {
             padding: 0.2rem;
             border: black 2px solid;
         }
@@ -58,27 +58,28 @@
         }
 
         span.small-text {
-            font-size: small;
+            font-size: x-small;
             padding: 0.3rem
         }
 
         th.small-text, td.small-text {
-            font-size: small;
+            font-size: x-small;
             margin-right: 0.3rem;
         }
 
         div.small-text {
-            font-size: small;
-            padding-left: 0.3rem
+            font-size: x-small;
+            padding-left: 0.3rem;
+            padding-bottom: 0.2rem;
         }
 
         .left-align {
             padding-left: 0.3rem;
-            font-size: large;
+            font-size: small;
         }
 
         th {
-            font-size: small;
+            font-size: x-small;
         }
 
         .mb-3px {
@@ -115,12 +116,12 @@
         </div>
 
         <div class="barcode-code">
-            <svg viewBox="{{ config.barcode.type == 'qrcode' ? '0.1 0.5 3 3' : '-0.1 0.7 3 3' }}"
+            <svg viewBox="{{ config.barcode.type == 'qrcode' ? '0.1 0.5 3 3' : '-0.1 0.8 3 3' }}"
                  xmlns="http://www.w3.org/2000/svg">
-                <text y="1"
+                <text y="{{ config.barcode.type == 'qrcode' ? '30%' : '35%' }}"
                       x="50%"
                       text-anchor="middle"
-                      font-size="0.3">
+                      font-size="0.25">
                     {{ config.barcode.code }}
                 </text>
             </svg>
@@ -134,14 +135,14 @@
                 <div class="small-text">Mode d'acheminement:</div>
                 <div class="left-align small-text"><strong>{{ config.dispatch.businessUnit }}</strong></div>
             </div>
-            <div class="small-text">
-                N° BL/AIA: <strong>{{ config.dispatch.orderNumber }}</strong>
-            </div>
+            <div class="small-text">N° BL/AIA:</div>
+            <div class="small-text"><strong>{{ config.dispatch.orderNumber }}</strong></div>
         </div>
         <div class="client-container">
-            <div class="small-text mb-3px">Destinataire: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
-            <div class="small-text mb-3px">Adresse de livraison: <strong style="white-space: nowrap;">{{ config.dispatch.customerAddress }}</strong></div>
+            <div class="small-text mb-3px">Destinataire: <strong>{{ config.dispatch.customerName }}</strong></div>
+            <div class="small-text mb-3px">A l'attention de: <strong>{{ config.dispatch.customerRecipient }}</strong></div>
             <div class="small-text">N° téléphone: <strong>{{ config.dispatch.customerPhone }}</strong></div>
+            <div class="small-text mb-3px" style="word-break: break-word;">Adresse de livraison: <strong>{{ config.dispatch.customerAddress }}</strong></div>
         </div>
         <div class="table-container">
             <table>
@@ -163,11 +164,10 @@
                 </tr>
             </table>
         </div>
-        <div class="visa-container">
-            <div style="font-weight: bold">Visa</div>
+        <div class="requester-container small-text">
             <div>
                 <span>Matricule: <strong>{{ config.requester }}</strong></span>
-                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("m/d/Y") }}</span>
+                <span style="margin-left: 5rem; font-weight: bold">Date: {{ "now"|date("d/m/Y") }}</span>
             </div>
         </div>
     </div>

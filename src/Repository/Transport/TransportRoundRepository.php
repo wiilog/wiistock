@@ -48,6 +48,7 @@ class TransportRoundRepository extends EntityRepository {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_STATUT:
                     $value = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn($line) => explode(":", $line))
                         ->toArray();
 
@@ -62,6 +63,7 @@ class TransportRoundRepository extends EntityRepository {
                     break;
                 case FiltreSup::FIELD_DELIVERERS:
                     $value = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn($line) => explode(":", $line))
                         ->toArray();
 

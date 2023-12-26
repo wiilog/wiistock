@@ -49,53 +49,39 @@ class LivraisonsManagerService
     #[Required]
     public TranslationService $translation;
 
-    private $entityManager;
-    private $mailerService;
-    private $templating;
-    private $mouvementStockService;
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager,
-                                MouvementStockService $mouvementStockService,
-                                MailerService $mailerService,
-                                Twig_Environment $templating)
-    {
-        $this->entityManager = $entityManager;
-        $this->mailerService = $mailerService;
-        $this->templating = $templating;
-        $this->mouvementStockService = $mouvementStockService;
-    }
+    #[Required]
+    public MailerService $mailerService;
 
-    /**
-     * @param DateTime $dateEnd
-     * @param Preparation $preparation
-     * @param EntityManagerInterface|null $entityManager
-     * @return Livraison
-     */
-    public function createLivraison(DateTime $dateEnd,
-                                    Preparation $preparation,
-                                    EntityManagerInterface $entityManager = null)
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public MouvementStockService $mouvementStockService;
+
+    public function createLivraison(DateTime               $dateEnd,
+                                    Preparation            $preparation,
+                                    EntityManagerInterface $entityManager = null,
+                                    string                 $statusCode = Livraison::STATUT_A_TRAITER): Livraison
     {
         if (!isset($entityManager)) {
             $entityManager = $this->entityManager;
         }
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, Livraison::STATUT_A_TRAITER);
-
-        $entityManager->getRepository(Livraison::class);
-
-        $livraison = new Livraison();
-
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ORDRE_LIVRAISON, $statusCode);
         $livraisonNumber = $this->generateNumber($dateEnd, $entityManager);
 
-        $livraison
+        $order = (new Livraison())
             ->setPreparation($preparation)
             ->setDate($dateEnd)
             ->setNumero($livraisonNumber)
             ->setStatut($statut);
 
-        $entityManager->persist($livraison);
+        $entityManager->persist($order);
 
-        return $livraison;
+        return $order;
     }
 
     public function setEntityManager(EntityManagerInterface $entityManager): self
@@ -105,10 +91,11 @@ class LivraisonsManagerService
     }
 
 
-    public function finishLivraison(Utilisateur $user,
-                                    Livraison $livraison,
-                                    DateTime $dateEnd,
-                                    ?Emplacement $nextLocation): void
+    public function finishLivraison(Utilisateur  $user,
+                                    Livraison    $livraison,
+                                    DateTime     $dateEnd,
+                                    ?Emplacement $nextLocation,
+                                    array        $options = []): void
     {
         $pairings = $livraison->getPreparation()->getPairings();
         $pairingEnd = new DateTime('now');
@@ -281,7 +268,7 @@ class LivraisonsManagerService
             // on termine les mouvements de livraison
             $movements = $movementRepository->findBy(['livraisonOrder' => $livraison]);
             foreach ($movements as $pickingMovement) {
-                $pickingMovement->setDate($dateEnd);
+                $this->mouvementStockService->updateMovementDates($pickingMovement, $dateEnd);
                 if (isset($nextLocation)) {
                     $pickingMovement->setEmplacementTo($nextLocation);
                 }
@@ -292,15 +279,7 @@ class LivraisonsManagerService
                 : 'FOLLOW GT // ' . $this->translation->translate("Ordre", "Livraison", "Livraison", false) .' effectuée';
             $bodyTitle = $demandeIsPartial ? 'La demande a été livrée partiellement.' : 'La demande a bien été livrée.';
 
-            if ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
-                $to = [];
-                if ($demande->getType()->getSendMailRequester()) {
-                    $to[] = $demande->getUtilisateur();
-                }
-                if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
-                    $to[] = $demande->getReceiver();
-                }
-
+            $sendMailCallback = function(array $to) use ($title, $demande, $preparation, $bodyTitle, $nextLocation): void {
                 $this->mailerService->sendMail(
                     $title,
                     $this->templating->render('mails/contents/mailLivraisonDone.html.twig', [
@@ -311,24 +290,32 @@ class LivraisonsManagerService
                     ]),
                     $to
                 );
+            };
+
+            if(!empty($options['deliveryStationLineReceivers'])) {
+                $sendMailCallback($options['deliveryStationLineReceivers']);
             }
-        }
-        else {
+
+            if($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver()) {
+                $to = [];
+                if ($demande->getType()->getSendMailRequester()) {
+                    $to[] = $demande->getUtilisateur();
+                }
+                if ($demande->getType()->getSendMailReceiver() && $demande->getReceiver()) {
+                    $to[] = $demande->getReceiver();
+                }
+
+                $sendMailCallback($to);
+            }
+        } else {
             throw new Exception(self::LIVRAISON_ALREADY_BEGAN);
         }
     }
 
-    /**
-     * @param Livraison $livraison
-     * @param Emplacement $destination
-     * @param Utilisateur $user
-     * @param EntityManagerInterface $entityManager
-     * @throws NonUniqueResultException
-     */
     public function resetStockMovementsOnDelete(Livraison $livraison,
                                                 Emplacement $destination,
                                                 Utilisateur $user,
-                                                EntityManagerInterface $entityManager)
+                                                EntityManagerInterface $entityManager): void
     {
 
         $movements = $livraison->getMouvements()->toArray();
@@ -415,16 +402,6 @@ class LivraisonsManagerService
         }
     }
 
-    /**
-     * @param Utilisateur $user
-     * @param Article|ReferenceArticle $article
-     * @param Emplacement $from
-     * @param Emplacement $destination
-     * @param int $quantity
-     * @param DateTime $date
-     * @param EntityManagerInterface $entityManager
-     * @param string $movementType
-     */
     private function resetStockMovementOnDeleteForArticle(Utilisateur $user,
                                                           $article,
                                                           Emplacement $from,
@@ -432,7 +409,7 @@ class LivraisonsManagerService
                                                           int $quantity,
                                                           DateTime $date,
                                                           EntityManagerInterface $entityManager,
-                                                          string $movementType)
+                                                          string $movementType): void
     {
         $mouvementStock = $this->mouvementStockService->createMouvementStock(
             $user,
@@ -442,7 +419,7 @@ class LivraisonsManagerService
             $movementType
         );
 
-        $this->mouvementStockService->finishMouvementStock(
+        $this->mouvementStockService->finishStockMovement(
             $mouvementStock,
             $date,
             $destination

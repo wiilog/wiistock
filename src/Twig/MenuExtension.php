@@ -7,6 +7,7 @@ use App\Service\CacheService;
 use App\Service\RoleService;
 use App\Service\SpecificService;
 use App\Service\UserService;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 use WiiCommon\Helper\Stream;
@@ -15,16 +16,16 @@ use WiiCommon\Helper\StringHelper;
 class MenuExtension extends AbstractExtension
 {
 
-    /** @Required  */
+    #[Required]
     public UserService $userService;
 
-    /** @Required  */
+    #[Required]
     public RoleService $roleService;
 
-    /** @Required  */
+    #[Required]
     public SpecificService $specificService;
 
-    /** @Required  */
+    #[Required]
     public CacheService $cache;
 
     private array $menuConfig;

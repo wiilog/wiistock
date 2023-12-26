@@ -2,10 +2,10 @@
 
 namespace App\Service;
 
-use App\Entity\FieldsParam;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\KeptFieldValue;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
@@ -20,13 +20,13 @@ class KeptFieldService {
     public array $cache;
 
     public function getAll(string $entity): array {
-        $fieldsParamRepository = $this->manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $this->manager->getRepository(FixedFieldStandard::class);
         $repository = $this->manager->getRepository(KeptFieldValue::class);
         $user = $this->security->getUser();
 
         $keptFields = Stream::from($fieldsParamRepository->findByEntityForEntity($entity))
-            ->filter(fn(FieldsParam $field) => $field->isKeptInMemory())
-            ->map(fn(FieldsParam $field) => $field->getFieldCode())
+            ->filter(fn(FixedFieldStandard $field) => $field->isKeptInMemory())
+            ->map(fn(FixedFieldStandard $field) => $field->getFieldCode())
             ->toArray();
 
         return Stream::from($repository->findBy(["entity" => $entity, "user" => $user]) ?? [])
@@ -58,7 +58,7 @@ class KeptFieldService {
     }
 
     private function loadKeptFieldsCache(string $entity): void {
-        $fixedFieldRepository = $this->manager->getRepository(FieldsParam::class);
+        $fixedFieldRepository = $this->manager->getRepository(FixedFieldStandard::class);
         $this->cache[$entity] = $fixedFieldRepository->getByEntity($entity);
     }
 

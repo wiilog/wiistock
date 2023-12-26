@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
+use WiiCommon\Helper\Stream;
 
 
 class EnCoursService
@@ -123,7 +124,7 @@ class EnCoursService
      * countDownLateTimespan => not defined or the time remaining to be late
      * ageTimespan => the time stayed on the emp
      */
-    public function getTimeInformation(DateInterval $movementAge, ?string $dateMaxTime)
+    public function getTimeInformation(DateInterval $movementAge, ?string $dateMaxTime, int $additionalTime = 0): array
     {
         $ageTimespan = (
             ($movementAge->h * 60 * 60 * 1000) + // hours in milliseconds
@@ -132,7 +133,7 @@ class EnCoursService
             ($movementAge->f)
         );
         $information = [
-            'ageTimespan' => $ageTimespan
+            'ageTimespan' => $ageTimespan + $additionalTime,
         ];
         if ($dateMaxTime) {
             $explodeAgeTimespan = explode(':', $dateMaxTime);
@@ -158,20 +159,12 @@ class EnCoursService
         return $this->getEnCours([], [], true);
     }
 
-    /**
-     * @param $locations
-     * @param array $natures
-     * @param bool $onlyLate
-     * @param int|null $limitOnlyLate
-     * @return array
-     * @throws Exception
-     */
-    public function getEnCours(
-        $locations,
-        array $natures = [],
-        bool $onlyLate = false,
-        ?int $limitOnlyLate = 100,
-        Utilisateur $user = null): array
+    public function getEnCours(array       $locations,
+                               array       $natures = [],
+                               bool        $onlyLate = false,
+                               ?int        $limitOnlyLate = 100,
+                               Utilisateur $user = null,
+                               bool        $useTruckArrivals = false): array
     {
         $packRepository = $this->entityManager->getRepository(Pack::class);
         $dropsCounter = 0;
@@ -180,6 +173,18 @@ class EnCoursService
         $daysWorked = $workedDaysRepository->getWorkedTimeForEachDaysWorked();
         $freeWorkDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
         $emplacementInfo = [];
+
+        $fields = [
+            "pack.code",
+            "lastDrop.datetime",
+            "emplacement.dateMaxTime",
+            "emplacement.label",
+            "pack_arrival.id AS arrivalId",
+            ...$useTruckArrivals
+                ? [
+                    "pack.truckArrivalDelay AS truckArrivalDelay",
+                ] : []
+        ];
 
         if ($onlyLate) {
             $maxQueryResultLength = 200;
@@ -190,7 +195,7 @@ class EnCoursService
                     [
                         'natures' => $natures,
                         'isCount' => false,
-                        'field' => 'pack.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId',
+                        'field' => Stream::from($fields)->join(","),
                         'limit' => $maxQueryResultLength,
                         'start' => $dropsCounter,
                         'order' => 'asc',
@@ -205,7 +210,8 @@ class EnCoursService
                     $dateMvt = $oldestDrop['datetime'];
                     $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
                     $dateMaxTime = $oldestDrop['dateMaxTime'];
-                    $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
+                    $truckArrivalDelay = $useTruckArrivals ? $oldestDrop["truckArrivalDelay"] : 0;
+                    $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
                     $isLate = $timeInformation['countDownLateTimespan'] < 0;
                     if ($isLate) {
                         $emplacementInfo[] = [
@@ -233,7 +239,7 @@ class EnCoursService
                 [
                     'natures' => $natures,
                     'isCount' => false,
-                    'field' => 'pack.code, lastDrop.datetime, emplacement.dateMaxTime, emplacement.label, pack_arrival.id AS arrivalId'
+                    'field' => Stream::from($fields)->join(","),
                 ]
             );
             $oldestDrops = $oldestDrops[0];
@@ -241,7 +247,8 @@ class EnCoursService
                 $dateMvt = $oldestDrop['datetime'];
                 $movementAge = $this->timeService->getIntervalFromDate($daysWorked, $dateMvt, $freeWorkDays);
                 $dateMaxTime = $oldestDrop['dateMaxTime'];
-                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime);
+                $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
+                $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
                 $emplacementInfo[] = [
                     'LU' => $oldestDrop['code'],

@@ -72,7 +72,7 @@
                                     <div class="d-flex align-items-center">
                                         {% if request_delivery.type.logo %}
                                             <img
-                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_delivery.type.logo.fileName }}"
+                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachments/" ~ request_delivery.type.logo.fileName }}"
                                                 alt="Image type {{ request_delivery.type|format_helper('type') }}"
                                                 class="mr-2"
                                                 width="20px">
@@ -94,7 +94,7 @@
                                     <div class="d-flex align-items-center">
                                         {% if request_collect.type.logo %}
                                             <img
-                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachements/" ~ request_collect.type.logo.fileName }}"
+                                                src="{{ app.request.scheme ~'://'~ app.request.httpHost ~ "/uploads/attachments/" ~ request_collect.type.logo.fileName }}"
                                                 alt="Image type {{ request_collect.type|format_helper('type') }}"
                                                 class="mr-2"
                                                 width="20px">
@@ -356,7 +356,7 @@
     <input type="hidden" value="{{ order.id }}" name="transportId">
     <input type="hidden" value="{{ constant('App\\Controller\\Transport\\HistoryController::ORDER') }}" name="transportType">
     <input type="hidden" value="{{ contactPosition | json_encode }}" name="contactPosition">
-    <input type="hidden" value="{{ delivererPosition }}" name="delivererPosition">
+    <input type="hidden" value="{{ roundId }}" name="roundId">
 
 {% endblock %}
 

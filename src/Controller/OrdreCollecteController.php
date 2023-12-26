@@ -478,7 +478,7 @@ class OrdreCollecteController extends AbstractController
                 : null;
         }, $ordreCollecteReferences);
 
-        $barCodes = array_merge($barCodesArticles, !$forceTagEmpty ? [] : array_filter($barCodesReferences , function ($value) {
+        $barCodes = array_merge($barCodesArticles, array_filter($barCodesReferences , function ($value) {
             return $value !== null;
         }));
         $barCodesCount = count($barCodes);
@@ -532,7 +532,7 @@ class OrdreCollecteController extends AbstractController
             $number = $sensorWrapper->getName();
             return $this->json([
                 'success' => true,
-                'msg' => "L'assocation avec le capteur <strong>${number}</strong> a bien été créée"
+                'msg' => "L'assocation avec le capteur <strong>{$number}</strong> a bien été créée"
             ]);
         }
 

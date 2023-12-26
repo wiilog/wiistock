@@ -2,51 +2,49 @@
 
 namespace App\Controller;
 
+use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\Demande;
-use App\Entity\FieldsParam;
-use App\Entity\FreeField;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\FreeField;
 use App\Entity\Menu;
-use App\Entity\Article;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\PreparationOrderArticleLine;
+use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequestLine;
 use App\Entity\TagTemplate;
 use App\Entity\TrackingMovement;
-use App\Entity\ReferenceArticle;
-use App\Entity\CategorieCL;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-
-use App\Exceptions\FormException;
 use App\Exceptions\ArticleNotAvailableException;
+use App\Exceptions\FormException;
 use App\Exceptions\RequestNeedToBeProcessedException;
+use App\Service\ArticleDataService;
 use App\Service\MouvementStockService;
 use App\Service\PDFGeneratorService;
-use App\Service\ArticleDataService;
 use App\Service\TagTemplateService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
 use App\Service\UserService;
-use App\Annotation\HasPermission;
-
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
 /**
@@ -148,11 +146,11 @@ class ArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI})
      */
     public function showPage(Article $article, EntityManagerInterface $manager): Response {
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
         $type = $article->getType();
         $freeFields = $manager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
         $hasMovements = count($manager->getRepository(TrackingMovement::class)->getArticleTrackingMovements($article->getId()));
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/show/index.html.twig", [
             'article' => $article,
@@ -219,10 +217,10 @@ class ArticleController extends AbstractController
     #[Route("/nouveau-page", name: "article_new_page", options: ["expose" => true])]
     public function newTemplate(EntityManagerInterface $entityManager, ArticleDataService $articleDataService): Response {
         $typeRepository = $entityManager->getRepository(Type::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         $barcode = $articleDataService->generateBarcode();
 
@@ -287,7 +285,7 @@ class ArticleController extends AbstractController
                     MouvementStock::TYPE_ENTREE
                 );
 
-                $mouvementStockService->finishMouvementStock(
+                $mouvementStockService->finishStockMovement(
                     $stockMovement,
                     new DateTime('now'),
                     $article->getEmplacement()
@@ -331,44 +329,41 @@ class ArticleController extends AbstractController
      */
     public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         TranslationService     $translation): Response
-    {
-        if ($data = $request->request->all()) {
-            $article = $entityManager->getRepository(Article::class)->find($data['id']);
-                try {
-                    $article = $this->articleDataService->newArticle($entityManager, $data, [
-                        "existing" => $article,
-                    ]);
-                    $response = [
-                        'success' => true,
-                        'articleId' => $data['id'],
-                        'barcode' => $article->getBarCode(),
-                    ];
-                    $entityManager->flush();
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(ArticleNotAvailableException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
-                    ];
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch(RequestNeedToBeProcessedException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
-                    ];
-                }
-                /** @noinspection PhpRedundantCatchClauseInspection */
-                catch (UniqueConstraintViolationException) {
-                    $response = [
-                        'success' => false,
-                        'msg' => "Le tag RFID {$data['rfidTag']} est déja utilisé.",
-                    ];
-                }
+                         TranslationService     $translation): Response {
+        $data = $request->request;
+        if ($data->all()) {
+            $article = $entityManager->getRepository(Article::class)->find($data->get('id'));
+            try {
+                $article = $this->articleDataService->newArticle($entityManager, $data, [
+                    "existing" => $article,
+                ]);
+                $response = [
+                    'success' => true,
+                    'articleId' => $data->get('id'),
+                    'barcode' => $article->getBarCode(),
+                ];
+                $entityManager->flush();
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (ArticleNotAvailableException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas modifier un article qui n'est pas disponible."
+                ];
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (RequestNeedToBeProcessedException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Vous ne pouvez pas modifier un article qui est dans une " . mb_strtolower($translation->translate("Demande", "Livraison", "Demande de livraison", false)) . "."
+                ];
+            } /** @noinspection PhpRedundantCatchClauseInspection */
+            catch (UniqueConstraintViolationException) {
+                $response = [
+                    'success' => false,
+                    'msg' => "Le tag RFID {$data->get('rfidTag')} est déja utilisé.",
+                ];
+            }
 
-                return new JsonResponse($response);
+            return new JsonResponse($response);
         }
         throw new BadRequestHttpException();
     }
@@ -813,7 +808,7 @@ class ArticleController extends AbstractController
     public function editTemplate(EntityManagerInterface $manager, Article $article) {
         $typeRepository = $manager->getRepository(Type::class);
         $freeFieldRepository = $manager->getRepository(FreeField::class);
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $freeFieldsGroupedByTypes = [];
@@ -823,7 +818,7 @@ class ArticleController extends AbstractController
             $freeFieldsGroupedByTypes[$type->getId()] = $champsLibres;
         }
 
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARTICLE);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARTICLE);
 
         return $this->render("article/form/edit.html.twig", [
             "article" => $article,

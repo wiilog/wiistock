@@ -9,33 +9,32 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
-use App\Entity\FieldsParam;
-use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Fields\SubLineFixedField;
 use App\Entity\FiltreSup;
+use App\Entity\FreeField;
 use App\Entity\MouvementStock;
-use App\Entity\PreparationOrder\PreparationOrderArticleLine;
-use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\PreparationOrder\PreparationOrderArticleLine;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\SubLineFieldsParam;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Symfony\Component\Security\Core\Security;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class DeliveryRequestService
 {
@@ -73,7 +72,7 @@ class DeliveryRequestService
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public NotificationService $notificationService;
@@ -106,7 +105,10 @@ class DeliveryRequestService
 
     private array $cache = [];
 
-    public function getDataForDatatable($params = null, $statusFilter = null, $receptionFilter = null, Utilisateur $user)
+    public function getDataForDatatable(ParameterBag $params,
+                                        ?string $statusFilter,
+                                        ?string $receptionFilter,
+                                        Utilisateur $user)
     {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $demandeRepository = $this->entityManager->getRepository(Demande::class);
@@ -269,7 +271,6 @@ class DeliveryRequestService
 
     public function newDemande($data,
                                EntityManagerInterface $entityManager,
-                               FreeFieldService $champLibreService,
                                bool $fromNomade = false)
     {
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -281,10 +282,12 @@ class DeliveryRequestService
         $projectRepository = $entityManager->getRepository(Project::class);
 
         $isManual = $data['isManual'] ?? false;
+        $disabledFieldsChecking = $data['disabledFieldChecking'] ?? false;
+        $isFastDelivery = $data['isFastDelivery'] ?? false;
 
         $requiredCreate = true;
         $type = $typeRepository->find($data['type']);
-        if (!$fromNomade) {
+        if (!$fromNomade && !$disabledFieldsChecking) {
             $CLRequired = $champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
             foreach ($CLRequired as $CL) {
@@ -331,9 +334,10 @@ class DeliveryRequestService
             ->setManual($isManual)
             ->setCommentaire($data['commentaire'] ?? null)
             ->setReceiver($receiver)
-            ->setVisibleColumns($visibleColumns);
+            ->setVisibleColumns($visibleColumns)
+            ->setFastDelivery($isFastDelivery);
 
-        $champLibreService->manageFreeFields($demande, $data, $entityManager);
+        $this->freeFieldService->manageFreeFields($demande, $data, $entityManager);
 
         // cas où demande directement issue d'une réception
         if (isset($data['reception'])) {
@@ -351,9 +355,8 @@ class DeliveryRequestService
     public function checkDLStockAndValidate(EntityManagerInterface $entityManager,
                                             array                  $demandeArray,
                                             bool                   $fromNomade = false,
-                                            FreeFieldService       $champLibreService,
-                                            bool $flush = true,
-                                            bool $simple = false): array
+                                            bool                   $flush = true,
+                                            bool                   $simple = false): array
     {
         $demandeRepository = $entityManager->getRepository(Demande::class);
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
@@ -362,7 +365,7 @@ class DeliveryRequestService
         $settingMangeDeliveriesWithoutStockQuantity = $settings->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY);
 
         if ($fromNomade) {
-            $demande = $this->newDemande($demandeArray, $entityManager, $champLibreService, $fromNomade);
+            $demande = $this->newDemande($demandeArray, $entityManager, $fromNomade);
             if ($demande instanceof Demande) {
                 /**
                  * Liste des références sous le format :
@@ -389,7 +392,9 @@ class DeliveryRequestService
                 return $demande;
             }
         } else {
-            $demande = $demandeRepository->find($demandeArray['demande']);
+            $demande = $demandeArray['demande'] instanceof Demande
+                ? $demandeArray['demande']
+                : $demandeRepository->find($demandeArray['demande']);
         }
 
         if ($demande->getStatut()?->getCode() === Demande::STATUT_BROUILLON) {
@@ -449,7 +454,10 @@ class DeliveryRequestService
                     $simple,
                     $flush,
                     $settingNeedPlanningValidation,
-                    ['requester' => $demandeArray['demandeur'] ?? null]
+                    [
+                        'requester' => $demandeArray['demandeur'] ?? null,
+                        'directDelivery' => $demandeArray['directDelivery'] ?? false,
+                    ]
                 );
             }
         } else {
@@ -480,6 +488,7 @@ class DeliveryRequestService
 
         $date = new DateTime('now');
 
+        $isDirectDelivery = isset($options['directDelivery']) && $options['directDelivery'];
         $preparedUponValidation = $this->treatSetting_preparedUponValidation($entityManager, $demande);
 
         $preparation = new Preparation();
@@ -513,25 +522,27 @@ class DeliveryRequestService
         $refArticleToUpdateQuantities = [];
         $this->persistPreparationLine($entityManager, $preparation, !$settingNeedPlanningValidation, $refArticleToUpdateQuantities, $date);
 
-        $sendNotification = $options['sendNotification']??true;
+        $sendNotification = $options['sendNotification'] ?? true;
         try {
-            if ($flush) $entityManager->flush();
-            if ($demande->getType()->isNotificationsEnabled()
+            if ($flush) {
+                $entityManager->flush();
+            }
+
+            if (!$isDirectDelivery
+                && $demande->getType()->isNotificationsEnabled()
                 && !$demande->isManual()
                 && $sendNotification
                 && !$settingRepository->getOneParamByLabel(Setting::SET_PREPARED_UPON_DELIVERY_VALIDATION)) {
                 $this->notificationService->toTreat($preparation);
             }
-        } /** @noinspection PhpRedundantCatchClauseInspection */
+        }
         catch (UniqueConstraintViolationException $e) {
             $response['success'] = false;
             $response['msg'] = 'Une autre préparation est en cours de création, veuillez réessayer.';
             return $response;
         }
         if (!$settingNeedPlanningValidation) {
-            foreach ($refArticleToUpdateQuantities as $refArticle) {
-                $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticle);
-            }
+            $this->refArticleDataService->updateRefArticleQuantities($entityManager, $refArticleToUpdateQuantities);
         }
 
         if (!$simpleValidation && ($demande->getType()->getSendMailRequester() || $demande->getType()->getSendMailReceiver())) {
@@ -572,7 +583,7 @@ class DeliveryRequestService
             $response['demande'] = $demande;
         }
 
-        if($preparedUponValidation) {
+        if(!$isDirectDelivery && $preparedUponValidation) {
             foreach($preparation->getArticleLines() as $articleLine) {
                 $articleLine->setPickedQuantity($articleLine->getQuantityToPick());
             }
@@ -593,12 +604,12 @@ class DeliveryRequestService
 
             $livraison = $this->livraisonsManager->createLivraison($dateEnd, $preparation, $entityManager);
 
-            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa);
-            $this->preparationsManager->closePreparationMouvement($preparation, $dateEnd, $locationEndPrepa);
+            $this->preparationsManager->treatPreparation($preparation, $user, $locationEndPrepa, ['entityManager' => $entityManager]);
+            $this->preparationsManager->closePreparationMovements($preparation, $dateEnd, $locationEndPrepa);
 
             $entityManager->flush();
             $this->preparationsManager->handlePreparationTreatMovements($entityManager, $preparation, $livraison, $locationEndPrepa, $user);
-            $this->preparationsManager->updateRefArticlesQuantities($preparation);
+            $this->preparationsManager->updateRefArticlesQuantities($preparation, $entityManager);
             $response['entete'] = $this->templating->render('demande/demande-show-header.html.twig', [
                 'demande' => $demande,
                 'modifiable' => false,
@@ -632,16 +643,16 @@ class DeliveryRequestService
             [
                 'label' => 'Date attendue',
                 'value' => $this->formatService->date($demande->getExpectedAt()),
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_EXPECTED_AT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT]
             ],
             [
                 'label' => $this->translation->translate('Référentiel', 'Projet', 'Projet', false),
                 'value' => $this->formatService->project($demande?->getProject()) ?? '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT]
             ],
         ];
 
-        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_DEMANDE);
+        $configFiltered = $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_DEMANDE);
         return array_merge(
             $configFiltered,
             $freeFieldArray,
@@ -927,6 +938,11 @@ class DeliveryRequestService
                 $this->treatSetting_manageDeliveryWithoutStockQuantity($entityManager, $preparation, $requestReferenceLine, $defaultLocationReception, $date, $createdBarcodes);
             }
         }
+
+        foreach ($preparation->getArticleLines() as $articleLine) {
+            $article = $articleLine->getArticle();
+            $article->setStatut($statutArticleIntransit);
+        }
     }
 
     public function getVisibleColumnsTableArticleConfig(EntityManagerInterface $entityManager,
@@ -939,14 +955,14 @@ class DeliveryRequestService
             $columnsVisible = $request->getVisibleColumns();
         }
 
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
-        $isProjectDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
-        $isProjectRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
-        $isCommentDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
-        $isNotesDisplayed = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
-        $isNotesRequired = $fieldParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
+        $fieldParams = $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+        $isProjectDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['displayed'] ?? false;
+        $isProjectRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT]['required'] ?? false;
+        $isCommentDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT]['displayed'] ?? false;
+        $isNotesDisplayed = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['displayed'] ?? false;
+        $isNotesRequired = $fieldParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_NOTES]['required'] ?? false;
         $isTargetLocationPickingDisplayed = $settingRepository->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION);
         $isUserRoleQuantityTypeReference = $this->security->getUser()->getRole()->getQuantityType() === ReferenceArticle::QUANTITY_TYPE_REFERENCE;
 
@@ -980,17 +996,17 @@ class DeliveryRequestService
                                        Demande                                                      $deliveryRequest,
                                        Utilisateur                                                  $currentUser,
                                        DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $line = null): array {
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $this->cache['subLineFieldsParams'] = $this->cache['subLineFieldsParams']
-            ?? $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE);
+            ?? $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE);
         $subLineFieldsParams = $this->cache['subLineFieldsParams'];
 
-        $commentParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
+        $commentParam = $subLineFieldsParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_COMMENT] ?? [];
         $isCommentRequired = $commentParam['required'] ?? false;
 
-        $projectParam = $subLineFieldsParams[SubLineFieldsParam::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
+        $projectParam = $subLineFieldsParams[SubLineFixedField::FIELD_CODE_DEMANDE_REF_ARTICLE_PROJECT] ?? [];
         $isProjectRequired = $projectParam['required'] ?? false;
         $isProjectDisplayedUnderCondition = $projectParam['displayedUnderCondition'] ?? false;
         $projectConditionFixedField = $isProjectDisplayedUnderCondition ? $projectParam['conditionFixedField'] ?? null : null;
@@ -1045,7 +1061,7 @@ class DeliveryRequestService
                 $articleId = $line->getArticle()->getId();
             }
 
-            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === SubLineFieldsParam::DISPLAY_CONDITION_REFERENCE_TYPE && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
+            $projectColumnSelect = !$isProjectDisplayedUnderCondition || ($isProjectDisplayedUnderCondition && $projectConditionFixedField === SubLineFixedField::DISPLAY_CONDITION_REFERENCE_TYPE && in_array($referenceArticle->getType()?->getId(), $projectConditionFixedValue));
             $projectItems = $line->getProject()
                 ? [
                     'text' => $this->formatService->project($line->getProject()),
@@ -1136,9 +1152,9 @@ class DeliveryRequestService
     }
 
     public function getDeliveryRequestLineComment(DeliveryRequestArticleLine|DeliveryRequestReferenceLine|null $requestLine): string {
-        $request = $requestLine->getRequest();
-        $receiver = $request->getReceiver();
-        $project = $requestLine->getProject();
+        $request = $requestLine?->getRequest();
+        $receiver = $request?->getReceiver();
+        $project = $requestLine?->getProject();
         $emptyCommentSetting = $project ? Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT : Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT;
         if (!($emptyComment = $this->cache[$emptyCommentSetting] ?? null)) {
             $settingRepository = $this->entityManager->getRepository(Setting::class);

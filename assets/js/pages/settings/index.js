@@ -4,10 +4,11 @@ import Flash, {INFO} from '@app/flash';
 import {LOADING_CLASS} from "@app/loading";
 import {initUserPage} from "./users/users";
 import {initializeLicencesPage} from "./users/licences";
-import {initializeExports, initializeImports} from "./data/imports.js";
+import {initializeImports} from "./data/imports";
+import {initializeExports} from "./data/exports";
 import {initializeRolesPage} from "./users/roles";
 import {initializeRequestTemplates} from "./request-template";
-import {initializeTouchTerminal} from "./kiosk";
+import {initializeCollectRequestAndCreateRef} from "./kiosk";
 import {initializeTransportRound} from "./transport-round";
 import {
     initializeStockArticlesTypesFreeFields,
@@ -31,6 +32,8 @@ import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resour
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
+import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
+import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -84,9 +87,11 @@ const initializers = {
     stock_inventaires_categories: initializeInventoryCategoriesTable,
     stock_inventaires_planificateur: initializeInventoryPlanificatorTable,
     stock_groupes_visibilite: initializeVisibilityGroup,
-    stock_borne_tactile: initializeTouchTerminal,
+    stock_borne_tactile_demande_collecte_et_creation_reference: initializeCollectRequestAndCreateRef,
+    stock_borne_tactile_demande_livraison_rapide: initializeFastDeliveryRequest,
     utilisateurs_utilisateurs: initUserPage,
     trace_arrivages_statuts_litiges: initializeArrivalDisputeStatuses,
+    trace_acheminements_configurations: initializeDispatchConfiguration,
     trace_acheminements_statuts: initializeDispatchStatuses,
     trace_services_statuts: initializeHandlingStatuses,
     stock_receptions_statuts_litiges: initializeReceptionDisputeStatuses,
@@ -267,14 +272,13 @@ $(function() {
 
     $(document).on(`click`, `.submit-field-param`, function() {
         const $button = $(this);
-        const isSubLine = Boolean($button.data('is-sub-line'));
         const $modal = $button.closest(`.modal`);
         const data = Form.process($modal);
         const field = $modal.find(`[name=field]`).val();
 
         if(data) {
             wrapLoadingOnActionButton($modal.find(`[type=submit]`), () => (
-                AJAX.route(POST, `settings_save_field_param`, {field, isSubLine})
+                AJAX.route(POST, `settings_save_field_param`, {field})
                     .json(data)
                     .then((response) => {
                         if(response.success){
@@ -664,27 +668,35 @@ function initializeDemandesFixedFields($container, canEdit) {
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
-    EditableDatatable.create(`#table-dispatch-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`}),
-        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
-        save: SAVE_MANUALLY,
-        ordering: false,
-        paging: false,
-        onEditStart: () => {
-            $managementButtons.removeClass('d-none');
-        },
-        onEditStop: () => {
-            $managementButtons.addClass('d-none');
-        },
-        columns: [
-            {data: `label`, title: `Champ fixe`},
-            {data: `displayedCreate`, title: `Afficher`},
-            {data: `requiredCreate`, title: `Obligatoire`},
-            {data: `displayedEdit`, title: `Afficher`},
-            {data: `requiredEdit`, title: `Obligatoire`},
-            {data: `displayedFilters`, title: `Afficher`},
-        ],
-    });
+    const $typeInputs = $container.find(`[name=type]`);
+    const selectorTable = `#table-dispatch-fixed-fields`;
+    $typeInputs
+        .on(`change`, function() {
+            let $selectedType = $(Array.from($typeInputs).filter((input) => $(input).is(`:checked`)));
+            $container.find(selectorTable).DataTable().destroy();
+            EditableDatatable.create(selectorTable, {
+                route: Routing.generate('settings_fixed_field_api', {entity: `acheminements`, type: $selectedType.val()}),
+                mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+                save: SAVE_MANUALLY,
+                ordering: false,
+                paging: false,
+                onEditStart: () => {
+                    $managementButtons.removeClass('d-none');
+                },
+                onEditStop: () => {
+                    $managementButtons.addClass('d-none');
+                },
+                columns: [
+                    {data: `label`, title: `Champ fixe`},
+                    {data: `displayedCreate`, title: `Afficher`},
+                    {data: `requiredCreate`, title: `Obligatoire`},
+                    {data: `displayedEdit`, title: `Afficher`},
+                    {data: `requiredEdit`, title: `Obligatoire`},
+                ],
+            });
+        })
+        .first()
+        .trigger(`change`);
 
     EditableDatatable.create(`#table-dispatch-addition-fixed-fields`, {
         route: Routing.generate('settings_sublines_fixed_field_api', {entity: `dispatchLogisticUnit`}),
@@ -1244,7 +1256,7 @@ function deleteTemplate($elem) {
 
 function initializeTruckArrivalFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-truck-arrival-fixed-fields`, {
-        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrivals`}),
+        route: Routing.generate('settings_fixed_field_api', {entity: `truckArrival`}),
         mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
         save: SAVE_MANUALLY,
         ordering: false,
@@ -1289,6 +1301,7 @@ function initializeTruckArrivalReserves() {
             {data: `emails`, title: `Boites email de notifications`},
             {data: `defaultReserveType`, title: `Réserve par défaut`},
             {data: `active`, title: `Actif`},
+            {data: `disableTrackingNumber`, title: `Désactivation n° tracking`},
         ],
         form: {
             actions: `<button class="btn btn-silent delete-row"><i class="wii-icon wii-icon-trash text-primary"></i></button>`,
@@ -1296,6 +1309,7 @@ function initializeTruckArrivalReserves() {
             emails: `<select class="form-control data select2" name="emails" multiple data-s2="user"></select>`,
             defaultReserveType: `<div class='checkbox-container'><input type='checkbox' name='defaultReserveType' class='form-control data'/></div>`,
             active: `<div class='checkbox-container'><input type='checkbox' name='active' class='form-control data'/></div>`,
+            disableTrackingNumber: `<div class='checkbox-container'><input type='checkbox' name='disableTrackingNumber' class='form-control data'/></div>`,
         },
     });
 }
@@ -1389,4 +1403,8 @@ function changeReceiverInput($checkbox) {
     const $inputReceiver = $checkbox.closest('.modal-body').find('select[name=defaultReceiver]');
 
     $inputReceiver.attr('disabled', isChecked);
+}
+
+function initializeDispatchConfiguration($container){
+    $container.on(`click`, `.select-all-options`, onSelectAll);
 }

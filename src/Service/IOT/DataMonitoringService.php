@@ -31,13 +31,13 @@ class DataMonitoringService
     public const PAIRING = 1;
     public const TIMELINE = 2;
 
-    /** @Required */
+    #[Required]
     public Environment $templating;
 
-    /** @Required */
+    #[Required]
     public RouterInterface $router;
 
-    /** @Required */
+    #[Required]
     public IOTService $IOTService;
 
     #[Required]

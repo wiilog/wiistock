@@ -39,9 +39,12 @@ class ReferenceArticle
     const BARCODE_PREFIX = 'REF';
     const STOCK_MANAGEMENT_FEFO = 'FEFO';
     const STOCK_MANAGEMENT_FIFO = 'FIFO';
+    const DEFAULT_STOCK_MANAGEMENT = self::STOCK_MANAGEMENT_FEFO;
     const PURCHASE_IN_PROGRESS_ORDER_STATE = "purchaseInProgress";
     const WAIT_FOR_RECEPTION_ORDER_STATE = "waitForReception";
     const MAX_NOMADE_SYNC = 4000;
+
+    public const TO_DEFINE_LABEL = "A DEFINIR";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

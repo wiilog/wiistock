@@ -40,17 +40,16 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/emplacement")
- */
+#[Route('/emplacement')]
 class LocationController extends AbstractController {
 
-    /** @Required */
+    #[Required]
     public UserService $userService;
 
-    /** @Required */
+    #[Required]
     public TranslationService $translation;
 
     /**
@@ -202,8 +201,7 @@ class LocationController extends AbstractController {
             $signatoryIds = is_array($data['signatories'])
                 ? $data['signatories']
                 : Stream::explode(',', $data['signatories'])
-                    ->filter()
-                    ->map(fn(string $id) => trim($id))
+                    ->filterMap(fn(string $id) => trim($id) ?: null)
                     ->toArray();
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
@@ -227,7 +225,7 @@ class LocationController extends AbstractController {
                 ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
                 ->setSignatories($signatories ?? [])
                 ->setEmail($email)
-                ->setZone($zone);
+                ->setProperty("zone", $zone);
 
             $emplacement->getAllowedNatures()->clear();
 

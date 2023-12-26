@@ -7,25 +7,22 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
-use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
-use App\Service\FormatService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-
-use Doctrine\ORM\EntityManagerInterface;
 
 class MouvementStockService
 {
@@ -123,13 +120,17 @@ class MouvementStockService
             ];
         }
         else if ($mouvement->getPreparationOrder()) {
-            $from = 'préparation';
+            $from = $mouvement->getPreparationOrder()->getDemande()->isFastDelivery()
+                ? 'préparation de livraison rapide'
+                : 'préparation';
             $path = 'preparation_show';
             $pathParams = [
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
+            $from = $mouvement->getLivraisonOrder()->getDemande()->isFastDelivery()
+                ? "ordre de livraison rapide"
+                : mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()
@@ -189,14 +190,18 @@ class MouvementStockService
             if($type === MouvementStock::TYPE_SORTIE) {
                 $article->setInactiveSince(new DateTime());
             }
-        }
-        else { // if($article instanceof ReferenceArticle) {
+        } else { // if($article instanceof ReferenceArticle) {
             $newMouvement->setRefArticle($article);
         }
 
         $from = $options['from'] ?? null;
         $locationTo = $options['locationTo'] ?? null;
+        $comment = $options['comment'] ?? null;
         $date = $options['date'] ?? null;
+
+        if($date){
+            $this->updateMovementDates($newMouvement, $date);
+        }
 
         if ($from) {
             if ($from instanceof Preparation) {
@@ -225,23 +230,23 @@ class MouvementStockService
             }
         }
 
-        if ($date) {
-            $newMouvement->setDate($date);
-        }
-
         if ($locationTo) {
             $newMouvement->setEmplacementTo($locationTo);
+        }
+
+        if ($comment) {
+            $newMouvement->setComment($comment);
         }
 
         return $newMouvement;
     }
 
-    public function finishMouvementStock(MouvementStock $mouvementStock,
-                                         DateTime $date,
-                                         ?Emplacement $locationTo): void {
-        $mouvementStock
-            ->setDate($date)
-            ->setEmplacementTo($locationTo);
+    public function finishStockMovement(MouvementStock $mouvementStock,
+                                        DateTime       $date,
+                                        ?Emplacement   $locationTo): void {
+        $mouvementStock->setEmplacementTo($locationTo);
+
+        $this->updateMovementDates($mouvementStock, $date);
     }
 
     public function manageMouvementStockPreRemove(MouvementStock $mouvementStock,
@@ -275,5 +280,18 @@ class MouvementStockService
             $mouvement['operator'] ?? ''
         ];
         $CSVExportService->putLine($handle, $data);
+    }
+
+    public function updateMovementDates(MouvementStock $stockMovement, DateTime $date): void {
+        $type = $stockMovement->getType();
+        $reference = $stockMovement->getRefArticle() ?: $stockMovement->getArticle()->getReferenceArticle();
+
+        $stockMovement->setDate($date);
+
+        if ($type === MouvementStock::TYPE_SORTIE) {
+            $reference->setLastStockExit($date);
+        } else if ($type === MouvementStock::TYPE_ENTREE) {
+            $reference->setLastStockEntry($date);
+        }
     }
 }

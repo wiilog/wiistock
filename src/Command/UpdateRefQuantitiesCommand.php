@@ -11,18 +11,24 @@ use App\Service\RefArticleDataService;
 use App\Service\TranslationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+#[AsCommand(
+    name: 'app:recalc:quantity',
+    description: 'This command recalc refs quantities.'
+)]
 class UpdateRefQuantitiesCommand extends Command
 {
-    protected static $defaultName = 'app:recalc:quantity';
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
-    private $em;
-    private $refArticleService;
+    #[Required]
+    public RefArticleDataService $refArticleService;
 
     #[Required]
     public FormatService $formatService;
@@ -30,16 +36,8 @@ class UpdateRefQuantitiesCommand extends Command
     #[Required]
     public TranslationService $translation;
 
-    public function __construct(EntityManagerInterface $entityManager, RefArticleDataService $refArticleDataService)
+    protected function configure(): void
     {
-        parent::__construct(self::$defaultName);
-        $this->em = $entityManager;
-        $this->refArticleService = $refArticleDataService;
-    }
-
-    protected function configure()
-    {
-        $this->setDescription('This command recalc refs quantities.');
         $this
             ->addArgument('ref', InputArgument::REQUIRED, 'La référence à mettre à jour.');
     }
@@ -50,10 +48,9 @@ class UpdateRefQuantitiesCommand extends Command
      * @return int|void
      * @throws Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output): null|int|string|bool {
         $refToUpdate = $input->getArgument('ref');
-        $referenceArticleRepository = $this->em->getRepository(ReferenceArticle::class);
+        $referenceArticleRepository = $this->entityManager->getRepository(ReferenceArticle::class);
         $referenceArticleToUpdate = $referenceArticleRepository->findOneBy(['reference' => $refToUpdate]);
         $output
             ->writeln('Quantité disponible avant mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
@@ -67,10 +64,10 @@ class UpdateRefQuantitiesCommand extends Command
             ->writeln('..........Mise à jour..........');
         $output
             ->writeln('');
-        $this->refArticleService->updateRefArticleQuantities($this->em, $referenceArticleToUpdate, true);
-        $this->em->flush();
-        $this->refArticleService->treatAlert($this->em, $referenceArticleToUpdate);
-        $this->em->flush();
+        $this->refArticleService->updateRefArticleQuantities($this->entityManager, [$referenceArticleToUpdate], true);
+        $this->entityManager->flush();
+        $this->refArticleService->treatAlert($this->entityManager, $referenceArticleToUpdate);
+        $this->entityManager->flush();
         $output
             ->writeln('Quantité disponible après mise à jour : ' . $referenceArticleToUpdate->getQuantiteDisponible() ?? 0);
         $output

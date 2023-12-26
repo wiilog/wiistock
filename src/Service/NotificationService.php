@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Google_Client;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
 
@@ -57,19 +58,19 @@ class NotificationService {
         NotificationTemplate::HANDLING => VariableService::HANDLING_DICTIONARY,
     ];
 
-    /** @Required */
+    #[Required]
     public EntityManagerInterface $manager;
 
-    /** @Required */
+    #[Required]
     public VariableService $variableService;
 
-    /** @Required */
+    #[Required]
     public KernelInterface $kernel;
 
-    /** @Required */
+    #[Required]
     public Twig_Environment $templating;
 
-    /** @Required */
+    #[Required]
     public HttpClientInterface $client;
 
     public function toTreat($entity): void {
@@ -133,7 +134,7 @@ class NotificationService {
             $source = $notification->getSource();
         }
         if (isset($config['image']) && !empty($config['image'])) {
-            $src = $_SERVER['APP_URL'] . '/uploads/attachements/' . $config['image'];
+            $src = $_SERVER['APP_URL'] . '/uploads/attachments/' . $config['image'];
         }
         return [
             'content' => $this->templating->render('notifications/datatableNotificationRow.html.twig', [
@@ -220,25 +221,25 @@ class NotificationService {
         }
     }
 
-    public static function GetChannelFromEntity($entity): ?string {
+    public static function GetChannelFromEntity(mixed $entity): ?string {
         $res = null;
         if ($entity instanceof Preparation) {
-            $res = "stock-delivery-" . $entity->getDemande()->getType()->getId();
+            $res = "stock-preparation-order-{$entity->getDemande()->getType()->getId()}";
         }
         else if ($entity instanceof Livraison) {
-            $res = "stock-delivery-" . $entity->getPreparation()->getDemande()->getType()->getId();
+            $res = "stock-delivery-order{$entity->getPreparation()->getDemande()->getType()->getId()}";
         }
         else if ($entity instanceof Dispatch) {
-            $res = "tracking-dispatch-" . $entity->getType()->getId();
+            $res = "tracking-dispatch-{$entity->getType()->getId()}";
         }
         else if ($entity instanceof Handling) {
-            $res = "demande-handling-" . $entity->getType()->getId();
+            $res = "request-handling-{$entity->getType()->getId()}";
         }
         else if ($entity instanceof OrdreCollecte) {
-            $res = "stock";
+            $res = "stock-collect-order-";
         }
         else if ($entity instanceof TransferOrder) {
-            $res = "tracking";
+            $res = "stock-transfer-order-";
         }
         return $res;
     }

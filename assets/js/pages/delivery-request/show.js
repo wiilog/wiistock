@@ -1,4 +1,5 @@
 import AJAX from "@app/ajax";
+import {POST} from "../../ajax";
 
 let tables = [];
 let editableTableArticles = null;
@@ -18,8 +19,14 @@ $(function () {
     $('.select2').select2();
     initDateTimePicker();
     Select2Old.user('Utilisateurs');
+
+    const disableQuantityCheck = (
+        Boolean($('input[name=managePreparationWithPlanning]').val())
+        || Boolean($('input[name=manageDeliveriesWithoutStockQuantity]').val())
+    );
+
     Select2Old.articleReference($('.ajax-autocomplete'), {
-        minQuantity: Number($('input[name=managePreparationWithPlanning]').val()) ? 0 : 1,
+        minQuantity: disableQuantityCheck ? 0 : 1,
     });
 
     initPageModals();
@@ -253,7 +260,18 @@ function initPageModals() {
 
 function initDeliveryRequestModal() {
     const $modal = $('#modalEditDemande');
-    InitModal($modal, $('#submitEditDemande'), Routing.generate('demande_edit', true), { tables: [editableTableArticles]});
+    Form
+        .create($('#modalEditDemande'))
+        .submitTo(
+            POST,
+            'demande_edit',
+            {
+                tables: [editableTableArticles],
+                success: ({header}) => {
+                    $('.zone-entete').html(header);
+                }
+            }
+        )
     toggleLocationSelect($modal.find('[name="type"]'));
 }
 

@@ -8,6 +8,7 @@
 {% block page_content %}
 
     {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::EDIT_RESERVES')) %}
+    {% set hasRightAddNumTrack = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
 
     {{ form.input('truckArrival', '', false, truckArrival.id, {
         type: 'hidden'
@@ -36,11 +37,10 @@
                 <div class="wii-box">
                     <div class="header wii-title d-flex justify-content-between">
                         <span>Liste des numéros de tracking</span>
-                        <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associé :</span> {{ lineAssociated }}</span>
+                        <span class="wii-field-text"><span class="bold">Nombre de n° de tracking associés :</span> {{ lineAssociated }}</span>
                     </div>
                     <div class="content">
-                        {% set hasRightEditReserve = hasRight(constant('App\\Entity\\Menu::TRACA'), constant('App\\Entity\\Action::ADD_CARRIER_TRACKING_NUMBER')) %}
-                        {% if hasRightEditReserve %}
+                        {% if hasRightAddNumTrack %}
                             <div style="text-align: right">
                                 {% include "utils/action-buttons/header-buttons.html.twig" with {
                                     actions: [
@@ -166,7 +166,7 @@
         footer: {
             elements: [
                 {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
-                {classes: 'btn btn-success data', text: 'Enregister', type: 'submit'}
+                {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit'}
             ],
         },
     } %}
