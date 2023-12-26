@@ -118,6 +118,9 @@ class DispatchService {
     #[Required]
     public FormService $formService;
 
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
+
     private ?array $freeFieldsConfig = null;
 
     // cache
@@ -2285,5 +2288,30 @@ class DispatchService {
             'code' => $code,
             'labels' => $labels,
         ];
+    }
+
+    public function duplicateDispatch(EntityManagerInterface $manager,
+                                      Dispatch               $dispatch,
+                                      Utilisateur            $user): Dispatch
+    {
+        $newDispatch = clone $dispatch;
+
+        $type = $dispatch->getStatut()->getAutomaticDispatchCreationType();
+
+        $draftStatus = Stream::from(($type ?? $newDispatch->getType())->getStatuts())
+            ->filter(fn(Statut $status) => $status->isDraft())
+            ->first();
+
+        $number = $this->uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $newDispatch
+            ->setType($type)
+            ->setNumber($number)
+            ->setCreationDate(new DateTime());
+
+        $this->statusHistoryService->updateStatus($this->entityManager, $newDispatch, $draftStatus, ["initiatedBy" => $user]);
+
+        $manager->persist($newDispatch);
+
+        return $newDispatch;
     }
 }

@@ -567,8 +567,8 @@ class DispatchController extends AbstractController {
             'dispatchTreat' => [
                 'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
             ],
-            'dispatchPartial' => [
-                'partialStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::PARTIAL]),
+            'dispatchInProgress' => [
+                'inProgressStatuses' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::IN_PROGRESS]),
                 'dispatchId' => $dispatch->getId(),
             ],
             'printBL' => $printBL,
@@ -1206,6 +1206,10 @@ class DispatchController extends AbstractController {
                                 $entityManager->persist($trackingMovement);
                             }
                         }
+                    }
+
+                    if($status->isAutomaticDispatchCreation()) {
+                        $dispatchService->duplicateDispatch($entityManager, $dispatch, $this->getUser());
                     }
 
                     $entityManager->flush();
@@ -2085,4 +2089,32 @@ class DispatchController extends AbstractController {
         );
     }
 
+    #[Route("/{id}/progress", name: "dispatch_progress", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function progressDispatchRequest(Request                $request,
+                                            EntityManagerInterface $entityManager,
+                                            DispatchService        $dispatchService,
+                                            Dispatch               $dispatch,
+                                            TranslationService     $translationService,
+                                            StatusHistoryService   $statusHistoryService): Response
+    {
+
+        $request = $request->request;
+
+        $statusId = $request->get("status");
+        $inProgressStatus = $entityManager->getRepository(Statut::class)->find($statusId);
+
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $inProgressStatus);
+        $entityManager->flush();
+        $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+
+        if($inProgressStatus->isAutomaticDispatchCreation()) {
+            $dispatchService->duplicateDispatch($entityManager, $dispatch, $this->getUser());
+            $entityManager->flush();
+        }
+
+        return $this->json([
+            'success' => true,
+            'msg' => $translationService->translate('Demande', 'Acheminements', 'Général', "L'acheminement a bien été avancé"),
+        ]);
+    }
 }

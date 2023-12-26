@@ -280,27 +280,25 @@ function openTreatDispatchModal() {
     $modal.modal('show');
 }
 
-function openPartialDispatchModal() {
-    const $modalPartialDispatch = $('#modalPartialDispatch');
+function openInProgressDispatchModal() {
+    const $modalProgressDispatch = $('#modalProgressDispatch');
     const dispatchId = $('#dispatchId').val();
 
-    Form.create($modalPartialDispatch)
+    Form.create($modalProgressDispatch)
         .onSubmit((data, form) => {
             form.loading(() => {
                 return AJAX
-                    .route(AJAX.POST, `dispatch_treat_request`, {id: dispatchId})
+                    .route(AJAX.POST, `dispatch_progress`, {id: dispatchId})
                     .json(data)
-                    .then((response) => {
-                        console.log(response)
-                        if (response.success) {
+                    .then(({success}) => {
+                        if (success) {
                             window.location.reload();
-                            $modalPartialDispatch.modal('hide');
                         }
                     });
             });
         });
 
-    $modalPartialDispatch.modal('show');
+    $modalProgressDispatch.modal('show');
 }
 
 function runDispatchPrint($button) {

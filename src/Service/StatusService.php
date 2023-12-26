@@ -151,7 +151,7 @@ class StatusService {
                 'label' => 'Partiel',
                 'id' => Statut::PARTIAL,
                 'code' => 'partial',
-                'modes' => [Statut::MODE_DISPATCH],
+                'modes' => [],
             ],
         ])
             ->filter(fn($state) => (

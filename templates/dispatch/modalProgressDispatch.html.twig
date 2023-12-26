@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-<div class="modal fade" id="modalPartialDispatch">
+<div class="modal fade" id="modalProgressDispatch">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -8,12 +8,12 @@
             } %}
 
             <div class="modal-body modal-input">
-                {% if partialStatus is not empty %}
+                {% if inProgressStatuses is not empty %}
                     <div class="form-group row">
                         <div class="col-12">
                             {{ form.select('status', 'Statut', true, {
                                 emptyOption: {label: '', value: ''},
-                                items: partialStatus|map(status => ({
+                                items: inProgressStatuses|map(status => ({
                                     label: status.getLabelIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug),
                                     value: status.id,
                                 }))
@@ -24,7 +24,7 @@
                     {% include 'utils/warningSelectEmpty.html.twig' with {
                         array: [],
                         warningLabel: trans('Demande', 'Acheminements', 'Général', "Vous n'avez pas configuré de statut {1} pour ce type d'acheminement", {
-                            '1': 'partiel'
+                            '1': 'en cours'
                         }),
                         redirectPath: path('settings_item', {
                             'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_TRACING'),
@@ -44,7 +44,7 @@
                 }) }}
             </div>
 
-            {% if partialStatus is not empty %}
+            {% if inProgressStatuses is not empty %}
                 {% include 'utils/modal/footer.html.twig' with {
                     elements: [
                         {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
