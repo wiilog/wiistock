@@ -255,7 +255,7 @@ class IOTService
         ])->some(static fn ($dataType, $actionType) => ($config[$actionType] ?? false) === $messageData && $dataType === $sensorMessage->getContentType());
 
         if ($needsTrigger) {
-
+            $triggerAction->setLastTrigger(new DateTime('now'));
             if ($triggerAction->getRequestTemplate()) {
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
