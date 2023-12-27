@@ -234,7 +234,6 @@ function onOpenModalAddLocationAndZone(tableLocations){
 
 function initModalAddTableLocations(){
     initFormAddInventoryLocations($('.add-inventory-location-container'));
-
 }
 
 function openShowScannedArticlesModal($button) {
@@ -244,7 +243,6 @@ function openShowScannedArticlesModal($button) {
     let tableScannedArticlesConfig = {
         lengthMenu: [5, 10, 25],
         processing: true,
-        serverSide: true,
         paging: true,
         ajax: {
             url: Routing.generate('mission_location_art_api', {locationLine}, true),
