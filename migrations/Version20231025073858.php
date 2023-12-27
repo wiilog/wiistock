@@ -59,18 +59,6 @@ final class Version20231025073858 extends AbstractMigration
             type_id INT NOT NULL,
             PRIMARY KEY(fixed_field_by_type_id, type_id)
         )");
-
-        $this->addSql("CREATE TABLE fixed_field_by_type_on_mobile (
-            fixed_field_by_type_id INT NOT NULL,
-            type_id INT NOT NULL,
-            PRIMARY KEY(fixed_field_by_type_id, type_id)
-        )");
-
-        $this->addSql("CREATE TABLE fixed_field_by_type_on_label (
-            fixed_field_by_type_id INT NOT NULL,
-            type_id INT NOT NULL,
-            PRIMARY KEY(fixed_field_by_type_id, type_id)
-        )");
     }
 
     public function down(Schema $schema): void

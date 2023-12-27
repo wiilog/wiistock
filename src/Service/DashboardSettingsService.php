@@ -493,8 +493,6 @@ class DashboardSettingsService {
                 'nextLocation' => $meterChart->getLocation(),
                 'count' => $meterChart->getTotal(),
                 'chartColors' => $meterChart->getChartColors(),
-                'linesCountTooltip' => $config['linesCountTooltip'] ?? '',
-                'nextLocationTooltip' => $config['nextLocationTooltip'] ?? '',
             ];
         } else {
             $values = [
@@ -1295,8 +1293,11 @@ class DashboardSettingsService {
                 $locations = $config['locations'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
-                    ? $this->router->generate('en_cours', ['locations' => implode(',', $locations), 'fromDashboard' => true ])
-                    : null;
+                    ? $this->router->generate('en_cours', [
+                        'locations' => implode(',', $locations),
+                        'fromDashboard' => true,
+                        'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
+                    ]) : null;
                 break;
             case Dashboard\ComponentType::CARRIER_TRACKING:
                 $redirect = isset($config['redirect']) && $config['redirect'];

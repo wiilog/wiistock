@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="row">
     <div class="col-12">
         <table class="table">
@@ -14,21 +16,24 @@
                     <td>{{ data.headers[i] }}</td>
                     <td>{{ data.firstRow[i] is defined ? data.firstRow[i] | ellipsis(35) }}</td>
                     <td>
-                        <select class="form-control data no-clear import-options" name="{{ i }}" onchange="updateOptions($(this))">
-                            <option></option>
-                            {% for fieldValue, fieldName in fields %}
-                                {% set needed = fieldValue in fieldsNeeded ? '*'%}
-                                {% set pk = (fieldValue == fieldPK) ? ' [clé unique]' %}
-                                {% set selected = (
+                        {{ form.select(i, null, false, {
+                            items: fields|map((fieldName, fieldValue) => {
+                                label: fieldName|capitalize ~ (fieldValue in fieldsNeeded ? '*' : '') ~ (fieldValue == fieldPK ? ' [clé unique]'),
+                                value: fieldValue,
+                                selected: (
                                     preselection[data.headers[i]] is defined
                                     and (
                                         preselection[data.headers[i]] == fieldName
                                         or (fromExistingImport and preselection[data.headers[i]] == fieldValue)
                                     )
-                                ) %}
-                                <option value="{{ fieldValue }}" {{ selected ? 'selected' }}>{{ fieldName|capitalize }}{{ needed }}{{ pk }}</option>
-                            {% endfor %}
-                        </select>
+                                )
+                            }),
+                            emptyOption: {
+                                label: "",
+                            },
+                            onChange: "updateOptions($(this))",
+                            inputClass: "import-options no-clear",
+                        }) }}
                     </td>
                 </tr>
             {% endfor %}

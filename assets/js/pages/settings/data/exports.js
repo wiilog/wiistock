@@ -25,15 +25,9 @@ global.cancelExport = cancelExport;
 
 let tableExport = null;
 
-$(document).ready(() => {
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate(`filter_get_by_page`);
-    let params = JSON.stringify(PAGE_EXPORT);
-
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, `json`);
-
+export function initializeExports() {
+    initDateTimePicker('#dateMin, #dateMax');
+    getUserFiltersByPage(PAGE_EXPORT);
     createForm();
 
     tableExport = initDataTable(`tableExport`, {
@@ -60,8 +54,7 @@ $(document).ready(() => {
             needsRowClickAction: true
         },
     });
-
-});
+}
 
 function displayExportModal(exportId) {
     let $modal = $("#modalExport");

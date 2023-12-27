@@ -8,6 +8,32 @@ $(function () {
     $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
         onExistingDispatchSelected($(this));
     });
+
+    $(document)
+        .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
+            const $recipient = $(this);
+            const $modal = $recipient.closest('.modal');
+            const defaultLocationIfRecipient = {
+                id: $recipient.data('default-location-if-recipient-id'),
+                label: $recipient.data('default-location-if-recipient-label'),
+            };
+            if($recipient.val() && $recipient.val().length > 0) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
+            }
+        })
+        .on(`change`, '#modalNewArrivage [name=customs]', function () {
+            const $customs = $(this);
+            const $modal = $customs.closest('.modal');
+            const defaultLocationIfCustoms = {
+                id: $customs.data('default-location-if-customs-id'),
+                label: $customs.data('default-location-if-customs-label'),
+            };
+            if ($customs.is(':checked')) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
+            }
+        });
 });
 
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
