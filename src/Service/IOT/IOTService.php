@@ -5,6 +5,7 @@ namespace App\Service\IOT;
 
 
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\DeliveryRequest\Demande;
@@ -29,6 +30,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Repository\ArticleRepository;
@@ -39,6 +41,7 @@ use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
+use App\Service\TrackingMovementService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
@@ -161,6 +164,9 @@ class IOTService
     #[required]
     public HttpService $client;
 
+    #[required]
+    public TrackingMovementService $trackingMovementService;
+
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
         foreach ($messages as $message) {
@@ -260,6 +266,9 @@ class IOTService
                 $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
             } else if ($triggerAction->getAlertTemplate()) {
                 $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+            } else if (isset($config['dropOnLocation'])) {
+                $this->treatDropOnLocationTriggerType($entityManager, $triggerAction, $sensorMessage);
+
             }
         }
     }
@@ -480,8 +489,76 @@ class IOTService
         return $ordreCollecte;
     }
 
-    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager) {
+    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager): void
+    {
         $this->alertService->trigger($template, $message, $entityManager);
+    }
+
+    private function treatDropOnLocationTriggerType(EntityManagerInterface $entityManager, TriggerAction $triggerAction, SensorMessage $sensorMessage): void {
+        $config = $triggerAction->getConfig();
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $dropLocation = $locationRepository->findOneBy(['id' => $config['dropOnLocation']]);
+        if (!$dropLocation) {
+            return;
+        }
+
+        $sensorWrapper = $sensorMessage->getSensor()?->getAvailableSensorWrapper();
+        if (!$sensorWrapper) {
+            return;
+        }
+
+        $pickLocation = $sensorWrapper->getActivePairing()?->getLocation();
+        if (!$pickLocation) {
+            return;
+        }
+
+        $operator = $sensorWrapper->getManager();
+        if (!$operator) {
+            return;
+        }
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $date = $sensorMessage->getDate();
+        $logisticUnitsToMove = $packRepository->getCurrentPackOnLocations([$pickLocation->getId()], [
+            'isCount' => false,
+            'field' => 'pack'
+        ]);
+        $trackingMovementService = $this->trackingMovementService;
+
+        $statusPick = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE);
+        $statusDrop= $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+
+        foreach ($logisticUnitsToMove as $logisticUnit) {
+            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                $entityManager,
+                $logisticUnit,
+                $pickLocation,
+                $operator,
+                $date,
+                null,
+                $statusPick,
+                false,
+                [
+                    'quantity' => $logisticUnit->getQuantity(),
+                ]
+            );
+            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                $entityManager,
+                $logisticUnit,
+                $dropLocation,
+                $operator,
+                $date,
+                null,
+                $statusDrop,
+                false,
+                [
+                    'quantity' => $logisticUnit->getQuantity(),
+                ]
+            );
+
+        }
     }
 
     private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local, $loRaWANServer): array {

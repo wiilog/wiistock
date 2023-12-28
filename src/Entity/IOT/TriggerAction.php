@@ -14,8 +14,7 @@ class TriggerAction {
 
     const REQUEST = "request";
     const ALERT = "alert";
-
-    const ZONE = "zone";
+    const DROP_ON_LOCATION = "dropOnLocation";
     const TEMPLATE_TYPES = [
         self::REQUEST => "Demande",
         self::ALERT => "Alerte",

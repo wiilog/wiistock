@@ -42,9 +42,14 @@
                 emptyOption: {label: '', value: '', selected: true},
             }) }}
         </div>
-        <div class="col-12">
+        <div class="col-12 template-details-wrapper">
             {{ form.select('templates', 'Modèle', true, {
                 disabled: true,
+                labelClass: 'd-none w-100',
+            }) }}
+            {{ form.select('dropOnLocation', 'Emplacement de dépose', true, {
+                type: 'location',
+                labelClass: 'd-none w-100',
             }) }}
         </div>
     </div>

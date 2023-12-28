@@ -142,9 +142,10 @@ class TriggerActionController extends AbstractController
                         $entityManager,
                         $sensorWrapper,
                         $data["templateType"],
-                        $data["templates"],
+                        $data["templates"] ?? null,
                         [
                             $data["action"] => $data["zoneId"],
+                            ... isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
                         ]
                     );
                     $entityManager->persist($triggerAction);
@@ -346,8 +347,8 @@ class TriggerActionController extends AbstractController
             $code = $query->get('code');
             $sensor = $sensorRepository->findOneBy(["code" => $code]);
         }
-        $type = isset($sensor) ? $sensor->getType() : null;
-        $typeLabel = isset($type) ? $type->getLabel() : null;
+        $type = $sensor?->getType();
+        $typeLabel = $type?->getLabel();
 
         $html = "";
         if(!isset($sensorWrapper) && !isset($sensor)){
@@ -373,7 +374,10 @@ class TriggerActionController extends AbstractController
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TRACER) {
             $html = $this->renderView('trigger_action/modalTracer.html.twig', [
-                "templateTypes" => TriggerAction::TEMPLATE_TYPES,
+                "templateTypes" => [
+                    TriggerAction::DROP_ON_LOCATION => "Dépôt sur emplacement",
+                    ... TriggerAction::TEMPLATE_TYPES,
+                ]
             ]);
         }
 
