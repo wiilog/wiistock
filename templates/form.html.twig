@@ -128,12 +128,13 @@
     {% if isSlider %}
         <span class="slider round"></span>
     {% else %}
+        {% set inline = options.inline ?? false %}
         <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
-                <span class="d-inline-flex align-items-center">
+                <span class="d-inline-flex align-items-center {{ inline ? 'text-nowrap' }}">
                     {{ label | raw }}
                 </span>
         </label>
-        {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {{ _self.tooltip(options.tooltip ?? null, inline) }}
     {% endif %}
     </{{ containerTag }}>
     {% if isSlider %}

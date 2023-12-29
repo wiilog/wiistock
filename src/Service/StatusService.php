@@ -132,7 +132,7 @@ class StatusService {
                 'label' => 'En cours',
                 'id' => Statut::IN_PROGRESS,
                 'code' => 'inProgress',
-                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING],
+                'modes' => [StatusController::MODE_PURCHASE_REQUEST, StatusController::MODE_HANDLING, StatusController::MODE_PRODUCTION],
                 'automaticReceptionCreationDisabled' => true
             ],
             [

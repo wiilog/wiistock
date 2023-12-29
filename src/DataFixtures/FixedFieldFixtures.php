@@ -105,6 +105,19 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                 ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_INTERNAL_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_INTERNAL_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE, 'displayedCreate' => false, 'displayedEdit' => false, 'displayedFilters' => false, 'default' => false],
             ],
+
+            FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
+                ['code' => FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_MANUFACTURING_ORDER_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
+                ['code' => FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME, 'label' => FixedFieldStandard::FIELD_LABEL_EXPECTED_DATE_AND_TIME, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCT_ARTICLE_CODE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_COMMENTAIRE, 'label' => FixedFieldStandard::FIELD_LABEL_COMMENTAIRE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_ATTACHMENTS, 'label' => FixedFieldStandard::FIELD_LABEL_ATTACHMENTS, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_QUANTITY, 'label' => FixedFieldStandard::FIELD_LABEL_QUANTITY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldStandard::FIELD_CODE_LINE_COUNT, 'label' => FixedFieldStandard::FIELD_LABEL_LINE_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+            ],
         ];
 
         $subLinesFieldCodes = [

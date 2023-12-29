@@ -7,6 +7,7 @@ const MODE_PURCHASE_REQUEST = 'purchase-request';
 const MODE_ARRIVAL = 'arrival';
 const MODE_DISPATCH = 'dispatch';
 const MODE_HANDLING = 'handling';
+const MODE_PRODUCTION = 'production';
 
 const DISABLED_LABELS_TRANSLATION_PAGES = [
     `#reception-dispute-statuses-table`,
@@ -34,6 +35,10 @@ export function initializeDispatchStatuses($container, canEdit) {
 
 export function initializeArrivalStatuses($container, canEdit) {
     initializeStatusesByTypes($container, canEdit, MODE_ARRIVAL)
+}
+
+export function initializeProductionStatuses($container, canEdit) {
+    initializeStatusesByTypes($container, canEdit, MODE_PRODUCTION)
 }
 
 export function initializeHandlingStatuses($container, canEdit) {
@@ -133,7 +138,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
 }
 
 function getStatusesColumn(mode) {
-    const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE].includes(mode) ? ['', ''] : ['x', 's'];
+    const singleRequester = [MODE_DISPATCH, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_ARRIVAL_DISPUTE, MODE_PRODUCTION].includes(mode) ? ['', ''] : ['x', 's'];
     const singleBuyer = [MODE_PURCHASE_REQUEST].includes(mode) ? [`à`, `l'acheteur`] : [`aux`, `acheteurs`];
 
     return [
@@ -145,7 +150,7 @@ function getStatusesColumn(mode) {
         {
             data: `defaultStatut`,
             title: `<div>Statut<br/>par défaut</div>`,
-            modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST]},
+            modes: [MODE_ARRIVAL, MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_PRODUCTION]},
         {
             data: `sendMailBuyers`,
             title: `<div class='small-column'>Envoi d'emails ${singleBuyer[0]} ${singleBuyer[1]}</div>`,
@@ -154,7 +159,7 @@ function getStatusesColumn(mode) {
         {
             data: `sendMailRequesters`,
             title: `<div class='small-column'>Envoi d'emails au${singleRequester[0]} demandeur${singleRequester[1]}</div>`,
-            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH]
+            modes: [MODE_ARRIVAL_DISPUTE, MODE_RECEPTION_DISPUTE, MODE_HANDLING, MODE_PURCHASE_REQUEST, MODE_DISPATCH, MODE_PRODUCTION]
         },
         {
             data: `sendMailDest`,
@@ -200,6 +205,21 @@ function getStatusesColumn(mode) {
             data: `commentNeeded`,
             title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
             modes: [MODE_DISPATCH]
+        },
+        {
+            data: `displayedOnSchedule`,
+            title: `<div class='small-column'>Affichage sur planning</div>`,
+            modes: [MODE_PRODUCTION]
+        },
+        {
+            data: `notifiedUsers`,
+            title: `<div class='small-column'>Utilisateur(s) à notifier</div>`,
+            modes: [MODE_PRODUCTION]
+        },
+        {
+            data: `requiredAttachment`,
+            title: `<div class='small-column'>PJ obligatoire</div>`,
+            modes: [MODE_PRODUCTION]
         },
         {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
@@ -250,6 +270,9 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
                             <option>#D73353</option>
                         </datalist>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
+        displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
+        notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,
+        requiredAttachment: `<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data'/></div>`,
         order: `<input type='number' name='order' min='1' class='form-control data needed px-2 text-center' data-global-error="Ordre" data-no-arrow/>`,
     };
 }

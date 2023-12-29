@@ -15,7 +15,12 @@ import {
     createFreeFieldsPage,
     initializeTraceMovementsFreeFields,
     initializeIotFreeFields,
-    initializeReceptionsFreeFields, createArrivalsFreeFieldsPage, createDispatchFreeFieldsPage, createHandlingFreeFieldsPage, createDeliveryRequestFieldsPage,
+    initializeReceptionsFreeFields,
+    createArrivalsFreeFieldsPage,
+    createDispatchFreeFieldsPage,
+    createHandlingFreeFieldsPage,
+    createDeliveryRequestFieldsPage,
+    createProductionFreeFieldsPage,
 } from "./free-fields";
 import {
     initializeArrivalDisputeStatuses,
@@ -23,7 +28,8 @@ import {
     initializePurchaseRequestStatuses,
     initializeArrivalStatuses,
     initializeDispatchStatuses,
-    initializeHandlingStatuses
+    initializeHandlingStatuses,
+    initializeProductionStatuses,
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
@@ -113,6 +119,10 @@ const initializers = {
     trace_arrivages_camion_champs_fixes: initializeTruckArrivalFixedFields,
     trace_arrivages_camion_reserves: initializeTruckArrivalReserves,
     trace_urgences_champs_fixes: initializeEmergenciesFixedFields,
+    production_parametrage_complet_statuts: initializeProductionStatuses,
+    production_parametrage_complet_types_champs_libres: createProductionFreeFieldsPage,
+    production_parametrage_complet_champs_fixes: initializeProductionFixedFields,
+    production_parametrage_complet_configurations: initializeProductionConfiguration,
 };
 
 const saveCallbacks = {
@@ -1379,6 +1389,30 @@ function initializeEmergenciesFixedFields($container, canEdit) {
     });
 }
 
+function initializeProductionFixedFields($container, canEdit) {
+    EditableDatatable.create(`#table-production-fixed-fields`, {
+        route: Routing.generate('settings_fixed_field_api', {entity: `production`}),
+        mode: canEdit ? MODE_EDIT : MODE_NO_EDIT,
+        save: SAVE_MANUALLY,
+        ordering: false,
+        paging: false,
+        onEditStart: () => {
+            $managementButtons.removeClass('d-none');
+        },
+        onEditStop: () => {
+            $managementButtons.addClass('d-none');
+        },
+        columns: [
+            {data: `label`, title: `Champ fixe`},
+            {data: `displayedCreate`, title: `Afficher`},
+            {data: `requiredCreate`, title: `Obligatoire`},
+            {data: `displayedEdit`, title: `Afficher`},
+            {data: `requiredEdit`, title: `Obligatoire`},
+            {data: `displayedFilters`, title: `Afficher`},
+        ],
+    });
+}
+
 function changeDisplayRefArticleTable($checkbox) {
     const check = $checkbox.is(':checked');
     const $row = $checkbox.closest('tr');
@@ -1407,4 +1441,16 @@ function changeReceiverInput($checkbox) {
 
 function initializeDispatchConfiguration($container){
     $container.on(`click`, `.select-all-options`, onSelectAll);
+}
+
+function initializeProductionConfiguration($container){
+    $container.on(`change`, `[name=SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY]`, function() {
+        $(this)
+            .closest(`div`)
+            .next()
+            .find(`select`)
+            .prop(`disabled`, !$(this).is(`:checked`))
+            .val(null)
+            .trigger(`change`);
+    });
 }

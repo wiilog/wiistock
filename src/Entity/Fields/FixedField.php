@@ -76,6 +76,14 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_FOURNISSEUR,
             FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
         ],
+        FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
+            FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER,
+            FixedFieldStandard::FIELD_CODE_EMERGENCY,
+            FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME,
+            FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE,
+            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+            FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
+        ],
     ];
 
     public const ALWAYS_REQUIRED_FIELDS = [
@@ -93,6 +101,9 @@ abstract class FixedField {
         ],
         FixedFieldStandard::ENTITY_CODE_TRUCK_ARRIVAL => [
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
+        ],
+        FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
+            FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
         ],
     ];
 

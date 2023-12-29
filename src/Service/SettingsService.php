@@ -959,6 +959,7 @@ class SettingsService {
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
+                $userRepository = $this->manager->getRepository(Utilisateur::class);
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -966,7 +967,8 @@ class SettingsService {
                     StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
                     StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
                     StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING,
+                    StatusController::MODE_PRODUCTION => CategorieStatut::PRODUCTION,
                 };
 
                 $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
@@ -1010,6 +1012,11 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
+                    $notifiedUsers = [];
+                    if (isset($statusData["notifiedUsers"]) && $statusData["notifiedUsers"]) {
+                        $notifiedUsers = $userRepository->findBy(["id" => explode(",", $statusData["notifiedUsers"])]);
+                    }
+
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
@@ -1025,6 +1032,9 @@ class SettingsService {
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
+                        ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
+                        ->setNotifiedUsers($notifiedUsers)
+                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setDisplayOrder($statusData['order'] ?? 0);
 
                     // label given on creation or edit is the French one
