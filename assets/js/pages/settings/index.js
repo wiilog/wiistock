@@ -1450,6 +1450,8 @@ function initializeProductionConfiguration($container){
             .next()
             .find(`select`)
             .prop(`disabled`, !$(this).is(`:checked`))
+            .prop(`required`, $(this).is(`:checked`))
+            .toggleClass(`needed`, $(this).is(`:checked`))
             .val(null)
             .trigger(`change`);
     });

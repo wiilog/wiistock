@@ -7,7 +7,7 @@
                 labelClass: "w-100 mr-1",
                 inline: true,
             }) }}
-            {{ form.select('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS', null, false, {
+            {{ form.select('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS', null, setting_value('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY'), {
                 type: "user",
                 items: notificationEmailUsers,
                 multiple: true,
