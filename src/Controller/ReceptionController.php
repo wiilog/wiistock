@@ -654,13 +654,13 @@ class ReceptionController extends AbstractController {
 
     #[Route("/edit-reception-line", name: "reception_line_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::ORDRE, Action::EDIT], mode: HasPermission::IN_JSON)]
-    public function editReceptionLine(EntityManagerInterface  $entityManager,
-                                                  ReceptionService        $receptionService,
-                                                  Request                 $request): Response {
+    public function editReceptionLine(EntityManagerInterface $entityManager,
+                                      ReceptionService       $receptionService,
+                                      Request                $request): Response
+    {
         $data = $request->request;
         if ($data) {
             $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
-            $receptionLineRepository = $entityManager->getRepository(ReceptionLine::class);
             $receptionRepository = $entityManager->getRepository(Reception::class);
 
             $refArticleId = (int)$data->get('referenceArticle');
