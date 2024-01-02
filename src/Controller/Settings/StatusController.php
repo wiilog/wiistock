@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\ProductionRequest;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
@@ -223,6 +224,7 @@ class StatusController extends AbstractController
         } else {
             $shippingRequestRepository = $manager->getRepository(ShippingRequest::class);
             $statusHistoryRepository = $manager->getRepository(StatusHistory::class);
+            $productionRequestRepository = $manager->getRepository(ProductionRequest::class);
 
             $constraints = [
                 "un litige" => $entity->getDisputes(),
@@ -241,6 +243,7 @@ class StatusController extends AbstractController
                 "un ordre de transfert" => $entity->getTransferOrders(),
                 "un historique de statut" => $statusHistoryRepository->findBy(['status' => $entity]),
                 "une demande d'expédition" => $shippingRequestRepository->findBy(['status' => $entity]),
+                "une demande de production" => $productionRequestRepository->findBy(['status' => $entity]),
             ];
 
             $constraints = Stream::from($constraints)

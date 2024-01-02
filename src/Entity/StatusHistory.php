@@ -58,6 +58,10 @@ class StatusHistory {
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $validatedBy = null;
 
+    #[ORM\ManyToOne(targetEntity: ProductionRequest::class, inversedBy: 'statusHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?ProductionRequest $productionRequest = null;
+
     public function __construct() {
         $this->date = new DateTime();
         $this->transportHistory = new ArrayCollection();
@@ -223,6 +227,20 @@ class StatusHistory {
     public function setInitiatedBy(?utilisateur $initiatedBy): self
     {
         $this->initiatedBy = $initiatedBy;
+
+        return $this;
+    }
+
+    public function getProductionRequest(): ?ProductionRequest {
+        return $this->productionRequest;
+    }
+
+    public function setProductionRequest(?ProductionRequest $productionRequest): self {
+        if($this->productionRequest && $this->productionRequest !== $productionRequest) {
+            $this->productionRequest->removeStatusHistory($this);
+        }
+        $this->productionRequest = $productionRequest;
+        $productionRequest?->addStatusHistory($this);
 
         return $this;
     }
