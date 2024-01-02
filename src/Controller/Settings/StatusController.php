@@ -10,7 +10,9 @@ use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
+use App\Entity\Utilisateur;
 use App\Service\DispatchService;
+use App\Service\FormService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
@@ -33,8 +35,9 @@ class StatusController extends AbstractController
     const MODE_RECEPTION_DISPUTE = 'reception-dispute';
     const MODE_PURCHASE_REQUEST = 'purchase-request';
     const MODE_ARRIVAL = 'arrival';
-    const MODE_DISPATCH= 'dispatch';
-    const MODE_HANDLING= 'handling';
+    const MODE_DISPATCH = 'dispatch';
+    const MODE_HANDLING = 'handling';
+    const MODE_PRODUCTION = 'production';
 
     /**
      * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
@@ -43,9 +46,9 @@ class StatusController extends AbstractController
                                 UserService            $userService,
                                 StatusService          $statusService,
                                 DispatchService        $dispatchService,
-                                EntityManagerInterface $entityManager): JsonResponse {
+                                EntityManagerInterface $entityManager,
+                                FormService            $formService): JsonResponse {
         $edit = $request->query->getBoolean("edit");
-        $translate = $request->query->getBoolean("translate");
         $mode = $request->query->get("mode");
         $typeId = $request->query->get("type");
 
@@ -55,7 +58,8 @@ class StatusController extends AbstractController
             self::MODE_PURCHASE_REQUEST,
             self::MODE_ARRIVAL,
             self::MODE_DISPATCH,
-            self::MODE_HANDLING
+            self::MODE_HANDLING,
+            self::MODE_PRODUCTION,
         ];
 
         if (!in_array($mode, $availableMode)) {
@@ -67,7 +71,8 @@ class StatusController extends AbstractController
             self::MODE_DISPATCH => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_DISPATCH),
             self::MODE_HANDLING => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_TRACING_HAND),
             self::MODE_RECEPTION_DISPUTE => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_RECEP),
-            self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_REQUESTS)
+            self::MODE_PURCHASE_REQUEST => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_REQUESTS),
+            self::MODE_PRODUCTION => $userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_PRODUCTION),
         };
 
         if (!$hasAccess) {
@@ -87,7 +92,8 @@ class StatusController extends AbstractController
             self::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
             self::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
             self::MODE_DISPATCH => CategorieStatut::DISPATCH,
-            self::MODE_HANDLING => CategorieStatut::HANDLING
+            self::MODE_HANDLING => CategorieStatut::HANDLING,
+            self::MODE_PRODUCTION => CategorieStatut::PRODUCTION,
         };
 
         $type = $typeId ? $typeRepository->find($typeId) : null;
@@ -119,6 +125,17 @@ class StatusController extends AbstractController
                 $commentNeeded = $status->getCommentNeeded() ? 'checked' : "";
                 $automaticReceptionCreation = $status->getAutomaticReceptionCreation() ? 'checked' : "";
                 $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
+                $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
+                $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
+                $notifiedUsers = !$status->getnotifiedUsers()->isEmpty()
+                    ? Stream::from($status->getNotifiedUsers())
+                        ->map(static fn(Utilisateur $user) => [
+                            "label" => $user->getUsername(),
+                            "value" => $user->getId(),
+                            "selected" => true,
+                        ])
+                        ->toArray()
+                    : [];
 
                 $statusLabel = $this->getFormatter()->status($status);
                 $data[] = [
@@ -148,6 +165,13 @@ class StatusController extends AbstractController
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
+                    "displayedOnSchedule" => "<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data $displayOnSchedule' $displayOnSchedule/></div>",
+                    "notifiedUsers" => $formService->macro("select", "notifiedUsers", null, false, [
+                        "type" => "user",
+                        "multiple" => true,
+                        "items" => $notifiedUsers,
+                    ]),
+                    "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
@@ -168,6 +192,11 @@ class StatusController extends AbstractController
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
+                    "displayedOnSchedule" => $this->formatService->bool($status->isDisplayedOnSchedule()),
+                    "notifiedUsers" => Stream::from($status->getNotifiedUsers())
+                        ->map(static fn(Utilisateur $user) => $user->getUsername())
+                        ->join(", "),
+                    "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
                     "order" => $status->getDisplayOrder(),
                 ];
             }
