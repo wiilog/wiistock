@@ -1470,7 +1470,7 @@ function onEntityChange($select, onInit = false) {
         }
     }
 
-    if ($selectedOption.val() === 'requests_to_treat_dispatch') {
+    if (['requests_to_treat_dispatch', 'requests_to_treat_handling'].includes($selectedOption.val())) {
         $redirectDispatch.removeClass('d-none');
     } else if (!$redirectDispatch.hasClass('d-none')) {
         $redirectDispatch.addClass('d-none');
