@@ -185,17 +185,6 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::EDIT_TRANSPORT_SHIPPING_PART,
                 Action::GENERATE_PACKING_SLIP,
             ],
-            self::SUB_MENU_PRODUCTION => [
-                Action::DISPLAY_PRODUCTION_REQUEST,
-                Action::CREATE_PRODUCTION_REQUEST,
-                Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST,
-                Action::EDIT_TO_TREAT_PRODUCTION_REQUEST,
-                Action::DELETE_TO_TREAT_PRODUCTION_REQUEST,
-                Action::DELETE_TREATED_PRODUCTION_REQUEST,
-                Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST,
-                Action::EDIT_TREATED_PRODUCTION_REQUEST,
-                Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST,
-            ],
         ],
         Menu::ORDRE => [
             self::SUB_MENU_GENERAL => [
@@ -270,6 +259,19 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_INVENTORY => [
                 Action::DISPLAY_INVE,
                 Action::INVENTORY_MANAGER,
+            ],
+        ],
+        Menu::PRODUCTION => [
+            self::SUB_MENU_GENERAL => [
+                Action::DISPLAY_PRODUCTION_REQUEST,
+                Action::CREATE_PRODUCTION_REQUEST,
+                Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST,
+                Action::EDIT_TO_TREAT_PRODUCTION_REQUEST,
+                Action::DELETE_TO_TREAT_PRODUCTION_REQUEST,
+                Action::DELETE_TREATED_PRODUCTION_REQUEST,
+                Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST,
+                Action::EDIT_TREATED_PRODUCTION_REQUEST,
+                Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST,
             ],
         ],
         Menu::REFERENTIEL => [

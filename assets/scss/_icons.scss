@@ -135,6 +135,7 @@ $icons: (
     'edit-form': '../../public/svg/edit-form.svg',
     'settings-document-template': '../../public/svg/settings-document-template.svg',
     'question-mark': '../../public/svg/question-mark.svg',
+    'production': '../../public/svg/production.svg',
 );
 
 @each $iconName, $iconPath in $icons {
