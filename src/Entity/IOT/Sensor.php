@@ -26,6 +26,8 @@ class Sensor {
         self::TEMPERATURE_HYGROMETRY => 'iot-temperature-hygrometry',
         self::GPS => 'iot-tracking',
         self::HYGROMETRY => 'iot-hygrometry',
+        self::TRACER => 'iot-tracer',
+        self::ZONE => 'iot-zone',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';

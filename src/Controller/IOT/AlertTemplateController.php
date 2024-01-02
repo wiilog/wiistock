@@ -18,26 +18,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
-
-/**
- * @Route("/modele-alerte")
- */
+#[Route('/modele-alerte', name:'alert_template_')]
 class AlertTemplateController extends AbstractController
 {
-
-    /**
-     * @Route("/api", name="alert_template_api", options={"expose"=true}, methods={"POST|GET"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route('api', name: 'api', options: ['expose' => true], methods: ['POST|GET'], condition: 'request.isXmlHttpRequest()')]
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {
         $data = $alertTemplateService->getDataForDatatable($request->request);
         return $this->json($data);
     }
 
-    /**
-     * @Route("/supprimer", name="alert_template_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::DELETE})
-     */
+    #[Route('/supprimer', name: 'delete', options: ['expose' => true], methods: ['GET','POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
 
@@ -68,14 +60,11 @@ class AlertTemplateController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/creer", name="alert_template_new", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::PARAM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: 'new', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,
-                        AttachmentService $attachmentService): Response
-    {
+                        AttachmentService $attachmentService): Response {
         $post = $request->request;
         $type = PostHelper::string($post, 'type');
         $name = PostHelper::string($post, 'name');
@@ -153,10 +142,8 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier", name="alert_template_edit", options={"expose"=true}, methods={"GET", "POST"})
-     * @HasPermission({Menu::PARAM, Action::EDIT})
-     */
+    #[Route("/modifier", name: 'edit', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          AttachmentService $attachmentService): Response {
@@ -239,7 +226,5 @@ class AlertTemplateController extends AbstractController
             'msg' => "Le modèle d'alerte <strong>{$name}</strong> a bien été modifié"
         ]);
     }
-
-
 }
 

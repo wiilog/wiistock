@@ -35,16 +35,12 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Service\TranslationService;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/iot/associations")
- */
+#[Route('/iot/associations')]
 class PairingController extends AbstractController
 {
 
-    /**
-     * @Route("/", name="pairing_index", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR})
-     */
+    #[Route('/', name: 'pairing_index', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers = $entityManager->getRepository(SensorWrapper::class)->findWithNoActiveAssociation(false);
@@ -61,10 +57,8 @@ class PairingController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="pairing_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_SENSOR}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/api', name: 'pairing_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         IOTService             $IOTService,
                         EntityManagerInterface $manager): Response
@@ -100,10 +94,8 @@ class PairingController extends AbstractController
         return $this->json(['data' => $rows, 'empty' => intval($queryResult['total']) === 0]);
     }
 
-    /**
-     * @Route("/voir/{pairing}", name="pairing_show", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
-     */
+    #[Route('/voir/{pairing}', name: 'pairing_show', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_PAIRING])]
     public function show(DataMonitoringService $service, TranslationService $trans, Pairing $pairing): Response
     {
         return $service->render([
@@ -116,10 +108,8 @@ class PairingController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/dissocier/{pairing}", name="unpair", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
-     */
+    #[Route('/dissocier/{pairing}', name: 'pairing_unpair', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_PAIRING])]
     public function unpair(EntityManagerInterface $manager, Pairing $pairing): Response
     {
         $pairing->setEnd(new DateTime('now'));
@@ -134,10 +124,8 @@ class PairingController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/modifier-fin", name="pairing_edit_end", options={"expose"=true})
-     * @HasPermission({Menu::IOT, Action::DISPLAY_PAIRING})
-     */
+    #[Route('/modifier-fin', name: 'pairing_edit_end', options: ['expose' => true])]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_PAIRING])]
     public function modifyEnd(Request $request, EntityManagerInterface $manager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -165,10 +153,8 @@ class PairingController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/creer", name="pairing_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/creer', name: 'pairing_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(PairingService         $pairingService,
                         EntityManagerInterface $entityManager,
                         Request                $request): Response
@@ -227,9 +213,7 @@ class PairingController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/map-data/{pairing}", name="pairing_map_data", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/map-data/{pairing}", name: "pairing_map_data", condition: "request.isXmlHttpRequest()")]
     public function getMapData(Request $request, Pairing $pairing, GeoService $geoService, DataMonitoringService $dataMonitoringService): JsonResponse
     {
         $filters = $request->query->all();
@@ -262,9 +246,7 @@ class PairingController extends AbstractController
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/chart-data/{pairing}", name="pairing_chart_data", condition="request.isXmlHttpRequest()", options={"expose"=true}, methods="GET|POST")
-     */
+    #[Route("/chart-data/{pairing}", name: "pairing_chart_data", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function getChartData(Request $request, Pairing $pairing, PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();

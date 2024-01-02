@@ -389,12 +389,11 @@ class TriggerActionController extends AbstractController
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TRACER) {
             $html = $this->renderView('trigger_action/modalTracer.html.twig', [
                 "templateTypes" => [
-                    TriggerAction::DROP_ON_LOCATION => "Dépôt sur emplacement",
+                    TriggerAction::DROP_ON_LOCATION => "Dépose sur emplacement",
                     ... TriggerAction::TEMPLATE_TYPES,
                 ]
             ]);
         }
-
         return $this->json($html);
     }
 }

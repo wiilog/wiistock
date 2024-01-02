@@ -127,6 +127,7 @@ class IOTService
     const DATA_TYPE_POSITION = 7;
     const DATA_TYPE_ZONE_ENTER = 8;
     const DATA_TYPE_ZONE_EXIT = 9;
+    const DATA_TYPE_LIVENESS_PROOF = 10;
 
     const DATA_TYPE = [
         self::DATA_TYPE_TEMPERATURE => 'Température',
@@ -136,6 +137,7 @@ class IOTService
         self::DATA_TYPE_POSITION => 'Position',
         self::DATA_TYPE_ZONE_ENTER => 'Entrée zone',
         self::DATA_TYPE_ZONE_EXIT => 'Sortie zone',
+        self::DATA_TYPE_LIVENESS_PROOF => 'Preuve de vie',
     ];
 
     const DATA_TYPE_TO_UNIT = [
@@ -865,6 +867,10 @@ class IOTService
                     }
                 }
                 break;
+            case IOTService::INEO_TRK_ZON:
+                return [
+                    self::DATA_TYPE_LIVENESS_PROOF => true,
+                ];
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -968,6 +974,7 @@ class IOTService
                     return -1;
                 }
             case IOTService::INEO_TRK_TRACER:
+            case IOTService::INEO_TRK_ZON:
                 $jsonData = json_decode($config['objectJSON'], true);
                 $event = $jsonData['events'][1] ?? [];
                 return $event['battery'] ?? -1;
@@ -1273,6 +1280,8 @@ class IOTService
             IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
             IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
             IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
+            IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
+
             default => true,
         };
     }
