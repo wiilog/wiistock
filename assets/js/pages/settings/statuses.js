@@ -261,7 +261,7 @@ function getStatusesColumn(mode) {
         {
             data: `overconsumptionBillGenerationStatus`,
             title: `<div class='small-column'>Passage au statut à la génération du bon de surconsommation</div>`,
-            modes: [MODE_DISPATCH]
+            modes: []
         },
         {
             data: `automaticReceptionCreation`,
