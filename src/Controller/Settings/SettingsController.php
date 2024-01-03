@@ -405,8 +405,8 @@ class SettingsController extends AbstractController {
             ],
         ],
         self::CATEGORY_PRODUCTION => [
-            "label" => "(looking for some icon Pauline) Production",
-            "icon" => "menu-production",
+            "label" => "Production",
+            "icon" => "production",
             "menus" => [
                 self::MENU_FULL_SETTINGS => [
                     "label" => "Paramétrage complet",

@@ -1,0 +1,25 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Production | liste{% endblock %}
+{% block title_tooltip %}Production | liste{% endblock %}
+
+{% block page_filter %}
+    {# TODO WIIS- 10759 #}
+{% endblock %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row">
+            <div class="col-12">
+                <table id="tableProduction" class="table w-100">
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ parent() }}
+    {{ encore_entry_script_tags('production-index') }}
+{% endblock %}
