@@ -7,18 +7,54 @@
     {# TODO WIIS- 10759 #}
 {% endblock %}
 
+{# TODO WIIS-10760 #}
+{% set hasRightToExport = true or hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT')) %}
+
 {% block page_content %}
     <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto btn-group dispatch-button-container">
+                {% if hasRightToExport %}
+                    {% include "utils/action-buttons/header-buttons.html.twig" with {
+                        actions: [
+                            {
+                                hasRight: hasRightToExport,
+                                title: "Exporter au format CSV",
+                                icon : "fa fa-file-csv",
+                                attributes: {
+                                "onclick" : "saveExportFile('get_production_requests_csv', false)",
+                            },
+                            },
+                            {
+                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                                icon: "fa fa-cog",
+                                attributes: {
+                                "data-toggle": "modal",
+                                "data-target": "#modalColumnVisible",
+                            },
+                            }
+                        ]
+                    } %}
+                {% endif %}
+            </div>
+        </div>
         <div class="row">
             <div class="col-12">
                 <table id="tableProductions" class="table w-100" data-initial-visible="{{ initial_visible_columns }}"></table>
             </div>
         </div>
     </div>
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableProductions',
+        'route': 'production_request_set_visible_columns',
+        'reload': true
+    } %}
+
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
     {{ parent() }}
     {{ encore_entry_script_tags('production-index') }}
 {% endblock %}
