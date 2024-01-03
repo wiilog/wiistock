@@ -76,7 +76,7 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
         ...(MODAL_EDITING_MODES.includes(mode)
             ? {
                 onRowClick: (event) => {
-                    getStatusFormTemplate($container, $(`.modal-edit-status`), $(event.currentTarget), type, mode);
+                    getStatusFormTemplate($container, $(`.modal-edit-status`), $(event.currentTarget), mode);
                 },
             } : {}
         ),
@@ -128,12 +128,10 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     $addRow
         .off('click')
         .on(`click`, function() {
-            const type = $('[name=type]:checked').val();
-
             if(!MODAL_EDITING_MODES.includes(mode)) {
                 table.addRow(true);
             } else {
-                getStatusFormTemplate($container, $(`.modal-new-status`), $(this), type, mode);
+                getStatusFormTemplate($container, $(`.modal-new-status`), $(this), mode);
             }
         });
 
@@ -149,10 +147,11 @@ function initializeStatuses($container, canEdit, mode, categoryType) {
     return table;
 }
 
-function getStatusFormTemplate($container, $modal, $element, type, mode) {
+function getStatusFormTemplate($container, $modal, $element, mode) {
     const status = $element.find(`[name=statusId]`).exists()
         ? $element.find(`[name=statusId]`).val()
         : null;
+    const type = $container.find(`[name=type]:checked`).val();
 
     Modal.load(`status_form_template`, {type, mode, status}, $modal, $element, {
         onOpen: () => onStatusModalOpen($modal, status, $container, mode),
