@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Utilisateur;
 use DateTime;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\ParameterBag;
@@ -18,18 +19,20 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Throwable;
 
 class ExceptionLoggerService {
 
-    private $security;
-    private $client;
-    private $serializer;
+    #[Required]
+    public Security $security;
 
-    public function __construct(Security $security, HttpClientInterface $client) {
-        $this->security = $security;
-        $this->client = $client;
+    #[Required]
+    public HttpClientInterface $client;
 
+    private Serializer $serializer;
+
+    public function __construct() {
         $encoder = new JsonEncoder();
         $defaultContext = [
             AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
@@ -43,6 +46,7 @@ class ExceptionLoggerService {
 
     public function sendLog(Throwable $throwable, ?Request $request = null): void {
         if (!empty($_SERVER["APP_NO_LOGGER"]) ||
+            empty($_SERVER["APP_LOGGER"]) ||
             $throwable instanceof NotFoundHttpException ||
             $throwable instanceof AccessDeniedHttpException ||
             $throwable instanceof UnauthorizedHttpException) {
@@ -88,14 +92,9 @@ class ExceptionLoggerService {
         }
 
         try {
+            $logger = $_SERVER["APP_LOGGER"];
             $url = $_SERVER["APP_URL"] ?? null;
             $instance = $_SERVER["APP_INSTANCE"] ?? $url;
-
-            if(!empty($_SERVER["APP_LOGGER"])) {
-                $logger = $_SERVER["APP_LOGGER"];
-            } else {
-                return;
-            }
 
             if ($instance) {
                 $this->client->request("POST", $logger, [
