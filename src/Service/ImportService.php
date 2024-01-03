@@ -1242,7 +1242,15 @@ class ImportService
         }
 
         if (isset($data['rfidTag'])) {
-            $article->setRFIDtag($data['rfidTag']);
+            $articleRepository = $this->entityManager->getRepository(Article::class);
+            $rfidTag = $data['rfidTag'] ?: null;
+            $existingArticle = $rfidTag
+                ? $articleRepository->findOneBy(['RFIDtag' => $data['rfidTag']])
+                : null;
+            if ($existingArticle) {
+                $this->throwError("Le tag RFID $rfidTag est déjà utilisé.");
+            }
+            $article->setRFIDtag($rfidTag);
         }
 
         if (isset($data['batch'])) {
@@ -1823,7 +1831,7 @@ class ImportService
             if (preg_match("/^\d+:[0-5]\d$/", $data['dateMaxTime'])) {
                 $location->setDateMaxTime($data['dateMaxTime']);
             } else {
-                $this->throwError("Le champ Délais traça HH:MM ne respecte pas le bon format");
+                $this->throwError("Le champ Délai traça HH:MM ne respecte pas le bon format");
             }
         }
 
