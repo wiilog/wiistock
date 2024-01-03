@@ -163,7 +163,7 @@ class ImportController extends AbstractController
             $importService->saveScheduledImportsCache($entityManager);
             return $this->json([
                 "success" => true,
-                "message" => "L'import planifié a bien été créé."
+                "msg" => "L'import planifié a bien été créé."
             ]);
         } else {
             return $this->json([
