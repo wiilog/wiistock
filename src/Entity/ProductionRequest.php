@@ -60,6 +60,15 @@ class ProductionRequest
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
+    #[ORM\Column(length: 255)]
+    private ?string $number = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $createdAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'productionRequests')]
+    private ?Utilisateur $treatedBy = null;
+
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
     }
@@ -226,6 +235,42 @@ class ProductionRequest
                 $statusHistory->setProductionRequest(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getNumber(): ?string
+    {
+        return $this->number;
+    }
+
+    public function setNumber(string $number): static
+    {
+        $this->number = $number;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getTreatedBy(): ?Utilisateur
+    {
+        return $this->treatedBy;
+    }
+
+    public function setTreatedBy(?Utilisateur $treatedBy): static
+    {
+        $this->treatedBy = $treatedBy;
 
         return $this;
     }
