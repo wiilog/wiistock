@@ -974,10 +974,14 @@ class IOTService
                     return -1;
                 }
             case IOTService::INEO_TRK_TRACER:
-            case IOTService::INEO_TRK_ZON:
                 $jsonData = json_decode($config['objectJSON'], true);
                 $event = $jsonData['events'][1] ?? [];
                 return $event['battery'] ?? -1;
+            case IOTService::INEO_TRK_ZON:
+                $jsonData = json_decode($config['objectJSON'], true);
+                $events = $jsonData['events'] ?? [];
+                $batteryEvent = Stream::from($events)->find(static fn(array $event) => (int)$event['eventType'] == 4 ) ?? [];
+                return $batteryEvent['numValue'] ?? -1;
         }
         return -1;
     }
