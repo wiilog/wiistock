@@ -131,6 +131,7 @@ class ImportController extends AbstractController
             return $this->json([
                 'success' => true,
                 'importId' => $import->getId(),
+                'msg' => 'L\'import a bien été créé.',
                 'html' => $this->renderView('settings/donnees/import/new/second.html.twig', $secondModalConfig),
             ]);
         } else {
@@ -162,7 +163,7 @@ class ImportController extends AbstractController
             $importService->saveScheduledImportsCache($entityManager);
             return $this->json([
                 "success" => true,
-                "message" => "L'import planifié a bien été créé."
+                "msg" => "L'import planifié a bien été créé."
             ]);
         } else {
             return $this->json([
