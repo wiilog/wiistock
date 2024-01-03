@@ -9,8 +9,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Transport\CollectTimeSlot;
@@ -18,15 +16,13 @@ use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
-use App\Service\IOT\IOTService;
+use App\Service\OperationHistoryService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
 use App\Service\Transport\TransportService;
 use App\Service\UserService;
 use DateTime;
@@ -35,8 +31,6 @@ use App\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use WiiCommon\Helper\Stream;
 
 
@@ -44,11 +38,11 @@ use WiiCommon\Helper\Stream;
 class OrderController extends AbstractController {
 
     #[Route("/validate-time-slot", name: "validate_time_slot", options: ["expose" => true], methods: "POST")]
-    public function settingsTimeSlot(EntityManagerInterface $entityManager,
-                                     Request $request,
-                                     TransportHistoryService $transportHistoryService,
-                                     StatusHistoryService $statusHistoryService,
-                                     UserService $userService){
+    public function settingsTimeSlot(EntityManagerInterface  $entityManager,
+                                     Request                 $request,
+                                     OperationHistoryService $operationHistoryService,
+                                     StatusHistoryService    $statusHistoryService,
+                                     UserService             $userService){
         $data = json_decode($request->getContent(), true);
 
         $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
@@ -85,7 +79,7 @@ class OrderController extends AbstractController {
                     "forceCreation" => false,
                 ]);
 
-                $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                $operationHistoryService->persistTransportHistory($entityManager, $order, OperationHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
                     'history' => $statusHistoryRequest
                 ]);
@@ -99,7 +93,7 @@ class OrderController extends AbstractController {
                     "forceCreation" => false,
                 ]);
 
-                $transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
+                $operationHistoryService->persistTransportHistory($entityManager, $request, OperationHistoryService::TYPE_CONTACT_VALIDATED, [
                     'user' => $userService->getUser(),
                     'history' => $statusHistoryRequest
                 ]);

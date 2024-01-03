@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Service\Transport;
+namespace App\Service;
 
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
+use App\Entity\OperationHistory\ProductionHistoryRecord;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Pack;
+use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportOrder;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
@@ -22,9 +24,8 @@ use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
-class TransportHistoryService {
+class OperationHistoryService {
 
     public const CATEGORY_TIMELINE = "TIMELINE";
     public const CATEGORY_INFORMATION = "INFORMATION";
@@ -92,13 +93,14 @@ class TransportHistoryService {
     #[Required]
     public KernelInterface $kernel;
 
-    public function persistTransportHistory(EntityManagerInterface                $entityManager,
+    public function persistTransportHistory(EntityManagerInterface                               $entityManager,
                                             array|TransportRequest|TransportOrder|TransportRound $transports,
-                                            string                                $type,
-                                            array                                 $params = []): TransportHistory {
+                                            string                                               $type,
+                                            array                                                $params = []): TransportHistoryRecord
+    {
         $transports = is_array($transports) ? $transports : [$transports];
 
-        $history = new TransportHistory();
+        $history = new TransportHistoryRecord();
         foreach($transports as $transport) {
             if ($transport instanceof TransportRequest) {
                 $history->setRequest($transport);
@@ -128,6 +130,25 @@ class TransportHistoryService {
             ->setComment($params["comment"] ?? null)
             ->setStatusHistory($params["history"] ?? null)
             ->setLocation($params["location"] ?? null);
+
+        $entityManager->persist($history);
+
+        return $history;
+    }
+
+    public function persistProductionHistory(EntityManagerInterface $entityManager,
+                                             ProductionRequest      $productionRequest,
+                                             string                 $type,
+                                             array                  $params = []): ProductionHistoryRecord
+    {
+        $history = (new ProductionHistoryRecord())
+            ->setType($type)
+            ->setDate($params["date"] ?? new DateTime())
+            ->setUser($params["user"] ?? null)
+            ->setRequest($productionRequest)
+            ->setAttachments($params["attachments"] ?? [])
+            ->setMessage($params["message"] ?? null)
+            ->setComment($params["comment"] ?? null);
 
         $entityManager->persist($history);
 
@@ -208,7 +229,7 @@ class TransportHistoryService {
         return $formatedValue;
     }
 
-    public function formatHistory(TransportHistory $history): string {
+    public function formatHistory(TransportHistoryRecord|ProductionHistoryRecord $history): string {
         $replace = [
             "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),

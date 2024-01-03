@@ -3,13 +3,13 @@
 
 namespace App\Controller\Transport;
 
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequest;
 use App\Entity\Transport\TransportCollectRequestLine;
 use App\Entity\Transport\TransportDeliveryOrderPack;
 use App\Entity\Transport\TransportDeliveryRequest;
 use App\Entity\Transport\TransportDeliveryRequestLine;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRequestLine;
@@ -18,7 +18,7 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Helper\FormatHelper;
 use App\Service\StringService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\Transport\TransportService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Controller\AbstractController;
@@ -115,10 +115,10 @@ class HistoryController extends AbstractController
     }
 
     #[Route("/{type}/{id}/transport-history-api", name: "transport_history_api", options: ['expose' => true], methods: "GET")]
-    public function transportHistoryApi(int $id,
-                                        string $type,
-                                        TransportHistoryService $transportHistoryService,
-                                        EntityManagerInterface $entityManager): JsonResponse {
+    public function transportHistoryApi(int                     $id,
+                                        string                  $type,
+                                        OperationHistoryService $operationHistoryService,
+                                        EntityManagerInterface  $entityManager): JsonResponse {
         $entity = null;
 
         if($type === self::ORDER ) {
@@ -133,13 +133,13 @@ class HistoryController extends AbstractController
             "template" => $this->renderView('transport/request/timelines/transport-history.html.twig', [
                 "entity" => $entity,
                 "history" => Stream::from($entity->getHistory())
-                    ->sort(fn(TransportHistory $h1, TransportHistory $h2) => (
+                    ->sort(fn (TransportHistoryRecord $h1, TransportHistoryRecord $h2) => (
                         ($h2->getDate() <=> $h1->getDate())
                         ?: ($h2->getId() <=> $h1->getId())
                     ))
-                    ->map(fn (TransportHistory $transportHistory) => [
+                    ->map(fn (TransportHistoryRecord $transportHistory) => [
                         'record' => $transportHistory,
-                        'icon' => $transportHistoryService->getIconFromType($transportHistory->getOrder() ?? $transportHistory->getRequest(), $transportHistory->getType()),
+                        'icon' => $operationHistoryService->getIconFromType($transportHistory->getOrder() ?? $transportHistory->getRequest(), $transportHistory->getType()),
                     ])
                     ->toArray()
             ]),

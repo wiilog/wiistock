@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\OperationHistory\OperationHistory;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -47,7 +48,7 @@ class StatusHistory {
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
-    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistoryRecord::class)]
     private Collection $transportHistory;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -147,7 +148,7 @@ class StatusHistory {
         return $this->transportHistory;
     }
 
-    public function addTransportHistory(TransportHistory $transportHistory): self {
+    public function addTransportHistory(OperationHistory $transportHistory): self {
         if (!$this->transportHistory->contains($transportHistory)) {
             $this->transportHistory[] = $transportHistory;
             $transportHistory->setStatusHistory($this);
@@ -156,7 +157,7 @@ class StatusHistory {
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistory $transportHistory): self {
+    public function removeTransportHistory(OperationHistory $transportHistory): self {
         if ($this->transportHistory->removeElement($transportHistory)) {
             if ($transportHistory->getStatusHistory() === $this) {
                 $transportHistory->setStatusHistory(null);
