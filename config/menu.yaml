@@ -5,7 +5,7 @@ parameters:
             path: 'app_index'
 
         -   label: 'Production'
-            icon: 'production'
+            icon: 'menu-production'
             path: 'production_request_index'
             rights:
                 menu: App\Entity\Menu::PRODUCTION
