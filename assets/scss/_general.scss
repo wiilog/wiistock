@@ -1311,6 +1311,7 @@ label.required:after {
                 &:after {
                     border: 3px solid $medium-grey;
                     outline: 2px solid $white;
+                    z-index: 3;
                 }
 
                 &:before {
