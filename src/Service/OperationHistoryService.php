@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Attachment;
 use App\Entity\Emplacement;
+use App\Entity\OperationHistory\OperationHistory;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Pack;
@@ -96,8 +97,7 @@ class OperationHistoryService {
     public function persistTransportHistory(EntityManagerInterface                               $entityManager,
                                             array|TransportRequest|TransportOrder|TransportRound $transports,
                                             string                                               $type,
-                                            array                                                $params = []): TransportHistoryRecord
-    {
+                                            array                                                $params = []): TransportHistoryRecord {
         $transports = is_array($transports) ? $transports : [$transports];
 
         $history = new TransportHistoryRecord();
@@ -139,8 +139,7 @@ class OperationHistoryService {
     public function persistProductionHistory(EntityManagerInterface $entityManager,
                                              ProductionRequest      $productionRequest,
                                              string                 $type,
-                                             array                  $params = []): ProductionHistoryRecord
-    {
+                                             array                  $params = []): ProductionHistoryRecord {
         $history = (new ProductionHistoryRecord())
             ->setType($type)
             ->setDate($params["date"] ?? new DateTime())
@@ -229,7 +228,7 @@ class OperationHistoryService {
         return $formatedValue;
     }
 
-    public function formatHistory(TransportHistoryRecord|ProductionHistoryRecord $history): string {
+    public function formatHistory(OperationHistory $history): string {
         $replace = [
             "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),

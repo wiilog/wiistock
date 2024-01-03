@@ -19,25 +19,30 @@ class TransportHistoryRecord extends OperationHistory {
     use AttachmentTrait;
 
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?TransportOrder $order = null;
 
     #[ORM\ManyToOne(targetEntity: TransportRound::class)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?TransportRound $round = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $deliverer = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportHistory')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Pack $pack = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $reason = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $location = null;
 
     public function getRound(): ?TransportRound {

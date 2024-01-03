@@ -16,16 +16,17 @@ abstract class OperationHistory {
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?DateTime $date = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $statusDate = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $type = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $user = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -35,6 +36,7 @@ abstract class OperationHistory {
     private ?string $message = null;
 
     #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?StatusHistory $statusHistory = null;
 
     public function getId(): ?int {
@@ -55,7 +57,7 @@ abstract class OperationHistory {
         return $this->statusDate;
     }
 
-    public function setStatusDate(DateTime $statusDate): self {
+    public function setStatusDate(?DateTime $statusDate): self {
         $this->statusDate = $statusDate;
 
         return $this;
@@ -65,7 +67,7 @@ abstract class OperationHistory {
         return $this->type;
     }
 
-    public function setType(string $type): self {
+    public function setType(?string $type): self {
         $this->type = $type;
 
         return $this;
