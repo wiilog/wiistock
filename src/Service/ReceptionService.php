@@ -610,11 +610,12 @@ class ReceptionService
             $packAssociations = Stream::from(json_decode($contentData->get("packAssociations") ?? [], true))
                 ->filter(fn($a) => isset($a["pack"]) && $a['pack'])
                 ->toArray();
+
             foreach ($packAssociations as $association) {
                 if (isset($packCodes[$association["pack"]])) {
                     return [
                         "success" => false,
-                        "msg" => "Le colis {$packCodes[$association["pack"]]} est présent en double",
+                        "msg" => "L'unité logistique {$packCodes[$association["pack"]]} est présente en double",
                     ];
                 }
                 $pack = $packRepository->find($association["pack"]);
@@ -623,9 +624,11 @@ class ReceptionService
                     ? $receptionLineRepository->find($contentData->getInt('article'))
                     : null;
 
-                $receptionReferenceArticle = $contentData->get('article') ? $linePack->getReceptionReferenceArticle($refArticle, $reception->getOrderNumber()) : new ReceptionReferenceArticle();
+                $receptionReferenceArticle = $contentData->get('article')
+                    ? $linePack->getReceptionReferenceArticle($refArticle, $reception->getOrderNumber(), $linePack)
+                    : new ReceptionReferenceArticle();
 
-                if($receptionReferenceArticle){
+                if($receptionReferenceArticle) {
                     $receptionReferenceArticle
                         ->setCommentaire($contentData->get('commentaire') ?? null)
                         ->setCommande($reception->getOrderNumber())
@@ -672,7 +675,7 @@ class ReceptionService
             ];
         }
 
-        if(!isset($receptionReferenceArticle)){
+        if(!isset($receptionReferenceArticle)) {
             $receptionReferenceArticle = new ReceptionReferenceArticle();
 
             $receptionReferenceArticle

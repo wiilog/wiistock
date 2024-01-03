@@ -959,6 +959,7 @@ function deleteReceptionLine(lineId){
 function editReceptionLine(lineId){
     const $modalEditReceptionLine = $('#modalEditReceptionLine');
     Form.create($modalEditReceptionLine, {clearOnOpen: true})
+        .clearOpenListeners()
         .onOpen(() => {
             $modalEditReceptionLine.find('.modal-body').html('');
             AJAX.route(POST, 'reception_line_edit_api', {
