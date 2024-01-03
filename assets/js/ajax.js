@@ -108,7 +108,7 @@ export default class AJAX {
                     if (error) {
                         Flash.add(ERROR, error);
                     }
-                    throw new Error('printing error');
+                    console.error('printing error');
                 }
                 return response.blob().then((blob) => {
                     const responseContent = response.headers.get("content-disposition")

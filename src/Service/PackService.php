@@ -629,7 +629,7 @@ class PackService {
             $labels[] = $packLabel;
         }
 
-        $typeLogoPath = $showTypeLogoArrivalUl ? $arrival->getType()?->getLogo()->getFullPath() : null;
+        $typeLogoPath = $showTypeLogoArrivalUl ? $arrival->getType()?->getLogo()?->getFullPath() : null;
 
         return [
             'code' => $pack->getCode(),
