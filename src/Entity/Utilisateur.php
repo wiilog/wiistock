@@ -303,6 +303,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $dispatchBusinessUnit = null;
 
+    #[ORM\OneToMany(mappedBy: 'treatedBy', targetEntity: ProductionRequest::class)]
+    private Collection $productionRequests;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -349,6 +352,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
+        $this->productionRequests = new ArrayCollection();
     }
 
     public function getId() {
@@ -1979,6 +1983,36 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function setDispatchBusinessUnit(?string $businessUnit): self {
         $this->dispatchBusinessUnit = $businessUnit;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductionRequest>
+     */
+    public function getProductionRequests(): Collection
+    {
+        return $this->productionRequests;
+    }
+
+    public function addProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if (!$this->productionRequests->contains($productionRequest)) {
+            $this->productionRequests->add($productionRequest);
+            $productionRequest->setTreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if ($this->productionRequests->removeElement($productionRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($productionRequest->getTreatedBy() === $this) {
+                $productionRequest->setTreatedBy(null);
+            }
+        }
 
         return $this;
     }
