@@ -42,6 +42,7 @@ export function initializeImports() {
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis`},
             {data: `id`, visible: false},
+            {data: `information`, title: ``, className: `noVis`, orderable: false},
             {data: `lastErrorMessage`, title: ``, className: `noVis`, orderable: false},
             {data: `status`, title: `Statut`},
             {data: `createdAt`, title: `Date de création`},
