@@ -104,6 +104,7 @@ class FixedFieldStandard extends FixedField {
     const ENTITY_CODE_DISPATCH = 'acheminements';
     const FIELD_CODE_TYPE_DISPATCH = 'type';
     const FIELD_CODE_STATUS_DISPATCH = 'status';
+    const FIELD_CODE_STATUS_PRODUCTION = 'status';
     const FIELD_CODE_START_DATE_DISPATCH = 'startDate';
     const FIELD_CODE_END_DATE_DISPATCH = 'endDate';
     const FIELD_CODE_REQUESTER_DISPATCH = 'requester';
@@ -183,6 +184,7 @@ class FixedFieldStandard extends FixedField {
     const FIELD_CODE_RECEIVER_DEMANDE = 'receivers';
     const FIELD_LABEL_RECEIVER_DEMANDE = 'destinataire';
     const FIELD_CODE_TYPE_DEMANDE = 'type';
+    const FIELD_CODE_TYPE_PRODUCTION = 'type';
     const FIELD_LABEL_TYPE_DEMANDE = 'type';
     const FIELD_CODE_DESTINATION_DEMANDE = 'destinationDemande';
     const FIELD_LABEL_DESTINATION_DEMANDE = 'destination';
@@ -221,7 +223,7 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EXPECTED_DATE_AND_TIME = "date et heure attendue";
     const FIELD_LABEL_PRODUCT_ARTICLE_CODE = "code produit/article";
     const FIELD_LABEL_QUANTITY = "quantité";
-    const FIELD_LABEL_LINE_COUNT = "nombre de ligne";
+    const FIELD_LABEL_LINE_COUNT = "nombre de lignes";
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;

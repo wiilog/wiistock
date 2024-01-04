@@ -4,6 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Nature;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
@@ -144,7 +145,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
     #[ORM\OneToOne(mappedBy: 'request', targetEntity: TransportOrder::class, cascade: ['persist', 'remove'])]
     private ?TransportOrder $order = null;
 
-    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistory::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: TransportHistoryRecord::class, cascade: ['remove'])]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'transportRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
@@ -267,13 +268,13 @@ abstract class TransportRequest extends StatusHistoryContainer {
     }
 
     /**
-     * @return Collection<int, TransportHistory>
+     * @return Collection<int, TransportHistoryRecord>
      */
     public function getHistory(): Collection {
         return $this->history;
     }
 
-    public function addHistory(TransportHistory $history): self {
+    public function addHistory(TransportHistoryRecord $history): self {
         if (!$this->history->contains($history)) {
             $this->history[] = $history;
             $history->setRequest($this);
@@ -282,7 +283,7 @@ abstract class TransportRequest extends StatusHistoryContainer {
         return $this;
     }
 
-    public function removeHistory(TransportHistory $history): self {
+    public function removeHistory(TransportHistoryRecord $history): self {
         if ($this->history->removeElement($history)) {
             // set the owning side to null (unless already changed)
             if ($history->getRequest() === $this) {
@@ -404,10 +405,10 @@ abstract class TransportRequest extends StatusHistoryContainer {
         return $this;
     }
 
-    public function getLastTransportHistory(string $type): TransportHistory|null {
+    public function getLastTransportHistory(string $type): TransportHistoryRecord|null {
         return Stream::from($this->getHistory())
-            ->filter(fn(TransportHistory $history) => $history->getType() === $type)
-            ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h1->getId() <=> $h2->getId())
+            ->filter(fn(TransportHistoryRecord $history) => $history->getType() === $type)
+            ->sort(fn(TransportHistoryRecord $h1, TransportHistoryRecord $h2) => $h1->getId() <=> $h2->getId())
             ->last();
     }
 

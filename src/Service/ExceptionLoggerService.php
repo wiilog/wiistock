@@ -22,8 +22,6 @@ use Throwable;
 
 class ExceptionLoggerService {
 
-    const DEFAULT_LOGGER_URL = "http://logger/api/log";
-
     private $security;
     private $client;
     private $serializer;
@@ -43,7 +41,7 @@ class ExceptionLoggerService {
         $this->serializer = new Serializer([$normalizer], [$encoder]);
     }
 
-    public function sendLog(Throwable $throwable, ?Request $request = null) {
+    public function sendLog(Throwable $throwable, ?Request $request = null): void {
         if (!empty($_SERVER["APP_NO_LOGGER"]) ||
             $throwable instanceof NotFoundHttpException ||
             $throwable instanceof AccessDeniedHttpException ||
@@ -96,7 +94,7 @@ class ExceptionLoggerService {
             if(!empty($_SERVER["APP_LOGGER"])) {
                 $logger = $_SERVER["APP_LOGGER"];
             } else {
-                $logger = self::DEFAULT_LOGGER_URL;
+                return;
             }
 
             if ($instance) {

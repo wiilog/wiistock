@@ -16,7 +16,22 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method ProductionRequest[]    findAll()
  * @method ProductionRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ProductionRequestRepository extends EntityRepository {
+class ProductionRequestRepository extends EntityRepository
+{
+
+    public function getLastNumberByDate(string $date): ?string
+    {
+        $result = $this->createQueryBuilder('production_request')
+            ->select('production_request.number')
+            ->where('production_request.number LIKE :value')
+            ->addOrderBy('production_request.number', 'DESC')
+            ->setParameter('value', ProductionRequest::NUMBER_PREFIX . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
+
     public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
     {
         $qb = $this->createQueryBuilder("production_request");
@@ -97,8 +112,7 @@ class ProductionRequestRepository extends EntityRepository {
                         ->leftJoin('production_request.status', 'search_status')
                         ->leftJoin('production_request.treatedBy', 'search_treatedBy')
                         ->leftJoin('production_request.dropLocation', 'search_dropLocation')
-                        ->leftJoin('production_request.type', 'search_type')
-                        ;
+                        ->leftJoin('production_request.type', 'search_type');
                 }
             }
 

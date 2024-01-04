@@ -1,16 +1,19 @@
-import {GET, POST} from "@app/ajax";
-
 let tableProduction;
+
+global.onProductionRequestTypeChange = onProductionRequestTypeChange;
+global.displayAttachmentRequired = displayAttachmentRequired;
+
 $(function () {
     initTableShippings().then((table) => {
         tableProduction = table;
+        initProductionRequestModal($(`#modalNewProductionRequest`), `production_request_new`);
     });
 });
 function initTableShippings() {
     let initialVisible = $(`#tableProduction`).data(`initial-visible`);
     if (!initialVisible) {
         return AJAX
-            .route(GET, 'production_request_api_columns')
+            .route(AJAX.GET, 'production_request_api_columns')
             .json()
             .then(columns => proceed(columns));
     } else {
@@ -27,7 +30,7 @@ function initTableShippings() {
             order: [['number', "desc"]],
             ajax: {
                 url: Routing.generate('production_request_api', true),
-                type: POST,
+                type: AJAX.POST,
             },
             rowConfig: {
                 needsRowClickAction: true,
@@ -48,4 +51,31 @@ function initTableShippings() {
 
         return initDataTable('tableProductions', tableProductionConfig);
     }
+}
+
+function onProductionRequestTypeChange($select){
+    const $modal = $select.closest(`.modal`);
+    const $typeSelect = $modal.find(`[name=type]`);
+    const $selectStatus = $modal.find(`[name=status]`);
+
+    $selectStatus.prop(`disabled`, !Boolean($typeSelect.val()))
+    $selectStatus.val(null).trigger(`change`);
+}
+
+function displayAttachmentRequired($select) {
+    const $modal = $select.closest(`.modal`);
+    const statusData = $select.select2(`data`)[0];
+
+    const requiredAttachment = statusData && statusData.requiredAttachment ? 1 : 0;
+    $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
+    $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
+}
+
+
+function initProductionRequestModal($modal, submitRoute) {
+    Form
+        .create($modal, {clearOnOpen: true})
+        .submitTo(AJAX.POST, submitRoute, {
+            tables: [tableProduction],
+        });
 }

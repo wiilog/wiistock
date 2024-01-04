@@ -1,105 +1,58 @@
 <?php
 
-namespace App\Entity\Transport;
+namespace App\Entity\OperationHistory;
 
 use App\Entity\Emplacement;
 use App\Entity\Pack;
 use App\Entity\StatusHistory;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Transport\TransportOrder;
+use App\Entity\Transport\TransportRequest;
+use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
-use App\Repository\Transport\TransportHistoryRepository;
-use DateTime;
+use App\Repository\Transport\TransportHistoryRecordRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TransportHistoryRepository::class)]
-class TransportHistory {
+#[ORM\Entity(repositoryClass: TransportHistoryRecordRepository::class)]
+class TransportHistoryRecord extends OperationHistory {
 
     use AttachmentTrait;
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private ?int $id = null;
-
-    #[ORM\Column(type: 'datetime')]
-    private ?DateTime $date = null;
-
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private ?DateTime $statusDate = null;
-
     #[ORM\ManyToOne(targetEntity: TransportRequest::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?TransportRequest $request = null;
 
     #[ORM\ManyToOne(targetEntity: TransportOrder::class, inversedBy: 'history')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?TransportOrder $order = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private ?string $type = null;
-
-    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
-    private ?Utilisateur $user = null;
-
     #[ORM\ManyToOne(targetEntity: TransportRound::class)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?TransportRound $round = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $deliverer = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'transportHistory')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Pack $pack = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $reason = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $comment = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $message = null;
-
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $location = null;
 
     #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?StatusHistory $statusHistory = null;
 
     public function __construct() {
         $this->attachments = new ArrayCollection();
-    }
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getDate(): ?DateTime {
-        return $this->date;
-    }
-
-    public function setDate(DateTime $date): self {
-        $this->date = $date;
-
-        return $this;
-    }
-
-    public function getStatusDate(): ?DateTime {
-        return $this->statusDate;
-    }
-
-    public function setStatusDate(DateTime $statusDate): self {
-        $this->statusDate = $statusDate;
-
-        return $this;
-    }
-
-    public function getUser(): ?Utilisateur {
-        return $this->user;
-    }
-
-    public function setUser(?Utilisateur $user): self {
-        $this->user = $user;
-        return $this;
     }
 
     public function getRound(): ?TransportRound {
@@ -149,36 +102,6 @@ class TransportHistory {
 
     public function setReason(?string $reason): self {
         $this->reason = $reason;
-        return $this;
-    }
-
-    public function getComment(): ?string {
-        return $this->comment;
-    }
-
-    public function setComment(?string $comment): self {
-        $this->comment = $comment;
-
-        return $this;
-    }
-
-    public function getMessage(): ?string {
-        return $this->message;
-    }
-
-    public function setMessage(?string $message): self {
-        $this->message = $message;
-
-        return $this;
-    }
-
-    public function getType(): ?string {
-        return $this->type;
-    }
-
-    public function setType(string $type): self {
-        $this->type = $type;
-
         return $this;
     }
 
