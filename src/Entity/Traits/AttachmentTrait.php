@@ -5,21 +5,14 @@ namespace App\Entity\Traits;
 
 
 use App\Entity\Attachment;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\ManyToMany;
 
 trait AttachmentTrait {
 
-    /**
-     * @var ArrayCollection $attachments
-     */
     #[ManyToMany(targetEntity: Attachment::class, cascade: ['persist', 'remove'])]
-    private $attachments;
+    private Collection $attachments;
 
-    /**
-     * @return Collection|Attachment[]
-     */
     public function getAttachments(): Collection {
         return $this->attachments;
     }

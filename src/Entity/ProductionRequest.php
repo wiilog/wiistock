@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ProductionRequestRepository;
@@ -18,6 +19,8 @@ class ProductionRequest
 
     use AttachmentTrait;
     use FreeFieldsManagerTrait;
+
+    public const NUMBER_PREFIX = 'P';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -52,7 +55,7 @@ class ProductionRequest
     private ?Emplacement $dropLocation = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
-    private ?int $lineNumber = null;
+    private ?int $lineCount = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
@@ -60,17 +63,25 @@ class ProductionRequest
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
     private ?string $number = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'productionRequests')]
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedProductionRequests')]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $treatedBy = null;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'createdProductionRequests')]
+    private ?Utilisateur $createdBy = null;
+
+    #[ORM\OneToMany(mappedBy: 'request', targetEntity: ProductionHistoryRecord::class, cascade: ['remove'])]
+    private Collection $history;
 
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
+        $this->history = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -184,14 +195,14 @@ class ProductionRequest
         return $this;
     }
 
-    public function getLineNumber(): ?int
+    public function getLineCount(): ?int
     {
-        return $this->lineNumber;
+        return $this->lineCount;
     }
 
-    public function setLineNumber(int $lineNumber): self
+    public function setLineCount(int $lineCount): self
     {
-        $this->lineNumber = $lineNumber;
+        $this->lineCount = $lineCount;
 
         return $this;
     }
@@ -271,6 +282,45 @@ class ProductionRequest
     public function setTreatedBy(?Utilisateur $treatedBy): static
     {
         $this->treatedBy = $treatedBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?Utilisateur
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?Utilisateur $createdBy): static
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductionHistoryRecord>
+     */
+    public function getHistory(): Collection {
+        return $this->history;
+    }
+
+    public function addHistory(ProductionHistoryRecord $history): self {
+        if (!$this->history->contains($history)) {
+            $this->history[] = $history;
+            $history->setRequest($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistory(ProductionHistoryRecord $history): self {
+        if ($this->history->removeElement($history)) {
+            // set the owning side to null (unless already changed)
+            if ($history->getRequest() === $this) {
+                $history->setRequest(null);
+            }
+        }
 
         return $this;
     }

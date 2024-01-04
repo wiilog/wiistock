@@ -51,7 +51,7 @@ export function getStatusHistory(transportId, transportType) {
 export function getTransportHistory(transportId, transportType) {
     $.get(Routing.generate(`transport_history_api`, {id: transportId, type: transportType}, true))
         .then(({template}) => {
-            const $transportHistoryContainer = $(`.transport-history-container`);
+            const $transportHistoryContainer = $(`.operation-history-container`);
             $transportHistoryContainer.html(template);
         });
 }

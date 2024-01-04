@@ -94,6 +94,9 @@ class OperationHistoryService {
     #[Required]
     public KernelInterface $kernel;
 
+    #[Required]
+    public FormatService $formatService;
+
     public function persistTransportHistory(EntityManagerInterface                               $entityManager,
                                             array|TransportRequest|TransportOrder|TransportRound $transports,
                                             string                                               $type,
@@ -176,11 +179,11 @@ class OperationHistoryService {
                     return "<a class='text-primary underlined' href='$url'>$numberPrefix{$entity->getNumber()}</a>";
                 }
                 else if($entity instanceof DateTime) {
-                    $date = FormatHelper::longDate($entity, ['time' => true, 'year' => true]);
+                    $date = $this->formatService->longDate($entity, ['time' => true, 'year' => true]);
                     return "<span class='font-weight-bold'>{$date}</span>";
                 }
                 else if($entity instanceof Statut) {
-                    $status = FormatHelper::status($entity);
+                    $status = $this->formatService->status($entity);
                     return "<span class='font-weight-bold'>{$status}</span>";
                 }
                 else if($entity instanceof Collection) {
@@ -215,6 +218,7 @@ class OperationHistoryService {
                     return match ($entity) {
                         TransportDeliveryRequest::class => "livraison",
                         TransportCollectRequest::class => "collecte",
+                        ProductionRequest::class => "production",
                     };
                 } else {
                     return $entity;
@@ -230,19 +234,34 @@ class OperationHistoryService {
 
     public function formatHistory(OperationHistory $history): string {
         $replace = [
-            "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
             "{user}" => $this->formatEntity($history->getUser()),
-            "{pack}" => $this->formatEntity($history->getPack()),
-            "{round}" => $this->formatEntity($history->getRound()),
             "{message}" => $this->formatEntity($history->getMessage()),
-            "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
-            "{reason}" => $this->formatEntity($history->getReason()),
-            "{location}" => $this->formatEntity($history->getLocation()),
             "{status}" => $this->formatEntity($history->getStatusHistory()?->getStatus()),
             "{statusDate}" => $history->getStatusDate()
                 ? $this->formatEntity($history->getStatusDate())
                 : $this->formatEntity($history->getStatusHistory()?->getDate()),
         ];
+
+        if ($history instanceof TransportHistoryRecord) {
+            $replace = [
+                ...$replace,
+                ...[
+                    "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
+                    "{pack}" => $this->formatEntity($history->getPack()),
+                    "{round}" => $this->formatEntity($history->getRound()),
+                    "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
+                    "{reason}" => $this->formatEntity($history->getReason()),
+                    "{location}" => $this->formatEntity($history->getLocation()),
+                ],
+            ];
+        } elseif ($history instanceof ProductionHistoryRecord) {
+            $replace = [
+                ...$replace,
+                ...[
+                    "{category}" => $this->formatEntity(get_class($history->getRequest())),
+                ],
+            ];
+        }
 
         return str_replace(array_keys($replace), array_values($replace), self::CONTENT[$history->getType()]);
     }

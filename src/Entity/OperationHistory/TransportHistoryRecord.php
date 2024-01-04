@@ -10,6 +10,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Utilisateur;
 use App\Repository\Transport\TransportHistoryRecordRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -44,6 +45,10 @@ class TransportHistoryRecord extends OperationHistory {
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $location = null;
+
+    public function __construct() {
+        $this->attachments = new ArrayCollection();
+    }
 
     public function getRound(): ?TransportRound {
         return $this->round;

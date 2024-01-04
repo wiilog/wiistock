@@ -121,7 +121,7 @@ class HistoryController extends AbstractController
                                         EntityManagerInterface  $entityManager): JsonResponse {
         $entity = null;
 
-        if($type === self::ORDER ) {
+        if($type === self::ORDER) {
             $entity = $entityManager->find(TransportOrder::class, $id);
         }
         else if ($type === self::REQUEST) {
