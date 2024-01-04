@@ -2,8 +2,9 @@
 
 namespace App\Service;
 
-use App\Entity\ExportScheduleRule;
-use App\Entity\ScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ExportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
+use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use DateTime;
 use RuntimeException;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -49,7 +50,13 @@ class ScheduleRuleService
         if ($rule instanceof ExportScheduleRule){
             $export = $rule->getExport();
             if ($export->isForced()) {
-                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2, 0, 0);
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
+                $executionDate = min($now, $executionDate);
+            }
+        } elseif ($rule instanceof ImportScheduleRule) {
+            $import = $rule->getImport();
+            if ($import->isForced()) {
+                $now->setTime($now->format('H'), ((int)$now->format('i')) + 2);
                 $executionDate = min($now, $executionDate);
             }
         }
@@ -144,11 +151,12 @@ class ScheduleRuleService
         $ignoreCurrentMonth = !($instant && $isDayEqual && $isTimeEqual) && ($isDayBefore || ($isDayEqual && $isTimeEqualOrBefore));
 
         $month = Stream::from($rule->getMonths())
-            ->filter(fn($month) => $ignoreCurrentMonth ? $month > $currentMonth : $month >= $currentMonth)
-            ->firstOr(function() use ($rule, &$year) {
-                return $rule->getMonths()[0];
-            });
+            ->filter(fn($month) => $ignoreCurrentMonth ? ($month > $currentMonth) : ($month >= $currentMonth))
+            ->firstOr(fn() => $rule->getMonths()[0]);
 
+        if($month < $currentMonth || $month === $currentMonth && $day < $currentDay){
+            $year++;
+        }
         return DateTime::createFromFormat("d/m/Y H:i", "$day/$month/$year {$rule->getIntervalTime()}");
     }
 

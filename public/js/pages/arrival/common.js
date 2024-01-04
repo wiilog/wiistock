@@ -8,6 +8,32 @@ $(function () {
     $(document).on(`change`, `#modalNewDispatch select[name=existingDispatch]`, function() {
         onExistingDispatchSelected($(this));
     });
+
+    $(document)
+        .on(`change`, `#modalNewArrivage [name=receivers]`, function () {
+            const $recipient = $(this);
+            const $modal = $recipient.closest('.modal');
+            const defaultLocationIfRecipient = {
+                id: $recipient.data('default-location-if-recipient-id'),
+                label: $recipient.data('default-location-if-recipient-label'),
+            };
+            if($recipient.val() && $recipient.val().length > 0) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
+            }
+        })
+        .on(`change`, '#modalNewArrivage [name=customs]', function () {
+            const $customs = $(this);
+            const $modal = $customs.closest('.modal');
+            const defaultLocationIfCustoms = {
+                id: $customs.data('default-location-if-customs-id'),
+                label: $customs.data('default-location-if-customs-label'),
+            };
+            if ($customs.is(':checked')) {
+                $modal.find('[name=dropLocation]')
+                    .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
+            }
+        });
 });
 
 function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, arrivalsDatatable = null) {
@@ -51,10 +77,10 @@ function arrivalCallback(isCreation, {success, alertConfigs = [], ...response}, 
                 loadSpinner($alertModal.find('.spinner'));
             }
 
-            const {arrivageId} = response;
+            const {arrivalId} = response;
 
             if (isCreation) {
-                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivageId}))
+                $.post(Routing.generate('post_arrival_tracking_movements', {arrival: arrivalId}))
                     .then(() => {
                         displayCurrentModal();
 
@@ -156,7 +182,7 @@ function createArrivageShowUrl(arrivageShowUrl, printPacks, printArrivage) {
     return `${arrivageShowUrl}?printPacks=${printPacksNumber}&printArrivage=${printArrivageNumber}`;
 }
 
-function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) {
+function printArrival({arrivalId, printPacks, printArrivage, packs, printAll}) {
     let templates;
     try {
         templates = JSON.parse($('#tagTemplates').val());
@@ -164,7 +190,7 @@ function printArrival({arrivageId, printPacks, printArrivage, packs, printAll}) 
         templates = [];
     }
     let params = {
-        arrivage: arrivageId,
+        arrivage: arrivalId,
         printPacks: printPacks ? 1 : 0,
         printArrivage: printArrivage ? 1 : 0,
         packs: packs || [],

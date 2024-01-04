@@ -3,13 +3,17 @@
 namespace App\Service;
 
 use App\Entity\Action;
+use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Dispatch;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Language;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\Setting;
+use App\Entity\Statut;
 use App\Entity\Translation;
 use App\Entity\Utilisateur;
 use App\Repository\SettingRepository;
@@ -18,7 +22,6 @@ use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 class MobileApiService {
 
@@ -27,6 +30,18 @@ class MobileApiService {
 
     #[Required]
     public UserService $userService;
+
+    #[Required]
+    public MouvementStockService $stockMovementService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    #[Required]
+    public AlertService $alertService;
+
+    #[Required]
+    public RefArticleDataService $refArticleDataService;
 
     const MOBILE_TRANSLATIONS = [
         "Acheminements",
@@ -203,6 +218,8 @@ class MobileApiService {
             "forceDispatchSignature" => $globalsParameters->getOneParamByLabel(Setting::FORCE_GROUPED_SIGNATURE),
             "deliveryRequestDropOnFreeLocation" => $globalsParameters->getOneParamByLabel(Setting::ALLOWED_DROP_ON_FREE_LOCATION) == 1,
             "displayReferenceCodeAndScan" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_REFERENCE_CODE_AND_SCANNABLE) == 1,
+            "articleLocationDropWithReferenceStorageRule" => $globalsParameters->getOneParamByLabel(Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES) == 1,
+            "displayWarningWrongLocation" => $globalsParameters->getOneParamByLabel(Setting::DISPLAY_WARNING_WRONG_LOCATION) == 1,
         ])
             ->toArray();
     }
@@ -219,4 +236,82 @@ class MobileApiService {
        return Semver::satisfies($mobileVersion, $requiredVersion);
     }
 
+    /**
+     * @param Article[] $articles
+     * @param string[] $tags
+     */
+    public function treatInventoryArticles(EntityManagerInterface $entityManager,
+                                           array                  $articles,
+                                           array                  $tags,
+                                           Utilisateur            $validator,
+                                           DateTime               $date): void
+    {
+
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+        $activeStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+        $inactiveStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::ARTICLE, Article::STATUT_INACTIF);
+
+        $referenceArticlesToUpdate = [];
+
+        foreach ($articles as $article) {
+            if (in_array($article->getRFIDtag(), $tags)) {
+                $presentArticle = $article;
+                if ($presentArticle->getStatut()->getCode() !== Article::STATUT_ACTIF) {
+                    $location = $presentArticle->getEmplacement();
+                    $correctionMovement = $this->stockMovementService->createMouvementStock($validator, $location, $presentArticle->getQuantite(), $presentArticle, MouvementStock::TYPE_INVENTAIRE_ENTREE, [
+                        'date' => $date,
+                        'locationTo' => $location,
+                    ]);
+
+                    $entityManager->persist($correctionMovement);
+                }
+                $presentArticle
+                    ->setFirstUnavailableDate(null)
+                    ->setLastAvailableDate($date)
+                    ->setStatut($activeStatus)
+                    ->setDateLastInventory($date);
+            }
+            else {
+                $missingArticle = $article;
+                if ($missingArticle->getStatut()->getCode() !== Article::STATUT_INACTIF) {
+                    $location = $missingArticle->getEmplacement();
+                    $correctionMovement = $this->stockMovementService->createMouvementStock($validator, $location, $missingArticle->getQuantite(), $missingArticle, MouvementStock::TYPE_INVENTAIRE_SORTIE, [
+                        'date' => $date,
+                        'locationTo' => $location,
+                    ]);
+
+                    $entityManager->persist($correctionMovement);
+                    $missingArticle
+                        ->setFirstUnavailableDate($date);
+                }
+                $missingArticle
+                    ->setStatut($inactiveStatus)
+                    ->setDateLastInventory($date);
+            }
+
+            $reference = $article->getReferenceArticle();
+            $referenceArticleId = $reference?->getId();
+            if ($referenceArticleId
+                && !isset($referenceArticlesToUpdate[$referenceArticleId])) {
+                $referenceArticlesToUpdate[$referenceArticleId] = $reference;
+            }
+        }
+
+        $entityManager->flush();
+
+        $this->refArticleDataService->updateRefArticleQuantities($entityManager, $referenceArticlesToUpdate);
+
+        $expiryDelay = $settingRepository->getOneParamByLabel(Setting::STOCK_EXPIRATION_DELAY) ?: 0;
+        foreach ($referenceArticlesToUpdate as $reference) {
+            $this->refArticleDataService->treatAlert($entityManager, $reference);
+        }
+
+        foreach ($articles as $article) {
+            $this->alertService->treatArticleAlert($entityManager, $article, $expiryDelay);
+        }
+
+        $entityManager->flush();
+    }
 }

@@ -8,30 +8,31 @@ use App\Entity\Article;
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
-use App\Entity\FieldsParam;
-use App\Entity\FreeField;
+use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
-use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Fields\SubLineFixedField;
+use App\Entity\FreeField;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Pack;
-use App\Entity\Project;
-use App\Entity\Setting;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Project;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
-use App\Entity\SubLineFieldsParam;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
+use App\Helper\FormatHelper;
 use App\Service\ArticleDataService;
 use App\Service\CSVExportService;
+use App\Service\DeliveryRequestService;
 use App\Service\FormatService;
 use App\Service\FormService;
-use App\Service\RefArticleDataService;
-use App\Service\DeliveryRequestService;
 use App\Service\FreeFieldService;
+use App\Service\RefArticleDataService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
@@ -39,14 +40,12 @@ use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
-use App\Helper\FormatHelper;
 use WiiCommon\Helper\Stream;
-use WiiCommon\Helper\StringHelper;
 
 
 #[Route('/demande')]
@@ -59,12 +58,7 @@ class DemandeController extends AbstractController
                                  FreeFieldService       $champLibreService,
                                  EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
-            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate(
-                $entityManager,
-                $data,
-                false,
-                $champLibreService
-            );
+            $responseAfterQuantitiesCheck = $demandeLivraisonService->checkDLStockAndValidate($entityManager, $data);
             return new JsonResponse($responseAfterQuantitiesCheck);
         }
         throw new BadRequestHttpException();
@@ -80,7 +74,7 @@ class DemandeController extends AbstractController
             $champLibreRepository = $entityManager->getRepository(FreeField::class);
             $demandeRepository = $entityManager->getRepository(Demande::class);
             $settingRepository = $entityManager->getRepository(Setting::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
             $demande = $demandeRepository->find($data['id']);
 
@@ -106,7 +100,7 @@ class DemandeController extends AbstractController
                     'value' => $demande->getReceiver()?->getId(),
                     'selected' => true,
                 ] : [],
-                'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+                'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
                 'types' => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]),
                 'typeChampsLibres' => $typeChampLibre,
                 'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
@@ -203,11 +197,10 @@ class DemandeController extends AbstractController
     public function new(Request                $request,
                         EntityManagerInterface $entityManager,
                         DeliveryRequestService $demandeLivraisonService,
-                        FreeFieldService       $champLibreService,
                         TranslationService     $translation): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $demande = $demandeLivraisonService->newDemande($data, $entityManager, $champLibreService);
+            $demande = $demandeLivraisonService->newDemande($data, $entityManager);
 
             if ($demande instanceof Demande) {
                 $entityManager->persist($demande);
@@ -245,19 +238,19 @@ class DemandeController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $projectRepository = $entityManager->getRepository(Project::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
@@ -281,7 +274,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_DEMANDE),
+            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_DEMANDE),
             'types' => $types,
             'fields' => $fields,
             'filterStatus' => $filter,
@@ -339,14 +332,14 @@ class DemandeController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("voir/{id}", name: "demande_show", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[Route("/voir/{id}", name: "demande_show", options: ["expose" => true], methods: ["GET", "POST"])]
     #[HasPermission([Menu::DEM, Action::DISPLAY_DEM_LIVR])]
     public function show(EntityManagerInterface $entityManager,
                          DeliveryRequestService $deliveryRequestService,
                          Demande                $deliveryRequest,
                          EntityManagerInterface $manager): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
-        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFieldsParam::class);
+        $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $currentUser = $this->getUser();
 
         $status = $deliveryRequest->getStatut();
@@ -357,11 +350,12 @@ class DemandeController extends AbstractController
             'statuts' => $statutRepository->findByCategorieName(Demande::CATEGORIE),
             'modifiable' => $status?->getCode() === Demande::STATUT_BROUILLON,
             'finished' => $status?->getCode() === Demande::STATUT_A_TRAITER,
-            'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFieldsParam::ENTITY_CODE_DEMANDE_REF_ARTICLE),
+            'fieldsParam' => $subLineFieldsParamRepository->getByEntity(SubLineFixedField::ENTITY_CODE_DEMANDE_REF_ARTICLE),
             "initial_visible_columns" => json_encode($deliveryRequestService->getVisibleColumnsTableArticleConfig($entityManager, $deliveryRequest, true)),
             'showDetails' => $deliveryRequestService->createHeaderDetailsConfig($deliveryRequest),
             'showTargetLocationPicking' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPLAY_PICKING_LOCATION),
             'managePreparationWithPlanning' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_PREPARATIONS_WITH_PLANNING),
+            'manageDeliveriesWithoutStockQuantity' => $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::MANAGE_DELIVERIES_WITHOUT_STOCK_QUANTITY),
             'fields' => $fields,
             'editatableLineForm' => $deliveryRequestService->editatableLineForm($manager, $deliveryRequest, $currentUser)
         ]);
@@ -839,8 +833,8 @@ class DemandeController extends AbstractController
                                     Demande                $delivery,
                                     Pack                   $logisticUnit,
                                     TranslationService     $translation): JsonResponse {
-        $fieldsParamRepository = $manager->getRepository(FieldsParam::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
+        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $projectRequired = $projectField->isDisplayedCreate() && $projectField->isRequiredCreate()
             || $projectField->isDisplayedEdit() && $projectField->isRequiredEdit();
@@ -897,30 +891,29 @@ class DemandeController extends AbstractController
     #[Route("/redirect-before-index", name: 'redirect_before_index', options: ["expose" => true], methods: "GET")]
     public function redirectBeforeIndex(EntityManagerInterface $entityManager,
                                         SettingsService        $settingsService,
-                                        FreeFieldService       $champLibreService,
                                         DeliveryRequestService $deliveryRequestService,
                                         TranslationService     $translation){
         $typeRepository = $entityManager->getRepository(Type::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
-        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FieldsParam::ENTITY_CODE_DEMANDE, FieldsParam::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
+        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];
@@ -932,7 +925,7 @@ class DemandeController extends AbstractController
             $data['demandeur'] = $this->getUser();
             $data['demandeReceiver'] = $recipient->getId();
             $data['type'] = $defaultType;
-            $demande = $deliveryRequestService->newDemande($data, $entityManager, $champLibreService);
+            $demande = $deliveryRequestService->newDemande($data, $entityManager);
 
             if ($demande instanceof Demande) {
                 $entityManager->persist($demande);

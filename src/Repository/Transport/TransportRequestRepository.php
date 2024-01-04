@@ -55,6 +55,7 @@ class TransportRequestRepository extends EntityRepository {
             switch ($filter['field']) {
                 case FiltreSup::FIELD_STATUT:
                     $value = Stream::explode(",", $filter['value'])
+                        ->filter()
                         ->map(fn($line) => explode(":", $line))
                         ->toArray();
 

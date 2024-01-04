@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\TruckArrivalLine;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -110,17 +111,21 @@ class TruckArrivalLineRepository extends EntityRepository
         ];
     }
 
-    public function iterateAll(){
+    public function iterateAll(): array {
         return $this->createQueryBuilder('truck_arrival_line')
-            ->select('truck_arrival_line.number')
+            ->select('truck_arrival_line.number AS number')
+            ->addSelect('truck_arrival_line.id AS id')
+            ->addSelect('join_reserve_type.disableTrackingNumber AS disableTrackingNumber')
+            ->leftJoin('truck_arrival_line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserve_type')
             ->getQuery()
             ->getArrayResult();
     }
 
     public function getForSelect(?string $term, $option = []): array {
-        $qb = $this
-            ->createQueryBuilder('truck_arrival_line')
-            ->select("truck_arrival_line.id AS id")
+        $qb = $this->createQueryBuilder('truck_arrival_line');
+
+        $qb ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS text")
             ->addSelect("truck_arrival.number AS truck_arrival_number")
             ->addSelect("truck_arrival.id AS truck_arrival_id")
@@ -129,9 +134,15 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addSelect("driver.nom AS driver_last_name")
             ->addSelect("MAX(arrivals.id) AS arrivals_id")
             ->andWhere("truck_arrival_line.number LIKE :term")
+            ->andWhere($qb->expr()->orX(
+                "reserveType.disableTrackingNumber IS NULL",
+                "reserveType.disableTrackingNumber = 0"
+            ))
             ->join('truck_arrival_line.truckArrival', 'truck_arrival')
             ->leftJoin('truck_arrival.driver', 'driver')
             ->leftJoin('truck_arrival_line.arrivals', 'arrivals')
+            ->leftJoin('truck_arrival_line.reserve', 'reserve')
+            ->leftJoin('reserve.reserveType', 'reserveType')
             ->setParameter('term', "%$term%");
 
 
@@ -160,27 +171,35 @@ class TruckArrivalLineRepository extends EntityRepository
             ->addGroupBy('driver.prenom')
             ->addGroupBy('driver.nom');
 
-        return $qb->getQuery()->getArrayResult();
+        return $qb
+            ->getQuery()
+            ->getArrayResult();
     }
 
     public function getForReserve(?int $truckArrivalId): array {
-        $qb = $this
-            ->createQueryBuilder('truck_arrival_line')
+        $qb = $this->createQueryBuilder('truck_arrival_line')
             ->select("truck_arrival_line.id AS id")
             ->addSelect("truck_arrival_line.number AS number")
-            ->andWhere("truck_arrival.id = :truckArrivalId")
             ->andWhere("qualityReserve IS NULL")
             ->leftJoin("truck_arrival_line.reserve", 'qualityReserve')
-            ->leftJoin('truck_arrival_line.truckArrival', 'truck_arrival')
+            ->join('truck_arrival_line.truckArrival', 'truck_arrival', Join::WITH, "truck_arrival.id = :truckArrivalId")
             ->setParameter('truckArrivalId', "$truckArrivalId");
 
         return $qb->getQuery()->getArrayResult();
     }
 
     public function getUnassociatedLines() {
-        return $this->createQueryBuilder('line')
+        $qb = $this->createQueryBuilder('line');
+
+        return $qb
             ->andWhere('arrivals.id IS NULL')
+            ->andWhere($qb->expr()->orX(
+                "join_reserveType.disableTrackingNumber IS NULL",
+                "join_reserveType.disableTrackingNumber = 0"
+            ))
             ->leftJoin('line.arrivals', 'arrivals')
+            ->leftJoin('line.reserve', 'join_reserve')
+            ->leftJoin('join_reserve.reserveType', 'join_reserveType')
             ->getQuery()
             ->getResult();
     }

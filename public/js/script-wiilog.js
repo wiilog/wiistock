@@ -850,6 +850,8 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'deliverers':
                 case 'drivers':
                 case 'logisticUnits':
+                case 'locationWithGroups':
+                case 'unloadingLocation':
                     let valuesElement = element.value.split(',');
                     let $select = $(`.filter-select2[name="${element.field}"]`);
                     $select.find('option').prop('selected', false);
@@ -889,6 +891,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                 case 'customs':
                 case 'frozen':
                 case 'carrierTrackingNumberNotAssigned':
+                case 'useTruckArrivals':
                     if (element.value === '1') {
                         $('#' + element.field + '-filter').attr('checked', 'checked');
                     }
@@ -1347,4 +1350,30 @@ function registerCopyToClipboard(message = undefined) {
 function openModal(modal) {
     let $modal = modal instanceof jQuery ? modal : $(modal);
     $modal.modal(`show`);
+}
+
+function onSelectAll() {
+    const $select = $(this).closest(`.input-group`).find(`select`);
+
+    $select.find(`option:not([disabled])`).each(function () {
+        $(this).prop(`selected`, true);
+    });
+
+    $select.trigger(`change`);
+}
+
+function getUserFiltersByPage(page,
+                              options = {preventPrefillFilters: false},
+                              callback = undefined) {
+    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
+        .json()
+        .then((data) => {
+            if (!options.preventPrefillFilters) {
+                displayFiltersSup(data);
+            }
+
+            if (callback) {
+                callback();
+            }
+        });
 }

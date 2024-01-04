@@ -8,6 +8,7 @@
         callback: 'loadPage',
         locationsFilter: locationsFilter,
         disabled: fromDashboard ? 'disabled',
+        useTruckArrivalsFromDashboard,
     } %}
 {% endblock %}
 {% block page_content %}
@@ -51,6 +52,7 @@
         </div>
     </div>
     <input type="hidden" name="fromDashboard" value="{{ fromDashboard }}">
+    <input type="hidden" name="useTruckArrivalsFromDashboard" value="{{ useTruckArrivalsFromDashboard }}">
 {% endblock %}
 
 {% block javascripts %}

@@ -4,32 +4,31 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\DeliveryStationLine;
-use App\Entity\Dispatch;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\DeliveryStationLine;
+use App\Entity\Dispatch;
 use App\Entity\Emplacement;
+use App\Entity\Handling;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Entity\Livraison;
-use App\Entity\Handling;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
-use App\Entity\PurchaseRequestScheduleRule;
 use App\Entity\Reception;
+use App\Entity\ScheduledTask\ScheduleRule\PurchaseRequestScheduleRule;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
-
 use App\Helper\FormatHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-use Symfony\Bundle\SecurityBundle\Security;
 
 class UserService
 {
@@ -220,18 +219,27 @@ class UserService
         return [
             'demoMode' => $this->hasRightFunction(Menu::NOMADE, Action::DEMO_MODE, $user),
             'notifications' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_NOTIFICATIONS, $user),
-            'stock' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_STOCK, $user),
-            'tracking' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRACA, $user),
             'track' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_TRACK, $user),
             'group' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_GROUP, $user),
             'ungroup' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_UNGROUP, $user),
             'truckArrival' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRUCK_ARRIVALS, $user),
-            'demande' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HAND, $user),
             'inventoryManager' => $this->hasRightFunction(Menu::STOCK, Action::INVENTORY_MANAGER, $user),
             'groupedSignature' => $this->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE, $user),
             'emptyRound' => $this->hasRightFunction(Menu::TRACA, Action::EMPTY_ROUND, $user),
             'createArticleFromNomade' => $this->hasRightFunction(Menu::NOMADE, Action::CREATE_ARTICLE_FROM_NOMADE, $user),
             'dispatchOfflineMode' => $this->hasRightFunction(Menu::NOMADE, Action::DISPATCH_REQUEST_OFFLINE_MODE, $user),
+            'movement' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MOVEMENTS, $user),
+            'dispatch' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DISPATCHS, $user),
+            'preparation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_PREPARATIONS, $user),
+            'deliveryOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_ORDER, $user),
+            'manualDelivery' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUAL_DELIVERY, $user),
+            'collectOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_COLLECT_ORDER, $user),
+            'transferOrder' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_TRANSFER_ORDER, $user),
+            'manualTransfer' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_MANUAL_TRANSFER, $user),
+            'inventory' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_INVENTORY, $user),
+            'articleUlAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_ARTICLES_UL_ASSOCIATION, $user),
+            'handling' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HANDLING, $user),
+            'deliveryRequest' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_REQUESTS, $user),
         ];
     }
 

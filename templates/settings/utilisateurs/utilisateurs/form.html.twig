@@ -105,7 +105,7 @@
                     <div class="col-12">
                         <input type="password"
                                title="Mot de passe"
-                               class="form-control data optional-password w-100"
+                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
                                name="password"
                                autocomplete="new-password">
                         <div class="password-error-msg"></div>
@@ -116,7 +116,7 @@
                     <div class="col-12">
                         <input type="password"
                                title="Confirmer le mot de passe"
-                               class="form-control data optional-password w-100"
+                               class="form-control data optional-password w-100 {{ not user.id ? 'needed' }}"
                                name="password2">
                     </div>
                 </div>
@@ -255,6 +255,22 @@
                         </select>
                     </div>
                 </div>
+{#
+TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+
+                <div class="form-group row">
+                    <div class="col-12">
+                        {{ form.select("dispatchBusinessUnit", "Business unit (acheminements)", false, {
+                            type: null,
+                            items: dispatchBusinessUnits|map((businessUnit) => {
+                                label: businessUnit,
+                                value: businessUnit,
+                                selected: user.id and user.dispatchBusinessUnit == businessUnit
+                            }),
+                        }) }}
+                    </div>
+                </div>
+#}
                 <div class="form-group">
                     {{ form.checkbox('deliverer', 'Livreur', false, user.deliverer, {
                         labelClass: 'wii-field-text'

@@ -7,25 +7,22 @@ use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
-use App\Entity\Import;
 use App\Entity\Livraison;
 use App\Entity\MouvementStock;
-
 use App\Entity\OrdreCollecte;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Reception;
+use App\Entity\ReferenceArticle;
+use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
-use App\Entity\ReferenceArticle;
 use App\Entity\TransferOrder;
 use App\Entity\Utilisateur;
-use App\Service\FormatService;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
-
-use Doctrine\ORM\EntityManagerInterface;
 
 class MouvementStockService
 {
@@ -123,13 +120,17 @@ class MouvementStockService
             ];
         }
         else if ($mouvement->getPreparationOrder()) {
-            $from = 'préparation';
+            $from = $mouvement->getPreparationOrder()->getDemande()->isFastDelivery()
+                ? 'préparation de livraison rapide'
+                : 'préparation';
             $path = 'preparation_show';
             $pathParams = [
                 'id' => $mouvement->getPreparationOrder()->getId()
             ];
         } else if ($mouvement->getLivraisonOrder()) {
-            $from = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
+            $from = $mouvement->getLivraisonOrder()->getDemande()->isFastDelivery()
+                ? "ordre de livraison rapide"
+                : mb_strtolower($this->translation->translate("Ordre", "Livraison", "Ordre de livraison", false));
             $path = 'livraison_show';
             $pathParams = [
                 'id' => $mouvement->getLivraisonOrder()->getId()

@@ -14,12 +14,9 @@ use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use App\Service\DispatchService;
 use App\Service\ExceptionLoggerService;
-use App\Service\PackService;
-use App\Service\RefArticleDataService;
 use App\Service\StatusHistoryService;
 use App\Service\UniqueNumberService;
 use DateTime;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -28,13 +25,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use WiiCommon\Helper\Stream;
 
+#[Rest\Route("/api")]
 class DispatchController extends AbstractApiController
 {
-    /**
-     * @Rest\Post("/api/new-offline-dispatches", name="api_new_offline_dispatches", methods="POST", condition="request.isXmlHttpRequest()")
-     * @Wii\RestAuthenticated()
-     * @Wii\RestVersionChecked()
-     */
+
+    #[Rest\Post("/new-offline-dispatches", condition: "request.isXmlHttpRequest()")]
+    #[Wii\RestAuthenticated]
+    #[Wii\RestVersionChecked]
     public function createNewOfflineDispatchs(Request                $request,
                                               EntityManagerInterface $entityManager,
                                               DispatchService        $dispatchService,
@@ -87,9 +84,9 @@ class DispatchController extends AbstractApiController
                 $dispatchStatus = $dispatchArray['statusId'] ? $statusRepository->find($dispatchArray['statusId']) : null;
                 $draftStatuses = !$dispatchStatus || !$dispatchStatus->isDraft() ? $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $type, [Statut::DRAFT]) : [$dispatchStatus];
                 $draftStatus = !empty($draftStatuses) ? $draftStatuses[0] : $dispatchStatus;
-                $locationFrom = $locationRepository->find($dispatchArray['locationFromId']);
-                $locationTo = $locationRepository->find($dispatchArray['locationToId']);
-                $requester = $userRepository->findOneBy(['username' => $dispatchArray['requester']]);
+                $locationFrom = $dispatchArray['locationFromId'] ? $locationRepository->find($dispatchArray['locationFromId']) : null;
+                $locationTo = $dispatchArray['locationToId'] ? $locationRepository->find($dispatchArray['locationToId']) : null;
+                $requester = $dispatchArray['requester'] ? $userRepository->findOneBy(['username' => $dispatchArray['requester']]) : null;
                 $wasDraft = true;
 
                 $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
@@ -237,7 +234,7 @@ class DispatchController extends AbstractApiController
 
     public function closeAndReopenEntityManager(EntityManagerInterface $entityManager){
         $entityManager->close();
-        $entityManager = EntityManager::Create($entityManager->getConnection(), $entityManager->getConfiguration());
+        $entityManager = new EntityManager($entityManager->getConnection(), $entityManager->getConfiguration());
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);

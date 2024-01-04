@@ -2,6 +2,8 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FreeField;
 use App\Entity\Setting;
 use App\Service\SpecificService;
@@ -11,6 +13,7 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
 class SettingFixtures extends Fixture implements FixtureGroupInterface {
 
@@ -29,6 +32,7 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         $output = new ConsoleOutput();
 
         $parametreGlobalRepository = $manager->getRepository(Setting::class);
+        $fixedFieldByTypeRepository = $manager->getRepository(FixedFieldByType::class);
 
         $globalParameterLabels = [
             Setting::MAX_SESSION_TIME => [
@@ -95,6 +99,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL => [
                 'default' => false,
             ],
+            setting::INCLUDE_TYPE_LOGO_ON_TAG => [
+                'default' => false,
+            ],
             Setting::INCLUDE_EMERGENCY_IN_LABEL => [
                 'default' => false,
             ],
@@ -129,9 +136,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                 'default' => false,
             ],
             Setting::DISPATCH_WAYBILL_CONTACT_PHONE_OR_MAIL => [
-                'default' => null,
-            ],
-            Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS => [
                 'default' => null,
             ],
             Setting::DISPATCH_WAYBILL_CONTACT_NAME => [
@@ -171,6 +175,9 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT => [
                 'default' => true,
                 SpecificService::CLIENT_SAFRAN_ED => false
+            ],
+            Setting::DISPLAY_WARNING_WRONG_LOCATION => [
+                'default' => false,
             ],
             Setting::USES_UTF8 => [
                 'default' => true,
@@ -222,8 +229,12 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             Setting::MVT_DEPOSE_DESTINATION => [],
             Setting::DROP_OFF_LOCATION_IF_CUSTOMS => [],
             Setting::DROP_OFF_LOCATION_IF_EMERGENCY => [],
+            Setting::DROP_OFF_LOCATION_IF_RECIPIENT => [],
             Setting::ARRIVAL_EMERGENCY_TRIGGERING_FIELDS => [
                 "default" => json_encode(["provider", "commande"]),
+            ],
+            Setting::CONFIRM_EMERGENCY_ON_ARRIVAL => [
+                'default' => false,
             ],
             Setting::LABEL_LOGO => [],
             Setting::EMERGENCY_ICON => [],
@@ -353,6 +364,38 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
             ],
             Setting::DELIVERY_STATION_INFORMATION_MESSAGE => [
                 'default' => 'Si vous rencontrez un problème ou une difficulté, merci de contacter GT au 8 45 65.',
+            ],
+            Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION => [
+                'default' => false,
+            ],
+            Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES => [
+                'default' => null,
+            ],
+            Setting::AUTO_UNGROUP => [
+                'default' => false,
+            ],
+            Setting::AUTO_UNGROUP_TYPES => [
+                'default' => null,
+            ],
+            Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES => [
+                'default' => null,
+            ],
+            Setting::DISPATCH_FIXED_FIEDS_ON_FILTERS => [
+                'default' => join(',', [
+                    FixedFieldStandard::FIELD_CODE_CARRIER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_CARRIER_TRACKING_NUMBER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_DEADLINE_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_EMERGENCY,
+                    FixedFieldStandard::FIELD_CODE_COMMAND_NUMBER_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_COMMENT_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_ATTACHMENTS_DISPATCH,
+                    FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT,
+                    FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
+                    FixedFieldStandard::FIELD_CODE_LOCATION_PICK,
+                    FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+                    FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
+                ]),
             ],
         ];
 

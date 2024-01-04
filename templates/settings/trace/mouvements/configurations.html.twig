@@ -5,6 +5,11 @@
         <div class="col-md-6 col-12 d-flex align-items-center my-1">
             {{ form.checkbox(setting('CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT'), 'Vider et rester sur la modale de création de mouvement', false, setting_value('CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT')) }}
         </div>
+        <div class="col-md-6 col-12 d-flex align-items-center my-1">
+            {{ form.checkbox(setting('DISPLAY_WARNING_WRONG_LOCATION'), 'Afficher le détrompeur sur les mouvements de prise si UL non disponible sur l\'emplacement', false, setting_value('DISPLAY_WARNING_WRONG_LOCATION'), {
+                tooltip: "L'activation de ce paramètre impactera l'application web et mobile.",
+            }) }}
+        </div>
     </div>
 </div>
 <div class="wii-section-title">Mails de relance</div>

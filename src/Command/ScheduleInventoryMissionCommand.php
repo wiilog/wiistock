@@ -1,5 +1,6 @@
 <?php
-
+// At every minute
+// * * * * *
 
 namespace App\Command;
 
@@ -54,7 +55,7 @@ class ScheduleInventoryMissionCommand extends Command
     {
         return $this->em->isOpen()
             ? $this->em
-            : EntityManager::create($this->em->getConnection(), $this->em->getConfiguration());
+            : new EntityManager($this->em->getConnection(), $this->em->getConfiguration());
     }
 
 }

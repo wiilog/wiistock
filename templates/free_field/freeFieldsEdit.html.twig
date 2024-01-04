@@ -3,6 +3,7 @@
 {% set disabledNeeded = disabledNeeded is defined ? disabledNeeded : false %}
 {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
 {% set containerClasses = containerClasses is defined and containerClasses ? containerClasses : 'row' %}
+{% set labelSmallText = labelSmallText is defined and labelSmallText ? labelSmallText : '' %}
 
 {% if freeFields|length > 0 %}
     <div class="{{ containerClasses }}">
@@ -35,7 +36,10 @@
                                     additionalAttributes: [{
                                         name: 'data-title',
                                         value: label
-                                    }]
+                                    }],
+                                    labelOptions: {
+                                        smallText: labelSmallText
+                                    }
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_NUMBER') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
@@ -45,7 +49,10 @@
                                         value: entityValue
                                     }, {
                                         name: 'data-negative'
-                                    }]
+                                    }],
+                                    labelOptions: {
+                                        smallText: labelSmallText
+                                    }
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST') %}
                                 {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
@@ -62,6 +69,9 @@
                                         name: 'data-init',
                                         value: selectedValue
                                     }],
+                                    labelOptions: {
+                                        smallText: labelSmallText
+                                    }
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_LIST_MULTIPLE') %}
                                 {% set elements = freeField.elementsIn(language_service.getCurrentUserLanguageSlug, language_service.defaultSlug)
@@ -77,20 +87,29 @@
                                     inputClass: 'list-multiple w-100',
                                     additionalAttributes: [{
                                         name: 'data-simple'
-                                    }]
+                                    }],
+                                    labelOptions: {
+                                        smallText: labelSmallText
+                                    }
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
+                                    inputClass: 'needs-default',
                                     additionalAttributes: [{
                                         name: 'data-init',
                                         value: entityValue
-                                    }]
+                                    }],
+                                    labelOptions: {
+                                        smallText: labelSmallText
+                                    }
                                 }) }}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATETIME') %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
-                                        {{ form.label(displayedLabel, needed, false, {}) }}
+                                        {{ form.label(displayedLabel, needed, false, {
+                                            smallText: labelSmallText
+                                        }) }}
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
@@ -106,14 +125,19 @@
                                         additionalAttributes: [{
                                             name: 'data-init',
                                             value: value
-                                        }]
+                                        }],
+                                        labelOptions: {
+                                            smallText: labelSmallText
+                                        }
                                     }) }}
                                 {% endif %}
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_DATE') %}
                                 {% if needsDateFormatting is defined and needsDateFormatting %}
                                     {% set value = entityValue ? entityValue : '' %}
                                     <label class="w-100">
-                                        {{ form.label(displayedLabel, needed, false, {}) }}
+                                        {{ form.label(displayedLabel, needed, false, {
+                                            smallText: labelSmallText
+                                        }) }}
                                         <input type="text"
                                                value="{{ value }}"
                                                data-init="{{ value }}"
@@ -135,7 +159,10 @@
                                         additionalAttributes: [{
                                             name: 'data-init',
                                             value: entityValue
-                                        }]
+                                        }],
+                                        labelOptions: {
+                                            smallText: labelSmallText
+                                        }
                                     }) }}
                                 {% endif %}
                             {% endif %}

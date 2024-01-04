@@ -50,6 +50,7 @@ const ROUTES = {
     supplierArticles: 'ajax_select_supplier_articles',
     driver: 'ajax_select_driver',
     truckArrivalLine: 'ajax_select_truck_arrival_line',
+    locationWithGroups: `ajax_select_location_with_group`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -68,221 +69,228 @@ const INSTANT_SELECT_TYPES = {
 }
 
 export default class Select2 {
+    static proceed($element, direct = false) {
+        // setTimeout exécute le callback à la fin de la pile d'exécution Javascript. Nous avons besoin que le select2 soit initialisé avant dans certains cas.
+        if(!direct) {
+            setTimeout(() => this.init($element));
+        } else {
+            this.init($element);
+        }
+    }
+
     static init($element) {
-        setTimeout(() => {
-            const type = $element.data(`s2`);
+        const type = $element.data(`s2`);
 
-            let search = null;
+        let search = null;
 
-            const dropdownParent = $element.is(`[data-parent]`) ? $($element.data(`parent`)) : $element.parent();
-            if ($element.is(`[data-simple]`)) {
-                $element.select2({dropdownParent})
-            } else {
-                if (!$element.find(`option[selected]`).exists()
-                    && !type
-                    && !$element.is(`[data-no-empty-option]`)
-                    && !$element.is(`[data-editable]`)
-                    && !$element.is(`[multiple]`)) {
-                    $element.prepend(`<option selected>`);
+        const dropdownParent = $element.is(`[data-parent]`) ? $($element.data(`parent`)) : $element.parent();
+        if ($element.is(`[data-simple]`)) {
+            $element.select2({dropdownParent})
+        } else {
+            if (!$element.find(`option[selected]`).exists()
+                && !type
+                && !$element.is(`[data-no-empty-option]`)
+                && !$element.is(`[data-editable]`)
+                && !$element.is(`[multiple]`)) {
+                $element.prepend(`<option selected>`);
+            }
+
+            $element
+                .attr(`data-s2-initialized`, type || '')
+                .data(`s2-initialized`, type || '');
+            $element
+                .removeAttr(`data-s2`)
+                .removeData(`s2`);
+
+            const config = {};
+            if (type) {
+                if (!ROUTES[type]) {
+                    console.error(`No select route found for ${type}`);
                 }
+                config.ajax = {
+                    url: Routing.generate(ROUTES[type]),
+                    dataType: `json`,
+                    data: params => Select2.includeParams($element, params),
+                    processResults: (data) => {
+                        const $search = $element.parent().find(`.select2-search__field`);
+                        if (data.error) {
+                            $search.addClass(`is-invalid`);
 
-                $element
-                    .attr(`data-s2-initialized`, type || '')
-                    .data(`s2-initialized`, type || '');
-                $element
-                    .removeAttr(`data-s2`)
-                    .removeData(`s2`);
-
-                const config = {};
-                if (type) {
-                    if (!ROUTES[type]) {
-                        console.error(`No select route found for ${type}`);
-                    }
-                    config.ajax = {
-                        url: Routing.generate(ROUTES[type]),
-                        dataType: `json`,
-                        data: params => Select2.includeParams($element, params),
-                        processResults: (data) => {
-                            const $search = $element.parent().find(`.select2-search__field`);
-                            if (data.error) {
-                                $search.addClass(`is-invalid`);
-
-                                return {
-                                    results: [{
-                                        id: `error`,
-                                        html: `<span class="text-danger">${data.error}</span>`,
-                                        disabled: true,
-                                    }],
-                                };
-                            } else {
-                                $search.removeClass(`is-invalid`);
-
-                                if(data.availableResults) {
-                                    $element.attr("data-length", data.availableResults);
-                                }
-
-                                if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
-                                    setTimeout(() => {
-                                        if (data.results[0].text === $search.val()) {
-                                            $element.parent().find('.select2-results__option').mouseup();
-                                        }
-                                    }, 10);
-                                }
-                                return data;
-                            }
-                        }
-                    };
-
-                    if ($element.is(`[data-min-length]`) || !INSTANT_SELECT_TYPES[type]) {
-                        const minLength = $element.data('min-length');
-                        config.minimumInputLength = minLength !== undefined ? minLength : 1;
-                    }
-                }
-                const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
-                const editable = $element.is('[data-editable]');
-
-                if($element.is(`[data-keep-open]`)){
-                    config.closeOnSelect = false;
-                }
-
-                if ($element.is(`[data-max-selection-length]`)) {
-                    config.maximumSelectionLength = Number($element.data('max-selection-length'));
-                }
-
-                $element.select2({
-                    placeholder: $element.data(`placeholder`) || '',
-                    tags: editable,
-                    allowClear,
-                    dropdownParent,
-                    language: {
-                        inputTooShort: () => Translation.of(`Général`, '', 'Zone filtre', 'Veuillez entrer au moins {1} caractère{2}.', {1: '1', 2: ''}, false),
-                        noResults: () => Translation.of(`Général`, '', 'Zone filtre', 'Aucun résultat.', false),
-                        searching: () => Translation.of(`Général`, '', 'Zone filtre', 'Recherche en cours...', false),
-                        maximumSelected: ({maximum}) => `Vous ne pouvez sélectionner que ${maximum} éléments.`,
-                    },
-                    escapeMarkup: markup => markup,
-                    templateResult: (data, container) => {
-                        if (data.highlighted) {
-                            $(container).attr(`data-highlighted`, true);
-                        }
-                        return data.html || data.text;
-                    },
-                    templateSelection: function (data, container) {
-                        return data.html || data.text || undefined;
-                    },
-                    ...config,
-                });
-
-                $element.on(`change`, () => {
-                    const [selected] = $element.select2('data');
-                    if (selected) {
-                        if (selected.id === `new-item` && search && search.length) {
-                            $element
-                                .append(new Option(search, search, true, true))
-                                .trigger('change');
-                        } else if (selected.id === `redirect-url` && selected.url) {
-                            location.href = selected.url;
-                            $element
-                                .val(null)
-                                .trigger('change');
-                        }
-                    }
-                })
-
-                $(document).arrive(`.select2-dropdown [data-highlighted]`, function () {
-                    const $highlighted = $(this);
-                    const $results = $highlighted.closest('.select2-results__options');
-
-                    $results.find(`.select2-results__option--highlighted`).removeClass(`select2-results__option--highlighted`);
-                    $highlighted.addClass("select2-results__option--highlighted");
-                })
-
-                if(editable) {
-                    $element.on(`select2:unselecting`, event => {
-                        const $option = $(event.params.args.data.element);
-                        if ($option.hasClass('no-deletable')) {
-                            event.preventDefault();
-                            Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
+                            return {
+                                results: [{
+                                    id: `error`,
+                                    html: `<span class="text-danger">${data.error}</span>`,
+                                    disabled: true,
+                                }],
+                            };
                         } else {
-                            $option.remove();
-                        }
+                            $search.removeClass(`is-invalid`);
 
-                        if($element.is(`[data-default-values]`)) {
-                            const defaultValues = $element.data(`default-values`).split(`,`);
-                            const $option = $(event.params.args.data.element);
-
-                            if(defaultValues.includes($option.val())) {
-                                $element.append($option);
+                            if(data.availableResults) {
+                                $element.attr("data-length", data.availableResults);
                             }
+
+                            if (data.results.length === 1 && $element.is(`[data-auto-select]`)) {
+                                setTimeout(() => {
+                                    if (data.results[0].text === $search.val()) {
+                                        $element.parent().find('.select2-results__option').mouseup();
+                                    }
+                                }, 10);
+                            }
+                            return data;
                         }
-                    });
-                }
-
-                $element.on('select2:open', function (e) {
-                    const evt = "scroll.select2";
-                    $(e.target).parents().off(evt);
-                    $(window).off(evt);
-                    // we hide all other select2 dropdown
-                    $('[data-s2-initialized]').each(function () {
-                        const $select2 = $(this);
-                        if (!$select2.is($element)) {
-                            $select2.select2('close');
-                        }
-                    });
-
-                    const $focusShadowParent = $element.closest(`.focus-shadow`);
-                    if ($focusShadowParent.exists()) {
-                        $element.closest(`tr`).addClass(`focus-within`);
                     }
+                };
 
-                    const $searchField = $('.select2-dropdown .select2-search__field');
-                    if ($searchField.exists()) {
-                        setTimeout(() => $searchField[0].focus(), 300);
-                    }
-
-                    search = null;
-                    $(document)
-                        .off(`keyup.select2-save-search`)
-                        .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
-                            search = $searchField.val();
-                        });
-
-                    if ($element.is(`[data-no-search]`)) {
-                        $element.siblings('.select2-container')
-                            .find('.select2-dropdown .select2-search')
-                            .addClass('d-none');
-                    }
-
-                    if ($element.is('[data-hidden-dropdown]')) {
-                        $element.siblings('.select2-container')
-                            .addClass('hidden-dropdown') ;
-                    }
-
-                    if ($element.is('[data-disabled-dropdown-options]')) {
-                        $element.siblings('.select2-container')
-                            .addClass('disabled-dropdown-options') ;
-                    }
-                });
-
-                $element.on('select2:close', function (e) {
-                    $element.closest(`tr`).removeClass(`focus-within`);
-                });
-
-                if ($element.is(`[autofocus]:visible`)) {
-                    $element.select2(`open`);
-                }
-
-                if ($element.is('[data-search-prefix]')) {
-                    const searchPrefixDisplayed = ($element.data('search-prefix-displayed') || $element.data('search-prefix'));
-                    const {$dropdown} = $element.data('select2');
-                    const $prefixContainer = $dropdown.find('.select2-search');
-                    $prefixContainer.addClass(`d-flex`);
-                    $prefixContainer.prepend(`
-                        <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
-                    `);
+                if ($element.is(`[data-min-length]`) || !INSTANT_SELECT_TYPES[type]) {
+                    const minLength = $element.data('min-length');
+                    config.minimumInputLength = minLength !== undefined ? minLength : 1;
                 }
             }
-        });
+            const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
+            const editable = $element.is('[data-editable]');
+
+            if($element.is(`[data-keep-open]`)){
+                config.closeOnSelect = false;
+            }
+
+            if ($element.is(`[data-max-selection-length]`)) {
+                config.maximumSelectionLength = Number($element.data('max-selection-length'));
+            }
+
+            $element.select2({
+                placeholder: $element.data(`placeholder`) || '',
+                tags: editable,
+                allowClear,
+                dropdownParent,
+                language: {
+                    inputTooShort: () => Translation.of(`Général`, '', 'Zone filtre', 'Veuillez entrer au moins {1} caractère{2}.', {1: '1', 2: ''}, false),
+                    noResults: () => Translation.of(`Général`, '', 'Zone filtre', 'Aucun résultat.', false),
+                    searching: () => Translation.of(`Général`, '', 'Zone filtre', 'Recherche en cours...', false),
+                    maximumSelected: ({maximum}) => `Vous ne pouvez sélectionner que ${maximum} éléments.`,
+                },
+                escapeMarkup: markup => markup,
+                templateResult: (data, container) => {
+                    if (data.highlighted) {
+                        $(container).attr(`data-highlighted`, true);
+                    }
+                    return data.html || data.text;
+                },
+                templateSelection: function (data, container) {
+                    return data.html || data.text || undefined;
+                },
+                ...config,
+            });
+
+            $element.on(`change`, () => {
+                const [selected] = $element.select2('data');
+                if (selected) {
+                    if (selected.id === `new-item` && search && search.length) {
+                        $element
+                            .append(new Option(search, search, true, true))
+                            .trigger('change');
+                    } else if (selected.id === `redirect-url` && selected.url) {
+                        location.href = selected.url;
+                        $element
+                            .val(null)
+                            .trigger('change');
+                    }
+                }
+            })
+
+            $(document).arrive(`.select2-dropdown [data-highlighted]`, function () {
+                const $highlighted = $(this);
+                const $results = $highlighted.closest('.select2-results__options');
+
+                $results.find(`.select2-results__option--highlighted`).removeClass(`select2-results__option--highlighted`);
+                $highlighted.addClass("select2-results__option--highlighted");
+            })
+
+            if(editable) {
+                $element.on(`select2:unselecting`, event => {
+                    const $option = $(event.params.args.data.element);
+                    if ($option.hasClass('no-deletable')) {
+                        event.preventDefault();
+                        Flash.add(`danger`, `Cet élément est utilisé, vous ne pouvez pas le supprimer.`);
+                    } else {
+                        $option.remove();
+                    }
+
+                    if($element.is(`[data-default-values]`)) {
+                        const defaultValues = $element.data(`default-values`).split(`,`);
+                        const $option = $(event.params.args.data.element);
+
+                        if(defaultValues.includes($option.val())) {
+                            $element.append($option);
+                        }
+                    }
+                });
+            }
+
+            $element.on('select2:open', function (e) {
+                const evt = "scroll.select2";
+                $(e.target).parents().off(evt);
+                $(window).off(evt);
+                // we hide all other select2 dropdown
+                $('[data-s2-initialized]').each(function () {
+                    const $select2 = $(this);
+                    if (!$select2.is($element)) {
+                        $select2.select2('close');
+                    }
+                });
+
+                const $focusShadowParent = $element.closest(`.focus-shadow`);
+                if ($focusShadowParent.exists()) {
+                    $element.closest(`tr`).addClass(`focus-within`);
+                }
+
+                const $searchField = $('.select2-dropdown .select2-search__field');
+                if ($searchField.exists()) {
+                    setTimeout(() => $searchField[0].focus(), 300);
+                }
+
+                search = null;
+                $(document)
+                    .off(`keyup.select2-save-search`)
+                    .on(`keyup.select2-save-search`, `.select2-dropdown .select2-search__field`, () => {
+                        search = $searchField.val();
+                    });
+
+                if ($element.is(`[data-no-search]`)) {
+                    $element.siblings('.select2-container')
+                        .find('.select2-dropdown .select2-search')
+                        .addClass('d-none');
+                }
+
+                if ($element.is('[data-hidden-dropdown]')) {
+                    $element.siblings('.select2-container')
+                        .addClass('hidden-dropdown') ;
+                }
+
+                if ($element.is('[data-disabled-dropdown-options]')) {
+                    $element.siblings('.select2-container')
+                        .addClass('disabled-dropdown-options') ;
+                }
+            });
+
+            $element.on('select2:close', function (e) {
+                $element.closest(`tr`).removeClass(`focus-within`);
+            });
+
+            if ($element.is(`[autofocus]:visible`)) {
+                $element.select2(`open`);
+            }
+
+            if ($element.is('[data-search-prefix]')) {
+                const searchPrefixDisplayed = ($element.data('search-prefix-displayed') || $element.data('search-prefix'));
+                const {$dropdown} = $element.data('select2');
+                const $prefixContainer = $dropdown.find('.select2-search');
+                $prefixContainer.addClass(`d-flex`);
+                $prefixContainer.prepend(`
+                        <input class="search-prefix" name="searchPrefix" size=${searchPrefixDisplayed.length} value="${searchPrefixDisplayed}" disabled/>
+                    `);
+            }
+        }
     }
 
     static includeParams($element, params) {
@@ -350,7 +358,7 @@ export default class Select2 {
 
     static reload($element) {
         Select2.destroy($element);
-        Select2.init($element);
+        Select2.proceed($element, true);
     }
 
     static tokenizer(input, selection, callback, delimiter) {
@@ -368,12 +376,37 @@ export default class Select2 {
         }
         return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
+
+    static initSelectMultipleWarning($element, $warningMessage, check, options = {}) {
+        $element.off('change.Check').on('change.Check', function () {
+            let $options = $(this).find('option:selected')
+            $warningMessage.prop('hidden', true);
+
+            // Wait for select2 to render the options
+            setTimeout(function () {
+                $options.each(async function () {
+                    let $option = $(this);
+                    let value = $option.val();
+
+                    if (await check($option)) {
+                        $option.removeClass('invalid');
+                    } else {
+                        $options.closest('label').find('.select2-container ul.select2-selection__rendered li.select2-selection__choice[title="' + value + '"]').addClass('warning');
+                        $warningMessage.prop('hidden', false);
+                        options.onWarning && options.onWarning();
+                    }
+                });
+            }, 10);
+        })
+    }
 }
 
-$(document).ready(() => $(`[data-s2]`).each((id, elem) => {
-    Select2.init($(elem))
-}));
+$(document).ready(() => {
+    $(`[data-s2]`).each((id, elem) => {
+        Select2.proceed($(elem))
+    });
+});
 
 $(document).arrive(`[data-s2]`, function() {
-    Select2.init($(this));
+    Select2.proceed($(this));
 });

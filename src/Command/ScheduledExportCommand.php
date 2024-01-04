@@ -1,9 +1,10 @@
 <?php
-
+// At every minute
+// * * * * *
 
 namespace App\Command;
 
-use App\Entity\Export;
+use App\Entity\ScheduledTask\Export;
 use App\Service\ScheduledExportService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
@@ -20,7 +21,6 @@ use Symfony\Contracts\Service\Attribute\Required;
 )]
 class ScheduledExportCommand extends Command
 {
-
 
     #[Required]
     public EntityManagerInterface $em;
@@ -52,7 +52,7 @@ class ScheduledExportCommand extends Command
     {
         return $this->em->isOpen()
             ? $this->em
-            : EntityManager::create($this->em->getConnection(), $this->em->getConfiguration());
+            : new EntityManager($this->em->getConnection(), $this->em->getConfiguration());
     }
 
 }

@@ -15,15 +15,30 @@ class Nature {
     public const ARRIVAL_CODE = 'arrival';
     public const TRANSPORT_COLLECT_CODE = 'transportCollect';
     public const TRANSPORT_DELIVERY_CODE = 'transportDelivery';
+    public const DISPATCH_CODE = 'dispatch';
 
     private const ARRIVAL_LABEL = 'Arrivage';
     private const TRANSPORT_COLLECT_LABEL = 'Transport - Collecte';
     private const TRANSPORT_DELIVERY_LABEL = 'Transport - Livraison';
+    private const DISPATCH_LABEL = 'Acheminement';
 
     public const ENTITIES = [
-        self::ARRIVAL_CODE => self::ARRIVAL_LABEL,
-        self::TRANSPORT_COLLECT_CODE => self::TRANSPORT_COLLECT_LABEL,
-        self::TRANSPORT_DELIVERY_CODE => self::TRANSPORT_DELIVERY_LABEL,
+        self::ARRIVAL_CODE => [
+            'label' => self::ARRIVAL_LABEL,
+            'showTypes' => false,
+        ],
+        self::TRANSPORT_COLLECT_CODE => [
+            'label' => self::TRANSPORT_COLLECT_LABEL,
+            'showTypes' => true,
+        ],
+        self::TRANSPORT_DELIVERY_CODE => [
+            'label' => self::TRANSPORT_DELIVERY_LABEL,
+            'showTypes' => true,
+        ],
+        self::DISPATCH_CODE => [
+            'label' => self::DISPATCH_LABEL,
+            'showTypes' => false,
+        ],
     ];
 
     #[ORM\Id]
@@ -77,7 +92,7 @@ class Nature {
     #[ORM\JoinTable(name: 'location_temperature_range')]
     private Collection $temperatureRanges;
 
-    #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class)]
+    #[ORM\OneToOne(mappedBy: "nature", targetEntity: TranslationSource::class, cascade: ['remove'])]
     private ?TranslationSource $labelTranslation = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
@@ -242,7 +257,7 @@ class Nature {
         return $this;
     }
 
-    public function getDisplayedOnForms(): ?bool
+    public function isDisplayedOnForms(): ?bool
     {
         return $this->displayedOnForms;
     }
@@ -252,6 +267,13 @@ class Nature {
         $this->displayedOnForms = $displayedOnForms;
 
         return $this;
+    }
+
+    public function isDisplayedOnForm(string $form): ?bool {
+        return (
+            $this->isDisplayedOnForms()
+            && array_key_exists($form, $this->getAllowedForms() ?? [])
+        );
     }
 
     public function getAllowedForms(): ?array

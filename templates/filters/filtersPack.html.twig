@@ -5,7 +5,8 @@
     {% include 'filters/filter_item/filterPacks.html.twig' %}
     {% include 'filters/filter_item/filterNaturePacks.html.twig' %}
     {% include 'filters/filter_item/filterLocation.html.twig' with {
-        multiple: true
+        multiple: true,
+        placeholder : "Emplacement"
     } %}
     {% include 'filters/filter_item/filterNumArrivage.html.twig' with {
         title: trans('Traçabilité', 'Unités logistiques', 'Divers', 'N° d\'arrivage UL', false)

@@ -44,7 +44,7 @@
                         </div>
                     </div>
                 </div>
-                {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
                 {% set emergency = handling.emergency %}
                 {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) and emergency %}
                     <div class="d-flex align-items-center bordered emergency-container pl-3">
@@ -69,7 +69,7 @@
                             </span>
                         </div>
                     </div>
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_EMERGENCY') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
@@ -80,7 +80,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_RECEIVERS_HANDLING') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
@@ -97,7 +97,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_LOADING_ZONE') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOADING_ZONE') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
@@ -108,7 +108,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_UNLOADING_ZONE') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_UNLOADING_ZONE') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">
@@ -119,7 +119,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    {% set fieldCode = constant('App\\Entity\\FieldsParam::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_CARRIED_OUT_OPERATION_COUNT') %}
                     {% if (fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') or fieldsParam|isFieldRequired(fieldCode, 'displayedEdit')) %}
                         <div class="col-6 d-flex flex-column">
                             <div class="box-item my-2">

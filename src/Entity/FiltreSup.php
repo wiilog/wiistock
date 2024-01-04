@@ -23,6 +23,8 @@ class FiltreSup {
     const FIELD_CONTACT = 'contact';
     const FIELD_PROJECT = 'project';
     const FIELD_EMPLACEMENT = 'emplacement';
+    const FIELD_LOCATION_PICK_WITH_GROUPS = 'locationPickWithGroups';
+    const FIELD_LOCATION_DROP_WITH_GROUPS = 'locationDropWithGroups';
     const FIELD_PACK = 'UL';
     const FIELD_REFERENCE = 'reference';
     const FIELD_DEM_COLLECTE = 'demCollecte';
@@ -55,6 +57,7 @@ class FiltreSup {
     const FIELD_DELIVERERS = 'deliverers';
     const FIELD_DRIVERS = 'drivers';
     const FIELD_LOGISTIC_UNITS = 'logisticUnits';
+    const FIELD_UNLOADING_LOCATION = 'unloadingLocation';
     const FIELD_REGISTRATION_NUMBER = 'registrationNumber';
     const FIELD_CARRIER_TRACKING_NUMBER = 'carrierTrackingNumber';
     const FIELD_TRUCK_ARRIVAL_NUMBER = 'truckArrivalNumber';
@@ -101,6 +104,7 @@ class FiltreSup {
     const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
     const PAGE_SHIPPING = 'shipping_request';
     const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
+    const FIELD_USE_TRUCK_ARRIVALS = 'useTruckArrivals';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

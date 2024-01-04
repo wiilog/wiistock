@@ -259,13 +259,16 @@ class ArticleDataService
         $statutRepository = $entityManager->getRepository(Statut::class);
 
         $statusLabel = $data->get('statut') ?? Article::STATUT_ACTIF;
-        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel);
-        if (!isset($statut)) {
-            $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
-        }
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, $statusLabel)
+            ?: $statutRepository->findOneByCategorieNameAndStatutCode(Article::CATEGORIE, Article::STATUT_ACTIF);
 
-        $refArticleId = $data->getInt('refArticle');
-        $refArticle = $referenceArticleRepository->find($refArticleId);
+        $refArticle = $data->get('refArticle');
+        $refArticle = $refArticle instanceof ReferenceArticle
+            ? $refArticle
+            : (intval($refArticle)
+                ? $referenceArticleRepository->find($refArticle)
+                : null
+            );
         if (!$refArticle) {
             throw new FormException();
         }
@@ -336,8 +339,10 @@ class ArticleDataService
             }
         } else {
             if ($data->has('emplacement')) {
-                $locationId = $data->getInt('emplacement');
-                $location = $locationId ? $emplacementRepository->find($locationId) : null;
+                $locationId = $data->get('emplacement');
+                $location = $locationId
+                    ? ($locationId instanceof Emplacement ? $locationId : $emplacementRepository->find($locationId))
+                    : null;
             } else {
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {

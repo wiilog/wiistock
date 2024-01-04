@@ -134,6 +134,7 @@ $icons: (
     'dangerous-goods': '../../public/svg/dangerous-goods.svg',
     'edit-form': '../../public/svg/edit-form.svg',
     'settings-document-template': '../../public/svg/settings-document-template.svg',
+    'question-mark': '../../public/svg/question-mark.svg',
 );
 
 @each $iconName, $iconPath in $icons {
@@ -164,6 +165,14 @@ $icon-colors: (
             height: #{$size}px;
             background: $val;
         }
+
+        .wii-icon-min-#{$size}px-#{$key} {
+            display: inline-block;
+            min-width: #{$size}px;
+            min-height: #{$size}px;
+            background: $val;
+        }
+
     }
 }
 

@@ -38,7 +38,7 @@ class DeliveryStationController extends AbstractController
         $line = $entityManager->getRepository(DeliveryStationLine::class)->findOneBy(['token' => $token]);
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['mobileLoginKey' => $mobileLoginKey]);
         if($user) {
-            if($user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
+            if($user->getVisibilityGroups()->isEmpty() || $user->getVisibilityGroups()->contains($line->getVisibilityGroup())) {
                 return $this->json([
                     'success' => true,
                 ]);
@@ -51,7 +51,7 @@ class DeliveryStationController extends AbstractController
         } else {
             return $this->json([
                 'success' => false,
-                'msg' => "Aucun utilisateur n'est lié à cette clé de connexion nomade."
+                'msg' => "Aucun utilisateur n'est associé à cette clé de connexion nomade."
             ]);
         }
     }
@@ -59,6 +59,10 @@ class DeliveryStationController extends AbstractController
     #[Route("/formulaire/{token}", name: "delivery_station_form", options: ["expose" => true])]
     public function form(string $token, Request $request, EntityManagerInterface $entityManager): Response
     {
+        if(!$this->getUser()) {
+            return $this->redirectToRoute("login");
+        }
+
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         $mobileLoginKey = $request->query->get('mobileLoginKey');
@@ -92,13 +96,9 @@ class DeliveryStationController extends AbstractController
     {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $initialReference = $referenceArticleRepository->find($request->query->get('reference'));
-        $barcode = $request->query->has('barcode')
-            ? $request->query->get('barcode')
-            : null;
-        $pickedQuantity = $request->query->has('pickedQuantity')
-            ? $request->query->get('pickedQuantity')
-            : null;
-        $isScannedBarcode = $request->query->has('isScannedBarcode') && $request->query->getBoolean('isScannedBarcode');
+        $barcode = $request->query->get('barcode');
+        $pickedQuantity = $request->query->get('pickedQuantity');
+        $isScannedBarcode = $request->query->getBoolean('isScannedBarcode');
 
         if ($barcode) {
             if (str_starts_with($barcode, Article::BARCODE_PREFIX)) {
@@ -183,13 +183,15 @@ class DeliveryStationController extends AbstractController
             }
         } else {
             $isReferenceByArticle = $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE;
-            $location = null;
-            if($isReferenceByArticle && $initialReference->getStockManagement()) {
+            if ($isReferenceByArticle) {
                 $articleRepository = $entityManager->getRepository(Article::class);
                 $article = $articleRepository->findOneByReferenceAndStockManagement($initialReference);
-                $location = $this->formatService->location($article->getEmplacement());
+                $location = $article->getEmplacement();
+            } else {
+                $location = $initialReference->getEmplacement();
             }
 
+            $location = $location ? $this->formatService->location($location) : null;
             $values = [
                 'id' => $initialReference->getId(),
                 'reference' => $initialReference->getReference(),
@@ -199,7 +201,12 @@ class DeliveryStationController extends AbstractController
                 'image' => $initialReference->getImage()
                     ? "{$initialReference->getImage()->getFullPath()}"
                     : "",
-                'isReferenceByArticle' => $initialReference->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE,
+                'suppliers' => !$isReferenceByArticle
+                    ? Stream::from($initialReference->getArticlesFournisseur())
+                        ->map(static fn(ArticleFournisseur $supplierArticle) => $supplierArticle->getFournisseur()->getCodeReference())
+                        ->join(',')
+                    : '',
+                'isReferenceByArticle' => $isReferenceByArticle,
                 'location' => $location,
             ];
         }
@@ -236,7 +243,6 @@ class DeliveryStationController extends AbstractController
                                   DeliveryRequestService     $deliveryRequestService,
                                   LivraisonsManagerService   $deliveryOrderService,
                                   PreparationsManagerService $preparationOrderService,
-                                  FreeFieldService           $freeFieldService,
                                   MouvementStockService      $stockMovementService): JsonResponse
     {
         $values = $request->query->all();
@@ -266,8 +272,9 @@ class DeliveryStationController extends AbstractController
             'demandeur' => $user,
             'destination' => $deliveryStationLine->getDestinationLocation()->getId(),
             'disabledFieldChecking' => true,
+            'isFastDelivery' => true,
         ];
-        $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager, $freeFieldService);
+        $deliveryRequest = $deliveryRequestService->newDemande($data + $freeFields, $entityManager);
         $entityManager->persist($deliveryRequest);
 
         foreach ($references as $reference) {
@@ -326,7 +333,6 @@ class DeliveryStationController extends AbstractController
                 'directDelivery' => true,
             ],
             false,
-            $freeFieldService,
             false,
             true
         );

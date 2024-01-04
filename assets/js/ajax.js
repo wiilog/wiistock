@@ -1,4 +1,4 @@
-import Flash, {ERROR, SUCCESS} from "./flash";
+import Flash, {ERROR, INFO, SUCCESS} from "./flash";
 
 export const GET = `GET`;
 export const POST = `POST`;
@@ -108,10 +108,15 @@ export default class AJAX {
                     if (error) {
                         Flash.add(ERROR, error);
                     }
-                    throw new Error('printing error');
+                    console.error('printing error');
                 }
                 return response.blob().then((blob) => {
-                    const fileName = response.headers.get("content-disposition").split("filename=")[1];
+                    const responseContent = response.headers.get("content-disposition")
+                    if (!responseContent) {
+                        console.warn('aucun fichier à télécharger');
+                        return;
+                    }
+                    const fileName = responseContent.split("filename=")[1];
                     const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
 
                     saveAs(blob, cleanedFileName);
@@ -151,10 +156,12 @@ function treatFetchCallback(json) {
         return;
     }
 
-    if(json.success === false && json.msg) {
-        Flash.add(ERROR, json.msg, true, true);
-    } else if(json.success === true && json.msg) {
-        Flash.add(SUCCESS, json.msg, true, true);
+    const message = (json.message || json.msg);
+    if (json.success === false && message) {
+        Flash.add(ERROR, message, true, true);
+    }
+    else if(json.success === true && message) {
+        Flash.add(SUCCESS, message, true, true);
     }
 
     if(json.reload === true) {

@@ -3,19 +3,15 @@
 namespace App\Repository\Inventory;
 
 use App\Entity\Article;
-use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryEntry;
-use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Inventory\InventoryMission;
 use App\Entity\ReferenceArticle;
 use App\Helper\QueryBuilderHelper;
-use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\HttpFoundation\InputBag;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use WiiCommon\Helper\Stream;
 
 /**
