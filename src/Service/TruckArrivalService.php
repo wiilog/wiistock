@@ -192,7 +192,7 @@ class TruckArrivalService
             ],
             [
                 'label' => 'Pièces jointes',
-                'value' => $attachments ? $attachments->toArray() : '',
+                'value' => !$attachments->isEmpty() ? $attachments->toArray() : '',
                 'isAttachments' => true,
                 'isNeededNotEmpty' => true,
             ],

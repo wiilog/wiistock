@@ -52,6 +52,11 @@
         'reload': true
     } %}
 
+    {% include 'production_request/modalNewProductionRequest.html.twig' with {
+        productionRequest,
+        fieldsParam,
+        types,
+    }%}
 {% endblock %}
 
 {% block javascripts %}

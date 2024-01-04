@@ -43,7 +43,7 @@ class VisibleColumnService {
                     $translated = $column['translated'] ?? false;
                     $title = $column['title'] ?? '';
                     return [
-                        'title' => $title,
+                        'title' => ucfirst($title),
                         'hiddenTitle' => $column['hiddenTitle'] ?? '',
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,

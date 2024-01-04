@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\ProductionRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
@@ -16,7 +17,22 @@ use Symfony\Component\HttpFoundation\InputBag;
  * @method ProductionRequest[]    findAll()
  * @method ProductionRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ProductionRequestRepository extends EntityRepository {
+class ProductionRequestRepository extends EntityRepository
+{
+
+    public function getLastNumberByDate(string $date): ?string
+    {
+        $result = $this->createQueryBuilder('production_request')
+            ->select('production_request.number')
+            ->where('production_request.number LIKE :value')
+            ->addOrderBy('production_request.number', 'DESC')
+            ->setParameter('value', ProductionRequest::NUMBER_PREFIX . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+
+
     public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
     {
         $qb = $this->createQueryBuilder("production_request");
@@ -73,7 +89,6 @@ class ProductionRequestRepository extends EntityRepository {
             if (!empty($params->all('search'))) {
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
-                    dump($search);
                     $conditions = [
                         "number" => "production_request.number LIKE :search_value",
                         "createdAt" => "DATE_FORMAT(production_request.createdAt, '%d/%m/%Y') LIKE :search_value",
@@ -81,14 +96,14 @@ class ProductionRequestRepository extends EntityRepository {
                         "type" => "search_type.label LIKE :search_value",
                         "status" => "search_status.nom LIKE :search_value",
                         "expectedAt" => "DATE_FORMAT(production_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
-                        "dropLocation" => "search_dropLocation.label LIKE :search_value",
-                        "lineNumber" => "production_request.lineNumber LIKE :search_value",
-                        "manufacturingOrderNumber" => "production_request.manufacturingOrderNumber LIKE :search_value",
-                        "productArticleCode" => "production_request.productArticleCode LIKE :search_value",
-                        "quantity" => "production_request.quantity LIKE :search_value",
-                        "emergency" => "production_request.emergency LIKE :search_value",
-                        "projectNumber" => "production_request.projectNumber LIKE :search_value",
-                        "comment" => "production_request.comment LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_LOCATION_DROP => "search_dropLocation.label LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_LINE_COUNT => "production_request.lineCount LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER => "production_request.manufacturingOrderNumber LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE => "production_request.productArticleCode LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_QUANTITY => "production_request.quantity LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_EMERGENCY => "production_request.emergency LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER => "production_request.projectNumber LIKE :search_value",
+                        FixedFieldStandard::FIELD_CODE_COMMENTAIRE => "production_request.comment LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'productionRequest', $qb, $options['user'], $search);
@@ -97,8 +112,7 @@ class ProductionRequestRepository extends EntityRepository {
                         ->leftJoin('production_request.status', 'search_status')
                         ->leftJoin('production_request.treatedBy', 'search_treatedBy')
                         ->leftJoin('production_request.dropLocation', 'search_dropLocation')
-                        ->leftJoin('production_request.type', 'search_type')
-                        ;
+                        ->leftJoin('production_request.type', 'search_type');
                 }
             }
 
@@ -125,25 +139,25 @@ class ProductionRequestRepository extends EntityRepository {
                         $qb
                             ->leftJoin('production_request.status', 'status')
                             ->orderBy('status.nom', $order);
-                    } else if ($column === 'expectedAt') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_EXPECTED_AT) {
                         $qb->orderBy('production_request.expectedAt', $order);
-                    } else if ($column === 'dropLocation') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_LOCATION_DROP) {
                         $qb
                             ->leftJoin('production_request.dropLocation', 'location')
                             ->orderBy('location.label', $order);
-                    } else if ($column === 'lineNumber') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_LINE_COUNT) {
                         $qb->orderBy('production_request.lineNumber', $order);
-                    } else if ($column === 'manufacturingOrderNumber') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER) {
                         $qb->orderBy('production_request.manufacturingOrderNumber', $order);
-                    } else if ($column === 'productArticleCode') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE) {
                         $qb->orderBy('production_request.productArticleCode', $order);
-                    } else if ($column === 'quantity') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_QUANTITY) {
                         $qb->orderBy('production_request.quantity', $order);
-                    } else if ($column === 'emergency') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_EMERGENCY) {
                         $qb->orderBy('production_request.emergency', $order);
-                    } else if ($column === 'projectNumber') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER) {
                         $qb->orderBy('production_request.projectNumber', $order);
-                    } else if ($column === 'comment') {
+                    } else if ($column === FixedFieldStandard::FIELD_CODE_COMMENTAIRE) {
                         $qb->orderBy('production_request.comment', $order);
                     }
                 }

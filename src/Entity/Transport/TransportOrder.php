@@ -4,6 +4,7 @@ namespace App\Entity\Transport;
 
 use App\Entity\Attachment;
 use App\Entity\Interfaces\StatusHistoryContainer;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Traits\AttachmentTrait;
@@ -92,7 +93,7 @@ class TransportOrder extends StatusHistoryContainer {
     #[ORM\OneToOne(inversedBy: 'order', targetEntity: TransportRequest::class)]
     private ?TransportRequest $request = null;
 
-    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistory::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportHistoryRecord::class, cascade: ['remove'])]
     private Collection $history;
 
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: TransportDeliveryOrderPack::class)]
@@ -251,13 +252,13 @@ class TransportOrder extends StatusHistoryContainer {
     }
 
     /**
-     * @return Collection<int, TransportHistory>
+     * @return Collection<int, TransportHistoryRecord>
      */
     public function getHistory(): Collection {
         return $this->history;
     }
 
-    public function addHistory(TransportHistory $transportHistory): self {
+    public function addHistory(TransportHistoryRecord $transportHistory): self {
         if (!$this->history->contains($transportHistory)) {
             $this->history[] = $transportHistory;
             $transportHistory->setOrder($this);
@@ -266,7 +267,7 @@ class TransportOrder extends StatusHistoryContainer {
         return $this;
     }
 
-    public function removeHistory(TransportHistory $transportHistory): self {
+    public function removeHistory(TransportHistoryRecord $transportHistory): self {
         if ($this->history->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)
             if ($transportHistory->getOrder() === $this) {
@@ -433,10 +434,10 @@ class TransportOrder extends StatusHistoryContainer {
         return $this->getStatus()?->getCode() === TransportOrder::STATUS_CANCELLED;
     }
 
-    public function getLastTransportHistory(string... $types): TransportHistory|null {
+    public function getLastTransportHistory(string... $types): TransportHistoryRecord|null {
         return Stream::from($this->getHistory())
-            ->filter(fn(TransportHistory $history) => in_array($history->getType(), $types))
-            ->sort(fn(TransportHistory $h1, TransportHistory $h2) => $h1->getId() <=> $h2->getId())
+            ->filter(fn(TransportHistoryRecord $history) => in_array($history->getType(), $types))
+            ->sort(fn(TransportHistoryRecord $h1, TransportHistoryRecord $h2) => $h1->getId() <=> $h2->getId())
             ->last();
     }
 
