@@ -113,10 +113,10 @@ class ProductionRequestController extends AbstractController
 
     #[Route("/api", name: "api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function api(Request                $request,
-                        ProductionRequestService $service,
-                        EntityManagerInterface $entityManager): Response {
-        return $this->json($service->getDataForDatatable( $entityManager, $request));
+    public function api(Request                  $request,
+                        ProductionRequestService $productionRequestService,
+                        EntityManagerInterface   $entityManager): Response {
+        return $this->json($productionRequestService->getDataForDatatable($entityManager, $request));
     }
 
     #[Route("/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]

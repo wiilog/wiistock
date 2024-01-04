@@ -116,8 +116,6 @@ class ProductionRequestRepository extends EntityRepository
                 }
             }
 
-            $filtered = QueryBuilderHelper::count($qb, 'production_request');
-
             if (!empty($params->all('order'))) {
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
