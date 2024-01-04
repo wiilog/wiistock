@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FiltreSup;
 use App\Entity\ProductionRequest;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,15 +59,12 @@ class ProductionRequestService
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
 
-        /*
-        todo WIIS-10759
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
-        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_SHIPPING, $this->security->getUser());
-        */
+        $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION, $this->security->getUser());
 
         $queryResult = $productionRepository->findByParamsAndFilters(
             $request->request,
-            /* todo : todo WIIS-10759 $filters */ [],
+            $filters,
             $this->visibleColumnService,
             [
                 'user' => $this->security->getUser(),
