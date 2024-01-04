@@ -1,3 +1,6 @@
+import AJAX from "@app/ajax";
+import Form from "@app/form";
+
 $(function () {
     $(`.select2`).select2();
     const tableReceiptAssociation = initDatatable();
@@ -18,7 +21,7 @@ $(function () {
     initReceiptAssociationModal($modalNewReceiptAssociation)
     Form.create($modalNewReceiptAssociation)
         .addProcessor((data, errors, $form) => {
-            if ($form.find('.logistic-unit-wrapper [name=logisticUnit]').length === 0) {
+            if ($form.find('[name=logisticUnit]').length === 0) {
                 $form.find('.add-logistic-unit').trigger('click');
                 errors.push({
                     elements: [$form.find('.logistic-unit-wrapper [name=logisticUnit]')],
@@ -27,7 +30,7 @@ $(function () {
             }
         })
         .addProcessor((data, errors, $form) => {
-            if ($form.find('.reception-number-container [name=receptionNumber]').length === 0) {
+            if ($form.find('[name=receptionNumber]').length === 0) {
                 $form.find('.add-reception-number').trigger('click');
                 errors.push({
                     elements: [$form.find('.reception-number-container [name=receptionNumber]')],
@@ -46,7 +49,7 @@ $(function () {
         })
         .onOpen(() => {
             $modalNewReceiptAssociation.find('.add-logistic-unit, .add-reception-number').trigger('click');
-            $modalNewReceiptAssociation.find(`[name=existingLogisticUnits][data-init=checked]`).prop(`checked`, true).trigger(`change`);;
+            $modalNewReceiptAssociation.find(`[name=existingLogisticUnits][data-init=checked]`).prop(`checked`, true).trigger(`change`);
         })
         .onClose(() => {
             $modalNewReceiptAssociation.find('.delete-line').trigger('click');
@@ -56,23 +59,19 @@ $(function () {
 function initReceiptAssociationModal($modal) {
     $modal.find(`[name=logisticUnit]`).trigger(`focus`);
 
-    const $logisticUnitContainerTemplate = $modal.find(`.logistic-unit-wrapper-template`);
-    const $receptionNumberContainerTemplate = $(`.reception-number-container-template`);
-
     $modal
         .find(`[name=existingLogisticUnits]`)
         .on(`change`, function() {
-            const existingLogisticUnits = Number($(this).val());
+            const existingLogisticUnits = Boolean(Number($(this).val()));
 
             const $logisticUnitField = $modal.find(`[name=logisticUnit]`);
+            const $logisticUnitsContainer = $modal.find(`.logistic-units-container`);
             $logisticUnitField
                 .prop(`required`, existingLogisticUnits)
                 .toggleClass(`needed`, existingLogisticUnits)
-                .toggleClass(`data`, existingLogisticUnits)
-                .toggleClass(`d-none`, !existingLogisticUnits);
+                .toggleClass(`data`, existingLogisticUnits);
 
-            const $logisticUnitAddButton = $modal.find(`.add-logistic-unit`);
-            $logisticUnitAddButton
+            $logisticUnitsContainer
                 .toggleClass(`d-none`, !existingLogisticUnits);
 
             $modal
@@ -84,63 +83,47 @@ function initReceiptAssociationModal($modal) {
     $modal
         .find(`.add-logistic-unit, .add-reception-number`)
         .on(`click`, function() {
-            if($(this).is(`.add-logistic-unit`)) {
-                $modal
-                    .find(`.logistic-unit-wrapper`)
-                    .last()
-                    .after($logisticUnitContainerTemplate.html());
+            const $button = $(this);
+            const $fieldContainer = $modal.find($button.data('container-selector'));
+            const $template = $modal.find($button.data('template-selector'));
 
-                const index = $modal.find(`.logistic-unit-wrapper`).length;
-                $modal
-                    .find(`.logistic-unit-wrapper`)
-                    .last()
-                    .data(`multiple-object-index`, index)
-                    .attr(`data-multiple-object-index`, index);
+            const $newElement = $($template.html());
+            $fieldContainer.append($newElement);
 
-                $modal.find(`[name=logisticUnit]`).last().trigger(`focus`);
-            } else {
-                $modal
-                    .find(`.reception-number-container`)
-                    .last()
-                    .after($receptionNumberContainerTemplate.html());
-
-                const index = $modal.find(`.reception-number-container`).length;
-                $modal
-                    .find(`.reception-number-container`)
-                    .last()
-                    .data(`multiple-object-index`, index)
-                    .attr(`data-multiple-object-index`, index);
-            }
+            resetDataMultipleKey($fieldContainer);
+            $newElement.trigger('focus');
         });
 
     $(document).on(`click`, `.delete-line`, function () {
-        const $parent = $(this).closest(`div`);
-        const $previous = $parent.prev();
+        const $button = $(this);
+        const $field = $button.closest($button.data('field-selector'));
+        const $container = $field.parent();
 
-        $parent.remove();
-        $modal
-            .find($previous.is(`.logistic-unit-wrapper`) ? `[name=logisticUnit]` : `[name=receptionNumber]`)
-            .last()
-            .trigger(`focus`);
+        $field.remove();
+        resetDataMultipleKey($container);
     });
 
     $(document).on(`keypress`, `[name=logisticUnit], [name=receptionNumber]`, function (e) {
         if(e.originalEvent.key === `Enter`) {
-            const $nextParent = $(this).parent().next();
-            const existingLogisticUnits = Number($modal.find(`[name=existingLogisticUnits]`).val());
+            const $input = $(this);
+            const $fields = $modal.find(`[name=logisticUnit], [name=receptionNumber]`);
+            let indexToFocus;
 
-            if(existingLogisticUnits && $(this).is(`[name=logisticUnit]`)) {
-                if($nextParent.exists()) {
-                    $nextParent.find(`[name=logisticUnit]`).trigger(`focus`);
-                } else {
-                    $modal.find(`[name=receptionNumber]`).first().trigger(`focus`);
+            $fields.each((index, current) => {
+                const $current = $(current);
+                if ($current.is($input)) {
+                    indexToFocus = index + 1;
+                    return false; // break each
                 }
-            } else if(!existingLogisticUnits || $(this).is(`[name=receptionNumber]`)) {
-                if($nextParent.exists()) {
-                    $nextParent.find(`[name=receptionNumber]`).trigger(`focus`);
-                } else {
-                    $modal.find(`[type=submit]`).trigger(`click`);
-                }
+            });
+
+            if (indexToFocus !== undefined
+                && indexToFocus < $fields.length) {
+                const $inputToFocus = $($fields.get(indexToFocus));
+                $inputToFocus.trigger('focus');
+            }
+            else { // the last field
+                $modal.find(`[type=submit]`).trigger(`click`);
             }
         }
     });
@@ -180,4 +163,13 @@ function initModals(tableReceiptAssociation) {
     let submitDeleteReceiptAssociation = $(`#submitDeleteReceiptAssociation`);
     let urlDeleteReceiptAssociation = Routing.generate(`receipt_association_delete`, true);
     InitModal(modalDeleteReceiptAssociation, submitDeleteReceiptAssociation, urlDeleteReceiptAssociation, {tables: [tableReceiptAssociation]});
+}
+
+function resetDataMultipleKey($container) {
+    $container.find('[data-multiple-key]')
+        .each((index, input) => {
+            $(input)
+                .data(`multiple-object-index`, index)
+                .attr(`data-multiple-object-index`, index)
+        });
 }
