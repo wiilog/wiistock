@@ -6,7 +6,8 @@
     {% include 'filters/filtersEncours.html.twig' with {
         page: 'PAGE_ENCOURS',
         callback: 'loadPage',
-        locationsFilter: locationsFilter,
+        locationsFilter,
+        naturesFilter,
         disabled: fromDashboard ? 'disabled',
         useTruckArrivalsFromDashboard,
     } %}

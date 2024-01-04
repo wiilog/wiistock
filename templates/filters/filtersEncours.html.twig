@@ -13,7 +13,11 @@
         placeholder : "Emplacements"
     } %}
 
-    {% include 'filters/filter_item/filterNaturePacks.html.twig' with {disabled: isPreFilled ? 'disabled'} %}
+    {% include 'filters/filter_item/filterNaturePacks.html.twig' with {
+        disabled: isPreFilled ? 'disabled',
+        naturesFilter,
+    } %}
+
     {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
         label: "Prise en compte des arrivages camion",
         name: "useTruckArrivals",
