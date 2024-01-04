@@ -73,7 +73,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EXPECTED_AT') %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">

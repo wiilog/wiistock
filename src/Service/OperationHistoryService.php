@@ -219,7 +219,7 @@ class OperationHistoryService {
                     return match ($entity) {
                         TransportDeliveryRequest::class => "livraison",
                         TransportCollectRequest::class => "collecte",
-                        ProductionRequest::class => "production",
+                        ProductionRequest::class => "demande de production",
                     };
                 } else {
                     return $entity;

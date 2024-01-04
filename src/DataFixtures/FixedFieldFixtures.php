@@ -109,7 +109,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
                 ['code' => FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_MANUFACTURING_ORDER_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
-                ['code' => FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME, 'label' => FixedFieldStandard::FIELD_LABEL_EXPECTED_DATE_AND_TIME, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT, 'label' => FixedFieldStandard::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
                 ['code' => FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCT_ARTICLE_CODE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
                 ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],

@@ -19,7 +19,6 @@ use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -70,12 +69,7 @@ class ProductionRequestController extends AbstractController
                         StatusHistoryService     $statusHistoryService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true)->all();
-        $productionRequest = $productionRequestService->updateProductionRequest(
-            $entityManager,
-            new ProductionRequest(),
-            $data,
-            $request->files,
-        );
+        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $data, $request->files);
         $entityManager->persist($productionRequest);
 
         $statusHistory = $statusHistoryService->updateStatus(
@@ -125,14 +119,6 @@ class ProductionRequestController extends AbstractController
         return $this->json($service->getDataForDatatable( $entityManager, $request));
     }
 
-    #[Route('/voir/{id}', name: 'show', methods: ['GET'])]
-    public function show(ProductionRequest $productionRequest): Response {
-
-        return $this->render('production_request/show.html.twig', [
-            'production_request' => $productionRequest,
-        ]);
-    }
-
     #[Route("/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(ProductionRequest $productionRequest,
                                      LanguageService   $languageService): JsonResponse {
@@ -165,9 +151,9 @@ class ProductionRequestController extends AbstractController
                 "entity" => $productionRequest,
                 "history" => Stream::from($productionRequest->getHistory())
                     ->sort(static fn(ProductionHistoryRecord $h1, ProductionHistoryRecord $h2) => (
-                    ($h2->getDate() <=> $h1->getDate())
-                        ?: ($h2->getId() <=> $h1->getId())
-                    )
+                        ($h2->getDate() <=> $h1->getDate())
+                            ?: ($h2->getId() <=> $h1->getId())
+                        )
                     )
                     ->map(static fn(ProductionHistoryRecord $productionHistory) => [
                         "record" => $productionHistory,

@@ -67,15 +67,15 @@ class ProductionRequestService
             ['title' => 'Traité par', 'name' => 'treatedBy'],
             ['title' => 'Type', 'name' => 'type'],
             ['title' => 'Statut', 'name' => 'status'],
-            ['title' => 'Date de demande', 'name' => 'expectedAt'],
-            ['title' => 'Emplacement', 'name' => 'dropLocation'],
-            ['title' => 'Numéro de ligne', 'name' => 'lineNumber'],
-            ['title' => 'Numéro OF', 'name' => 'manufacturingOrderNumber'],
-            ['title' => 'Code article', 'name' => 'productArticleCode'],
-            ['title' => 'Quantité', 'name' => 'quantity'],
-            ['title' => 'Urgence', 'name' => 'emergency'],
-            ['title' => 'Numéro de projet', 'name' => 'projectNumber'],
-            ['title' => 'Commentaire', 'name' => 'comment'],
+            ['title' => FixedFieldStandard::FIELD_LABEL_EXPECTED_AT, 'name' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT],
+            ['title' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'name' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP],
+            ['title' => FixedFieldStandard::FIELD_LABEL_LINE_COUNT, 'name' => FixedFieldStandard::FIELD_CODE_LINE_COUNT],
+            ['title' => FixedFieldStandard::FIELD_LABEL_MANUFACTURING_ORDER_NUMBER, 'name' => FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PRODUCT_ARTICLE_CODE, 'name' => FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE],
+            ['title' => FixedFieldStandard::FIELD_LABEL_QUANTITY, 'name' => FixedFieldStandard::FIELD_CODE_QUANTITY],
+            ['title' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'name' => FixedFieldStandard::FIELD_CODE_EMERGENCY],
+            ['title' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'name' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER],
+            ['title' => FixedFieldStandard::FIELD_LABEL_COMMENTAIRE, 'name' => FixedFieldStandard::FIELD_CODE_COMMENTAIRE],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
@@ -132,23 +132,23 @@ class ProductionRequestService
             ]),
             "number" => $productionRequest->getNumber() ?? '',
             "createdAt" => $formatService->datetime($productionRequest->getCreatedAt()),
-            'treatedBy' => $this->formatService->user($productionRequest->getTreatedBy()),
-            'type' => "
+            "treatedBy" => $this->formatService->user($productionRequest->getTreatedBy()),
+            "type" => "
                 <div class='d-flex align-items-center'>
                     <span class='dt-type-color mr-2' style='background-color: $typeColor;'></span>
                     {$this->formatService->type($productionRequest->getType())}
                 </div>
             ",
             "status" => $formatService->status($productionRequest->getStatus()),
-            "expectedAt" => $formatService->datetime($productionRequest->getExpectedAt()),
-            "dropLocation" => $formatService->location($productionRequest->getDropLocation()),
-            "lineNumber" => $productionRequest->getLineNumber(),
-            "manufacturingOrderNumber" => $productionRequest->getManufacturingOrderNumber(),
-            "productArticleCode" => $productionRequest->getProductArticleCode(),
-            "quantity" => $productionRequest->getQuantity(),
-            "emergency" => $productionRequest->getEmergency() ? $productionRequest->getEmergency() : 'Non',
-            "projectNumber" => $productionRequest->getProjectNumber(),
-            "comment" => $productionRequest->getComment(),
+            FixedFieldStandard::FIELD_CODE_EXPECTED_AT => $formatService->datetime($productionRequest->getExpectedAt()),
+            FixedFieldStandard::FIELD_CODE_LOCATION_DROP => $formatService->location($productionRequest->getDropLocation()),
+            FixedFieldStandard::FIELD_CODE_LINE_COUNT => $productionRequest->getLineCount(),
+            FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER => $productionRequest->getManufacturingOrderNumber(),
+            FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE => $productionRequest->getProductArticleCode(),
+            FixedFieldStandard::FIELD_CODE_QUANTITY => $productionRequest->getQuantity(),
+            FixedFieldStandard::FIELD_CODE_EMERGENCY => $productionRequest->getEmergency() ?: 'Non',
+            FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER => $productionRequest->getProjectNumber(),
+            FixedFieldStandard::FIELD_CODE_COMMENTAIRE => $productionRequest->getComment(),
         ];
 
         foreach ($this->freeFieldsConfig as $freeFieldId => $freeField) {
@@ -163,8 +163,7 @@ class ProductionRequestService
     public function updateProductionRequest(EntityManagerInterface $entityManager,
                                             ProductionRequest      $productionRequest,
                                             array                  $data,
-                                            FileBag                $fileBag,
-                                            bool                   $isCreation = false): ProductionRequest {
+                                            FileBag                $fileBag): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -211,8 +210,8 @@ class ProductionRequestService
             $productionRequest->setEmergency($data[FixedFieldStandard::FIELD_CODE_EMERGENCY]);
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME, $data)) {
-            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data[FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME]));
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EXPECTED_AT, $data)) {
+            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data[FixedFieldStandard::FIELD_CODE_EXPECTED_AT]));
         }
 
         if (array_key_exists(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, $data)) {
@@ -263,7 +262,7 @@ class ProductionRequestService
             [
                 'label' => 'Date attendue',
                 'value' => $this->formatService->datetime($productionRequest->getExpectedAt()),
-                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EXPECTED_DATE_AND_TIME],
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT],
             ],
             [
                 'label' => 'Numéro de projet',
@@ -271,7 +270,7 @@ class ProductionRequestService
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER],
             ],
             [
-                'label' => 'Code produit / article',
+                'label' => 'Code produit/article',
                 'value' => $productionRequest->getProductArticleCode(),
                 'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE],
             ],
