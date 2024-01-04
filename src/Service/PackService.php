@@ -389,7 +389,7 @@ class PackService {
         $natureRepository = $entityManager->getRepository(Nature::class);
 
         $location = $persistTrackingMovements
-            ? $this->arrivageDataService->getLocationForTracking($entityManager, $arrivage)
+            ? $arrivage->getDropLocation()
             : null;
 
         $totalPacks = Stream::from($packByNatures)->sum();
@@ -629,7 +629,7 @@ class PackService {
             $labels[] = $packLabel;
         }
 
-        $typeLogoPath = $showTypeLogoArrivalUl ? $arrival->getType()?->getLogo()->getFullPath() : null;
+        $typeLogoPath = $showTypeLogoArrivalUl ? $arrival->getType()?->getLogo()?->getFullPath() : null;
 
         return [
             'code' => $pack->getCode(),

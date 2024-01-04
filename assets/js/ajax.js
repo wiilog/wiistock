@@ -108,15 +108,15 @@ export default class AJAX {
                     if (error) {
                         Flash.add(ERROR, error);
                     }
-                    throw new Error('printing error');
+                    console.error('printing error');
                 }
                 return response.blob().then((blob) => {
-                    const responseContend = response.headers.get("content-disposition")
-                    if (!responseContend) {
+                    const responseContent = response.headers.get("content-disposition")
+                    if (!responseContent) {
                         console.warn('aucun fichier à télécharger');
                         return;
                     }
-                    const fileName = responseContend.split("filename=")[1];
+                    const fileName = responseContent.split("filename=")[1];
                     const cleanedFileName = fileName.replace(/^"+|"+$/g, ``);
 
                     saveAs(blob, cleanedFileName);

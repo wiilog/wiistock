@@ -309,12 +309,18 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
         $qb = $this->createQueryBuilder("h");
 
         if($requester) {
             $qb->andWhere("h.requester = :requester")
                 ->setParameter("requester", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("h.type IN (:types)")
+                ->setParameter("types", $types);
         }
 
         return $qb->select("h")
