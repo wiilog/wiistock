@@ -16,10 +16,15 @@
             </div>
         </div>
     </div>
+
+    {% include 'production_request/modalNewProductionRequest.html.twig' with {
+        productionRequest,
+        fieldsParam,
+        types,
+    }%}
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
     {{ parent() }}
     {{ encore_entry_script_tags('production-index') }}
 {% endblock %}

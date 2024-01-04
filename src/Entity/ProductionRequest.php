@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
@@ -14,7 +15,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProductionRequestRepository::class)]
-class ProductionRequest
+class ProductionRequest extends StatusHistoryContainer
 {
 
     use AttachmentTrait;
@@ -81,6 +82,7 @@ class ProductionRequest
 
     public function __construct() {
         $this->statusHistory = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
         $this->history = new ArrayCollection();
     }
 

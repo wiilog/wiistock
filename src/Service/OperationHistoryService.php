@@ -150,7 +150,8 @@ class OperationHistoryService {
             ->setRequest($productionRequest)
             ->setAttachments($params["attachments"] ?? [])
             ->setMessage($params["message"] ?? null)
-            ->setComment($params["comment"] ?? null);
+            ->setComment($params["comment"] ?? null)
+            ->setStatusHistory($params["statusHistory"] ?? null);
 
         $entityManager->persist($history);
 

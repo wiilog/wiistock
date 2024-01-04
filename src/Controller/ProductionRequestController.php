@@ -4,20 +4,27 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
-use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\ProductionRequest;
+use App\Entity\Statut;
+use App\Entity\Type;
+use App\Service\FixedFieldService;
+use App\Service\ProductionRequestService;
+use App\Service\StatusHistoryService;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\StatusHistory;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
-use App\Service\ProductionRequestService;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Request;
 use WiiCommon\Helper\Stream;
 
 #[Route('/production', name: 'production_request_')]
@@ -25,13 +32,65 @@ class ProductionRequestController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function index(): Response {
+    public function index(EntityManagerInterface $entityManager): Response {
+        $FixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
         return $this->render('production_request/index.html.twig', [
-            'controller_name' => 'ProductionRequestController',
+            'productionRequest' => new ProductionRequest(),
+            'fieldsParam' => $FixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+            'types' => $FixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+        ]);
+    }
+
+    #[Route('/new', name: 'new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PRODUCTION, Action::CREATE_PRODUCTION_REQUEST])]
+    public function new(EntityManagerInterface   $entityManager,
+                        Request                  $request,
+                        ProductionRequestService $productionRequestService,
+                        OperationHistoryService  $operationHistoryService,
+                        StatusHistoryService     $statusHistoryService,
+                        FixedFieldService        $fieldsParamService): JsonResponse {
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true)->all();
+        $productionRequest = $productionRequestService->updateProductionRequest(
+            $entityManager,
+            new ProductionRequest(),
+            $data,
+            $request->files,
+        );
+        $entityManager->persist($productionRequest);
+
+        $statusHistory = $statusHistoryService->updateStatus(
+            $entityManager,
+            $productionRequest,
+            $productionRequest->getStatus(),
+            [
+                "forceCreation" => true,
+                "setStatus" => false,
+                "initiatedBy" => $this->getUser(),
+            ]
+        );
+
+        $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
+            $entityManager,
+            $productionRequest,
+            OperationHistoryService::TYPE_REQUEST_CREATION,
+            [
+                "user" => $productionRequest->getCreatedBy(),
+                "date" => $productionRequest->getCreatedAt(),
+                "statusHistory" => $statusHistory,
+            ]
+        );
+        $entityManager->persist($productionRequestHistoryRecord);
+
+        $entityManager->flush();
+        return $this->json([
+            'success' => true,
+            'msg' => "Votre demande de production a bien été créée."
         ]);
     }
 
     #[Route("/voir/{id}", name: "show")]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function show(EntityManagerInterface   $entityManager,
                          ProductionRequest        $productionRequest,
                          ProductionRequestService $productionRequestService): Response {
@@ -68,7 +127,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/production-history-api", name: "operation_history_api", options: ['expose' => true], methods: "GET")]
+    #[Route("/{id}/operation-history-api", name: "operation_history_api", options: ['expose' => true], methods: "GET")]
     public function productionHistoryApi(ProductionRequest       $productionRequest,
                                          OperationHistoryService $operationHistoryService): JsonResponse {
         return $this->json([

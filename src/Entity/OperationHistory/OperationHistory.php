@@ -35,10 +35,6 @@ abstract class OperationHistory {
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $message = null;
 
-    #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
-    #[ORM\JoinColumn(nullable: true)]
-    private ?StatusHistory $statusHistory = null;
-
     public function getId(): ?int {
         return $this->id;
     }
@@ -98,20 +94,6 @@ abstract class OperationHistory {
 
     public function setMessage(?string $message): self {
         $this->message = $message;
-
-        return $this;
-    }
-
-    public function getStatusHistory(): ?StatusHistory {
-        return $this->statusHistory;
-    }
-
-    public function setStatusHistory(?StatusHistory $statusHistory): self {
-        if($this->statusHistory && $this->statusHistory !== $statusHistory) {
-            $this->statusHistory->removeTransportHistory($this);
-        }
-        $this->statusHistory = $statusHistory;
-        $statusHistory?->addTransportHistory($this);
 
         return $this;
     }

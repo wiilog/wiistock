@@ -51,6 +51,7 @@ const ROUTES = {
     driver: 'ajax_select_driver',
     truckArrivalLine: 'ajax_select_truck_arrival_line',
     locationWithGroups: `ajax_select_location_with_group`,
+    productionRequestType: `ajax_select_production_request_type`,
 }
 
 const INSTANT_SELECT_TYPES = {
@@ -58,6 +59,7 @@ const INSTANT_SELECT_TYPES = {
     deliveryType: true,
     collectType: true,
     dispatchType: true,
+    productionRequestType: true,
     status: true,
     sensorWithoutPairing: true,
     sensorCodeWithoutPairing: true,
