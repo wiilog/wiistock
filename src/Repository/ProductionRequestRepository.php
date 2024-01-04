@@ -13,4 +13,16 @@ use Doctrine\ORM\EntityRepository;
  * @method ProductionRequest[]    findAll()
  * @method ProductionRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ProductionRequestRepository extends EntityRepository {}
+class ProductionRequestRepository extends EntityRepository {
+
+    public function getLastNumberByDate(string $date): ?string {
+        $result = $this->createQueryBuilder('production_request')
+            ->select('production_request.number')
+            ->where('production_request.number LIKE :value')
+            ->addOrderBy('production_request.number', 'DESC')
+            ->setParameter('value', ProductionRequest::NUMBER_PREFIX . $date . '%')
+            ->getQuery()
+            ->execute();
+        return $result ? $result[0]['number'] : null;
+    }
+}

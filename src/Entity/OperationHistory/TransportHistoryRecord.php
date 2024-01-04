@@ -4,6 +4,7 @@ namespace App\Entity\OperationHistory;
 
 use App\Entity\Emplacement;
 use App\Entity\Pack;
+use App\Entity\StatusHistory;
 use App\Entity\Traits\AttachmentTrait;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
@@ -45,6 +46,10 @@ class TransportHistoryRecord extends OperationHistory {
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?Emplacement $location = null;
+
+    #[ORM\ManyToOne(targetEntity: StatusHistory::class, cascade: ['persist'], inversedBy: 'transportHistory')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?StatusHistory $statusHistory = null;
 
     public function __construct() {
         $this->attachments = new ArrayCollection();
@@ -124,6 +129,20 @@ class TransportHistoryRecord extends OperationHistory {
         }
         $this->order = $order;
         $order?->addHistory($this);
+
+        return $this;
+    }
+
+    public function getStatusHistory(): ?StatusHistory {
+        return $this->statusHistory;
+    }
+
+    public function setStatusHistory(?StatusHistory $statusHistory): self {
+        if($this->statusHistory && $this->statusHistory !== $statusHistory) {
+            $this->statusHistory->removeTransportHistory($this);
+        }
+        $this->statusHistory = $statusHistory;
+        $statusHistory?->addTransportHistory($this);
 
         return $this;
     }
