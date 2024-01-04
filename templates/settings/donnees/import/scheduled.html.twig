@@ -1,12 +1,12 @@
-<div class="modal fade" id="modalLaunchPlanifiedImport" role="dialog" aria-hidden="true">
+<div class="modal fade" id="modalForceImport" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
-                title: "Lancement d'un import planifié"
+                title: "Forcer un import"
             } %}
 
             <div class="modal-body modal-input container-fluid">
-                <p class="text-center">Confirmez-vous le lancement de cet import planifié ?</p>
+                <p class="text-center">Confirmez-vous le lancement de cet import ?</p>
                 <p class="text-center italic little-font">L'import sera effectué dans moins de 30min.</p>
             </div>
             {% include 'utils/modal/footer.html.twig' with {

@@ -216,7 +216,8 @@ class ReferenceArticleRepository extends EntityRepository {
     public function getForNomade() {
         $qb = $this->createQueryBuilder('referenceArticle');
 
-        $qb->select('referenceArticle.id AS id')
+        $qb
+            ->select('referenceArticle.id AS id')
             ->addSelect('referenceArticle.reference AS reference')
             ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"outFormatEquipment\"')) = 'null',
                                 null,
@@ -242,7 +243,12 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect("IF(JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"')) = 'null',
                                 null,
                                 JSON_UNQUOTE(JSON_EXTRACT(referenceArticle.description, '$.\"associatedDocumentTypes\"'))) AS associatedDocumentTypes")
+            ->addSelect("GROUP_CONCAT(join_location.id SEPARATOR ',') AS storageRuleLocations")
+            ->leftJoin("referenceArticle.storageRules", "join_storageRules")
+            ->leftJoin("join_storageRules.location", "join_location")
             ->andWhere('referenceArticle.needsMobileSync = true');
+
+        $qb = QueryBuilderHelper::setGroupBy($qb, ["storageRuleLocations"]);
 
         return $qb->getQuery()->getResult();
     }

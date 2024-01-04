@@ -184,10 +184,6 @@ class ArrivageController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $dropLocation = !empty($data['dropLocation'])
-            ? $emplacementRepository->find($data['dropLocation'])
-            : null;
-
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
@@ -209,7 +205,6 @@ class ArrivageController extends AbstractController {
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
-            ->setDropLocation($dropLocation)
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
@@ -309,8 +304,14 @@ class ArrivageController extends AbstractController {
             : $arrivalService->processEmergenciesOnArrival($entityManager, $arrivage);
 
         if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
+            $arrivalService->setArrivalUrgent($entityManager, $arrivage, true);
         }
+
+        $dropLocation = !empty($data['dropLocation'])
+            ? $emplacementRepository->find($data['dropLocation'])
+            : $arrivalService->getDefaultDropLocation($entityManager, $arrivage);
+
+        $arrivage->setDropLocation($dropLocation);
 
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent
@@ -451,7 +452,7 @@ class ArrivageController extends AbstractController {
         $success = !empty($urgencesMatching);
 
         if ($success) {
-            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
             $entityManager->flush();
         }
 
@@ -474,8 +475,7 @@ class ArrivageController extends AbstractController {
                                                  TrackingMovementService $trackingMovementService,
                                                  EntityManagerInterface  $entityManager): Response
     {
-        $location = $arrivageDataService->getLocationForTracking($entityManager, $arrival);
-
+        $location = $arrival->getDropLocation();
         if (isset($location)) {
             /** @var Utilisateur $user */
             $user = $this->getUser();
@@ -656,8 +656,8 @@ class ArrivageController extends AbstractController {
             ]
             : $arrivageDataService->createArrivalAlertConfig($arrivage, $confirmEmergency);
 
-        if ($isArrivalUrgent) {
-            $arrivage->setIsUrgent(true);
+        if ($isArrivalUrgent && !$confirmEmergency) {
+            $arrivageDataService->setArrivalUrgent($entityManager, $arrivage, true);
             $entityManager->flush();
         }
 
@@ -1274,6 +1274,7 @@ class ArrivageController extends AbstractController {
         $businessUnitParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_BUSINESS_UNIT_IN_LABEL);
         $projectParam = $settingRepository->getOneParamByLabel(Setting::INCLUDE_PROJECT_IN_LABEL);
         $showDateAndHourArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_SHOW_DATE_AND_HOUR_ARRIVAL_UL);
+        $showTypeLogoArrivalUl = $settingRepository->getOneParamByLabel(Setting::INCLUDE_TYPE_LOGO_ON_TAG);
 
 
         $firstCustomIconInclude = $settingRepository->getOneParamByLabel(Setting::INCLUDE_CUSTOMS_IN_LABEL);
@@ -1313,11 +1314,12 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
+                    $showTypeLogoArrivalUl,
                     $packIdsFilter,
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
-                    $forceTagEmpty ? null :$tagTemplate,
+                    $forceTagEmpty ? null : $tagTemplate,
                     $forceTagEmpty
                 );
             }
@@ -1353,6 +1355,7 @@ class ArrivageController extends AbstractController {
                 $commandAndProjectNumberIsDefined,
                 $firstCustomIconConfig,
                 $secondCustomIconConfig,
+                $showTypeLogoArrivalUl,
                 $businessUnitParam,
                 $projectParam,
                 $showDateAndHourArrivalUl,
@@ -1407,6 +1410,7 @@ class ArrivageController extends AbstractController {
                                                    ?bool        $commandAndProjectNumberIsDefined = false,
                                                    ?array       $firstCustomIconConfig = null,
                                                    ?array       $secondCustomIconConfig = null,
+                                                   ?bool        $showTypeLogoArrivalUl = null,
                                                    array        $packIdsFilter = [],
                                                    ?bool        $businessUnitParam = false,
                                                    ?bool        $projectParam = false,
@@ -1434,6 +1438,7 @@ class ArrivageController extends AbstractController {
                     $commandAndProjectNumberIsDefined,
                     $firstCustomIconConfig,
                     $secondCustomIconConfig,
+                    $showTypeLogoArrivalUl,
                     $businessUnitParam,
                     $projectParam,
                     $showDateAndHourArrivalUl,
