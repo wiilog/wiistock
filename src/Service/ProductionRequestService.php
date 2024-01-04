@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
+use App\Entity\FreeField;
 use App\Entity\ProductionRequest;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,8 +59,12 @@ class ProductionRequestService
 
     private ?array $freeFieldsConfig = null;
 
-    public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
+        $champLibreRepository = $entityManager->getRepository(FreeField::class);
+
+        $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
         $columnsVisible = $currentUser->getVisibleColumns()['productionRequest'];
+
         $columns = [
             ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis'],
             ['title' => 'Numéro de demande', 'name' => 'number'],
@@ -78,7 +83,7 @@ class ProductionRequestService
             ['title' => FixedFieldStandard::FIELD_LABEL_COMMENTAIRE, 'name' => FixedFieldStandard::FIELD_CODE_COMMENTAIRE],
         ];
 
-        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+        return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
     public function getDataForDatatable(EntityManagerInterface $entityManager, Request $request) : array{

@@ -10,8 +10,11 @@ use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
+use App\Entity\Utilisateur;
 use App\Service\FixedFieldService;
 use App\Service\ProductionRequestService;
+use App\Service\TranslationService;
+use App\Service\VisibleColumnService;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,15 +36,16 @@ class ProductionRequestController extends AbstractController
                           ProductionRequestService $productionRequestService): Response {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
+        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $fields = $productionRequestService->getVisibleColumnsConfig($currentUser);
+        $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
             "types" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "fields" => $fields,
-            "initial_visible_columns" => $this->apiColumns($productionRequestService)->getContent(),
+            "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
         ]);
     }
 
@@ -104,9 +108,10 @@ class ProductionRequestController extends AbstractController
 
     #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function apiColumns(ProductionRequestService $service): Response {
+    public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($currentUser);
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
 
         return new JsonResponse($columns);
     }
@@ -161,6 +166,28 @@ class ProductionRequestController extends AbstractController
                     ])
                     ->toArray()
             ]),
+        ]);
+    }
+
+    #[Route("/colonne-visible", name: "set_visible_columns", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request                $request,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService   $visibleColumnService,
+                                      TranslationService     $translationService): Response {
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $visibleColumnService->setVisibleColumns('productionRequest', $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 }
