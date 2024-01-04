@@ -33,12 +33,12 @@ class ProductionRequestController extends AbstractController
     #[Route('/', name: 'index', methods: ['GET'])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function index(EntityManagerInterface $entityManager): Response {
-        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
+        $FixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         return $this->render('production_request/index.html.twig', [
             'productionRequest' => new ProductionRequest(),
-            'fieldsParam' => $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            'types' => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'fieldsParam' => $FixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+            'types' => $FixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
         ]);
     }
 
@@ -85,7 +85,7 @@ class ProductionRequestController extends AbstractController
         $entityManager->flush();
         return $this->json([
             'success' => true,
-            'msg' => "Votre demande de production à bien été créée."
+            'msg' => "Votre demande de production a bien été créée."
         ]);
     }
 
