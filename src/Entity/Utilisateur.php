@@ -304,7 +304,10 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     private ?string $dispatchBusinessUnit = null;
 
     #[ORM\OneToMany(mappedBy: 'treatedBy', targetEntity: ProductionRequest::class)]
-    private Collection $productionRequests;
+    private Collection $treatedProductionRequests;
+
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ProductionRequest::class)]
+    private Collection $createdProductionRequests;
 
 
     public function __construct() {
@@ -352,7 +355,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
-        $this->productionRequests = new ArrayCollection();
+        $this->treatedProductionRequests = new ArrayCollection();
+        $this->createdProductionRequests = new ArrayCollection();
     }
 
     public function getId() {
@@ -1990,24 +1994,51 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     /**
      * @return Collection<int, ProductionRequest>
      */
-    public function getProductionRequests(): Collection
+    public function getTreatedProductionRequests(): Collection
     {
-        return $this->productionRequests;
+        return $this->treatedProductionRequests;
     }
 
-    public function addProductionRequest(ProductionRequest $productionRequest): static
+    public function addTreatedProductionRequest(ProductionRequest $productionRequest): static
     {
-        if (!$this->productionRequests->contains($productionRequest)) {
-            $this->productionRequests->add($productionRequest);
+        if (!$this->treatedProductionRequests->contains($productionRequest)) {
+            $this->treatedProductionRequests->add($productionRequest);
             $productionRequest->setTreatedBy($this);
         }
 
         return $this;
     }
 
-    public function removeProductionRequest(ProductionRequest $productionRequest): static
+    public function removeTreatedProductionRequest(ProductionRequest $productionRequest): static
     {
-        if ($this->productionRequests->removeElement($productionRequest)) {
+        if ($this->treatedProductionRequests->removeElement($productionRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($productionRequest->getTreatedBy() === $this) {
+                $productionRequest->setTreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCreatedProductionRequests(): Collection
+    {
+        return $this->createdProductionRequests;
+    }
+
+    public function addCreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if (!$this->createdProductionRequests->contains($productionRequest)) {
+            $this->createdProductionRequests->add($productionRequest);
+            $productionRequest->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if ($this->createdProductionRequests->removeElement($productionRequest)) {
             // set the owning side to null (unless already changed)
             if ($productionRequest->getTreatedBy() === $this) {
                 $productionRequest->setTreatedBy(null);

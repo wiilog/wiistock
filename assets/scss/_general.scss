@@ -1256,6 +1256,12 @@ label.required:after {
         .history-line-right-content {
             position: relative;
 
+            .subtitle {
+                position: absolute;
+                top: 70%;
+                left: 10px;
+            }
+
             &.last-history-line::before {
                 background-color: $medium-grey !important;
             }

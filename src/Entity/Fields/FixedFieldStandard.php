@@ -221,7 +221,7 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EXPECTED_DATE_AND_TIME = "date et heure attendue";
     const FIELD_LABEL_PRODUCT_ARTICLE_CODE = "code produit/article";
     const FIELD_LABEL_QUANTITY = "quantité";
-    const FIELD_LABEL_LINE_COUNT = "nombre de ligne";
+    const FIELD_LABEL_LINE_COUNT = "nombre de lignes";
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
