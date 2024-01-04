@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\IOT\SensorWrapper;
@@ -40,6 +41,22 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
+    const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
+        "number",
+        "createdAt",
+        "treatedBy",
+        "type",
+        "status", 
+        FixedFieldStandard::FIELD_CODE_EXPECTED_AT,
+        FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
+        FixedFieldStandard::FIELD_CODE_LINE_COUNT,
+        FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER,
+        FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE,
+        FixedFieldStandard::FIELD_CODE_QUANTITY,
+        FixedFieldStandard::FIELD_CODE_EMERGENCY,
+        FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER,
+        FixedFieldStandard::FIELD_CODE_COMMENTAIRE
+    ];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -53,6 +70,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
         'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
+        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
