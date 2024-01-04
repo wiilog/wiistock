@@ -269,29 +269,5 @@ class ImportController extends AbstractController
             throw new FormException("L'import ne peut pas être supprimé.");
         }
     }
-
-    #[Route("/{import}/force", name: "import_force", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function forceImport(EntityManagerInterface $entityManager,
-                                Import                 $import,
-                                ImportService          $importService,
-                                ScheduleRuleService    $scheduleRuleService): JsonResponse {
-        if ($import->canBeForced()) {
-
-            $import->setForced(true);
-
-            $nextExecutionDate = $scheduleRuleService->calculateNextExecutionDate($import->getScheduleRule());
-            $import->setNextExecutionDate($nextExecutionDate);
-
-            $entityManager->flush();
-            $importService->saveScheduledImportsCache($entityManager);
-
-            return $this->json([
-                'success' => true,
-                'msg' => "L'import va être exécuté dans les prochaines minutes."
-            ]);
-        } else {
-            throw new FormException("L'import ne peut pas être forcé.");
-        }
-    }
 }
 
