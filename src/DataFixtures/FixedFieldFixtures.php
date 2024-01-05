@@ -254,7 +254,7 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
                         ->setFieldCode($fieldCode['code'])
                         ->setElements($fieldCode['values'] ?? null)
                         ->setDisplayedCreate(($fieldCode['displayedCreate'] ?? false) ? $entityTypes : $emptyCollection)
-                        ->setDisplayedEdit(($fieldCode['displayedEdit']) ? $entityTypes : $emptyCollection)
+                        ->setDisplayedEdit(($fieldCode['displayedEdit'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setRequiredEdit(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection)
                         ->setRequiredCreate(($fieldCode['default'] ?? false) ? $entityTypes : $emptyCollection);
 
