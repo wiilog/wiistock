@@ -4,15 +4,21 @@ namespace App\Controller;
 
 use App\Annotation\HasPermission;
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
+use App\Entity\FiltreSup;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\CategorieCL;
 use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
+use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Service\FixedFieldService;
 use App\Service\ProductionRequestService;
+use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use App\Service\StatusHistoryService;
@@ -32,21 +38,107 @@ class ProductionRequestController extends AbstractController
 {
     #[Route('/', name: 'index', methods: ['GET'])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function index(EntityManagerInterface   $entityManager,
-                          ProductionRequestService $productionRequestService): Response {
+    public function index(Request $request,
+                          EntityManagerInterface   $entityManager,
+                          ProductionRequestService $productionRequestService,
+                          StatusService          $statusService): Response {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         $fields = $productionRequestService->getVisibleColumnsConfig($entityManager, $currentUser);
 
+        // repository
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
+
+        // data from request
+        $query = $request->query;
+        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+
+        // case type filter selected
+        if (!empty($typesFilter)) {
+            $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
+                ->filterMap(fn(Type $type) => $type->getLabelIn($currentUser->getLanguage()))
+                ->toArray();
+        }
+
+        // case status filter selected
+        if (!empty($statusesFilter)) {
+            $statusesFilter = Stream::from($statutRepository->findBy(['id' => $statusesFilter]))
+                ->map(fn(Statut $status) => $status->getId())
+                ->toArray();
+        }
+
+        $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
+        $attachmentAssigned = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("attachmentsAssigned", 'production', $currentUser);
+
+        $dateChoices =
+            [
+                [
+                    'name' => 'createdAd',
+                    'label' => 'Date de création',
+                ],
+                [
+                    'name' => 'expectedAt',
+                    'label' => 'Date de réalisation',
+                ],
+            ];
+
+        foreach ($dateChoices as &$choice) {
+            $choice['default'] = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'production', $currentUser);
+        }
+
+        $dateChoicesHasDefault = Stream::from($dateChoices)
+            ->some(static fn($choice) => ($choice['default'] ?? false));
+
+        if ($dateChoicesHasDefault) {
+            $dateChoices[0]['default'] = true;
+        }
+
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "types" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
+            "dateChoices" => $dateChoices,
+            "types" => Stream::from($types)
+                ->map(fn(Type $type) => [
+                    'id' => $type->getId(),
+                    'label' => $this->getFormatter()->type($type)
+                ])
+                ->toArray(),
+            "statusStateValues" => Stream::from($statusService->getStatusStatesValues())
+                ->reduce(function($status, $item) {
+                    $status[$item['id']] = $item['label'];
+                    return $status;
+                }, []),
+            "typesFilter" => $typesFilter,
+            "statusFilter" => $statusesFilter,
+            "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
+            "attachmentAssigned" => $attachmentAssigned,
         ]);
+    }
+
+    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
+    public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
+
+        return new JsonResponse($columns);
+    }
+
+    #[Route("/api", name: "api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
+    public function api(Request                  $request,
+                        ProductionRequestService $productionRequestService,
+                        EntityManagerInterface   $entityManager): Response {
+        return $this->json($productionRequestService->getDataForDatatable($entityManager, $request));
     }
 
     #[Route("/voir/{id}", name: "show")]
@@ -106,24 +198,6 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
-        $columns = $service->getVisibleColumnsConfig($entityManager, $currentUser);
-
-        return new JsonResponse($columns);
-    }
-
-    #[Route("/api", name: "api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
-    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
-    public function api(Request                  $request,
-                        ProductionRequestService $productionRequestService,
-                        EntityManagerInterface   $entityManager): Response {
-        return $this->json($productionRequestService->getDataForDatatable($entityManager, $request));
-    }
-
     #[Route("/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
     public function statusHistoryApi(ProductionRequest $productionRequest,
                                      LanguageService   $languageService): JsonResponse {
@@ -156,9 +230,9 @@ class ProductionRequestController extends AbstractController
                 "entity" => $productionRequest,
                 "history" => Stream::from($productionRequest->getHistory())
                     ->sort(static fn(ProductionHistoryRecord $h1, ProductionHistoryRecord $h2) => (
-                        ($h2->getDate() <=> $h1->getDate())
-                            ?: ($h2->getId() <=> $h1->getId())
-                        )
+                    ($h2->getDate() <=> $h1->getDate())
+                        ?: ($h2->getId() <=> $h1->getId())
+                    )
                     )
                     ->map(static fn(ProductionHistoryRecord $productionHistory) => [
                         "record" => $productionHistory,

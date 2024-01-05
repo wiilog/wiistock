@@ -2,12 +2,14 @@
 
 namespace App\Repository;
 
+use App\Entity\FiltreSup;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\ProductionRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
+use WiiCommon\Helper\Stream;
 
 /**
  * @extends EntityRepository<ProductionRequest>
@@ -35,55 +37,76 @@ class ProductionRequestRepository extends EntityRepository
 
     public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
     {
-        $qb = $this->createQueryBuilder("production_request");
+        $qb = $this->createQueryBuilder('production_request')
+            ->groupBy('production_request.id');
 
         $total = QueryBuilderHelper::count($qb, 'production_request');
-        // todo WIIS-10759 : filtres sup
-        /*foreach ($filters as $filter) {
+        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
+
+        // filtres sup
+        foreach ($filters as $filter) {
             switch ($filter['field']) {
-                case 'statut':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('shipping_request.status', 'filter_status')
-                        ->andWhere('filter_status.id IN (:statut)')
-                        ->setParameter('statut', $value);
+                case 'dateMin':
+                    $filteredDate = match ($dateChoice){
+                        'expectedAt' => 'expectedAt',
+                        default => 'createdAt'
+                    };
+                    $qb->andWhere("production_request.{$filteredDate} >= :filter_dateMin_value")
+                        ->setParameter('filter_dateMin_value', $filter['value'] . ' 00.00.00');
                     break;
-                case 'customerOrderNumber':
-                    $qb
-                        ->andWhere('shipping_request.customerOrderNumber LIKE :customerOrderNumber')
-                        ->setParameter('customerOrderNumber', '%' . $filter['value'] . '%');
+                case 'dateMax':
+                    $filteredDate = match ($dateChoice){
+                        'expectedAt' => 'expectedAt',
+                        default => 'createdAt'
+                    };
+                    $qb->andWhere("production_request.{$filteredDate} <= :filter_dateMax_value")
+                        ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
                     break;
-                case 'carriers':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('shipping_request.carrier', 'carrier')
-                        ->andWhere('carrier.id IN (:carrierId)')
-                        ->setParameter('carrierId', $value);
-                    break;
-                case 'utilisateurs':
-                    $value = explode(',', $filter['value']);
-                    $qb
-                        ->join('shipping_request.requesters', 'filter_requester')
-                        ->andWhere("filter_requester.id in (:filter_requester_username_value)")
-                        ->setParameter('filter_requester_username_value', $value);
-                    break;
-                case 'date-choice':
-                    $chosenDate = $filter['value'];
-                    foreach ($filters as $filter) {
-                        switch ($filter['field']) {
-                            case 'dateMin':
-                                $qb->andWhere('shipping_request.' . $chosenDate . ' >= :filter_dateMin_value' )
-                                    ->setParameter('filter_dateMin_value', $filter['value'] . ' 00:00:00');
-                                break;
-                            case 'dateMax':
-                                $qb->andWhere('shipping_request.' . $chosenDate . ' <= :filter_dateMax_value')
-                                    ->setParameter('filter_dateMax_value', $filter['value'] . ' 23:59:59');
-                                break;
-                        }
+                case FiltreSup::FIELD_MULTIPLE_TYPES:
+                    if(!empty($filter['value'])){
+                        $value = Stream::explode(',', $filter['value'])
+                            ->filter()
+                            ->map(static fn($type) => explode(':', $type)[0])
+                            ->toArray();
+
+                        $qb
+                            ->join('production_request.type', 'filter_type')
+                            ->andWhere('filter_type.id IN (:filter_type_value)')
+                            ->setParameter('filter_type_value', $value);
                     }
                     break;
+                case 'statuses-filter':
+                case 'statut':
+                    if(!empty($filter['value'])) {
+                        $value = explode(',', $filter['value']);
+                        $qb
+                            ->join('production_request.status', 'filter_status')
+                            ->andWhere('filter_status.id IN (:status)')
+                            ->setParameter('status', $value);
+                    }
+                    break;
+                case 'requesters':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('production_request.createdBy', 'filter_createdBy')
+                        ->andWhere('filter_createdBy.id IN (:filter_createdBy_values)')
+                        ->setParameter('filter_createdBy_values', $value);
+                    break;
+                case FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER:
+                    $value = $filter['value'];
+                    $qb
+                        ->andWhere($qb->expr()->like('production_request.manufacturingOrderNumber', ':filter_manufactoringOrderNumber_value'))
+                        ->setParameter('filter_manufactoringOrderNumber_value', '%' . $value . '%');
+                    break;
+                case 'attachmentsAssigned':
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('production_request.attachments', 'filter_attachments')
+                        ->andWhere('filter_attachments.id IN (:filter_attachments_value)')
+                        ->setParameter('filter_attachments_value', $value);
+                    break;
             }
-        }*/
+        }
 
         if (!empty($params)) {
             if (!empty($params->all('search'))) {

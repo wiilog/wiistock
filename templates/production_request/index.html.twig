@@ -1,10 +1,18 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Production | liste{% endblock %}
-{% block title_tooltip %}Production | liste{% endblock %}
+{% block title %}Production | Liste{% endblock %}
+{% block title_tooltip %}Production | Liste{% endblock %}
 
 {% block page_filter %}
-    {# TODO WIIS- 10759 #}
+    {% include 'filters/filtersProduction.html.twig' with {
+        page: 'PAGE_PRODUCTION',
+        tableSelector: '#tableProductions',
+        needsDateFormatting: true,
+        types: types,
+        statusFilter: statusFilter,
+        statuses : statuses,
+        typesFilter: typesFilter,
+    } %}
 {% endblock %}
 
 {# TODO WIIS-10760 #}
@@ -55,11 +63,12 @@
     {% include 'production_request/modalNewProductionRequest.html.twig' with {
         productionRequest,
         fieldsParam,
-        types,
+        emergencies,
     }%}
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
     {{ encore_entry_script_tags('production-index') }}
+    {{ encore_entry_script_tags('filters') }}
 {% endblock %}
