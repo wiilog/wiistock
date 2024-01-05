@@ -1,5 +1,5 @@
 Cypress.env('OLD_DATABASE_NAME', 'wiistock');
-let SSH_ON_APP = 'sshpass -p $SSH_ROOT_PASSWORD ssh -o StrictHostKeyChecking=no root@$APP_IP'
+let SSH_ON_APP = 'sshpass -p $SSHPASS ssh -o StrictHostKeyChecking=no www-data@app'
 
 Cypress.Commands.add(
     'startingCypressEnvironnement',
