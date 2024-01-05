@@ -150,14 +150,6 @@ class ReceiptAssociationController extends AbstractController
         ]);
     }
 
-    #[Route("/form-template", name: "receipt_association_form_template", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    public function formTemplate(): Response
-    {
-        return $this->json([
-            "html" => $this->renderView("receipt_association/modal/form.html.twig"),
-        ]);
-    }
-
     #[Route("/export", name: "get_receipt_associations_csv", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function export(EntityManagerInterface    $manager,

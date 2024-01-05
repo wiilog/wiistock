@@ -88,10 +88,11 @@ class TrackingMovementController extends AbstractController
         $fields = $trackingMovementService->getVisibleColumnsConfig($entityManager, $currentUser);
 
         $redirectAfterTrackingMovementCreation = $settingRepository->getOneParamByLabel(Setting::CLEAR_AND_KEEP_MODAL_AFTER_NEW_MVT);
-        $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
+        $statuses = Stream::from($statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA))
+            ->filter(static fn(Statut $statut) => $statut->getCode() !== TrackingMovement::TYPE_PRISE_DEPOSE)
+            ->toArray();
 
         $request->request->add(['length' => 10]);
-
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $statuses,
             'form_statuses' => Stream::from($statuses)

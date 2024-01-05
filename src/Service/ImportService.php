@@ -316,12 +316,17 @@ class ImportService
     {
         $statusTitle = '';
         $customClass = '';
+
         if ($import->getType()?->getLabel() === Type::LABEL_UNIQUE_IMPORT
             && $import->getStatus()?->getCode() === Import::STATUS_UPCOMING) {
-            $statusTitle = $import->isForced()
-                ? "L'import sera réalisé dans moins de 30 minutes."
-                : "L'import sera réalisé la nuit suivante.";
-            $customClass = "import-scheduled-status has-tooltip";
+            $information = htmlspecialchars(
+                $import->isForced()
+                    ? "L'import sera réalisé dans moins de 30 minutes."
+                    : "L'import sera réalisé la nuit suivante."
+            );
+        }
+        else {
+            $information = false;
         }
 
         $nextExecutionDate = ($import->getType()?->getLabel() === Type::LABEL_SCHEDULED_IMPORT && $import->getStatus()?->getCode() === Import::STATUS_SCHEDULED)
@@ -340,6 +345,12 @@ class ImportService
 
         return [
             'id' => $import->getId(),
+            "information" => $information
+                ? " <span class='has-tooltip d-flex align-items-center'
+                          title='{$information}'>
+                        <i class='wii-icon wii-icon-info wii-icon-13px bg-black'></i>
+                    </span>"
+                : null,
             'lastErrorMessage' => $lastErrorMessage
                 ? '<div class="d-flex">
                        <img src="/svg/urgence.svg"
@@ -357,7 +368,7 @@ class ImportService
             'newEntries' => $import->getNewEntries(),
             'updatedEntries' => $import->getUpdatedEntries(),
             'nbErrors' => $import->getNbErrors(),
-            'status' => "<span class='user-select-none cursor-default $customClass' data-id='{$import->getId()}' title='$statusTitle'>{$this->formatService->status($import->getStatus())}</span>",
+            'status' => $this->formatService->status($import->getStatus()),
             'user' => $this->formatService->user($import->getUser()),
             'type' => $this->formatService->type($import->getType()),
             "nextExecutionDate" => $this->formatService->datetime($nextExecutionDate),
