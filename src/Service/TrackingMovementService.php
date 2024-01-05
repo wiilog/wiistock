@@ -1521,8 +1521,7 @@ class TrackingMovementService extends AbstractController
         $pack->setQuantity(max($newQuantity, 1));
     }
 
-    public function treatGroupDrop(EntityManagerInterface $entityManager, Pack $pack, TrackingMovement $tracking)
-    {
+    public function treatGroupDrop(EntityManagerInterface $entityManager, Pack $pack, TrackingMovement $tracking): void {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $autoUngroup = (bool) $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP);
 
