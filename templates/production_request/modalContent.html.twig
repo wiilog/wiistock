@@ -60,7 +60,7 @@
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.select(fieldCode, trans('Demande', 'Général', 'Urgence'), requiredOnform, {
-                items: types|map(item => ({
+                items: emergencies|map(item => ({
                     value: item,
                     label: item,
                     selected: productionRequest.emergency == item,

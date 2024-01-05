@@ -45,11 +45,9 @@ class ProductionRequestRepository extends EntityRepository
 
         // filtres sup
         foreach ($filters as $filter) {
-            dump($filter);
             switch ($filter['field']) {
                 case 'dateMin':
                     $filteredDate = match ($dateChoice){
-                        'createdAt' => 'createdAt',
                         'expectedAt' => 'expectedAt',
                         default => 'createdAt'
                     };
@@ -58,7 +56,6 @@ class ProductionRequestRepository extends EntityRepository
                     break;
                 case 'dateMax':
                     $filteredDate = match ($dateChoice){
-                        'createdAt' => 'createdAt',
                         'expectedAt' => 'expectedAt',
                         default => 'createdAt'
                     };
@@ -71,9 +68,10 @@ class ProductionRequestRepository extends EntityRepository
                             ->filter()
                             ->map(static fn($type) => explode(':', $type)[0])
                             ->toArray();
+
                         $qb
                             ->join('production_request.type', 'filter_type')
-                            ->andWhere('filter_type.id in (:filter_type_value)')
+                            ->andWhere('filter_type.id IN (:filter_type_value)')
                             ->setParameter('filter_type_value', $value);
                     }
                     break;
@@ -83,18 +81,18 @@ class ProductionRequestRepository extends EntityRepository
                         $value = explode(',', $filter['value']);
                         $qb
                             ->join('production_request.status', 'filter_status')
-                            ->andWhere('filter_status.id in (:status)')
+                            ->andWhere('filter_status.id IN (:status)')
                             ->setParameter('status', $value);
                     }
                     break;
-                case 'createdBy':
+                case 'requesters':
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('production_request.createdBy', 'filter_createdBy')
-                        ->andWhere('filter_createdBy.id in (:filter_createdBy_values)')
+                        ->andWhere('filter_createdBy.id IN (:filter_createdBy_values)')
                         ->setParameter('filter_createdBy_values', $value);
                     break;
-                case 'manufacturingOrderNumber':
+                case FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER:
                     $value = $filter['value'];
                     $qb
                         ->andWhere($qb->expr()->like('production_request.manufacturingOrderNumber', ':filter_manufactoringOrderNumber_value'))
@@ -104,7 +102,7 @@ class ProductionRequestRepository extends EntityRepository
                     $value = explode(',', $filter['value']);
                     $qb
                         ->join('production_request.attachments', 'filter_attachments')
-                        ->andWhere('filter_attachments.id in (:filter_attachments_value)')
+                        ->andWhere('filter_attachments.id IN (:filter_attachments_value)')
                         ->setParameter('filter_attachments_value', $value);
                     break;
             }

@@ -16,7 +16,6 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
-use App\Repository\TypeRepository;
 use App\Service\FixedFieldService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
@@ -102,7 +101,7 @@ class ProductionRequestController extends AbstractController
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "types" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
             "fields" => $fields,
             "initial_visible_columns" => $this->apiColumns($productionRequestService, $entityManager)->getContent(),
             "dateChoices" => $dateChoices,
@@ -120,7 +119,6 @@ class ProductionRequestController extends AbstractController
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
-            "initial_visible_columns" => $this->apiColumns($service)->getContent(),
             "attachmentAssigned" => $attachmentAssigned,
         ]);
     }

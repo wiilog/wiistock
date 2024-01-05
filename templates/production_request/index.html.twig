@@ -1,7 +1,7 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Production | liste{% endblock %}
-{% block title_tooltip %}Production | liste{% endblock %}
+{% block title %}Production | Liste{% endblock %}
+{% block title_tooltip %}Production | Liste{% endblock %}
 
 {% block page_filter %}
     {% include 'filters/filtersProduction.html.twig' with {
@@ -63,7 +63,7 @@
     {% include 'production_request/modalNewProductionRequest.html.twig' with {
         productionRequest,
         fieldsParam,
-        types,
+        emergencies,
     }%}
 {% endblock %}
 

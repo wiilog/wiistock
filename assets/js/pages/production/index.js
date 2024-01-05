@@ -21,13 +21,7 @@ $(function () {
 
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
-    // filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_PRODUCTION);
-    $.post(path, params, function(data) {
-            displayFiltersSup(data, true);
-    }, 'json');
-
+    getUserFiltersByPage(PAGE_PRODUCTION);
 });
 
 function initTableShippings() {
@@ -67,7 +61,7 @@ function initTableShippings() {
             order: [['number', "desc"]],
             ajax: {
                 url: pathProduction,
-                type: POST,
+                type: AJAX.POST,
             },
             rowConfig: {
                 needsRowClickAction: true,
