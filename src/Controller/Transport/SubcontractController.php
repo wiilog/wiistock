@@ -17,7 +17,7 @@ use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
 use App\Service\StatusHistoryService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\Transport\TransportService;
 use DateTime;
 use App\Entity\Type;
@@ -30,7 +30,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use WiiCommon\Helper\StringHelper;
 
 
 #[Route("transport/sous-traitance")]
@@ -120,7 +119,7 @@ class SubcontractController extends AbstractController
                     $currentRow[] = $this->renderView("transport/subcontract/list_card.html.twig", [
                         "prefix" => TransportRequest::NUMBER_PREFIX,
                         "request" => $request,
-                        "historyType" => TransportHistoryService::TYPE_FINISHED,
+                        "historyType" => OperationHistoryService::TYPE_FINISHED,
                     ]);
                 } else {
                     $currentRow[] = $this->renderView("transport/subcontract/card_to_validate.html.twig", [
@@ -149,7 +148,7 @@ class SubcontractController extends AbstractController
     #[HasPermission([Menu::ORDRE, Action::DISPLAY_TRANSPORT_SUBCONTRACT], mode: HasPermission::IN_JSON)]
     public function acceptTransportRequest(Request                 $request,
                                            StatusHistoryService    $statusHistoryService,
-                                           TransportHistoryService $transportHistoryService,
+                                           OperationHistoryService $operationHistoryService,
                                            EntityManagerInterface  $entityManager,
                                            TransportService        $transportService): Response {
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
@@ -176,21 +175,21 @@ class SubcontractController extends AbstractController
                         ? TransportRequest::STATUS_TO_DELIVER
                         : TransportRequest::STATUS_TO_PREPARE)
                 );
-            $transportHistoryType = TransportHistoryService::TYPE_ACCEPTED;
+            $transportHistoryType = OperationHistoryService::TYPE_ACCEPTED;
         } else {
             $status = $statutRepository->findOneByCategorieNameAndStatutCode(
                 CategorieStatut::TRANSPORT_REQUEST_DELIVERY,
                 TransportRequest::STATUS_SUBCONTRACTED
             );
-            $transportHistoryType = TransportHistoryService::TYPE_SUBCONTRACTED;
+            $transportHistoryType = OperationHistoryService::TYPE_SUBCONTRACTED;
 
-            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+            $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
                 'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
             ]);
         }
 
         $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
-        $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $transportHistoryType, [
+        $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, $transportHistoryType, [
             'history' => $statusHistory,
         ]);
 
@@ -255,7 +254,7 @@ class SubcontractController extends AbstractController
                          Request                 $request,
                          TransportService        $transportService,
                          AttachmentService       $attachmentService,
-                         TransportHistoryService $transportHistoryService,
+                         OperationHistoryService $operationHistoryService,
                          TranslationService      $translation): ?Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $transportRequestRepository = $entityManager->getRepository(TransportRequest::class);
@@ -343,14 +342,14 @@ class SubcontractController extends AbstractController
         }
 
         if ($oldComment !== $transportOrder->getComment()) {
-            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_ADD_COMMENT, [
+            $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_ADD_COMMENT, [
                 'user' => $loggedUser,
                 'comment' => $transportOrder->getComment()
             ]);
         }
 
         if (!empty($addedAttachments)) {
-            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+            $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_ADD_ATTACHMENT, [
                 'user' => $loggedUser,
                 'attachments' => $addedAttachments
             ]);

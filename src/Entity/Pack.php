@@ -5,9 +5,9 @@ namespace App\Entity;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\SensorMessageTrait;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequestPack;
 use App\Entity\Transport\TransportDeliveryOrderPack;
-use App\Entity\Transport\TransportHistory;
 use App\Helper\FormatHelper;
 use App\Repository\PackRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -101,7 +101,7 @@ class Pack implements PairedEntity {
     #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ["default" => false])]
     private bool $deliveryDone = false;
 
-    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'pack', targetEntity: TransportHistoryRecord::class)]
     private Collection $transportHistory;
 
     #[ORM\OneToOne(mappedBy: 'pack', targetEntity: TransportDeliveryOrderPack::class)]
@@ -623,13 +623,13 @@ class Pack implements PairedEntity {
     }
 
     /**
-     * @return Collection<int, TransportHistory>
+     * @return Collection<int, TransportHistoryRecord>
      */
     public function getTransportHistories(): Collection {
         return $this->transportHistory;
     }
 
-    public function addTransportHistory(TransportHistory $transportHistory): self
+    public function addTransportHistory(TransportHistoryRecord $transportHistory): self
     {
         if (!$this->transportHistory->contains($transportHistory)) {
             $this->transportHistory[] = $transportHistory;
@@ -639,7 +639,7 @@ class Pack implements PairedEntity {
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistory $transportHistory): self
+    public function removeTransportHistory(TransportHistoryRecord $transportHistory): self
     {
         if ($this->transportHistory->removeElement($transportHistory)) {
             // set the owning side to null (unless already changed)

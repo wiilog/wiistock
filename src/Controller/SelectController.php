@@ -866,4 +866,16 @@ class SelectController extends AbstractController {
             'results' => $allLocations
         ]);
     }
+
+    #[Route('/select/types/production', name: 'ajax_select_production_request_type', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    public function productionRequestType(Request $request, EntityManagerInterface $manager): Response {
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::PRODUCTION,
+            $request->query->get("term")
+        );
+
+        return $this->json([
+            "results" => $results,
+        ]);
+    }
 }
