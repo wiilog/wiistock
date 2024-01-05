@@ -561,7 +561,7 @@ class Import {
         return $this->FTPConfig;
     }
 
-    public function setFTPConfig(array $FTPConfig): self {
+    public function setFTPConfig(?array $FTPConfig): self {
         $this->FTPConfig = $FTPConfig;
 
         return $this;
