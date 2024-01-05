@@ -137,7 +137,7 @@ class IOTService
         self::DATA_TYPE_POSITION => 'Position',
         self::DATA_TYPE_ZONE_ENTER => 'Entrée zone',
         self::DATA_TYPE_ZONE_EXIT => 'Sortie zone',
-        self::DATA_TYPE_LIVENESS_PROOF => 'Preuve de vie',
+        self::DATA_TYPE_LIVENESS_PROOF => 'Présence',
     ];
 
     const DATA_TYPE_TO_UNIT = [
@@ -884,6 +884,7 @@ class IOTService
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
             case IOTService::INEO_SENS_ACS_HYGRO:
+            case IOTService::INEO_TRK_ZON:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
@@ -981,7 +982,14 @@ class IOTService
                 $jsonData = json_decode($config['objectJSON'], true);
                 $events = $jsonData['events'] ?? [];
                 $batteryEvent = Stream::from($events)->find(static fn(array $event) => (int)$event['eventType'] == 4 ) ?? [];
-                return $batteryEvent['numValue'] ?? -1;
+                $batteryLevel = $batteryEvent['numValue'] ?? null;
+                if (!$batteryLevel) {
+                    $payload = $jsonData['payload'] ?? null;
+                    if ($payload && str_starts_with($payload, '49')) {
+                        $batteryLevel = 100 - hexdec(substr($payload, 24, 2));
+                    }
+                }
+                return $batteryLevel ?? -1;
         }
         return -1;
     }
