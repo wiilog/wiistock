@@ -1,6 +1,7 @@
 $(function () {
     initDateTimePicker();
     $(`.select2`).select2();
+    Select2Old.init($(".filter-select2[name=multipleTypes]"), "Types de missions");
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate(`filter_get_by_page`);

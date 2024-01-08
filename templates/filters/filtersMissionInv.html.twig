@@ -7,6 +7,6 @@
         {% include 'filters/filter_item/filterAnomaly.html.twig' %}
     {% endif %}
     {% if types is defined %}
-        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types, placeholder: 'Types de mission'} %}
+        {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {types: types} %}
     {% endif %}
 {% endblock %}
