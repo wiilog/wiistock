@@ -189,6 +189,10 @@ function initEditatable(datatable, onDatatableInit = null) {
     const $parent = $element.parent();
 
     let url;
+
+    if(config.bindCheckbox) {
+        initializeCheckboxBehavior($element, config.bindCheckbox);
+    }
     if ($.fn.DataTable.isDataTable($element)) {
         const datatable = $element.DataTable();
         url = datatable.ajax.url();
@@ -402,4 +406,27 @@ function generateDefaultData(ajax, columns) {
     } else {
         return null;
     }
+}
+
+export function setCheckboxBehavior($container, inputNameCreate, inputNameDisplay) {
+    // on check input create
+    $container.on('change', `[name=${inputNameCreate}]:checked`, function() {
+        const $target = $(event.target);
+        const $tr = $target.closest('tr');
+        const $inputToCheck = $tr.find(`[name=${inputNameDisplay}]`);
+        $inputToCheck.prop("checked", true);
+    });
+    // on uncheck input display
+    $container.on('change', `[name=${inputNameDisplay}]:not(:checked)`, function() {
+        const $target = $(event.target);
+        const $tr = $target.closest('tr');
+        const $inputToUncheck = $tr.find(`[name=${inputNameCreate}]`);
+        $inputToUncheck.prop('checked', false);
+    });
+}
+
+function initializeCheckboxBehavior($container, bindCheckboxConfig) {
+    bindCheckboxConfig.forEach((checkboxes)=>{
+    setCheckboxBehavior($container, checkboxes.required, checkboxes.displayed);
+    })
 }

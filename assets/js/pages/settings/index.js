@@ -33,7 +33,7 @@ import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
 import {initializeFastDeliveryRequest} from "@app/pages/settings/fast-delivery";
-import {onSelectAll, setCheckboxBehavior} from '@app/pages/settings/utils';
+import {onSelectAll} from '@app/pages/settings/utils';
 
 global.triggerReminderEmails = triggerReminderEmails;
 global.saveTranslations = saveTranslations;
@@ -595,11 +595,6 @@ function initializeStockArticlesLabels($container) {
     });
 }
 
-function initializeFixedFieldsBehavior($container) {
-    setCheckboxBehavior($container, 'requiredCreate', 'displayedCreate');
-    setCheckboxBehavior($container, 'requiredEdit', 'displayedEdit');
-}
-
 function initializeReceptionFixedFields($container, canEdit) {
     EditableDatatable.create(`#table-reception-fixed-fields`, {
         route: Routing.generate('settings_fixed_field_api', {entity: `réception`}),
@@ -621,8 +616,11 @@ function initializeReceptionFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeDemandesFixedFields($container, canEdit) {
@@ -646,6 +644,10 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
 
     EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
@@ -668,11 +670,11 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `conditionFixedFieldValue`, title: `Valeur`},
             {data: `required`, title: `Obligatoire`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayed', required: 'required'},
+        ],
     });
-
     initializeLocationByTypeForDeliveries();
-    initializeFixedFieldsBehavior($container);
-    setCheckboxBehavior($container, 'required', 'displayed');
 }
 
 function initializeDispatchFixedFields($container, canEdit) {
@@ -701,6 +703,10 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
                 ],
+                bindCheckbox: [
+                    {displayed: 'displayedCreate', required: 'requiredCreate'},
+                    {displayed: 'displayedEdit', required: 'requiredEdit'},
+                ],
             });
         })
         .first()
@@ -723,8 +729,11 @@ function initializeDispatchFixedFields($container, canEdit) {
             {data: `displayed`, title: `Afficher`, width: `70px`},
             {data: `required`, title: `Obligatoire`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeArticleFixedFields($container, canEdit) {
@@ -748,8 +757,11 @@ function initializeArticleFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeArrivalFixedFields($container, canEdit) {
@@ -774,8 +786,11 @@ function initializeArrivalFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeHandlingFixedFields($container, canEdit) {
@@ -799,9 +814,12 @@ function initializeHandlingFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
     initializeType();
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeLocationByTypeForDeliveries() {
@@ -1287,9 +1305,12 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
     initializeType();
-    initializeFixedFieldsBehavior($container);
 }
 
 function initializeTruckArrivalReserves() {
@@ -1389,8 +1410,11 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
-    initializeFixedFieldsBehavior($container);
 }
 
 function changeDisplayRefArticleTable($checkbox) {

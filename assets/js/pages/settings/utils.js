@@ -455,20 +455,3 @@ export function onSelectAll() {
 
     $select.trigger(`change`);
 }
-
-export function setCheckboxBehavior($container, inputNameCreate, inputNameDisplay) {
-    // au check de l'input create
-    $container.on('change', `[name=${inputNameCreate}]:checked`, function() {
-        const $target = $(event.target);
-        const $tr = $target.closest('tr');
-        const $inputToCheck = $tr.find(`[name=${inputNameDisplay}]`);
-        $inputToCheck.prop("checked", true);
-    });
-    // au uncheck de l'input display
-    $container.on('change', `[name=${inputNameDisplay}]:not(:checked)`, function() {
-        const $target = $(event.target);
-        const $tr = $target.closest('tr');
-            const $inputToUncheck = $tr.find(`[name=${inputNameCreate}]`);
-            $inputToUncheck.prop('checked', false);
-    });
-}
