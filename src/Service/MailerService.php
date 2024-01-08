@@ -24,15 +24,7 @@ class MailerService
 {
 
     private const TEST_EMAIL = 'test@wiilog.fr';
-    public const PROTOCOL_TLS = 'TLS';
-    public const PROTOCOL_SSL = 'SSL';
-
     public const PORT_SSL = 587;
-
-    public const PROTOCOLS = [
-        self::PROTOCOL_SSL,
-        self::PROTOCOL_TLS,
-    ];
 
     #[Required]
     public Environment $templating;
@@ -78,7 +70,7 @@ class MailerService
             Setting::MAILER_PORT,
             Setting::MAILER_USER,
             Setting::MAILER_PASSWORD,
-            Setting::MAILER_PROTOCOL,
+            Setting::MAILER_IS_TLS_PROTOCOL,
             Setting::MAILER_SENDER_NAME,
             Setting::MAILER_SENDER_MAIL,
         ]);
@@ -87,7 +79,7 @@ class MailerService
         $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
         $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
         $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
-        $protocole = ($mailerServerSettings[Setting::MAILER_PROTOCOL] ?? null)?->getValue();
+        $isProtocoleTLS = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
         $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
         $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
 
@@ -98,7 +90,7 @@ class MailerService
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
 
-        $transport = (new EsmtpTransport($host, $port, $protocole === self::PROTOCOL_TLS))
+        $transport = (new EsmtpTransport($host, $port, $isProtocoleTLS))
             ->setUsername($user)
             ->setPassword($password);
 
