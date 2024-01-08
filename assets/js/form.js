@@ -389,7 +389,7 @@ export default class Form {
             || $parent.find(`.field-label`).text()
             || $dataField.data('field-label');
 
-        label = label
+        label = (label || '')
             .trim()
             .replace(/\*$/, '');
 
