@@ -3440,6 +3440,11 @@ class MobileController extends AbstractApiController
 
                     $dispatchService->treatDispatchRequest($entityManager, $dispatch, $treatedStatus, $nomadUser, true, $treatedPacks);
 
+                    if($treatedStatus->isAutomaticDispatchCreation()) {
+                        $dispatchService->duplicateDispatch($entityManager, $dispatch, $this->getUser());
+                        $entityManager->flush();
+                    }
+
                     if (!$treatedStatus->isPartial()) {
                         $entireTreatedDispatch[] = $dispatch->getId();
                     }

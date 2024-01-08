@@ -369,8 +369,6 @@ function onPackCodeChange($input) {
             AJAX.route(AJAX.GET, `get_pack_intel`, {packCode})
                 .json()
                 .then(({success, pack}) => {
-                    console.log(pack);
-                    console.log(success);
                     if (success && pack && pack.location) {
                         const $modal = $input.closest('.modal');
                         const $location = $modal.find('[name="emplacement"]');

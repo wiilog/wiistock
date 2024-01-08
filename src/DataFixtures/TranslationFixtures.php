@@ -2048,6 +2048,10 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "en" => "Transfer has been processed successfully",
                         ],
                         [
+                            "fr" => "L'acheminement a bien été avancé",
+                            "en" => "The transfer has been successfully progressed",
+                        ],
+                        [
                             "fr" => "Modifier un acheminement",
                             "en" => "Edit transfer",
                             "tooltip" => "Modale modifier un acheminement",

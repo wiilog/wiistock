@@ -222,7 +222,7 @@
                                 {% elseif not dispatch.statut.treated and not setting_value('FORCE_GROUPED_SIGNATURE') %}
                                     <button type="button"
                                             data-id='{{ dispatch.id }}'
-                                            onclick="openPartialDispatchModal()"
+                                            onclick="openInProgressDispatchModal()"
                                             class="btn btn-outline-primary align-items-center justify-content-center split-button mr-0">
                                         <span class="wii-icon wii-icon-check-white mr-2"></span>
                                         Avancer la demande
@@ -316,7 +316,7 @@
     {% include "dispatch/modalDeleteDispatch.html.twig" with {dispatch: dispatch} %}
     {% include "dispatch/modalValidateDispatch.html.twig" with dispatchValidate %}
     {% include "dispatch/modalTreatDispatch.html.twig" with dispatchTreat %}
-    {% include "dispatch/modalPartialDispatch.html.twig" with dispatchPartial %}
+    {% include "dispatch/modalProgressDispatch.html.twig" with dispatchInProgress %}
     {% include "dispatch/modalDeletePack.html.twig" %}
     {% include "dispatch/modalPrintDeliveryNote.html.twig" %}
     {% include "dispatch/modalPrintWayBill.html.twig" %}
