@@ -102,8 +102,16 @@
     </div>
 </div>
 
-{#
-TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
+<div class="wii-section-title">Bon de surconsommation</div>
+<div class="wii-section">
+    <div class="row mt-3">
+        <div class="col-12">
+            {{ form.image(setting('FILE_OVERCONSUMPTION_LOGO'), 'Logo du bon de surconsommation', false, setting_value('FILE_OVERCONSUMPTION_LOGO'), {
+                formats: 'image/png, image/jpeg, image/jpg'
+            }) }}
+        </div>
+    </div>
+</div>
 
 <div class="wii-section-title">Groupage</div>
 <div class="wii-section">
@@ -126,4 +134,3 @@ TODO WIIS-10589: à remettre en place quand la fonctionnalité sera terminée
         </div>
     </div>
 </div>
-#}

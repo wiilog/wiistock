@@ -90,20 +90,20 @@ class DispatchController extends AbstractController {
         $typesFilter = $query->has('types') ? $query->all('types', '') : [];
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
         if (!empty($statusesFilter)) {
-            $statusesFilter = Stream::from($statusesFilter)
-                ->map(fn($statusId) => $statutRepository->find($statusId)->getId())
+            $statusesFilter = Stream::from($statutRepository->findBy(['id' => $statusesFilter]))
+                ->map(fn(Statut $status) => $status->getId())
                 ->toArray();
         }
 
         if (!empty($typesFilter)) {
-            $typesFilter = Stream::from($typesFilter)
-                ->map(fn($typeId) => $typeRepository->find($typeId)->getLabel())
+            $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
+                ->filterMap(fn(Type $type) => $type->getLabelIn($currentUser->getLanguage()))
                 ->toArray();
         }
-
-        /** @var Utilisateur $currentUser */
-        $currentUser = $this->getUser();
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
@@ -1502,25 +1502,21 @@ class DispatchController extends AbstractController {
                                           Dispatch               $dispatch,
                                           StatusHistoryService   $statusHistoryService): Response
     {
-        $settingRepository = $entityManager->getRepository(Setting::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
 
-        $overConsumptionBill = $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_BILL_TYPE_AND_STATUS);
-        if($overConsumptionBill) {
-            $typeAndStatus = explode(';', $overConsumptionBill);
-            $typeId = intval($typeAndStatus[0]);
-            $statutsId = intval($typeAndStatus[1]);
+        $dispatchStatuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType());
+        $overConsumptionBillStatus = Stream::from($dispatchStatuses)
+            ->filter(static fn(Statut $status) => $status->getOverconsumptionBillGenerationStatus());
 
-            if ($dispatch->getType()->getId() === $typeId) {
-                $untreatedStatus = $statutRepository->find($statutsId);
-                $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
-                if (!$dispatch->getValidationDate()) {
-                    $dispatch->setValidationDate(new DateTime('now'));
-                }
-
-                $entityManager->flush();
-                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+        if($overConsumptionBillStatus->count() === 1) {
+            $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+            if (!$dispatch->getValidationDate()) {
+                $dispatch->setValidationDate(new DateTime('now'));
             }
+
+            $entityManager->flush();
+            $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
         }
 
         $dispatchStatus = $dispatch->getStatut();

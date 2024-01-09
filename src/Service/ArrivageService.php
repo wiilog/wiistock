@@ -285,10 +285,18 @@ class ArrivageService {
         }
     }
 
-    public function setArrivalUrgent(EntityManager $entityManager, Arrivage $arrivage, array $emergencies): void
-    {
-        if (!empty($emergencies)) {
-            $arrivage->setIsUrgent(true);
+    public function setArrivalUrgent(EntityManagerInterface $entityManager,
+                                     Arrivage               $arrivage,
+                                     bool                   $urgent,
+                                     array                  $emergencies = []): void {
+        if ($urgent) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $arrivage
+                ->setIsUrgent(true);
+        }
+
+        if ($urgent && !empty($emergencies)) {
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
@@ -401,7 +409,7 @@ class ArrivageService {
             : null;
     }
 
-    public function processEmergenciesOnArrival(EntityManager $entityManager, Arrivage $arrival): array
+    public function processEmergenciesOnArrival(EntityManagerInterface $entityManager, Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
@@ -422,7 +430,7 @@ class ArrivageService {
 
                 if (!empty($urgencesMatching)) {
                     if (!$confirmEmergency) {
-                        $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $confirmEmergency) {
@@ -667,36 +675,6 @@ class ArrivageService {
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
     }
 
-    public function getLocationForTracking(EntityManagerInterface $entityManager,
-                                           Arrivage $arrivage): ?Emplacement {
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
-            $location = $emplacementRepository->find($customsArrivalsLocation);
-        }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
-            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
-        }
-        else if (
-            (
-                $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-                || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)
-            ) && !$arrivage->getReceivers()->isEmpty()) {
-            $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
-        } else if ($arrivage->getDropLocation()) {
-            $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
-            $location = $emplacementRepository->find($defaultArrivalsLocation);
-        }
-        else {
-            $location = null;
-        }
-
-        return $location;
-    }
-
     public function sendMailForDeliveredPack(Emplacement            $location,
                                              Pack                   $pack,
                                              Utilisateur            $user,
@@ -882,8 +860,14 @@ class ArrivageService {
                     'nom' => $this->formatService->status($statut),
                 ])
                 ->toArray();
-            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+            $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocationId ? $emplacementRepository->find($defaultLocationId) : null;
+
+            $defaultLocationIdIfCustomId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+            $defaultLocationIfCustoms = $defaultLocationIdIfCustomId ? $emplacementRepository->find($defaultLocationIdIfCustomId) : null;
+
+            $defaultLocationIdifRecipient = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+            $defaultLocationIfRecipient = $defaultLocationIdifRecipient ? $emplacementRepository->find($defaultLocationIdifRecipient) : null;
 
             $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
                 ->map(fn(Nature $nature) => [
@@ -917,6 +901,8 @@ class ArrivageService {
                 "fieldsParam" => $fieldsParam,
                 "businessUnits" => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 "defaultLocation" => $defaultLocation,
+                "defaultLocationIfCustoms" => $defaultLocationIfCustoms,
+                "defaultLocationIfRecipient" => $defaultLocationIfRecipient,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
@@ -928,5 +914,37 @@ class ArrivageService {
             'html' => $html ?? "",
             'acheteurs' => $acheteursUsernames ?? []
         ];
+    }
+
+    public function getDefaultDropLocation(EntityManagerInterface $entityManager,
+                                           Arrivage               $arrivage): ?Emplacement {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        if ($arrivage->getDropLocation()) {
+            return $arrivage->getDropLocation();
+        }
+
+        $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        if($arrivage->getCustoms() && $customsArrivalsLocation) {
+            return $locationRepository->find($customsArrivalsLocation);
+        }
+
+        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
+            return $locationRepository->find($emergenciesArrivalsLocation);
+        }
+
+        $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+        if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
+            return $locationRepository->find($receiverDefaultLocation);
+        }
+
+        $defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+        if($defaultArrivalsLocation) {
+            return $locationRepository->find($defaultArrivalsLocation);
+        }
+
+        return null;
     }
 }

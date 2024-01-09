@@ -204,7 +204,7 @@ class Import {
             'targetLocationPicking' => 'Emplacement cible picking',
             'name' => 'Nom',
             'description' => 'Description',
-            'dateMaxTime' => 'Délais traça HH:MM',
+            'dateMaxTime' => 'Délai traça HH:MM',
             'allowedPackNatures' => "Natures autorisées",
             'allowedDeliveryTypes' => 'Types de livraisons autorisés',
             'allowedCollectTypes' => 'Types de collectes autorisés',

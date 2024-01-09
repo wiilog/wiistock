@@ -179,6 +179,26 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
                 modes: [MODE_DISPATCH]
             }] : []),
         {
+            data: `overconsumptionBillGenerationStatus`,
+            title: `<div class='small-column'>Passage au statut à la génération du bon de surconsommation</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
+            data: `sendReport`,
+            title: `<div class='small-column'>Envoi compte rendu</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
+            data: `groupedSignatureType`,
+            title: `<div class='small-column'>Signature groupée</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
+            data: `groupedSignatureColor`,
+            title: `<div class='small-column'>Couleur signature groupée</div>`,
+            modes: [MODE_DISPATCH]
+        },
+        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -232,6 +252,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         needsMobileSync: `<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data'/></div>`,
         commentNeeded: hasRightGroupedSignature ? `<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data'/></div>` : null,
         sendMailDest: `<div class='checkbox-container'><input type='checkbox' name='sendMailDest' class='form-control data'/></div>`,
+        overconsumptionBillGenerationStatus: `<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data'/></div>`,
         sendReport: hasRightGroupedSignature ? `<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data'/></div>` : null,
         groupedSignatureType:  hasRightGroupedSignature ? `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>` : null,
         groupedSignatureColor: hasRightGroupedSignature ? `<input type='color' class='form-control wii-color-picker data' name='color' value='#3353D7' list='type-color'/>

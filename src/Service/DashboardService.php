@@ -1129,7 +1129,7 @@ class DashboardService {
         return $this->cacheDaysWorked;
     }
 
-    private function updateComponentLocationCluster(EntityManagerInterface $entityManager,
+    public function updateComponentLocationCluster(EntityManagerInterface $entityManager,
                                                     Dashboard\Component $component,
                                                     string $fieldName): void {
 

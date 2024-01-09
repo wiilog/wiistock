@@ -3,7 +3,8 @@
 {% set isClientSafranED =
     isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_ED'))
     or isCurrentClient(constant('App\\Service\\SpecificService::CLIENT_SAFRAN_NS')) %}
-<div class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
+{% set modalId = 'modalNewArrivage' %}
+<div class="modal fade" id="{{  modalId }}" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <div class="modal-content">
             {% include 'utils/modal/header.html.twig' with {
@@ -319,6 +320,15 @@
                                     value: user.id,
                                     selected: true,
                                 }),
+                                additionalAttributes : defaultLocationIfRecipient is defined and defaultLocationIfRecipient is not null ? [
+                                    {
+                                        name: "data-default-location-if-recipient-id",
+                                        value: defaultLocationIfRecipient.id,
+                                    },{
+                                        name: "data-default-location-if-recipient-label",
+                                        value: defaultLocationIfRecipient.label,
+                                    }
+                                ] : []
                             }) }}
                         </div>
                     {% endif %}
@@ -380,10 +390,14 @@
                     {% if fieldsParam|isFieldRequired(customsFieldCode, 'displayedCreate') %}
                         <div class="form-group col-2 d-flex align-items-end">
                             <label class="wii-field-name d-flex d-flex align-items-center" style="height:36px">
-                                <input class="checkbox mr-2"
-                                       type="checkbox"
-                                       name="customs"
-                                    {{ keptFields[customsFieldCode] ?? false ? 'checked' }}>
+                                <input  class="checkbox mr-2"
+                                        type="checkbox"
+                                        name="customs"
+                                        {{ keptFields[customsFieldCode] ?? false ? 'checked' }}
+                                        {% if defaultLocationIfCustoms is defined and defaultLocationIfCustoms is not null %}
+                                            data-default-location-if-customs-id="{{ defaultLocationIfCustoms.id }}"
+                                            data-default-location-if-customs-label="{{ defaultLocationIfCustoms.label }}"
+                                        {% endif %}
                                 <label class="text-break text-wrap">
                                     {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
                                 </label>

@@ -12,20 +12,18 @@ $(function () {
         }
 
         // filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_ENCOURS);
-        $.post(path, params, function (data) {
-            if (!isPreFilledFilter) {
-                displayFiltersSup(data);
-            }
+        getUserFiltersByPage(PAGE_ENCOURS, {preventPrefillFilters: isPreFilledFilter}, () => {
             extendsDateSort('date', 'YYYY-MM-DDTHH:mm:ss');
             loadPage();
-        }, 'json');
+        });
     });
 });
 
 function loadPage() {
-    let idLocationsToDisplay = $('[name=emplacement]').val();
+    const idLocationsToDisplay = $('[name=emplacement]').val();
+    const useTruckArrivals = $(`.filters-container input[name=useTruckArrivals]`).is(`:checked`) ? 1 : 0;
+    const natures = $(`.filters-container [name=natures]`).val();
+
     const locationFiltersCounter = idLocationsToDisplay.length;
     const min = Number($('#encours-min-location-filter').val());
 
@@ -42,7 +40,7 @@ function loadPage() {
             if (locationFiltersCounter === 0
                 || (idLocationsToDisplay.indexOf($tableEncours.attr('id')) > -1)) {
                 $blockEncours.removeClass('d-none');
-                loadEncoursDatatable($tableEncours);
+                loadEncoursDatatable($tableEncours, useTruckArrivals, natures);
             } else {
                 $blockEncours.addClass('d-none');
             }
@@ -56,27 +54,38 @@ function loadPage() {
     });
 }
 
-function loadEncoursDatatable($table) {
+function loadEncoursDatatable($table, useTruckArrivals, natures) {
     const tableId = $table.attr('id');
+    const data = {
+        id: tableId,
+        useTruckArrivals,
+        natures,
+    }
+
     let tableAlreadyInit = $.fn.DataTable.isDataTable(`#${tableId}`);
+    extendsDateSort('customDate');
     if (tableAlreadyInit) {
+        // modification des paramètres POST de la requête AJAX pour tenir compte du changement dans les filtres
+        // settings() retourne les paramètres du datatable, ce qui permet de les modifier sans entièrement le redéfinir
+        $table.DataTable().settings()[0].ajax.data = data;
+        // rechargement du datatable avec les nouvelles données
         $table.DataTable().ajax.reload();
     }
     else {
-        let routeForApi = Routing.generate('en_cours_api', {fromDashboard: fromDashboard});
+        let routeForApi = Routing.generate('en_cours_api', {fromDashboard});
         let tableConfig = {
             processing: true,
             responsive: true,
             ajax: {
                 "url": routeForApi,
                 "type": "POST",
-                "data": {id: tableId}
+                data,
             },
             columns: [
                 {data: 'linkedArrival', name: 'linkedArrival', className: 'noVis', orderable : false},
                 {data: 'LU', name: 'LU', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
                 {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
-                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai') , render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
+                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai'), render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
                 {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {
@@ -88,10 +97,10 @@ function loadEncoursDatatable($table) {
             domConfig: {
                 removeInfo: true,
             },
-            order: [[2, "desc"]],
+            order: [["delay", "desc"]],
             columnDefs: [
                 {
-                    type: "date",
+                    type: "customDate",
                     targets: 2
                 }
             ],
