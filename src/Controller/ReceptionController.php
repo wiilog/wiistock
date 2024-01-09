@@ -1475,13 +1475,11 @@ class ReceptionController extends AbstractController {
                 })
                 ->toArray();
         } else {
-            $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
-            $barcodeConfigs = Stream::from($articles)
-                ->filter(function(Article $article) use ($tag) {
-                    return
-                        $article->getType()?->getTags()?->isEmpty() &&
-                        (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
-                })
+            $articles = Stream::from($entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]));
+            $tag = $articles
+                ->find(fn(Article $article) => !$article->getType()?->getTags()?->isEmpty())?->getType()?->getTags()?->first();
+
+            $barcodeConfigs = $articles
                 ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
         }
