@@ -184,21 +184,6 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             modes: [MODE_DISPATCH]
         },
         {
-            data: `sendReport`,
-            title: `<div class='small-column'>Envoi compte rendu</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureType`,
-            title: `<div class='small-column'>Signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
-            data: `groupedSignatureColor`,
-            title: `<div class='small-column'>Couleur signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        },
-        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -207,11 +192,6 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             data: `needsMobileSync`,
             title: `<div class='small-column'>Synchronisation nomade</div>`,
             modes: [MODE_HANDLING, MODE_DISPATCH]
-        },
-        {
-            data: `commentNeeded`,
-            title: `<div class='small-column'>Commentaire obligatoire sur nomade</div>`,
-            modes: [MODE_HANDLING]
         },
         ...(hasRightGroupedSignature ? [{
             data: `commentNeeded`,
