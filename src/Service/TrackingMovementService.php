@@ -10,12 +10,14 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\DispatchPack;
 use App\Entity\FreeField;
 use App\Entity\Dispatch;
 use App\Entity\Livraison;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterRecord;
 use App\Entity\MouvementStock;
+use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
@@ -77,6 +79,12 @@ class TrackingMovementService extends AbstractController
 
     #[Required]
     public FormatService $formatService;
+
+    #[Required]
+    public DispatchService $dispatchService;
+
+    #[Required]
+    public StatusHistoryService $statusHistoryService;
 
     public array $stockStatuses = [];
 
@@ -409,8 +417,7 @@ class TrackingMovementService extends AbstractController
                                            bool $fromNomade,
                                            ?bool $finished,
                                            Statut|string|int $trackingType,
-                                           array $options = []): TrackingMovement
-    {
+                                           array $options = []): TrackingMovement {
         $entityManager = $options['entityManager'] ?? $this->entityManager;
         $statutRepository = $entityManager->getRepository(Statut::class);
 
@@ -508,7 +515,80 @@ class TrackingMovementService extends AbstractController
             $tracking->setGroupIteration($parent->getGroupIteration());
         }
 
+        $dispatch = $entityManager->getRepository(Dispatch::class)->findNotTreatedForPack($pack);
+        if ($dispatch) {
+            $this->handleDispatchAutomaticStatuses($dispatch, $user, $tracking, $entityManager);
+        }
+
         return $tracking;
+    }
+
+    private function handleDispatchAutomaticStatuses(Dispatch $dispatch, Utilisateur $user, TrackingMovement $trackingMovement, EntityManagerInterface $entityManager): void {
+        $statuses = $dispatch->getType()->getStatuts()
+            ->filter(static fn(Statut $status) => ($status->isAutomatic() &&
+                    $status->getAutomaticStatusMovementType() === $trackingMovement->getType()->getCode() &&
+                    $status !== $dispatch->getStatut()) || ($status->isTreated() && $status->isAutomaticAllPacksOnDepositLocation()));
+
+
+        $dispatchNatures = Stream::from($dispatch->getDispatchPacks())
+            ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getNature()?->getId())
+            ->unique()
+            ->toArray();
+
+        foreach($statuses as $status) {
+            $validNatures = Stream::from($dispatchNatures)
+                ->some(fn(?int $natureId) => !$natureId || $status->getAutomaticStatusExcludedNatures()
+                        ->filter(fn(Nature $nature) => $nature->getId() === $natureId)
+                        ->isEmpty());
+
+            if(!$validNatures) {
+                continue;
+            }
+            $validPacks = Stream::from($dispatch->getDispatchPacks())
+                ->filter(function(DispatchPack $dispatchPack) use ($status, $dispatch, $dispatchNatures, $user) {
+                    $pack = $dispatchPack->getPack();
+                    $lastTracking = $dispatchPack->getPack()->getLastTracking();
+                    $locationLastTracking = $lastTracking?->getEmplacement();
+
+                    if (!$lastTracking
+                        || !$locationLastTracking) {
+                        return false;
+                    }
+
+                    if($status->isTreated()) {
+                        return (
+                            $dispatch->getLocationTo()
+                            && $dispatch->getLocationTo()->getId() === $locationLastTracking->getId()
+                        );
+                    } else {
+                        return (
+                            $status->getAutomaticStatusExcludedNatures()->contains($pack->getNature())
+                            || (
+                                $lastTracking->getType()->getCode() === $status->getAutomaticStatusMovementType()
+                                && $status->getAutomaticStatusLocations()->contains($locationLastTracking)
+                            )
+                        );
+                    }
+                })
+                ->count();
+
+            if($dispatch->getDispatchPacks()->count() === $validPacks) {
+                if($dispatch->getStatut() && !$dispatch->getTreatmentDate() && !$dispatch->getStatut()->isTreated() && $status->isTreated()) {
+                    $this->dispatchService->treatDispatchRequest($entityManager, $dispatch, $status, $user, false, [], true, false);
+                }
+                else {
+                    if($status->getId() !== $dispatch->getStatut()->getId()) {
+                        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
+                            'validatedBy' => $user,
+                            'initiatedBy' => $user,
+                        ]);
+                    }
+
+                    $this->dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+                }
+                break;
+            }
+        }
     }
 
     private function manageTrackingLinks(EntityManagerInterface $entityManager,
