@@ -960,6 +960,9 @@ class SettingsService {
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
 
+                $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
+
+
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
                     StatusController::MODE_RECEPTION_DISPUTE => CategorieStatut::LITIGE_RECEPT,
@@ -1018,14 +1021,18 @@ class SettingsService {
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
-                        ->setSendReport($statusData['sendReport'] ?? false)
-                        ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                        ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
-                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
-                        ->setDisplayOrder($statusData['order'] ?? 0);
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
+
+                    if($hasRightGroupedSignature){
+                        $status
+                            ->setSendReport($statusData['sendReport'] ?? false)
+                            ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
+                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
+                            ->setDisplayOrder($statusData['order'] ?? 0);
+                    }
 
                     // label given on creation or edit is the French one
                     $labelTranslation = $status->getLabelTranslation();
