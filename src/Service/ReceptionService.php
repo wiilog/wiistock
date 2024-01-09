@@ -754,17 +754,12 @@ class ReceptionService
         return ['success' => true];
     }
 
-    public function serializeReceptions(Arrivage $arrival, array $excludeReceptionStatuses = []): array {
+    public function serializeReceptions(Arrivage $arrival, array $excludedReceptionStatuses = []): array {
         $types = [];
         $serializedReceptions = [];
         $receptions = $arrival
             ->getReceptions()
-            ->filter(static fn(Reception $reception) => (
-                !in_array($reception->getStatut()->getNom(), $excludeReceptionStatuses)
-                && !empty($reception->getReceptionReferenceArticles())
-                && Stream::from($reception->getReceptionReferenceArticles())
-                    ->some(static fn(ReceptionReferenceArticle $receptionReferenceArticle) => !$receptionReferenceArticle->getReceptionLine()->getPack())
-            ))
+            ->filter(static fn(Reception $reception) => !in_array($reception->getStatut()->getNom(), $excludedReceptionStatuses))
             ->matching(Criteria::create()->orderBy(['date' => 'ASC']));
 
         foreach ($receptions as $reception) {
@@ -778,9 +773,7 @@ class ReceptionService
 
             /** @var ReceptionReferenceArticle $line */
             foreach ($reception->getReceptionReferenceArticles() as $line) {
-                if(!$line->getReceptionLine()->getPack()) {
-                    $serializedReception['references'][] = $this->serializeReceptionLine($line, $types);
-                }
+                $serializedReception['references'][] = $this->serializeReceptionLine($line, $types);
             }
 
             $serializedReceptions[] = $serializedReception;
