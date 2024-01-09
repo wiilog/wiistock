@@ -309,6 +309,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_INVENTORIES,
                 Action::SETTINGS_DISPLAY_RECEP,
                 Action::MANAGE_PURCHASE_REQUESTS_SCHEDULE_RULE,
+                Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS,
             ],
             self::SUB_MENU_TRACING => [
                 Action::SETTINGS_DISPLAY_TRACING_DISPATCH,

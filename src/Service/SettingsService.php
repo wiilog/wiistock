@@ -960,7 +960,7 @@ class SettingsService {
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
 
-                $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::DEM, Action::GROUPED_SIGNATURE);
+                $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::DEM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
 
 
                 $categoryName = match ($statusesData[0]['mode']) {
