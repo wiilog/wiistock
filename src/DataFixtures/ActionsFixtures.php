@@ -320,6 +320,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND,
                 Action::SETTINGS_DISPLAY_EMERGENCIES,
+                Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS,
             ],
             self::SUB_MENU_TRACKING => [
                 Action::SETTINGS_DISPLAY_TRACK_REQUESTS,

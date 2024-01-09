@@ -32,15 +32,9 @@
 
     <div class="row">
         <div class="form-group col-md-6 col-12">
-            {% set setting = constant('App\\Entity\\Setting::MAILER_PROTOCOL') %}
+            {% set setting = constant('App\\Entity\\Setting::MAILER_IS_TLS_PROTOCOL') %}
             {% set settingValue = setting_value(setting) %}
-            {{ form.select(setting, "Protocole", true, {
-                items: constant('App\\Service\\MailerService::PROTOCOLS')|map((value) => {
-                    value: value,
-                    label: value,
-                    selected: value == settingValue,
-                }
-            )}) }}
+            {{ form.checkbox(setting, "Utilisation de TLS", false, settingValue) }}
         </div>
     </div>
 
