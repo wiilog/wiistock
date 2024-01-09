@@ -33,7 +33,7 @@ class LocationClusterRecord {
     /**
      * @var TrackingMovement|null
      */
-    #[ORM\ManyToOne(targetEntity: TrackingMovement::class, inversedBy: 'firstDropRecords')]
+    #[ORM\ManyToOne(targetEntity: TrackingMovement::class, cascade: ['persist'], inversedBy: 'firstDropRecords')]
     private $firstDrop;
 
     /**
