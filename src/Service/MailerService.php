@@ -79,7 +79,7 @@ class MailerService
         $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
         $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
         $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
-        $isProtocolTLS = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
+        $isTLSProtocol = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
         $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
         $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
 
@@ -90,7 +90,7 @@ class MailerService
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
 
-        $transport = (new EsmtpTransport($host, $port, $isProtocolTLS))
+        $transport = (new EsmtpTransport($host, $port, $isTLSProtocol))
             ->setUsername($user)
             ->setPassword($password);
 
