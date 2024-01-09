@@ -1171,7 +1171,6 @@ class DispatchController extends AbstractController {
             $statusId = $data['status'];
             $untreatedStatus = $statusRepository->find($statusId);
 
-
             if($untreatedStatus && $untreatedStatus->isNotTreated() && ($untreatedStatus->getType() === $dispatch->getType())) {
                 try {
                     $settingRepository = $entityManager->getRepository(Setting::class);
@@ -1208,16 +1207,16 @@ class DispatchController extends AbstractController {
                         }
                     }
 
-                    if($status->isAutomaticDispatchCreation()) {
+                    if($untreatedStatus->isAutomaticDispatchCreation()) {
                         $dispatchService->duplicateDispatch($entityManager, $dispatch, $this->getUser());
                     }
 
                     $entityManager->flush();
                     $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
-                } catch (Exception $e) {
+                } catch (Exception) {
                     return new JsonResponse([
                         'success' => false,
-                        'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez rééssayer."
+                        'msg' => "L'envoi de l'email ou de la notification a échoué. Veuillez réessayer."
                     ]);
                 }
 

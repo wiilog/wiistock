@@ -33,6 +33,7 @@ use App\Exceptions\FormException;
 use App\Helper\LanguageHelper;
 use App\Service\Document\TemplateDocumentService;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\InputBag;
@@ -2302,11 +2303,18 @@ class DispatchService {
             ->filter(fn(Statut $status) => $status->isDraft())
             ->first();
 
-        $number = $this->uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
+        $numberFormat = $manager->getRepository(Setting::class)->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
+        $number = $this->uniqueNumberService->create($manager, Dispatch::NUMBER_PREFIX, Dispatch::class, $numberFormat);
         $newDispatch
             ->setType($type)
             ->setNumber($number)
-            ->setCreationDate(new DateTime());
+            ->setCreationDate(new DateTime())
+            ->setFreeFields(null)
+            ->setCommentaire(null)
+            ->setTreatedBy(null)
+            ->setTreatmentDate(null)
+            ->setValidationDate(null)
+            ->setProperty("statusHistory", new ArrayCollection());
 
         $this->statusHistoryService->updateStatus($this->entityManager, $newDispatch, $draftStatus, ["initiatedBy" => $user]);
 

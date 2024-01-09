@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Traits\FreeFieldsManagerTrait;
+use App\Entity\Traits\LitePropertiesSetterTrait;
 use App\Repository\DispatchRepository;
 use App\Service\UniqueNumberService;
 use DateTime;
@@ -18,6 +19,7 @@ use WiiCommon\Helper\Stream;
 class Dispatch extends StatusHistoryContainer {
 
     use FreeFieldsManagerTrait;
+    use LitePropertiesSetterTrait;
 
     const CATEGORIE = 'acheminements';
     const NUMBER_PREFIX = 'A';
