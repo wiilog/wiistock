@@ -3053,13 +3053,13 @@ class MobileController extends AbstractApiController
             }
 
             if($includeExisting) {
-                $res['isExisting'] = true;
+                $res['existing'] = true;
             }
         } else {
             $res['isGroup'] = false;
             $res['isPack'] = false;
             $res['location'] = null;
-            $res['isExisting'] = false;
+            $res['existing'] = false;
         }
 
         return $this->json($res);
