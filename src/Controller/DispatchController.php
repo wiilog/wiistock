@@ -1244,7 +1244,7 @@ class DispatchController extends AbstractController {
     {
         $status = $dispatch->getStatut();
 
-        if(!$status || $status->isNotTreated() || $status->isPartial()) {
+        if(!$status || $status->isNotTreated() || $status->isPartial() || $status->isInProgress()) {
             $data = !empty($request->request->all()) ? $request->request->all() : json_decode($request->getContent(), true);
             $statusRepository = $entityManager->getRepository(Statut::class);
 
