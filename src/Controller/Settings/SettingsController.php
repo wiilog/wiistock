@@ -2637,7 +2637,7 @@ class SettingsController extends AbstractController {
     }
 
     #[Route("/champ-fixe/{entity}", name: "settings_fixed_field_api", options: ['expose' => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
-    public function fixedFieldByTypeApi(Request                 $request,
+    public function fixedFieldApi(Request                 $request,
                                         EntityManagerInterface  $entityManager,
                                         FormService             $formService,
                                         string                  $entity): JsonResponse {
