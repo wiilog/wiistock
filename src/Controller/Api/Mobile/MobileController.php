@@ -3934,25 +3934,6 @@ class MobileController extends AbstractApiController
         $user = $this->getUser();
 
         if (!empty($receptionNumber) && !empty($logisticUnitCodes)) {
-            $packRepository = $entityManager->getRepository(Pack::class);
-            $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
-            $logisticUnitsStream = Stream::from($logisticUnits);
-
-            // get not found logistic units
-            $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
-                ->filter(static fn(string $code) => (
-                    !$logisticUnitsStream->some(static fn(Pack $pack) => $pack->getCode() === $code)
-                ));
-            if (!$notFoundLogisticUnits->isEmpty()) {
-                $notFoundLogisticUnitsStr = $notFoundLogisticUnits->join(', ');
-                if ($notFoundLogisticUnits->count() > 1) {
-                    throw new FormException("Les unités logistiques {$notFoundLogisticUnitsStr} n'existent plus, impossible d'enregistrer");
-                }
-                else {
-                    throw new FormException("L'unité logistique {$notFoundLogisticUnitsStr} n'existe plus, impossible d'enregistrer");
-                }
-            }
-
             $receiptAssociationService->persistReceiptAssociation($entityManager, [$receptionNumber], $logisticUnits, $user);
             $entityManager->flush();
 

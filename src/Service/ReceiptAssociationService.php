@@ -12,13 +12,14 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
+use WiiCommon\Helper\Stream;
 
 class ReceiptAssociationService
 {
@@ -144,14 +145,39 @@ class ReceiptAssociationService
         $this->CSVExportService->putLine($output, $row);
     }
 
-    public function persistReceiptAssociation(EntityManagerInterface $manager,
+    /**
+     * @param string[] $receptionNumbers
+     * @param string[] $logisticUnitCodes
+     * @return ReceiptAssociation[]
+     */
+    public function persistReceiptAssociation(EntityManagerInterface $entityManager,
                                               array                  $receptionNumbers,
-                                              array                  $logisticUnits,
-                                              Utilisateur            $user): void
+                                              array                  $logisticUnitCodes,
+                                              Utilisateur            $user): array
     {
         $now = new DateTime();
-        $settingRepository = $manager->getRepository(Setting::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
 
+        $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
+        $logisticUnitsStream = Stream::from($logisticUnits);
+
+        // get not found logistic units
+        $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
+            ->filter(static fn(string $code) => (
+                !$logisticUnitsStream->some(static fn(Pack $pack) => $pack->getCode() === $code)
+            ));
+        if (!$notFoundLogisticUnits->isEmpty()) {
+            $notFoundLogisticUnitsStr = $notFoundLogisticUnits->join(', ');
+            if ($notFoundLogisticUnits->count() > 1) {
+                throw new FormException("Les unités logistiques {$notFoundLogisticUnitsStr} n'existent pas, impossible d'enregistrer");
+            }
+            else {
+                throw new FormException("L'unité logistique {$notFoundLogisticUnitsStr} n'existe pas, impossible d'enregistrer");
+            }
+        }
+
+        $receiptAssociations = [];
         foreach ($receptionNumbers as $receptionNumber) {
             $receiptAssociation = (new ReceiptAssociation())
                 ->setReceptionNumber($receptionNumber)
@@ -159,15 +185,18 @@ class ReceiptAssociationService
                 ->setCreationDate($now);
 
             if (!empty($logisticUnits)) {
-                $receiptAssociation->setLogisticUnits(new ArrayCollection($logisticUnits));
+                $receiptAssociation->setLogisticUnits($logisticUnits);
             }
 
-            $manager->persist($receiptAssociation);
+            $entityManager->persist($receiptAssociation);
+            $receiptAssociations[] = $receiptAssociation;
         }
 
         if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
             && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
             $this->createMovements($receptionNumbers, $logisticUnits, $user, $now);
         }
+
+        return $receiptAssociations;
     }
 }
