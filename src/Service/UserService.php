@@ -242,6 +242,7 @@ class UserService
             'deliveryRequest' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_REQUESTS, $user),
             'logisticUnitReferenceAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_LOGISTIC_UNIT_REFERENCE_ASSOCIATION, $user),
             'generateLogisticUnits' => $this->hasRightFunction(Menu::DEM, Action::GENERATE_LOGISTIC_UNITS, $user),
+            'receiptAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_RECEIPT_ASSOCIATION, $user),
         ];
     }
 

@@ -223,6 +223,7 @@ class Action {
     const MODULE_ACCESS_HANDLING = 'Accès services';
     const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
     const MODULE_ACCESS_LOGISTIC_UNIT_REFERENCE_ASSOCIATION = 'Accès association UL - Références';
+    const MODULE_ACCESS_RECEIPT_ASSOCIATION = 'Accès associations BR';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
