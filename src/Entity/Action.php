@@ -167,6 +167,7 @@ class Action {
     const SETTINGS_DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const SETTINGS_DISPLAY_INVENTORIES = 'afficher inventaires';
     const SETTINGS_DISPLAY_RECEP = 'afficher réceptions';
+    const SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS = 'afficher paramétrages signature groupée';
 
     const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements trace';
     const SETTINGS_DISPLAY_ARRI = 'afficher arrivages UL';
@@ -233,6 +234,7 @@ class Action {
     const MODULE_ACCESS_ARTICLES_UL_ASSOCIATION = 'Accès association articles-UL';
     const MODULE_ACCESS_HANDLING = 'Accès services';
     const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
+    const MODULE_ACCESS_RECEIPT_ASSOCIATION = 'Accès associations BR';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

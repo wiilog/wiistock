@@ -30,7 +30,7 @@ final class Version20230803120527 extends AbstractMigration
             Setting::MAILER_PORT => MailerService::PORT_SSL,
             Setting::MAILER_USER => $mailerServer['user'],
             Setting::MAILER_PASSWORD => $mailerServer['password'],
-            Setting::MAILER_PROTOCOL => MailerService::PROTOCOL_SSL,
+            Setting::MAILER_IS_TLS_PROTOCOL => true,
             Setting::MAILER_SENDER_NAME => $mailerServer['sender_name'],
             Setting::MAILER_SENDER_MAIL => $mailerServer['sender_mail'],
         ];

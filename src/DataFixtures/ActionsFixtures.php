@@ -332,6 +332,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_MOVEMENT,
                 Action::SETTINGS_DISPLAY_TRACING_HAND,
                 Action::SETTINGS_DISPLAY_EMERGENCIES,
+                Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS,
             ],
             self::SUB_MENU_PRODUCTION => [
                 Action::SETTINGS_DISPLAY_PRODUCTION,
@@ -391,6 +392,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_UNGROUP,
                 Action::MODULE_ACCESS_MOVEMENTS,
                 Action::MODULE_ACCESS_DISPATCHS,
+                Action::MODULE_ACCESS_RECEIPT_ASSOCIATION,
             ],
             self::SUB_MENU_STOCK => [
                 Action::CREATE_ARTICLE_FROM_NOMADE,
