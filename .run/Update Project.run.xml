@@ -18,11 +18,12 @@
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="(3) Doctrine migrations dry-run" run_configuration_type="ShConfigurationType" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="(4) Doctrine migrations" run_configuration_type="ShConfigurationType" />
       <option name="RunConfigurationTask" enabled="true" run_configuration_name="(5) Doctrine schema update" run_configuration_type="ShConfigurationType" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(6) Doctrine fixtures" run_configuration_type="ShConfigurationType" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(7) Translations" run_configuration_type="ShConfigurationType" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(8) Cache clear" run_configuration_type="ShConfigurationType" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(9) Cache warmup" run_configuration_type="ShConfigurationType" />
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(10) Yarn Build" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(6) Doctrine fixtures types" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(7) Doctrine fixtures global" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(8) Translations" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(9) Cache clear" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(10) Cache warmup" run_configuration_type="ShConfigurationType" />
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="(11) Yarn Build" run_configuration_type="ShConfigurationType" />
     </method>
   </configuration>
 </component>
