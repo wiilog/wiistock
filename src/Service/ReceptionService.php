@@ -187,12 +187,16 @@ class ReceptionService
         return $reception;
     }
 
-    public function updateArrivalLinks(Reception $reception, EntityManagerInterface $entityManager) {
+    public function updateArrivalLinks(Reception $reception, EntityManagerInterface $entityManager): void {
         $arrivageRepository = $entityManager->getRepository(Arrivage::class);
         $linkedArrivals = $reception->getOrderNumber()
             ? $arrivageRepository->getByOrderNumber($reception->getOrderNumber())
             : [];
         $reception->bulkInsertArrivals($linkedArrivals);
+        $firstArrival = $linkedArrivals[0] ?? null; // dans l'utilisation de nxt il n'y aura jamais plusieur arrivage lié à une réception, donc on peut prendre le premier
+        if ($firstArrival?->getTransporteur()) {
+            $reception->setTransporteur($firstArrival->getTransporteur());
+        }
     }
 
     public function updateReception(EntityManagerInterface $entityManager,
