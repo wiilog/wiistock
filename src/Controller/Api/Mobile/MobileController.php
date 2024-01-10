@@ -4356,7 +4356,7 @@ class MobileController extends AbstractApiController
         $user = $this->getUser();
 
         if (!empty($receptionNumber) && !empty($logisticUnitCodes)) {
-            $receiptAssociationService->persistReceiptAssociation($entityManager, [$receptionNumber], $logisticUnits, $user);
+            $receiptAssociationService->persistReceiptAssociation($entityManager, [$receptionNumber], $logisticUnitCodes, $user);
             $entityManager->flush();
 
             return $this->json([
