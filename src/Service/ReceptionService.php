@@ -25,6 +25,7 @@ use App\Entity\Statut;
 use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
@@ -599,7 +600,7 @@ class ReceptionService
     public function updateReceptionLine(EntityManagerInterface $entityManager,
                                         Reception $reception,
                                         ReferenceArticle $refArticle,
-                                        InputBag $contentData): array {
+                                        InputBag $contentData): void {
         $refAlreadyExists = Stream::from($reception->getReceptionReferenceArticles())
             ->some(fn(ReceptionReferenceArticle $receptionRefArticle) => $receptionRefArticle->getId() === $contentData->get('referenceArticle'));
 
@@ -613,10 +614,7 @@ class ReceptionService
 
             foreach ($packAssociations as $association) {
                 if (isset($packCodes[$association["pack"]])) {
-                    return [
-                        "success" => false,
-                        "msg" => "L'unité logistique {$packCodes[$association["pack"]]} est présente en double",
-                    ];
+                    throw new FormException("L'unité logistique {$packCodes[$association["pack"]]} est présente en double");
                 }
                 $pack = $packRepository->find($association["pack"]);
                 $packCodes[$association["pack"]] = $pack->getCode();
@@ -654,10 +652,7 @@ class ReceptionService
                     $reception->setLastAssociation(new DateTime());
                     if ($receptionReferenceArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_ARTICLE) {
                         $articles = $association["articles"] ?? [];
-                        $resAddArticle = $this->addArticleAssociations($entityManager, $receptionReferenceArticle, $articles);
-                        if (!$resAddArticle['success']) {
-                            return $resAddArticle;
-                        }
+                        $this->addArticleAssociations($entityManager, $receptionReferenceArticle, $articles, ["replaceArticles" => true]);
                     } else {
                         foreach ($receptionReferenceArticle->getArticles() as $article) {
                             $receptionReferenceArticle->removeArticle($article);
@@ -666,10 +661,7 @@ class ReceptionService
                 }
             }
         } else {
-            return [
-                "success" => false,
-                "msg" => "La référence existe déjà pour cette réception"
-            ];
+            throw new FormException("La référence existe déjà pour cette réception");
         }
 
         if(!isset($receptionReferenceArticle)) {
@@ -691,14 +683,14 @@ class ReceptionService
 
             $entityManager->persist($linePack);
         }
-
-        return ["success" => true];
     }
 
-    public function addArticleAssociations(EntityManagerInterface $entityManager,
+    public function addArticleAssociations(EntityManagerInterface    $entityManager,
                                            ReceptionReferenceArticle $receptionReferenceArticle,
-                                           array $articles): array
+                                           array                     $articles,
+                                           array                     $options = []): void
     {
+        $replaceArticles = $options["replaceArticles"] ?? true;
         $line = $receptionReferenceArticle->getReceptionLine();
 
         foreach ($articles as $label) {
@@ -708,16 +700,10 @@ class ReceptionService
             if (!$article) {
                 $existing = $entityManager->getRepository(Article::class)->findBy(["label" => $label]);
                 if ($existing) {
-                    return [
-                        "success" => false,
-                        "msg" => "Un article avec le libellé $label existe déjà en base de données.",
-                    ];
+                    throw new FormException("Un article avec le libellé $label existe déjà en base de données.");
                 }
                 if (!$line->getReception()->getFournisseur()) {
-                    return [
-                        "success" => false,
-                        "msg" => "Veuillez renseigner un fournisseur dans la réception pour pouvoir continuer.",
-                    ];
+                    throw new FormException("Veuillez renseigner un fournisseur dans la réception pour pouvoir continuer.");
                 }
                 $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
                 $isVisible = $referenceArticle->getStatut()->getCode() !== ReferenceArticle::DRAFT_STATUS;
@@ -742,13 +728,14 @@ class ReceptionService
             }
         }
 
-        //remove deleted articles
-        foreach ($receptionReferenceArticle->getArticles() as $article) {
-            if (!is_int(array_search($article->getLabel(), $articles))) {
-                $receptionReferenceArticle->removeArticle($article);
+        if ($replaceArticles) {
+            //remove deleted articles
+            foreach ($receptionReferenceArticle->getArticles() as $article) {
+                if (!is_int(array_search($article->getLabel(), $articles))) {
+                    $receptionReferenceArticle->removeArticle($article);
+                }
             }
         }
-        return ['success' => true];
     }
 
     public function serializeReceptions(Arrivage $arrival, array $excludedReceptionStatuses = []): array {

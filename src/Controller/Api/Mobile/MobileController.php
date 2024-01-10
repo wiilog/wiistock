@@ -4285,10 +4285,7 @@ class MobileController extends AbstractApiController
             }
 
             if(!$logisticUnit && !$logisticUnit?->getArrivage()) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Numéro d'unité logistique inconnu.",
-                ]);
+                throw new FormException("Numéro d'unité logistique inconnu.");
             }
         }
         else {
@@ -4309,16 +4306,10 @@ class MobileController extends AbstractApiController
                     ->toArray();
 
                 if (empty($articleLabels)) {
-                    return $this->json([
-                        "success" => false,
-                        "msg" => "Les articles renseignés ne sont pas valides.",
-                    ]);
+                    throw new FormException("Les articles renseignés ne sont pas valides.");
                 }
                 else {
-                    $response = $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels);
-                    if(!$response['success']){
-                        return $this->json($response);
-                    }
+                    $receptionService->addArticleAssociations($entityManager, $receptionReferenceArticle, $articleLabels, ["replaceArticles" => false]);
                 }
             }
             if ($referenceArticle->getIsUrgent()) {

@@ -588,9 +588,6 @@ class ReceptionController extends AbstractController {
 
             if(!$refAlreadyExists) {
                 $updateLineRes = $receptionService->updateReceptionLine($entityManager, $reception, $refArticle, $contentData);
-                if (!($updateLineRes['success'] ?? false)) {
-                    return new JsonResponse($updateLineRes);
-                }
 
                 $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
 
@@ -667,10 +664,7 @@ class ReceptionController extends AbstractController {
             $refArticle = $refArticleId ? $referenceArticleRepository->find($refArticleId) : null;
             $reception = $receptionRepository->find($data->get('reception'));
 
-            $updateLineRes = $receptionService->updateReceptionLine($entityManager, $reception, $refArticle, $data);
-            if (!($updateLineRes['success'] ?? false)) {
-                return new JsonResponse($updateLineRes);
-            }
+            $receptionService->updateReceptionLine($entityManager, $reception, $refArticle, $data);
 
             $status = $reception->getStatut() ? $reception->getStatut()->getCode() : null;
 
