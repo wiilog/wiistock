@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="(6) Doctrine fixtures" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console doctrine:fixtures:load --append --group fixtures" />
+  <configuration default="false" name="(10) Cache warmup" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console cache:warmup" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="/usr/bin/docker" />
     <option name="SCRIPT_OPTIONS" value="exec -it wiistock_app bash" />
