@@ -3146,7 +3146,7 @@ class MobileController extends AbstractApiController
             $res['suppliers'] = false;
             $res['orderNumbers'] = false;
             $res['location'] = null;
-            $res['isExisting'] = false;
+            $res['existing'] = false;
         }
 
         return $this->json($res);
