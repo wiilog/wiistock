@@ -271,13 +271,13 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', ["order" => $order]);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], ['type'], ["order" => $order]);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('handling.requester', 'order_requester')
                             ->orderBy('order_requester.username', $order);
                     } else if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'status', ["order" => $order]);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], ['status'], ["order" => $order]);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')

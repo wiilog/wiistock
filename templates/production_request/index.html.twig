@@ -16,34 +16,30 @@
 {% endblock %}
 
 {# TODO WIIS-10760 #}
-{% set hasRightToExport = true or hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT')) %}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
 
 {% block page_content %}
     <div class="m-4 wii-page-card">
         <div class="row wii-page-card-header">
             <div class="col-auto ml-auto btn-group dispatch-button-container">
-                {% if hasRightToExport %}
-                    {% include "utils/action-buttons/header-buttons.html.twig" with {
-                        actions: [
-                            {
-                                hasRight: hasRightToExport,
-                                title: "Exporter au format CSV",
-                                icon : "fa fa-file-csv",
-                                attributes: {
-                                "onclick" : "saveExportFile('get_production_requests_csv', false)",
-                            },
-                            },
-                            {
-                                title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
-                                icon: "fa fa-cog",
-                                attributes: {
-                                "data-toggle": "modal",
-                                "data-target": "#modalColumnVisible",
-                            },
-                            }
-                        ]
-                    } %}
-                {% endif %}
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRightToExport,
+                            title: "Exporter au format CSV",
+                            icon : "fa fa-file-csv",
+                            class: "export-button",
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                            attributes: {
+                            "data-toggle": "modal",
+                            "data-target": "#modalColumnVisible",
+                        },
+                        }
+                    ]
+                } %}
             </div>
         </div>
         <div class="row">

@@ -265,6 +265,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             self::SUB_MENU_GENERAL => [
                 Action::DISPLAY_PRODUCTION_REQUEST,
                 Action::CREATE_PRODUCTION_REQUEST,
+                Action::EXPORT_PRODUCTION_REQUEST,
                 Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST,
                 Action::EDIT_TO_TREAT_PRODUCTION_REQUEST,
                 Action::DELETE_TO_TREAT_PRODUCTION_REQUEST,

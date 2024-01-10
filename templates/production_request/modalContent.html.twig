@@ -7,8 +7,10 @@
     type: 'hidden',
 }) }}
 <div class="row">
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::type').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::type').value %}
     <div class="col-6 mb-2">
-        {{ form.select('type', 'Type', true, {
+        {{ form.select(fieldCode, fieldLabel, true, {
             type: 'productionRequestType',
             placeholder: 'Sélectionnez un type',
             search: true,
@@ -26,8 +28,10 @@
         }) }}
     </div>
 
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::status').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::status').value %}
     <div class="col-6 mb-2">
-        {{ form.select('status', 'Statut', true, {
+        {{ form.select(fieldCode, fieldLabel, true, {
             type: 'status',
             disabled: productionRequest.type ? false : true,
             value: productionRequest.status ? productionRequest.status.id : null,
@@ -45,16 +49,17 @@
         }) }}
     </div>
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, "Numéro d'OF", requiredOnform, productionRequest.manufacturingOrderNumber) }}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.manufacturingOrderNumber) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -73,65 +78,71 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EXPECTED_AT') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, 'Date attendue', requiredOnform, productionRequest.expectedAt|date('Y-m-d\\TH:i'), {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt|date('Y-m-d\\TH:i'), {
                 type: 'date',
             }) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, 'Numéro projet', requiredOnform, productionRequest.projectNumber) }}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.projectNumber) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, 'Code produit/article', requiredOnform, productionRequest.productArticleCode) }}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.productArticleCode) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_QUANTITY') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, 'Quantité', requiredOnform, productionRequest.quantity, {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.quantity, {
                 type: 'number',
                 min: 1,
             }) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LINE_COUNT') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::lineCount').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::lineCount').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, 'Nombre de ligne', requiredOnform, productionRequest.lineCount, {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.lineCount, {
                 type: 'number',
                 min: 0,
             }) }}
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_LOCATION_DROP') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').name %}
+    {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.select(fieldCode, 'Emplacement de dépose', requiredOnform, {
+            {{ form.select(fieldCode, fieldLabel, requiredOnform, {
                 type: 'location',
                 value: productionRequest.dropLocation ? productionRequest.dropLocation.id : null,
                 items: productionRequest.dropLocation ? [{
@@ -167,7 +178,7 @@
         </div>
     </div>
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_COMMENTAIRE') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -176,7 +187,7 @@
         </div>
     {% endif %}
 
-    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_ATTACHMENTS') %}
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
@@ -184,6 +195,7 @@
                 isNew: productionRequest.id is null,
                 required: false,
                 override: true,
+                labelTitle: constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value,
             } %}
         </div>
     {% else %}
