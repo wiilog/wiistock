@@ -663,9 +663,6 @@ class ReceptionService
                             $receptionReferenceArticle->removeArticle($article);
                         }
                     }
-                    if ($receptionReferenceArticle->getReferenceArticle()->getIsUrgent()) {
-                        $pack->setUrgent(true);
-                    }
                 }
             }
         } else {
