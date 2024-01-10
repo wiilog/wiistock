@@ -3926,28 +3926,42 @@ class MobileController extends AbstractApiController
     #[Wii\RestAuthenticated]
     #[Wii\RestVersionChecked]
     public function postReceiptAssociation(Request                   $request,
-                                           EntityManagerInterface    $manager,
+                                           EntityManagerInterface    $entityManager,
                                            ReceiptAssociationService $receiptAssociationService): Response
     {
         $receptionNumber = $request->request->get('receptionNumber');
-        $logisticUnits = json_decode($request->request->get("logisticUnits", "[]"), true);
+        $logisticUnitCodes = json_decode($request->request->get("logisticUnits", "[]"), true) ?: [];
         $user = $this->getUser();
 
-        if (!empty($receptionNumber) && !empty($logisticUnits)) {
-            $logisticUnits = $manager->getRepository(Pack::class)->findBy(['code' => $logisticUnits]);
+        if (!empty($receptionNumber) && !empty($logisticUnitCodes)) {
+            $packRepository = $entityManager->getRepository(Pack::class);
+            $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
+            $logisticUnitsStream = Stream::from($logisticUnits);
 
-            $receiptAssociationService->persistReceiptAssociation($manager, [$receptionNumber], $logisticUnits, $user);
-            $manager->flush();
+            // get not found logistic units
+            $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
+                ->filter(static fn(string $code) => (
+                    !$logisticUnitsStream->some(static fn(Pack $pack) => $pack->getCode() === $code)
+                ));
+            if (!$notFoundLogisticUnits->isEmpty()) {
+                $notFoundLogisticUnitsStr = $notFoundLogisticUnits->join(', ');
+                if ($notFoundLogisticUnits->count() > 1) {
+                    throw new FormException("Les unités logistiques {$notFoundLogisticUnitsStr} n'existent plus, impossible d'enregistrer");
+                }
+                else {
+                    throw new FormException("L'unité logistique {$notFoundLogisticUnitsStr} n'existe plus, impossible d'enregistrer");
+                }
+            }
+
+            $receiptAssociationService->persistReceiptAssociation($entityManager, [$receptionNumber], $logisticUnits, $user);
+            $entityManager->flush();
 
             return $this->json([
                 "success" => true,
                 "message" => "L'association BR a bien été effectuée.",
             ]);
         } else {
-            return $this->json([
-                "success" => false,
-                "message" => "La réception et les unités logistiques doivent être renseignées pour effectuer l'association BR.",
-            ]);
+            throw new FormException("La réception et les unités logistiques doivent être renseignées pour effectuer l'association BR.");
         }
     }
 }
