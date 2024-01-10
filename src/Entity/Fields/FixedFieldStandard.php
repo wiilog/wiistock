@@ -213,15 +213,6 @@ class FixedFieldStandard extends FixedField {
     const FIELD_LABEL_EMERGENCY_SUPPLIER_ARTICLE_CODE = "code article fournisseur";
 
     const ENTITY_CODE_PRODUCTION = 'production';
-    const FIELD_CODE_MANUFACTURING_ORDER_NUMBER = "manufacturingOrderNumber";
-    const FIELD_CODE_PRODUCT_ARTICLE_CODE = "productArticleCode";
-    const FIELD_CODE_QUANTITY = "quantity";
-    const FIELD_CODE_LINE_COUNT = "lineCount";
-
-    const FIELD_LABEL_MANUFACTURING_ORDER_NUMBER = "numéro OF";
-    const FIELD_LABEL_PRODUCT_ARTICLE_CODE = "code produit/article";
-    const FIELD_LABEL_QUANTITY = "quantité";
-    const FIELD_LABEL_LINE_COUNT = "nombre de lignes";
 
     #[ORM\Column(type: 'boolean', nullable: true)]
     private ?bool $requiredCreate = null;
