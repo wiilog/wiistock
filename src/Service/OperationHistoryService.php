@@ -59,6 +59,7 @@ class OperationHistoryService {
     public const TYPE_REJECTED_DELIVERY = "REJECTED_DELIVERY";
     public const TYPE_CANCELLED = "CANCELLED";
     public const TYPE_REQUEST_EDITED = "REQUEST_EDITED";
+    public const TYPE_REQUEST_EDITED_DETAILS = "REQUEST_EDITED_DETAILS";
 
     public const CONTENT = [
         self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
@@ -85,7 +86,8 @@ class OperationHistoryService {
         self::TYPE_ACCEPTED => "La demande a été acceptée",
         self::TYPE_REJECTED_DELIVERY => "La livraison a été rejetée de la tournée",
         self::TYPE_CANCELLED => "{user} a annulé la {category}",
-        self::TYPE_REQUEST_EDITED => "La demande a été modifiée"
+        self::TYPE_REQUEST_EDITED => "La demande a été modifiée",
+        self::TYPE_REQUEST_EDITED_DETAILS => "{user} a modifié les informations suivantes : {message}",
     ];
 
     #[Required]
@@ -293,6 +295,7 @@ class OperationHistoryService {
             self::TYPE_REQUEST_CREATION,
             self::TYPE_LABELS_PRINTING,
             self::TYPE_REQUEST_EDITED,
+            self::TYPE_REQUEST_EDITED_DETAILS,
             self::TYPE_REQUEST_AFFECTED_ROUND,
             self::TYPE_PACKS_FAILED => self::CATEGORY_INFORMATION,
 

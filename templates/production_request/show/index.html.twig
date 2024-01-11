@@ -14,11 +14,30 @@
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
                             <div class="dropdown dropright">
-                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                                </div>
-                                <div class="dropdown-menu dropdown-follow-gt pointer">
+                                <div class="d-flex">
+                                    {% set hasRightEditProductionRequest =
+                                        productionRequest.status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                                        ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST'))
+                                        : (productionRequest.status.state == constant('App\\Entity\\Statut::IN_PROGRESS')
+                                            ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST'))
+                                            : (productionRequest.status.state == constant('App\\Entity\\Statut::TREATED')
+                                                ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST'))
+                                                : 0)
+                                        )
+                                    %}
 
+                                    {% include "utils/action-buttons/dropdown.html.twig" with {
+                                        actions: [
+                                            {
+                                                hasRight: hasRightEditProductionRequest,
+                                                title: trans('Général', '', 'Modale', 'Modifier'),
+                                                icon: "fas fa-pencil-alt",
+                                                attributes: {
+                                                    "onclick": "openModalEditProductionRequest()",
+                                                },
+                                            },
+                                        ]
+                                    } %}
                                 </div>
                             </div>
                         </div>
@@ -119,6 +138,11 @@
         </div>
     </div>
 
+    {% include 'production_request/modalEditProductionRequest.html.twig' with {
+        productionRequest,
+        fieldsParam,
+        emergencies,
+    }%}
 {% endblock %}
 
 {% block javascripts %}

@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -73,12 +74,29 @@ class TypeRepository extends EntityRepository {
 
     private function createSelectBuilder(?string $category, array $options = []): QueryBuilder {
         $alreadyDefinedTypes = $options['alreadyDefinedTypes'] ?? [];
+        $language = $options['language'] ?? null;
+        $defaultLanguage = $options['defaultLanguage'] ?? null;
 
-        $qb = $this->createQueryBuilder("type");
 
-        $qb->select("type.id AS id, type.label AS text")
+        $subQueryBuilder = $this->createQueryBuilder('sub_type')
+            ->select("CONCAT_WS(':', join_status.id, (COALESCE(join_translation.translation, join_translation_default.translation, join_status.nom)))")
+            ->leftJoin("sub_type.statuts", "join_status", Join::WITH, "join_status.defaultForCategory = 1")
+            ->leftJoin("join_status.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+            ->andWhere("type.id = sub_type.id")
+            ->getQuery()
+            ->getDQL();
+
+
+        $qb = $this->createQueryBuilder("type")
+            ->addSelect("type.id AS id")
+            ->addSelect("type.label AS text")
+            ->addSelect("($subQueryBuilder) AS defaultStatus")
             ->join("type.category", "category")
-            ->andWhere("category.label = '$category'");
+            ->andWhere("category.label = '$category'")
+            ->setParameter("language", $language)
+            ->setParameter("default", $defaultLanguage);
 
         if (!empty($alreadyDefinedTypes)) {
             $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")

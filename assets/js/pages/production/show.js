@@ -1,3 +1,4 @@
+global.openModalEditProductionRequest = openModalEditProductionRequest;
 $(function () {
     const productionRequestId = $(`[name=productionRequestId]`).val();
 
@@ -21,4 +22,13 @@ export function getOperationHistory(productionRequestId) {
             const $operationHistoryContainer = $(`.operation-history-container`);
             $operationHistoryContainer.html(template);
         });
+}
+
+function openModalEditProductionRequest(){
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
+    Form
+        .create($modalEditProductionRequest)
+        .submitTo(AJAX.POST, 'production_request_edit');
+
+    $modalEditProductionRequest.modal('show');
 }

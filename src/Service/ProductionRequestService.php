@@ -58,6 +58,9 @@ class ProductionRequestService
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public OperationHistoryService $operationHistoryService;
+
     private ?array $freeFieldsConfig = null;
 
     public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser): array {
@@ -186,22 +189,22 @@ class ProductionRequestService
                 ->setNumber($number)
                 ->setCreatedAt($createdAt)
                 ->setCreatedBy($user);
+
+            if (array_key_exists(FixedFieldStandard::FIELD_CODE_TYPE_PRODUCTION, $data)) {
+                $type = $typeRepository->find($data[FixedFieldStandard::FIELD_CODE_TYPE_PRODUCTION]);
+                $productionRequest->setType($type);
+            }
+
+            if (array_key_exists(FixedFieldStandard::FIELD_CODE_STATUS_PRODUCTION, $data)) {
+                $status = $statusRepository->find($data[FixedFieldStandard::FIELD_CODE_STATUS_PRODUCTION]);
+                $productionRequest->setStatus($status);
+            }
         }
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_TYPE_PRODUCTION, $data)) {
-            $type = $typeRepository->find($data[FixedFieldStandard::FIELD_CODE_TYPE_PRODUCTION]);
-            $productionRequest->setType($type);
-        }
-
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_STATUS_PRODUCTION, $data)) {
-            $status = $statusRepository->find($data[FixedFieldStandard::FIELD_CODE_STATUS_PRODUCTION]);
-            $productionRequest->setStatus($status);
-        }
-
         if (array_key_exists(FixedFieldStandard::FIELD_CODE_LOCATION_DROP, $data)) {
-            $dropLocation = $locationRepository->find($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP]);
+            $dropLocation = $data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP] ? $locationRepository->find($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP]) : null;
             $productionRequest->setDropLocation($dropLocation);
         }
 
@@ -240,13 +243,14 @@ class ProductionRequestService
         $attachments = $productionRequest->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
-            if(!in_array($attachment->getId(), $fileBag->all())) {
+            if(isset($data['files']) && !in_array($attachment->getId(), $data['files'])) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
             }
         }
 
-        $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
-
+        if(!$productionRequest->getId()) {
+            $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
+        }
 
         return $productionRequest;
     }
@@ -296,5 +300,88 @@ class ProductionRequestService
         ];
 
         return $this->fixedFieldService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_PRODUCTION);
+    }
+
+    public function buildMessageForEdit(EntityManagerInterface $entityManager,
+                                        ProductionRequest      $productionRequest,
+                                        array                  $data,
+                                        FileBag                $fileBag) : string{
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $user = $this->userService->getUser();
+
+        $message = "<br>";
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_LOCATION_DROP, $data)
+            && $productionRequest->getDropLocation()
+            && $productionRequest->getDropLocation()->getId() !== intval($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP])) {
+            $dropLocation = $locationRepository->find($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP]);
+            $message .= "<strong>Emplacement dépose</strong> : {$dropLocation->getLabel()}.<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER, $data)
+            && $productionRequest->getManufacturingOrderNumber() !== $data[FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER]) {
+            $message .= "<strong>Numéro d'OF</strong> : {$data[FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER]} <br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY, $data)
+            && $productionRequest->getEmergency() !== $data[FixedFieldStandard::FIELD_CODE_EMERGENCY]) {
+            $message .= "<strong>Urgence</strong> : {$data[FixedFieldStandard::FIELD_CODE_EMERGENCY]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EXPECTED_AT, $data)
+            && $productionRequest->getExpectedAt() !== $data[FixedFieldStandard::FIELD_CODE_EXPECTED_AT]) {
+            $message .= "<strong>Date attendue</strong> : {$data[FixedFieldStandard::FIELD_CODE_EXPECTED_AT]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, $data)
+            && $productionRequest->getProjectNumber() !== $data[FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]) {
+            $message .= "<strong>Numéro de projet</strong> : {$data[FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE, $data)
+            && $productionRequest->getProductArticleCode() !== $data[FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE]) {
+            $message .= "<strong>Code produit/article</strong> : {$data[FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_QUANTITY, $data)
+            && $productionRequest->getQuantity() !== null
+            && $productionRequest->getQuantity() !== intval($data[FixedFieldStandard::FIELD_CODE_QUANTITY])) {
+            $message .= "<strong>Quantité</strong> : {$data[FixedFieldStandard::FIELD_CODE_QUANTITY]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_LINE_COUNT, $data)
+            && $productionRequest->getLineCount() !== null
+            && $productionRequest->getLineCount() !== intval($data[FixedFieldStandard::FIELD_CODE_LINE_COUNT])) {
+            $message .= "<strong>Nombre de lignes</strong> : {$data[FixedFieldStandard::FIELD_CODE_LINE_COUNT]}<br>";
+        }
+
+        if (array_key_exists(FixedFieldStandard::FIELD_CODE_COMMENTAIRE, $data)
+            && $productionRequest->getComment() !== $data[FixedFieldStandard::FIELD_CODE_COMMENTAIRE]) {
+            $productionRequestHistoryRecord = $this->operationHistoryService->persistProductionHistory(
+                $entityManager,
+                $productionRequest,
+                OperationHistoryService::TYPE_ADD_COMMENT,
+                [
+                    "user" => $user,
+                    "comment" => $data[FixedFieldStandard::FIELD_CODE_COMMENTAIRE],
+                ]
+            );
+            $entityManager->persist($productionRequestHistoryRecord);
+        }
+
+        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
+        if (!empty($addedAttachments)) {
+            $productionRequestHistoryRecord = $this->operationHistoryService->persistProductionHistory(
+                $entityManager,
+                $productionRequest,
+                OperationHistoryService::TYPE_ADD_ATTACHMENT,
+                [
+                    "user" => $user,
+                    "attachments" => $addedAttachments,
+                ]
+            );
+            $entityManager->persist($productionRequestHistoryRecord);
+        }
+
+        return $message;
     }
 }
