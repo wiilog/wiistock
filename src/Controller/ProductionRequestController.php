@@ -16,6 +16,7 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Service\AttachmentService;
 use App\Service\FixedFieldService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
@@ -195,6 +196,25 @@ class ProductionRequestController extends AbstractController
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été créée."
+        ]);
+    }
+
+    #[Route('/delete/{productionRequest}', name: 'delete', options: ['expose' => true], methods: 'DELETE', condition: 'request.isXmlHttpRequest()')]
+    public function delete(ProductionRequest      $productionRequest,
+                           EntityManagerInterface $entityManager,
+                           AttachmentService      $attachmentService): JsonResponse {
+
+        foreach ($productionRequest->getAttachments() as $attachement) {
+            $attachmentService->removeAndDeleteAttachment($attachement, $productionRequest);
+        }
+
+        $entityManager->remove($productionRequest);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La demande de production a bien été supprimée.",
+            "redirect" => $this->generateUrl('production_request_index'),
         ]);
     }
 

@@ -4,6 +4,16 @@
 {% block title_tooltip %}Production | Détails{% endblock %}
 {% block titleLink path('production_request_index') %}
 
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TO_TREAT_PRODUCTION_REQUEST')) %}
+
+{% if productionRequest.status.inProgress %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST')) %}
+{% endif %}
+
+{% if productionRequest.status.treated %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TREATED_PRODUCTION_REQUEST')) %}
+{% endif %}
+
 {% block page_content %}
     <input type="hidden" name="productionRequestId" value="{{ productionRequest.id }}"/>
 
@@ -13,12 +23,18 @@
                 <div class="wii-box">
                     <div class="d-flex align-items-center mr-3">
                         <div class="mx-2">
-                            <div class="dropdown dropright">
-                                <div class="d-flex pointer" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <img alt="Actions" src="{{ asset('svg/dotsblack.svg') }}" height="20px" width="8px">
-                                </div>
-                                <div class="dropdown-menu dropdown-follow-gt pointer"></div>
-                            </div>
+                            {% include "utils/action-buttons/dropdown.html.twig" with {
+                                actions: [
+                                    {
+                                        hasRight: hasRightDelete,
+                                        title: trans('Général', '', 'Modale', 'Supprimer'),
+                                        icon: "wii-icon wii-icon-trash-black",
+                                        attributes: {
+                                            onclick: "deleteProductionRequest(" ~ productionRequest.id ~ ")",
+                                        },
+                                    }
+                                ]
+                            } %}
                         </div>
                         <div class="d-flex py-2 w-100 justify-content-between">
                             <div class="d-flex align-items-center">

@@ -1,3 +1,5 @@
+global.deleteProductionRequest = deleteProductionRequest;
+
 $(function () {
     const productionRequestId = $(`[name=productionRequestId]`).val();
 
@@ -21,4 +23,20 @@ export function getOperationHistory(productionRequestId) {
             const $operationHistoryContainer = $(`.operation-history-container`);
             $operationHistoryContainer.html(template);
         });
+}
+
+function deleteProductionRequest(id){
+    Modal.confirm({
+        ajax: {
+            method: AJAX.DELETE,
+            route: `production_request_delete`,
+            params: {productionRequest: id},
+        },
+        message: `Voulez-vous réellement supprimer cette demande de production ?`,
+        title: `Supprimer la demande de production`,
+        validateButton: {
+            color: `danger`,
+            label: `Supprimer`,
+        },
+    })
 }
