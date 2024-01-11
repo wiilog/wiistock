@@ -199,14 +199,15 @@ class ProductionRequestService
                 ->setCreatedAt($createdAt)
                 ->setCreatedBy($user);
 
-        if (array_key_exists(FixedFieldEnum::type->name, $data)) {
-            $type = $typeRepository->find($data[FixedFieldEnum::type->name]);
-            $productionRequest->setType($type);
-        }
+            if (array_key_exists(FixedFieldEnum::type->name, $data)) {
+                $type = $typeRepository->find($data[FixedFieldEnum::type->name]);
+                $productionRequest->setType($type);
+            }
 
-        if (array_key_exists(FixedFieldEnum::status->name, $data)) {
-            $status = $statusRepository->find($data[FixedFieldEnum::status->name]);
-            $productionRequest->setStatus($status);
+            if (array_key_exists(FixedFieldEnum::status->name, $data)) {
+                $status = $statusRepository->find($data[FixedFieldEnum::status->name]);
+                $productionRequest->setStatus($status);
+            }
         }
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
@@ -318,59 +319,59 @@ class ProductionRequestService
         $user = $this->userService->getUser();
 
         $message = "<br>";
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_LOCATION_DROP, $data)
+        if (array_key_exists(FixedFieldEnum::dropLocation->name, $data)
             && $productionRequest->getDropLocation()
-            && $productionRequest->getDropLocation()->getId() !== intval($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP])) {
-            $dropLocation = $locationRepository->find($data[FixedFieldStandard::FIELD_CODE_LOCATION_DROP]);
+            && $productionRequest->getDropLocation()->getId() !== intval($data[FixedFieldEnum::dropLocation->name])) {
+            $dropLocation = $locationRepository->find($data[FixedFieldEnum::dropLocation->name]);
             $message .= "<strong>Emplacement dépose</strong> : {$dropLocation->getLabel()}.<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER, $data)
-            && $productionRequest->getManufacturingOrderNumber() !== $data[FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER]) {
-            $message .= "<strong>Numéro d'OF</strong> : {$data[FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER]} <br>";
+        if (array_key_exists(FixedFieldEnum::manufacturingOrderNumber->name, $data)
+            && $productionRequest->getManufacturingOrderNumber() !== $data[FixedFieldEnum::manufacturingOrderNumber->name]) {
+            $message .= "<strong>Numéro d'OF</strong> : {$data[FixedFieldEnum::manufacturingOrderNumber->name]} <br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EMERGENCY, $data)
-            && $productionRequest->getEmergency() !== $data[FixedFieldStandard::FIELD_CODE_EMERGENCY]) {
-            $message .= "<strong>Urgence</strong> : {$data[FixedFieldStandard::FIELD_CODE_EMERGENCY]}<br>";
+        if (array_key_exists(FixedFieldEnum::emergency->name, $data)
+            && $productionRequest->getEmergency() !== $data[FixedFieldEnum::emergency->name]) {
+            $message .= "<strong>Urgence</strong> : {$data[FixedFieldEnum::emergency->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_EXPECTED_AT, $data)
-            && $productionRequest->getExpectedAt() !== $data[FixedFieldStandard::FIELD_CODE_EXPECTED_AT]) {
-            $message .= "<strong>Date attendue</strong> : {$data[FixedFieldStandard::FIELD_CODE_EXPECTED_AT]}<br>";
+        if (array_key_exists(FixedFieldEnum::expectedAt->name, $data)
+            && $productionRequest->getExpectedAt() !== $data[FixedFieldEnum::expectedAt->name]) {
+            $message .= "<strong>Date attendue</strong> : {$data[FixedFieldEnum::expectedAt->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, $data)
-            && $productionRequest->getProjectNumber() !== $data[FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]) {
-            $message .= "<strong>Numéro de projet</strong> : {$data[FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER]}<br>";
+        if (array_key_exists(FixedFieldEnum::projectNumber->name, $data)
+            && $productionRequest->getProjectNumber() !== $data[FixedFieldEnum::projectNumber->name]) {
+            $message .= "<strong>Numéro de projet</strong> : {$data[FixedFieldEnum::projectNumber->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE, $data)
-            && $productionRequest->getProductArticleCode() !== $data[FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE]) {
-            $message .= "<strong>Code produit/article</strong> : {$data[FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE]}<br>";
+        if (array_key_exists(FixedFieldEnum::productArticleCode->name, $data)
+            && $productionRequest->getProductArticleCode() !== $data[FixedFieldEnum::productArticleCode->name]) {
+            $message .= "<strong>Code produit/article</strong> : {$data[FixedFieldEnum::productArticleCode->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_QUANTITY, $data)
+        if (array_key_exists(FixedFieldEnum::quantity->name, $data)
             && $productionRequest->getQuantity() !== null
-            && $productionRequest->getQuantity() !== intval($data[FixedFieldStandard::FIELD_CODE_QUANTITY])) {
-            $message .= "<strong>Quantité</strong> : {$data[FixedFieldStandard::FIELD_CODE_QUANTITY]}<br>";
+            && $productionRequest->getQuantity() !== intval($data[FixedFieldEnum::quantity->name])) {
+            $message .= "<strong>Quantité</strong> : {$data[FixedFieldEnum::quantity->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_LINE_COUNT, $data)
+        if (array_key_exists(FixedFieldEnum::lineCount->name, $data)
             && $productionRequest->getLineCount() !== null
-            && $productionRequest->getLineCount() !== intval($data[FixedFieldStandard::FIELD_CODE_LINE_COUNT])) {
-            $message .= "<strong>Nombre de lignes</strong> : {$data[FixedFieldStandard::FIELD_CODE_LINE_COUNT]}<br>";
+            && $productionRequest->getLineCount() !== intval($data[FixedFieldEnum::lineCount->name])) {
+            $message .= "<strong>Nombre de lignes</strong> : {$data[FixedFieldEnum::lineCount->name]}<br>";
         }
 
-        if (array_key_exists(FixedFieldStandard::FIELD_CODE_COMMENTAIRE, $data)
-            && $productionRequest->getComment() !== $data[FixedFieldStandard::FIELD_CODE_COMMENTAIRE]) {
+        if (array_key_exists(FixedFieldEnum::comment->name, $data)
+            && $productionRequest->getComment() !== $data[FixedFieldEnum::comment->name]) {
             $productionRequestHistoryRecord = $this->operationHistoryService->persistProductionHistory(
                 $entityManager,
                 $productionRequest,
                 OperationHistoryService::TYPE_ADD_COMMENT,
                 [
                     "user" => $user,
-                    "comment" => $data[FixedFieldStandard::FIELD_CODE_COMMENTAIRE],
+                    "comment" => $data[FixedFieldEnum::comment->name],
                 ]
             );
             $entityManager->persist($productionRequestHistoryRecord);
