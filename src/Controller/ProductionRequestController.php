@@ -264,4 +264,10 @@ class ProductionRequestController extends AbstractController
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
+
+    #[Route("/planning", name: "planning", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
+    public function planning(): Response {
+        return $this->render("production_request/planning/index.html.twig");
+    }
 }
