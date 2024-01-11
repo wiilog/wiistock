@@ -77,12 +77,12 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_TRANSPORTEUR,
         ],
         FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
-            FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER,
-            FixedFieldStandard::FIELD_CODE_EMERGENCY,
-            FixedFieldStandard::FIELD_CODE_EXPECTED_AT,
-            FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE,
-            FixedFieldStandard::FIELD_CODE_LOCATION_DROP,
-            FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
+            FixedFieldEnum::manufacturingOrderNumber->name,
+            FixedFieldEnum::emergency->name,
+            FixedFieldEnum::expectedAt->name,
+            FixedFieldEnum::productArticleCode->name,
+            FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::attachments->name,
         ],
     ];
 

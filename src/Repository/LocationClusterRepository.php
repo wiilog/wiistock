@@ -33,7 +33,7 @@ class LocationClusterRepository extends EntityRepository {
             ->andWhere('cluster = :locationCluster')
             ->setParameter('locationCluster', $locationCluster);
 
-        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $defaultLanguage, $defaultLanguage, 'nature', ["alias" => "join_logisticUnit"]);
+        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $defaultLanguage, $defaultLanguage, ['nature'], ["alias" => "join_logisticUnit"]);
 
         if (!empty($naturesFilter)) {
             $queryBuilder

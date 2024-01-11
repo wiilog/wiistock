@@ -143,6 +143,7 @@ class Action {
     // production
     const DISPLAY_PRODUCTION_REQUEST =  'afficher demandes de production';
     const CREATE_PRODUCTION_REQUEST = 'créer demande de production';
+    const EXPORT_PRODUCTION_REQUEST = 'exporter demandes de production';
     const EDIT_IN_PROGRESS_PRODUCTION_REQUEST = 'modifier demandes de production au statut en cours';
     const EDIT_TO_TREAT_PRODUCTION_REQUEST = 'modifier demandes de production au statut à traiter';
     const DELETE_TO_TREAT_PRODUCTION_REQUEST = 'supprimer demandes de production au statut à traiter';

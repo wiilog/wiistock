@@ -16,12 +16,16 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Helper\LanguageHelper;
+use App\Service\CSVExportService;
 use App\Service\FixedFieldService;
+use App\Service\FreeFieldService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\VisibleColumnService;
 use App\Service\StatusHistoryService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
@@ -30,7 +34,9 @@ use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Throwable;
 use WiiCommon\Helper\Stream;
 
 #[Route('/production', name: 'production_request_')]
@@ -263,5 +269,72 @@ class ProductionRequestController extends AbstractController
             'success' => true,
             'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
+    }
+
+    #[Route("/export", name: "export", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::PRODUCTION, Action::EXPORT_PRODUCTION_REQUEST])]
+    public function export(EntityManagerInterface    $entityManager,
+                           Request                   $request,
+                           CSVExportService          $CSVExportService,
+                           ProductionRequestService  $productionRequestService,
+                           LanguageService           $languageService,
+                           FreeFieldService          $freeFieldService): Response {
+
+        $filters = $request->query;
+
+        $dateMin = $filters->get("dateMin");
+        $dateMax = $filters->get("dateMax");
+        $user = $this->getUser();
+        $userDateFormat = $user->getDateFormat() ?: Language::DMY_FORMAT;
+
+        try {
+            $dateTimeMin = DateTime::createFromFormat("Y-m-d H:i:s", "$dateMin 00:00:00");
+            $dateTimeMax = DateTime::createFromFormat("Y-m-d H:i:s", "$dateMax 23:59:59");
+        } catch (Throwable) {
+            return $this->json([
+                "success" => false,
+                "msg" => "Les dates renseignées sont invalides.",
+            ]);
+        }
+
+        if ($dateTimeMin && $dateTimeMax) {
+            $today = (new DateTime('now'))->format("d-m-Y-H-i");
+
+            $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+            $defaultLanguage = $entityManager->getRepository(Language::class)->findOneBy(["slug" => $defaultSlug]);
+            $headers = Stream::from($productionRequestService->getVisibleColumnsConfig($entityManager, $user, true))
+                ->map(static fn(array $column) => $column["title"])
+                ->toArray();
+
+            return $CSVExportService->streamResponse(function ($output) use ($entityManager,
+                                                                             $CSVExportService,
+                                                                             $dateTimeMin,
+                                                                             $dateTimeMax,
+                                                                             $productionRequestService,
+                                                                             $filters,
+                                                                             $user,
+                                                                             $defaultLanguage,
+                                                                             $userDateFormat,
+                                                                             $freeFieldService
+            ) {
+                $productionRequests = $entityManager->getRepository(ProductionRequest::class)->getByDates($dateTimeMin, $dateTimeMax, $filters, [
+                    "userDateFormat" => $userDateFormat,
+                    "language" => $user->getLanguage(),
+                    "defaultLanguage" => $defaultLanguage,
+                ]);
+
+                $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::PRODUCTION_REQUEST]);
+                $freeFieldsById = Stream::from($productionRequests)
+                    ->keymap(static fn($productionRequest) => [
+                        $productionRequest['id'], $productionRequest['freeFields']
+                    ])->toArray();
+
+                foreach ($productionRequests as $productionRequest) {
+                    $productionRequestService->productionRequestPutLine($output, $productionRequest, $freeFieldsConfig, $freeFieldsById);
+                }
+            }, "production_$today.csv", $headers);
+        } else {
+            throw new BadRequestHttpException();
+        }
     }
 }
