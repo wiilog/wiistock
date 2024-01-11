@@ -22,6 +22,7 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 const PAGE_DISPATCHES = 'acheminement';
+const PAGE_PRODUCTION = 'production';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
@@ -888,6 +889,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                     break;
 
                 case 'emergency':
+                case 'attachmentAssigned':
                 case 'customs':
                 case 'frozen':
                 case 'carrierTrackingNumberNotAssigned':
