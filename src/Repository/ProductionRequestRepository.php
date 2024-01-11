@@ -2,11 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
-use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
+use DateTime;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -92,7 +94,7 @@ class ProductionRequestRepository extends EntityRepository
                         ->andWhere('filter_createdBy.id IN (:filter_createdBy_values)')
                         ->setParameter('filter_createdBy_values', $value);
                     break;
-                case FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER:
+                case FixedFieldEnum::manufacturingOrderNumber->name:
                     $value = $filter['value'];
                     $qb
                         ->andWhere($qb->expr()->like('production_request.manufacturingOrderNumber', ':filter_manufactoringOrderNumber_value'))
@@ -113,20 +115,21 @@ class ProductionRequestRepository extends EntityRepository
                 $search = $params->all('search')['value'];
                 if (!empty($search)) {
                     $conditions = [
-                        "number" => "production_request.number LIKE :search_value",
-                        "createdAt" => "DATE_FORMAT(production_request.createdAt, '%d/%m/%Y') LIKE :search_value",
-                        "treatedBy" => "search_treatedBy.username LIKE :search_value",
-                        "type" => "search_type.label LIKE :search_value",
-                        "status" => "search_status.nom LIKE :search_value",
-                        "expectedAt" => "DATE_FORMAT(production_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_LOCATION_DROP => "search_dropLocation.label LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_LINE_COUNT => "production_request.lineCount LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER => "production_request.manufacturingOrderNumber LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE => "production_request.productArticleCode LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_QUANTITY => "production_request.quantity LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_EMERGENCY => "production_request.emergency LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER => "production_request.projectNumber LIKE :search_value",
-                        FixedFieldStandard::FIELD_CODE_COMMENTAIRE => "production_request.comment LIKE :search_value",
+                        FixedFieldEnum::number->name => "production_request.number LIKE :search_value",
+                        FixedFieldEnum::createdAt->name => "DATE_FORMAT(production_request.createdAt, '%d/%m/%Y') LIKE :search_value",
+                        FixedFieldEnum::createdBy->name => "search_createdBy.username LIKE :search_value",
+                        FixedFieldEnum::treatedBy->name => "search_treatedBy.username LIKE :search_value",
+                        FixedFieldEnum::type->name => "search_type.label LIKE :search_value",
+                        FixedFieldEnum::status->name => "search_status.nom LIKE :search_value",
+                        FixedFieldEnum::expectedAt->name => "DATE_FORMAT(production_request.expectedAt, '%d/%m/%Y') LIKE :search_value",
+                        FixedFieldEnum::dropLocation->name => "search_dropLocation.label LIKE :search_value",
+                        FixedFieldEnum::lineCount->name => "production_request.lineCount LIKE :search_value",
+                        FixedFieldEnum::manufacturingOrderNumber->name => "production_request.manufacturingOrderNumber LIKE :search_value",
+                        FixedFieldEnum::productArticleCode->name => "production_request.productArticleCode LIKE :search_value",
+                        FixedFieldEnum::quantity->name => "production_request.quantity LIKE :search_value",
+                        FixedFieldEnum::emergency->name => "production_request.emergency LIKE :search_value",
+                        FixedFieldEnum::projectNumber->name => "production_request.projectNumber LIKE :search_value",
+                        FixedFieldEnum::comment->name => "production_request.comment LIKE :search_value",
                     ];
 
                     $visibleColumnService->bindSearchableColumns($conditions, 'productionRequest', $qb, $options['user'], $search);
@@ -134,8 +137,9 @@ class ProductionRequestRepository extends EntityRepository
                     $qb
                         ->leftJoin('production_request.status', 'search_status')
                         ->leftJoin('production_request.treatedBy', 'search_treatedBy')
+                        ->innerJoin('production_request.createdBy', 'search_createdBy')
                         ->leftJoin('production_request.dropLocation', 'search_dropLocation')
-                        ->leftJoin('production_request.type', 'search_type');
+                        ->innerJoin('production_request.type', 'search_type');
                 }
             }
 
@@ -144,41 +148,45 @@ class ProductionRequestRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
 
-                    if ($column === 'number') {
+                    if ($column === FixedFieldEnum::number->name) {
                         $qb->orderBy('production_request.number', $order);
                     } else if ($column === 'createdAt') {
                         $qb->orderBy('production_request.createdAt', $order);
-                    } else if ($column === 'treatedBy') {
+                    } else if ($column === FixedFieldEnum::treatedBy->name) {
                         $qb
-                            ->leftJoin('production_request.treatedBy', 'user')
-                            ->orderBy('user.username', $order);
-                    } else if ($column === 'type') {
+                            ->leftJoin('production_request.treatedBy', 'order_treatedBy')
+                            ->orderBy('order_treatedBy.username', $order);
+                    } else if ($column === FixedFieldEnum::createdAt->name) {
+                        $qb
+                            ->leftJoin('production_request.createdBy', 'order_createdBy')
+                            ->orderBy('order_createdBy.username', $order);
+                    } else if ($column === FixedFieldEnum::type->name) {
                         $qb
                             ->leftJoin('production_request.type', 'type')
                             ->orderBy('type.label', $order);
-                    } else if ($column === 'status') {
+                    } else if ($column === FixedFieldEnum::status->name) {
                         $qb
                             ->leftJoin('production_request.status', 'status')
                             ->orderBy('status.nom', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_EXPECTED_AT) {
+                    } else if ($column === FixedFieldEnum::expectedAt->name) {
                         $qb->orderBy('production_request.expectedAt', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_LOCATION_DROP) {
+                    } else if ($column === FixedFieldEnum::dropLocation->name) {
                         $qb
                             ->leftJoin('production_request.dropLocation', 'location')
                             ->orderBy('location.label', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_LINE_COUNT) {
+                    } else if ($column === FixedFieldEnum::lineCount->name) {
                         $qb->orderBy('production_request.lineNumber', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER) {
+                    } else if ($column === FixedFieldEnum::manufacturingOrderNumber->name) {
                         $qb->orderBy('production_request.manufacturingOrderNumber', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE) {
+                    } else if ($column === FixedFieldEnum::productArticleCode->name) {
                         $qb->orderBy('production_request.productArticleCode', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_QUANTITY) {
+                    } else if ($column === FixedFieldEnum::quantity->name) {
                         $qb->orderBy('production_request.quantity', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_EMERGENCY) {
+                    } else if ($column === FixedFieldEnum::emergency->name) {
                         $qb->orderBy('production_request.emergency', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER) {
+                    } else if ($column === FixedFieldEnum::projectNumber->name) {
                         $qb->orderBy('production_request.projectNumber', $order);
-                    } else if ($column === FixedFieldStandard::FIELD_CODE_COMMENTAIRE) {
+                    } else if ($column === FixedFieldEnum::comment->name) {
                         $qb->orderBy('production_request.comment', $order);
                     }
                 }
@@ -204,5 +212,93 @@ class ProductionRequestRepository extends EntityRepository
             'count' => $filtered,
             'total' => $total
         ];
+    }
+
+    public function getByDates(DateTime $dateMin,
+                               DateTime $dateMax,
+                               InputBag $filters,
+                               array    $options = []): array
+    {
+        $defaultLanguage = $options["defaultLanguage"];
+        $language = $options["language"] ?: $defaultLanguage;
+        $dateFormat = Language::MYSQL_DATE_FORMATS[$options["userDateFormat"]] . " %H:%i:%s";
+
+        $referenceDate = $filters->getBoolean("date-choice_createdAd") ? "createdAt" : "expectedAt";
+        $types = $filters->has("multipleTypes")
+            ? Stream::from($filters->all("multipleTypes"))
+                ->map(static fn(array $type) => intval($type["id"]))
+                ->toArray()
+            : [];
+        $statuses = Stream::from($filters->all())
+            ->filterMap(static fn(string $value, string $key) => $value === "true" && str_starts_with($key, "statuses-filter_") ? $key : null)
+            ->map(static fn(string $value) => intval(explode("_", $value)[1]))
+            ->values();
+        $requesters = $filters->has("requesters")
+            ? Stream::from($filters->all("requesters"))
+                ->map(static fn(array $type) => intval($type["id"]))
+                ->toArray()
+            : [];
+        $manufacturingOrderNumber = $filters->get("manufacturingOrderNumber");
+        $hasAttachments = $filters->getBoolean("attachmentAssigned");
+
+        $queryBuilder = $this->createQueryBuilder("production_request")
+            ->select("production_request.id AS " . FixedFieldEnum::id->name)
+            ->addSelect("production_request.number AS " . FixedFieldEnum::number->name)
+            ->addSelect("DATE_FORMAT(production_request.createdAt, '$dateFormat') AS " . FixedFieldEnum::createdAt->name)
+            ->addSelect("join_createdBy.username AS " . FixedFieldEnum::createdBy->name)
+            ->addSelect("join_treatedBy.username AS " . FixedFieldEnum::treatedBy->name)
+            ->addSelect("COALESCE(join_translation_type.translation, join_translation_default_type.translation, join_type.label) AS " . FixedFieldEnum::type->name)
+            ->addSelect("COALESCE(join_translation_status.translation, join_translation_default_status.translation, join_status.nom) AS " . FixedFieldEnum::status->name)
+            ->addSelect("DATE_FORMAT(production_request.expectedAt, '$dateFormat') AS " . FixedFieldEnum::expectedAt->name)
+            ->addSelect("join_dropLocation.label AS " . FixedFieldEnum::dropLocation->name)
+            ->addSelect("production_request.lineCount AS " . FixedFieldEnum::lineCount->name)
+            ->addSelect("production_request.manufacturingOrderNumber AS " . FixedFieldEnum::manufacturingOrderNumber->name)
+            ->addSelect("production_request.productArticleCode AS " . FixedFieldEnum::productArticleCode->name)
+            ->addSelect("production_request.quantity " . FixedFieldEnum::quantity->name)
+            ->addSelect("production_request.emergency AS " . FixedFieldEnum::emergency->name)
+            ->addSelect("production_request.projectNumber AS " . FixedFieldEnum::projectNumber->name)
+            ->addSelect("production_request.comment AS " . FixedFieldEnum::comment->name)
+            ->addSelect("production_request.freeFields AS freeFields")
+            ->innerJoin("production_request.createdBy", "join_createdBy")
+            ->leftJoin("production_request.treatedBy", "join_treatedBy")
+            ->leftJoin("production_request.dropLocation", "join_dropLocation")
+            ->andWhere("production_request.$referenceDate BETWEEN :dateMin AND :dateMax")
+            ->setParameter("dateMin", $dateMin)
+            ->setParameter("dateMax", $dateMax);
+
+        if(!empty($types)) {
+            $queryBuilder
+                ->andWhere("join_type.id IN (:types)")
+                ->setParameter("types", $types);
+        }
+
+        if(!empty($statuses)) {
+            $queryBuilder
+                ->andWhere("join_status.id IN (:statuses)")
+                ->setParameter("statuses", $statuses);
+        }
+
+        if(!empty($requesters)) {
+            $queryBuilder
+                ->andWhere("join_createdBy.id IN (:requesters)")
+                ->setParameter("requesters", $requesters);
+        }
+
+        if($manufacturingOrderNumber) {
+            $queryBuilder
+                ->andWhere("production_request.manufacturingOrderNumber LIKE :manufacturingOrderNumber")
+                ->setParameter("manufacturingOrderNumber", "%$manufacturingOrderNumber%");
+        }
+
+        if($hasAttachments) {
+            $queryBuilder
+                ->innerJoin("production_request.attachments", "join_attachments");
+        }
+
+        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $language, $defaultLanguage, ["status", "type"]);
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
     }
 }
