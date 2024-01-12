@@ -96,6 +96,7 @@ else
     php bin/console doctrine:schema:update --force
 
     echo ">>>> Mise à jour des données par défaut"
+    php bin/console doctrine:fixtures:load --append --group=types
     php bin/console doctrine:fixtures:load --append --group=fixtures --group=initialize
 fi
 
