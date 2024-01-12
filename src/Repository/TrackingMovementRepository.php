@@ -67,6 +67,7 @@ class TrackingMovementRepository extends EntityRepository
             ->addSelect('transferOrder.number as transferNumber')
             ->addSelect('dispatches.number as dispatchNumber')
             ->addSelect("CONCAT(join_packParent.code, '-', tracking_movement.groupIteration) as packParent")
+            ->addSelect("IF(SIZE(tracking_movement.attachments) > 0, 'oui', 'non') AS hasAttachments")
 
             ->andWhere('tracking_movement.datetime BETWEEN :dateMin AND :dateMax')
 
