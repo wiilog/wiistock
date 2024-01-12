@@ -1,4 +1,4 @@
-import {DELETE, GET} from "@app/ajax";
+import AJAX, {DELETE, GET} from "@app/ajax";
 
 global.deleteProductionRequest = deleteProductionRequest;
 
