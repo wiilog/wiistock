@@ -410,8 +410,11 @@ class ImportService
 
         if($file) {
             $columnsToFields = $this->currentImport->getColumnToField();
-            dump($columnsToFields);
-            $matches = array_flip($columnsToFields);
+            $matches = Stream::from($columnsToFields)
+                ->filter()
+                ->flip()
+                ->toArray();
+
             $colChampsLibres = array_filter($matches, function ($elem) {
                 return is_int($elem);
             }, ARRAY_FILTER_USE_KEY);
