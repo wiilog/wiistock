@@ -119,6 +119,7 @@ class ImportService
             "volume",
             "weight",
             "associatedDocumentTypes",
+            "emergency",
         ],
         Import::ENTITY_FOU => [
             'nom',
@@ -409,6 +410,7 @@ class ImportService
 
         if($file) {
             $columnsToFields = $this->currentImport->getColumnToField();
+            dump($columnsToFields);
             $matches = array_flip($columnsToFields);
             $colChampsLibres = array_filter($matches, function ($elem) {
                 return is_int($elem);
@@ -1082,7 +1084,6 @@ class ImportService
 
             $refArt
                 ->setStatut($status)
-                ->setIsUrgent(false)
                 ->setBarCode($this->refArticleDataService->generateBarCode())
                 ->setType($type);
         } else if (isset($data['type']) && $refArt->getType()?->getLabel() !== $data['type']) {
@@ -1145,6 +1146,15 @@ class ImportService
 
             $refArt
                 ->setDangerousGoods($dangerousGoods);
+        }
+        if (isset($data['emergency'])) {
+            $urgentReference = (
+                filter_var($data['emergency'], FILTER_VALIDATE_BOOLEAN)
+                || in_array($data['emergency'], self::POSITIVE_ARRAY)
+            );
+
+            $refArt
+                ->setIsUrgent($urgentReference);
         }
 
         if (isset($data['onuCode'])) {

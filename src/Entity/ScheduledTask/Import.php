@@ -158,6 +158,7 @@ class Import {
             'articleFournisseurReference' => 'Référence article fournisseur',
             'typeLabel' => 'type',
             'dateLastInventory' => 'date dernier inventaire (jj/mm/AAAA)',
+            'emergency' => 'urgence',
             'emergencyComment' => 'commentaire urgence',
             'orderNumber' => 'numéro de commande',
             'quantity' => 'quantité',

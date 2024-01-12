@@ -1205,6 +1205,7 @@ class RefArticleDataService
             $reference["emplacement"],
             $reference["limitSecurity"],
             $reference["limitWarning"],
+            $this->formatService->bool($reference["emergency"]),
             $reference["prixUnitaire"],
             $reference["barCode"],
             $reference["category"],

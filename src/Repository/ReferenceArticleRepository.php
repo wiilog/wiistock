@@ -282,6 +282,7 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('emplacementRef.label as emplacement')
             ->addSelect('referenceArticle.limitSecurity')
             ->addSelect('referenceArticle.limitWarning')
+            ->addSelect('referenceArticle.isUrgent AS emergency')
             ->addSelect('referenceArticle.prixUnitaire')
             ->addSelect('referenceArticle.barCode')
             ->addSelect('join_createdBy.username as createdBy')

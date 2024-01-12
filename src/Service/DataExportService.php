@@ -67,6 +67,7 @@ class DataExportService
             'emplacement',
             'seuil sécurite',
             'seuil alerte',
+            'urgence',
             'prix unitaire',
             'code barre',
             'catégorie inventaire',
