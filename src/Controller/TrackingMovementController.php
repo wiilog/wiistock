@@ -551,7 +551,6 @@ class TrackingMovementController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
@@ -572,22 +571,14 @@ class TrackingMovementController extends AbstractController
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
-                $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
 
                 return $CSVExportService->streamResponse(
-                    function ($output) use (
-                        $trackingMovements,
-                        $attachmentsNameByTracking,
-                        $CSVExportService,
-                        $trackingMovementService,
-                        $freeFieldsConfig
-                    ) {
+                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig) {
                         foreach ($trackingMovements as $movement) {
                             $trackingMovementService->putMovementLine(
                                 $output,
                                 $CSVExportService,
                                 $movement,
-                                $attachmentsNameByTracking,
                                 $freeFieldsConfig
                             );
                         }
