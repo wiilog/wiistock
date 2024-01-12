@@ -516,15 +516,13 @@
                         </div>
                         <div class="row">
                             <div class="form-group col-8 col-md-8 mt-2">
-                                <div class="article {{ reference.typeQuantite != 'article' ? 'd-none' }}">
-                                    <label class="with-checkbox">
-                                        <input type="checkbox"
-                                               name="urgence"
-                                               class="checkbox data"
-                                               onchange="toggleEmergency($(this))" {{ reference.id and reference.isUrgent ? 'checked' }}>
-                                        Urgence
-                                    </label>
-                                </div>
+                                <label class="with-checkbox">
+                                    <input type="checkbox"
+                                           name="urgence"
+                                           class="checkbox data"
+                                           onchange="toggleEmergency($(this))" {{ reference.id and reference.isUrgent ? 'checked' }}>
+                                    Urgence
+                                </label>
                             </div>
                             <div class="form-group col-4 col-md-4 mt-2">
                                 {% set display = not reference.isUrgent ? 'd-none' : '' %}
