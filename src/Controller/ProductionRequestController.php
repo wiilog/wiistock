@@ -16,11 +16,13 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FixedFieldService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use App\Service\StatusHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -202,7 +204,17 @@ class ProductionRequestController extends AbstractController
     #[Route('/delete/{productionRequest}', name: 'delete', options: ['expose' => true], methods: 'DELETE', condition: 'request.isXmlHttpRequest()')]
     public function delete(ProductionRequest      $productionRequest,
                            EntityManagerInterface $entityManager,
-                           AttachmentService      $attachmentService): JsonResponse {
+                           AttachmentService      $attachmentService,
+                           UserService            $userService): JsonResponse {
+
+        $status = $productionRequest->getStatus();
+        if (
+            ($status->isNotTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TO_TREAT_PRODUCTION_REQUEST))
+            || ($status->isInProgress() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST))
+            || ($status->isTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TREATED_PRODUCTION_REQUEST))
+        ) {
+            throw new FormException("Accès refusé");
+        }
 
         foreach ($productionRequest->getAttachments() as $attachement) {
             $attachmentService->removeAndDeleteAttachment($attachement, $productionRequest);
