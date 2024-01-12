@@ -6,6 +6,7 @@ namespace App\DataFixtures;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fields\SubLineFixedField;
 use App\Entity\Type;
@@ -107,16 +108,16 @@ class FixedFieldFixtures extends Fixture implements FixtureGroupInterface {
             ],
 
             FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
-                ['code' => FixedFieldStandard::FIELD_CODE_MANUFACTURING_ORDER_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_MANUFACTURING_ORDER_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_EMERGENCY, 'label' => FixedFieldStandard::FIELD_LABEL_EMERGENCY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
-                ['code' => FixedFieldStandard::FIELD_CODE_EXPECTED_AT, 'label' => FixedFieldStandard::FIELD_LABEL_EXPECTED_AT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER, 'label' => FixedFieldStandard::FIELD_LABEL_PROJECT_NUMBER, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_PRODUCT_ARTICLE_CODE, 'label' => FixedFieldStandard::FIELD_LABEL_PRODUCT_ARTICLE_CODE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_LOCATION_DROP, 'label' => FixedFieldStandard::FIELD_LABEL_LOCATION_DROP, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_COMMENTAIRE, 'label' => FixedFieldStandard::FIELD_LABEL_COMMENTAIRE, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_ATTACHMENTS, 'label' => FixedFieldStandard::FIELD_LABEL_ATTACHMENTS, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
-                ['code' => FixedFieldStandard::FIELD_CODE_QUANTITY, 'label' => FixedFieldStandard::FIELD_LABEL_QUANTITY, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
-                ['code' => FixedFieldStandard::FIELD_CODE_LINE_COUNT, 'label' => FixedFieldStandard::FIELD_LABEL_LINE_COUNT, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::manufacturingOrderNumber->name, 'label' => FixedFieldEnum::manufacturingOrderNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::emergency->name, 'label' => FixedFieldEnum::emergency->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true, 'elementsType' => FixedFieldStandard::ELEMENTS_TYPE_FREE, 'values' => []],
+                ['code' => FixedFieldEnum::expectedAt->name, 'label' => FixedFieldEnum::expectedAt->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::projectNumber->name, 'label' => FixedFieldEnum::projectNumber->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::productArticleCode->name, 'label' => FixedFieldEnum::productArticleCode->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::dropLocation->name, 'label' => FixedFieldEnum::dropLocation->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::comment->name, 'label' => FixedFieldEnum::comment->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::attachments->name, 'label' => FixedFieldEnum::attachments->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => true],
+                ['code' => FixedFieldEnum::quantity->name, 'label' => FixedFieldEnum::quantity->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
+                ['code' => FixedFieldEnum::lineCount->name, 'label' => FixedFieldEnum::lineCount->value, 'displayedCreate' => true, 'displayedEdit' => true, 'displayedFilters' => false],
             ],
         ];
 

@@ -22,6 +22,14 @@ $(function () {
     initDateTimePicker('#dateMin, #dateMax', DATE_FORMATS_TO_DISPLAY[format]);
 
     getUserFiltersByPage(PAGE_PRODUCTION);
+
+    $(`.export-button`).on(`click`, function() {
+        exportFile(`production_request_export`, {}, {
+            needsAllFilters: true,
+            needsDateFormatting: true,
+            $button: $(this),
+        });
+    });
 });
 
 function initTableShippings() {
