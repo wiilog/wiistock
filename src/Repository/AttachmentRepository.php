@@ -44,30 +44,6 @@ class AttachmentRepository extends EntityRepository
             ->getResult();
 	}
 
-	public function getNameGroupByMovements() {
-        $queryBuilder = $this->createQueryBuilder('attachment')
-            ->select('trackingMovements.id AS trackingMovementId')
-            ->addSelect('attachment.originalName')
-            ->join('attachment.trackingMovements', 'trackingMovements');
-
-        $result = $queryBuilder
-            ->getQuery()
-            ->getResult();
-
-        return array_reduce($result, function ($acc, $attachment) {
-            $trackingMovementId = (int) $attachment['trackingMovementId'];
-            if (empty($acc[$trackingMovementId])) {
-                $acc[$trackingMovementId] = '';
-            }
-            else {
-                $acc[$trackingMovementId] .= ', ';
-            }
-
-            $acc[$trackingMovementId] .= $attachment['originalName'];
-            return $acc;
-        }, []);
-    }
-
     public function getMobileAttachmentForHandling(array $handlingIds): array {
         if (!empty($handlingIds)) {
             $queryBuilder = $this->createQueryBuilder('attachment')
