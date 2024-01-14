@@ -193,11 +193,13 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             title: `<div class='small-column'>Synchronisation nomade</div>`,
             modes: [MODE_HANDLING, MODE_DISPATCH]
         },
-        ...(hasRightGroupedSignature ? [{
-            data: `commentNeeded`,
-            title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        }] : []),
+        ...(hasRightGroupedSignature
+            ? [{
+                data: `commentNeeded`,
+                title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
+                modes: [MODE_DISPATCH]
+            }]
+            : []),
         {data: `order`, class: `maxw-70px`, title: `Ordre`, required: true},
     ].filter(({modes}) => !modes || modes.indexOf(mode) > -1);
 }

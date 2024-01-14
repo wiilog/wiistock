@@ -1022,16 +1022,16 @@ class SettingsService {
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
-                        ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
-                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
+                        ->setDisplayOrder($statusData['order'] ?? 0);
 
                     if($hasRightGroupedSignature){
                         $status
                             ->setSendReport($statusData['sendReport'] ?? false)
+                            ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                             ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
-                            ->setDisplayOrder($statusData['order'] ?? 0);
+                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
                     }
 
                     // label given on creation or edit is the French one
