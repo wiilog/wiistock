@@ -13,24 +13,22 @@
                         <div class="row">
                             <div class="form-group col-12">
                                 <label class="wii-field-name mb-1" for="datetime">{{ trans('Traçabilité', 'Général', 'Date', false) }}*</label>
-                                <div class="d-flex">
-                                    {{ form.checkbox('now', 'Maintenant', false, true, {
-                                        inputClass: 'filter-checkbox no-clear',
-                                        attributes: {
-                                            onchange: 'toggleDateInput($(this))',
-                                        },
-                                    }) }}
-                                    {{ form.input("datetime", null, true, false, {
-                                        inputClass: "no-clear d-none ml-2",
-                                        width: "w-50",
-                                        attributes: {
-                                            "data-init": "now",
-                                            "placeholder": app.user.displayedDateFormat ~ ' hh:mm',
-                                            "autocomplete": "off",
-                                            "id": "datetime",
-                                        }
-                                    }) }}
-                                </div>
+                                {{ form.checkbox('now', 'Maintenant', false, true, {
+                                    inputClass: 'filter-checkbox no-clear',
+                                    attributes: {
+                                        onchange: 'toggleDateInput($(this))',
+                                    },
+                                }) }}
+                                {{ form.input("datetime", null, true, false, {
+                                    inputClass: "no-clear d-none mt-2",
+                                    width: "w-50",
+                                    attributes: {
+                                        "data-init": "now",
+                                        "placeholder": app.user.displayedDateFormat ~ ' hh:mm',
+                                        "autocomplete": "off",
+                                        "id": "datetime",
+                                    }
+                                }) }}
                             </div>
                             <input type="hidden" class="data" name="forced" value="0">
                             <div class="form-group col-12">
