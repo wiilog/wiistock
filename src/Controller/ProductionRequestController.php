@@ -17,6 +17,8 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
+use App\Service\AttachmentService;
 use App\Helper\LanguageHelper;
 use App\Service\CSVExportService;
 use App\Service\FixedFieldService;
@@ -24,6 +26,7 @@ use App\Service\FreeFieldService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
+use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use App\Service\StatusHistoryService;
 use DateTime;
@@ -205,6 +208,35 @@ class ProductionRequestController extends AbstractController
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été créée."
+        ]);
+    }
+
+    #[Route('/delete/{productionRequest}', name: 'delete', options: ['expose' => true], methods: 'DELETE', condition: 'request.isXmlHttpRequest()')]
+    public function delete(ProductionRequest      $productionRequest,
+                           EntityManagerInterface $entityManager,
+                           AttachmentService      $attachmentService,
+                           UserService            $userService): JsonResponse {
+
+        $status = $productionRequest->getStatus();
+        if (
+            ($status->isNotTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TO_TREAT_PRODUCTION_REQUEST))
+            || ($status->isInProgress() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST))
+            || ($status->isTreated() && !$userService->hasRightFunction(Menu::PRODUCTION, Action::DELETE_TREATED_PRODUCTION_REQUEST))
+        ) {
+            throw new FormException("Accès refusé");
+        }
+
+        foreach ($productionRequest->getAttachments() as $attachement) {
+            $attachmentService->removeAndDeleteAttachment($attachement, $productionRequest);
+        }
+
+        $entityManager->remove($productionRequest);
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La demande de production a bien été supprimée.",
+            "redirect" => $this->generateUrl('production_request_index'),
         ]);
     }
 
