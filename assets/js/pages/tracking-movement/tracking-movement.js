@@ -367,7 +367,6 @@ function toggleDateInput($checkbox) {
 
     $checkbox
         .siblings(`label`)
-        //.toggleClass(`d-none`, !isChecked)
         .closest(`.form-group`)
         .find(`[name=datetime]`)
         .toggleClass(`d-none`, isChecked)

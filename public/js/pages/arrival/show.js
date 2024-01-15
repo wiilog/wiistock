@@ -184,7 +184,6 @@ $(function () {
 function openTableHisto() {
     let pathHistoLitige = Routing.generate('histo_dispute_api', {dispute: $('#disputeId').val()}, true);
     let tableHistoLitigeConfig = {
-        serverSide: true,
         ajax: {
             "url": pathHistoLitige,
             "type": "POST"
