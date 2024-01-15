@@ -220,17 +220,6 @@ function initPageModal(tableMvt) {
 function initNewModal($modal) {
     const $operatorSelect = $modal.find('.ajax-autocomplete-user');
     Select2Old.user($operatorSelect, 'Opérateur');
-
-    // Init mouvement fields if already loaded
-    const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
-    if ($moreMassMvtContainer.length > 0) {
-        const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
-        const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
-        const $pack = $moreMassMvtContainer.find('.select2-free[name="pack"]');
-        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
-        Select2Old.initFree($pack);
-        Select2Old.location($emplacementDepose, {autoSelect: true});
-    }
 }
 
 function resetNewModal($modal) {
@@ -285,6 +274,19 @@ function switchMvtCreationType($input) {
                         $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
                         $packInput.val('passageavide');
                         $packInput.prop('disabled', true);
+                    }
+
+                    const $moreMassMvtContainer = $modal.find('.form-mass-mvt-container');
+                    if($moreMassMvtContainer.length > 0) {
+                        const $emplacementPrise = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-prise"]');
+                        const $emplacementDepose = $moreMassMvtContainer.find('.ajax-autocomplete-location[name="emplacement-depose"]');
+                        const $pack = $moreMassMvtContainer.find('select[name="pack"]');
+
+                        Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
+                        Select2Old.initFree($pack);
+                        Select2Old.location($emplacementDepose, {autoSelect: true});
+
+                        setTimeout(() => $emplacementPrise.select2('open'), 200);
                     }
 
                     $modal.find(`select[name=pack]`).select2({
