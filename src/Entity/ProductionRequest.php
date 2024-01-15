@@ -202,7 +202,7 @@ class ProductionRequest extends StatusHistoryContainer
         return $this->lineCount;
     }
 
-    public function setLineCount(int $lineCount): self
+    public function setLineCount(?int $lineCount): self
     {
         $this->lineCount = $lineCount;
 
@@ -214,7 +214,7 @@ class ProductionRequest extends StatusHistoryContainer
         return $this->comment;
     }
 
-    public function setComment(string $comment): self
+    public function setComment(?string $comment): self
     {
         $this->comment = $comment;
 

@@ -19,6 +19,7 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
@@ -40,6 +41,8 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
+use App\Service\LanguageService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -868,10 +871,19 @@ class SelectController extends AbstractController {
     }
 
     #[Route('/select/types/production', name: 'ajax_select_production_request_type', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
-    public function productionRequestType(Request $request, EntityManagerInterface $manager): Response {
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
+    public function productionRequestType(Request $request, EntityManagerInterface $manager, LanguageService $languageService): Response {
+        $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+        $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
+
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::PRODUCTION,
-            $request->query->get("term")
+            $request->query->get("term"),
+            [
+                "language" => $language,
+                "defaultLanguage" => $defaultLanguage,
+            ]
         );
 
         return $this->json([

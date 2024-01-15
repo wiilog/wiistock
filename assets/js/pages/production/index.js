@@ -97,8 +97,12 @@ function onProductionRequestTypeChange($select){
     const $typeSelect = $modal.find(`[name=type]`);
     const $selectStatus = $modal.find(`[name=status]`);
 
-    $selectStatus.prop(`disabled`, !Boolean($typeSelect.val()))
-    $selectStatus.val(null).trigger(`change`);
+    $selectStatus.prop(`disabled`, !Boolean($typeSelect.val()));
+    const defaultStatus = $typeSelect.select2('data').length > 0 ? $typeSelect.select2('data')[0]['defaultStatus'] : undefined;
+    if(defaultStatus){
+        const [id, value] = defaultStatus.split(':');
+        $selectStatus.append(new Option(value, id, true, true)).trigger(`change`);
+    }
 }
 
 function displayAttachmentRequired($select) {

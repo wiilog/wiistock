@@ -13,6 +13,7 @@
         {{ form.select(fieldCode, fieldLabel, true, {
             type: 'productionRequestType',
             placeholder: 'Sélectionnez un type',
+            disabled: productionRequest.id ? true : false,
             search: true,
             value: productionRequest.type ? productionRequest.type.id : null,
             items: productionRequest.type ? {
@@ -84,7 +85,7 @@
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt|date('Y-m-d\\TH:i'), {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt|date('Y-m-d'), {
                 type: 'date',
             }) }}
         </div>
