@@ -924,9 +924,9 @@ class ArrivageService {
         $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
         if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
             return $locationRepository->find($emergenciesArrivalsLocation);
-        } else
+        }
 
-        if ($arrivage->getDropLocation()) {
+        if($arrivage->getDropLocation()) {
             return $arrivage->getDropLocation();
         }
 
