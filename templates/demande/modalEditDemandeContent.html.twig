@@ -48,7 +48,7 @@
             {{ form.select('demandeReceiver', 'Destinataire', fieldRequired, {
                 type: 'user',
                 multiple: false,
-                items: defaultReceiver
+                items: [defaultReceiver]
             }) }}
         </div>
     {% endif %}
