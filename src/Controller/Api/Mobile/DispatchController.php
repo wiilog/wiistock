@@ -289,7 +289,7 @@ class DispatchController extends AbstractApiController
             if (!$dispatchStatus || !$dispatchStatus->isTreated()) {
                 $treatedStatus = $statusRepository->find($dispatchArray['treatedStatusId']);
                 if ($treatedStatus
-                    && ($treatedStatus->isTreated() || $treatedStatus->isPartial())) {
+                    && ($treatedStatus->isTreated() || $treatedStatus->isPartial() || $treatedStatus->isInProgress())) {
                     $treatedPacks = [];
                     // we treat pack edits
                     if (!empty($dispatchPacksByDispatch[$dispatch->getId()])) {
