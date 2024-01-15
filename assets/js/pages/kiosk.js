@@ -94,7 +94,6 @@ $(function () {
                 .json()
                 .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
                     $modalWaiting.modal('hide');
-                    const $articleDataInput = $('[name=reference-article-input]');
                     if (exists && inStock) {
                         let $errorMessage = $modalInStockWarning.find('#stock-error-message');
                         $errorMessage.html(originalMessage
@@ -106,13 +105,17 @@ $(function () {
                         $modalInStockWarning.find('button.outline').on('click', function () {
                             window.location.href = Routing.generate('kiosk_index', {token}, true);
                         });
-                    } else if($articleDataInput && referenceForErrorModal === $referenceRefInput.val()) {
+                    } else if ((scannedreference && scannedreference !== $referenceRefInput.val()) || exists) {
+                        window.location.href = Routing.generate('kiosk_form', {
+                            token,
+                            scannedReference: $referenceRefInput.val(),
+                            notExistRefresh: !exists,
+                        });
+                    } else {
                         $current.removeClass('active').addClass('d-none');
                         $($current.next()[0]).addClass('active').removeClass('d-none');
                         $currentTimelineEvent.removeClass('current');
                         $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
-                    } else if ((scannedreference && scannedreference !== $referenceRefInput.val()) || exists) {
-                        window.location.href = Routing.generate('kiosk_form', {token, scannedReference: $referenceRefInput.val()});
                     }
                 });
         }
