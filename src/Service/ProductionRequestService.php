@@ -200,13 +200,13 @@ class ProductionRequestService
                 ->setCreatedAt($createdAt)
                 ->setCreatedBy($user);
 
-            if ($data->has(FixedFieldEnum::type->value)) {
-                $type = $typeRepository->find($data->get(FixedFieldEnum::type->value));
+            if ($data->has(FixedFieldEnum::type->name)) {
+                $type = $typeRepository->find($data->get(FixedFieldEnum::type->name));
                 $productionRequest->setType($type);
             }
 
-            if ($data->has(FixedFieldEnum::status->value)) {
-                $status = $statusRepository->find($data->get(FixedFieldEnum::status->value));
+            if ($data->has(FixedFieldEnum::status->name)) {
+                $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
                 $productionRequest->setStatus($status);
             }
         }
@@ -321,7 +321,7 @@ class ProductionRequestService
 
         $message = "<br>";
         if ($data->has(FixedFieldEnum::dropLocation->name)
-            && $productionRequest->getDropLocation()?->getId() !== intval($data->get(FixedFieldEnum::dropLocation->name))) {
+            && $productionRequest->getDropLocation()?->getId() !== $data->get(FixedFieldEnum::dropLocation->name) ? intval($data->get(FixedFieldEnum::dropLocation->name)) : null) {
             $dropLocation = $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name));
             $message .= "<strong>".FixedFieldEnum::dropLocation->value."</strong> : {$dropLocation->getLabel()}.<br>";
         }
@@ -337,7 +337,7 @@ class ProductionRequestService
         }
 
         if ($data->has(FixedFieldEnum::expectedAt->name)
-            && $productionRequest->getExpectedAt()->format('Y-m-d') !== $data->get(FixedFieldEnum::expectedAt->name)) {
+            && $productionRequest->getExpectedAt()?->format('Y-m-d') !== $data->get(FixedFieldEnum::expectedAt->name)) {
             $message .= "<strong>".FixedFieldEnum::expectedAt->value."</strong> : {$data->get(FixedFieldEnum::expectedAt->name)}<br>";
         }
 
