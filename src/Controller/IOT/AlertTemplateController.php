@@ -21,14 +21,14 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 #[Route('/modele-alerte', name:'alert_template_')]
 class AlertTemplateController extends AbstractController
 {
-    #[Route('api', name: 'api', options: ['expose' => true], methods: ['POST|GET'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('api', name: 'api', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     public function api(Request $request,
                         AlertTemplateService $alertTemplateService): Response {
         $data = $alertTemplateService->getDataForDatatable($request->request);
         return $this->json($data);
     }
 
-    #[Route('/supprimer', name: 'delete', options: ['expose' => true], methods: ['GET','POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/supprimer', name: 'delete', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
@@ -142,7 +142,7 @@ class AlertTemplateController extends AbstractController
         ]);
     }
 
-    #[Route("/modifier", name: 'edit', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route("/modifier", name: 'edit', options: ['expose' => true], methods: ['POST'], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PARAM, Action::EDIT])]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,

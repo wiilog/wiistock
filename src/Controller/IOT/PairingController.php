@@ -57,7 +57,7 @@ class PairingController extends AbstractController
         ]);
     }
 
-    #[Route('/api', name: 'pairing_api', options: ['expose' => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route('/api', name: 'pairing_api', options: ['expose' => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::IOT, Action::DISPLAY_SENSOR], mode: HasPermission::IN_JSON)]
     public function api(Request                $request,
                         IOTService             $IOTService,
@@ -153,7 +153,7 @@ class PairingController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route('/creer', name: 'pairing_new', options: ['expose' => true], methods: ['GET', 'POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route('/creer', name: 'pairing_new', options: ['expose' => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::IOT, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(PairingService         $pairingService,
                         EntityManagerInterface $entityManager,
@@ -246,7 +246,7 @@ class PairingController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/chart-data/{pairing}", name: "pairing_chart_data", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/chart-data/{pairing}", name: "pairing_chart_data", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     public function getChartData(Request $request, Pairing $pairing, PairingService $pairingService): JsonResponse
     {
         $filters = $request->query->all();

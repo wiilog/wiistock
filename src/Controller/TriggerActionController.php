@@ -141,8 +141,8 @@ class TriggerActionController extends AbstractController
                         $data["templateType"],
                         $data["templates"] ?? null,
                         [
-                            ... isset($data['buttonIndex']) ? ["buttonIndex" => $data['buttonIndex']] : [],
-                            ... isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
+                            ...isset($data['buttonIndex']) ? ["buttonIndex" => $data['buttonIndex']] : [],
+                            ...isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
                         ]
                     );
                     $entityManager->persist($triggerAction);
@@ -156,7 +156,7 @@ class TriggerActionController extends AbstractController
                             $data["templates"] ?? null,
                             [
                                 $data["action"] => $data["zoneId"],
-                                ... isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
+                                ...isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
                             ]
                         );
                         $entityManager->persist($triggerAction);
@@ -371,7 +371,7 @@ class TriggerActionController extends AbstractController
                 "profile" => $sensor ? $sensor->getProfile()->getName() : "",
                 "templateTypes" => [
                     TriggerAction::DROP_ON_LOCATION => "Dépôt sur emplacement",
-                    ... TriggerAction::TEMPLATE_TYPES,
+                    ...TriggerAction::TEMPLATE_TYPES,
                 ]
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE){
@@ -390,7 +390,7 @@ class TriggerActionController extends AbstractController
             $html = $this->renderView('trigger_action/modalTracer.html.twig', [
                 "templateTypes" => [
                     TriggerAction::DROP_ON_LOCATION => "Dépose sur emplacement",
-                    ... TriggerAction::TEMPLATE_TYPES,
+                    ...TriggerAction::TEMPLATE_TYPES,
                 ]
             ]);
         }

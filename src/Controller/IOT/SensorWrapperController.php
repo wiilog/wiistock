@@ -99,7 +99,7 @@ class SensorWrapperController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/creer", name: "sensor_wrapper_new", options: ["expose" => true], methods: ["GET", "POST"])]
+    #[Route("/creer", name: "sensor_wrapper_new", options: ["expose" => true], methods: ["POST"])]
     #[HasPermission([Menu::IOT, Action::CREATE])]
     public function new(Request $request,
                         EntityManagerInterface $entityManager,

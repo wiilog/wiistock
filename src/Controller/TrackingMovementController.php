@@ -135,7 +135,7 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/creer", name: "mvt_traca_new", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "mvt_traca_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request,
                         AttachmentService $attachmentService,
@@ -334,7 +334,7 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/api", name: "tracking_movement_api", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "tracking_movement_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function api(Request $request, TrackingMovementService $trackingMovementService): Response
     {
@@ -343,7 +343,7 @@ class TrackingMovementController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/est-dans-ul/{barcode}", name: "tracking_movement_is_in_lu", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/est-dans-ul/{barcode}", name: "tracking_movement_is_in_lu", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function isInLU(EntityManagerInterface $manager, string $barcode): Response
     {
@@ -356,7 +356,7 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/api-modifier", name: "tracking_movement_api_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "tracking_movement_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(EntityManagerInterface $entityManager,
                             UserService $userService,
@@ -385,7 +385,7 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "mvt_traca_edit", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "mvt_traca_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          FreeFieldService $freeFieldService,
@@ -490,7 +490,7 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/supprimer", name: "mvt_traca_delete", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/supprimer", name: "mvt_traca_delete", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response
@@ -579,7 +579,7 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/voir", name: "mvt_traca_show", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/voir", name: "mvt_traca_show", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function show(EntityManagerInterface $entityManager, Request $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
@@ -593,7 +593,7 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/obtenir-corps-modal-nouveau", name: "mouvement_traca_get_appropriate_html", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/obtenir-corps-modal-nouveau", name: "mouvement_traca_get_appropriate_html", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function getAppropriateHtml(Request $request, EntityManagerInterface $entityManager, SpecificService $specificService): Response
     {
@@ -618,7 +618,7 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/tracking-movement-logistic-unit-location", name: "tracking_movement_logistic_unit_location", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/tracking-movement-logistic-unit-location", name: "tracking_movement_logistic_unit_location", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function getLULocation(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
     {
@@ -649,7 +649,7 @@ class TrackingMovementController extends AbstractController
         ]);
     }
 
-    #[Route("/tracking-movement-logistic-unit-quantity", name: "tracking_movement_logistic_unit_quantity", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/tracking-movement-logistic-unit-quantity", name: "tracking_movement_logistic_unit_quantity", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function getLUQuantity(EntityManagerInterface $entityManager, TranslationService $translationService, Request $request): Response
     {
