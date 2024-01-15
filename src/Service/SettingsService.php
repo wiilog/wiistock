@@ -1340,10 +1340,12 @@ class SettingsService {
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
             if ($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
-                $typeOption = [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ];
+                $typeOption = $type
+                    ? [
+                        'id' => $type->getId(),
+                       'label' => $type->getLabel(),
+                    ]
+                    : null;
                 // Déclarer une variable qui vaut 1013 et 1014
             }elseif ($typeId === 'all') {
                 $typeOption = [
@@ -1356,7 +1358,7 @@ class SettingsService {
                 $location = $locationRepository->find($locationId);
             }
 
-            if (isset($location)) {
+            if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
                     'location' => [
                         'id' => $location->getId(),
