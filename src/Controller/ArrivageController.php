@@ -307,7 +307,8 @@ class ArrivageController extends AbstractController {
             $arrivalService->setArrivalUrgent($entityManager, $arrivage, true);
         }
 
-        $dropLocation = $arrivalService->getDefaultDropLocation($entityManager, $arrivage,!empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null);
+        $enteredLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
+        $dropLocation = $arrivalService->getDefaultDropLocation($entityManager, $arrivage, $enteredLocation);
 
         $arrivage->setDropLocation($dropLocation);
 

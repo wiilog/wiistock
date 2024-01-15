@@ -920,7 +920,7 @@ class ArrivageService {
 
     public function getDefaultDropLocation(EntityManagerInterface $entityManager,
                                            Arrivage               $arrivage,
-                                           ?Emplacement           $selectedLocation): ?Emplacement {
+                                           ?Emplacement           $enteredLocation): ?Emplacement {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -929,8 +929,8 @@ class ArrivageService {
             return $locationRepository->find($emergenciesArrivalsLocation);
         }
 
-        if ($selectedLocation) {
-            return $selectedLocation;
+        if ($enteredLocation) {
+            return $enteredLocation;
         }
 
         $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
