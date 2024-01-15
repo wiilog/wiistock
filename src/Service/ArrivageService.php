@@ -935,7 +935,6 @@ class ArrivageService {
             return $locationRepository->find($customsArrivalsLocation);
         }
 
-
         $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
         if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
             return $locationRepository->find($receiverDefaultLocation);
