@@ -3,6 +3,8 @@ let tableMvt;
 global.resetNewModal = resetNewModal;
 global.switchMvtCreationType = switchMvtCreationType;
 global.clearURL = clearURL;
+global.toggleDateInput = toggleDateInput;
+
 $(function () {
     $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
@@ -358,5 +360,16 @@ function displayOnSuccessCreation(success, trackingMovementsCounter) {
         ],
         success ? 'success' : 'error'
     );
+}
+
+function toggleDateInput($checkbox) {
+    const isChecked = $checkbox.is(`:checked`);
+
+    $checkbox
+        .siblings(`label`)
+        .closest(`.form-group`)
+        .find(`[name=datetime]`)
+        .toggleClass(`d-none`, isChecked)
+        .toggleClass(`needed`, !isChecked);
 }
 
