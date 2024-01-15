@@ -292,8 +292,10 @@ class ArrivageService {
         if ($urgent) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
             $arrivage
-                ->setIsUrgent(true);
+                ->setIsUrgent(true)
+                ->setDropLocation($locationRepository->find($dropLocationId));;
         }
 
         if ($urgent && !empty($emergencies)) {
@@ -917,7 +919,8 @@ class ArrivageService {
     }
 
     public function getDefaultDropLocation(EntityManagerInterface $entityManager,
-                                           Arrivage               $arrivage): ?Emplacement {
+                                           Arrivage               $arrivage,
+                                           ?Emplacement           $enteredLocation): ?Emplacement {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
@@ -926,8 +929,8 @@ class ArrivageService {
             return $locationRepository->find($emergenciesArrivalsLocation);
         }
 
-        if($arrivage->getDropLocation()) {
-            return $arrivage->getDropLocation();
+        if ($enteredLocation) {
+            return $enteredLocation;
         }
 
         $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
