@@ -11,6 +11,7 @@ use App\Entity\ProductionRequest;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -177,7 +178,7 @@ class ProductionRequestService
 
     public function updateProductionRequest(EntityManagerInterface $entityManager,
                                             ProductionRequest      $productionRequest,
-                                            array                  $data,
+                                            InputBag               $data,
                                             FileBag                $fileBag): ProductionRequest {
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -199,60 +200,60 @@ class ProductionRequestService
                 ->setCreatedAt($createdAt)
                 ->setCreatedBy($user);
 
-            if (array_key_exists(FixedFieldEnum::type->name, $data)) {
-                $type = $typeRepository->find($data[FixedFieldEnum::type->name]);
+            if ($data->has(FixedFieldEnum::type->value)) {
+                $type = $typeRepository->find($data->get(FixedFieldEnum::type->value));
                 $productionRequest->setType($type);
             }
 
-            if (array_key_exists(FixedFieldEnum::status->name, $data)) {
-                $status = $statusRepository->find($data[FixedFieldEnum::status->name]);
+            if ($data->has(FixedFieldEnum::status->value)) {
+                $status = $statusRepository->find($data->get(FixedFieldEnum::status->value));
                 $productionRequest->setStatus($status);
             }
         }
 
         // array_key_exists() needed if creation fieldParams config != edit fieldParams config
 
-        if (array_key_exists(FixedFieldEnum::dropLocation->name, $data)) {
-            $dropLocation = $data[FixedFieldEnum::dropLocation->name] ? $locationRepository->find($data[FixedFieldEnum::dropLocation->name]) : null;
+        if ($data->has(FixedFieldEnum::dropLocation->name)) {
+            $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
             $productionRequest->setDropLocation($dropLocation);
         }
 
-        if (array_key_exists(FixedFieldEnum::manufacturingOrderNumber->name, $data)) {
-            $productionRequest->setManufacturingOrderNumber($data[FixedFieldEnum::manufacturingOrderNumber->name]);
+        if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
+            $productionRequest->setManufacturingOrderNumber($data->get(FixedFieldEnum::manufacturingOrderNumber->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::emergency->name, $data)) {
-            $productionRequest->setEmergency($data[FixedFieldEnum::emergency->name]);
+        if ($data->has(FixedFieldEnum::emergency->name)) {
+            $productionRequest->setEmergency($data->get(FixedFieldEnum::emergency->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::expectedAt->name, $data)) {
-            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data[FixedFieldEnum::expectedAt->name]));
+        if ($data->has(FixedFieldEnum::expectedAt->name)) {
+            $productionRequest->setExpectedAt($this->formatService->parseDatetime($data->get(FixedFieldEnum::expectedAt->name)));
         }
 
-        if (array_key_exists(FixedFieldEnum::projectNumber->name, $data)) {
-            $productionRequest->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
+        if ($data->has(FixedFieldEnum::projectNumber->name)) {
+            $productionRequest->setProjectNumber($data->get(FixedFieldEnum::projectNumber->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::productArticleCode->name, $data)) {
-            $productionRequest->setProductArticleCode($data[FixedFieldEnum::productArticleCode->name]);
+        if ($data->has(FixedFieldEnum::productArticleCode->name)) {
+            $productionRequest->setProductArticleCode($data->get(FixedFieldEnum::productArticleCode->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::quantity->name, $data)) {
-            $productionRequest->setQuantity($data[FixedFieldEnum::quantity->name]);
+        if ($data->has(FixedFieldEnum::quantity->name)) {
+            $productionRequest->setQuantity($data->get(FixedFieldEnum::quantity->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::lineCount->name, $data)) {
-            $productionRequest->setLineCount($data[FixedFieldEnum::lineCount->name]);
+        if ($data->has(FixedFieldEnum::lineCount->name)) {
+            $productionRequest->setLineCount($data->get(FixedFieldEnum::lineCount->name));
         }
 
-        if (array_key_exists(FixedFieldEnum::comment->name, $data)) {
-            $productionRequest->setComment($data[FixedFieldEnum::comment->name]);
+        if ($data->has(FixedFieldEnum::comment->name)) {
+            $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
         $attachments = $productionRequest->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
-            if(isset($data['files']) && !in_array($attachment->getId(), $data['files'])) {
+            if($data->has('files') && !in_array($attachment->getId(), $data->all('files'))) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
             }
         }
@@ -313,65 +314,64 @@ class ProductionRequestService
 
     public function buildMessageForEdit(EntityManagerInterface $entityManager,
                                         ProductionRequest      $productionRequest,
-                                        array                  $data,
+                                        InputBag               $data,
                                         FileBag                $fileBag) : string{
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $user = $this->userService->getUser();
 
         $message = "<br>";
-        if (array_key_exists(FixedFieldEnum::dropLocation->name, $data)
-            && $productionRequest->getDropLocation()
-            && $productionRequest->getDropLocation()->getId() !== intval($data[FixedFieldEnum::dropLocation->name])) {
-            $dropLocation = $locationRepository->find($data[FixedFieldEnum::dropLocation->name]);
-            $message .= "<strong>Emplacement dépose</strong> : {$dropLocation->getLabel()}.<br>";
+        if ($data->has(FixedFieldEnum::dropLocation->name)
+            && $productionRequest->getDropLocation()?->getId() !== intval($data->get(FixedFieldEnum::dropLocation->name))) {
+            $dropLocation = $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name));
+            $message .= "<strong>".FixedFieldEnum::dropLocation->value."</strong> : {$dropLocation->getLabel()}.<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::manufacturingOrderNumber->name, $data)
-            && $productionRequest->getManufacturingOrderNumber() !== $data[FixedFieldEnum::manufacturingOrderNumber->name]) {
-            $message .= "<strong>Numéro d'OF</strong> : {$data[FixedFieldEnum::manufacturingOrderNumber->name]} <br>";
+        if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)
+            && $productionRequest->getManufacturingOrderNumber() !== $data->get(FixedFieldEnum::manufacturingOrderNumber->name)) {
+            $message .= "<strong>".FixedFieldEnum::manufacturingOrderNumber->value."</strong> : {$data->get(FixedFieldEnum::manufacturingOrderNumber->name)} <br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::emergency->name, $data)
-            && $productionRequest->getEmergency() !== $data[FixedFieldEnum::emergency->name]) {
-            $message .= "<strong>Urgence</strong> : {$data[FixedFieldEnum::emergency->name]}<br>";
+        if ($data->has(FixedFieldEnum::emergency->name)
+            && $productionRequest->getEmergency() !== $data->get(FixedFieldEnum::emergency->name)) {
+            $message .= "<strong>".FixedFieldEnum::emergency->value."</strong> : {$data->get(FixedFieldEnum::emergency->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::expectedAt->name, $data)
-            && $productionRequest->getExpectedAt() !== $data[FixedFieldEnum::expectedAt->name]) {
-            $message .= "<strong>Date attendue</strong> : {$data[FixedFieldEnum::expectedAt->name]}<br>";
+        if ($data->has(FixedFieldEnum::expectedAt->name)
+            && $productionRequest->getExpectedAt()->format('Y-m-d') !== $data->get(FixedFieldEnum::expectedAt->name)) {
+            $message .= "<strong>".FixedFieldEnum::expectedAt->value."</strong> : {$data->get(FixedFieldEnum::expectedAt->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::projectNumber->name, $data)
-            && $productionRequest->getProjectNumber() !== $data[FixedFieldEnum::projectNumber->name]) {
-            $message .= "<strong>Numéro de projet</strong> : {$data[FixedFieldEnum::projectNumber->name]}<br>";
+        if ($data->has(FixedFieldEnum::projectNumber->name)
+            && $productionRequest->getProjectNumber() !== $data->get(FixedFieldEnum::projectNumber->name)) {
+            $message .= "<strong>".FixedFieldEnum::projectNumber->value."</strong> : {$data->get(FixedFieldEnum::projectNumber->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::productArticleCode->name, $data)
-            && $productionRequest->getProductArticleCode() !== $data[FixedFieldEnum::productArticleCode->name]) {
-            $message .= "<strong>Code produit/article</strong> : {$data[FixedFieldEnum::productArticleCode->name]}<br>";
+        if ($data->has(FixedFieldEnum::productArticleCode->name)
+            && $productionRequest->getProductArticleCode() !== $data->get(FixedFieldEnum::productArticleCode->name)) {
+            $message .= "<strong>".FixedFieldEnum::productArticleCode->value."</strong> : {$data->get(FixedFieldEnum::productArticleCode->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::quantity->name, $data)
+        if ($data->has(FixedFieldEnum::quantity->name)
             && $productionRequest->getQuantity() !== null
-            && $productionRequest->getQuantity() !== intval($data[FixedFieldEnum::quantity->name])) {
-            $message .= "<strong>Quantité</strong> : {$data[FixedFieldEnum::quantity->name]}<br>";
+            && $productionRequest->getQuantity() !== intval($data->get(FixedFieldEnum::quantity->name))) {
+            $message .= "<strong>".FixedFieldEnum::quantity->value."</strong> : {$data->get(FixedFieldEnum::quantity->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::lineCount->name, $data)
+        if ($data->has(FixedFieldEnum::lineCount->name)
             && $productionRequest->getLineCount() !== null
-            && $productionRequest->getLineCount() !== intval($data[FixedFieldEnum::lineCount->name])) {
-            $message .= "<strong>Nombre de lignes</strong> : {$data[FixedFieldEnum::lineCount->name]}<br>";
+            && $productionRequest->getLineCount() !== intval($data->get(FixedFieldEnum::lineCount->name))) {
+            $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$data->get(FixedFieldEnum::lineCount->name)}<br>";
         }
 
-        if (array_key_exists(FixedFieldEnum::comment->name, $data)
-            && $productionRequest->getComment() !== $data[FixedFieldEnum::comment->name]) {
+        if ($data->has(FixedFieldEnum::comment->name)
+            && $productionRequest->getComment() !== $data->get(FixedFieldEnum::comment->name)) {
             $productionRequestHistoryRecord = $this->operationHistoryService->persistProductionHistory(
                 $entityManager,
                 $productionRequest,
                 OperationHistoryService::TYPE_ADD_COMMENT,
                 [
                     "user" => $user,
-                    "comment" => $data[FixedFieldEnum::comment->name],
+                    "comment" => $data->get(FixedFieldEnum::comment->name),
                 ]
             );
             $entityManager->persist($productionRequestHistoryRecord);

@@ -871,6 +871,7 @@ class SelectController extends AbstractController {
     }
 
     #[Route('/select/types/production', name: 'ajax_select_production_request_type', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
     public function productionRequestType(Request $request, EntityManagerInterface $manager, LanguageService $languageService): Response {
         $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
         $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);

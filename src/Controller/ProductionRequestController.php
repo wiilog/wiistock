@@ -6,6 +6,7 @@ use App\Annotation\HasPermission;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\CategorieCL;
@@ -157,7 +158,7 @@ class ProductionRequestController extends AbstractController
 
         return $this->render("production_request/show/index.html.twig", [
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            "emergencies" => $fixedFieldRepository->getElements(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldEnum::emergency->name),
             "productionRequest" => $productionRequest,
             "detailsConfig" => $productionRequestService->createHeaderDetailsConfig($productionRequest),
             "attachments" => $productionRequest->getAttachments(),
@@ -173,7 +174,7 @@ class ProductionRequestController extends AbstractController
                         OperationHistoryService  $operationHistoryService,
                         StatusHistoryService     $statusHistoryService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true)->all();
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
         $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $data, $request->files);
         $entityManager->persist($productionRequest);
 
@@ -282,17 +283,17 @@ class ProductionRequestController extends AbstractController
                          OperationHistoryService  $operationHistoryService,
                          StatusHistoryService     $statusHistoryService,
                          FixedFieldService        $fieldsParamService): JsonResponse {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false)->all();
+        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
 
         $statusRepository = $entityManager->getRepository(Statut::class);
-        $newStatus = $statusRepository->find($data['status']);
+        $newStatus = $statusRepository->find($data->getInt('status'));
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $productionRequestToEdit = $productionRequestRepository->find($data['id']);
+        $productionRequestToEdit = $productionRequestRepository->find($data->get('id'));
         $historyDataToDisplay = $productionRequestService->buildMessageForEdit($entityManager, $productionRequestToEdit, $data, $request->files);
         $productionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequestToEdit, $data, $request->files);
         $entityManager->persist($productionRequest);
 
-        if($productionRequestToEdit->getStatus()->getId() !== intval($data['status'])){
+        if($productionRequestToEdit->getStatus()->getId() !== $data->getInt('status')){
             $statusHistory = $statusHistoryService->updateStatus(
                 $entityManager,
                 $productionRequest,

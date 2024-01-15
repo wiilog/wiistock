@@ -1,6 +1,15 @@
 global.openModalEditProductionRequest = openModalEditProductionRequest;
+const $modalEditProductionRequest = $('#modalEditProductionRequest');
 $(function () {
     const productionRequestId = $(`[name=productionRequestId]`).val();
+
+    Form
+        .create($modalEditProductionRequest)
+        .submitTo(AJAX.POST, 'production_request_edit', {
+            success: () => {
+                window.location.reload();
+            }
+        });
 
     getStatusHistory(productionRequestId);
     getOperationHistory(productionRequestId);
@@ -25,10 +34,5 @@ export function getOperationHistory(productionRequestId) {
 }
 
 function openModalEditProductionRequest(){
-    const $modalEditProductionRequest = $('#modalEditProductionRequest');
-    Form
-        .create($modalEditProductionRequest)
-        .submitTo(AJAX.POST, 'production_request_edit');
-
     $modalEditProductionRequest.modal('show');
 }
