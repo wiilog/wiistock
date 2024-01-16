@@ -198,11 +198,13 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             title: `<div class='small-column'>Synchronisation nomade</div>`,
             modes: [MODE_HANDLING, MODE_DISPATCH]
         },
-        ...(hasRightGroupedSignature ? [{
-            data: `commentNeeded`,
-            title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
-            modes: [MODE_DISPATCH]
-        }] : []),
+        ...(hasRightGroupedSignature
+            ? [{
+                data: `commentNeeded`,
+                title: `<div class='small-column'>Commentaire obligatoire signature groupée</div>`,
+                modes: [MODE_DISPATCH]
+            }]
+            : []),
         {
             data: `displayedOnSchedule`,
             title: `<div class='small-column'>Affichage sur planning</div>`,

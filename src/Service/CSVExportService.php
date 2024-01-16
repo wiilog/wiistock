@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use WiiCommon\Helper\Stream;
 
 class CSVExportService {
 
@@ -79,9 +80,15 @@ class CSVExportService {
         return $response;
     }
 
-    public function putLine($handle, array $row) {
+    public function putLine($handle, array $row): void {
         $encodedRow = !$this->wantsUTF8
-            ? array_map('utf8_decode', $row)
+            ? Stream::from($row)
+                ->map(static fn(?string $value) => (
+                    $value !== null && $value !== "" && mb_check_encoding($value, "UTF-8")
+                        ? mb_convert_encoding($value, "ISO-8859-1", "UTF-8")
+                        : $value
+                ))
+                ->toArray()
             : $row;
 
         fputcsv($handle, $encodedRow, ';');

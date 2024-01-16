@@ -581,7 +581,7 @@ class DispatchService {
                                          Statut $treatedStatus,
                                          Utilisateur $loggedUser,
                                          bool $fromNomade = false,
-                                         array $treatedPacks = []): void {
+                                         array $treatedPacks = null): void {
         $dispatchPacks = $dispatch->getDispatchPacks();
         $takingLocation = $dispatch->getLocationFrom();
         $dropLocation = $dispatch->getLocationTo();
@@ -597,7 +597,7 @@ class DispatchService {
         foreach ($dispatchPacks as $dispatchPack) {
             if (!$dispatchPack->isTreated()
                 && (
-                    empty($treatedPacks)
+                    $treatedPacks === null
                     || in_array($dispatchPack->getId(), $treatedPacks)
                 )) {
                 $pack = $dispatchPack->getPack();

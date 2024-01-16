@@ -71,6 +71,7 @@ class KioskController extends AbstractController
         $settingRepository = $entityManager->getRepository(Setting::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $scannedReference = $request->query->get('scannedReference');
+        $notExistRefresh = $request->query->getBoolean('notExistRefresh');
 
         if (str_starts_with($scannedReference, 'ART')) {
             $article = $articleRepository->findOneBy(['barCode' => $scannedReference]);
@@ -92,7 +93,8 @@ class KioskController extends AbstractController
             'scannedReference' => $scannedReference,
             'freeField' => $reference?->getType() && $freeField instanceof FreeField ? ($reference?->getType()?->getId() === $freeField?->getType()?->getId() ? $freeField : null) : $freeField,
             'inStock' => $reference?->getQuantiteStock() > 0,
-            'article' => $article ?? null
+            'article' => $article ?? null,
+            'notExistRefresh' => $notExistRefresh,
         ]);
     }
 
