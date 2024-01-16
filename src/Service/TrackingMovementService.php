@@ -731,11 +731,8 @@ class TrackingMovementService extends AbstractController
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
                                     array $movement,
-                                    array $attachement,
                                     array $freeFieldsConfig)
     {
-
-        $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
            $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
@@ -757,8 +754,8 @@ class TrackingMovementService extends AbstractController
             $movement['quantity'],
             $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
-            strip_tags($movement['commentaire']),
-            $attachementName,
+            $movement['commentaire'] ? strip_tags($movement['commentaire']) : "",
+            $movement["hasAttachments"],
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? join(', ', $movement['numeroCommandeListArrivage'])
