@@ -9,10 +9,10 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Chauffeur;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldStandard;
+use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
-use App\Entity\FieldsParam;
-use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -21,18 +21,18 @@ use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Transporteur;
-use App\Entity\Type;
 use App\Entity\TruckArrivalLine;
+use App\Entity\Type;
 use App\Entity\Urgence;
 use App\Entity\Utilisateur;
 use App\Helper\LanguageHelper;
 use DateTime;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -74,7 +74,7 @@ class ArrivageService {
     public FreeFieldService $freeFieldService;
 
     #[Required]
-    public FieldsParamService $fieldsParamService;
+    public FixedFieldService $fieldsParamService;
 
     #[Required]
     public VisibleColumnService $visibleColumnService;
@@ -164,14 +164,16 @@ class ArrivageService {
             'carrier' => $arrival->getTransporteur() ? $arrival->getTransporteur()->getLabel() : '',
             'totalWeight' => $options['totalWeight'] ?? '',
             'driver' => $arrival->getChauffeur() ? $arrival->getChauffeur()->getPrenomNom() : '',
-            'trackingCarrierNumber' => $arrival->getNoTracking() ? $arrival->getNoTracking() : $this->formatService->truckArrivalLines($arrival->getTruckArrivalLines()),
+            'trackingCarrierNumber' => $arrival->getNoTracking() ?: $this->formatService->truckArrivalLines($arrival->getTruckArrivalLines()),
             'orderNumber' => implode(',', $arrival->getNumeroCommandeList()),
             'type' => $this->formatService->type($arrival->getType()),
             'nbUm' => $options['packsCount'] ?? '',
             'customs' => $this->formatService->bool($arrival->getCustoms()),
             'frozen' => $this->formatService->bool($arrival->getFrozen()),
             'provider' => $arrival->getFournisseur() ? $arrival->getFournisseur()->getNom() : '',
-            'receiver' => $arrival->getDestinataire() ? $arrival->getDestinataire()->getUsername() : '',
+            'receivers' => Stream::from($arrival->getReceivers())
+                ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))
+                ->join(", "),
             'buyers' => implode(', ', $acheteursUsernames),
             'status' => $arrival->getStatut() ? $this->formatService->status($arrival->getStatut()) : '',
             'creationDate' => $arrival->getDate() ? $arrival->getDate()->format($user->getDateFormat() ? $user->getDateFormat() . ' H:i:s' : 'd/m/Y H:i:s') : '',
@@ -201,7 +203,7 @@ class ArrivageService {
         return $row;
     }
 
-    public function sendArrivalEmails(EntityManager $entityManager, Arrivage $arrival, array $emergencies = []): void {
+    public function sendArrivalEmails(EntityManagerInterface $entityManager, Arrivage $arrival, array $emergencies = []): void {
         /** @var Utilisateur $user */
         $user = $this->security->getUser();
 
@@ -220,9 +222,8 @@ class ArrivageService {
                 },
                 []
             );
-        } else if ($arrival->getDestinataire()) {
-            $recipient = $arrival->getDestinataire();
-            $finalRecipients = $recipient ? [$recipient] : [];
+        } else if (!$arrival->getReceivers()->isEmpty()) {
+            $finalRecipients = $arrival->getReceivers()->toArray();
         }
 
         if (!empty($finalRecipients)) {
@@ -237,15 +238,29 @@ class ArrivageService {
                 $this->security->getUser()
             );
 
-            $packsNatureNb = [];
             $natures = $entityManager->getRepository(Nature::class)->findAll();
-            foreach ($natures as $nature) {
-                if (isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all') {
-                    $packsNatureNb[$nature->getLabel()] = 0;
-                }
-            }
+            $packsNatureNb = Stream::from($natures)
+                ->filter(static fn(Nature $nature) => isset($nature->getAllowedForms()['arrival']) && $nature->getAllowedForms()['arrival'] === 'all')
+                ->keymap(fn(Nature $nature) => [
+                    $nature->getId(),
+                    [
+                        "counter" => 0,
+                        "label" => $this->formatService->nature($nature)
+                    ]
+                ])
+                ->toArray();
+
             foreach ($arrival->getPacks() as $pack) {
-                $packsNatureNb[$pack->getNature()->getLabel()] += 1;
+                $nature = $pack->getNature();
+                $natureId = $nature->getId();
+                if (!isset($packsNatureNb[$natureId])) {
+                    $packsNatureNb[$natureId] = [
+                        "counter" => 0,
+                        "label" => $this->formatService->nature($nature)
+                    ];
+                }
+
+                $packsNatureNb[$natureId]['counter']++;
             }
 
             $this->mailerService->sendMail(
@@ -270,10 +285,20 @@ class ArrivageService {
         }
     }
 
-    public function setArrivalUrgent(EntityManager $entityManager, Arrivage $arrivage, array $emergencies): void
-    {
-        if (!empty($emergencies)) {
-            $arrivage->setIsUrgent(true);
+    public function setArrivalUrgent(EntityManagerInterface $entityManager,
+                                     Arrivage               $arrivage,
+                                     bool                   $urgent,
+                                     array                  $emergencies = []): void {
+        if ($urgent) {
+            $settingRepository = $entityManager->getRepository(Setting::class);
+            $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+            $arrivage
+                ->setIsUrgent(true)
+                ->setDropLocation($locationRepository->find($dropLocationId));;
+        }
+
+        if ($urgent && !empty($emergencies)) {
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
             }
@@ -386,13 +411,13 @@ class ArrivageService {
             : null;
     }
 
-    public function processEmergenciesOnArrival(EntityManager $entityManager, Arrivage $arrival): array
+    public function processEmergenciesOnArrival(EntityManagerInterface $entityManager, Arrivage $arrival): array
     {
         $numeroCommandeList = $arrival->getNumeroCommandeList();
         $alertConfigs = [];
 
         $settingRepository = $entityManager->getRepository(Setting::class);
-        $confirmEmergency = $settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL) !== null;
+        $confirmEmergency = boolval($settingRepository->getOneParamByLabel(Setting::CONFIRM_EMERGENCY_ON_ARRIVAL));
 
         $allMatchingEmergencies = [];
 
@@ -407,7 +432,7 @@ class ArrivageService {
 
                 if (!empty($urgencesMatching)) {
                     if (!$confirmEmergency) {
-                        $this->setArrivalUrgent($entityManager, $arrival, $urgencesMatching);
+                        $this->setArrivalUrgent($entityManager, $arrival, true, $urgencesMatching);
                         array_push($allMatchingEmergencies, ...$urgencesMatching);
                     } else {
                         $currentAlertConfig = array_map(function (Urgence $urgence) use ($arrival, $confirmEmergency) {
@@ -441,8 +466,8 @@ class ArrivageService {
     }
 
     public function createHeaderDetailsConfig(Arrivage $arrivage): array {
-        $fieldsParamRepository = $this->entityManager->getRepository(FieldsParam::class);
-        $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $fieldsParamRepository = $this->entityManager->getRepository(FixedFieldStandard::class);
+        $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         $provider = $arrivage->getFournisseur();
         $carrier = $arrivage->getTransporteur();
@@ -450,7 +475,9 @@ class ArrivageService {
         $numeroCommandeList = $arrivage->getNumeroCommandeList();
         $status = $arrivage->getStatut();
         $type = $arrivage->getType();
-        $destinataire = $arrivage->getDestinataire();
+        $receivers = Stream::from($arrivage->getReceivers())
+            ->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))
+            ->join(", ");
         $dropLocation = $arrivage->getDropLocation();
         $buyers = $arrivage->getAcheteurs();
         $comment = $arrivage->getCommentaire();
@@ -488,7 +515,7 @@ class ArrivageService {
             [
                 'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose'),
                 'value' => $dropLocation ? $dropLocation->getLabel() : '',
-                'show' => ['fieldName' => FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE ],
+                'show' => ['fieldName' => FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE ],
                 'isRaw' => true
             ],
             [
@@ -522,9 +549,9 @@ class ArrivageService {
                 'isRaw' => true
             ],
             [
-                'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire'),
-                'value' => $destinataire ? $destinataire->getUsername() : '',
-                'show' => ['fieldName' => 'destinataire'],
+                'label' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'),
+                'value' => $receivers,
+                'show' => ['fieldName' => 'receivers'],
                 'isRaw' => true
             ],
             [
@@ -565,13 +592,13 @@ class ArrivageService {
             ],
         ];
 
-        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $configFiltered =  $this->fieldsParamService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
         return array_merge(
             $configFiltered,
             $freeFieldArray,
-            $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedCreate')
-            || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedEdit')
+            $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE, 'displayedEdit')
                 ? [[
                 'label' => $this->translation->translate('Général', null, 'Modale', 'Commentaire'),
                 'value' => $comment ?: '',
@@ -581,8 +608,8 @@ class ArrivageService {
                 'isNeededNotEmpty' => true
             ]]
                 : [],
-                $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_PJ_ARRIVAGE, 'displayedCreate')
-                || $this->fieldsParamService->isFieldRequired($fieldsParam, FieldsParam::FIELD_CODE_PJ_ARRIVAGE, 'displayedEdit')
+                $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE, 'displayedCreate')
+                || $this->fieldsParamService->isFieldRequired($fieldsParam, FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE, 'displayedEdit')
                 ? [[
                     'label' => $this->translation->translate('Général', null, 'Modale', 'Pièces jointes', false),
                     'value' => $attachments->toArray(),
@@ -598,7 +625,7 @@ class ArrivageService {
                                            bool $dispatchMode = false): array {
 
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $columnsVisible = $currentUser->getVisibleColumns()['arrival'];
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARRIVAGE, CategorieCL::ARRIVAGE);
@@ -615,7 +642,7 @@ class ArrivageService {
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL'), 'name' => 'orderNumber'],
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type'), 'name' => 'type'],
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur'), 'name' => 'provider'],
-            ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire'),'name' => 'receiver'],
+            ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)'),'name' => 'receivers'],
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)'), 'name' => 'buyers'],
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Nombre d\'UL'), 'name' => 'nbUm'],
             ['title' => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane'), 'name' => 'customs'],
@@ -640,44 +667,14 @@ class ArrivageService {
             array_unshift($columns, ['name' => 'actions', 'alwaysVisible' => true, 'orderable' => false, 'class' => 'noVis actions']);
         }
 
-        $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $arrivalFieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
-        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
-            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
+        if ($this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedCreate')
+            || $this->fieldsParamService->isFieldRequired($arrivalFieldsParam, FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE, 'displayedEdit')) {
             $columns[] = ['title' =>  $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose'), 'name' => 'dropLocation'];
         }
 
         return $this->visibleColumnService->getArrayConfig($columns, $freeFields, $columnsVisible);
-    }
-
-    public function getLocationForTracking(EntityManagerInterface $entityManager,
-                                           Arrivage $arrivage): ?Emplacement {
-
-        $settingRepository = $entityManager->getRepository(Setting::class);
-        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-        if($arrivage->getCustoms() && $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS)) {
-            $location = $emplacementRepository->find($customsArrivalsLocation);
-        }
-        else if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)) {
-            $location = $emplacementRepository->find($emergenciesArrivalsLocation);
-        }
-        else if (
-            (
-                $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_ED)
-                || $this->specificService->isCurrentClientNameFunction(SpecificService::CLIENT_SAFRAN_NS)
-            ) && $arrivage->getDestinataire()) {
-            $location = $emplacementRepository->findOneBy(['label' => SpecificService::ARRIVAGE_SPECIFIQUE_SED_MVT_DEPOSE]);
-        } else if ($arrivage->getDropLocation()) {
-            $location = $arrivage->getDropLocation();
-        } else if($defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION)) {
-            $location = $emplacementRepository->find($defaultArrivalsLocation);
-        }
-        else {
-            $location = null;
-        }
-
-        return $location;
     }
 
     public function sendMailForDeliveredPack(Emplacement            $location,
@@ -690,9 +687,9 @@ class ArrivageService {
             && !$pack->isDeliveryDone()
             && $pack->getArrivage()) {
             $arrivage = $pack->getArrivage();
-            $receiver = $arrivage->getDestinataire();
+            $receivers = $arrivage->getReceivers()->toArray();
             $pack->setIsDeliveryDone(true);
-            if ($receiver) {
+            if (!empty($receivers)) {
                 $this->mailerService->sendMail(
                     ['Traçabilité', 'Général', 'FOLLOW GT // Dépose effectuée', false],
                     [
@@ -708,7 +705,7 @@ class ArrivageService {
                             'pjs' => $arrivage->getAttachments()
                         ]
                     ],
-                    $receiver
+                    $receivers
                 );
             }
         }
@@ -757,25 +754,25 @@ class ArrivageService {
             }
             else {
                 $line[] = match ($column) {
-                    FieldsParam::FIELD_CODE_ARRIVAL_NUMBER           => $arrival->getNumeroArrivage(),
-                    FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT     => $packsTotalWeight[$arrival->getId()] ?? '',
-                    FieldsParam::FIELD_CODE_ARRIVAL_TYPE             => $this->formatService->type($arrival->getType()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_STATUS           => $this->formatService->status($arrival->getStatut()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_DATE             => $this->formatService->datetime($arrival->getDate(), "", false, $this->userService->getUser()),
-                    FieldsParam::FIELD_CODE_ARRIVAL_CREATOR          => $this->formatService->user($arrival->getUtilisateur()),
-                    FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE          => $this->formatService->users($arrival->getAcheteurs()),
-                    FieldsParam::FIELD_CODE_BUSINESS_UNIT            => $arrival->getBusinessUnit() ?? '',
-                    FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE       => $arrival->getChauffeur()?->getPrenomNom() ?: '',
-                    FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE     => strip_tags($arrival->getCommentaire() ?? ''),
-                    FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE          => $this->formatService->bool($arrival->getFrozen()),
-                    FieldsParam::FIELD_CODE_TARGET_ARRIVAGE          => $this->formatService->user($arrival->getDestinataire()),
-                    FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE         => $this->formatService->bool($arrival->getCustoms()),
-                    FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE   => $this->formatService->location($arrival->getDropLocation()),
-                    FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE        => $this->formatService->supplier($arrival->getFournisseur()),
-                    FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE    => $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '',
-                    FieldsParam::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
-                    FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: '',
-                    FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_NUMBER           => $arrival->getNumeroArrivage(),
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT     => $packsTotalWeight[$arrival->getId()] ?? '',
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE             => $this->formatService->type($arrival->getType()),
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_STATUS           => $this->formatService->status($arrival->getStatut()),
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_DATE             => $this->formatService->datetime($arrival->getDate(), "", false, $this->userService->getUser()),
+                    FixedFieldStandard::FIELD_CODE_ARRIVAL_CREATOR          => $this->formatService->user($arrival->getUtilisateur()),
+                    FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE          => $this->formatService->users($arrival->getAcheteurs()),
+                    FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT            => $arrival->getBusinessUnit() ?? '',
+                    FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE       => $arrival->getChauffeur()?->getPrenomNom() ?: '',
+                    FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE     => strip_tags($arrival->getCommentaire() ?? ''),
+                    FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE          => $this->formatService->bool($arrival->getFrozen()),
+                    FixedFieldStandard::FIELD_CODE_RECEIVERS                => Stream::from($arrival->getReceivers())->map(fn(Utilisateur $receiver) => $this->formatService->user($receiver))->join(", "),
+                    FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE         => $this->formatService->bool($arrival->getCustoms()),
+                    FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE   => $this->formatService->location($arrival->getDropLocation()),
+                    FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE        => $this->formatService->supplier($arrival->getFournisseur()),
+                    FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE    => $arrival->getNumeroCommandeList() ? implode(",", $arrival->getNumeroCommandeList()) : '',
+                    FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER           => $arrival->getProjectNumber() ?: '',
+                    FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $arrival->getNoTracking() ?: '',
+                    FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE         => $arrival->getTransporteur()?->getLabel() ?: '',
                     default                                          => throw new \Exception("Invalid column name $column")
                 };
             }
@@ -784,10 +781,10 @@ class ArrivageService {
     }
 
     public function getArrivalExportableColumns(EntityManagerInterface $entityManager): array {
-        $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldsRepository = $entityManager->getRepository(FreeField::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
-        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FieldsParam::ENTITY_CODE_ARRIVAGE);
+        $arrivalFields = $fieldsParamRepository->getByEntityForExport(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
         $freeFields = $freeFieldsRepository->findByFreeFieldCategoryLabels([CategorieCL::ARRIVAGE]);
         $natures = $natureRepository->findBy([], ['id' => Criteria::ASC]);
 
@@ -796,31 +793,31 @@ class ArrivageService {
 
         return Stream::from(
             [
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_NUMBER, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL', false)],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Poids total (kg)', false)],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_TYPE, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false)],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_STATUS, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut', false)],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_DATE, "label" => $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false)],
-                ["code" => FieldsParam::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_NUMBER, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'N° d\'arrivage UL', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_TOTAL_WEIGHT, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Divers', 'Poids total (kg)', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_TYPE, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Type', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_STATUS, "label" => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Statut', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_DATE, "label" => $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false)],
+                ["code" => FixedFieldStandard::FIELD_CODE_ARRIVAL_CREATOR, "label" => $this->translation->translate('Traçabilité', 'Général', 'Utilisateur', false)],
             ],
             Stream::from($arrivalFields)
-                ->filter(fn(FieldsParam $field) => !in_array($field->getFieldCode(), [FieldsParam::FIELD_CODE_PJ_ARRIVAGE, FieldsParam::FIELD_CODE_PRINT_ARRIVAGE, FieldsParam::FIELD_CODE_PROJECT]))
-                ->map(fn(FieldsParam $field) => [
+                ->filter(fn(FixedFieldStandard $field) => !in_array($field->getFieldCode(), [FixedFieldStandard::FIELD_CODE_PJ_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PRINT_ARRIVAGE, FixedFieldStandard::FIELD_CODE_PROJECT]))
+                ->map(fn(FixedFieldStandard $field) => [
                     "code" => $field->getFieldCode(),
                     "label" => match($field->getFieldCode()) {
-                        FieldsParam::FIELD_CODE_BUYERS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)', false),
-                        FieldsParam::FIELD_CODE_CHAUFFEUR_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Chauffeur', false),
-                        FieldsParam::FIELD_CODE_COMMENTAIRE_ARRIVAGE => $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
-                        FieldsParam::FIELD_CODE_CARRIER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false),
-                        FieldsParam::FIELD_CODE_PROVIDER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false),
-                        FieldsParam::FIELD_CODE_TARGET_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire', false),
-                        FieldsParam::FIELD_CODE_NUM_COMMANDE_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
-                        FieldsParam::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur', false),
-                        FieldsParam::FIELD_CODE_CUSTOMS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane', false),
-                        FieldsParam::FIELD_CODE_FROZEN_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé', false),
-                        FieldsParam::FIELD_CODE_PROJECT_NUMBER => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet', false),
-                        FieldsParam::FIELD_CODE_BUSINESS_UNIT => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit', false),
-                        FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose', false),
+                        FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)', false),
+                        FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Chauffeur', false),
+                        FixedFieldStandard::FIELD_CODE_COMMENTAIRE_ARRIVAGE => $this->translation->translate('Général', null, 'Modale', 'Commentaire', false),
+                        FixedFieldStandard::FIELD_CODE_CARRIER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Transporteur', false),
+                        FixedFieldStandard::FIELD_CODE_PROVIDER_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Fournisseur', false),
+                        FixedFieldStandard::FIELD_CODE_RECEIVERS => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Destinataire(s)', false),
+                        FixedFieldStandard::FIELD_CODE_NUM_COMMANDE_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° commande / BL', false),
+                        FixedFieldStandard::FIELD_CODE_NUMERO_TRACKING_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'N° tracking transporteur', false),
+                        FixedFieldStandard::FIELD_CODE_CUSTOMS_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane', false),
+                        FixedFieldStandard::FIELD_CODE_FROZEN_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Congelé', false),
+                        FixedFieldStandard::FIELD_CODE_PROJECT_NUMBER => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Numéro de projet', false),
+                        FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Business unit', false),
+                        FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE => $this->translation->translate('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Emplacement de dépose', false),
                         default => $field->getFieldLabel()
                     }
                 ]),
@@ -846,7 +843,7 @@ class ArrivageService {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $natureRepository = $entityManager->getRepository(Nature::class);
-            $fieldsParamRepository = $entityManager->getRepository(FieldsParam::class);
+            $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
             $chauffeurRepository = $entityManager->getRepository(Chauffeur::class);
             $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
             $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
@@ -854,8 +851,9 @@ class ArrivageService {
             $statutRepository = $entityManager->getRepository(Statut::class);
             $transporteurRepository = $entityManager->getRepository(Transporteur::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
 
-            $fieldsParam = $fieldsParamRepository->getByEntity(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            $fieldsParam = $fieldsParamRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
             $statuses = Stream::from($statutRepository->findStatusByType(CategorieStatut::ARRIVAGE))
                 ->map(fn(Statut $statut) => [
@@ -864,8 +862,14 @@ class ArrivageService {
                     'nom' => $this->formatService->status($statut),
                 ])
                 ->toArray();
-            $defaultLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
-            $defaultLocation = $defaultLocation ? $emplacementRepository->find($defaultLocation) : null;
+            $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+            $defaultLocation = $defaultLocationId ? $emplacementRepository->find($defaultLocationId) : null;
+
+            $defaultLocationIdIfCustomId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+            $defaultLocationIfCustoms = $defaultLocationIdIfCustomId ? $emplacementRepository->find($defaultLocationIdIfCustomId) : null;
+
+            $defaultLocationIdifRecipient = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+            $defaultLocationIfRecipient = $defaultLocationIdifRecipient ? $emplacementRepository->find($defaultLocationIdifRecipient) : null;
 
             $natures = Stream::from($natureRepository->findByAllowedForms([Nature::ARRIVAL_CODE]))
                 ->map(fn(Nature $nature) => [
@@ -875,11 +879,17 @@ class ArrivageService {
                 ])
                 ->toArray();
 
-            $keptFields = $this->keptFieldService->getAll(FieldsParam::ENTITY_CODE_ARRIVAGE);
+            $keptFields = $this->keptFieldService->getAll(FixedFieldStandard::ENTITY_CODE_ARRIVAGE);
 
-            if(isset($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
-                $keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FieldsParam::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
+            if(isset($keptFields[FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE])) {
+                $keptFields[FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE] = $locationRepository->find($keptFields[FixedFieldStandard::FIELD_CODE_DROP_LOCATION_ARRIVAGE]);
             }
+
+            if(isset($keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])) {
+                $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS] = $utilisateurRepository->findBy(['id' => explode(",", $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])]);
+            }
+
+            $arrivalCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARRIVAGE]);
 
             $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
                 "keptFields" => $keptFields,
@@ -891,11 +901,14 @@ class ArrivageService {
                 "carriers" => $transporteurRepository->findAllSorted(),
                 "chauffeurs" => $chauffeurRepository->findAllSorted(),
                 "fieldsParam" => $fieldsParam,
-                "businessUnits" => $fieldsParamRepository->getElements(FieldsParam::ENTITY_CODE_ARRIVAGE, FieldsParam::FIELD_CODE_BUSINESS_UNIT),
+                "businessUnits" => $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT),
                 "defaultLocation" => $defaultLocation,
+                "defaultLocationIfCustoms" => $defaultLocationIfCustoms,
+                "defaultLocationIfRecipient" => $defaultLocationIfRecipient,
                 "defaultStatuses" => $statutRepository->getIdDefaultsByCategoryName(CategorieStatut::ARRIVAGE),
                 "autoPrint" => $settingRepository->getOneParamByLabel(Setting::AUTO_PRINT_LU),
                 "fromTruckArrivalOptions" => $fromTruckArrivalOptions,
+                'defaultType' => $typeRepository->findOneBy(['category' => $arrivalCategoryType, 'defaultType' => true]),
             ]);
         }
 
@@ -903,5 +916,38 @@ class ArrivageService {
             'html' => $html ?? "",
             'acheteurs' => $acheteursUsernames ?? []
         ];
+    }
+
+    public function getDefaultDropLocation(EntityManagerInterface $entityManager,
+                                           Arrivage               $arrivage,
+                                           ?Emplacement           $enteredLocation): ?Emplacement {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
+            return $locationRepository->find($emergenciesArrivalsLocation);
+        }
+
+        if ($enteredLocation) {
+            return $enteredLocation;
+        }
+
+        $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        if($arrivage->getCustoms() && $customsArrivalsLocation) {
+            return $locationRepository->find($customsArrivalsLocation);
+        }
+
+        $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+        if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
+            return $locationRepository->find($receiverDefaultLocation);
+        }
+
+        $defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+        if($defaultArrivalsLocation) {
+            return $locationRepository->find($defaultArrivalsLocation);
+        }
+
+        return null;
     }
 }

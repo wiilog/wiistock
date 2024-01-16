@@ -1,5 +1,6 @@
 {% import 'form.html.twig' as form %}
 
+{% set disabled = disabled is defined and disabled %}
 <div class="col-auto m-1 pr-0">
     <div class="checkbox-filter cursor-default" style="width: auto !important;">
         <div class="row no-gutters align-items-center pr-0">
@@ -8,7 +9,8 @@
             </div>
             <input class="ml-2 mr-0 checkbox filter-checkbox"
                    type="checkbox" name="{{ name }}" id="{{ name }}-filter"
-                {{ checked is defined and checked ? 'checked' }}>
+                {{ checked is defined and checked ? 'checked' }}
+                {% if disabled %}disabled{% endif %}>
         </div>
     </div>
 </div>

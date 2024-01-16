@@ -13,15 +13,11 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/filtre-sup")
- */
+#[Route("/filtre-sup")]
 class FiltreSupController extends AbstractController
 {
 
-    /**
-     * @Route("/creer", name="filter_sup_new", options={"expose"=true})
-     */
+    #[Route("/creer", name: "filter_sup_new", options: ["expose" => true])]
     public function new(EntityManagerInterface $entityManager,
                         FilterSupService $filterSupService,
                         Request $request): Response
@@ -64,7 +60,8 @@ class FiltreSupController extends AbstractController
                 'carrierTrackingNumber' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER,
                 'truckArrivalNumber' => FiltreSup::FIELD_TRUCK_ARRIVAL_NUMBER,
                 'carrierTrackingNumberNotAssigned' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED,
-                'customerOrderNumber' => FiltreSup::FIELD_CUSTOMER_ORDER_NUMBER
+                'customerOrderNumber' => FiltreSup::FIELD_CUSTOMER_ORDER_NUMBER,
+                'useTruckArrivals' => FiltreSup::FIELD_USE_TRUCK_ARRIVALS
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {
@@ -102,6 +99,8 @@ class FiltreSupController extends AbstractController
                 'multipleTypes' => FiltreSup::FIELD_MULTIPLE_TYPES,
                 'declarants' => FiltreSup::FIELD_DECLARANTS,
                 'emplacement' => FiltreSup::FIELD_EMPLACEMENT,
+                'locationPickWithGroups' => FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS,
+                'locationDropWithGroups' => FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS,
                 'pickLocation' => FiltreSup::FIELD_PICK_LOCATION,
                 'dropLocation' => FiltreSup::FIELD_DROP_LOCATION,
                 'reference' => FiltreSup::FIELD_REFERENCE,
@@ -125,6 +124,7 @@ class FiltreSupController extends AbstractController
                 'deliverers' => FiltreSup::FIELD_DELIVERERS,
                 'drivers' => FiltreSup::FIELD_DRIVERS,
                 'logisticUnits' => FiltreSup::FIELD_LOGISTIC_UNITS,
+                'unloadingLocation' => FiltreSup::FIELD_UNLOADING_LOCATION,
             ];
 
             foreach ($filterLabelsSelect2 as $filterLabel => $filterName) {
@@ -217,15 +217,12 @@ class FiltreSupController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/api", name="filter_get_by_page", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/api", name: "filter_get_by_page", options: ["expose" => true], condition: "request.isXmlHttpRequest()")]
     public function getByPage(Request                $request,
                               EntityManagerInterface $entityManager,
                               FilterSupService       $filterSupService): Response
     {
-        return $this->json(
-            $filterSupService->getFilters($entityManager, json_decode($request->getContent(), true))
-        );
+        $page = $request->query->get("page", json_decode($request->getContent(), true));
+        return $this->json($filterSupService->getFilters($entityManager, $page));
     }
 }

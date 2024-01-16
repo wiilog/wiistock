@@ -155,6 +155,8 @@ class TrackingMovementController extends AbstractController
 
         $post = $request->request;
         $forced = $post->get('forced', false);
+        $isNow = $post->getBoolean('now');
+
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $articleRepository = $entityManager->getRepository(Article::class);
@@ -184,10 +186,14 @@ class TrackingMovementController extends AbstractController
                 'msg' => 'La quantité doit être supérieure à 0.'
             ]);
         }
-        $user = $this->getUser();
-        $format = $user && $user->getDateFormat() ? ($user->getDateFormat() . ' H:i') : 'd/m/Y H:i';
-        $date = $this->formatService->parseDatetime($post->get('datetime'), [$format]) ?: (new DateTime());
-        $date->setTime($date->format('H'), $date->format('i'), 0);
+
+        if($isNow) {
+            $date = new DateTime();
+        } else {
+            $user = $this->getUser();
+            $format = $user && $user->getDateFormat() ? "{$user->getDateFormat()} H:i" : "d/m/Y H:i";
+            $date = $this->formatService->parseDatetime($post->get("datetime"), [$format]) ?: new DateTime();
+        }
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
@@ -551,7 +557,6 @@ class TrackingMovementController extends AbstractController
 
         if (isset($dateTimeMin) && isset($dateTimeMax)) {
             $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-            $attachmentRepository = $entityManager->getRepository(Attachment::class);
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::MVT_TRACA]);
 
@@ -572,22 +577,14 @@ class TrackingMovementController extends AbstractController
                 ], $freeFieldsConfig['freeFieldsHeader']);
 
                 $trackingMovements = $trackingMovementRepository->iterateByDates($dateTimeMin, $dateTimeMax);
-                $attachmentsNameByTracking = $attachmentRepository->getNameGroupByMovements();
 
                 return $CSVExportService->streamResponse(
-                    function ($output) use (
-                        $trackingMovements,
-                        $attachmentsNameByTracking,
-                        $CSVExportService,
-                        $trackingMovementService,
-                        $freeFieldsConfig
-                    ) {
+                    function ($output) use ($trackingMovements, $CSVExportService, $trackingMovementService, $freeFieldsConfig) {
                         foreach ($trackingMovements as $movement) {
                             $trackingMovementService->putMovementLine(
                                 $output,
                                 $CSVExportService,
                                 $movement,
-                                $attachmentsNameByTracking,
                                 $freeFieldsConfig
                             );
                         }

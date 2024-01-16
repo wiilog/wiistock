@@ -30,13 +30,11 @@ $(function () {
     });
 
     $modalNewMvtTraca.on('ready', 'input[name=pack]', function () {
-        console.log('ready')
         const $warningMessage = $modalNewMvtTraca.find('.warning-message');
         const $input = $(this);
         let $locationSelect = $modalNewMvtTraca.find('[name=emplacement]');
-        console.log($input, $locationSelect)
+
         $.merge($input, $locationSelect).on('change', function () {
-            console.log($input.val(), $locationSelect.val())
             if ($input.val() !== '' && $locationSelect.val()) {
                 AJAX.route(
                     AJAX.GET,

@@ -68,8 +68,8 @@
                                             icon: "wii-icon wii-icon-printer-black",
                                             attributes: {
                                                 id: "buttonPrintMultipleBarcodes",
+                                                "data-id": reception.id,
                                             },
-                                            href: path('reception_bar_codes_print', {reception: reception.id}),
                                         }
                                     ]
                                 } %}
@@ -131,16 +131,17 @@
     {% include "reception/show/modalEditReceptionReferenceArticle.html.twig" %}
     {% include "reception/show/modalDeleteReceptionReferenceArticle.html.twig" %}
     {% include "reception/show/modalNewReceptionReferenceArticle.html.twig" %}
-    {% include "reception/show/modalChooseConditionnement.html.twig" %}
-    {% include "article/modalDeleteArticle.html.twig" %}
-    {% include 'reception/show/modalNewLitige.html.twig' %}
-    {% include 'reception/show/modalEditLitige.html.twig' %}
     {% include 'reception/show/packing/modal.html.twig' with {
         precheckedDelivery,
         deliverySwitchLabel,
         restrictedLocations,
         reception
     } %}
+
+    {% include "reception/show/modalChooseConditionnement.html.twig" %}
+    {% include "article/modalDeleteArticle.html.twig" %}
+    {% include 'reception/show/modalNewLitige.html.twig' %}
+    {% include 'reception/show/modalEditLitige.html.twig' %}
     {% include 'reception/show/modalDeleteLitige.html.twig' %}
     {% include 'reception/show/modalFinishReception.html.twig' %}
     {% include 'reception/show/modalCancelReception.html.twig' %}

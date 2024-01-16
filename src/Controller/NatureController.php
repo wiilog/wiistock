@@ -131,6 +131,10 @@ class NatureController extends AbstractController
                     $allowedForms[Nature::ARRIVAL_CODE] = 'all';
                 }
 
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
+                }
+
                 if($data[Nature::TRANSPORT_COLLECT_CODE]) {
                     $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
                 }
@@ -138,6 +142,11 @@ class NatureController extends AbstractController
                 if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
                     $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
                 }
+
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
+                }
+
                 $nature
                     ->setDisplayedOnForms(true)
                     ->setAllowedForms($allowedForms);
@@ -190,7 +199,7 @@ class NatureController extends AbstractController
             $nature = $natureRepository->find($data['id']);
 
             if ($nature->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $nature, $nature->getLabel());
+                $translationService->setDefaultTranslation($manager, $nature, $nature->getLabel());
             }
 
             $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
@@ -282,8 +291,16 @@ class NatureController extends AbstractController
                     $allowedForms[Nature::TRANSPORT_COLLECT_CODE] = $data['transportCollectTypes'];
                 }
 
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
+                }
+
                 if($data[Nature::TRANSPORT_DELIVERY_CODE]) {
                     $allowedForms[Nature::TRANSPORT_DELIVERY_CODE] = $data['transportDeliveryTypes'];
+                }
+
+                if($data[Nature::DISPATCH_CODE]) {
+                    $allowedForms[Nature::DISPATCH_CODE] = 'all';
                 }
                 $currentNature
                     ->setDisplayedOnForms(true)
@@ -360,6 +377,7 @@ class NatureController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
+
             $nature = $natureRepository->find($data['nature']);
 
             $entityManager->remove($nature);

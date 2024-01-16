@@ -19,7 +19,11 @@
 
     {% if not noLabel %}
         <label for="dropfile"
-               class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">{{ trans('Général', null, 'Modale', labelTitle) }}{{ required ? '*' }}</label>
+               class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">
+            <span class="attachment-label">
+                {{ trans('Général', null, 'Modale', labelTitle) }}
+            </span>{{ required ? '*' }}
+        </label>
     {% endif %}
     {% if editAttachments %}
         <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"

@@ -48,21 +48,21 @@ class TypeController extends AbstractController {
         }
 
         if ($type->getLabelTranslation() === null) {
-            $translationService->setFirstTranslation($manager, $type, $type->getLabel());
+            $translationService->setDefaultTranslation($manager, $type, $type->getLabel());
         }
 
         foreach ($type->getChampsLibres() as $freeField) {
             if ($freeField->getLabelTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $freeField, $freeField->getLabel());
+                $translationService->setDefaultTranslation($manager, $freeField, $freeField->getLabel());
             }
 
             if ($freeField->getDefaultValue() && $freeField->getDefaultValueTranslation() === null) {
-                $translationService->setFirstTranslation($manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
+                $translationService->setDefaultTranslation($manager, $freeField, $freeField->getDefaultValue(), "setDefaultValueTranslation");
             }
 
             if($freeField->getElements() && $freeField->getElementsTranslations()->isEmpty()) {
                 foreach($freeField->getElements() as $element) {
-                    $translationService->setFirstTranslation($manager, $freeField, $element, "addElementTranslation");
+                    $translationService->setDefaultTranslation($manager, $freeField, $element, "addElementTranslation");
                 }
             }
         }
@@ -92,6 +92,7 @@ class TypeController extends AbstractController {
         $type = $manager->find(Type::class, $data["type"]);
         if(isset($data["label"])) {
             $translationService->editEntityTranslations($manager, $type->getLabelTranslation(), $data["label"]);
+            $type->setLabel($type->getLabelIn(Language::FRENCH_SLUG));
         }
 
         unset($data["type"], $data["label"]);
@@ -132,7 +133,7 @@ class TypeController extends AbstractController {
                 $freeField->setElementTranslations([]);
 
                 foreach($freeField->getElements() as $element) {
-                    $translationService->setFirstTranslation($manager, $freeField, $element, "addElementTranslation");
+                    $translationService->setDefaultTranslation($manager, $freeField, $element, "addElementTranslation");
                 }
 
                 foreach($formattedTranslations as $language => $elementsTranslations) {

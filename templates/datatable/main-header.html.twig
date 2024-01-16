@@ -5,23 +5,18 @@
     <th class="datatable-main-header"></th>
     <th class="datatable-main-header" colspan="{{ creationColumns ?? 2 }}">
         <div class="d-flex align-items-center">
-            <img src="{{ asset('svg/form-new.svg') }}" width="17px" class="mr-2" alt="Formulaire création">Formulaire de création
+            <img src="{{ asset('svg/form-new.svg') }}" width="17px" class="mr-2">Formulaire de création
         </div>
     </th>
     <th class="datatable-main-header" colspan="{{ editionColumns ?? 2 }}">
         <div class="d-flex align-items-center">
-            <img src="{{ asset('svg/form-edit.svg') }}" width="17px" class="mr-2" alt="Formulaire édition">Formulaire d'édition
+            <img src="{{ asset('svg/form-edit.svg') }}" width="17px" class="mr-2">Formulaire d'édition
         </div>
     </th>
-    <th class="datatable-main-header" colspan="{{ filtersColumns ?? 1 }}">
-        <div class="d-flex align-items-center">
-            <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2" alt="Filtres">Sur les filtres
-        </div>
-    </th>
-    {% if needsOnMobileColumn is defined and needsOnMobileColumn %}
-        <th class="datatable-main-header" colspan="1">
+    {% if needsFilterColumn is defined and needsFilterColumn %}
+        <th class="datatable-main-header" colspan="{{ filtersColumns ?? 1 }}">
             <div class="d-flex align-items-center">
-                <img src="{{ asset('svg/menu-terminal-mobile.svg') }}" width="17px" class="mr-2" alt="Sur le noamde">Sur le nomade
+                <img src="{{ asset('svg/filter-solid.svg') }}" width="17px" class="mr-2">Sur les filtres
             </div>
         </th>
     {% endif %}

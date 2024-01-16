@@ -86,7 +86,7 @@ class DeliveryStationLineService {
                 'actions' => [
                     [
                         'title' => 'Modifier',
-                        'icon' => 'fa fa-eye',
+                        'icon' => 'fa fa-edit',
                         'attributes' => [
                             'onclick' => "openModalEditDeliveryStationLine($('#modalEditDeliveryStationLine'), ".$deliveryStationLine->getId().")",
                         ]

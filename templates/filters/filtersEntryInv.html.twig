@@ -3,6 +3,8 @@
 {% block filters %}
     {% include 'filters/filter_item/filterDate.html.twig' %}
     {% include 'filters/filter_item/filterReference.html.twig' %}
-    {% include 'filters/filter_item/filterLocation.html.twig' %}
+    {% include 'filters/filter_item/filterLocation.html.twig' with {
+        placeholder : "Emplacement"
+    } %}
     {% include 'filters/filter_item/filterUser.html.twig' %}
 {% endblock %}

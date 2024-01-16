@@ -2,11 +2,22 @@
 
 {% block filters %}
     {% set isPreFilled = locationsFilter is defined and locationsFilter is not empty %}
+    {% set useTruckArrivalsFromDashboard = useTruckArrivalsFromDashboard is defined and useTruckArrivalsFromDashboard %}
+
     <input name="isPreFilledFilter" value="{{ isPreFilled ? 1 : 0 }}" type="hidden"/>
+
     {% include 'filters/filter_item/filterLocation.html.twig' with {
         disabled: isPreFilled ? 'disabled',
         isPreFilled: isPreFilled,
-        locationsFilter: locationsFilter
+        locationsFilter: locationsFilter,
+        placeholder : "Emplacements"
     } %}
+
     {% include 'filters/filter_item/filterNaturePacks.html.twig' with {disabled: isPreFilled ? 'disabled'} %}
+    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
+        label: "Prise en compte des arrivages camion",
+        name: "useTruckArrivals",
+        checked: useTruckArrivalsFromDashboard,
+        disabled: isPreFilled,
+    } %}
 {% endblock %}
