@@ -307,12 +307,6 @@ class RefArticleDataService
             throw new FormException("La fiche sécurité est obligatoire pour les Marchandises dangereuses.");
         }
 
-        if ($fileSheetSubmitted) {
-            /** @var  UploadedFile $file */
-            foreach ($fileBag as $file)
-                $this->attachmentService->checkAttachmentFile($file);
-        }
-
         $storageRuleToRemove = $data->get('storage-rules-to-remove');
         if (!empty($storageRuleToRemove)) {
             $storageRules = $storageRuleRepository->findBy(['id' => explode(',', $storageRuleToRemove)]);

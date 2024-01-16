@@ -39,6 +39,7 @@ class AttachmentService {
 
         $isFileName = count($files) > 0 && is_string($files[array_key_first($files)]);
         foreach ($files as $fileIndex => $file) {
+            $this->checkAttachmentFile($file);
 			if ($file) {
                 if ($isFileName) {
                     $originalFileName = $fileIndex;
