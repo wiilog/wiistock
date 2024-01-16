@@ -574,7 +574,7 @@ class TrackingMovementService extends AbstractController
 
             if($dispatch->getDispatchPacks()->count() === $validPacks) {
                 if($dispatch->getStatut() && !$dispatch->getTreatmentDate() && !$dispatch->getStatut()->isTreated() && $status->isTreated()) {
-                    $this->dispatchService->treatDispatchRequest($entityManager, $dispatch, $status, $user, false, [], true, false);
+                    $this->dispatchService->treatDispatchRequest($entityManager, $dispatch, $status, $user);
                 }
                 else {
                     if($status->getId() !== $dispatch->getStatut()->getId()) {
