@@ -16,6 +16,7 @@ class Menu {
     const DEM = 'demande';
     const ORDRE = 'ordre';
     const STOCK = 'stock';
+    const PRODUCTION = 'production';
     const REFERENTIEL = 'référentiel';
     const IOT = 'iot';
     const PARAM = 'paramétrage';

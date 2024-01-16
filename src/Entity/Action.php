@@ -139,6 +139,19 @@ class Action {
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
     const DISPLAY_PAIRING = 'afficher associations';
+
+    // production
+    const DISPLAY_PRODUCTION_REQUEST =  'afficher demandes de production';
+    const CREATE_PRODUCTION_REQUEST = 'créer demande de production';
+    const EXPORT_PRODUCTION_REQUEST = 'exporter demandes de production';
+    const EDIT_IN_PROGRESS_PRODUCTION_REQUEST = 'modifier demandes de production au statut en cours';
+    const EDIT_TO_TREAT_PRODUCTION_REQUEST = 'modifier demandes de production au statut à traiter';
+    const DELETE_TO_TREAT_PRODUCTION_REQUEST = 'supprimer demandes de production au statut à traiter';
+    const DELETE_TREATED_PRODUCTION_REQUEST = 'supprimer demandes de production au statut traité';
+    const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
+    const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
+    const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+
     // menu paramétrage
     const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
     const SETTINGS_DISPLAY_APPLICATION_CLIENT = 'afficher client application';
@@ -198,6 +211,8 @@ class Action {
     const SETTINGS_DISPLAY_DISPATCH_TEMPLATE = "afficher acheminements";
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
+
+    const SETTINGS_DISPLAY_PRODUCTION = 'afficher production';
 
     // menu nomade
     const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';

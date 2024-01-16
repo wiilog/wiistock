@@ -32,6 +32,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
     const SUB_MENU_PAGE = 'page';
     const SUB_MENU_TRACKING = 'track';
     const SUB_MENU_TRACING = 'trace';
+    const SUB_MENU_PRODUCTION = 'production';
     const SUB_MENU_COLLECTS = 'collectes';
     const SUB_MENU_DELIVERIES = 'livraisons';
     const SUB_MENU_HANDLINGS = 'services';
@@ -260,6 +261,20 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::INVENTORY_MANAGER,
             ],
         ],
+        Menu::PRODUCTION => [
+            self::SUB_MENU_GENERAL => [
+                Action::DISPLAY_PRODUCTION_REQUEST,
+                Action::CREATE_PRODUCTION_REQUEST,
+                Action::EXPORT_PRODUCTION_REQUEST,
+                Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST,
+                Action::EDIT_TO_TREAT_PRODUCTION_REQUEST,
+                Action::DELETE_TO_TREAT_PRODUCTION_REQUEST,
+                Action::DELETE_TREATED_PRODUCTION_REQUEST,
+                Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST,
+                Action::EDIT_TREATED_PRODUCTION_REQUEST,
+                Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST,
+            ],
+        ],
         Menu::REFERENTIEL => [
             self::SUB_MENU_GENERAL => [
                 Action::CREATE,
@@ -319,6 +334,9 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::SETTINGS_DISPLAY_TRACING_HAND,
                 Action::SETTINGS_DISPLAY_EMERGENCIES,
                 Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS,
+            ],
+            self::SUB_MENU_PRODUCTION => [
+                Action::SETTINGS_DISPLAY_PRODUCTION,
             ],
             self::SUB_MENU_TRACKING => [
                 Action::SETTINGS_DISPLAY_TRACK_REQUESTS,

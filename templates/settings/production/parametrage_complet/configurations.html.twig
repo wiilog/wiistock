@@ -1,0 +1,22 @@
+{% import 'form.html.twig' as form %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 my-1 d-flex align-items-center">
+            {{ form.checkbox(setting('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY'), "Si urgence détectée, envoi d'email de notification à chaque changement de statut aux utilisateurs :", false, setting_value('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY'), {
+                labelClass: "w-100 mr-1",
+                inline: true,
+            }) }}
+            {{ form.select('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS', null, setting_value('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY'), {
+                type: "user",
+                items: notificationEmailUsers,
+                multiple: true,
+                inputClass: "w-100",
+                disabled: not setting_value('SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY'),
+            }) }}
+        </div>
+        <div class="col-12 my-1">
+            {{ form.checkbox(setting('COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY'), "Si urgence détectée, demandeur en copie de l'email de notification", false, setting_value('COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY')) }}
+        </div>
+    </div>
+</div>

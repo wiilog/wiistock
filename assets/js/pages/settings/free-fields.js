@@ -9,6 +9,7 @@ const MODE_TRACKING = `tracking`;
 const MODE_DISPATCH = `dispatch`;
 const MODE_HANDLING = `handling`;
 const MODE_DELIVERY_REQUEST = `delivery_request`;
+const MODE_PRODUCTION = `production`;
 
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
@@ -127,6 +128,10 @@ export function createHandlingFreeFieldsPage($container, canEdit) {
 
 export function createDeliveryRequestFieldsPage($container, canEdit) {
     createFreeFieldsPage($container, canEdit, MODE_DELIVERY_REQUEST)
+}
+
+export function createProductionFreeFieldsPage($container, canEdit) {
+    createFreeFieldsPage($container, canEdit, MODE_PRODUCTION)
 }
 
 export function createFreeFieldsPage($container, canEdit, mode) {

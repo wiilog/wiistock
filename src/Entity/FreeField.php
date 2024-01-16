@@ -7,6 +7,7 @@ use App\Helper\LanguageHelper;
 use App\Repository\FreeFieldRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use WiiCommon\Helper\Stream;
 
@@ -20,87 +21,49 @@ class FreeField implements Serializable {
     const TYPE_LIST_MULTIPLE = 'list multiple';
     const TYPE_DATE = 'date';
     const TYPE_DATETIME = 'datetime';
-    const TYPAGE = [
-        [
-            'value' => FreeField::TYPE_BOOL,
-            'label' => 'Oui/Non',
-        ],
-        [
-            'value' => FreeField::TYPE_DATE,
-            'label' => 'Date',
-        ],
-        [
-            'value' => FreeField::TYPE_DATETIME,
-            'label' => 'Date et heure',
-        ],
-        [
-            'value' => FreeField::TYPE_LIST,
-            'label' => 'Liste',
-        ],
-        [
-            'value' => FreeField::TYPE_LIST_MULTIPLE,
-            'label' => 'Liste multiple',
-        ],
-        [
-            'value' => FreeField::TYPE_NUMBER,
-            'label' => 'Nombre',
-        ],
-        [
-            'value' => FreeField::TYPE_TEXT,
-            'label' => 'Texte',
-        ],
-    ];
-    const TYPAGE_ARR = [
-        FreeField::TYPE_BOOL => 'Oui/Non',
-        FreeField::TYPE_DATE => 'Date',
-        FreeField::TYPE_DATETIME => 'Date et heure',
-        FreeField::TYPE_LIST => 'Liste',
-        FreeField::TYPE_NUMBER => 'Nombre',
-        FreeField::TYPE_TEXT => 'Texte',
-        FreeField::TYPE_LIST_MULTIPLE => 'Liste multiple',
-    ];
+
     const SPECIC_COLLINS_BL = 'BL';
     const MACHINE_PDT_FREE_FIELD = 'Machine PDT';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $id = null;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
-    #[ORM\Column(type: 'string', length: 255, nullable: true, unique: true)]
-    private $label;
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
+    private ?string $label = null;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'champsLibres')]
-    private $type;
+    private ?Type $type = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $typage;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $typage = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $defaultValue;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $defaultValue = null;
 
-    #[ORM\OneToMany(targetEntity: FiltreRef::class, mappedBy: 'champLibre')]
-    private $filters;
+    #[ORM\OneToMany(mappedBy: 'champLibre', targetEntity: FiltreRef::class)]
+    private Collection $filters;
 
     /**
      * Attribute used for data warehouse, do not delete it
      */
-    #[ORM\Column(type: 'json', nullable: true)]
-    private $elements = [];
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $elements = [];
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredCreate;
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $requiredCreate = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private $requiredEdit;
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $requiredEdit = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => 1])]
-    private $displayedCreate;
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 1])]
+    private ?bool $displayedCreate = null;
 
-    #[ORM\ManyToOne(targetEntity: CategorieCL::class, inversedBy: 'champsLibres')]
+    #[ORM\ManyToOne(targetEntity: CategorieCL::class)]
     private ?CategorieCL $categorieCL = null;
 
     #[ORM\OneToOne(mappedBy: "freeField", targetEntity: TranslationSource::class)]
@@ -354,7 +317,7 @@ class FreeField implements Serializable {
 
     public function serialize(): array {
         $type = $this->getType();
-        $categoryType = $type ? $type->getCategory() : null;
+        $categoryType = $type?->getCategory();
         return [
             'id' => $this->getId(),
             'label' => $this->getLabel(),
@@ -363,8 +326,8 @@ class FreeField implements Serializable {
             'defaultValue' => $this->getDefaultValue(),
             'requiredCreate' => $this->isRequiredCreate(),
             'requiredEdit' => $this->isRequiredEdit(),
-            'typeId' => $this->getType() ? $this->getType()->getId() : null,
-            'categoryType' => $categoryType ? $categoryType->getLabel() : null,
+            'typeId' => $this->getType()?->getId(),
+            'categoryType' => $categoryType?->getLabel(),
         ];
     }
 

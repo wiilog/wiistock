@@ -1,0 +1,170 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Production | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
+{% block title_tooltip %}Production | Détails{% endblock %}
+{% block titleLink path('production_request_index') %}
+
+{% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TO_TREAT_PRODUCTION_REQUEST')) %}
+
+{% if productionRequest.status.inProgress %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST')) %}
+{% endif %}
+
+{% if productionRequest.status.treated %}
+    {% set hasRightDelete = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::DELETE_TREATED_PRODUCTION_REQUEST')) %}
+{% endif %}
+
+{% block page_content %}
+    <input type="hidden" name="productionRequestId" value="{{ productionRequest.id }}"/>
+
+    <div class="mb-4 ra-container d-flex justify-content-center align-content-center">
+        <div class="row wii-column w-100">
+            <div class="col-md-4 col-12">
+                <div class="wii-box">
+                    <div class="d-flex align-items-center mr-3">
+                        <div class="mx-2">
+                            <div class="dropdown dropright">
+                                <div class="d-flex">
+                                    {% set hasRightEditProductionRequest =
+                                        productionRequest.status.state == constant('App\\Entity\\Statut::NOT_TREATED')
+                                        ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST'))
+                                        : (productionRequest.status.state == constant('App\\Entity\\Statut::IN_PROGRESS')
+                                            ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST'))
+                                            : (productionRequest.status.state == constant('App\\Entity\\Statut::TREATED')
+                                                ? hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST'))
+                                                : 0)
+                                        )
+                                    %}
+
+                                    {% include "utils/action-buttons/dropdown.html.twig" with {
+                                        actions: [
+                                            {
+                                                hasRight: hasRightEditProductionRequest,
+                                                title: trans('Général', '', 'Modale', 'Modifier'),
+                                                icon: "fas fa-pencil-alt",
+                                                attributes: {
+                                                    "onclick": "openModalEditProductionRequest()",
+                                                },
+                                            },
+                                            {
+                                                hasRight: hasRightDelete,
+                                                title: trans('Général', '', 'Modale', 'Supprimer'),
+                                                icon: "wii-icon wii-icon-trash-black",
+                                                attributes: {
+                                                onclick: "deleteProductionRequest(" ~ productionRequest.id ~ ")",
+                                            },
+                                            }
+                                        ]
+                                    } %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex py-2 w-100 justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-column dispatch-number">
+                                    <span class="wii-title">Production</span>
+                                    <span class="wii-small-text">
+                                    {{ productionRequest.number }}
+                                </span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-end">
+                            <span class="wii-field-name">
+                                {{ productionRequest.createdBy|format_helper("user") }}
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="type-container" style="background: {{ dispatch.type.color ?? '#3353D7' }};">
+                        {{ productionRequest.type|format_helper('type') }}
+                    </div>
+                    <div class="content bordered p-0">
+                        <div class="content history-container p-0">
+                            <div class="d-flex align-items-center justify-content-center p-3">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <span class="ml-3">Génération de l'historique en cours</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content bordered">
+                        <div class="d-flex flex-wrap w-100">
+                            {% include 'attachment/attachment.html.twig' with {
+                                'isNew': false,
+                                attachments,
+                                editAttachments : false,
+                                fullWidth: true,
+                                fieldNameClass : 'wii-subtitle',
+                                override: true,
+                            } %}
+                        </div>
+                        {% if productionRequest.attachments is empty %}
+                            <div class="wii-small-text">
+                                Cette demande de production n'a aucune pièce jointe
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="content comment-container">
+                        <div class="wii-subtitle">{{ trans('Général', null, 'Modale', 'Commentaire') }}</div>
+                        {% if productionRequest.comment != '<p><br></p>' %}
+                            <div class="ql-editor">
+                                {{ productionRequest.comment | raw }}
+                            </div>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">{{ trans('Général', null, 'Modale', 'Champs libres') }}</div>
+                    <div class="content row no-gutters">
+                        {% include 'free_field/freeFieldsShow.html.twig' with {
+                            wrapperClass: 'col-6 d-flex flex-column',
+                            values: productionRequest.freeFields,
+                            freeFields: freeFields,
+                            emptyTitle: "Cette demande de production n'a aucun champ libre",
+                            emptyLabel: "Cette demande de production n'a aucun champ libre",
+                            needsDateFormatting: true
+                        } %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8 col-12">
+                <div class="wii-box">
+                    <div class="header wii-title justify-content-between align-items-center d-flex">Informations</div>
+                    {% if productionRequest.emergency %}
+                        <div class="d-flex align-items-center justify-content-center emergency-container">
+                            <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
+                            <span>Cette demande de production est urgente : <strong>{{ productionRequest.emergency }}</strong></span>
+                        </div>
+                    {% endif %}
+
+                    <div class="col-12 pb-3">
+                        {% include 'utils/show-header-details.html.twig' with {data: detailsConfig} %}
+                    </div>
+                </div>
+                <div class="wii-box">
+                    <div class="header wii-title">Historique</div>
+                    <div class="content operation-history-container">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <span class="ml-3">Génération de l'historique en cours...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'production_request/modalEditProductionRequest.html.twig' with {
+        productionRequest,
+        fieldsParam,
+        emergencies,
+    }%}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {{ encore_entry_script_tags('production-show') }}
+{% endblock %}

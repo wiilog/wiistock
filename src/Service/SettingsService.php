@@ -959,6 +959,7 @@ class SettingsService {
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
+                $userRepository = $this->manager->getRepository(Utilisateur::class);
 
                 $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
 
@@ -969,7 +970,8 @@ class SettingsService {
                     StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
                     StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
                     StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING,
+                    StatusController::MODE_PRODUCTION => CategorieStatut::PRODUCTION,
                 };
 
                 $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
@@ -1013,6 +1015,11 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
+                    $notifiedUsers = [];
+                    if (isset($statusData["notifiedUsers"]) && $statusData["notifiedUsers"]) {
+                        $notifiedUsers = $userRepository->findBy(["id" => explode(",", $statusData["notifiedUsers"])]);
+                    }
+
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
@@ -1024,7 +1031,11 @@ class SettingsService {
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
-                        ->setDisplayOrder($statusData['order'] ?? 0);
+                        ->setDisplayOrder($statusData['order'] ?? 0)
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
+                        ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
+                        ->setNotifiedUsers($notifiedUsers)
+                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status

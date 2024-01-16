@@ -404,6 +404,32 @@ class SettingsController extends AbstractController {
                 ],
             ],
         ],
+        self::CATEGORY_PRODUCTION => [
+            "label" => "Production",
+            "icon" => "production",
+            "menus" => [
+                self::MENU_FULL_SETTINGS => [
+                    "label" => "Paramétrage complet",
+                    "right" => Action::SETTINGS_DISPLAY_PRODUCTION,
+                    "menus" => [
+                        self::MENU_CONFIGURATIONS => ["label" => "Configurations", "save" => true],
+                        self::MENU_STATUSES => [
+                            "label" => "Statuts",
+                            "wrapped" => false,
+                        ],
+                        self::MENU_FIXED_FIELDS => [
+                            "label" => "Champs fixes",
+                            "wrapped" => true,
+                            "save" => true,
+                        ],
+                        self::MENU_TYPES_FREE_FIELDS => [
+                            "label" => "Types & champs libres",
+                            "wrapped" => false,
+                        ],
+                    ],
+                ],
+            ],
+        ],
         self::CATEGORY_TRACKING => [
             "label" => "Track",
             "icon" => "menu-track",
@@ -618,6 +644,7 @@ class SettingsController extends AbstractController {
     public const CATEGORY_STOCK = "stock";
     public const CATEGORY_TRACING = "trace";
     public const CATEGORY_TRACKING = "track";
+    public const CATEGORY_PRODUCTION = "production";
     public const CATEGORY_MOBILE = "mobile";
     public const CATEGORY_DASHBOARDS = "dashboards";
     public const CATEGORY_IOT = "iot";
@@ -1060,13 +1087,6 @@ class SettingsController extends AbstractController {
         return $types;
     }
 
-    #[ArrayShape([
-        self::CATEGORY_GLOBAL => "\Closure[]", self::CATEGORY_STOCK => "\Closure[][]",
-        self::CATEGORY_TRACING => "\Closure[][]", self::CATEGORY_TRACKING => "array",
-        self::CATEGORY_IOT => "\Closure[]", self::CATEGORY_DATA => "\Closure[]",
-        self::CATEGORY_NOTIFICATIONS => "\Closure[]", self::CATEGORY_USERS => "\Closure[]",
-
-    ])]
     public function customValues(EntityManagerInterface $entityManager): array {
         $temperatureRepository = $entityManager->getRepository(TemperatureRange::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -1507,6 +1527,57 @@ class SettingsController extends AbstractController {
                             ],
                         ];
                     },
+                ],
+            ],
+            self::CATEGORY_PRODUCTION => [
+                self::MENU_FULL_SETTINGS => [
+                    self::MENU_CONFIGURATIONS => function() use ($settingRepository, $userRepository) {
+                        $notificationEmailUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
+                        $users = $notificationEmailUsers
+                            ? $userRepository->findBy(["id" => explode(",", $notificationEmailUsers)])
+                            : [];
+
+                        return [
+                            "notificationEmailUsers" => Stream::from($users)
+                                ->map(static fn(Utilisateur $user) => [
+                                    "label" => $user->getUsername(),
+                                    "value" => $user->getId(),
+                                    "selected" => true,
+                                ])
+                                ->toArray(),
+                        ];
+                    },
+                    self::MENU_STATUSES => function() {
+                        $types = $this->typeGenerator(CategoryType::PRODUCTION, false);
+                        $types[0]["checked"] = true;
+
+                        return [
+                            'types' => $types,
+                            'categoryType' => CategoryType::PRODUCTION,
+                            'optionsSelect' => $this->statusService->getStatusStatesOptions(StatusController::MODE_PRODUCTION),
+                        ];
+                    },
+                    self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
+                        $field = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+
+                        return [
+                            "emergency" => [
+                                "field" => $field->getId(),
+                                "elementsType" => $field->getElementsType(),
+                                "elements" => Stream::from($field->getElements())
+                                    ->map(fn(string $element) => [
+                                        "label" => $element,
+                                        "value" => $element,
+                                        "selected" => true,
+                                    ])
+                                    ->toArray(),
+                            ],
+                        ];
+                    },
+                    self::MENU_TYPES_FREE_FIELDS => fn() => [
+                        'types' => $this->typeGenerator(CategoryType::PRODUCTION),
+                        'category' => CategoryType::PRODUCTION,
+                    ],
                 ],
             ],
             self::CATEGORY_TRACKING => [
@@ -2049,7 +2120,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION])) {
                 $inputId = rand(0, 1000000);
 
                 $data[] = [
@@ -2095,7 +2166,6 @@ class SettingsController extends AbstractController {
                     $locationRepository = $this->manager->getRepository(Emplacement::class);
 
                     $pickLocationOption = $type && $type->getPickLocation() ? "<option value='{$type->getPickLocation()->getId()}'>{$type->getPickLocation()->getLabel()}</option>" : "";
-                    $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
 
                     $suggestedPickLocationOptions = $type && !empty($type->getSuggestedPickLocations())
                         ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedPickLocations()]) ?? [])
@@ -2107,40 +2177,51 @@ class SettingsController extends AbstractController {
                         ->toArray()
                     : [];
 
-                    $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
-                        ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
-                            ->map(fn(Emplacement $location) => [
-                                "value" => $location->getId(),
-                                "label" => $location->getLabel(),
-                                "selected" => true,
-                            ])
-                            ->toArray()
-                        : [];
-
                     $data = array_merge($data, [
                         [
                             "label" => "Emplacement de prise par défaut",
                             "value" => "<select name='pickLocation' data-s2='location' data-parent='body' class='data form-control'>$pickLocationOption</select>",
-                        ], [
-                            "label" => "Emplacement de dépose par défaut",
-                            "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
-                        ], [], [], [
+                        ],
+                        [
                             "label" => "Emplacement(s) de prise suggéré(s)",
                             "value" => $formService->macro("select", "suggestedPickLocations", null, false, [
                                 "type" => "location",
                                 "multiple" => true,
                                 "items" => $suggestedPickLocationOptions,
                             ]),
-                        ], [
-                            "label" => "Emplacement(s) de dépose suggéré(s)",
-                            "value" => $formService->macro("select", "suggestedDropLocations", null, false, [
-                                "type" => "location",
-                                "multiple" => true,
-                                "items" => $suggestedDropLocationOptions,
-                            ]),
                         ],
                     ]);
                 }
+            }
+
+            if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
+                $locationRepository = $this->manager->getRepository(Emplacement::class);
+
+                $dropLocationOption = $type && $type->getDropLocation() ? "<option value='{$type->getDropLocation()->getId()}'>{$type->getDropLocation()->getLabel()}</option>" : "";
+                $suggestedDropLocationOptions = $type && !empty($type->getSuggestedDropLocations())
+                    ? Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
+                        ->map(fn(Emplacement $location) => [
+                            "value" => $location->getId(),
+                            "label" => $location->getLabel(),
+                            "selected" => true,
+                        ])
+                        ->toArray()
+                    : [];
+
+                $data = array_merge($data, [
+                    [
+                        "label" => "Emplacement de dépose par défaut",
+                        "value" => "<select name='dropLocation' data-s2='location' data-parent='body' class='data form-control'>$dropLocationOption</select>",
+                    ],
+                    [
+                        "label" => "Emplacement(s) de dépose suggéré(s)",
+                        "value" => $formService->macro("select", "suggestedDropLocations", null, false, [
+                            "type" => "location",
+                            "multiple" => true,
+                            "items" => $suggestedDropLocationOptions,
+                        ]),
+                    ]
+                ]);
             }
 
             if (in_array($categoryLabel, [CategoryType::DEMANDE_HANDLING, CategoryType::DEMANDE_DISPATCH])) {
@@ -2240,7 +2321,7 @@ class SettingsController extends AbstractController {
                 ],
             ];
 
-            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH])) {
+            if (in_array($categoryLabel, [CategoryType::ARTICLE, CategoryType::DEMANDE_DISPATCH, CategoryType::PRODUCTION])) {
                 $data[] = [
                     "label" => "Couleur",
                     "value" => $type ? "<div class='dt-type-color' style='background: {$type->getColor()}'></div>" : null,
@@ -2272,21 +2353,31 @@ class SettingsController extends AbstractController {
                     ->map(fn(Emplacement $location) => $location->getLabel())
                     ->join(', ');
 
+                $data = array_merge($data, [
+                    [
+                        "label" => "Emplacement de prise par défaut",
+                        "value" => $this->formatService->location($type?->getPickLocation()),
+                    ],
+                    [
+                        "label" => "Emplacement(s) de prise suggéré(s)",
+                        "value" => $suggestedPickLocations,
+                    ],
+                ]);
+            }
+
+            if(in_array($categoryLabel, [CategoryType::PRODUCTION, CategoryType::DEMANDE_DISPATCH])) {
+                $locationRepository = $this->manager->getRepository(Emplacement::class);
+
                 $suggestedDropLocations = Stream::from($locationRepository->findBy(['id' => $type->getSuggestedDropLocations()]) ?? [])
                     ->map(fn(Emplacement $location) => $location->getLabel())
                     ->join(', ');
 
                 $data = array_merge($data, [
                     [
-                        "label" => "Emplacement de prise par défaut",
-                        "value" => $this->formatService->location($type?->getPickLocation()),
-                    ], [
                         "label" => "Emplacement de dépose par défaut",
                         "value" => $this->formatService->location($type?->getDropLocation()),
-                    ], [
-                        "label" => "Emplacement(s) de prise suggéré(s)",
-                        "value" => $suggestedPickLocations,
-                    ], [
+                    ],
+                    [
                         "label" => "Emplacement(s) de dépose suggéré(s)",
                         "value" => $suggestedDropLocations,
                     ],
@@ -2683,16 +2774,16 @@ class SettingsController extends AbstractController {
 
                     $row = [
                         "label" => "<span class='font-weight-bold $labelAttributes'>$label</span>" . $formService->macro("hidden", "id", $field->getId(), []),
-                        "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayDisabled || $displayedCreate, [
+                        "displayedCreate" => $formService->macro("checkbox", "displayedCreate", null, false, $displayedCreate, [
                             "disabled" => $filterOnly || $displayDisabled,
                         ]),
-                        "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayDisabled || $displayedEdit, [
+                        "displayedEdit" => $formService->macro("checkbox", "displayedEdit", null, false, $displayedEdit, [
                             "disabled" => $filterOnly || $displayDisabled,
                         ]),
-                        "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requireDisabled || $requiredCreate, [
+                        "requiredCreate" => $formService->macro("checkbox", "requiredCreate", null, false, $requiredCreate, [
                             "disabled" => $requireDisabled,
                         ]),
-                        "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requireDisabled || $requiredEdit, [
+                        "requiredEdit" => $formService->macro("checkbox", "requiredEdit", null, false, $requiredEdit, [
                             "disabled" => $requireDisabled,
                         ]),
 

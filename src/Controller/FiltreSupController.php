@@ -61,7 +61,9 @@ class FiltreSupController extends AbstractController
                 'truckArrivalNumber' => FiltreSup::FIELD_TRUCK_ARRIVAL_NUMBER,
                 'carrierTrackingNumberNotAssigned' => FiltreSup::FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED,
                 'customerOrderNumber' => FiltreSup::FIELD_CUSTOMER_ORDER_NUMBER,
-                'useTruckArrivals' => FiltreSup::FIELD_USE_TRUCK_ARRIVALS
+                'useTruckArrivals' => FiltreSup::FIELD_USE_TRUCK_ARRIVALS,
+                'manufacturingOrderNumber' => FiltreSup::FIELD_MANUFACTURING_ORDER_NUMBER,
+                'attachmentAssigned' => FiltreSup::FIELD_ATTACHMENTS_ASSIGNED,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {
                 if ($filtreSup->getPage() === $page) {

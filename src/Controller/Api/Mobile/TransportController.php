@@ -28,13 +28,12 @@ use App\Entity\Transport\TransportRoundLine;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use App\Service\AttachmentService;
-use App\Service\GeoService;
 use App\Service\NotificationService;
 use App\Service\PackService;
 use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\EmplacementDataService;
 use DateTime;
@@ -397,7 +396,7 @@ class TransportController extends AbstractApiController
     public function rejectPack(Request                 $request,
                                EntityManagerInterface  $manager,
                                TransportRoundService   $transportRoundService,
-                               TransportHistoryService $historyService): Response
+                               OperationHistoryService $historyService): Response
     {
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
@@ -418,7 +417,7 @@ class TransportController extends AbstractApiController
 
         $historyService->persistTransportHistory($manager,
             [$order, $request],
-            TransportHistoryService::TYPE_DROP_REJECTED_PACK,
+            OperationHistoryService::TYPE_DROP_REJECTED_PACK,
             [
                 'user' => $this->getUser(),
                 'pack' => $pack,
@@ -483,11 +482,10 @@ class TransportController extends AbstractApiController
     #[Wii\RestVersionChecked]
     public function finishRound(Request                 $request,
                                 EntityManagerInterface  $manager,
-                                GeoService              $geoService,
                                 TransportRoundService   $transportRoundService,
                                 TrackingMovementService $trackingMovementService,
                                 StatusHistoryService    $statusHistoryService,
-                                TransportHistoryService $transportHistoryService): Response
+                                OperationHistoryService $operationHistoryService): Response
     {
         $data = $request->request;
         $locationRepository = $manager->getRepository(Emplacement::class);
@@ -533,10 +531,10 @@ class TransportController extends AbstractApiController
             foreach ($depositedTransports as $transport => $packs) {
                 $transport = $transportById[$transport];
 
-                $transportHistoryService->persistTransportHistory(
+                $operationHistoryService->persistTransportHistory(
                     $manager,
                     [$transport, $transport->getRequest()],
-                    TransportHistoryService::TYPE_PACKS_FAILED,
+                    OperationHistoryService::TYPE_PACKS_FAILED,
                     [
                         "user" => $user,
                         "message" => Stream::from($packs)
@@ -606,7 +604,7 @@ class TransportController extends AbstractApiController
                                EntityManagerInterface  $manager,
                                StatusHistoryService    $statusHistoryService,
                                TransportRoundService   $transportRoundService,
-                               TransportHistoryService $historyService,
+                               OperationHistoryService $historyService,
                                TranslationService      $translation): Response
     {
         $data = $request->request;
@@ -677,12 +675,12 @@ class TransportController extends AbstractApiController
                     $deliveryRequestOngoing);
                 $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
 
-                $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ONGOING, [
+                $historyService->persistTransportHistory($manager, $request, OperationHistoryService::TYPE_ONGOING, [
                     "user" => $this->getUser(),
                     "history" => $statusHistoryRequest,
                 ]);
 
-                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ONGOING, [
+                $historyService->persistTransportHistory($manager, $order, OperationHistoryService::TYPE_ONGOING, [
                     "user" => $this->getUser(),
                     "history" => $statusHistoryOrder,
                 ]);
@@ -743,7 +741,7 @@ class TransportController extends AbstractApiController
     #[Wii\RestVersionChecked]
     public function finishTransport(Request                 $request,
                                     EntityManagerInterface  $manager,
-                                    TransportHistoryService $historyService,
+                                    OperationHistoryService $historyService,
                                     StatusHistoryService    $statusHistoryService,
                                     TrackingMovementService $trackingMovementService,
                                     AttachmentService       $attachmentService,
@@ -878,23 +876,23 @@ class TransportController extends AbstractApiController
             }
 
             if($originalRequest instanceof TransportCollectRequest && $originalRequest->getDelivery()) {
-                $lastFinishedTransportOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
-                $lastFinishedTransportRequestHistory = $request->getLastTransportHistory(TransportHistoryService::TYPE_FINISHED);
+                $lastFinishedTransportOrderHistory = $order->getLastTransportHistory(OperationHistoryService::TYPE_FINISHED);
+                $lastFinishedTransportRequestHistory = $request->getLastTransportHistory(OperationHistoryService::TYPE_FINISHED);
 
                 foreach ([$lastFinishedTransportOrderHistory, $lastFinishedTransportRequestHistory] as $history) {
                     if ($history) {
                         $history
                             ->setDate($now)
-                            ->setType(TransportHistoryService::TYPE_FINISHED_BOTH);
+                            ->setType(OperationHistoryService::TYPE_FINISHED_BOTH);
                     }
                 }
             } else {
-                $historyService->persistTransportHistory($manager, $order->getRequest(), TransportHistoryService::TYPE_FINISHED, [
+                $historyService->persistTransportHistory($manager, $order->getRequest(), OperationHistoryService::TYPE_FINISHED, [
                     "user" => $this->getUser(),
                     "history" => $statusHistoryRequest ?? null,
                 ]);
 
-                $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_FINISHED, [
+                $historyService->persistTransportHistory($manager, $order, OperationHistoryService::TYPE_FINISHED, [
                     "user" => $this->getUser(),
                     "history" => $statusHistoryOrder ?? null,
                 ]);
@@ -914,7 +912,7 @@ class TransportController extends AbstractApiController
     public function transportFailure(Request                 $request,
                                      EntityManagerInterface  $manager,
                                      StatusHistoryService    $statusHistoryService,
-                                     TransportHistoryService $historyService,
+                                     OperationHistoryService $historyService,
                                      AttachmentService       $attachmentService,
                                      NotificationService     $notificationService,
                                      TranslationService      $translation): Response
@@ -940,7 +938,7 @@ class TransportController extends AbstractApiController
             $this->updateTransportComment($manager, $historyService, $request, $comment);
         }
 
-        $lastFailedOrderHistory = $order->getLastTransportHistory(TransportHistoryService::TYPE_FAILED_DELIVERY, TransportHistoryService::TYPE_FAILED_COLLECT);
+        $lastFailedOrderHistory = $order->getLastTransportHistory(OperationHistoryService::TYPE_FAILED_DELIVERY, OperationHistoryService::TYPE_FAILED_COLLECT);
         if (!$lastFailedOrderHistory || ($lastFailedOrderHistory->getReason() !== $motive)) {
             $order->setReturnReason($motive);
 
@@ -950,7 +948,7 @@ class TransportController extends AbstractApiController
             }
 
             foreach($requests as $entity) {
-                $historyType = $entity instanceof TransportDeliveryRequest ? TransportHistoryService::TYPE_FAILED_DELIVERY : TransportHistoryService::TYPE_FAILED_COLLECT;
+                $historyType = $entity instanceof TransportDeliveryRequest ? OperationHistoryService::TYPE_FAILED_DELIVERY : OperationHistoryService::TYPE_FAILED_COLLECT;
 
                 $entity = $entity instanceof TransportCollectRequest && $entity->getDelivery() ? $entity->getDelivery() : $entity;
                 $historyService->persistTransportHistory($manager, $entity, $historyType, [
@@ -1137,7 +1135,7 @@ class TransportController extends AbstractApiController
     #[Wii\RestVersionChecked]
     public function depositPacks(Request                 $request,
                                  EntityManagerInterface  $manager,
-                                 TransportHistoryService $transportHistoryService,
+                                 OperationHistoryService $operationHistoryService,
                                  StatusHistoryService    $statusHistoryService,
                                  TrackingMovementService $trackingMovementService,
                                  PackService             $packService): Response
@@ -1183,10 +1181,10 @@ class TransportController extends AbstractApiController
             foreach ($depositedTransports as $transport => $packs) {
                 $transport = $transportById[$transport];
 
-                $transportHistoryService->persistTransportHistory(
+                $operationHistoryService->persistTransportHistory(
                     $manager,
                     [$transport, $transport->getRequest()],
-                    TransportHistoryService::TYPE_PACKS_FAILED,
+                    OperationHistoryService::TYPE_PACKS_FAILED,
                     [
                         "user" => $this->getUser(),
                         "message" => Stream::from($packs)
@@ -1289,17 +1287,17 @@ class TransportController extends AbstractApiController
                     $statusHistoryService->updateStatus($manager, $request, $requestStatus);
                     $statusHistoryService->updateStatus($manager, $order, $orderStatus);
 
-                    $transportHistoryService->persistTransportHistory($manager,
+                    $operationHistoryService->persistTransportHistory($manager,
                         $order->getRequest(),
-                        TransportHistoryService::TYPE_PACKS_DEPOSITED,
+                        OperationHistoryService::TYPE_PACKS_DEPOSITED,
                         [
                             "user" => $this->getUser(),
                             "location" => $location,
                         ]);
 
-                    $transportHistoryService->persistTransportHistory($manager,
+                    $operationHistoryService->persistTransportHistory($manager,
                         $order,
-                        TransportHistoryService::TYPE_PACKS_DEPOSITED,
+                        OperationHistoryService::TYPE_PACKS_DEPOSITED,
                         [
                             "user" => $this->getUser(),
                             "location" => $location,
@@ -1357,7 +1355,7 @@ class TransportController extends AbstractApiController
     }
 
     public function updateTransportComment(EntityManagerInterface                           $manager,
-                                           TransportHistoryService                          $historyService,
+                                           OperationHistoryService                          $historyService,
                                            TransportDeliveryRequest|TransportCollectRequest $request,
                                            ?string                                          $comment): void
     {
@@ -1365,7 +1363,7 @@ class TransportController extends AbstractApiController
 
         $order->setComment($comment);
 
-        $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_COMMENT, [
+        $historyService->persistTransportHistory($manager, $request, OperationHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),
             "comment" => $comment,
         ]);
@@ -1373,7 +1371,7 @@ class TransportController extends AbstractApiController
         if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
             $historyService->persistTransportHistory($manager,
                 $request->getDelivery(),
-                TransportHistoryService::TYPE_ADD_COMMENT,
+                OperationHistoryService::TYPE_ADD_COMMENT,
                 [
                     "user" => $this->getUser(),
                     "comment" => $comment,
@@ -1384,14 +1382,14 @@ class TransportController extends AbstractApiController
             $request instanceof TransportCollectRequest
                 ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
                 : $request->getOrder() ,
-            TransportHistoryService::TYPE_ADD_COMMENT, [
+            OperationHistoryService::TYPE_ADD_COMMENT, [
             "user" => $this->getUser(),
             "comment" => $comment,
         ]);
     }
 
     public function updateTransportAttachment(EntityManagerInterface                           $manager,
-                                              TransportHistoryService                          $historyService,
+                                              OperationHistoryService                          $historyService,
                                               TransportDeliveryRequest|TransportCollectRequest $request,
                                               mixed                                            $signatureAttachment,
                                               mixed                                            $photoAttachment): void {
@@ -1399,7 +1397,7 @@ class TransportController extends AbstractApiController
             ? ($request->getDelivery()?->getOrder() ?? $request->getOrder())
             : $request->getOrder();
 
-        $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+        $historyService->persistTransportHistory($manager, $request, OperationHistoryService::TYPE_ADD_ATTACHMENT, [
             "user" => $this->getUser(),
             "attachments" => [
                 ...($signatureAttachment ? [$signatureAttachment] : []),
@@ -1410,7 +1408,7 @@ class TransportController extends AbstractApiController
         if ($request instanceof TransportCollectRequest && $request->getDelivery()) {
             $historyService->persistTransportHistory($manager,
                 $request->getDelivery(),
-                TransportHistoryService::TYPE_ADD_ATTACHMENT,
+                OperationHistoryService::TYPE_ADD_ATTACHMENT,
                 [
                     "user" => $this->getUser(),
                     "attachments" => [
@@ -1420,7 +1418,7 @@ class TransportController extends AbstractApiController
                 ]);
         }
 
-        $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ADD_ATTACHMENT, [
+        $historyService->persistTransportHistory($manager, $order, OperationHistoryService::TYPE_ADD_ATTACHMENT, [
             "user" => $this->getUser(),
             "attachments" => [
                 ...($signatureAttachment ? [$signatureAttachment] : []),

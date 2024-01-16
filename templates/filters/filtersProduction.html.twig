@@ -1,0 +1,37 @@
+{% import 'form.html.twig' as form %}
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+
+    {% if dateChoices is defined %}
+        {% include 'filters/filter_item/filterDateWithChoice.html.twig' %}
+    {% else %}
+        {% include 'filters/filter_item/filterDate.html.twig' %}
+    {% endif %}
+
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+        types: types,
+        filterTypes: typesFilter,
+    } %}
+
+    {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
+        filterStatus: statusFilter,
+    } %}
+
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'requesters',
+        placeholder: trans('Demande', 'Général', 'Demandeurs', false),
+    } %}
+
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'manufacturingOrderNumber',
+        placeholder: 'Numéro OF',
+    } %}
+
+    {% include 'filters/filter_item/filterBasicCheckbox.html.twig' with {
+        label: 'Pièces jointes',
+        name: 'attachmentAssigned',
+        checked: attachmentAssigned,
+    } %}
+
+{% endblock %}
