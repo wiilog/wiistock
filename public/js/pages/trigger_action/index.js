@@ -1,3 +1,5 @@
+import AJAX, {GET} from "@app/ajax";
+
 const $modalNewTriggerAction = $('#modalNewTriggerAction');
 const $modalEditTriggerAction = $('#modalEditTriggerAction');
 const $sensorSelect = $modalNewTriggerAction.find('[name=sensorWrapper]');
@@ -81,23 +83,47 @@ function submitSensor(val = null) {
 }
 
 function onTemplateTypeChange($select) {
-    const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templatesFor]');
 
-    if ($select.val()) {
-        AJAX
-            .route(AJAX.GET, 'get_templates', {type: $select.val()})
-            .json()
-            .then(({results}) => {
-                $templatesSelect.empty();
-                for (let option of results) {
-                    $templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
-                }
-            });
-    } else {
-        $templatesSelect.empty();
+    const $modal = $select.parents('.modal');
+
+    const $templateDetails = $modal.find('.template-details-wrapper');
+    $templateDetails
+        .find('label')
+        .addClass('d-none')
+        .find('select')
+        .removeClass('needed')
+
+    const type = $select.val();
+    if (['request', 'alert'].includes(type)) {
+        const $templatesSelect = $select.parents('.trigger-action-data').find('select[name^=templates]');
+
+        if (type) {
+            AJAX
+                .route(GET, 'get_templates', {type})
+                .json()
+                .then(({results}) => {
+                    $templatesSelect.empty();
+                    for (let option of results) {
+                        $templatesSelect.append(`<option value="${option['id']}">${option['text']}</option>`)
+                    }
+                });
+        } else {
+            $templatesSelect.empty();
+        }
+        $templatesSelect
+            .attr('disabled', !$select.val())
+            .addClass('needed');
+
+        $templatesSelect
+            .parents('label')
+            .removeClass('d-none');
+    } else if (type === 'dropOnLocation') {
+        $templateDetails
+            .find(`[name=dropOnLocation]`)
+            .addClass('needed')
+            .parents('label')
+            .removeClass('d-none');
     }
-
-    $templatesSelect.attr('disabled', !$select.val());
 }
 
 function clearNewModal(clearReferenceInput = false){

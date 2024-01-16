@@ -7,10 +7,12 @@ use App\Annotation\HasPermission;
 use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
+use App\Entity\IOT\SensorProfile;
 use App\Entity\IOT\SensorWrapper;
 use App\Entity\IOT\TriggerAction;
 use App\Entity\Menu;
 use App\Entity\Action;
+use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,17 +23,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/iot/actionneurs")
- */
-
+#[Route("/iot/actionneurs")]
 class TriggerActionController extends AbstractController
 {
-
-    /**
-     * @Route("/liste", name="trigger_action_index")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_TRIGGER})
-     */
+    #[Route("/liste", name: "trigger_action_index")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_TRIGGER])]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $sensorWrappers= $entityManager->getRepository(SensorWrapper::class)->findBy([
@@ -42,20 +38,16 @@ class TriggerActionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/api", name="trigger_action_api", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DISPLAY_TRIGGER})
-     */
+    #[Route("/api", name: "trigger_action_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DISPLAY_TRIGGER])]
     public function api(Request $request,
                         TriggerActionService $triggerActionService): Response {
         $data = $triggerActionService->getDataForDatatable($request->request);
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/creer", name="trigger_action_new", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/creer", name: "trigger_action_new", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(EntityManagerInterface $entityManager,
                         Request $request,
                         TriggerActionService $triggerActionService): Response
@@ -68,80 +60,108 @@ class TriggerActionController extends AbstractController
             } else {
                 $sensorWrapper = null;
             }
-            if ($sensorWrapper && $sensorWrapper->getSensor()->getProfile()->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
-                $triggerActionConfigs = [
-                    "sensorHygrometryLimitLower" => [
-                        "limit" => TriggerAction::LOWER,
-                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
-                        "templateType" => "templateTypeLowerHygro",
-                        "template" => "templatesForLowerHygro",
-                    ],
-                    "sensorHygrometryLimitHigher" => [
-                        "limit" => TriggerAction::HIGHER,
-                        "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
-                        "templateType" => "templateTypeHigherHygro",
-                        "template" => "templatesForHigherHygro",
-                    ],
-                    "sensorTemperatureLimitLower" => [
-                        "limit" => TriggerAction::LOWER,
-                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
-                        "templateType" => "templateTypeLowerTemp",
-                        "template" => "templatesForLowerTemp",
-                    ],
-                    "sensorTemperatureLimitHigher" => [
-                        "limit" => TriggerAction::HIGHER,
-                        "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
-                        "templateType" => "templateTypeHigherTemp",
-                        "template" => "templatesForHigherTemp",
-                    ],
-                ];
 
-                foreach ($triggerActionConfigs as $key => $config) {
-                    $limitValue = $data[$key] ?? false;
-                    if ($limitValue) {
-                        $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
-                            $entityManager,
-                            $sensorWrapper,
-                            $data[$config["templateType"]],
-                            $data[$config["template"]],
-                            [
-                                'limit' => $config["limit"],
-                                $config["type"] => $limitValue,
-                            ]
-                        );
-                        $entityManager->persist($triggerAction);
-                    }
-                }
+            $profile = $sensorWrapper->getSensor()->getProfile();
+            $profileName = $profile->getName();
+            if ($sensorWrapper && $profile->getMaxTriggers() > $sensorWrapper->getTriggerActions()->count()) {
+                if (in_array($profileName, [
+                    IOTService::INEO_SENS_ACS_HYGRO,
+                    IOTService::INEO_SENS_ACS_TEMP_HYGRO,
+                    IOTService::INEO_SENS_ACS_TEMP,
+                    IOTService::KOOVEA_TAG,
+                ])) {
+                    // temp and temp && hygro
+                    $triggerActionConfigs = [
+                        "sensorHygrometryLimitLower" => [
+                            "limit" => TriggerAction::LOWER,
+                            "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                            "templateType" => "templateTypeLowerHygro",
+                            "template" => "templatesForLowerHygro",
+                        ],
+                        "sensorHygrometryLimitHigher" => [
+                            "limit" => TriggerAction::HIGHER,
+                            "type" => TriggerAction::ACTION_TYPE_HYGROMETRY,
+                            "templateType" => "templateTypeHigherHygro",
+                            "template" => "templatesForHigherHygro",
+                        ],
+                        "sensorTemperatureLimitLower" => [
+                            "limit" => TriggerAction::LOWER,
+                            "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                            "templateType" => "templateTypeLowerTemp",
+                            "template" => "templatesForLowerTemp",
+                        ],
+                        "sensorTemperatureLimitHigher" => [
+                            "limit" => TriggerAction::HIGHER,
+                            "type" => TriggerAction::ACTION_TYPE_TEMPERATURE,
+                            "templateType" => "templateTypeHigherTemp",
+                            "template" => "templatesForHigherTemp",
+                        ],
+                    ];
 
-                if(isset($data['zone'])) {
-                    $config = ['zone' => $data['zone']];
-                    if (isset($data['buttonIndex'])) {
-                        $valid = $sensorWrapper->getTriggerActions()
-                            ->filter(fn(TriggerAction $trigger)  => (
-                                ($trigger->getConfig()['buttonIndex'] ?? null) === intval($data['buttonIndex'])
-                            ))
-                            ->isEmpty();
-                        if (!$valid) {
-                            return $this->json([
-                                'success' => false,
-                                'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
-                            ]);
+                    foreach ($triggerActionConfigs as $key => $config) {
+                        $limitValue = $data[$key] ?? false;
+                        if ($limitValue) {
+                            $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
+                                $entityManager,
+                                $sensorWrapper,
+                                $data[$config["templateType"]],
+                                $data[$config["template"]],
+                                [
+                                    'limit' => $config["limit"],
+                                    $config["type"] => $limitValue,
+                                ]
+                            );
+                            $entityManager->persist($triggerAction);
                         }
-                        $config['buttonIndex'] = $data['buttonIndex'];
+                    }
+                } else if (in_array($profileName, [
+                    IOTService::DEMO_ACTION,
+                    IOTService::INEO_SENS_ACS_BTN,
+                    IOTService::SYMES_ACTION_MULTI,
+                    IOTService::SYMES_ACTION_SINGLE,
+                ])) {
+                    // button
+                    $buttonIndex = $data['buttonIndex'] ?? false;
+
+                    $valid = $buttonIndex
+                        ? $sensorWrapper->getTriggerActions()->filter(fn(TriggerAction $trigger)  => (
+                            ($trigger->getConfig()['buttonIndex'] ?? null) === intval($data['buttonIndex'])
+                        ))->isEmpty()
+                        : true;
+                    if (!$valid) {
+                        return $this->json([
+                            'success' => false,
+                            'msg' => "Il existe déjà un actionneur pour ce capteur et ce numéro de bouton."
+                        ]);
                     }
 
                     $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
                         $entityManager,
                         $sensorWrapper,
-                        "",
-                        "",
-                        $config
+                        $data["templateType"],
+                        $data["templates"] ?? null,
+                        [
+                            ...isset($data['buttonIndex']) ? ["buttonIndex" => $data['buttonIndex']] : [],
+                            ...isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
+                        ]
                     );
                     $entityManager->persist($triggerAction);
+                } else if ($profileName == IOTService::INEO_TRK_TRACER) {
+                    // tracer
+                    if(isset($data['zoneId'])) {
+                        $triggerAction = $triggerActionService->createTriggerActionByTemplateType(
+                            $entityManager,
+                            $sensorWrapper,
+                            $data["templateType"],
+                            $data["templates"] ?? null,
+                            [
+                                $data["action"] => $data["zoneId"],
+                                ...isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
+                            ]
+                        );
+                        $entityManager->persist($triggerAction);
+                    }
                 }
-
-
-
 
                 if (!isset($triggerAction)) {
                     return $this->json([
@@ -174,10 +194,8 @@ class TriggerActionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="trigger_action_delete", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/supprimer", name: "trigger_action_delete", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Request $request,
                            EntityManagerInterface $entityManager): Response {
 
@@ -198,10 +216,8 @@ class TriggerActionController extends AbstractController
 
     }
 
-    /**
-     * @Route("/api-modifier", name="trigger_action_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api-modifier", name: "trigger_action_api_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request, EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
@@ -236,10 +252,8 @@ class TriggerActionController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="trigger_action_edit", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::IOT, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "trigger_action_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::IOT, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          TriggerActionService $triggerActionService): Response {
@@ -325,9 +339,7 @@ class TriggerActionController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/get-sensor-by-name", name="get_sensor_by_name", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/get-sensor-by-name", name: "get_sensor_by_name", options: ["expose" => true], methods: ["GET", "POST"], condition: "request.isXmlHttpRequest()")]
     public function getSensorByName(EntityManagerInterface $entityManager,
                                     Request $request): Response {
 
@@ -345,8 +357,8 @@ class TriggerActionController extends AbstractController
             $code = $query->get('code');
             $sensor = $sensorRepository->findOneBy(["code" => $code]);
         }
-        $type = isset($sensor) ? $sensor->getType() : null;
-        $typeLabel = isset($type) ? $type->getLabel() : null;
+        $type = $sensor?->getType();
+        $typeLabel = $type?->getLabel();
 
         $html = "";
         if(!isset($sensorWrapper) && !isset($sensor)){
@@ -356,7 +368,11 @@ class TriggerActionController extends AbstractController
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::ACTION){
             $html = $this->renderView('trigger_action/modalButton.html.twig', [
-                'profile' => $sensor ? $sensor->getProfile()->getName() : ""
+                "profile" => $sensor ? $sensor->getProfile()->getName() : "",
+                "templateTypes" => [
+                    TriggerAction::DROP_ON_LOCATION => "Dépôt sur emplacement",
+                    ...TriggerAction::TEMPLATE_TYPES,
+                ]
             ]);
         } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TEMPERATURE){
             $html = $this->renderView('trigger_action/modalMultipleTemperatures.html.twig', [
@@ -370,8 +386,14 @@ class TriggerActionController extends AbstractController
             $html = $this->renderView('trigger_action/modalMultipleHygrometry.html.twig', [
                 "templateTypes" => TriggerAction::TEMPLATE_TYPES,
             ]);
+        } else if((isset($sensorWrapper) || isset($sensor)) && $typeLabel === Sensor::TRACER) {
+            $html = $this->renderView('trigger_action/modalTracer.html.twig', [
+                "templateTypes" => [
+                    TriggerAction::DROP_ON_LOCATION => "Dépose sur emplacement",
+                    ...TriggerAction::TEMPLATE_TYPES,
+                ]
+            ]);
         }
-
         return $this->json($html);
     }
 }
