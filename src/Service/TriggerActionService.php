@@ -28,8 +28,7 @@ class TriggerActionService
         $this->templating = $templating;
     }
 
-    public function getDataForDatatable($params = null)
-    {
+    public function getDataForDatatable($params = null): array {
 
         $queryResult = $this->em->getRepository(TriggerAction::class)
             ->findByParamsAndFilters($params);
@@ -48,7 +47,7 @@ class TriggerActionService
         ];
     }
 
-    public function dataRowTriggerAction(TriggerAction $triggerAction) {
+    public function dataRowTriggerAction(TriggerAction $triggerAction): array {
         return [
             'id' => $triggerAction->getId(),
             'sensorWrapper' => $triggerAction->getSensorWrapper() ? $triggerAction->getSensorWrapper()->getName() : "",
@@ -65,7 +64,7 @@ class TriggerActionService
     public function createTriggerActionByTemplateType(EntityManagerInterface $entityManager,
                                                       SensorWrapper $sensorWrapper,
                                                       string $triggerActionType,
-                                                      string $requestTemplateId,
+                                                      ?string $requestTemplateId,
                                                       array $config): TriggerAction {
         $triggerAction = new TriggerAction();
 

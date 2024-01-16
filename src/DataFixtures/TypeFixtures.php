@@ -43,6 +43,8 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Sensor::TEMPERATURE_HYGROMETRY,
                 Sensor::HYGROMETRY,
                 Sensor::EXTENDER,
+                Sensor::TRACER,
+                Sensor::ZONE,
             ],
             CategoryType::REQUEST_TEMPLATE => [
                 Type::LABEL_HANDLING,

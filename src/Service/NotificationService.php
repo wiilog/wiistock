@@ -236,10 +236,10 @@ class NotificationService {
             $res = "request-handling-{$entity->getType()->getId()}";
         }
         else if ($entity instanceof OrdreCollecte) {
-            $res = "stock-collect-order-";
+            $res = "stock-collect-order";
         }
         else if ($entity instanceof TransferOrder) {
-            $res = "stock-transfer-order-";
+            $res = "stock-transfer-order";
         }
         return $res;
     }

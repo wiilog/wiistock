@@ -1026,16 +1026,16 @@ class SettingsService {
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
-                        ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
-                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false);
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
+                        ->setDisplayOrder($statusData['order'] ?? 0);
 
                     if($hasRightGroupedSignature){
                         $status
                             ->setSendReport($statusData['sendReport'] ?? false)
+                            ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                             ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
-                            ->setDisplayOrder($statusData['order'] ?? 0);
+                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
                     }
 
                     // label given on creation or edit is the French one
@@ -1364,10 +1364,12 @@ class SettingsService {
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
             if ($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
-                $typeOption = [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ];
+                $typeOption = $type
+                    ? [
+                        'id' => $type->getId(),
+                       'label' => $type->getLabel(),
+                    ]
+                    : null;
                 // Déclarer une variable qui vaut 1013 et 1014
             }elseif ($typeId === 'all') {
                 $typeOption = [
@@ -1380,7 +1382,7 @@ class SettingsService {
                 $location = $locationRepository->find($locationId);
             }
 
-            if (isset($location)) {
+            if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
                     'location' => [
                         'id' => $location->getId(),

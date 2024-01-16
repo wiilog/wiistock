@@ -359,8 +359,7 @@ class PackRepository extends EntityRepository
         ];
     }
 
-    public function getCurrentPackOnLocations(array $locations, array $options = [])
-    {
+    public function getCurrentPackOnLocations(array $locations, array $options = []) {
         $natures = $options['natures'] ?? [];
         $isCount = $options['isCount'] ?? true;
         $field = $options['field'] ?? 'pack.id';
