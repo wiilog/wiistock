@@ -101,9 +101,9 @@ class AttachmentService {
         }
     }
 
-    public function checkAttachmentFile(UploadedFile $file) {
+    public function checkAttachmentFile(UploadedFile $file): void {
         $fileInfo = pathinfo($file->getClientOriginalName());
-        $fileExtension = strtolower($fileInfo['extension']);
+        $fileExtension = strtolower($fileInfo['extension'] ?? "unauthorized");
         $extensionListArray = array_keys(Attachment::ALLOWED_MIME_EXTENSION);
         $fileName = $fileInfo['basename'];
 
