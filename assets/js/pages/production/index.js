@@ -96,13 +96,21 @@ function onProductionRequestTypeChange($select){
     const $modal = $select.closest(`.modal`);
     const $typeSelect = $modal.find(`[name=type]`);
     const $selectStatus = $modal.find(`[name=status]`);
+    const $selectDropLocation = $modal.find(`[name=dropLocation]`);
 
     $selectStatus.prop(`disabled`, !Boolean($typeSelect.val()));
-    const defaultStatus = $typeSelect.select2('data').length > 0 ? $typeSelect.select2('data')[0]['defaultStatus'] : undefined;
+
+    const optionData = $typeSelect.select2('data').length > 0 ? $typeSelect.select2('data')[0] : {};
+    const defaultStatus = optionData['defaultStatus'];
     if(defaultStatus){
         const [id, value] = defaultStatus.split(':');
         $selectStatus.append(new Option(value, id, true, true)).trigger(`change`);
     }
+
+    if (optionData.dropLocationId && optionData.dropLocationLabel) {
+        $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
+    }
+    $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
 }
 
 function displayAttachmentRequired($select) {

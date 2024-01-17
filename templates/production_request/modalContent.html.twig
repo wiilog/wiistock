@@ -25,6 +25,8 @@
             } : null,
             additionalAttributes: productionRequest.type ? [] : [
                 { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
+                { name: 'data-other-params'},
+                { name: 'data-other-params-with-drop-location', value: 'true' }
             ],
         }) }}
     </div>
@@ -150,6 +152,10 @@
                     value: productionRequest.dropLocation.id,
                     label: productionRequest.dropLocation.label
                 }],
+                additionalAttributes: [
+                    {name: "data-other-params"},
+                    {name: "data-other-params-typeDispatchDropLocation", value: productionRequest.type ? productionRequest.type.id : ""},
+                ],
             }) }}
         </div>
     {% endif %}

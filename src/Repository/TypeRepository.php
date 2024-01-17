@@ -107,7 +107,15 @@ class TypeRepository extends EntityRepository {
     }
 
     public function getForSelect(?string $category, ?string $term, array $options = []): array {
-        return $this->createSelectBuilder($category, $options)
+        $query = $this->createSelectBuilder($category, $options);
+
+        if ($options['withDropLocation'] ?? false) {
+            $query->leftJoin('type.dropLocation', 'dropLocation')
+                ->addSelect('dropLocation.id AS dropLocationId')
+                ->addSelect('dropLocation.label AS dropLocationLabel');
+        }
+
+        return $query
             ->andWhere("type.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
