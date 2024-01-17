@@ -129,7 +129,6 @@ class ReceiptAssociationService
                 TrackingMovement::TYPE_DEPOSE);
             $this->entityManager->persist($dropMvt);
         }
-        $this->entityManager->flush();
     }
 
     public function receiptAssociationPutLine($output ,array $receiptAssociation): void {
