@@ -84,8 +84,6 @@ class TypeRepository extends EntityRepository {
             ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
             ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
             ->andWhere("type.id = sub_type.id")
-            ->setParameter("language", $language)
-            ->setParameter("default", $defaultLanguage)
             ->getQuery()
             ->getDQL();
 
@@ -95,7 +93,9 @@ class TypeRepository extends EntityRepository {
             ->addSelect("type.label AS text")
             ->addSelect("($subQueryBuilder) AS defaultStatus")
             ->innerJoin("type.category", "category")
-            ->andWhere("category.label = '$category'");
+            ->andWhere("category.label = '$category'")
+            ->setParameter("language", $language)
+            ->setParameter("default", $defaultLanguage);
 
         if (!empty($alreadyDefinedTypes)) {
             $qb
@@ -118,7 +118,7 @@ class TypeRepository extends EntityRepository {
         return $this->createSelectBuilder($category, $options)
             ->select("COUNT(type)")
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getFirstResult();
     }
 
     public function getIdAndLabelByCategoryLabel($category) {
