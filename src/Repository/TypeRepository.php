@@ -77,7 +77,6 @@ class TypeRepository extends EntityRepository {
         $language = $options['language'] ?? null;
         $defaultLanguage = $options['defaultLanguage'] ?? null;
 
-
         $subQueryBuilder = $this->createQueryBuilder('sub_type')
             ->select("CONCAT_WS(':', join_status.id, (COALESCE(join_translation.translation, join_translation_default.translation, join_status.nom)))")
             ->leftJoin("sub_type.statuts", "join_status", Join::WITH, "join_status.defaultForCategory = 1")
@@ -85,6 +84,8 @@ class TypeRepository extends EntityRepository {
             ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
             ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
             ->andWhere("type.id = sub_type.id")
+            ->setParameter("language", $language)
+            ->setParameter("default", $defaultLanguage)
             ->getQuery()
             ->getDQL();
 
@@ -93,13 +94,12 @@ class TypeRepository extends EntityRepository {
             ->addSelect("type.id AS id")
             ->addSelect("type.label AS text")
             ->addSelect("($subQueryBuilder) AS defaultStatus")
-            ->join("type.category", "category")
-            ->andWhere("category.label = '$category'")
-            ->setParameter("language", $language)
-            ->setParameter("default", $defaultLanguage);
+            ->innerJoin("type.category", "category")
+            ->andWhere("category.label = '$category'");
 
         if (!empty($alreadyDefinedTypes)) {
-            $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
+            $qb
+                ->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
                 ->setParameter("alreadyDefinedTypes", $alreadyDefinedTypes);
         }
 
