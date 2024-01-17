@@ -578,7 +578,7 @@ class TrackingMovementController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/voir", name: "mvt_traca_show", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    #[Route("/voir", name: "mvt_traca_show", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
     public function show(EntityManagerInterface $entityManager, Request $request): Response {
         if ($data = json_decode($request->getContent(), true)) {
