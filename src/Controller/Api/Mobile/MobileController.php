@@ -197,6 +197,7 @@ class MobileController extends AbstractApiController
                         'userId' => $loggedUser->getId(),
                         'fieldsParam' => $fieldsParam ?? [],
                         'dispatchDefaultWaybill' => $wayBillData ?? [],
+                        'appContext' => $_SERVER['APP_CONTEXT'],
                     ];
                 } else {
                     $data = [
