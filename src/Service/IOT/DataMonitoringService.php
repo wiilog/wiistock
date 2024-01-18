@@ -84,7 +84,7 @@ class DataMonitoringService
         $config["end"] = new DateTime();
         $config["left_pane"][] = [
             "type" => "sensor",
-            "icon" => Sensor::SENSOR_ICONS[$pairing->getSensorWrapper()->getSensor()->getType()->getLabel()],
+            "icon" => Sensor::SENSOR_ICONS[$pairing->getSensorWrapper()->getSensor()->getType()->getLabel()] ?? null,
             "title" => $pairing->getSensorWrapper()->getName(),
             "pairing" => $pairing,
             "header" => true

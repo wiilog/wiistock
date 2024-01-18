@@ -149,7 +149,7 @@ class LaunchScheduledImportCommand extends Command {
                 ->setColumnToField($import->getColumnToField())
                 ->setCsvFile(null)
                 ->setEntity($import->getEntity())
-                ->setUser(null)
+                ->setUser($import->getUser())
                 ->setScheduleRule($clonedRule);
         }
 

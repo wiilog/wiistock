@@ -9,6 +9,7 @@ global.ALLOWED_IMAGE_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS;
 global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
+global.exportFile = exportFile;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -115,4 +116,58 @@ function onSettingsItemSelected($selected, $settingsItems, $settingsContents, op
     }
 
     $buttons.removeClass('d-none');
+}
+
+/**
+ * @param {string} route route name for export
+ * @param {{[string]: any}} params query params for export
+ * @param {{
+ *      needsDates: boolean|undefined,
+ *      needsAllFilters: boolean|undefined,
+ *      needsDateFormatting: boolean|undefined
+ *      $button: jQuery,
+ * }} options Object containing some options.
+ *   - determine if date filters are required
+ *   - determine if all filters are added into query
+ *   - determine if user date format needs to be used
+ *   - jQuery object for loading
+ */
+function exportFile(route, params = {}, options = {}) {
+    const needsDates = options.needsDates || true;
+    const needsAllFilters = options.needsAllFilters || false;
+    const needsDateFormatting = options.needsDateFormatting || false;
+    const $button = options.$button || $(`.fa-file-csv`).closest(`button`);
+
+    const $filtersContainer = $(`.filters-container`);
+    let dateMin = $filtersContainer.find(`[name=dateMin]`).val();
+    let dateMax = $filtersContainer.find(`[name=dateMax]`).val();
+    if(needsDates && (!dateMin || !dateMax)) {
+        Flash.add(Flash.ERROR, Translation.of(`Général`, null, `Modale`, `Veuillez saisir des dates dans le filtre en haut de page.`));
+        return;
+    }
+
+    if(needsAllFilters) {
+        params = {
+            ...params,
+            ...serializeFilters(),
+        }
+    }
+
+    const dateFormat = needsDateFormatting ? $(`#userDateFormat`).val() : `d/m/Y`;
+    dateMin = moment(dateMin, DATE_FORMATS_TO_DISPLAY[dateFormat]).format(`YYYY-MM-DD`);
+    dateMax = moment(dateMax, DATE_FORMATS_TO_DISPLAY[dateFormat]).format(`YYYY-MM-DD`);
+
+    params = {
+        ...params,
+        dateMin,
+        dateMax,
+    }
+
+    return wrapLoadingOnActionButton($button, () => (
+        AJAX
+            .route(AJAX.GET, route, params)
+            .file({})
+            .then(() => showBSAlert(`Le fichier a bien été téléchargé.`, `success`))
+            .catch(() => showBSAlert(`Une erreur est survenue lors de l'export des données. Veuillez réduire le volume de données exportées.`, `danger`))
+    ));
 }

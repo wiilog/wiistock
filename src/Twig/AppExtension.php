@@ -4,15 +4,16 @@ namespace App\Twig;
 
 use App\Entity\FreeField;
 use App\Entity\Language;
+use App\Entity\OperationHistory\ProductionHistoryRecord;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Setting;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Utilisateur;
 use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\UserService;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,7 +46,7 @@ class AppExtension extends AbstractExtension {
     public KernelInterface $kernel;
 
     #[Required]
-    public TransportHistoryService $transportHistoryService;
+    public OperationHistoryService $operationHistoryService;
 
     #[Required]
     public TranslationService $translationService;
@@ -255,8 +256,8 @@ class AppExtension extends AbstractExtension {
         return array_unique($array);
     }
 
-    public function formatHistory(TransportHistory $history): ?string {
-        return $this->transportHistoryService->formatHistory($history);
+    public function formatHistory(ProductionHistoryRecord|TransportHistoryRecord $history): ?string {
+        return $this->operationHistoryService->formatHistory($history);
     }
 
     public function some(Collection|array $array, callable $callback): bool {

@@ -12,6 +12,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -35,9 +36,6 @@ class ReceiptAssociationService
     public Security $security;
 
     #[Required]
-    public EntityManagerInterface $entityManager;
-
-    #[Required]
     public FormatService $formatService;
 
     #[Required]
@@ -46,9 +44,10 @@ class ReceiptAssociationService
     #[Required]
     public CSVExportService $CSVExportService;
 
-    public function getDataForDatatable($params = null): array {
-        $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
-        $receiptAssociationRepository = $this->entityManager->getRepository(ReceiptAssociation::class);
+    public function getDataForDatatable(EntityManagerInterface $entityManager,
+                                                               $params = null): array {
+        $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
 
         $filters = $filtreSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_RECEIPT_ASSOCIATION, $this->security->getUser());
         $queryResult = $receiptAssociationRepository->findByParamsAndFilters($params, $filters);
@@ -83,38 +82,45 @@ class ReceiptAssociationService
         ];
     }
 
-    public function createMovements(array $receptions, array $packs = []): void {
-        $settingRepository = $this->entityManager->getRepository(Setting::class);
+    /**
+     * @param string[] $receptions
+     * @param Pack[] $packs
+     */
+    private function persistTrackingMovements(EntityManagerInterface $entityManager,
+                                              array                  $receptions,
+                                              array                  $packs,
+                                              Utilisateur            $user,
+                                              DateTime               $now): void {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        $now = new DateTime('now');
-        $defaultLocationUL = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
-        $defaultLocationReception = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
+        $defaultLocationUL = $locationRepository->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
+        $defaultLocationReception = $locationRepository->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
 
-        /** @var Pack $pack */
         foreach ($packs as $pack) {
             //prise UL
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $pack->getLastTracking()?->getEmplacement(),
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
                 TrackingMovement::TYPE_PRISE
             );
-            $this->entityManager->persist($pickMvt);
+            $entityManager->persist($pickMvt);
 
             //dépose UL
             $dropMvtLU = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $defaultLocationUL,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
                 TrackingMovement::TYPE_DEPOSE
             );
-            $this->entityManager->persist($dropMvtLU);
+            $entityManager->persist($dropMvtLU);
         }
 
         /** @var Reception $reception */
@@ -122,14 +128,13 @@ class ReceiptAssociationService
             //dépose
             $dropMvt = $this->trackingMovementService->createTrackingMovement($reception,
                 $defaultLocationReception,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
                 TrackingMovement::TYPE_DEPOSE);
-            $this->entityManager->persist($dropMvt);
+            $entityManager->persist($dropMvt);
         }
-        $this->entityManager->flush();
     }
 
     public function receiptAssociationPutLine($output ,array $receiptAssociation): void {
@@ -143,5 +148,60 @@ class ReceiptAssociationService
         ];
 
         $this->CSVExportService->putLine($output, $row);
+    }
+
+    /**
+     * @param string[] $receptionNumbers
+     * @param string[] $logisticUnitCodes
+     * @return ReceiptAssociation[]
+     */
+    public function persistReceiptAssociation(EntityManagerInterface $entityManager,
+                                              array                  $receptionNumbers,
+                                              array                  $logisticUnitCodes,
+                                              Utilisateur            $user): array
+    {
+        $now = new DateTime();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
+        $logisticUnitsStream = Stream::from($logisticUnits);
+
+        // get not found logistic units
+        $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
+            ->filter(static fn(string $code) => (
+                !$logisticUnitsStream->some(static fn(Pack $pack) => $pack->getCode() === $code)
+            ));
+        if (!$notFoundLogisticUnits->isEmpty()) {
+            $notFoundLogisticUnitsStr = $notFoundLogisticUnits->join(', ');
+            if ($notFoundLogisticUnits->count() > 1) {
+                throw new FormException("Les unités logistiques {$notFoundLogisticUnitsStr} n'existent pas, impossible d'enregistrer");
+            }
+            else {
+                throw new FormException("L'unité logistique {$notFoundLogisticUnitsStr} n'existe pas, impossible d'enregistrer");
+            }
+        }
+
+        $receiptAssociations = [];
+        foreach ($receptionNumbers as $receptionNumber) {
+            $receiptAssociation = (new ReceiptAssociation())
+                ->setReceptionNumber($receptionNumber)
+                ->setUser($user)
+                ->setCreationDate($now);
+
+            if (!empty($logisticUnits)) {
+                $receiptAssociation->setLogisticUnits($logisticUnits);
+            }
+
+            $entityManager->persist($receiptAssociation);
+            $receiptAssociations[] = $receiptAssociation;
+        }
+
+        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
+            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            $this->persistTrackingMovements($entityManager, $receptionNumbers, $logisticUnits, $user, $now);
+        }
+
+        return $receiptAssociations;
     }
 }

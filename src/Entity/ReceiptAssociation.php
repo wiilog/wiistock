@@ -33,8 +33,7 @@ class ReceiptAssociation {
     #[ORM\InverseJoinColumn(name: "logistic_unit_id", referencedColumnName: "id")]
     private Collection $logisticUnits;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->logisticUnits = new ArrayCollection();
     }
 
@@ -86,16 +85,8 @@ class ReceiptAssociation {
         return $this->logisticUnits;
     }
 
-    public function setLogisticUnits(Collection $logisticUnits): self
-    {
-        $this->logisticUnits = $logisticUnits;
-
-        return $this;
-    }
-
-    public function removeLogisticUnit(Pack $logisticUnit): self
-    {
-        $this->logisticUnits->removeElement($logisticUnit);
+    public function setLogisticUnits(array $logisticUnits): self {
+        $this->logisticUnits = new ArrayCollection($logisticUnits);
 
         return $this;
     }

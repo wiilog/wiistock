@@ -240,6 +240,7 @@ class UserService
             'articleUlAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_ARTICLES_UL_ASSOCIATION, $user),
             'handling' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_HANDLING, $user),
             'deliveryRequest' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_DELIVERY_REQUESTS, $user),
+            'receiptAssociation' => $this->hasRightFunction(Menu::NOMADE, Action::MODULE_ACCESS_RECEIPT_ASSOCIATION, $user),
         ];
     }
 

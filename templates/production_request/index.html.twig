@@ -1,0 +1,70 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Production | Liste{% endblock %}
+{% block title_tooltip %}Production | Liste{% endblock %}
+
+{% block page_filter %}
+    {% include 'filters/filtersProduction.html.twig' with {
+        page: 'PAGE_PRODUCTION',
+        tableSelector: '#tableProductions',
+        needsDateFormatting: true,
+        types: types,
+        statusFilter: statusFilter,
+        statuses : statuses,
+        typesFilter: typesFilter,
+    } %}
+{% endblock %}
+
+{# TODO WIIS-10760 #}
+{% set hasRightToExport = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EXPORT_PRODUCTION_REQUEST')) %}
+
+{% block page_content %}
+    <div class="m-4 wii-page-card">
+        <div class="row wii-page-card-header">
+            <div class="col-auto ml-auto btn-group dispatch-button-container">
+                {% include "utils/action-buttons/header-buttons.html.twig" with {
+                    actions: [
+                        {
+                            hasRight: hasRightToExport,
+                            title: "Exporter au format CSV",
+                            icon : "fa fa-file-csv",
+                            class: "export-button",
+                        },
+                        {
+                            title: trans('Général', '', 'Zone liste', 'Gestion des colonnes'),
+                            icon: "fa fa-cog",
+                            attributes: {
+                            "data-toggle": "modal",
+                            "data-target": "#modalColumnVisible",
+                        },
+                        }
+                    ]
+                } %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <table id="tableProductions" class="table w-100" data-initial-visible="{{ initial_visible_columns }}"></table>
+            </div>
+        </div>
+    </div>
+
+    {% include "utils/visible_columns.html.twig" with {
+        'fields': fields,
+        'table': 'tableProductions',
+        'route': 'production_request_set_visible_columns',
+        'reload': true
+    } %}
+
+    {% include 'production_request/modalNewProductionRequest.html.twig' with {
+        productionRequest,
+        fieldsParam,
+        emergencies,
+    }%}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('production-index') }}
+    {{ encore_entry_script_tags('filters') }}
+{% endblock %}

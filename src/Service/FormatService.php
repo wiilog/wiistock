@@ -415,7 +415,7 @@ class FormatService
         return (IOTService::DATA_TYPE[$actionDataType] ?? "")
             ." "
             .lcfirst((TriggerAction::COMPARATORS[$triggerActionConfig['limit'] ?? ""] ?? ""))
-            ." à "
+            .(($triggerActionConfig['limit'] ?? false) ? " à " : "")
             .$thresholdValue
             .(IOTService::DATA_TYPE_TO_UNIT[$actionDataType] ?? "");
     }

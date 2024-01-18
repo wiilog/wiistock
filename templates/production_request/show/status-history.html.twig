@@ -1,0 +1,31 @@
+{% set entityStatusName = productionRequest.status.labelIn(userLanguage, defaultLanguage) %}
+<div class="timeline d-flex justify-content-center bg-green-light p-1 mb-2">
+    <img src="{{ asset('svg/timeline-status.svg') }}" alt="Icône statut timeline" width="15px" class="mr-2">
+    <span><strong>{{ entityStatusName }}</strong></span>
+</div>
+{% if statusesHistory is empty %}
+    <div class="content text-center wii-small-text">
+        Historique de statut à venir
+    </div>
+{% else %}
+    {% for history in statusesHistory %}
+        {% set state = (entityStatusName == history.status and loop.last
+            ? 'current'
+            : 'past')
+        %}
+        <div class="history-line">
+            <div class="history-line-left-content">
+                <div class="title-left {{ state == 'current' and loop.last ? 'last' }} {{ state }}">{{ history['status'] }}</div>
+            </div>
+            <div class="history-line-right-content
+                {{ loop.last ? 'last-history-line' }}
+                {{ loop.last ? 'last' }}
+                {{ state }}">
+                <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
+                    <span class="ml-2">{{ history['date'] }}</span>
+                </div>
+                <div class="subtitle wii-small-text">{{ history["user"] }}</div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}

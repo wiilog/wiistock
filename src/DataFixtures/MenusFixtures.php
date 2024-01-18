@@ -21,9 +21,11 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface {
         Menu::IOT => null,
         Menu::PARAM => null,
         Menu::NOMADE => null,
+        Menu::PRODUCTION => null,
     ];
 
     const ORDER = [
+        Menu::PRODUCTION,
         Menu::TRACA,
         Menu::QUALI,
         Menu::DEM,

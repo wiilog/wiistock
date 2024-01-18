@@ -201,6 +201,7 @@ class StatutFixtures extends Fixture implements FixtureGroupInterface {
                 ShippingRequest::STATUS_SCHEDULED => Statut::SCHEDULED,
                 ShippingRequest::STATUS_SHIPPED => Statut::SHIPPED,
             ],
+            CategorieStatut::PRODUCTION => [],
         ];
 
         foreach ($categoriesStatus as $categoryName => $statuses) {

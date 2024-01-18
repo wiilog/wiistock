@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ProductionRequest;
 use App\Entity\Reception;
 use App\Entity\Transport\TransportRequest;
 use DateTime;
@@ -19,6 +20,7 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
     const DATE_COUNTER_FORMAT_TRUCK_ARRIVAL = 'YmdHis_\{\0\}_CC';
     const DATE_COUNTER_FORMAT_DISPATCH_LONG = 'YmdHis-CCCC';
+    const DATE_COUNTER_FORMAT_PRODUCTION_REQUEST = 'YmdHiCCCC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,

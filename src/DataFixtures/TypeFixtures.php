@@ -43,6 +43,8 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 Sensor::TEMPERATURE_HYGROMETRY,
                 Sensor::HYGROMETRY,
                 Sensor::EXTENDER,
+                Sensor::TRACER,
+                Sensor::ZONE,
             ],
             CategoryType::REQUEST_TEMPLATE => [
                 Type::LABEL_HANDLING,
@@ -61,6 +63,7 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
                 TYPE::LABEL_WEB_SESSION_HISTORY,
                 TYPE::LABEL_NOMADE_SESSION_HISTORY,
             ],
+            CategoryType::PRODUCTION => [Type::LABEL_STANDARD],
         ];
 
         $typeRepository = $manager->getRepository(Type::class);
@@ -105,6 +108,6 @@ class TypeFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups(): array
     {
-        return ['types', 'fixtures'];
+        return ['types'];
     }
 }

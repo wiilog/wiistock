@@ -28,7 +28,7 @@ use App\Service\PDFGeneratorService;
 use App\Service\NotificationService;
 use App\Service\IOT\IOTService;
 use App\Service\StatusHistoryService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\Transport\TransportRoundService;
 use App\Service\UniqueNumberService;
 use App\Service\UserService;
@@ -445,7 +445,7 @@ class RoundController extends AbstractController {
     public function save(Request                 $request,
                          EntityManagerInterface  $entityManager,
                          StatusHistoryService    $statusHistoryService,
-                         TransportHistoryService $transportHistoryService,
+                         OperationHistoryService $operationHistoryService,
                          NotificationService     $notificationService,
                          UserService             $userService,
                          UniqueNumberService     $uniqueNumberService): JsonResponse {
@@ -606,19 +606,19 @@ class RoundController extends AbstractController {
                         $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus);
                     }
 
-                    $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_AFFECTED_ROUND, [
+                    $operationHistoryService->persistTransportHistory($entityManager, $transportOrder, OperationHistoryService::TYPE_AFFECTED_ROUND, [
                         'user' => $this->getUser(),
                         'deliverer' => $transportRound->getDeliverer(),
                         'round' => $transportRound,
                         'history' => $orderStatusHistory,
                     ]);
 
-                    $transportHistoryService->persistTransportHistory($entityManager, $transportRequest,  TransportHistoryService::TYPE_REQUEST_AFFECTED_ROUND, [
+                    $operationHistoryService->persistTransportHistory($entityManager, $transportRequest,  OperationHistoryService::TYPE_REQUEST_AFFECTED_ROUND, [
                         'history' => $orderStatusHistory,
                     ]);
 
                     if($roundIsOngoing) {
-                        $transportHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], TransportHistoryService::TYPE_ONGOING, [
+                        $operationHistoryService->persistTransportHistory($entityManager, [$transportRequest, $transportOrder], OperationHistoryService::TYPE_ONGOING, [
                             "user" => $this->getUser(),
                             "history" => $orderStatusHistory,
                         ]);

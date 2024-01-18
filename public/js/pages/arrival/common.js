@@ -17,7 +17,7 @@ $(function () {
                 id: $recipient.data('default-location-if-recipient-id'),
                 label: $recipient.data('default-location-if-recipient-label'),
             };
-            if($recipient.val() && $recipient.val().length > 0) {
+            if($recipient.val() && $recipient.val().length > 0 && defaultLocationIfRecipient.id && defaultLocationIfRecipient.label) {
                 $modal.find('[name=dropLocation]')
                     .append(new Option(defaultLocationIfRecipient.label, defaultLocationIfRecipient.id, false, true))
             }
@@ -29,7 +29,7 @@ $(function () {
                 id: $customs.data('default-location-if-customs-id'),
                 label: $customs.data('default-location-if-customs-label'),
             };
-            if ($customs.is(':checked')) {
+            if ($customs.is(':checked') && defaultLocationIfCustoms.id && defaultLocationIfCustoms.label) {
                 $modal.find('[name=dropLocation]')
                     .append(new Option(defaultLocationIfCustoms.label, defaultLocationIfCustoms.id, false, true))
             }
