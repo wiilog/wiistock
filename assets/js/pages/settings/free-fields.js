@@ -1,5 +1,5 @@
 import {createManagementPage} from './utils';
-import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY, setCheckboxBehavior} from "@app/editatable";
+import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "@app/editatable";
 
 import Form from '@app/form';
 import AJAX, {GET, POST} from "@app/ajax";
@@ -168,7 +168,6 @@ export function createFreeFieldsPage($container, canEdit, mode) {
 
         $notificationEmergencies.prop(`required`, enabledIfEmergencies);
     });
-    setCheckboxBehavior($container, 'requiredCreate', 'displayedCreate');
 }
 
 function setupTranslationsModal($container, table) {

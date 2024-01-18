@@ -43,6 +43,10 @@ export function createManagementPage($container, config) {
         paging: true,
         columns: config.table.columns,
         minimumRows: config.table.minimumRows,
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
         onEditStart: () => {
             $editButton.addClass('d-none');
             $addButton.addClass('d-none');

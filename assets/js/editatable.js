@@ -408,16 +408,16 @@ function generateDefaultData(ajax, columns) {
     }
 }
 
-export function setCheckboxBehavior($container, inputNameCreate, inputNameDisplay) {
+function setCheckboxBehavior($container, inputNameCreate, inputNameDisplay) {
     // on check input create
-    $container.on('change', `[name=${inputNameCreate}]:checked`, function() {
+    $container.on('change', `[name=${inputNameCreate}]:checked`, function () {
         const $target = $(event.target);
         const $tr = $target.closest('tr');
         const $inputToCheck = $tr.find(`[name=${inputNameDisplay}]`);
         $inputToCheck.prop("checked", true);
     });
     // on uncheck input display
-    $container.on('change', `[name=${inputNameDisplay}]:not(:checked)`, function() {
+    $container.on('change', `[name=${inputNameDisplay}]:not(:checked)`, function () {
         const $target = $(event.target);
         const $tr = $target.closest('tr');
         const $inputToUncheck = $tr.find(`[name=${inputNameCreate}]`);
@@ -426,7 +426,7 @@ export function setCheckboxBehavior($container, inputNameCreate, inputNameDispla
 }
 
 function initializeCheckboxBehavior($container, bindCheckboxConfig) {
-    bindCheckboxConfig.forEach((checkboxes)=>{
-    setCheckboxBehavior($container, checkboxes.required, checkboxes.displayed);
-    })
+    bindCheckboxConfig.forEach((checkboxes) => {
+        setCheckboxBehavior($container, checkboxes.required, checkboxes.displayed);
+    });
 }
