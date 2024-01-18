@@ -972,6 +972,7 @@ function submitPackingForm({reception, data, $modalNewLigneReception}) {
                         ).then(() => resolve());
                     } else {
                         window.location.href = Routing.generate('reception_bar_codes_print', {
+                            forceTagEmpty: true,
                             reception,
                             articleIds
                         }, true);
