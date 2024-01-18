@@ -186,7 +186,7 @@ function openTableHisto() {
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
-            "type": AJAX.GET
+            "type": AJAX.POST
         },
         serverSide: true,
         order: [['date', 'asc']],
