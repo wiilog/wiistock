@@ -46,9 +46,10 @@ class ReceiptAssociationController extends AbstractController
 
     #[Route("/api", name: "receipt_association_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ASSO])]
-    public function api(Request $request): Response
+    public function api(Request                $request,
+                        EntityManagerInterface $entityManager): Response
     {
-        $data = $this->receiptAssociationService->getDataForDatatable($request->request);
+        $data = $this->receiptAssociationService->getDataForDatatable($entityManager, $request->request);
 
         return $this->json($data);
     }
@@ -112,7 +113,7 @@ class ReceiptAssociationController extends AbstractController
         $entityManager->flush();
         return $this->json([
             "success" => true,
-            "msg" => "{$translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")}."
+            "message" => "{$translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")}."
         ]);
     }
 
