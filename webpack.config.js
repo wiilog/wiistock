@@ -96,7 +96,9 @@ Encore
     })
 
     // enables Sass/SCSS support
-    .enableSassLoader()
+    .enableSassLoader((options) => {
+        options.additionalData = `$app-context: '${process.env.APP_CONTEXT || `prod`}';`;
+    })
     .addPlugin(new CopyPlugin({
         patterns : [
             {

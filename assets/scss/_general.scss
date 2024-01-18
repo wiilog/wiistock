@@ -406,11 +406,7 @@ select.is-invalid {
 }
 
 .bg-wiistock-gradient {
-    &.rec {
-        background: linear-gradient(-64deg, $purple, $aqua);
-    }
-
-    background: linear-gradient(-64deg, $header-right, $header-left);
+    background: $linear-gradient;
 }
 
 .dataTables_processing {
