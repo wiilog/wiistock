@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\CategoryTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoryTypeRepository::class)]
@@ -28,6 +29,7 @@ class CategoryType {
     const SHIPPING_REQUEST = 'demande expédition';
     const SESSION_HISTORY = 'Historique de session';
     const IMPORT = 'import';
+    const PRODUCTION = 'production';
 
     public const ALL = [
         self::RECEPTION,
@@ -45,20 +47,21 @@ class CategoryType {
         self::DELIVERY_TRANSPORT,
         self::COLLECT_TRANSPORT,
         self::SHIPPING_REQUEST,
+        self::PRODUCTION,
     ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $label = null;
 
-    #[ORM\OneToMany(targetEntity: Type::class, mappedBy: 'category')]
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Type::class)]
     private Collection $types;
 
-    #[ORM\OneToMany(targetEntity: CategorieCL::class, mappedBy: 'categoryType')]
+    #[ORM\OneToMany(mappedBy: 'categoryType', targetEntity: CategorieCL::class)]
     private Collection $categorieCLs;
 
     public function __construct() {

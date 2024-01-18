@@ -959,6 +959,10 @@ class SettingsService {
                 $categoryRepository = $this->manager->getRepository(CategorieStatut::class);
                 $typeRepository = $this->manager->getRepository(Type::class);
                 $languageRepository = $this->manager->getRepository(Language::class);
+                $userRepository = $this->manager->getRepository(Utilisateur::class);
+
+                $hasRightGroupedSignature = $this->userService->hasRightFunction(Menu::PARAM, Action::SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS);
+
 
                 $categoryName = match ($statusesData[0]['mode']) {
                     StatusController::MODE_ARRIVAL_DISPUTE => CategorieStatut::DISPUTE_ARR,
@@ -966,7 +970,8 @@ class SettingsService {
                     StatusController::MODE_PURCHASE_REQUEST => CategorieStatut::PURCHASE_REQUEST,
                     StatusController::MODE_ARRIVAL => CategorieStatut::ARRIVAGE,
                     StatusController::MODE_DISPATCH => CategorieStatut::DISPATCH,
-                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING
+                    StatusController::MODE_HANDLING => CategorieStatut::HANDLING,
+                    StatusController::MODE_PRODUCTION => CategorieStatut::PRODUCTION,
                 };
 
                 $category = $categoryRepository->findOneBy(['nom' => $categoryName]);
@@ -1010,6 +1015,11 @@ class SettingsService {
                         $persistedStatuses[] = $status;
                     }
 
+                    $notifiedUsers = [];
+                    if (isset($statusData["notifiedUsers"]) && $statusData["notifiedUsers"]) {
+                        $notifiedUsers = $userRepository->findBy(["id" => explode(",", $statusData["notifiedUsers"])]);
+                    }
+
                     $status
                         ->setNom($statusData['label'])
                         ->setState($statusData['state'])
@@ -1018,14 +1028,22 @@ class SettingsService {
                         ->setSendNotifToBuyer($statusData['sendMailBuyers'] ?? false)
                         ->setSendNotifToDeclarant($statusData['sendMailRequesters'] ?? false)
                         ->setSendNotifToRecipient($statusData['sendMailDest'] ?? false)
-                        ->setSendReport($statusData['sendReport'] ?? false)
-                        ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                        ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR)
                         ->setNeedsMobileSync($statusData['needsMobileSync'] ?? false)
-                        ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                         ->setAutomaticReceptionCreation($statusData['automaticReceptionCreation'] ?? false)
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
-                        ->setDisplayOrder($statusData['order'] ?? 0);
+                        ->setDisplayOrder($statusData['order'] ?? 0)
+                        ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
+                        ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
+                        ->setNotifiedUsers($notifiedUsers)
+                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false);
+
+                    if($hasRightGroupedSignature){
+                        $status
+                            ->setSendReport($statusData['sendReport'] ?? false)
+                            ->setCommentNeeded($statusData['commentNeeded'] ?? false)
+                            ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
+                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
+                    }
 
                     // label given on creation or edit is the French one
                     $labelTranslation = $status->getLabelTranslation();
@@ -1333,10 +1351,12 @@ class SettingsService {
         foreach ($defaultDeliveryLocationsIds as $typeId => $locationId) {
             if ($typeId !== 'all' && $typeId) {
                 $type = $typeRepository->find($typeId);
-                $typeOption = [
-                    'id' => $type->getId(),
-                    'label' => $type->getLabel(),
-                ];
+                $typeOption = $type
+                    ? [
+                        'id' => $type->getId(),
+                       'label' => $type->getLabel(),
+                    ]
+                    : null;
                 // Déclarer une variable qui vaut 1013 et 1014
             }elseif ($typeId === 'all') {
                 $typeOption = [
@@ -1349,7 +1369,7 @@ class SettingsService {
                 $location = $locationRepository->find($locationId);
             }
 
-            if (isset($location)) {
+            if (isset($location) && $typeOption) {
                 $defaultDeliveryLocations[] = [
                     'location' => [
                         'id' => $location->getId(),

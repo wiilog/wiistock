@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\OperationHistory\OperationHistory;
+use App\Entity\OperationHistory\ProductionHistoryRecord;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\ShippingRequest\ShippingRequest;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Transport\TransportRound;
@@ -47,7 +49,7 @@ class StatusHistory {
     #[ORM\ManyToOne(targetEntity: Statut::class)]
     private ?Statut $status = null;
 
-    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: TransportHistoryRecord::class)]
     private Collection $transportHistory;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
@@ -58,8 +60,16 @@ class StatusHistory {
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $validatedBy = null;
 
+    #[ORM\ManyToOne(targetEntity: ProductionRequest::class, inversedBy: 'statusHistory')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    private ?ProductionRequest $productionRequest = null;
+
+    #[ORM\OneToMany(mappedBy: 'statusHistory', targetEntity: ProductionHistoryRecord::class)]
+    private Collection $productionRequestHistory;
+
     public function __construct() {
         $this->date = new DateTime();
+        $this->productionRequestHistory = new ArrayCollection();
         $this->transportHistory = new ArrayCollection();
     }
 
@@ -143,7 +153,7 @@ class StatusHistory {
         return $this->transportHistory;
     }
 
-    public function addTransportHistory(TransportHistory $transportHistory): self {
+    public function addTransportHistory(OperationHistory $transportHistory): self {
         if (!$this->transportHistory->contains($transportHistory)) {
             $this->transportHistory[] = $transportHistory;
             $transportHistory->setStatusHistory($this);
@@ -152,7 +162,7 @@ class StatusHistory {
         return $this;
     }
 
-    public function removeTransportHistory(TransportHistory $transportHistory): self {
+    public function removeTransportHistory(OperationHistory $transportHistory): self {
         if ($this->transportHistory->removeElement($transportHistory)) {
             if ($transportHistory->getStatusHistory() === $this) {
                 $transportHistory->setStatusHistory(null);
@@ -223,6 +233,56 @@ class StatusHistory {
     public function setInitiatedBy(?utilisateur $initiatedBy): self
     {
         $this->initiatedBy = $initiatedBy;
+
+        return $this;
+    }
+
+    public function getProductionRequest(): ?ProductionRequest {
+        return $this->productionRequest;
+    }
+
+    public function setProductionRequest(?ProductionRequest $productionRequest): self {
+        if($this->productionRequest && $this->productionRequest !== $productionRequest) {
+            $this->productionRequest->removeStatusHistory($this);
+        }
+        $this->productionRequest = $productionRequest;
+        $productionRequest?->addStatusHistory($this);
+
+        return $this;
+    }
+
+    public function getProductionRequestHistory(): Collection {
+        return $this->productionRequestHistory;
+    }
+
+    public function addProductionRequestHistory(OperationHistory $productionRequestHistory): self {
+        if (!$this->productionRequestHistory->contains($productionRequestHistory)) {
+            $this->productionRequestHistory[] = $productionRequestHistory;
+            $productionRequestHistory->setStatusHistory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProductionRequestHistory(OperationHistory $productionRequestHistory): self {
+        if ($this->productionRequestHistory->removeElement($productionRequestHistory)) {
+            if ($productionRequestHistory->getStatusHistory() === $this) {
+                $productionRequestHistory->setStatusHistory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function setProductionRequestHistory(?array $productionRequestHistory): self {
+        foreach($this->getTransportHistory()->toArray() as $history) {
+            $this->removeTransportHistory($history);
+        }
+
+        $this->productionRequestHistory = new ArrayCollection();
+        foreach($productionRequestHistory as $history) {
+            $this->addTransportHistory($history);
+        }
 
         return $this;
     }

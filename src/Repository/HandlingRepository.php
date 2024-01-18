@@ -271,13 +271,13 @@ class HandlingRepository extends EntityRepository
                 if (!empty($order)) {
                     $column = self::DtToDbLabels[$params->all('columns')[$params->all('order')[0]['column']]['data']];
                     if ($column === 'type') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'type', ["order" => $order]);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], ['type'], ["order" => $order]);
                     } else if ($column === 'requester') {
                         $qb
                             ->leftJoin('handling.requester', 'order_requester')
                             ->orderBy('order_requester.username', $order);
                     } else if ($column === 'status') {
-                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], 'status', ["order" => $order]);
+                        $qb = QueryBuilderHelper::joinTranslations($qb, $options['language'], $options['defaultLanguage'], ['status'], ["order" => $order]);
                     } else if ($column === 'treatedBy') {
                         $qb
                             ->leftJoin('handling.treatedByHandling', 'order_treatedByHandling')
@@ -309,12 +309,18 @@ class HandlingRepository extends EntityRepository
         ];
     }
 
-    public function findRequestToTreatByUser(?Utilisateur $requester, int $limit) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
         $qb = $this->createQueryBuilder("h");
 
         if($requester) {
             $qb->andWhere("h.requester = :requester")
                 ->setParameter("requester", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("h.type IN (:types)")
+                ->setParameter("types", $types);
         }
 
         return $qb->select("h")

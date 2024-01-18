@@ -19,6 +19,7 @@ use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FormatService;
 use App\Service\GeoService;
+use App\Service\OperationHistoryService;
 use App\Service\TranslationService;
 use DateTime;
 use App\Service\StatusHistoryService;
@@ -37,7 +38,7 @@ class TransportRoundService
     public StatusHistoryService $statusHistoryService;
 
     #[Required]
-    public TransportHistoryService $transportHistoryService;
+    public OperationHistoryService $operationHistoryService;
 
     #[Required]
     public CSVExportService $CSVExportService;
@@ -267,11 +268,11 @@ class TransportRoundService
             $this->reprepareTransportRoundDeliveryLine($entityManager, $line);
         }
 
-        $this->transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+        $this->operationHistoryService->persistTransportHistory($entityManager, $request, OperationHistoryService::TYPE_REJECTED_DELIVERY, [
             "user" => $user,
         ]);
 
-        $this->transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_REJECTED_DELIVERY, [
+        $this->operationHistoryService->persistTransportHistory($entityManager, $order, OperationHistoryService::TYPE_REJECTED_DELIVERY, [
             "user" => $user,
         ]);
 

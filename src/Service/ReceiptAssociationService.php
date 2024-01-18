@@ -12,6 +12,7 @@ use App\Entity\Reception;
 use App\Entity\Setting;
 use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\RouterInterface;
@@ -83,10 +84,9 @@ class ReceiptAssociationService
         ];
     }
 
-    public function createMovements(array $receptions, array $packs = []): void {
+    public function createMovements(array $receptions, array $packs, Utilisateur $user, DateTime $now): void {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
 
-        $now = new DateTime('now');
         $defaultLocationUL = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL));
         $defaultLocationReception = $this->entityManager->getRepository(Emplacement::class)->find($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM));
 
@@ -96,7 +96,7 @@ class ReceiptAssociationService
             $pickMvt = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $pack->getLastTracking()?->getEmplacement(),
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -108,7 +108,7 @@ class ReceiptAssociationService
             $dropMvtLU = $this->trackingMovementService->createTrackingMovement(
                 $pack,
                 $defaultLocationUL,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -122,7 +122,7 @@ class ReceiptAssociationService
             //dépose
             $dropMvt = $this->trackingMovementService->createTrackingMovement($reception,
                 $defaultLocationReception,
-                $this->userService->getUser(),
+                $user,
                 $now,
                 false,
                 true,
@@ -143,5 +143,60 @@ class ReceiptAssociationService
         ];
 
         $this->CSVExportService->putLine($output, $row);
+    }
+
+    /**
+     * @param string[] $receptionNumbers
+     * @param string[] $logisticUnitCodes
+     * @return ReceiptAssociation[]
+     */
+    public function persistReceiptAssociation(EntityManagerInterface $entityManager,
+                                              array                  $receptionNumbers,
+                                              array                  $logisticUnitCodes,
+                                              Utilisateur            $user): array
+    {
+        $now = new DateTime();
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $packRepository = $entityManager->getRepository(Pack::class);
+
+        $logisticUnits = $packRepository->findBy(['code' => $logisticUnitCodes]);
+        $logisticUnitsStream = Stream::from($logisticUnits);
+
+        // get not found logistic units
+        $notFoundLogisticUnits = Stream::from($logisticUnitCodes)
+            ->filter(static fn(string $code) => (
+                !$logisticUnitsStream->some(static fn(Pack $pack) => $pack->getCode() === $code)
+            ));
+        if (!$notFoundLogisticUnits->isEmpty()) {
+            $notFoundLogisticUnitsStr = $notFoundLogisticUnits->join(', ');
+            if ($notFoundLogisticUnits->count() > 1) {
+                throw new FormException("Les unités logistiques {$notFoundLogisticUnitsStr} n'existent pas, impossible d'enregistrer");
+            }
+            else {
+                throw new FormException("L'unité logistique {$notFoundLogisticUnitsStr} n'existe pas, impossible d'enregistrer");
+            }
+        }
+
+        $receiptAssociations = [];
+        foreach ($receptionNumbers as $receptionNumber) {
+            $receiptAssociation = (new ReceiptAssociation())
+                ->setReceptionNumber($receptionNumber)
+                ->setUser($user)
+                ->setCreationDate($now);
+
+            if (!empty($logisticUnits)) {
+                $receiptAssociation->setLogisticUnits($logisticUnits);
+            }
+
+            $entityManager->persist($receiptAssociation);
+            $receiptAssociations[] = $receiptAssociation;
+        }
+
+        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
+            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
+            $this->createMovements($receptionNumbers, $logisticUnits, $user, $now);
+        }
+
+        return $receiptAssociations;
     }
 }

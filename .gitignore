@@ -36,10 +36,6 @@ yarn-error.log
 /local-php-security-checker
 /cache
 
-###> phpstorm run configurations ###
-/.run
-###< phpstorm run configurations ###
-
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache

@@ -295,7 +295,7 @@ class ArrivageService {
             $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
             $arrivage
                 ->setIsUrgent(true)
-                ->setDropLocation($locationRepository->find($dropLocationId));
+                ->setDropLocation($locationRepository->find($dropLocationId));;
         }
 
         if ($urgent && !empty($emergencies)) {
@@ -916,5 +916,38 @@ class ArrivageService {
             'html' => $html ?? "",
             'acheteurs' => $acheteursUsernames ?? []
         ];
+    }
+
+    public function getDefaultDropLocation(EntityManagerInterface $entityManager,
+                                           Arrivage               $arrivage,
+                                           ?Emplacement           $enteredLocation): ?Emplacement {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+
+        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
+            return $locationRepository->find($emergenciesArrivalsLocation);
+        }
+
+        if ($enteredLocation) {
+            return $enteredLocation;
+        }
+
+        $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
+        if($arrivage->getCustoms() && $customsArrivalsLocation) {
+            return $locationRepository->find($customsArrivalsLocation);
+        }
+
+        $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);
+        if (!$arrivage->getReceivers()->isEmpty() && $receiverDefaultLocation) {
+            return $locationRepository->find($receiverDefaultLocation);
+        }
+
+        $defaultArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::MVT_DEPOSE_DESTINATION);
+        if($defaultArrivalsLocation) {
+            return $locationRepository->find($defaultArrivalsLocation);
+        }
+
+        return null;
     }
 }

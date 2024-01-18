@@ -184,10 +184,6 @@ class ArrivageController extends AbstractController {
 
         /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
-        $dropLocation = !empty($data['dropLocation'])
-            ? $emplacementRepository->find($data['dropLocation'])
-            : null;
-
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE, isset($data["acheteurs"]) ? explode(',', $data["acheteurs"]) : []);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT, $data["businessUnit"] ?? null);
         $keptFieldService->save(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_CHAUFFEUR_ARRIVAGE, $data["chauffeur"] ?? null);
@@ -209,7 +205,6 @@ class ArrivageController extends AbstractController {
             ->setIsUrgent(false)
             ->setDate($date)
             ->setUtilisateur($currentUser)
-            ->setDropLocation($dropLocation)
             ->setNumeroArrivage($numeroArrivage)
             ->setCustoms(isset($data['customs']) && $data['customs'] == 'true')
             ->setFrozen(isset($data['frozen']) && $data['frozen'] == 'true')
@@ -311,6 +306,11 @@ class ArrivageController extends AbstractController {
         if ($isArrivalUrgent) {
             $arrivalService->setArrivalUrgent($entityManager, $arrivage, true);
         }
+
+        $enteredLocation = !empty($data['dropLocation']) ? $emplacementRepository->find($data['dropLocation']) : null;
+        $dropLocation = $arrivalService->getDefaultDropLocation($entityManager, $arrivage, $enteredLocation);
+
+        $arrivage->setDropLocation($dropLocation);
 
         $project = !empty($data['project']) ?  $entityManager->getRepository(Project::class)->find($data['project']) : null;
         // persist packs after set arrival urgent

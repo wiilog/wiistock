@@ -20,6 +20,7 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
@@ -444,6 +445,8 @@ class TrackingMovementService extends AbstractController
             $pack->setLastTracking($tracking);
         }
 
+        $this->treatGroupDrop($entityManager, $pack, $tracking);
+
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, [
             "from" => $from,
@@ -728,11 +731,8 @@ class TrackingMovementService extends AbstractController
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
                                     array $movement,
-                                    array $attachement,
                                     array $freeFieldsConfig)
     {
-
-        $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
            $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
@@ -754,8 +754,8 @@ class TrackingMovementService extends AbstractController
             $movement['quantity'],
             $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
-            strip_tags($movement['commentaire']),
-            $attachementName,
+            $movement['commentaire'] ? strip_tags($movement['commentaire']) : "",
+            $movement["hasAttachments"],
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? join(', ', $movement['numeroCommandeListArrivage'])
@@ -1516,5 +1516,52 @@ class TrackingMovementService extends AbstractController
             ->map(fn(Article $article) => $article->getQuantite())
             ->sum();
         $pack->setQuantity(max($newQuantity, 1));
+    }
+
+    public function treatGroupDrop(EntityManagerInterface $entityManager, Pack $pack, TrackingMovement $tracking): void {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $autoUngroup = (bool) $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP);
+
+        if(!$autoUngroup
+            || (($tracking->getType()->getCode() !== TrackingMovement::TYPE_DEPOSE) || !$pack->isGroup())
+            || $pack->getChildren()->isEmpty()
+        ){
+            return;
+        }
+
+        $autoUngroupTypes = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP_TYPES) ?: '')
+                ->filter(fn(string $type) => !empty($type))
+                ->map(fn(string $type) => (int) $type)
+                ->toArray();
+        $linkedDispatches = $tracking->getEmplacement()
+            ? $tracking->getEmplacement()->getDispatchesTo()
+                ->map(fn (Dispatch $dispatch) => $dispatch->getId())
+                ->toArray()
+            : [];
+
+        foreach ($pack->getChildren() as $children) {
+            foreach($children->getDispatchPacks() as $dispatchPack) {
+                $dispatch = $dispatchPack->getDispatch();
+
+                if(in_array($dispatch->getId(), $linkedDispatches)
+                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes )){
+
+                    $date = new DateTime('now');
+                    $trackingMovement = $this->createTrackingMovement(
+                        $children,
+                        $tracking->getEmplacement(),
+                        $tracking->getOperateur(),
+                        $date,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_UNGROUP
+                    );
+
+                    $pack->removeChild($children);
+                    $entityManager->persist($trackingMovement);
+                    $this->persistSubEntities($entityManager, $trackingMovement);
+                }
+            }
+        }
     }
 }

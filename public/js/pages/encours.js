@@ -85,7 +85,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                 {data: 'linkedArrival', name: 'linkedArrival', className: 'noVis', orderable : false},
                 {data: 'LU', name: 'LU', title: Translation.of('Traçabilité', 'Général', 'Unités logistiques')},
                 {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Encours', 'Date de dépose') },
-                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai') , render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
+                {data: 'delay', name: 'delay', title: Translation.of('Traçabilité', 'Encours', 'Délai'), render: (milliseconds, type) => renderMillisecondsToDelay(milliseconds, type)},
                 {data: 'late', name: 'late', title: 'late', 'visible': false, 'searchable': false},
             ],
             rowConfig: {

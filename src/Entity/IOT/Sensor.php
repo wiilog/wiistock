@@ -18,11 +18,16 @@ class Sensor {
     const TEMPERATURE_HYGROMETRY = 'Température & Hygrométrie';
     const HYGROMETRY = 'Hygrométrie';
     const EXTENDER = 'Extender';
+    const ZONE = 'Zone';
+    const TRACER = 'Tracer';
+
     const SENSOR_ICONS = [
         self::TEMPERATURE => 'iot-temperature',
         self::TEMPERATURE_HYGROMETRY => 'iot-temperature-hygrometry',
         self::GPS => 'iot-tracking',
         self::HYGROMETRY => 'iot-hygrometry',
+        self::TRACER => 'iot-tracer',
+        self::ZONE => 'iot-zone',
     ];
     const LOCATION = 'location';
     const LOCATION_GROUP = 'location-group';

@@ -8,8 +8,7 @@ use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\FreeField;
-use App\Entity\IOT\Sensor;
-use App\Entity\IOT\TriggerAction;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Setting;
 use App\Entity\StatusHistory;
 use App\Entity\Transport\TransportCollectRequestLine;
@@ -21,23 +20,20 @@ use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Transport\TransportDeliveryRequestLine;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportOrder;
 use App\Entity\Transport\TransportRequest;
-use App\Entity\Transport\Vehicle;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use App\Helper\FormatHelper;
 use App\Service\CSVExportService;
 use App\Service\FreeFieldService;
-use App\Service\IOT\IOTService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use App\Service\PDFGeneratorService;
 use App\Service\StatusHistoryService;
 use App\Service\StringService;
 use App\Service\TranslationService;
-use App\Service\Transport\TransportHistoryService;
+use App\Service\OperationHistoryService;
 use App\Service\UserService;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,7 +49,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -284,12 +279,12 @@ class RequestController extends AbstractController {
 
     #[Route("/packing/{transportRequest}", name: "transport_request_packing", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::DEM, Action::EDIT_TRANSPORT], mode: HasPermission::IN_JSON)]
-    public function packing(Request $request,
-                            EntityManagerInterface $entityManager,
-                            TransportService $transportService,
-                            TransportHistoryService $transportHistoryService,
-                            StatusHistoryService $statusHistoryService,
-                            TransportRequest $transportRequest ): JsonResponse {
+    public function packing(Request                 $request,
+                            EntityManagerInterface  $entityManager,
+                            TransportService        $transportService,
+                            OperationHistoryService $operationHistoryService,
+                            StatusHistoryService    $statusHistoryService,
+                            TransportRequest        $transportRequest ): JsonResponse {
         $data = $request->request->all();
         $natureRepository = $entityManager->getRepository(Nature::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -326,11 +321,11 @@ class RequestController extends AbstractController {
             $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
         }
 
-        $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
+        $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_LABELS_PRINTING, [
             'user' => $this->getUser()
         ]);
 
-        $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_LABELS_PRINTING, [
+        $operationHistoryService->persistTransportHistory($entityManager, $order, OperationHistoryService::TYPE_LABELS_PRINTING, [
             'user' => $this->getUser()
         ]);
 
@@ -479,7 +474,7 @@ class RequestController extends AbstractController {
                     ->toArray();
 
                 /**
-                 * @var TransportHistory[] $histories
+                 * @var TransportHistoryRecord[] $histories
                  */
                 $histories = Stream::from($transportRequest->getHistory())
                     ->concat($transportOrder->getHistory())
@@ -551,12 +546,12 @@ class RequestController extends AbstractController {
     }
 
     #[Route("/annuler/{transportRequest}", name: "transport_request_cancel", options: ['expose' => true], methods: "POST")]
-    public function cancel(TransportRequest $transportRequest,
-                           TransportHistoryService $transportHistoryService,
-                           StatusHistoryService $statusHistoryService,
-                           EntityManagerInterface $entityManager,
-                           NotificationService $notificationService,
-                           UserService $userService): Response {
+    public function cancel(TransportRequest        $transportRequest,
+                           OperationHistoryService $operationHistoryService,
+                           StatusHistoryService    $statusHistoryService,
+                           EntityManagerInterface  $entityManager,
+                           NotificationService     $notificationService,
+                           UserService             $userService): Response {
 
         /** @var Utilisateur $loggedUser */
         $loggedUser = $this->getUser();
@@ -594,14 +589,14 @@ class RequestController extends AbstractController {
             }
 
             $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
-            $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_CANCELLED, [
+            $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryRequest,
                 'user' => $loggedUser
             ]);
 
             $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
             $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
-            $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
+            $operationHistoryService->persistTransportHistory($entityManager, $transportOrder, OperationHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryOrder,
                 'user' => $loggedUser
             ]);

@@ -3,6 +3,9 @@
 namespace App\Entity;
 
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Fields\FixedField;
+use App\Entity\Fields\FixedFieldEnum;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Inventory\InventoryCategoryHistory;
 use App\Entity\Inventory\InventoryEntry;
 use App\Entity\IOT\SensorWrapper;
@@ -40,6 +43,23 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
+    const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
+        FixedFieldEnum::number->name,
+        FixedFieldEnum::createdAt->name,
+        FixedFieldEnum::createdBy->name,
+        FixedFieldEnum::treatedBy->name,
+        FixedFieldEnum::type->name,
+        FixedFieldEnum::status->name,
+        FixedFieldEnum::expectedAt->name,
+        FixedFieldEnum::dropLocation->name,
+        FixedFieldEnum::lineCount->name,
+        FixedFieldEnum::manufacturingOrderNumber->name,
+        FixedFieldEnum::productArticleCode->name,
+        FixedFieldEnum::quantity->name,
+        FixedFieldEnum::emergency->name,
+        FixedFieldEnum::projectNumber->name,
+        FixedFieldEnum::comment->name,
+    ];
     const DEFAULT_VISIBLE_COLUMNS = [
         'reference' => self::DEFAULT_REFERENCE_VISIBLE_COLUMNS,
         'article' => self::DEFAULT_ARTICLE_VISIBLE_COLUMNS,
@@ -53,6 +73,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
         'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
+        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [
@@ -303,6 +324,12 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $dispatchBusinessUnit = null;
 
+    #[ORM\OneToMany(mappedBy: 'treatedBy', targetEntity: ProductionRequest::class)]
+    private Collection $treatedProductionRequests;
+
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: ProductionRequest::class)]
+    private Collection $createdProductionRequests;
+
 
     public function __construct() {
         $this->receptions = new ArrayCollection();
@@ -349,6 +376,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         $this->rechercheForArticle = Utilisateur::SEARCH_DEFAULT;
         $this->roles = ['USER']; // évite bug -> champ roles ne doit pas être vide
         $this->visibleColumns = self::DEFAULT_VISIBLE_COLUMNS;
+        $this->treatedProductionRequests = new ArrayCollection();
+        $this->createdProductionRequests = new ArrayCollection();
     }
 
     public function getId() {
@@ -1979,6 +2008,63 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
 
     public function setDispatchBusinessUnit(?string $businessUnit): self {
         $this->dispatchBusinessUnit = $businessUnit;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProductionRequest>
+     */
+    public function getTreatedProductionRequests(): Collection
+    {
+        return $this->treatedProductionRequests;
+    }
+
+    public function addTreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if (!$this->treatedProductionRequests->contains($productionRequest)) {
+            $this->treatedProductionRequests->add($productionRequest);
+            $productionRequest->setTreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if ($this->treatedProductionRequests->removeElement($productionRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($productionRequest->getTreatedBy() === $this) {
+                $productionRequest->setTreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCreatedProductionRequests(): Collection
+    {
+        return $this->createdProductionRequests;
+    }
+
+    public function addCreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if (!$this->createdProductionRequests->contains($productionRequest)) {
+            $this->createdProductionRequests->add($productionRequest);
+            $productionRequest->setCreatedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCreatedProductionRequest(ProductionRequest $productionRequest): static
+    {
+        if ($this->createdProductionRequests->removeElement($productionRequest)) {
+            // set the owning side to null (unless already changed)
+            if ($productionRequest->getTreatedBy() === $this) {
+                $productionRequest->setTreatedBy(null);
+            }
+        }
 
         return $this;
     }

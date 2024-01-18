@@ -68,7 +68,7 @@ class Select2Old {
                                                 $self.select2('close');
                                                 if ($nextField) {
 
-                                                    if (!$nextField.data('select2')) {
+                                                    if ($nextField.data('select2')) {
                                                         $nextField.select2('open');
                                                     } else {
                                                         $nextField.trigger('focus');
