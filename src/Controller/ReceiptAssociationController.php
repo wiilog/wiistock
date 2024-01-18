@@ -113,7 +113,7 @@ class ReceiptAssociationController extends AbstractController
         $entityManager->flush();
         return $this->json([
             "success" => true,
-            "message" => "{$translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")}."
+            "msg" => "{$translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")}."
         ]);
     }
 
