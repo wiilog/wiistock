@@ -1,4 +1,8 @@
 {% import 'form.html.twig' as form %}
+
+{% set ACTION_TYPE_ZONE_ENTER = constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_ENTER') %}
+{% set ACTION_TYPE_ZONE_EXIT = constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_EXIT') %}
+
 <div class="">
     <div class="d-flex align-items-end">
         <span class="text-nowrap">
@@ -10,19 +14,20 @@
                 true, {
                     items : [{
                         label: 'entre',
-                        value: constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_ENTER'),
-                        selected: true,
+                        value: ACTION_TYPE_ZONE_ENTER,
+                        selected: triggerAction is defined ? triggerAction.actionType == ACTION_TYPE_ZONE_ENTER : true,
                     }, {
                         label: 'sort',
-                        value: constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_EXIT'),
-                        selected: false,
+                        value: ACTION_TYPE_ZONE_EXIT,
+                        selected: triggerAction is defined ? triggerAction.actionType == ACTION_TYPE_ZONE_EXIT : false,
                     }],
                 }
             ) }}
             <span class="text-nowrap">
             dans la zone
         </span>
-        {{ form.input('zoneId', null, true, null, {
+        {% set zoneId = triggerAction is defined ? (triggerAction.config[ACTION_TYPE_ZONE_ENTER] ?? triggerAction.config[ACTION_TYPE_ZONE_EXIT ] ?? null) : null %}
+        {{ form.input('zoneId', null, true, zoneId, {
             labelWidth : '',
         }) }}
     </div>
@@ -36,6 +41,7 @@
                     selected: triggerAction is defined and (
                     (key == constant('App\\Entity\\IOT\\TriggerAction::ALERT') and triggerAction.alert)
                     or (key == constant('App\\Entity\\IOT\\TriggerAction::REQUEST') and triggerAction.request)
+                    or key in triggerAction.config|keys
                     )
                 }),
                 onChange: 'onTemplateTypeChange($(this))',
