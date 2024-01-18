@@ -13,6 +13,7 @@ $mobile-breakpoint: 768px;
 // Possiblement écrasé par la police paramétrée
 // dans les paramètres d'apparence de l'application
 $default-font: "Montserrat" !default;
+$app-context: "prod" !default;
 
 $black: #000000;
 $dark-grey: #666666;
@@ -32,8 +33,8 @@ $green: #A5D733;
 $success: #2FC2AB;
 $info: #33A5D7;
 $aqua: #33D7D1;
-$primary: #3353D7;
 $purple: #6433D7;
+$primary: if($app-context == "prod", #3353D7, $purple);
 $danger: #D73353;
 
 $lightest-orange: lighten($orange, 40%);
@@ -45,6 +46,8 @@ $lightest-aqua: lighten($aqua, 40%);
 $lightest-primary: lighten($primary, 40%);
 $lightest-purple: lighten($purple, 40%);
 $lightest-danger: lighten($danger, 40%);
+
+$linear-gradient: linear-gradient(-64deg, $primary, if($app-context == "prod", $header-left, $aqua));
 
 $text-colors: (
     black: $black,
