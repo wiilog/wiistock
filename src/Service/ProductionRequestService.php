@@ -321,7 +321,7 @@ class ProductionRequestService
 
         $message = "<br>";
         if ($data->has(FixedFieldEnum::dropLocation->name)
-            && $productionRequest->getDropLocation()?->getId() !== $data->get(FixedFieldEnum::dropLocation->name) ? intval($data->get(FixedFieldEnum::dropLocation->name)) : null) {
+            && $productionRequest->getDropLocation()?->getId() !== $data->getInt(FixedFieldEnum::dropLocation->name) ? intval($data->get(FixedFieldEnum::dropLocation->name)) : null) {
             $dropLocation = $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name));
             $message .= "<strong>".FixedFieldEnum::dropLocation->value."</strong> : {$dropLocation->getLabel()}.<br>";
         }
