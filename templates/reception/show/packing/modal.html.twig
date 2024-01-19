@@ -94,8 +94,11 @@
                                data-text="{{ needsCurrentUser ? app.user.username }}">
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Type*</label>
-                            <select class="select2-type data w-100 needed wii-field-text" name="type"
-                                    onchange="onRequestTypeChange($(this))" disabled>
+                            <select class="select2-type data w-100 needed wii-field-text"
+                                    name="type"
+                                    data-s2
+                                    onchange="onRequestTypeChange($(this))"
+                                    disabled>
                                 <option>&nbsp;</option>
                                 {% set uniqueType = typeChampsLibres | length == 1  %}
                                 {% for type in typeChampsLibres %}
@@ -106,9 +109,12 @@
                         <div class="col-4 form-group">
                             <label class="wii-field-name">Destination*</label>
                             <div class="w-100">
-                                <select name="destination" class="data ajax-autocomplete-location needed wii-field-text" id="locationDemandeLivraison"
-                                    disabled>
-                                    <option></option>
+                                <select class="data ajax-autocomplete-location needed wii-field-text"
+                                        name="destination"
+                                        data-s2
+                                        id="locationDemandeLivraison"
+                                        disabled>
+                                        <option></option>
                                 </select>
                                 {% set isLocation = app.user.dropzone and app.user.dropzone is instanceof('App\\Entity\\Emplacement') %}
                                 <input hidden id="locationDemandeLivraisonValue"
