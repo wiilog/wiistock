@@ -34,7 +34,7 @@
         <div class="form-group col-md-6 col-12">
             {% set setting = constant('App\\Entity\\Setting::MAILER_IS_TLS_PROTOCOL') %}
             {% set settingValue = setting_value(setting) %}
-            {{ form.checkbox(setting, "Utilisation de TLS", false, settingValue) }}
+            {{ form.input(setting, "Protocole", false, settingValue) }}
         </div>
     </div>
 

@@ -421,7 +421,14 @@ class FormatService
     }
 
     public function triggerActionTemplateType(?TriggerAction $triggerAction,string $else = ""): string {
-        return $triggerAction?->getAlertTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT] : ($triggerAction?->getRequestTemplate() ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST] : $else);
+        return $triggerAction?->getAlertTemplate()
+            ? TriggerAction::TEMPLATE_TYPES[TriggerAction::ALERT]
+            : ($triggerAction?->getRequestTemplate()
+                ? TriggerAction::TEMPLATE_TYPES[TriggerAction::REQUEST]
+                : (($triggerAction->getConfig()[TriggerAction::ACTION_TYPE_ZONE_ENTER] ?? $triggerAction->getConfig()[TriggerAction::ACTION_TYPE_ZONE_EXIT] ?? false)
+                    ? "Dépose sur emplacement"
+                    : $else)
+            );
     }
 
 }

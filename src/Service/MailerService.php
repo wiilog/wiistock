@@ -79,7 +79,7 @@ class MailerService
         $password = ($mailerServerSettings[Setting::MAILER_PASSWORD] ?? null)?->getValue();
         $host = ($mailerServerSettings[Setting::MAILER_URL] ?? null)?->getValue();
         $port = ($mailerServerSettings[Setting::MAILER_PORT] ?? null)?->getValue();
-        $isTLSProtocol = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
+        $protocole = ($mailerServerSettings[Setting::MAILER_IS_TLS_PROTOCOL] ?? null)?->getValue();
         $senderName = ($mailerServerSettings[Setting::MAILER_SENDER_NAME] ?? null)?->getValue();
         $senderMail = ($mailerServerSettings[Setting::MAILER_SENDER_MAIL] ?? null)?->getValue();
 
@@ -90,20 +90,15 @@ class MailerService
         //protection dev
         $redirectToTest = !isset($_SERVER['APP_ENV']) || $_SERVER['APP_ENV'] !== 'prod';
 
-        $transport = (new EsmtpTransport($host, $port, $isTLSProtocol))
+        $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
             ->setUsername($user)
             ->setPassword($password);
 
         foreach ($contents as $content) {
-            $message = new Email();
+            $message = (new \Swift_Message());
 
             $body = $content['content'];
             $body .= $redirectToTest ? $this->getRecipientsLabel($content['to']) : "";
-
-            $message
-                ->from(new Address($senderMail, $senderName))
-                ->subject($content['subject'])
-                ->html($body);
 
             $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
 
@@ -113,29 +108,33 @@ class MailerService
                 $message->addTo($email);
             }
 
+            $message
+                ->setFrom($senderMail, $senderName)
+                ->setTo($to)
+                ->setSubject($content['subject'])
+                ->setBody($body)
+                ->setContentType('text/html');
+
+
             foreach ($attachments as $attachment) {
+                $swiftAttachment = \Swift_Attachment::fromPath(is_string($attachment)
+                    ? $attachment
+                    : "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}"
+                );
                 if ($attachment instanceof Attachment) {
-                    $path = "{$this->kernel->getProjectDir()}/public{$attachment->getFullPath()}";
-                    $fileName = $attachment->getOriginalName() ?? basename($path);
-                } else {
-                    $path = $attachment;
-                    $fileName = basename($path);
+                    $attachmentOriginalName = $attachment->getOriginalName();
+                    if ($attachmentOriginalName) {
+                        $swiftAttachment->setFilename($attachmentOriginalName);
+                    }
                 }
-                $file = fopen($path, 'r');
-                if($file){
-                    $message->attach(
-                        $file,
-                        $fileName,
-                    );
-                }
+                $message->attach($swiftAttachment);
             }
 
-            $mailer = (new Mailer($transport));
+            $mailer = (new \Swift_Mailer($transport));
             try {
                 $mailer->send($message);
             } catch (TransportExceptionInterface $e) {
                 $this->exceptionLoggerService->sendLog($e);
-                throw $e;
             }
         }
 
