@@ -352,14 +352,12 @@ class ProductionRequestService
         }
 
         if ($data->has(FixedFieldEnum::quantity->name)
-            && $productionRequest->getQuantity() !== null
-            && $productionRequest->getQuantity() !== intval($data->get(FixedFieldEnum::quantity->name))) {
+            && intval($productionRequest->getQuantity()) !== intval($data->get(FixedFieldEnum::quantity->name))) {
             $message .= "<strong>".FixedFieldEnum::quantity->value."</strong> : {$data->get(FixedFieldEnum::quantity->name)}<br>";
         }
 
         if ($data->has(FixedFieldEnum::lineCount->name)
-            && $productionRequest->getLineCount() !== null
-            && $productionRequest->getLineCount() !== intval($data->get(FixedFieldEnum::lineCount->name))) {
+            && intval($productionRequest->getLineCount()) !== intval($data->get(FixedFieldEnum::lineCount->name))) {
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$data->get(FixedFieldEnum::lineCount->name)}<br>";
         }
 

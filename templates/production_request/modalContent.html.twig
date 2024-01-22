@@ -85,7 +85,7 @@
     {% if displayOnform %}
         <div class="col-6 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt|date('Y-m-d'), {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d') : null, {
                 type: 'date',
             }) }}
         </div>
