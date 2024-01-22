@@ -889,13 +889,16 @@ class ArrivageService {
                 $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS] = $utilisateurRepository->findBy(['id' => explode(",", $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])]);
             }
 
+            if(isset($keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE])) {
+                $keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE] = $utilisateurRepository->findBy(['id' => $keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE]]);
+            }
+
             $arrivalCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARRIVAGE]);
 
             $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
                 "keptFields" => $keptFields,
                 "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
                 "statuses" => $statuses,
-                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
                 "natures" => $natures,
                 "carriers" => $transporteurRepository->findAllSorted(),
