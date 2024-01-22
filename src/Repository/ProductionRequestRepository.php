@@ -196,7 +196,7 @@ class ProductionRequestRepository extends EntityRepository
                             ->leftJoin('production_request.dropLocation', 'location')
                             ->orderBy('location.label', $order);
                     } else if ($column === FixedFieldEnum::lineCount->name) {
-                        $qb->orderBy('production_request.lineNumber', $order);
+                        $qb->orderBy('production_request.lineCount', $order);
                     } else if ($column === FixedFieldEnum::manufacturingOrderNumber->name) {
                         $qb->orderBy('production_request.manufacturingOrderNumber', $order);
                     } else if ($column === FixedFieldEnum::productArticleCode->name) {
