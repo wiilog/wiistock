@@ -93,7 +93,7 @@ class ProductionRequestController extends AbstractController
                 ],
                 [
                     'name' => 'expectedAt',
-                    'label' => 'Date de réalisation',
+                    'label' => 'Date attendue',
                 ],
             ];
 

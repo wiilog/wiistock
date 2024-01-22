@@ -94,18 +94,39 @@ class ProductionRequestRepository extends EntityRepository
                         ->andWhere('filter_createdBy.id IN (:filter_createdBy_values)')
                         ->setParameter('filter_createdBy_values', $value);
                     break;
+                case FixedFieldEnum::dropLocation->name:
+                    $value = explode(',', $filter['value']);
+                    $qb
+                        ->join('production_request.dropLocation', 'filter_dropLocation')
+                        ->andWhere('filter_dropLocation.id IN (:filter_dropLocation_values)')
+                        ->setParameter('filter_dropLocation_values', $value);
+                    break;
                 case FixedFieldEnum::manufacturingOrderNumber->name:
                     $value = $filter['value'];
                     $qb
                         ->andWhere($qb->expr()->like('production_request.manufacturingOrderNumber', ':filter_manufactoringOrderNumber_value'))
                         ->setParameter('filter_manufactoringOrderNumber_value', '%' . $value . '%');
                     break;
-                case 'attachmentsAssigned':
-                    $value = explode(',', $filter['value']);
+                case FixedFieldEnum::productArticleCode->name:
+                    $value = $filter['value'];
                     $qb
-                        ->join('production_request.attachments', 'filter_attachments')
-                        ->andWhere('filter_attachments.id IN (:filter_attachments_value)')
-                        ->setParameter('filter_attachments_value', $value);
+                        ->andWhere($qb->expr()->like('production_request.productArticleCode', ':filter_productArticleCode_value'))
+                        ->setParameter('filter_productArticleCode_value', '%' . $value . '%');
+                    break;
+                case 'attachmentsAssigned':
+                    if ($filter['value'] == '1') {
+                        $qb
+                            ->join('production_request.attachments', 'filter_attachments')
+                            ->andWhere('filter_attachments IS NOT NULL');
+                        break;
+                    }
+                case 'emergencyMultiple':
+                    $value = array_map(function ($value) {
+                        return explode(":", $value)[0];
+                    }, explode(',', $filter['value']));
+                    $qb
+                        ->andWhere("production_request.emergency in (:filter_emergency_value)")
+                        ->setParameter('filter_emergency_value', $value);
                     break;
             }
         }
