@@ -25,7 +25,7 @@ Cypress.Commands.add(
                     cy.curlDatabase(urlToCurl, pathToFile, sqlFileName);
                 } else {
                     // if the is no url to curl, we use the sql file in the project
-                    pathToFile = 'cypress/fixtures/';
+                    pathToFile = 'cypress/fixtures';
                     sqlFileName = 'dev-script.sql';
                 }
                 //run sql file
