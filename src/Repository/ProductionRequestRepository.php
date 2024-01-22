@@ -104,13 +104,13 @@ class ProductionRequestRepository extends EntityRepository
                 case FixedFieldEnum::manufacturingOrderNumber->name:
                     $value = $filter['value'];
                     $qb
-                        ->andWhere($qb->expr()->like('production_request.manufacturingOrderNumber', ':filter_manufactoringOrderNumber_value'))
+                        ->andWhere('production_request.manufacturingOrderNumber LIKE :filter_manufactoringOrderNumber_value')
                         ->setParameter('filter_manufactoringOrderNumber_value', '%' . $value . '%');
                     break;
                 case FixedFieldEnum::productArticleCode->name:
                     $value = $filter['value'];
                     $qb
-                        ->andWhere($qb->expr()->like('production_request.productArticleCode', ':filter_productArticleCode_value'))
+                        ->andWhere('production_request.productArticleCode LIKE :filter_productArticleCode_value')
                         ->setParameter('filter_productArticleCode_value', '%' . $value . '%');
                     break;
                 case 'attachmentsAssigned':
@@ -251,15 +251,26 @@ class ProductionRequestRepository extends EntityRepository
                 ->toArray()
             : [];
         $statuses = Stream::from($filters->all())
-            ->filterMap(static fn(string $value, string $key) => $value === "true" && str_starts_with($key, "statuses-filter_") ? $key : null)
+            ->filterMap(static fn(string|array $value, string $key) => $value === "true" && str_starts_with($key, "statuses-filter_") ? $key : null)
             ->map(static fn(string $value) => intval(explode("_", $value)[1]))
             ->values();
         $requesters = $filters->has("requesters")
             ? Stream::from($filters->all("requesters"))
-                ->map(static fn(array $type) => intval($type["id"]))
+                ->map(static fn(array $user) => intval($user["id"]))
+                ->toArray()
+            : [];
+        $dropLocations = $filters->has("dropLocation")
+            ? Stream::from($filters->all("dropLocation"))
+                ->map(static fn(array $dropLocation) => intval($dropLocation["id"]))
+                ->toArray()
+            : [];
+        $emergencies = $filters->has("emergencyMultiple")
+            ? Stream::from($filters->all("emergencyMultiple"))
+                ->map(static fn(array $emergency) => $emergency["id"])
                 ->toArray()
             : [];
         $manufacturingOrderNumber = $filters->get("manufacturingOrderNumber");
+        $productArticleCode = $filters->get("productArticleCode");
         $hasAttachments = $filters->getBoolean("attachmentAssigned");
 
         $queryBuilder = $this->createQueryBuilder("production_request")
@@ -305,10 +316,28 @@ class ProductionRequestRepository extends EntityRepository
                 ->setParameter("requesters", $requesters);
         }
 
+        if(!empty($dropLocations)) {
+            $queryBuilder
+                ->andWhere("join_dropLocation.id IN (:dropLocations)")
+                ->setParameter("dropLocations", $dropLocations);
+        }
+
+        if(!empty($emergencies)) {
+            $queryBuilder
+                ->andWhere("production_request.emergency IN (:emergencies)")
+                ->setParameter("emergencies", $emergencies);
+        }
+
         if($manufacturingOrderNumber) {
             $queryBuilder
                 ->andWhere("production_request.manufacturingOrderNumber LIKE :manufacturingOrderNumber")
                 ->setParameter("manufacturingOrderNumber", "%$manufacturingOrderNumber%");
+        }
+
+        if($productArticleCode) {
+            $queryBuilder
+                ->andWhere("production_request.productArticleCode LIKE :productArticleCode")
+                ->setParameter("productArticleCode", "%$productArticleCode%");
         }
 
         if($hasAttachments) {
