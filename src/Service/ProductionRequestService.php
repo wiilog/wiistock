@@ -394,6 +394,8 @@ class ProductionRequestService
 
     public function productionRequestPutLine($output, array $productionRequest, array $freeFieldsConfig, array $freeFieldsById): void {
         $freeFieldValues = $freeFieldsById[$productionRequest['id']];
+        $comment = $productionRequest[FixedFieldEnum::comment->name];
+
         $row = [
             $productionRequest[FixedFieldEnum::number->name],
             $productionRequest[FixedFieldEnum::createdAt->name],
@@ -409,7 +411,7 @@ class ProductionRequestService
             $productionRequest[FixedFieldEnum::quantity->name],
             $productionRequest[FixedFieldEnum::emergency->name],
             $productionRequest[FixedFieldEnum::projectNumber->name],
-            strip_tags(FixedFieldEnum::comment->name),
+            $comment ? strip_tags($comment) : null,
             ...(Stream::from($freeFieldsConfig['freeFields'])
                 ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                     $value = $freeFieldValues[$freeFieldId] ?? null;

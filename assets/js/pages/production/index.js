@@ -93,6 +93,7 @@ function initTableShippings() {
 }
 
 function onProductionRequestTypeChange($select){
+    onTypeChange($select);
     const $modal = $select.closest(`.modal`);
     const $typeSelect = $modal.find(`[name=type]`);
     const $selectStatus = $modal.find(`[name=status]`);
