@@ -1,3 +1,5 @@
+import AJAX, {POST, GET} from "@app/ajax";
+
 let tableProduction;
 
 global.onProductionRequestTypeChange = onProductionRequestTypeChange;
@@ -52,7 +54,7 @@ function initTableShippings() {
 
     if (!initialVisible) {
         return AJAX
-            .route(AJAX.GET, 'production_request_api_columns')
+            .route(GET, 'production_request_api_columns')
             .json()
             .then(columns => proceed(columns));
     } else {
@@ -70,7 +72,7 @@ function initTableShippings() {
             order: [['number', "desc"]],
             ajax: {
                 url: pathProduction,
-                type: AJAX.POST,
+                type: POST,
             },
             rowConfig: {
                 needsRowClickAction: true,
@@ -119,7 +121,7 @@ function displayAttachmentRequired($select) {
 function initProductionRequestModal($modal, submitRoute) {
     Form
         .create($modal, {clearOnOpen: true})
-        .submitTo(AJAX.POST, submitRoute, {
+        .submitTo(POST, submitRoute, {
             tables: [tableProduction],
         });
 }

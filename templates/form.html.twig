@@ -484,6 +484,22 @@
     </label>
 {% endmacro %}
 
+{% macro attachment(label, required, value = null, options = {}) %}
+    <label
+        class="{{ options.labelClass ?? 'w-100' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        {% if label %}
+            {{ _self.tooltip(options.tooltip ?? null, false) }}
+        {% endif %}
+        {% include 'attachment/attachment.html.twig' with {
+            isNew: options.isNew is defined ? options.isNew : false,
+            required: required,
+            attachments: value,
+            noLabel: true,
+        } %}
+    </label>
+{% endmacro %}
+
 {% set macroName = macroName ?? null %}
 {% set macroParams = macroParams ?? null %}
 
