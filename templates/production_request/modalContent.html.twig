@@ -194,12 +194,9 @@
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
-            {% include 'attachment/attachment.html.twig' with {
+            {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
-                required: false,
-                override: true,
-                labelTitle: constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value,
-            } %}
+            }) }}
         </div>
     {% else %}
         {{ form.hidden('isAttachmentForm', 1) }}
