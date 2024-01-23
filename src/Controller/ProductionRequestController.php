@@ -62,6 +62,7 @@ class ProductionRequestController extends AbstractController
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $filterSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
         // data from request
         $query = $request->query;
@@ -130,6 +131,17 @@ class ProductionRequestController extends AbstractController
             "statusFilter" => $statusesFilter,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
+            "typeFreeFields" => Stream::from($types)
+                ->map(function (Type $type) use ($freeFieldRepository) {
+                    $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::PRODUCTION_REQUEST);
+
+                    return [
+                        "typeLabel" => $this->formatService->type($type),
+                        "typeId" => $type->getId(),
+                        "champsLibres" =>$freeFields,
+                    ];
+                })
+                ->toArray(),
         ]);
     }
 
@@ -336,6 +348,11 @@ class ProductionRequestController extends AbstractController
                     "initiatedBy" => $this->getUser(),
                 ]
             );
+
+            if ($newStatus->isTreated()) {
+                $productionRequest->setTreatedBy($this->getUser());
+            }
+
             $entityManager->persist($statusHistory);
         }
 
