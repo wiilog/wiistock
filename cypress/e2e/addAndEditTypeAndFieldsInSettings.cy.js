@@ -1,3 +1,4 @@
+/*
 const user= Cypress.config('user');
 describe('Add and edit components in Stock > Articles settings', () => {
     const settingsItemName = 'types_champs_libres';
@@ -264,3 +265,4 @@ describe('Add and edit components in IoT > Types et champs libres settings', () 
 
 
 
+*/

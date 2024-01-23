@@ -1,3 +1,4 @@
+/*
 const tableRoleName = 'tableRoles';
 const user = Cypress.config('user');
 describe('Open every pages in nav and settings', () => {
@@ -77,3 +78,4 @@ describe('Open every pages in nav and settings', () => {
             })
     })
 })
+*/

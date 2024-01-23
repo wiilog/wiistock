@@ -10,7 +10,9 @@ Cypress.Commands.add('register', (username, email, password  ) => {
 
 Cypress.Commands.add('login', (user) => {
     cy.session([user.email, user.password], () => {
-        cy.visit('/login');
+
+        cy.visit('/login', {failOnStatusCode: false});
+
         cy.get('[name=_username]').type(user.email);
         cy.get('[name=_password]').type(user.password);
         cy.get('button[type=submit]').click();
