@@ -333,24 +333,19 @@
                         </div>
                     {% endif %}
 
-                    {% set buyersFieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
-                    {% if fieldsParam|isFieldRequired(buyersFieldCode, 'displayedCreate') %}
-                        {% set buyersRequired = fieldsParam|isFieldRequired(buyersFieldCode, 'requiredCreate') %}
-                        <div class="form-group w-100 col-4">
-                            <label class="wii-field-name">
-                                {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)') }}{{ buyersRequired ? '*' }}
-                            </label>
-
-                            {% set keptBuyers = keptFields[buyersFieldCode] ?? [] %}
-                            <select name="acheteurs"
-                                    multiple="multiple"
-                                    class="form-control input-sm  data {{ buyersRequired ? 'needed' }} "
-                                    data-s2
-                                    data-no-empty-option>
-                                {% for user in users %}
-                                    <option value="{{ user.id }}" {{ user.id in keptBuyers ? 'selected' }}>{{ user.username }}</option>
-                                {% endfor %}
-                            </select>
+                    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE') %}
+                    {% if fieldsParam|isFieldRequired(fieldCode, 'displayedCreate') %}
+                        {% set required = fieldsParam|isFieldRequired(fieldCode, 'requiredCreate') %}
+                        <div class="col-4">
+                            {{ form.select(fieldCode, trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Acheteur(s)'), required, {
+                                type: "user",
+                                multiple: true,
+                                items: (keptFields[fieldCode] ?? [])|map((user) => {
+                                    label: user.username,
+                                    value: user.id,
+                                    selected: true,
+                                }),
+                            }) }}
                         </div>
                     {% endif %}
 

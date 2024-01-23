@@ -30,76 +30,51 @@ class InventoryMissionRepository extends EntityRepository {
         'type' => 'type',
     ];
 
-    public function getCurrentMissionRefNotTreated(): mixed {
-        $now = new DateTime('now');
-        $queryBuilder = $this->createQueryBuilder('inventoryMission');
+    public function getInventoriableArticlesAndReferences(): array {
+        $now = (new DateTime())->format("Y-m-d");
+
+        $queryBuilder = $this->createQueryBuilder("inventory_mission");
         $exprBuilder = $queryBuilder->expr();
 
-        $queryBuilder
-            ->select('inventoryMission.id AS mission_id')
-            ->addSelect('inventoryMission.startPrevDate AS mission_start')
-            ->addSelect('inventoryMission.endPrevDate AS mission_end')
-            ->addSelect('inventoryMission.name AS mission_name')
-            ->addSelect('refArticle.reference AS reference')
-            ->addSelect('emplacement.label AS location')
-            ->addSelect('1 AS is_ref')
-            ->addSelect('inventoryMission.done AS done')
-            ->addSelect('inventoryMission.type AS type')
-            ->addSelect('inventoryEntry.id AS ieid')
-            ->addSelect('refArticle.barCode AS barCode')
-            ->join('inventoryMission.refArticles', 'refArticle')
-            ->join('refArticle.emplacement', 'emplacement')
-            ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.refArticle = refArticle')
-            ->where($exprBuilder->andX(
-                'inventoryMission.startPrevDate <= :now',
-                'inventoryMission.endPrevDate >= :now',
-                'inventoryEntry.id IS NULL'
-            ))
-            ->setParameter('now', $now->format('Y-m-d'));
-
         return $queryBuilder
-            ->getQuery()
-            ->execute();
-    }
-
-    public function getCurrentMissionArticlesNotTreated(): mixed {
-        $now = new DateTime('now');
-
-        $queryBuilder = $this->createQueryBuilder('inventoryMission');
-        $exprBuilder = $queryBuilder->expr();
-
-        $queryBuilder
-            ->select('inventoryMission.id AS mission_id')
-            ->addSelect('inventoryMission.startPrevDate AS mission_start')
-            ->addSelect('inventoryMission.endPrevDate AS mission_end')
-            ->addSelect('inventoryMission.name AS mission_name')
-            ->addSelect('referenceArticle.reference AS reference')
-            ->addSelect('article.barCode AS barCode')
-            ->addSelect('current_logistic_unit.code as logistic_unit_code')
-            ->addSelect('current_logistic_unit.id as logistic_unit_id')
-            ->addSelect('nature.label as logistic_unit_nature')
-            ->addSelect('emplacement.label AS location')
-            ->addSelect('inventoryMission.done AS done')
-            ->addSelect('inventoryMission.type AS type')
-            ->addSelect('0 AS is_ref')
-            ->addSelect('inventoryMission.id AS ied')
-            ->join('inventoryMission.articles', 'article')
-            ->join('article.emplacement', 'emplacement')
-            ->join('article.articleFournisseur', 'articleFournisseur')
-            ->leftJoin('article.currentLogisticUnit', 'current_logistic_unit')
-            ->leftJoin('current_logistic_unit.nature', 'nature')
-            ->join('articleFournisseur.referenceArticle', 'referenceArticle')
-            ->leftJoin('inventoryMission.entries', 'inventoryEntry', Join::WITH, 'inventoryEntry.article = article')
-            ->where($exprBuilder->andX(
-                'inventoryMission.startPrevDate <= :now',
-                'inventoryMission.endPrevDate >= :now',
-                'inventoryEntry.id IS NULL'
+            ->select('inventory_mission.id AS mission_id')
+            ->addSelect("inventory_mission.startPrevDate AS mission_start")
+            ->addSelect("inventory_mission.endPrevDate AS mission_end")
+            ->addSelect("inventory_mission.name AS mission_name")
+            ->addSelect("inventory_mission.done AS done")
+            ->addSelect("inventory_mission.type AS type")
+            ->addSelect("COALESCE(join_referenceArticle.reference, join_articleReferenceArticle.reference) AS reference")
+            ->addSelect("COALESCE(join_referenceArticle.barCode, join_article.barCode) AS barCode")
+            ->addSelect("join_logisticUnit.code AS logistic_unit_code")
+            ->addSelect("join_logisticUnit.id AS logistic_unit_id")
+            ->addSelect("join_nature.label AS logistic_unit_nature")
+            ->addSelect("COALESCE(join_referenceArticleLocation.label, join_articleLocation.label) AS location")
+            ->addSelect("IF(join_article.id IS NOT NULL, 0, 1) AS is_ref")
+            ->leftJoin('inventory_mission.refArticles', 'join_referenceArticle')
+            ->leftJoin('inventory_mission.articles', 'join_article')
+            ->leftJoin('join_referenceArticle.emplacement', 'join_referenceArticleLocation')
+            ->leftJoin('join_article.emplacement', 'join_articleLocation')
+            ->leftJoin('join_article.articleFournisseur', 'join_supplierArticle')
+            ->leftJoin('join_supplierArticle.referenceArticle', 'join_articleReferenceArticle')
+            ->leftJoin('join_article.currentLogisticUnit', 'join_logisticUnit')
+            ->leftJoin('join_logisticUnit.nature', 'join_nature')
+            ->leftJoin('inventory_mission.entries', 'inventory_entry_articles', Join::WITH, 'inventory_entry_articles.article = join_article')
+            ->leftJoin('inventory_mission.entries', 'inventory_entry_references', Join::WITH, 'inventory_entry_references.refArticle = join_referenceArticle')
+            ->andWhere($exprBuilder->andX(
+                "inventory_mission.startPrevDate <= :now",
+                "inventory_mission.endPrevDate >= :now",
+                $exprBuilder->orX(
+                    "(join_article.id IS NOT NULL AND inventory_entry_articles.id IS NULL)",
+                    "(join_referenceArticle.id IS NOT NULL AND inventory_entry_references.id IS NULL)",
+                ),
             ))
-            ->setParameter('now', $now->format('Y-m-d'));
-
-        return $queryBuilder
+            ->andWhere($exprBuilder->orX(
+                "join_article.id IS NOT NULL",
+                "join_referenceArticle.id IS NOT NULL",
+            ))
+            ->setParameter("now", $now)
             ->getQuery()
-            ->execute();
+            ->getResult();
     }
 
 	public function countAnomaliesByMission($mission)
