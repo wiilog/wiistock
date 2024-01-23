@@ -562,13 +562,19 @@ class DispatchController extends AbstractController {
                 'natures' => $natureRepository->findBy([], ['label' => 'ASC'])
             ],
             'dispatchValidate' => [
-                'untreatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED])
+                'untreatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED]))
+                    ->filter(fn(Statut $statut) => $dispatchStatus->getId() !== $statut->getId())
+                    ->toArray(),
             ],
             'dispatchTreat' => [
-                'treatedStatus' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED])
+                'treatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED]))
+                    ->filter(fn(Statut $statut) => $dispatchStatus->getId() !== $statut->getId())
+                    ->toArray(),
             ],
             'dispatchInProgress' => [
-                'inProgressStatuses' => $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::IN_PROGRESS]),
+                'inProgressStatuses' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::IN_PROGRESS]))
+                    ->filter(fn(Statut $statut) => $dispatchStatus->getId() !== $statut->getId())
+                    ->toArray(),
                 'dispatchId' => $dispatch->getId(),
             ],
             'printBL' => $printBL,
