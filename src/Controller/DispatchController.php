@@ -986,7 +986,7 @@ class DispatchController extends AbstractController {
         }
         if($edit) {
             if(empty($data)) {
-                $data[] = $service->packRow($dispatch, null, true, true);
+                $data[] = $service->packRow($dispatch, null, false, true);
             }
             $data[] = [
                 'createRow' => true,
