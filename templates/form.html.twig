@@ -128,12 +128,13 @@
     {% if isSlider %}
         <span class="slider round"></span>
     {% else %}
+        {% set inline = options.inline ?? false %}
         <label class="user-select-none pointer {{ options.labelClass ?? '' }}" for="{{ id }}">
-                <span class="d-inline-flex align-items-center">
+                <span class="d-inline-flex align-items-center {{ inline ? 'text-nowrap' }}">
                     {{ label | raw }}
                 </span>
         </label>
-        {{ _self.tooltip(options.tooltip ?? null, options.inline ?? false) }}
+        {{ _self.tooltip(options.tooltip ?? null, inline) }}
     {% endif %}
     </{{ containerTag }}>
     {% if isSlider %}
@@ -480,6 +481,22 @@
                 {{ _self.input(input.name, null , required, input.value ?? '', inputOptions) }}
             {% endfor %}
         </div>
+    </label>
+{% endmacro %}
+
+{% macro attachment(label, required, value = null, options = {}) %}
+    <label
+        class="{{ options.labelClass ?? 'w-100' }}">
+        {{ _self.label(label, required, false, options.labelOptions ?? {}) }}
+        {% if label %}
+            {{ _self.tooltip(options.tooltip ?? null, false) }}
+        {% endif %}
+        {% include 'attachment/attachment.html.twig' with {
+            isNew: options.isNew is defined ? options.isNew : false,
+            required: required,
+            attachments: value,
+            noLabel: true,
+        } %}
     </label>
 {% endmacro %}
 

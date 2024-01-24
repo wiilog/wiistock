@@ -1,0 +1,24 @@
+{% import 'form.html.twig' as form %}
+
+{% include 'settings/fixed_field_elements.html.twig' with {
+    modal: constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY'),
+    field: emergency.field,
+    elementsType: emergency.elementsType,
+    elements: emergency.elements,
+} %}
+
+<div class="wii-section">
+    <div class="row">
+        <div class="col-12 mb-3 wii-small-text">
+            Contrairement aux champs libres, les champs fixes ne peuvent ni être supprimés, ni ajoutés. Vous pouvez paramétrer leur visibilité et
+            leur caractère obligatoire.
+        </div>
+    </div>
+    <table id="table-production-fixed-fields" class="table no-border-top w-100" data-table-processing="fixedFields">
+        {% include 'datatable/main-header.html.twig' with {
+            creationColumns: 2,
+            cells: 6,
+            needsFilterColumn: true,
+        } %}
+    </table>
+</div>

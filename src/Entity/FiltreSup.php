@@ -62,14 +62,24 @@ class FiltreSup {
     const FIELD_CARRIER_TRACKING_NUMBER = 'carrierTrackingNumber';
     const FIELD_TRUCK_ARRIVAL_NUMBER = 'truckArrivalNumber';
     const FIELD_CARRIER_TRACKING_NUMBER_NOT_ASSIGNED = 'carrierTrackingNumberNotAssigned';
-	const PAGE_PURCHASE_REQUEST = 'rpurchase';
+    const FIELD_PICK_LOCATION = 'pickLocation';
+    const FIELD_DROP_LOCATION = 'dropLocation';
+    const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
+    const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
+    const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
+    const FIELD_USE_TRUCK_ARRIVALS = 'useTruckArrivals';
+    const FIELD_MANUFACTURING_ORDER_NUMBER = 'manufacturingOrderNumber';
+    const FIELD_PRODUCT_ARTICLE_CODE = 'productArticleCode';
+    const FIELD_ATTACHMENTS_ASSIGNED = 'attachmentsAssigned';
+    const FIELD_SUBJECT = 'subject';
+    const FIELD_DESTINATION = 'destination';
+
+    const PAGE_PURCHASE_REQUEST = 'rpurchase';
 	const PAGE_TRANSFER_REQUEST = 'rtransfer';
 	const PAGE_TRANSFER_ORDER = 'otransfer';
 	const PAGE_DEM_COLLECTE = 'dcollecte';
 	const PAGE_DEM_LIVRAISON = 'dlivraison';
     const PAGE_HAND = 'handling';
-    const FIELD_SUBJECT = 'subject';
-    const FIELD_DESTINATION = 'destination';
     const PAGE_RECEPTION = 'reception';
     const PAGE_ORDRE_COLLECTE = 'ocollecte';
     const PAGE_ORDRE_LIVRAISON = 'olivraison';
@@ -98,13 +108,8 @@ class FiltreSup {
     const PAGE_IMPORT = 'import';
     const PAGE_EXPORT = 'export';
     const PAGE_TRUCK_ARRIVAL = 'truckArrival';
-    const FIELD_PICK_LOCATION = 'pickLocation';
-    const FIELD_DROP_LOCATION = 'dropLocation';
-    const FIELD_NUM_TRUCK_ARRIVAL = 'numTruckArrival';
-    const FIELD_TRACKING_CARRIER_NUMBER = 'noTracking';
+    const PAGE_PRODUCTION = "production";
     const PAGE_SHIPPING = 'shipping_request';
-    const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
-    const FIELD_USE_TRUCK_ARRIVALS = 'useTruckArrivals';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

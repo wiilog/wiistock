@@ -186,15 +186,16 @@ function openTableHisto() {
     let tableHistoLitigeConfig = {
         ajax: {
             "url": pathHistoLitige,
-            "type": "POST"
+            "type": AJAX.POST
         },
+        serverSide: true,
         order: [['date', 'asc']],
         columns: [
             {data: 'user', name: 'Utilisateur', title: Translation.of('Traçabilité', 'Général', 'Utilisateur')},
             {data: 'date', name: 'date', title: Translation.of('Traçabilité', 'Général', 'Date')},
-            {data: 'commentaire', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
-            {data: 'status', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
-            {data: 'type', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
+            {data: 'comment', name: 'commentaire', title: Translation.of('Général', '', 'Modale', 'Commentaire')},
+            {data: 'statusLabel', name: 'status', title: Translation.of('Qualité', 'Litiges', 'Statut')},
+            {data: 'typeLabel', name: 'type', title: Translation.of('Qualité', 'Litiges', 'Type')},
         ],
         domConfig: {
             needsPartialDomOverride: true,

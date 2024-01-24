@@ -53,7 +53,7 @@ class Statut {
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $state = null;
 
-    #[ORM\ManyToOne(targetEntity: CategorieStatut::class, inversedBy: 'statuts')]
+    #[ORM\ManyToOne(targetEntity: CategorieStatut::class)]
     private ?CategorieStatut $categorie = null;
 
     #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Article::class)]
@@ -62,10 +62,10 @@ class Statut {
     #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Reception::class)]
     private Collection $receptions;
 
-    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\DeliveryRequest\Demande')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Demande::class)]
     private Collection $demandes;
 
-    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: 'App\Entity\PreparationOrder\Preparation')]
+    #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Preparation::class)]
     private Collection $preparations;
 
     #[ORM\OneToMany(mappedBy: 'statut', targetEntity: Livraison::class)]
@@ -140,6 +140,18 @@ class Statut {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
     private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $displayedOnSchedule = null;
+
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    #[ORM\JoinTable("status_notification_user")]
+    #[ORM\JoinColumn(name: "status_id", referencedColumnName: "id")]
+    #[ORM\InverseJoinColumn(name: "user_id", referencedColumnName: "id")]
+    private Collection $notifiedUsers;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    private ?bool $requiredAttachment = null;
+
     public function __construct() {
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
@@ -154,9 +166,9 @@ class Statut {
         $this->arrivages = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
         $this->transferOrders = new ArrayCollection();
-
         $this->purchaseRequests = new ArrayCollection();
         $this->handlingRequestStatusTemplates = new ArrayCollection();
+        $this->notifiedUsers = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -850,6 +862,59 @@ class Statut {
     public function setGroupedSignatureColor(?string $groupedSignatureColor): self
     {
         $this->groupedSignatureColor = $groupedSignatureColor;
+
+        return $this;
+    }
+
+    public function getNotifiedUsers(): Collection {
+        return $this->notifiedUsers;
+    }
+
+    public function addNotifiedUser(Utilisateur $notifiedUser): self {
+        if(!$this->notifiedUsers->contains($notifiedUser)) {
+            $this->notifiedUsers[] = $notifiedUser;
+        }
+
+        return $this;
+    }
+
+    public function removeNotifiedUser(Utilisateur $notifiedUser): self {
+        if($this->notifiedUsers->contains($notifiedUser)) {
+            $this->notifiedUsers->removeElement($notifiedUser);
+        }
+
+        return $this;
+    }
+
+    public function setNotifiedUsers(?iterable $notifiedUsers): self {
+        foreach($this->getNotifiedUsers()->toArray() as $notifiedUser) {
+            $this->removeNotifiedUser($notifiedUser);
+        }
+
+        $this->notifiedUsers = new ArrayCollection();
+        foreach($notifiedUsers ?? [] as $notifiedUser) {
+            $this->addNotifiedUser($notifiedUser);
+        }
+
+        return $this;
+    }
+
+    public function isDisplayedOnSchedule(): ?bool {
+        return $this->displayedOnSchedule;
+    }
+
+    public function setDisplayOnSchedule(?bool $displayedOnSchedule): self {
+        $this->displayedOnSchedule = $displayedOnSchedule;
+
+        return $this;
+    }
+
+    public function isRequiredAttachment(): ?bool {
+        return $this->requiredAttachment;
+    }
+
+    public function setRequiredAttachment(?bool $requiredAttachment): self {
+        $this->requiredAttachment = $requiredAttachment;
 
         return $this;
     }

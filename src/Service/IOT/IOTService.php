@@ -5,6 +5,7 @@ namespace App\Service\IOT;
 
 
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\DeliveryRequest\Demande;
@@ -14,6 +15,7 @@ use App\Entity\IOT\AlertTemplate;
 use App\Entity\IOT\CollectRequestTemplate;
 use App\Entity\IOT\DeliveryRequestTemplate;
 use App\Entity\IOT\HandlingRequestTemplate;
+use App\Entity\IOT\LoRaWANServer;
 use App\Entity\IOT\PairedEntity;
 use App\Entity\IOT\RequestTemplate;
 use App\Entity\IOT\Sensor;
@@ -28,6 +30,7 @@ use App\Entity\OrdreCollecteReference;
 use App\Entity\Pack;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\Vehicle;
 use App\Repository\ArticleRepository;
@@ -38,6 +41,7 @@ use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
+use App\Service\TrackingMovementService;
 use App\Service\UniqueNumberService;
 use DateTimeZone;
 use DateTime;
@@ -57,6 +61,8 @@ class IOTService
     const INEO_SENS_ACS_BTN = 'acs-switch-bouton';
     const INEO_SENS_GPS = 'trk-tracer-gps-new';
     const INEO_INS_EXTENDER = 'Ins-Extender';
+    const INEO_TRK_TRACER = 'trk-tracer';
+    const INEO_TRK_ZON = 'trk-zon';
     const SYMES_ACTION_SINGLE = 'symes-action-single';
     const SYMES_ACTION_MULTI = 'symes-action-multi';
     const KOOVEA_TAG = 'Tag température Koovea';
@@ -75,6 +81,8 @@ class IOTService
         self::KOOVEA_TAG => 1,
         self::KOOVEA_HUB => 1,
         self::INEO_INS_EXTENDER => 0,
+        self::INEO_TRK_TRACER => 3,
+        self::INEO_TRK_ZON => 0,
     ];
 
     const PROFILE_TO_TYPE = [
@@ -90,6 +98,8 @@ class IOTService
         self::DEMO_ACTION => Sensor::ACTION,
         self::DEMO_TEMPERATURE => Sensor::TEMPERATURE,
         self::INEO_INS_EXTENDER => Sensor::EXTENDER,
+        self::INEO_TRK_TRACER => Sensor::TRACER,
+        self::INEO_TRK_ZON => Sensor::ZONE,
     ];
 
     const PROFILE_TO_FREQUENCY = [
@@ -103,6 +113,8 @@ class IOTService
         self::SYMES_ACTION_SINGLE => 'à l\'action',
         self::SYMES_ACTION_MULTI => 'à l\'action',
         self::INEO_INS_EXTENDER => 'au message reçu',
+        self::INEO_TRK_ZON => 'à l\'action',
+        self::INEO_TRK_TRACER => 'à l\'action',
     ];
 
     const DATA_TYPE_ERROR = 0;
@@ -112,12 +124,20 @@ class IOTService
     const DATA_TYPE_GPS = 4;
     const DATA_TYPE_SENSOR_CLOVER_MAC = 5;
     const DATA_TYPE_PAYLOAD = 6;
+    const DATA_TYPE_POSITION = 7;
+    const DATA_TYPE_ZONE_ENTER = 8;
+    const DATA_TYPE_ZONE_EXIT = 9;
+    const DATA_TYPE_LIVENESS_PROOF = 10;
 
     const DATA_TYPE = [
         self::DATA_TYPE_TEMPERATURE => 'Température',
         self::DATA_TYPE_HYGROMETRY => 'Hygrométrie',
         self::DATA_TYPE_ACTION => 'Action',
         self::DATA_TYPE_GPS => 'GPS',
+        self::DATA_TYPE_POSITION => 'Position',
+        self::DATA_TYPE_ZONE_ENTER => 'Entrée zone',
+        self::DATA_TYPE_ZONE_EXIT => 'Sortie zone',
+        self::DATA_TYPE_LIVENESS_PROOF => 'Présence',
     ];
 
     const DATA_TYPE_TO_UNIT = [
@@ -146,8 +166,11 @@ class IOTService
     #[required]
     public HttpService $client;
 
-    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, bool $local = false): void {
-        $messages = $this->parseAndCreateMessage($frame, $entityManager, $local);
+    #[required]
+    public TrackingMovementService $trackingMovementService;
+
+    public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
+        $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
         foreach ($messages as $message) {
             if($message){
                 $this->linkWithSubEntities($entityManager, $message);
@@ -173,6 +196,10 @@ class IOTService
                         break;
                     case IOTService::DATA_TYPE_HYGROMETRY:
                         $this->treatDataTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper, 'hygrometry');
+                        break;
+                    case IOTService::DATA_TYPE_ZONE_EXIT:
+                    case IOTService::DATA_TYPE_ZONE_ENTER:
+                        $this->treatZoneTrigger($triggerAction, $sensorMessage, $entityManager, $wrapper);
                         break;
                     default:
                         break;
@@ -219,7 +246,41 @@ class IOTService
         }
     }
 
-    private function treatActionTrigger(SensorWrapper $wrapper, TriggerAction $triggerAction, SensorMessage $sensorMessage, EntityManagerInterface $entityManager) {
+    public function treatZoneTrigger(   TriggerAction          $triggerAction,
+                                        SensorMessage          $sensorMessage,
+                                        EntityManagerInterface $entityManager,
+                                        SensorWrapper          $wrapper) : void {
+        $config = $triggerAction->getConfig();
+        $messageData = $sensorMessage->getContent();
+
+        if(!$config || !$messageData){
+            return;
+        }
+
+        $needsTrigger = Stream::from([
+            TriggerAction::ACTION_TYPE_ZONE_ENTER => IOTService::DATA_TYPE_ZONE_ENTER,
+            TriggerAction::ACTION_TYPE_ZONE_EXIT => IOTService::DATA_TYPE_ZONE_EXIT
+        ])->some(static fn ($dataType, $actionType) => ($config[$actionType] ?? false) === $messageData && $dataType === $sensorMessage->getContentType());
+
+        if ($needsTrigger) {
+            $triggerAction->setLastTrigger(new DateTime('now'));
+            if ($triggerAction->getRequestTemplate()) {
+                $this->treatRequestTemplateTriggerType($triggerAction->getRequestTemplate(), $entityManager, $wrapper);
+            } else if ($triggerAction->getAlertTemplate()) {
+                $this->treatAlertTemplateTriggerType($triggerAction->getAlertTemplate(), $sensorMessage, $entityManager);
+            } else if (isset($config['dropOnLocation'])) {
+                $this->treatDropOnLocationTriggerType($entityManager, $triggerAction, $sensorMessage);
+
+            }
+        }
+    }
+
+
+
+    private function treatActionTrigger(    SensorWrapper $wrapper,
+                                            TriggerAction $triggerAction,
+                                            SensorMessage $sensorMessage,
+                                            EntityManagerInterface $entityManager): void {
         $needsTrigger = $sensorMessage->getEvent() === self::ACS_EVENT;
         if ($needsTrigger && $sensorMessage->getSensor()->getProfile()->getName() === IOTService::SYMES_ACTION_MULTI) {
             $button = intval(substr($sensorMessage->getContent(), 7, 1)); //EVENT (2)
@@ -430,14 +491,85 @@ class IOTService
         return $ordreCollecte;
     }
 
-    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager) {
+    private function treatAlertTemplateTriggerType(AlertTemplate $template, SensorMessage $message, EntityManagerInterface $entityManager): void
+    {
         $this->alertService->trigger($template, $message, $entityManager);
     }
 
-    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local): array {
+    private function treatDropOnLocationTriggerType(EntityManagerInterface $entityManager, TriggerAction $triggerAction, SensorMessage $sensorMessage): void {
+        $config = $triggerAction->getConfig();
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
+        $dropLocation = $locationRepository->findOneBy(['id' => $config['dropOnLocation']]);
+        if (!$dropLocation) {
+            return;
+        }
+
+        $sensorWrapper = $sensorMessage->getSensor()?->getAvailableSensorWrapper();
+        if (!$sensorWrapper) {
+            return;
+        }
+
+        $pickLocation = $sensorWrapper->getActivePairing()?->getLocation();
+        if (!$pickLocation) {
+            return;
+        }
+
+        $operator = $sensorWrapper->getManager();
+        if (!$operator) {
+            return;
+        }
+
+        $packRepository = $entityManager->getRepository(Pack::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+
+        $date = $sensorMessage->getDate();
+        $logisticUnitsToMove = $packRepository->getCurrentPackOnLocations([$pickLocation->getId()], [
+            'isCount' => false,
+            'field' => 'pack'
+        ]);
+        $trackingMovementService = $this->trackingMovementService;
+
+        $statusPick = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE);
+        $statusDrop= $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+
+        foreach ($logisticUnitsToMove as $logisticUnit) {
+            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                $entityManager,
+                $logisticUnit,
+                $pickLocation,
+                $operator,
+                $date,
+                null,
+                $statusPick,
+                false,
+                [
+                    'quantity' => $logisticUnit->getQuantity(),
+                ]
+            );
+            $trackingMovementService->persistTrackingMovementForPackOrGroup(
+                $entityManager,
+                $logisticUnit,
+                $dropLocation,
+                $operator,
+                $date,
+                null,
+                $statusDrop,
+                false,
+                [
+                    'quantity' => $logisticUnit->getQuantity(),
+                ]
+            );
+
+        }
+    }
+
+    private function parseAndCreateMessage(array $message, EntityManagerInterface $entityManager, bool $local, $loRaWANServer): array {
         $deviceRepository = $entityManager->getRepository(Sensor::class);
 
-        $deviceCode = $message['metadata']["network"]["lora"]["devEUI"] ?? null;
+        $deviceCode = match ($loRaWANServer) {
+            LoRaWANServer::ChirpStack => $message['deviceName'] ?? null,
+            default => $message['metadata']["network"]["lora"]["devEUI"] ?? null,
+        };
 
         $device = $deviceCode
             ? $deviceRepository->findOneBy([
@@ -461,13 +593,19 @@ class IOTService
 
         $profile =  $device->getProfile()->getName();
 
-        $frameIsValid = $this->validateFrame($profile, $message);
+        $payload = match ($loRaWANServer) {
+            LoRaWANServer::ChirpStack => json_decode($message['objectJSON'] ?? "{}", true)['payload'] ?? null,
+            default => $message['value']['payload'] ?? null,
+        };
+
+        $frameIsValid = $this->validateFrame($profile, $payload);
         if(!$frameIsValid){
             return [];
         }
 
         $newBattery = $this->extractBatteryLevelFromMessage($message, $profile );
         $wrapper = $device->getAvailableSensorWrapper();
+
         if ($newBattery > -1) {
             $device->setBattery($newBattery);
             if ($newBattery < 10 && $wrapper && $wrapper->getManager()) {
@@ -495,11 +633,11 @@ class IOTService
                 'timestamp' => $message['timestamp'] ?? 'now',
                 'extenderPayload' => $message
             ];
-            $this->onMessageReceived($fakeFrame, $entityManager);
+            $this->onMessageReceived($fakeFrame, $entityManager, LoRaWANServer::Orange);
             return [];
         }
 
-        $messageDate = new DateTime($message['timestamp'], $local ? null : new DateTimeZone("UTC"));
+        $messageDate = new DateTime($message['timestamp'] ?? $message['publishedAt'] ?? 'now', $local ? null : new DateTimeZone("UTC"));
         if (!$local) {
             $messageDate->setTimezone(new DateTimeZone('Europe/Paris'));
         }
@@ -710,6 +848,29 @@ class IOTService
                 } else {
                     return [];
                 }
+            case IOTService::INEO_TRK_TRACER:
+                $jsonData = json_decode($config['objectJSON'], true);
+                $event = $jsonData['events'][1] ?? null;
+
+                $zone = $event["zone"] ?? null;
+
+                if ($zone) {
+                    $eventType = match ($event['eventType'] ?? null) {
+                        5 => self::DATA_TYPE_ZONE_ENTER ,
+                        6 => self::DATA_TYPE_ZONE_EXIT,
+                        default => null,
+                    };
+                    if ($eventType) {
+                        return [
+                            $eventType => $zone,
+                        ];
+                    }
+                }
+                break;
+            case IOTService::INEO_TRK_ZON:
+                return [
+                    self::DATA_TYPE_LIVENESS_PROOF => true,
+                ];
         }
         return [self::DATA_TYPE_ERROR => 'Donnée principale non trouvée'];
     }
@@ -723,6 +884,7 @@ class IOTService
             case IOTService::INEO_SENS_ACS_TEMP:
             case IOTService::INEO_SENS_ACS_TEMP_HYGRO:
             case IOTService::INEO_SENS_ACS_HYGRO:
+            case IOTService::INEO_TRK_ZON:
                 return 'PERIODIC_EVENT';
             case IOTService::DEMO_TEMPERATURE:
                 if (isset($config['payload'])) {
@@ -756,6 +918,15 @@ class IOTService
                     return self::ACS_PRESENCE;
                 }
                 break;
+            case IOTService::INEO_TRK_TRACER:
+                $jsonData = json_decode($config['objectJSON'], true);
+                $payload = $jsonData['payload'] ?? null;
+                // if pauyload starts with 40 it's a alert
+                if ($payload && str_starts_with($payload, '40')) {
+                    return self::ACS_EVENT;
+                } elseif ($payload && str_starts_with($payload, '49')) {
+                    return self::ACS_PRESENCE;
+                }
         }
         return 'Évenement non trouvé';
     }
@@ -803,6 +974,22 @@ class IOTService
                 } else {
                     return -1;
                 }
+            case IOTService::INEO_TRK_TRACER:
+                $jsonData = json_decode($config['objectJSON'], true);
+                $event = $jsonData['events'][1] ?? [];
+                return $event['battery'] ?? -1;
+            case IOTService::INEO_TRK_ZON:
+                $jsonData = json_decode($config['objectJSON'], true);
+                $events = $jsonData['events'] ?? [];
+                $batteryEvent = Stream::from($events)->find(static fn(array $event) => (int)$event['eventType'] == 4 ) ?? [];
+                $batteryLevel = $batteryEvent['numValue'] ?? null;
+                if (!$batteryLevel) {
+                    $payload = $jsonData['payload'] ?? null;
+                    if ($payload && str_starts_with($payload, '49')) {
+                        $batteryLevel = 100 - hexdec(substr($payload, 24, 2));
+                    }
+                }
+                return $batteryLevel ?? -1;
         }
         return -1;
     }
@@ -915,7 +1102,7 @@ class IOTService
                                 'event' => IOTService::ACS_PRESENCE,
                             ];
 
-                            $this->onMessageReceived($fakeFrame, $entityManager, true);
+                            $this->onMessageReceived($fakeFrame, $entityManager, true, LoRaWANServer::Orange);
                         }
                     }
                 }
@@ -1100,10 +1287,13 @@ class IOTService
         }
     }
 
-    public function validateFrame(string $profile, array $frame): bool {
+    public function validateFrame(string $profile, string $payload): bool {
         return match ($profile) {
-            IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($frame['value']['payload'], '6d'),
-            IOTService::INEO_INS_EXTENDER => str_starts_with($frame['value']['payload'], '12') || str_starts_with($frame['value']['payload'], '49'),
+            IOTService::INEO_SENS_ACS_TEMP_HYGRO, IOTService::INEO_SENS_ACS_HYGRO, IOTService::INEO_SENS_ACS_TEMP => str_starts_with($payload, '6d'),
+            IOTService::INEO_INS_EXTENDER => str_starts_with($payload, '12') || str_starts_with($$payload, '49'),
+            IOTService::INEO_TRK_TRACER => str_starts_with($payload, '40'),
+            IOTService::INEO_TRK_ZON => str_starts_with($payload, '49'),
+
             default => true,
         };
     }

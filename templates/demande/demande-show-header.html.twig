@@ -9,6 +9,8 @@
     <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITH_PROJECT'))|replace({'@Destinataire': receiver}) }}">
     <input hidden name="DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT" value="{{ setting_value(constant('App\\Entity\\Setting::DELIVERY_REQUEST_REF_COMMENT_WITHOUT_PROJECT'))|replace({'@Destinataire': receiver}) }}">
 
+    {% set associatedReception = (demande.reception is defined and demande.reception) ? demande.reception : null %}
+
     {% include 'utils/action-buttons/header-buttons.html.twig' with {
         forceActionButton: true,
         actions: [
@@ -23,12 +25,12 @@
                 }
             },
             {
-                hasRight: demande.reception is not empty and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')),
+                hasRight: associatedReception and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_RECE')),
                 buttonClass: "btn btn-primary",
                 icon: "fas fa-external-link-alt",
                 title: "Aller vers la réception",
                 dropdownOnly: true,
-                href: demande.reception ? path('reception_show', {'id': demande.reception.id  }),
+                href: associatedReception ? path('reception_show', {'id': associatedReception.id  }),
             },
             {
                 hasRight: demande.preparations|length > 1 and hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::DISPLAY_PREPA')),

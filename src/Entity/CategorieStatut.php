@@ -3,8 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\CategorieStatutRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategorieStatutRepository::class)]
@@ -36,21 +35,15 @@ class CategorieStatut {
     const SHIPPING_REQUEST = 'expédition';
     const IMPORT = 'import';
     const EXPORT = 'export';
+    const PRODUCTION = 'production';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 32)]
+    #[ORM\Column(type: Types::STRING, length: 32)]
     private ?string $nom = null;
-
-    #[ORM\OneToMany(targetEntity: 'Statut', mappedBy: 'categorie')]
-    private Collection $statuts;
-
-    public function __construct() {
-        $this->statuts = new ArrayCollection();
-    }
 
     public function getId(): ?int {
         return $this->id;
@@ -65,33 +58,4 @@ class CategorieStatut {
 
         return $this;
     }
-
-    /**
-     * @return Collection|CategorieStatut[]
-     */
-    public function getStatuts(): Collection {
-        return $this->statuts;
-    }
-
-    public function addStatut(Statut $statut): self {
-        if(!$this->statuts->contains($statut)) {
-            $this->statuts[] = $statut;
-            $statut->setCategorie($this);
-        }
-
-        return $this;
-    }
-
-    public function removeStatut(Statut $statut): self {
-        if($this->statuts->contains($statut)) {
-            $this->statuts->removeElement($statut);
-            // set the owning side to null (unless already changed)
-            if($statut->getCategorie() === $this) {
-                $statut->setCategorie(null);
-            }
-        }
-
-        return $this;
-    }
-
 }

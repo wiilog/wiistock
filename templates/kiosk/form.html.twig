@@ -12,9 +12,9 @@
     <div class="main-page-container">
         <div>
             <div class="timeline-container">
-                <span class="{{ not inStock  and reference.id ? '' : 'past' }} wii-field-text">Référence</span>
-                <span class="{{ not inStock  and reference.id ? '' : 'current' }} wii-field-text">Demandeur et suiveur</span>
-                <span class="{{ not inStock  and reference.id ? '' : 'future' }} wii-field-text">Autres informations</span>
+                <span class="{{ not inStock  and reference.id ? 'past' : (notExistRefresh ? 'past': 'current') }} wii-field-text">Référence</span>
+                <span class="{{ not inStock  and reference.id ? 'past' : (notExistRefresh ? 'current' : 'future') }} wii-field-text">Demandeur et suiveur</span>
+                <span class="{{ not inStock  and reference.id ? 'past' : 'future' }} wii-field-text">Autres informations</span>
                 {% if not inStock and reference.id %}
                     <span class="current wii-field-text">Article</span>
                 {% endif %}
@@ -23,13 +23,13 @@
             <div class="form-content">
 
                 <div class="entry-stock-container">
-                    <div class="reference-container d-none">
+                    <div class="reference-container {{ (not inStock and reference.id) or notExistRefresh ? 'd-none' : 'active' }}">
                         <div class="d-flex justify-content-center">
                             <label class="w-100 mr-3">Référence<input type="search" class="data w-100" required name="reference-ref-input" value="{{ reference.reference ?? scannedReference }}" autofocus></label>
                             <label class="w-100 ml-3">Libellé<input type="search" class="data w-100" required name="reference-label-input" value="{{ reference.libelle ?? scannedReference }}"></label>
                         </div>
                     </div>
-                    <div class="manager-container {{ not inStock  and reference.id ? 'd-none' : 'active' }}">
+                    <div class="manager-container {{ notExistRefresh ? 'active' : 'd-none' }}">
                         <div class="d-flex justify-content-center">
                             <label class="w-100 mr-3">
                                 Demandeur

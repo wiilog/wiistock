@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Alert;
 use App\Entity\AverageRequestTime;
-use App\Entity\CategoryType;
 use App\Entity\Collecte;
+use App\Entity\Dashboard\ComponentType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Emplacement;
@@ -15,8 +15,6 @@ use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\TransferRequest;
-use App\Entity\Transporteur;
-use App\Entity\TruckArrivalLine;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
@@ -33,6 +31,8 @@ class DashboardSettingsService {
     const MODE_EDIT = 0;
     const MODE_DISPLAY = 1;
     const MODE_EXTERNAL = 2;
+
+    const MAX_REQUESTS_TO_DISPLAY = 50;
 
     const UNKNOWN_COMPONENT = 'unknown_component';
     const INVALID_SEGMENTS_ENTRY = 'invalid_segments_entry';
@@ -362,7 +362,7 @@ class DashboardSettingsService {
             if ($config["kind"] == "delivery" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_DEM_LIVR)))) {
                 $demandeRepository = $entityManager->getRepository(Demande::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingDeliveries = Stream::from($demandeRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(Demande $demande) use ($averageRequestTimesByType) {
                             return $this->demandeLivraisonService->parseRequestForCard($demande, $this->dateService, $averageRequestTimesByType);
                         })
@@ -374,7 +374,7 @@ class DashboardSettingsService {
                 $collecteRepository = $entityManager->getRepository(Collecte::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
                     $backgroundColor = $config['backgroundColor'] ?? '';
-                    $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingCollects = Stream::from($collecteRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(Collecte $collecte) use ($averageRequestTimesByType, $backgroundColor) {
                             return $this->demandeCollecteService->parseRequestForCard($collecte, $this->dateService, $averageRequestTimesByType, $backgroundColor);
                         })
@@ -385,7 +385,7 @@ class DashboardSettingsService {
             if ($config["kind"] == "handling" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_HAND)))) {
                 $handlingRepository = $entityManager->getRepository(Handling::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingHandlings = Stream::from($handlingRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
                         ->map(function(Handling $handling) use ($averageRequestTimesByType) {
                             return $this->handlingService->parseRequestForCard($handling, $this->dateService, $averageRequestTimesByType);
                         })
@@ -396,7 +396,7 @@ class DashboardSettingsService {
             if ($config["kind"] == "transfer" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_TRANSFER_REQ)))) {
                 $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, 50))
+                    $pendingTransfers = Stream::from($transferRequestRepository->findRequestToTreatByUser($loggedUser, self::MAX_REQUESTS_TO_DISPLAY))
                         ->map(function(TransferRequest $transfer) use ($averageRequestTimesByType) {
                             return $this->transferRequestService->parseRequestForCard($transfer, $this->dateService, $averageRequestTimesByType);
                         })
@@ -404,10 +404,9 @@ class DashboardSettingsService {
                 }
             }
             if ($config["kind"] == "dispatch" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::DEM, Action::DISPLAY_ACHE)))) {
-                $typeRepository = $entityManager->getRepository(Type::class);
                 $dispatchRepository = $entityManager->getRepository(Dispatch::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, 50, $config["entityTypes"] ?? []))
+                    $pendingDispatches = Stream::from($dispatchRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
                         ->map(function(Dispatch $dispatch) use ($averageRequestTimesByType) {
                             return $this->dispatchService->parseRequestForCard($dispatch, $this->dateService, $averageRequestTimesByType);
                         })
@@ -1145,13 +1144,15 @@ class DashboardSettingsService {
                                         if (!$type) {
                                             throw new InvalidArgumentException(self::UNKNOWN_COMPONENT . '-' . $jsonComponent["type"]);
                                         }
-                                        $component->setType($type);
-                                        $component->setRow($row);
-                                        $component->setColumnIndex($jsonComponent["columnIndex"]);
-                                        $component->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null);
-                                        $component->setCellIndex($jsonComponent["cellIndex"] ?? null);
+                                        $component
+                                            ->setType($type)
+                                            ->setRow($row)
+                                            ->setColumnIndex($jsonComponent["columnIndex"])
+                                            ->setDirection($jsonComponent["direction"] !== "" ? $jsonComponent["direction"] : null)
+                                            ->setCellIndex($jsonComponent["cellIndex"] ?? null);
                                         $this->validateComponentConfig($type, $jsonComponent["config"]);
                                         $component->setConfig($jsonComponent["config"]);
+                                        $this->initializeLocationClusters($entityManager, $component, $type);
                                     }
 
                                     if (isset($jsonComponent["id"], $componentsToDelete[$jsonComponent["id"]])) {
@@ -1291,10 +1292,12 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::ENTRIES_TO_HANDLE:
             case Dashboard\ComponentType::ONGOING_PACKS:
                 $locations = $config['locations'] ?? [];
+                $natures = $config['natures'] ?? [];
                 $redirect = $config['redirect'] ?? false;
                 $link = !empty($locations) && $redirect
                     ? $this->router->generate('en_cours', [
                         'locations' => implode(',', $locations),
+                        'natures' => implode(',', $natures),
                         'fromDashboard' => true,
                         'useTruckArrivalsFromDashboard' => $config["truckArrivalTime"] ?? false,
                     ]) : null;
@@ -1371,5 +1374,14 @@ class DashboardSettingsService {
 
         $values['multiple'] = true;
         return $values;
+    }
+
+    public function initializeLocationClusters(EntityManagerInterface  $entityManager,
+                                               Dashboard\Component     $component,
+                                               Dashboard\ComponentType $componentType): void {
+        if(in_array($componentType->getMeterKey(), [ComponentType::ENTRIES_TO_HANDLE, ComponentType::PACK_TO_TREAT_FROM, ComponentType::DROP_OFF_DISTRIBUTED_PACKS])){
+            $this->dashboardService->updateComponentLocationCluster($entityManager, $component, 'locations');
+            $entityManager->flush();
+        }
     }
 }

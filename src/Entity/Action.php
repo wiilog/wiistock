@@ -139,6 +139,19 @@ class Action {
     const DISPLAY_SENSOR = 'afficher capteurs';
     const DISPLAY_TRIGGER = 'afficher actionneurs';
     const DISPLAY_PAIRING = 'afficher associations';
+
+    // production
+    const DISPLAY_PRODUCTION_REQUEST =  'afficher demandes de production';
+    const CREATE_PRODUCTION_REQUEST = 'créer demande de production';
+    const EXPORT_PRODUCTION_REQUEST = 'exporter demandes de production';
+    const EDIT_IN_PROGRESS_PRODUCTION_REQUEST = 'modifier demandes de production au statut en cours';
+    const EDIT_TO_TREAT_PRODUCTION_REQUEST = 'modifier demandes de production au statut à traiter';
+    const DELETE_TO_TREAT_PRODUCTION_REQUEST = 'supprimer demandes de production au statut à traiter';
+    const DELETE_TREATED_PRODUCTION_REQUEST = 'supprimer demandes de production au statut traité';
+    const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
+    const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
+    const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+
     // menu paramétrage
     const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
     const SETTINGS_DISPLAY_APPLICATION_CLIENT = 'afficher client application';
@@ -155,6 +168,7 @@ class Action {
     const SETTINGS_DISPLAY_VISIBILITY_GROUPS = 'afficher groupes de visibilité';
     const SETTINGS_DISPLAY_INVENTORIES = 'afficher inventaires';
     const SETTINGS_DISPLAY_RECEP = 'afficher réceptions';
+    const SETTINGS_DISPLAY_GROUPED_SIGNATURE_SETTINGS = 'afficher paramétrages signature groupée';
 
     const SETTINGS_DISPLAY_TRACING_DISPATCH = 'afficher acheminements trace';
     const SETTINGS_DISPLAY_ARRI = 'afficher arrivages UL';
@@ -198,6 +212,8 @@ class Action {
     const SETTINGS_DISPLAY_DELIVERY_TEMPLATE = "afficher livraisons";
     const SETTINGS_DISPLAY_SHIPPING_TEMPLATE = "afficher expeditions";
 
+    const SETTINGS_DISPLAY_PRODUCTION = 'afficher production';
+
     // menu nomade
     const ACCESS_NOMADE_LOGIN = 'Connexion au nomade';
     const MODULE_ACCESS_GROUP = 'Accès Groupage';
@@ -219,6 +235,7 @@ class Action {
     const MODULE_ACCESS_ARTICLES_UL_ASSOCIATION = 'Accès association articles-UL';
     const MODULE_ACCESS_HANDLING = 'Accès services';
     const MODULE_ACCESS_DELIVERY_REQUESTS = 'Accès demandes de livraison';
+    const MODULE_ACCESS_RECEIPT_ASSOCIATION = 'Accès associations BR';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

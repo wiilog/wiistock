@@ -68,7 +68,7 @@ class Select2Old {
                                                 $self.select2('close');
                                                 if ($nextField) {
 
-                                                    if (!$nextField.data('select2')) {
+                                                    if ($nextField.data('select2')) {
                                                         $nextField.select2('open');
                                                     } else {
                                                         $nextField.trigger('focus');
@@ -227,7 +227,7 @@ class Select2Old {
         const data = $inputValue.data();
         if (data && data.id && data.text) {
             let idArr = data.id.toString().split(',');
-            let textArr = data.text.split(',');
+            let textArr = data.text.toString().split(',');
 
             for (let i = 0; i < idArr.length; i++) {
                 let option = new Option(textArr[i], idArr[i], true, true);

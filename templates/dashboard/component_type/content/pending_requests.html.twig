@@ -5,7 +5,7 @@
 {% set kinds = [
     { value: 'delivery', label: trans('Demande', 'Livraison', 'Livraison', false)},
     { value: 'collect', label: 'Collecte' },
-    { value: 'handling', label: 'Service' },
+    { value: 'handling', label: 'Service', categoryType: constant('App\\Entity\\CategoryType::DEMANDE_HANDLING') },
     { value: 'dispatch', label: 'Acheminement', categoryType: constant('App\\Entity\\CategoryType::DEMANDE_DISPATCH')},
     { value: 'transfer', label: 'Transfert' },
 ] %}

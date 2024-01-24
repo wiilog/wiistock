@@ -42,6 +42,7 @@ export function initializeImports() {
         columns: [
             {data: `actions`, title: ``, orderable: false, className: `noVis`},
             {data: `id`, visible: false},
+            {data: `information`, title: ``, className: `noVis`, orderable: false},
             {data: `lastErrorMessage`, title: ``, className: `noVis`, orderable: false},
             {data: `status`, title: `Statut`},
             {data: `createdAt`, title: `Date de création`},
@@ -61,9 +62,6 @@ export function initializeImports() {
             needsRowClickAction: true
         },
         drawConfig: {
-            callback: () => {
-                registerForceInput();
-            },
             needsSearchOverride: true,
         },
         order: [[`id`, `desc`]],
@@ -72,21 +70,12 @@ export function initializeImports() {
     tableImport = initDataTable(`tableImport`, tableImportConfig);
 
     $(document).on(`click`, `button.force-import`, function() {
-        const $forceImportModal = $(`#modalConfirmForce`);
+        const $modalForceImport = $(`#modalForceImport`);
         const id = $(this).data(`id`);
 
-        $forceImportModal.modal(`show`);
-
-        Form.create($forceImportModal)
-            .clearOpenListeners()
-            .clearSubmitListeners()
-            .onSubmit((data, form) => {
-                form.loading(() => (
-                    AJAX.route(AJAX.POST, `import_force`, {import: id})
-                        .json()
-                        .then(() => tableImport.ajax.reload())
-                ), true, true)
-            });
+        $modalForceImport.find(`[name=importId]`).val(id);
+        $modalForceImport.modal(`show`);
+        launchImport($modalForceImport, id, true);
     });
 
     $(document).on(`click`, `button.delete-import`, function() {
@@ -114,8 +103,10 @@ export function initializeImports() {
                 form.loading(() => (
                     AJAX.route(AJAX.POST, `import_cancel`, {import: id})
                         .json()
-                        .then(() => tableImport.ajax.reload())
-                ))
+                        .then(() => {
+                            tableImport.ajax.reload();
+                        })
+                ), true, {closeModal: true})
             });
     });
 }
@@ -210,24 +201,6 @@ function updateOptions($select) {
     }
 }
 
-function registerForceInput() {
-    let count = 0;
-    let $modalLaunchPlanifiedImport = $(`#modalLaunchPlanifiedImport`);
-    $(document).on(`click`, `.import-scheduled-status`, function() {
-        count += 1;
-        if (count === CLICK_NUMBER_FORCE_IMPORT) {
-            const id = $(this).data(`id`);
-            $modalLaunchPlanifiedImport.find(`[name=importId]`).val($(this).data(`id`));
-            $modalLaunchPlanifiedImport.modal(`show`);
-            launchImport($modalLaunchPlanifiedImport, id, true);
-        }
-    });
-
-    $modalLaunchPlanifiedImport.on(`hidden.bs.modal`, () => {
-        count = 0;
-    });
-}
-
 function launchImport($modal, importId, force = false) {
     if (importId) {
         Form.create($modal)
@@ -236,15 +209,12 @@ function launchImport($modal, importId, force = false) {
                 form.loading(() => (
                     AJAX.route(AJAX.POST, `import_launch`, {importId, force: Number(Boolean(force))})
                         .json()
-                        .then(({success, message}) => {
+                        .then(({success}) => {
                             if (success) {
-                                if (!force) {
-                                    $modal.modal(`hide`);
-                                }
+                                tableImport.ajax.reload();
                             }
-                            tableImport.ajax.reload();
                         })
-                ))
+                ), true, {closeModal: true})
             });
     } else {
         Flash.add(Flash.ERROR, `Une erreur est survenue lors du lancement de votre import. Veuillez recharger la page et réessayer.`);

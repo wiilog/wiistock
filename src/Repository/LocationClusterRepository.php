@@ -16,7 +16,7 @@ class LocationClusterRepository extends EntityRepository {
     public function getPacksOnCluster(LocationCluster $locationCluster, array $naturesFilter, Language $defaultLanguage): array {
         $queryBuilder = $this->createQueryBuilder('cluster')
             ->select('join_nature.id as natureId')
-            ->addSelect("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, join_nature.label)) AS natureLabel")
+            ->addSelect("COALESCE(join_translation_nature.translation, join_translation_default_nature.translation, join_nature.label) AS natureLabel")
             ->addSelect('join_firstDrop.datetime AS firstTrackingDateTime')
             ->addSelect('join_lastTracking.datetime AS lastTrackingDateTime')
             ->addSelect('join_currentLocation.id AS currentLocationId')
@@ -33,7 +33,7 @@ class LocationClusterRepository extends EntityRepository {
             ->andWhere('cluster = :locationCluster')
             ->setParameter('locationCluster', $locationCluster);
 
-        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $defaultLanguage, $defaultLanguage, 'nature', ["alias" => "join_logisticUnit"]);
+        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $defaultLanguage, $defaultLanguage, ['nature'], ["alias" => "join_logisticUnit"]);
 
         if (!empty($naturesFilter)) {
             $queryBuilder

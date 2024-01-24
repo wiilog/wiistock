@@ -20,6 +20,7 @@ use App\Entity\Pack;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\PreparationOrder\Preparation;
+use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
@@ -444,6 +445,8 @@ class TrackingMovementService extends AbstractController
             $pack->setLastTracking($tracking);
         }
 
+        $this->treatGroupDrop($entityManager, $pack, $tracking);
+
         $this->managePackLinksWithTracking($entityManager, $tracking);
         $this->manageTrackingLinks($entityManager, $tracking, [
             "from" => $from,
@@ -633,11 +636,6 @@ class TrackingMovementService extends AbstractController
                 }
 
                 if ($tracking->isDrop()) {
-                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- USER {user} has dropped the pack into location {location}', [
-                        'user' => $tracking->getOperateur()->getUsername(),
-                        'pack' => $pack->getCode(),
-                        'location' => $tracking->getEmplacement()->getLabel(),
-                    ]);
                     $record->setActive(true);
                     $previousRecordLastTracking = $record->getLastTracking();
                     // check if pack previous last tracking !== record previous lastTracking
@@ -648,10 +646,6 @@ class TrackingMovementService extends AbstractController
                         || ($previousRecordLastTracking->getId() !== $previousLastTracking->getId())) {
                         $record->setFirstDrop($tracking);
                     }
-                    $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter cluster : {cluster}', [
-                        'pack' => $pack->getCode(),
-                        'cluster' => $cluster->getId(),
-                    ]);
                     $this->locationClusterService->setMeter(
                         $entityManager,
                         LocationClusterService::METER_ACTION_INCREASE,
@@ -663,17 +657,8 @@ class TrackingMovementService extends AbstractController
                         && $previousLastTracking->isTaking()) {
                         $locationPreviousLastTracking = $previousLastTracking->getEmplacement();
                         $locationClustersPreviousLastTracking = $locationPreviousLastTracking ? $locationPreviousLastTracking->getClusters() : [];
-                        $this->logger->critical('TRACKINGDEBUG : {pack} --------- Previous tracking was a taking from location : {location}', [
-                            'pack' => $pack->getCode(),
-                            'location' => $locationPreviousLastTracking?->getLabel()
-                        ]);
                         /** @var LocationCluster $locationClusterPreviousLastTracking */
                         foreach ($locationClustersPreviousLastTracking as $locationClusterPreviousLastTracking) {
-                            $this->logger->critical('TRACKINGDEBUG : {pack} --------- incrementing the meter from cluster 1 : {cluster1} into cluster 2 : {cluster2}', [
-                                'pack' => $pack->getCode(),
-                                'cluster1' => $locationClusterPreviousLastTracking->getId(),
-                                'cluster2' => $cluster->getId(),
-                            ]);
                             $this->locationClusterService->setMeter(
                                 $entityManager,
                                 LocationClusterService::METER_ACTION_INCREASE,
@@ -746,11 +731,8 @@ class TrackingMovementService extends AbstractController
     public function putMovementLine($handle,
                                     CSVExportService $CSVExportService,
                                     array $movement,
-                                    array $attachement,
                                     array $freeFieldsConfig)
     {
-
-        $attachementName = $attachement[$movement['id']] ?? ' ' ;
 
         if(!empty($movement['numeroArrivage'])) {
            $origine =  $this->translation->translate("Traçabilité", "Arrivages UL", "Divers", "Arrivage UL", false) . '-' . $movement['numeroArrivage'];
@@ -772,8 +754,8 @@ class TrackingMovementService extends AbstractController
             $movement['quantity'],
             $this->translation->translate("Traçabilité", "Mouvements", $movement['typeName'], false),
             $movement['operatorUsername'],
-            strip_tags($movement['commentaire']),
-            $attachementName,
+            $movement['commentaire'] ? strip_tags($movement['commentaire']) : "",
+            $movement["hasAttachments"],
             $origine ?? ' ',
             $movement['numeroCommandeListArrivage'] && !empty($movement['numeroCommandeListArrivage'])
                         ? join(', ', $movement['numeroCommandeListArrivage'])
@@ -1534,5 +1516,52 @@ class TrackingMovementService extends AbstractController
             ->map(fn(Article $article) => $article->getQuantite())
             ->sum();
         $pack->setQuantity(max($newQuantity, 1));
+    }
+
+    public function treatGroupDrop(EntityManagerInterface $entityManager, Pack $pack, TrackingMovement $tracking): void {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $autoUngroup = (bool) $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP);
+
+        if(!$autoUngroup
+            || (($tracking->getType()->getCode() !== TrackingMovement::TYPE_DEPOSE) || !$pack->isGroup())
+            || $pack->getChildren()->isEmpty()
+        ){
+            return;
+        }
+
+        $autoUngroupTypes = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::AUTO_UNGROUP_TYPES) ?: '')
+                ->filter(fn(string $type) => !empty($type))
+                ->map(fn(string $type) => (int) $type)
+                ->toArray();
+        $linkedDispatches = $tracking->getEmplacement()
+            ? $tracking->getEmplacement()->getDispatchesTo()
+                ->map(fn (Dispatch $dispatch) => $dispatch->getId())
+                ->toArray()
+            : [];
+
+        foreach ($pack->getChildren() as $children) {
+            foreach($children->getDispatchPacks() as $dispatchPack) {
+                $dispatch = $dispatchPack->getDispatch();
+
+                if(in_array($dispatch->getId(), $linkedDispatches)
+                    && in_array($dispatch->getType()->getId(), $autoUngroupTypes )){
+
+                    $date = new DateTime('now');
+                    $trackingMovement = $this->createTrackingMovement(
+                        $children,
+                        $tracking->getEmplacement(),
+                        $tracking->getOperateur(),
+                        $date,
+                        false,
+                        true,
+                        TrackingMovement::TYPE_UNGROUP
+                    );
+
+                    $pack->removeChild($children);
+                    $entityManager->persist($trackingMovement);
+                    $this->persistSubEntities($entityManager, $trackingMovement);
+                }
+            }
+        }
     }
 }

@@ -28,22 +28,23 @@ class VisibleColumnService {
 
     public function getArrayConfig(array $fields,
                                    array $freeFields = [],
-                                   array $columnsVisible = []): array
+                                   array $columnsVisible = [],
+                                   bool  $forExport = false): array
     {
         $user = $this->userService->getUser();
         $userLanguage = $user->getLanguage();
         $defaultLanguage = $this->languageService->getDefaultLanguage();
         return array_merge(
             array_map(
-                function (array $column) use ($columnsVisible) {
+                function (array $column) use ($columnsVisible, $forExport) {
                     $alwaysVisible = $column['alwaysVisible'] ?? false;
                     $visible = isset($column['forceHidden'])
                             ? false
-                            : ($column['visible'] ?? ($alwaysVisible || in_array($column['name'], $columnsVisible)));
+                            : ($column['visible'] ?? ($forExport || ($alwaysVisible || in_array($column['name'], $columnsVisible))));
                     $translated = $column['translated'] ?? false;
                     $title = $column['title'] ?? '';
                     return [
-                        'title' => $title,
+                        'title' => ucfirst($title),
                         'hiddenTitle' => $column['hiddenTitle'] ?? '',
                         'alwaysVisible' => $column['alwaysVisible'] ?? null,
                         'hiddenColumn' => $column['hiddenColumn'] ?? false,
@@ -61,10 +62,10 @@ class VisibleColumnService {
                 $fields
             ),
             array_map(
-                function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage) {
+                function (FreeField $freeField) use ($columnsVisible, $userLanguage, $defaultLanguage, $forExport) {
                     $freeFieldName = $this->getFreeFieldName($freeField->getId());
                     $alwaysVisible = $column['alwaysVisible'] ?? null;
-                    $visible = $alwaysVisible || in_array($freeFieldName, $columnsVisible);
+                    $visible = $forExport || ($alwaysVisible || in_array($freeFieldName, $columnsVisible));
                     $dirtyLabel = $freeField->getLabelIn($userLanguage, $defaultLanguage) ?: $freeField->getLabel();
                     $title = ucfirst(mb_strtolower($dirtyLabel));
                     return [
