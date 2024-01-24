@@ -32,7 +32,7 @@ jobs:
                     path: projects/wiistock
 
             -   name: todo
-                run: ls
+                run: ls -la projects/wiistock
 
             -   name: Copy .env.example to .env.local
                 run: cp .env.example .env.local
