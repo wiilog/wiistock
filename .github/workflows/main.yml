@@ -20,6 +20,9 @@ jobs:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
 
+            -   name: Setup environment wiistock-docker
+                run: cp .env.example .env
+
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
@@ -27,3 +30,6 @@ jobs:
                     #ref: ${{ github.event.pull_request.head.sha }}
                     ref: ${{ github.event.head_commit.id }}
                     path: projects/wiistock
+
+            -   name: Build & run containers
+                run: docker compose up --build app
