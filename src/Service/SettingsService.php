@@ -782,6 +782,20 @@ class SettingsService {
                     throw new RuntimeException("Le libellé du champ libre ne peut pas être vide");
                 }
 
+                $minCharactersLength = (isset($item["minCharactersLength"]) && $item["minCharactersLength"] !== "")
+                    ? intval($item["minCharactersLength"])
+                    : null;
+
+                $maxCharactersLength = (isset($item["maxCharactersLength"]) && $item["maxCharactersLength"] !== "")
+                    ? intval($item["maxCharactersLength"])
+                    : null;
+
+                if ($minCharactersLength !== null
+                    && $maxCharactersLength !== null
+                    && ($minCharactersLength > $maxCharactersLength)) {
+                    throw new RuntimeException("Le nombre de caractères minimum doit être inférieur au maximum pour le champ libre <strong>{$item["label"]}</strong>.");
+                }
+
                 $freeField
                     ->setLabel($item["label"])
                     ->setType($type ?? null)
@@ -795,8 +809,8 @@ class SettingsService {
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"])
-                    ->setMinCharactersLength(isset($item["minCharactersLength"]) ? intval($item["minCharactersLength"]) : null)
-                    ->setMaxCharactersLength(isset($item["maxCharactersLength"]) ? intval($item["maxCharactersLength"]) : null);
+                    ->setMinCharactersLength($minCharactersLength)
+                    ->setMaxCharactersLength($maxCharactersLength);
 
                 $defaultTranslation = $freeField->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
                 if ($defaultTranslation) {

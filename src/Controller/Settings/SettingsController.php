@@ -2554,14 +2554,14 @@ class SettingsController extends AbstractController {
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
-                    "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
+                    "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
                         : "",
-                    "minCharactersLength" => $freeField->getTypage() == FreeField::TYPE_TEXT
-                        ? "<input type='number' name='minCharactersLength' class='$class'/>"
+                    "minCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='minCharactersLength' min='1' class='$class' value='{$freeField->getMinCharactersLength()}'/>"
                         : "",
-                    "maxCharactersLength" => $freeField->getTypage() == FreeField::TYPE_TEXT
-                        ? "<input type='number' name='maxCharactersLength' class='$class'/>"
+                    "maxCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='maxCharactersLength' min='1' class='$class' value='{$freeField->getMaxCharactersLength()}'/>"
                         : "",
                 ];
             } else {

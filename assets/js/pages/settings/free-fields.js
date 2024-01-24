@@ -36,19 +36,18 @@ let canTranslate = true;
 
 function generateFreeFieldForm() {
     const fieldTypes = Object.entries(TYPINGS)
-        .reduce((acc, option) => {
-            return acc + `<option value="${option[0]}">${option[1]}</option>`
-        }, `<option selected disabled>Type de champ</option>`);
+        .reduce((acc, [name, label]) => `${acc}<option value="${name}">${label}</option>`, ``);
 
     return {
         actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
         label: `<input type="text" name="label" required class="form-control data" data-global-error="Libellé"/>`,
         type: `
             <select class="form-control data" name="type" required>
+                <option selected disabled>Type de champ</option>
                 ${fieldTypes}
             </select>`,
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
-        minCharactersLength: `<input type="number" name="minCharactersLength" min="0" class="form-control data d-none" data-global-error="Nb caractères min"/>`,
+        minCharactersLength: `<input type="number" name="minCharactersLength" min="1" class="form-control data d-none" data-global-error="Nb caractères min"/>`,
         maxCharactersLength: `<input type="number" name="maxCharactersLength" min="1" class="form-control data d-none" data-global-error="Nb caractères max"/>`,
         defaultValue: () => {
             // executed each time we add a new row to calculate new id
