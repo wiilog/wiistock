@@ -31,15 +31,12 @@ jobs:
                     ref: ${{ github.event.head_commit.id }}
                     path: projects/wiistock
 
-            -   name: todo
-                run: ls -la projects/wiistock
-
             -   name: Copy .env.example to .env.local
-                run: cp .env.example .env.local
+                run: cp projects/wiistock/.env.example projects/wiistock/.env.local
 
             -   name: Change db string URL .env.local
                 # change this line : "DATABASE_URL=mysql://root@127.0.0.1:3306/wiistock" by "DATABASE_URL=mysql://root:example@mysql:3306/wiistock"
-                run: sed -i 's/127\.0\.0\.1:3306/mysql:3306/g' projects/wiistock/.env.local
+                run: sed -i 's/127\.0\.0\.1:3306/mysql:3306/g' projects/wiistock/.env.local && cat projects/wiistock/.env.local
 
             -   name: Add generated.yaml to wiistock
                 run: |
