@@ -1,0 +1,29 @@
+name: run-cypress
+
+on:
+    push:
+        branches:
+            - WIIS-9654
+        #pull_request:
+        #    - todo
+
+jobs:
+    cypress-run:
+        runs-on: ubuntu-latest
+        container:
+            image: docker:latest
+            options: --user root
+        steps:
+            -   name: Checkout wiistock-docker
+                uses: actions/checkout@v4
+                with:
+                    repository: wiilog/wiistock-docker
+                    token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
+                with:
+                    repository: wiilog/wiistock
+                    #ref: ${{ github.event.pull_request.head.sha }}
+                    ref: ${{ github.event.head_commit.id }}
+                    path: projects/wiistock
