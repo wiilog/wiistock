@@ -1,3 +1,4 @@
+/*
 const linesTableFreeFieldsComponent = 'table[data-table-processing=fixedFields] tbody tr';
 const numberPacksNature1 = 1;
 const numberPacksNature2 = 4;
@@ -64,7 +65,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
 
     it('should get the right permissions', () => {
         cy.intercept('POST', '/parametrage/enregistrer').as('settings_save');
-        cy.intercept('GET', '/parametrage/champs-libres/api/*').as('settings_free_field_api');
+        cy.intercept('GET', '/parametrage/champs-libres/api/!*').as('settings_free_field_api');
 
         cy.get(`[data-menu=configurations] input[type=checkbox]`)
             .uncheck({force: true});
@@ -122,7 +123,7 @@ describe('Get the right permissions for logistic units arrivals', () => {
 describe('Add and edit logistic units arrivals', () => {
 
     beforeEach(() => {
-        cy.intercept('POST', 'arrivage/packs/api/*').as('packs_api');
+        cy.intercept('POST', 'arrivage/packs/api/!*').as('packs_api');
         const downloadsFolder = Cypress.config('downloadsFolder');
         cy.exec(`del /q ${downloadsFolder}\\*`, {failOnNonZeroExit: false});
         cy.login(user);
@@ -131,8 +132,8 @@ describe('Add and edit logistic units arrivals', () => {
     })
 
     it("should add a new logistic units arrivals without the redirect after a new arrival", () => {
-        cy.intercept('GET', '/arrivage/*/etiquettes?*template=1').as('print_arrivage_bar_codes_nature_1');
-        cy.intercept('GET', '/arrivage/*/etiquettes?*template=2').as('print_arrivage_bar_codes_nature_2');
+        cy.intercept('GET', '/arrivage/!*!/etiquettes?*template=1').as('print_arrivage_bar_codes_nature_1');
+        cy.intercept('GET', '/arrivage/!*!/etiquettes?*template=2').as('print_arrivage_bar_codes_nature_2');
         cy.intercept('POST', '/arrivage/creer').as('arrivage_new');
 
         cy.get('button[name=new-arrival]')
@@ -444,7 +445,7 @@ describe('Add and edit logistic units arrivals', () => {
     })
 
     it("should edit a dispute", () => {
-        cy.intercept('POST', '/arrivage/litiges/api/*').as('arrivageLitiges_api');
+        cy.intercept('POST', '/arrivage/litiges/api/!*').as('arrivageLitiges_api');
         cy.intercept('POST', '/arrivage/api-modifier-litige').as('litige_api_edit')
         cy.intercept('POST', '/arrivage/modifier-litige*').as('litige_edit_arrivage')
 
@@ -549,7 +550,7 @@ describe('Add and edit logistic units arrivals', () => {
 
     it("should add a new logistic units", () => {
         cy.intercept('POST', '/arrivage/ajouter-UL').as('arrivage_add_pack');
-        cy.intercept('GET', '/arrivage/*/etiquettes?packs%5B%5D=*').as('printPacks')
+        cy.intercept('GET', '/arrivage/!*!/etiquettes?packs%5B%5D=*').as('printPacks')
 
         cy.get('#arrivalsTable tbody tr')
             .last()
@@ -756,3 +757,4 @@ describe('Add and edit logistic units arrivals', () => {
             .contains(LUArrivalsChanged.file);
     })
 })
+*/

@@ -33,10 +33,13 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
         cy.intercept('POST', 'fournisseur/creer').as('supplier_new');
         // ouvre la modal
         cy.get(`button[data-target='#modalNewFournisseur']`).click();
+
         cy.get('#modalNewFournisseur').should('be.visible', {timeout: 4000}).then(() => {
             cy.get('#modalNewFournisseur input[name=name]').should('be.visible').then(() => {
+
                 cy.get('#modalNewFournisseur input[name=name]').type(suplier.name);
                 cy.get('#modalNewFournisseur input[name=code]').type(suplier.code);
+
                 const possibleCustomsInput = cy.get('#modalNewFournisseur input[name=possibleCustoms]');
                 suplier.possibleCustoms === 'oui'
                     ? possibleCustomsInput.check().should('be.checked')
@@ -101,10 +104,12 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
 
         supliersToEdit.forEach((suplierToEditName, index) => {
             // on trouve le fournisseur à éditer et on clique dessus
-            cy.get('#supplierTable_id tbody td').contains(suplierToEditName).click();
+            cy.clickOnRowInDatatable('supplierTable_id', suplierToEditName);
             cy.get('#modalEditFournisseur').should('be.visible');
+
             cy.get('#modalEditFournisseur input[name=name]').click().clear().type(newSupliers[index].name);
             cy.get('#modalEditFournisseur input[name=code]').click().clear().type(newSupliers[index].code);
+
             const possibleCustomsInput = cy.get('#modalEditFournisseur input[name=possibleCustoms]');
             newSupliers[index].possibleCustoms === 'oui'
                 ? possibleCustomsInput.check().should('be.checked')
@@ -208,7 +213,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
 
         locationToEdit.forEach((locationToEditName, index) => {
             // click on the location to edit
-            cy.get('#locationsTable tbody td').contains(locationToEditName).click();
+            cy.clickOnRowInDatatable('locationsTable', locationToEditName);
             cy.get('#modalEditEmplacement').should('be.visible');
 
             // edit values
@@ -450,7 +455,7 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
         cy.intercept('POST', 'transporteur/save').as('transporteur_save');
 
         const transporter = {
-            label: 'WIILOG',
+            label: 'MY LONG TRANSPORTEUR IS INSANE',
             code: 'WIILOG',
         }
         const propertiesMap = {
@@ -498,7 +503,6 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
         transporterToEdit.forEach((transporterToEditName, index) => {
             // click on the row to edit
             cy.clickOnRowInDatatable('tableTransporteur_id', transporterToEditName);
-            // cy.get('#tableTransporteur_id tbody td').contains('TRANSPORTEUR').click();
 
             cy.get('#modalTransporteur').should('be.visible');
 
@@ -514,10 +518,6 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
             cy.wait('@transporteur_api');
 
             cy.checkDataInDatatable(newTransporters[index], 'label', 'tableTransporteur_id', propertiesMap)
-            /* cy.get('#tableTransporteur_id tbody td').contains('LA POSTE').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('LA POSTE');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('LA POSTE');
-        });*/
         })
     })
 })
@@ -536,7 +536,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
             name: 'Eve',
             firstname: 'Adam',
             documentID: '12345632',
-            carrier: 'LA POSTE',
+            carrier: 'MY LONG TRANSPORTEUR IS INSANE',
         }
         const propertiesMap = {
             'Nom': 'name',
@@ -550,9 +550,12 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         cy.get('#modalNewChauffeur').should('be.visible', {timeout: 8000}).then(() => {
             cy.get('#modalNewChauffeur input[name=nom]').should('be.visible').then(() => {
 
+                // edit values
                 cy.get('#modalNewChauffeur input[name=nom]').type(driver.name);
                 cy.get('#modalNewChauffeur input[name=prenom]').type(driver.firstname);
                 cy.get('#modalNewChauffeur input[name=documentID]').type(driver.documentID);
+
+                // todo bug
                 cy.select2Ajax('transporteur', driver.carrier , '', true, '/chauffeur/autocomplete*')
 
                 cy.get('button#submitNewChauffeur').click().wait('@chauffeur_new');
@@ -563,28 +566,51 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         cy.checkDataInDatatable(driver, 'name', 'tableChauffeur_id', propertiesMap);
     })
 
+
     it('should edit a driver', () => {
         cy.intercept('POST', 'chauffeur/modifier').as('chauffeur_edit');
-        cy.get('#tableChauffeur_id tbody td').contains('Chauffeur').click();
-        cy.get('#modalEditChauffeur').should('be.visible');
-        cy.get('#modalEditChauffeur input[name=nom]').click().clear().type('Georgines');
-        cy.get('#modalEditChauffeur input[name=prenom]').click().clear().type('Marceline');
-        cy.get('#modalEditChauffeur input[name=documentID]').click().clear().type('10');
-        cy.get('select[name=transporteur]')
-            .siblings('.select2')
-            .find('.select2-selection__clear')
-            .click();
-        cy.select2Ajax('transporteur', 'GT', 'modalEditChauffeur', false, '/chauffeur/autocomplete*')
-        cy.get('button#submitEditChauffeur').click().wait('@chauffeur_edit');
-        cy.get('#modalEditChauffeur').should('not.be.visible');
-        cy.get('#tableChauffeur_id tbody td').contains('Georgines').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('Georgines');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('Marceline');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('10');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('GT');
-        });
+
+        const driverToEdit = ['Chauffeur']
+        const newDrivers = [{
+            name: 'Robinet',
+            firstname: 'Pluviote',
+            documentID: '666',
+            carrier: 'MY LONG TRANSPORTEUR IS INSANE',
+        }]
+        const propertiesMap = {
+            'Nom': 'name',
+            'Prenom': 'firstname',
+            'DocumentID': 'documentID',
+            'Transporteur': 'carrier',
+        }
+
+        driverToEdit.forEach((driverToEditName, index) => {
+            cy.clickOnRowInDatatable('tableChauffeur_id', driverToEditName);
+
+            cy.get('#modalEditChauffeur').should('be.visible');
+
+            // edit values
+            cy.get('#modalEditChauffeur input[name=nom]').click().clear().type(newDrivers[index].name);
+            cy.get('#modalEditChauffeur input[name=prenom]').click().clear().type(newDrivers[index].firstname);
+            cy.get('#modalEditChauffeur input[name=documentID]').click().clear().type(newDrivers[index].documentID);
+
+            // clear previous value
+            cy.get('select[name=transporteur]')
+                .siblings('.select2')
+                .find('.select2-selection__clear')
+                .click();
+
+            // todo bug
+            cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', false, '/chauffeur/autocomplete*')
+
+            cy.get('button#submitEditChauffeur').click().wait('@chauffeur_edit');
+            cy.get('#modalEditChauffeur').should('not.be.visible');
+
+            cy.checkDataInDatatable(newDrivers[index], 'name', 'tableChauffeur_id', propertiesMap)
+        })
     })
 })
+
 
 describe('Add and edit components in Referentiel > Nature', () => {
     beforeEach(() => {
@@ -596,38 +622,75 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
     it('should add a new nature', () => {
         cy.intercept('POST', 'nature-unite-logistique/creer').as('nature_new');
+
+        const newNature = {
+            label: 'OUTILS',
+            code: 'OUTILS',
+            quantity: '1',
+        }
+        const propertiesMap = {
+            'Libellé': 'label',
+            'Code': 'code',
+            "Quantité par défaut de l'arrivage": 'quantity',
+        }
+
         cy.get(`button[data-target='#modalNewNature']`).click();
+
         cy.get('#modalNewNature').should('be.visible', {timeout: 8000}).then(() => {
             cy.get('#modalNewNature input[name=label]').should('be.visible').then(() => {
-                cy.get('#modalNewNature input[name=label]').eq(0).type('BAC');
-                cy.get('#modalNewNature input[name=code]').type(' BAC');
-                cy.get('#modalNewNature input[name=quantity]').type('0');
+
+                // edit values
+                const languageInput = "Français"
+                cy.get(`#modalNewNature [data-cypress=${languageInput}]`).type(newNature.label);
+                cy.get('#modalNewNature input[name=code]').type(newNature.code);
+                cy.get('#modalNewNature input[name=quantity]').type(newNature.quantity);
+
+                // submit form & wait reponse
                 cy.get(`button#submitNewNature`).click().wait(['@nature_new', '@nature_api']);
             })
         })
+        // check modal is closed
         cy.get('#modalNewNature').should('not.be.visible');
         cy.wait('@nature_api');
-        cy.get('#tableNatures tbody td').contains('BAC').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('BAC');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('BAC');
-        });
+        // check datatable after edit
+        cy.checkDataInDatatable(newNature, 'label', 'tableNatures', propertiesMap);
     })
 
     it('should edit a nature', () => {
         cy.intercept('POST', 'nature-unite-logistique/modifier').as('nature_edit');
+
+        const natureToEdit = ['OUTILS']
+        const newNatures = [{
+            label: 'COLIS',
+            code: 'COLIS',
+            quantity: '10',
+        }]
+        const propertiesMap = {
+            'Libellé': 'label',
+            'Code': 'code',
+            "Quantité par défaut de l'arrivage": 'quantity',
+        }
+
         cy.wait('@nature_api');
-        cy.get('#tableNatures tbody td').contains('NATURE').click();
-        cy.get('#modalEditNature').should('be.visible');
-        cy.get('#modalEditNature input[name=label]').eq(0).click().clear().type('COLIS');
-        cy.get('#modalEditNature input[name=code]').click().clear().type('COLIS');
-        cy.get('#modalEditNature input[name=quantity]').click().clear().type('10');
-        cy.get(`button#submitEditNature`).click().wait('@nature_edit');
-        cy.get('#modalEditNature').should('not.be.visible');
-        cy.wait('@nature_api');
-        cy.get('#tableNatures tbody td').contains('COLIS').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('COLIS');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('COLIS');
-        });
+
+        natureToEdit.forEach((natureToEditName, index) => {
+            cy.clickOnRowInDatatable('tableNatures', natureToEditName);
+
+            cy.get('#modalEditNature').should('be.visible');
+
+            // edit values
+            const languageInput = "Français"
+            cy.get(`#modalEditNature [data-cypress=${languageInput}]`).click().clear().type(newNatures[index].label);
+            cy.get('#modalEditNature input[name=code]').click().clear().type(newNatures[index].code);
+            cy.get('#modalEditNature input[name=quantity]').click().clear().type(newNatures[index].quantity);
+
+            // submit form
+            cy.get(`button#submitEditNature`).click().wait('@nature_edit');
+            cy.get('#modalEditNature').should('not.be.visible');
+            cy.wait('@nature_api');
+
+            cy.checkDataInDatatable(newNatures[index], 'label', 'tableNatures', propertiesMap)
+        })
     })
 })
 
@@ -641,32 +704,59 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
 
     it('should add a new vehicle', () => {
         cy.intercept('POST', 'vehicule/new').as('vehicule_new');
+
+        const newVehicle = {
+            registrationNumber: 'CL-010-RA',
+        }
+        const propertiesMap = {
+            'Immatriculation': 'registrationNumber',
+        }
+
         cy.get(`a[data-target='#modalNewVehicle']`).click();
+
         cy.get('#modalNewVehicle').should('be.visible', {timeout: 8000}).then(() => {
             cy.get('#modalNewVehicle input[name=registrationNumber]').should('be.visible').then(() => {
-                cy.get('#modalNewVehicle input[name=registrationNumber]').type('CL-010-RA');
-                cy.get(`.modal-footer button`).eq(1).click().wait(['@vehicule_new', '@vehicule_api']);
+
+                // edit values
+                cy.get('#modalNewVehicle input[name=registrationNumber]').type(newVehicle.registrationNumber);
+                // submit form
+                cy.get(`.modal-footer button.submit`).click().wait(['@vehicule_new', '@vehicule_api']);
             })
         })
+
         cy.get('#modalNewVehicle').should('not.be.visible');
         cy.wait('@vehicule_api');
-        cy.get('#vehicleTable_id tbody td').contains('CL-010-RA').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('CL-010-RA');
-        });
+
+        cy.checkDataInDatatable(newVehicle, 'registrationNumber', 'vehicleTable_id', propertiesMap);
     })
 
     it('should edit a vehicle', () => {
         cy.intercept('POST', 'vehicule/edit').as('vehicle_edit');
         cy.wait('@vehicule_api');
-        cy.get('#vehicleTable_id tbody td').contains('VEHICULE').click();
-        cy.get('#modalEditVehicle').should('be.visible');
-        cy.get('#modalEditVehicle input[name=registrationNumber]').click().clear().type('AA-000-AA');
-        cy.get(`button#submitEditVehicle`).click().wait('@vehicle_edit');
-        cy.get('#modalEditVehicle').should('not.be.visible');
-        cy.wait('@vehicule_api');
-        cy.get('#vehicleTable_id tbody td').contains('AA-000-AA').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('AA-000-AA');
-        });
+
+        const vehicleToEdit = ['VEHICULE']
+        const newVehicles = [{
+            registrationNumber: 'AA-000-AA',
+        }]
+        const propertiesMap = {
+            'Immatriculation': 'registrationNumber',
+        }
+
+        vehicleToEdit.forEach((vehicleToEditName, index) => {
+            cy.clickOnRowInDatatable('vehicleTable_id', vehicleToEditName);
+
+            cy.get('#modalEditVehicle').should('be.visible');
+
+            // edit values
+            cy.get('#modalEditVehicle input[name=registrationNumber]').click().clear().type(newVehicles[index].registrationNumber);
+
+            // submit form
+            cy.get(`button#submitEditVehicle`).click().wait('@vehicle_edit');
+            cy.get('#modalEditVehicle').should('not.be.visible');
+            cy.wait('@vehicule_api');
+
+            cy.checkDataInDatatable(newVehicles[index], 'registrationNumber', 'vehicleTable_id', propertiesMap)
+        })
     })
 })
 
@@ -680,42 +770,73 @@ describe('Add and edit components in Referentiel > Projet', () => {
 
     it('should add a new project', () => {
         cy.intercept('POST', 'project/new').as('project_new');
+
+        const newProject = {
+            code: 'GAZO',
+            projectManager: 'Admin',
+        }
+        const propertiesMap = {
+            'Code': 'code',
+            'Chef de projet': 'projectManager',
+        }
+        // open modal
         cy.get(`button[data-toggle='modal']`).click();
+
         cy.get('#modalNewProject').should('be.visible', {timeout: 8000}).then(() => {
             cy.get('#modalNewProject input[name=code]').should('be.visible').then(() => {
-                cy.get('#modalNewProject input[name=code]').type('GAZ');
-                cy.select2Ajax('projectManager', 'Admin');
+
+                // edit values (let .wait() to wait for input be selected i don't know why it doesn't work without it)
+                cy.get('#modalNewProject input[name=code]').wait(500).type(newProject.code);
+                cy.select2Ajax('projectManager', newProject.projectManager);
+
+                // submit form
                 cy.get(`#modalNewProject button[type=submit]`).click().wait(['@project_new', '@project_api']);
             })
         })
+        // check modal is closed and datatable is reloaded
         cy.get('#modalNewProject').should('not.be.visible');
         cy.wait('@project_api');
-        cy.get('#projectTable_id tbody td').contains('GAZ').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('GAZ');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('Admin');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('Oui');
-        });
+
+        // check datatable after edit
+        cy.checkDataInDatatable(newProject, 'code', 'projectTable_id', propertiesMap);
     })
 
     it('should edit a project', () => {
         cy.intercept('POST', 'project/edit').as('project_edit');
         cy.wait('@project_api');
-        cy.get('#projectTable_id tbody td').contains('PROJET').click();
-        cy.get('#modalEditProject').should('be.visible');
-        cy.get('#modalEditProject input[name=code]').click().clear().type('RACLETTE');
-        cy.get('select[name=projectManager]')
-            .siblings('.select2')
-            .find('.select2-selection__clear')
-            .click();
-        cy.select2Ajax('projectManager', 'Lambda', 'modalEditProject', false)
-        cy.get(`button#submitEditProject`).click().wait('@project_edit');
-        cy.get('#modalEditProject').should('not.be.visible');
-        cy.wait('@project_api');
-        cy.get('#projectTable_id tbody td').contains('RACLETTE').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('RACLETTE');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('Lambda');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('Oui');
-        });
+
+        const projectToEdit = ['PROJET']
+        const newProjects = [{
+            code: 'RACLETTE',
+            projectManager: 'Lambda',
+        }]
+        const propertiesMap = {
+            'Code': 'code',
+            'Chef de projet': 'projectManager',
+        }
+
+        projectToEdit.forEach((projectToEditName, index) => {
+            cy.clickOnRowInDatatable('projectTable_id', projectToEditName);
+
+            cy.get('#modalEditProject').should('be.visible');
+
+            // edit values
+            cy.get('#modalEditProject input[name=code]').click().clear().type(newProjects[index].code);
+            // remove old value
+            cy.get('select[name=projectManager]')
+                .siblings('.select2')
+                .find('.select2-selection__clear')
+                .click();
+            // add new value
+            cy.select2Ajax('projectManager', newProjects[index].projectManager, 'modalEditProject', false)
+
+            // submit form
+            cy.get(`button#submitEditProject`).click().wait('@project_edit');
+            cy.get('#modalEditProject').should('not.be.visible');
+            cy.wait('@project_api');
+
+            cy.checkDataInDatatable(newProjects[index], 'code', 'projectTable_id', propertiesMap)
+        })
     })
 })
 
@@ -730,50 +851,83 @@ describe('Add and edit components in Referentiel > Clients', () => {
     it('should add a new customer', () => {
         cy.intercept('POST', 'clients/new').as('customer_new');
         cy.get(`button[data-toggle='modal']`).click();
+
+        const newCustomer = {
+            name: 'Toto',
+            address: 'Bègles',
+            recipient: 'PAS',
+            phoneNumber: '0218923090',
+            email: 'admin@wiilog.fr',
+            fax: '0218923091',
+        }
+        const propertiesMap = {
+            'Adresse': 'address',
+            'Destinataire': 'recipient',
+            'Téléphone': 'phoneNumber',
+            'Email': 'email',
+            'Fax': 'fax',
+        }
+
         cy.get('#modalNewCustomer').should('be.visible', {timeout: 8000}).then(() => {
             cy.get('#modalNewCustomer input[name=name]').should('be.visible').then(() => {
-                cy.get('#modalNewCustomer [name=name]').type('LAPEL');
-                cy.get('#modalNewCustomer [name=address]').type('Bègles');
-                cy.get('#modalNewCustomer [name=recipient]').type('PAS');
-                cy.get('#modalNewCustomer [name=phone-number]').type('0218923090');
-                cy.get('#modalNewCustomer [name=email]').type('cypress@wiilog.fr');
-                cy.get('#modalNewCustomer [name=fax]').type('0218923091');
+
+                // edit values (wait for input be selected i don't know why it doesn't work without it)
+                cy.get('#modalNewCustomer input[name=name]').wait(500).type(newCustomer.name);
+                cy.get('#modalNewCustomer textarea[name=address]').type(newCustomer.address);
+                cy.get('#modalNewCustomer input[name=recipient]').type(newCustomer.recipient);
+                cy.get('#modalNewCustomer input[name=phone-number]').type(newCustomer.phoneNumber);
+                cy.get('#modalNewCustomer input[name=email]').type(newCustomer.email);
+                cy.get('#modalNewCustomer input[name=fax]').type(newCustomer.fax);
+
                 cy.get(`#modalNewCustomer button[type=submit]`).click().wait(['@customer_new', '@customer_api']);
             })
         })
+        // check modal is closed and datatable is reloaded
         cy.get('#modalNewCustomer').should('not.be.visible');
         cy.wait('@customer_api');
-        cy.get('#customerTable tbody td').contains('LAPEL').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('LAPEL');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('Bègles');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('PAS');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('0218923090');
-            cy.wrap(td).parent('tr').find('td').eq(5).contains('cypress@wiilog.fr');
-            cy.wrap(td).parent('tr').find('td').eq(6).contains('0218923091');
-        });
+
+        cy.checkDataInDatatable(newCustomer, 'name', 'customerTable', propertiesMap, ['name']);
     })
 
     it('should edit a customer', () => {
         cy.intercept('POST', 'clients/edit').as('customer_edit');
         cy.wait('@customer_api');
-        cy.get('#customerTable tbody td').contains('Client').click();
-        cy.get('#modalEditCustomer').should('be.visible');
-        cy.get('#modalEditCustomer input[name=name]').clear().click().type('RE');
-        cy.get('#modalEditCustomer [name=address]').clear().click().type('Bordeaux');
-        cy.get('#modalEditCustomer [name=recipient]').clear().click().type('POND');
-        cy.get('#modalEditCustomer [name=phone-number]').clear().click().type('0218923092');
-        cy.get('#modalEditCustomer [name=email]').clear().click().type('cypress_bis@wiilog.fr');
-        cy.get('#modalEditCustomer [name=fax]').clear().click().type('0218923093');
-        cy.get(`button#submitEditCustomer`).click().wait('@customer_edit');
-        cy.get('#modalEditCustomer').should('not.be.visible');
-        cy.wait('@customer_api');
-        cy.get('#customerTable tbody td').contains('RE').then((td) => {
-            cy.wrap(td).parent('tr').find('td').eq(1).contains('RE');
-            cy.wrap(td).parent('tr').find('td').eq(2).contains('Bordeaux');
-            cy.wrap(td).parent('tr').find('td').eq(3).contains('POND');
-            cy.wrap(td).parent('tr').find('td').eq(4).contains('0218923092');
-            cy.wrap(td).parent('tr').find('td').eq(5).contains('cypress_bis@wiilog.fr');
-            cy.wrap(td).parent('tr').find('td').eq(6).contains('0218923093');
-        });
+
+        const customerToEdit = ['Client']
+        let newCustomers = [{
+            name: 'RE',
+            address: 'Bordeaux',
+            recipient: 'POND',
+            phoneNumber: '0218923092',
+            email: 'tata@wiilog.fr',
+            fax: '0218923093',
+        }]
+        const propertiesMap = {
+            'Adresse': 'address',
+            'Destinataire': 'recipient',
+            'Téléphone': 'phoneNumber',
+            'Email': 'email',
+            'Fax': 'fax',
+        }
+
+        customerToEdit.forEach((customerToEditName, index) => {
+            cy.clickOnRowInDatatable('customerTable', customerToEditName);
+            cy.get('#modalEditCustomer').should('be.visible');
+
+            // edit values
+            cy.get('#modalEditCustomer input[name=name]').clear().click().type(newCustomers[index].name);
+            cy.get('#modalEditCustomer [name=address]').clear().click().type(newCustomers[index].address);
+            cy.get('#modalEditCustomer [name=recipient]').clear().click().type(newCustomers[index].recipient);
+            cy.get('#modalEditCustomer [name=phone-number]').clear().click().type(newCustomers[index].phoneNumber);
+            cy.get('#modalEditCustomer [name=email]').clear().click().type(newCustomers[index].email);
+            cy.get('#modalEditCustomer [name=fax]').clear().click().type(newCustomers[index].fax);
+
+            // submit form
+            cy.get(`button#submitEditCustomer`).click().wait('@customer_edit');
+            cy.get('#modalEditCustomer').should('not.be.visible');
+            cy.wait('@customer_api');
+
+            cy.checkDataInDatatable(newCustomers[index], 'name', 'customerTable', propertiesMap, ['name'])
+        })
     })
 })
