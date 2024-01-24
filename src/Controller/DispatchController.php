@@ -1749,6 +1749,7 @@ class DispatchController extends AbstractController {
                         "date" => $languageService->getCurrentUserLanguageSlug() === Language::FRENCH_SLUG
                             ? $this->getFormatter()->longDate($statusHistory->getDate(), ["short" => true, "time" => true])
                             : $this->getFormatter()->datetime($statusHistory->getDate(), "", false, $user),
+                        "user" => $this->getFormatter()->user($statusHistory->getInitiatedBy() ?? $statusHistory->getValidatedBy()),
                     ])
                     ->toArray(),
                 "dispatch" => $dispatch,

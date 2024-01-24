@@ -41,6 +41,9 @@
                 <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
                     <span class="ml-2">{{ history['date'] }}</span>
                 </div>
+                {% if history["user"] %}
+                    <div class="subtitle wii-small-text">{{ history["user"] }}</div>
+                {% endif %}
             </div>
         </div>
     {% endfor %}
