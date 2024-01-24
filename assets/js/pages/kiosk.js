@@ -105,7 +105,7 @@ $(function () {
                         $modalInStockWarning.find('button.outline').on('click', function () {
                             window.location.href = Routing.generate('kiosk_index', {token}, true);
                         });
-                    } else if ((scannedreference && scannedreference !== $referenceRefInput.val()) || exists) {
+                    } else if (scannedreference !== $referenceRefInput.val()) {
                         window.location.href = Routing.generate('kiosk_form', {
                             token,
                             scannedReference: $referenceRefInput.val(),

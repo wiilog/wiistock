@@ -364,10 +364,10 @@ class ArrivageController extends AbstractController {
 
         $entityManager->flush();
 
-        $paramGlobalRedirectAfterNewArrivage = $settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL]);
+        $redirectToArrival = boolval($settingRepository->findOneBy(['label' => Setting::REDIRECT_AFTER_NEW_ARRIVAL])?->getValue());
         return new JsonResponse([
             'success' => true,
-            "redirectAfterAlert" => ($paramGlobalRedirectAfterNewArrivage ? $paramGlobalRedirectAfterNewArrivage->getValue() : true)
+            "redirectAfterAlert" => $redirectToArrival
                 ? $this->generateUrl('arrivage_show', ['id' => $arrivage->getId()])
                 : null,
             'printPacks' => (isset($data['printPacks']) && $data['printPacks'] === 'true'),
@@ -375,7 +375,10 @@ class ArrivageController extends AbstractController {
             'arrivalId' => $arrivage->getId(),
             'numeroArrivage' => $arrivage->getNumeroArrivage(),
             'alertConfigs' => $alertConfigs,
-            "new_form" => $arrivalService->generateNewForm($entityManager),
+            ...!$redirectToArrival
+                ? [
+                    "new_form" => $arrivalService->generateNewForm($entityManager),
+                ] : [],
         ]);
     }
 
