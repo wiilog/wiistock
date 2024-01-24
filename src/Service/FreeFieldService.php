@@ -7,6 +7,7 @@ use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
@@ -62,24 +63,49 @@ class FreeFieldService {
     }
 
 
-    public function manageFreeFields($entity,
-                                     array $data,
+    public function manageFreeFields(mixed                  $entity,
+                                     array                  $data,
                                      EntityManagerInterface $entityManager,
-                                     Utilisateur $user = null) {
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $freeFields = [];
-        $champsLibresKey = array_keys($data);
-        foreach ($champsLibresKey as $field) {
-            if (gettype($field) === 'integer') {
-                $champLibre = $champLibreRepository->find($field);
-                if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field], $user);
-                }
+                                     Utilisateur            $user = null): void
+    {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
+        $defaultLanguage = $this->languageService->getDefaultLanguage();
 
+        $freeFields = [];
+        foreach (array_keys($data) as $freeFieldId) {
+            if (is_int($freeFieldId)) {
+                $freeField = $freeFieldRepository->find($freeFieldId);
+
+                if ($freeField) {
+                    self::processErrors($freeField, $data, $userLanguage, $defaultLanguage);
+                    $freeFields[$freeField->getId()] = $this->manageJSONFreeField($freeField, $data[$freeFieldId], $user);
+                }
             }
         }
 
         $entity->setFreeFields($freeFields);
+    }
+
+    public static function processErrors(FreeField $freeField,
+                                         array     $data,
+                                         Language  $userLanguage,
+                                         Language  $defaultLanguage): void {
+        if($freeField->getTypage() === FreeField::TYPE_TEXT) {
+            $value = trim($data[$freeField->getId()]);
+            $name = $freeField->getLabelIn($userLanguage, $defaultLanguage);
+            $message = "Le nombre de caractères du champ libre <strong>$name</strong> ne peut être {type} à {length}.";
+
+            $minCharactersLength = $freeField->getMinCharactersLength() ?? null;
+            if ($minCharactersLength && $value && (strlen($value) < $minCharactersLength)) {
+                throw new FormException(str_replace(["{type}", "{length}"], ["inférieur", $minCharactersLength], $message));
+            }
+
+            $maxCharactersLength = $freeField->getMaxCharactersLength() ?? null;
+            if ($maxCharactersLength && $value && (strlen($value) > $maxCharactersLength)) {
+                throw new FormException(str_replace(["{type}", "{length}"], ["supérieur", $maxCharactersLength], $message));
+            }
+        }
     }
 
     public function manageJSONFreeField(FreeField   $freeField,

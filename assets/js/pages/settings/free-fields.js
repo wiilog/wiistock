@@ -11,27 +11,45 @@ const MODE_HANDLING = `handling`;
 const MODE_DELIVERY_REQUEST = `delivery_request`;
 const MODE_PRODUCTION = `production`;
 
+const TEXT_TYPING = `text`;
+const NUMBER_TYPING = `number`;
+const BOOLEAN_TYPING = `booleen`;
+const DATE_TYPING = `date`;
+const DATETIME_TYPING = `datetime`;
+const LIST_TYPING = `list`;
+const MULTIPLE_LIST_TYPING = `list multiple`;
+
+const TYPINGS = {
+    [TEXT_TYPING]: `Texte`,
+    [NUMBER_TYPING]: `Nombre`,
+    [BOOLEAN_TYPING]: `Oui/Non`,
+    [DATE_TYPING]: `Date`,
+    [DATETIME_TYPING]: `Date et heure`,
+    [LIST_TYPING]: `Liste`,
+    [MULTIPLE_LIST_TYPING]: `Liste multiple`,
+};
+
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
 let canTranslate = true;
 
 function generateFreeFieldForm() {
+    const fieldTypes = Object.entries(TYPINGS)
+        .reduce((acc, option) => {
+            return acc + `<option value="${option[0]}">${option[1]}</option>`
+        }, `<option selected disabled>Type de champ</option>`);
+
     return {
         actions: `<button class='btn btn-silent delete-row'><i class='wii-icon wii-icon-trash text-primary'></i></button>`,
         label: `<input type="text" name="label" required class="form-control data" data-global-error="Libellé"/>`,
         type: `
             <select class="form-control data" name="type" required>
-                <option selected disabled>Type de champ</option>
-                <option value="text">Texte</option>
-                <option value="number">Nombre</option>
-                <option value="booleen">Oui/Non</option>
-                <option value="date">Date</option>
-                <option value="datetime">Date et heure</option>
-                <option value="list">Liste</option>
-                <option value="list multiple">Liste multiple</option>
+                ${fieldTypes}
             </select>`,
         elements: `<input type="text" name="elements" required class="form-control data d-none" data-global-error="Eléments"/>`,
+        minCharactersLength: `<input type="number" name="minCharactersLength" min="0" class="form-control data d-none" data-global-error="Nb caractères min"/>`,
+        maxCharactersLength: `<input type="number" name="maxCharactersLength" min="1" class="form-control data d-none" data-global-error="Nb caractères max"/>`,
         defaultValue: () => {
             // executed each time we add a new row to calculate new id
             const $booleanDefaultValue = $(`<div class="wii-switch-small">${JSON.parse($(`[name=default-value-template]`).val())}</div>`);
@@ -66,6 +84,8 @@ function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
         ...(appliesTo ? [{data: `appliesTo`, title: `S'applique à`}] : []),
         {data: `type`, title: `Typage`, required: true},
         {data: `elements`, title: `Éléments<br><div class='wii-small-text'>(Séparés par des ';')</div>`, className: `no-interaction`},
+        {data: `minCharactersLength`, title: `Nb caractères<br><div class='wii-small-text'>(Min)</div>`},
+        {data: `maxCharactersLength`, title: `Nb caractères<br><div class='wii-small-text'>(Max)</div>`},
         {data: `defaultValue`, title: `Valeur par défaut`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
@@ -73,8 +93,23 @@ function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
     ];
 }
 
-function defaultValueTypeChange() {
-    const $select = $(this);
+function onTypingChange($select) {
+    defaultValueTypeChange($select);
+    charactersLengthChange($select);
+}
+
+function charactersLengthChange($select) {
+    const $row = $select.closest(`tr`);
+    const $charactersLengthFields = $row.find(`[name=minCharactersLength], [name=maxCharactersLength]`);
+
+    $charactersLengthFields.addClass(`d-none`);
+
+    if($select.val() === TEXT_TYPING) {
+        $charactersLengthFields.removeClass(`d-none`);
+    }
+}
+
+function defaultValueTypeChange($select) {
     const $row = $select.closest(`tr`);
     const type = $select.val();
 
@@ -82,12 +117,12 @@ function defaultValueTypeChange() {
 
     const isList = [`list`, `list multiple`].includes(type);
     const selectors = {
-        "text": `[name=defaultValue][type=text]`,
-        "number": `[name=defaultValue][type=number]`,
-        "date": `[name=defaultValue][type=date]`,
-        "datetime": `[name=defaultValue][type=datetime-local]`,
-        "booleen": `.boolean-default-value`,
-        "list": `select[name=defaultValue]`,
+        [TEXT_TYPING]: `[name=defaultValue][type=text]`,
+        [NUMBER_TYPING]: `[name=defaultValue][type=number]`,
+        [DATE_TYPING]: `[name=defaultValue][type=date]`,
+        [DATETIME_TYPING]: `[name=defaultValue][type=datetime-local]`,
+        [BOOLEAN_TYPING]: `.boolean-default-value`,
+        [LIST_TYPING]: `select[name=defaultValue]`,
     };
 
     if(selectors[type]) {
@@ -160,7 +195,9 @@ export function createFreeFieldsPage($container, canEdit, mode) {
 
     setupTranslationsModal($container, table);
 
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`change`, `[name=type]`, function() {
+        onTypingChange($(this));
+    });
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
     $container.on(`change`, `[type=radio][name=pushNotifications]`, function() {
         const $radio = $(this);
@@ -284,7 +321,9 @@ export function initializeStockArticlesTypesFreeFields($container, canEdit) {
         }
     });
 
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`change`, `[name=type]`, function () {
+        onTypingChange($(this));
+    });
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
@@ -307,7 +346,9 @@ export function initializeTraceMovementsFreeFields($container, canEdit) {
 
     setupTranslationsModal($container, table);
 
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`change`, `[name=type]`, function () {
+        onTypingChange($(this));
+    });
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
@@ -335,7 +376,9 @@ export function initializeReceptionsFreeFields($container, canEdit) {
         form: generateFreeFieldForm(),
     });
 
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`change`, `[name=type]`, function () {
+        onTypingChange($(this));
+    });
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 
@@ -354,7 +397,9 @@ export function initializeIotFreeFields($container, canEdit) {
         },
     });
 
-    $container.on(`change`, `[name=type]`, defaultValueTypeChange);
+    $container.on(`change`, `[name=type]`, function () {
+        onTypingChange($(this));
+    });
     $container.on(`keyup`, `[name=elements]`, onElementsChange);
 }
 function updateCheckedType($container) {

@@ -514,6 +514,23 @@ function treatInputError($input, errors, form) {
             });
         }
     }
+    else if ($input.attr(`type`) === `text`) {
+        const val = $input.val().trim();
+        const minLength = parseInt($input.attr('minlength'));
+        const maxLength = parseInt($input.attr('maxlength'));
+
+        if (val && val.length < minLength) {
+            errors.push({
+                elements: [$input],
+                message: `Le nombre de caractères ne peut être inférieur à ${minLength}.`,
+            });
+        } else if (val && val.length > maxLength) {
+            errors.push({
+                elements: [$input],
+                message: `Le nombre de caractères ne peut être supérieur à ${maxLength}.`,
+            });
+        }
+    }
 
     if ($input.data(`repeat`)) {
         const $form = getFormElement(form);

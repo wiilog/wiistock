@@ -75,6 +75,12 @@ class FreeField implements Serializable {
     #[ORM\OneToMany(mappedBy: "elementOfFreeField", targetEntity: TranslationSource::class)]
     private Collection $elementsTranslations;
 
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $maxCharactersLength = null;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    private ?int $minCharactersLength = null;
+
     public function __construct() {
         $this->filters = new ArrayCollection();
         $this->elementsTranslations = new ArrayCollection();
@@ -311,6 +317,26 @@ class FreeField implements Serializable {
         foreach($elementTranslations as $elementTranslation) {
             $this->addElementTranslation($elementTranslation);
         }
+
+        return $this;
+    }
+
+    public function getMinCharactersLength(): ?int {
+        return $this->minCharactersLength;
+    }
+
+    public function setMinCharactersLength(?int $minCharactersLength): self {
+        $this->minCharactersLength = $minCharactersLength;
+
+        return $this;
+    }
+
+    public function getMaxCharactersLength(): ?int {
+        return $this->maxCharactersLength;
+    }
+
+    public function setMaxCharactersLength(?int $maxCharactersLength): self {
+        $this->maxCharactersLength = $maxCharactersLength;
 
         return $this;
     }

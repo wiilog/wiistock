@@ -412,7 +412,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         const name = $input.attr('name');
 
-        let $formGroupLabel = $input.closest('.form-group').find('label');
+        let $formGroupLabel = $input.closest('.form-group').find('.field-label, label');
         if (!$formGroupLabel.exists()) {
             $formGroupLabel = $input.closest('label').find('.wii-field-name');
         }
@@ -529,6 +529,18 @@ function processInputsForm($modal, data, isAttachmentForm) {
         } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
+            }
+        } else if ($input.attr(`type`) === `text`) {
+            const val = $input.val().trim();
+            const minLength = parseInt($input.attr('minlength'));
+            const maxLength = parseInt($input.attr('maxlength'));
+
+            if (val && val.length < minLength) {
+                errorMessages.push(`Le nombre de caractères du champ <strong>${label}</strong> ne peut être inférieur à ${minLength}.`);
+                $isInvalidElements.push($input);
+            } else if (val && val.length > maxLength) {
+                errorMessages.push(`Le nombre de caractères du champ <strong>${label}</strong> ne peut être supérieur à ${maxLength}.`);
+                $isInvalidElements.push($input);
             }
         } else {
             if ($editorContainer.length > 0) {

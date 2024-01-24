@@ -794,7 +794,9 @@ class SettingsService {
                     ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
                     ->setRequiredCreate($item["requiredCreate"])
-                    ->setRequiredEdit($item["requiredEdit"]);
+                    ->setRequiredEdit($item["requiredEdit"])
+                    ->setMinCharactersLength(isset($item["minCharactersLength"]) ? intval($item["minCharactersLength"]) : null)
+                    ->setMaxCharactersLength(isset($item["maxCharactersLength"]) ? intval($item["maxCharactersLength"]) : null);
 
                 $defaultTranslation = $freeField->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
                 if ($defaultTranslation) {
