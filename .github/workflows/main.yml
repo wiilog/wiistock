@@ -34,6 +34,9 @@ jobs:
             -   name: echo id groupid
                 run: id -u && id -g
 
+            -   name: replace MAIN_USER_ID=1000 and MAIN_GROUP_ID=1000 to MAIN_USER_ID=0 and MAIN_GROUP_ID=0
+                run: sed -i 's/MAIN_USER_ID=1000/MAIN_USER_ID=0/g' .env && sed -i 's/MAIN_GROUP_ID=1000/MAIN_GROUP_ID=0/g' .env
+
             -   name: Copy .env.example to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
 
