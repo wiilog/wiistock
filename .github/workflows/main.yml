@@ -31,5 +31,21 @@ jobs:
                     ref: ${{ github.event.head_commit.id }}
                     path: projects/wiistock
 
+            -   name: todo
+                run: pwd
+
+            -   name: Copy .env.example to .env.local
+                run: cp .env.example .env.local
+
+            -   name: Change db string URL .env.local
+                # change this line : "DATABASE_URL=mysql://root@127.0.0.1:3306/wiistock" by "DATABASE_URL=mysql://root:example@mysql:3306/wiistock"
+                run: sed -i 's/127\.0\.0\.1:3306/mysql:3306/g' projects/wiistock/.env.local
+
+            -   name: Add generated.yaml to wiistock
+                run: |
+                    touch projects/wiistock/config/generated.yaml &&
+                    echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
+
+
             -   name: Build & run containers
-                run: docker compose up --build app
+                run: docker compose up --build -d app
