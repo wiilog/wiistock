@@ -1,3 +1,5 @@
+import Routing from '@app/fos-routing';
+
 import '@styles/pages/kiosk.scss';
 import '@styles/pages/delivery-station.scss';
 

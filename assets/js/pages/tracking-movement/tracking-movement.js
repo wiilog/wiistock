@@ -1,3 +1,9 @@
+import Routing from '@app/fos-routing';
+import AJAX, {GET} from '@app/ajax';
+import Flash from '@app/ajax';
+import Modal from '@app/modal';
+import moment from 'moment';
+
 let tableMvt;
 
 global.resetNewModal = resetNewModal;
@@ -56,7 +62,7 @@ function loadLUQuantity($selector) {
     const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
     const code = $selector.val();
 
-    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_quantity`, {code})
+    AJAX.route(GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -183,7 +189,7 @@ function initPageModal(tableMvt) {
                         return resolve(true);
                     }
 
-                    AJAX.route(AJAX.GET, `tracking_movement_is_in_lu`, {barcode: pack})
+                    AJAX.route(GET, `tracking_movement_is_in_lu`, {barcode: pack})
                         .json()
                         .then(result => {
                             if(result.in_logistic_unit) {

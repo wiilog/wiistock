@@ -285,7 +285,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
             self::SUB_MENU_PAGE => [
                 Action::DISPLAY_FOUR,
-                Action::DISPLAY_EMPL,
+                Action::DISPLAY_LOCATION,
                 Action::DISPLAY_CHAU,
                 Action::DISPLAY_TRAN,
                 Action::DISPLAY_VEHICLE,

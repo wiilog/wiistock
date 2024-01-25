@@ -1,6 +1,7 @@
 import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
 import Form from "@app/form";
+import Routing from '@app/fos-routing';
 
 let tableProduction;
 

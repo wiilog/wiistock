@@ -128,7 +128,7 @@ class Action {
     const REFERENCE_VALIDATOR = 'valideur des références';
     // menu référentiel
     const DISPLAY_FOUR = 'afficher fournisseurs';
-    const DISPLAY_EMPL = 'afficher emplacements';
+    const DISPLAY_LOCATION = 'afficher emplacements';
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
     const DISPLAY_VEHICLE = 'afficher véhicule';

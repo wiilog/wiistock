@@ -1,5 +1,6 @@
 import {Map} from "@app/map";
 import AJAX, {GET} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 export function initializeFilters(page) {
     initDateTimePicker('#dateMin', 'DD/MM/YYYY', {

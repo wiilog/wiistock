@@ -1,5 +1,5 @@
 import AJAX, {GET, POST} from "@app/ajax";
-import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, SAVE_MANUALLY} from "@app/editatable";
+import Routing from '@app/fos-routing';
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 
 global.newTruckArrival = newTruckArrival;

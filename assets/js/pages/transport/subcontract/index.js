@@ -1,8 +1,9 @@
 import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/subcontract.scss';
 import {$document} from "@app/app";
-import {GET, POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import {initializeFilters} from "@app/pages/transport/common";
+import Routing from '@app/fos-routing';
 
 global.editStatusChange = editStatusChange;
 

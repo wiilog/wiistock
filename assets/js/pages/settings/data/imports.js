@@ -2,6 +2,7 @@ import AJAX from "@app/ajax";
 import Form from "@app/form";
 import Flash from "@app/flash";
 import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
 
 global.importTemplateChanged = importTemplateChanged;
 global.displayFirstModal = displayFirstModal;
@@ -10,7 +11,6 @@ global.updateOptions = updateOptions;
 global.launchImport = launchImport;
 global.toggleImportType = toggleImportType;
 
-const CLICK_NUMBER_FORCE_IMPORT = 10;
 const TEMPLATES_DIRECTORY = `/modele`;
 const DOWNLOAD_TEMPLATES_CONFIG = {
     ART: {label: `articles`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles.csv`},

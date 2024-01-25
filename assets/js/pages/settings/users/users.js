@@ -1,4 +1,5 @@
 import {formatIconSelector} from "@app/form";
+import Routing from '@app/fos-routing';
 
 global.editRowUser = editRowUser;
 

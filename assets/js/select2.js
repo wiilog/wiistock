@@ -1,5 +1,6 @@
 import 'select2';
-import {GROUP_EVERYTHING, GROUP_WHEN_NEEDED} from "./app";
+import {GROUP_EVERYTHING, GROUP_WHEN_NEEDED} from "@app/app";
+import Routing from '@app/fos-routing';
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,

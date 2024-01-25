@@ -63,7 +63,7 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
+    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9_\-\/ ]{1,24}$';
 
     #[Required]
     public EntityManagerInterface $manager;

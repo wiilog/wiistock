@@ -1,3 +1,5 @@
+import Routing from '@app/fos-routing';
+
 global.importInventoryFile = importInventoryFile;
 
 function importInventoryFile() {
