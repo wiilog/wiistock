@@ -307,7 +307,7 @@ export default class Form {
         }
 
         // Remove global duplicates errors and show
-        const cleanedGlobalErrors = globalErrors.filter((message, index) => globalErrors.indexOf(message) === index);
+        const cleanedGlobalErrors = globalErrors.filter((message, index) => message && globalErrors.indexOf(message) === index);
         for(const message of cleanedGlobalErrors) {
             Flash.add(`danger`, message);
         }
@@ -359,9 +359,12 @@ export default class Form {
         const errors = [];
         if (message) {
             elements.forEach(($field) => {
-                const {label} = Form.getErrorConf($field)
+                const {label, $dataField} = Form.getErrorConf($field)
                 const prefixMessage = label ? `${label} : ` : '';
-                errors.push(`${prefixMessage}${message}`)
+
+                if ($dataField.is(`[data-global-error]`)) {
+                    errors.push(`${prefixMessage}${message}`);
+                }
             });
         }
         return errors;
