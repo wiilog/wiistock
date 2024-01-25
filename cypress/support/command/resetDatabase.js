@@ -4,8 +4,8 @@ let SSH_ON_APP = 'sshpass -p $SSHPASS ssh -o StrictHostKeyChecking=no www-data@a
 Cypress.Commands.add(
     'startingCypressEnvironnement',
     (urlToCurl = undefined,
-     sqlFileName = 'dev-script.sql',
-     pathToFile = '/cypress/SQL_script') => {
+     sqlFileName = 'BDD_cypress.sql',
+     pathToFile = '/etc/sqlscripts') => {
 
         //get the shema of db in .env.local file
         cy.exec(`grep DATABASE_URL .env.local`, {failOnNonZeroExit: false}).then((result) => {
@@ -66,7 +66,8 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
 })
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
-    cy.exec(`curl -o --user $FTP_USER:$FTP_PASSWORD  ${pathToFile}/${fileName} ${urlToFTP}`);
+    // todo : a voir si on a lesd permisions de curl direct dans ce fichier créé dans le docker file, sinon faire => cy.exec('mkdir -p /etc/sqlscripts');
+    cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
 })
 
 Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {
