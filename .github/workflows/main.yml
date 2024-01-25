@@ -50,7 +50,7 @@ jobs:
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
 
             -  name: pwd && ls
-               run: docker exec wiistock-cypress_app pwd && ls -a
+               run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn

@@ -11,6 +11,7 @@ import {getColumnIndexByColumnName} from "../utils";
  *             urgent: 'oui',
  *         };
  * @param {string} tableId : id of the table to check
+ * @param {array} excludedKeys : array containing the keys to exclude from the check in datatable (if supplier object need 'name' but is not in the datatable)
  * @param {Map} propertiesMap : map containing the properties to check
  * @example :
  * const propertiesMap = {
