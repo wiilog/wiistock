@@ -29,7 +29,7 @@ jobs:
                     repository: wiilog/wiistock
                     #ref: ${{ github.event.pull_request.head.sha }}
                     ref: ${{ github.event.head_commit.id }}
-                    path: projects/
+                    path: projects/wiistock
 
             #-   name: replace MAIN_USER_ID=1000 and MAIN_GROUP_ID=1000 to MAIN_USER_ID=0 and MAIN_GROUP_ID=0
             #    run: sed -i 's/MAIN_USER_ID=1000/MAIN_USER_ID=0/g' .env && sed -i 's/MAIN_GROUP_ID=1000/MAIN_GROUP_ID=0/g' .env && cat .env
@@ -48,6 +48,12 @@ jobs:
 
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
+
+            -   name: docker ps
+                run: docker ps
+
+            -   name: cat
+                run: cat docker-compose-cypress.yml && cat docker-compose.yml
 
             -  name: pwd && ls
                run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
