@@ -39,7 +39,7 @@ jobs:
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
 
             -   name: pwd
-                run: pwd
+                run: pwd & ls -la
 
             -   name: Change db string URL .env.local
                 # todo : check if sed is working
@@ -52,6 +52,9 @@ jobs:
 
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up app --build -d
+
+            -  name: pwd ls -la
+               run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
