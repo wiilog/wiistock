@@ -1,6 +1,6 @@
 import '@styles/pages/kiosk.scss';
 import AJAX, {GET, POST} from "@app/ajax";
-import Flash, {SUCCESS, ERROR} from "@app/flash";
+import Routing from '@app/fos-routing';
 
 let scannedReference = '';
 const $modalInStockWarning = $("#modal-in-stock-warning");

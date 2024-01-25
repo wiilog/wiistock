@@ -1,5 +1,5 @@
-import AJAX from "@app/ajax";
-import {POST} from "../../ajax";
+import AJAX, {POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 let tables = [];
 let editableTableArticles = null;

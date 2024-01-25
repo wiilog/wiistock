@@ -1,5 +1,6 @@
 import '@styles/pages/transport/show.scss';
 import {getPacks, getStatusHistory, getTransportHistory, displayLastDelivererPosition, initMap} from "@app/pages/transport/common";
+import Routing from '@app/fos-routing';
 
 $(function () {
     const $modalCollectTimeSlot = $("#modalCollectTimeSlot");

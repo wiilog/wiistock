@@ -23,7 +23,7 @@ class LocationGroupController extends AbstractController {
 
     /**
      * @Route("/api", name="location_group_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
+     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_LOCATION}, mode=HasPermission::IN_JSON)
      */
     public function api(Request $request, LocationGroupService $groupService): Response {
         return $this->json($groupService->getDataForDatatable($request->request));

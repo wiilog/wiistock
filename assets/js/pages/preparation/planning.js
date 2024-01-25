@@ -5,6 +5,7 @@ import AJAX, {POST, PUT} from "@app/ajax";
 import Planning from "@app/planning";
 import moment from "moment";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Routing from '@app/fos-routing';
 
 global.callbackSaveFilter = callbackSaveFilter;
 let planning = null;

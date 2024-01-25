@@ -473,6 +473,28 @@ function processInputsForm($modal, data, isAttachmentForm) {
             if ($input.is(':not(input)')) {
                 $isInvalidElements.push($input.parent());
             }
+        } else if ($input.is(':invalid')) {
+            const htmlValidity = $input.get(0).validity;
+
+            if (htmlValidity && !htmlValidity.valid) {
+                // Object.keys doesn't work with HTML validty object ValidityState
+                const validityKeys = [];
+                for(const key in htmlValidity){
+                    if (key !== 'valid') {
+                        validityKeys.push(key);
+                    }
+                }
+                const message = validityKeys
+                    .filter((key) => htmlValidity[key])
+                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
+                    .filter((message) => message)
+                    .join('<br/>');
+
+                if (message) {
+                    $isInvalidElements.push($input);
+                    errorMessages.push(message);
+                }
+            }
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
