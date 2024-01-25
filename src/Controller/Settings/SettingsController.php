@@ -2463,8 +2463,14 @@ class SettingsController extends AbstractController {
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
-                    "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
+                    "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
+                        : "",
+                    "minCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='minCharactersLength' min='1' class='$class' value='{$freeField->getMinCharactersLength()}'/>"
+                        : "",
+                    "maxCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='maxCharactersLength' min='1' class='$class' value='{$freeField->getMaxCharactersLength()}'/>"
                         : "",
                 ];
             } else {
@@ -2480,6 +2486,8 @@ class SettingsController extends AbstractController {
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
+                    "minCharactersLength" => $freeField->getMinCharactersLength() ?? "",
+                    "maxCharactersLength" => $freeField->getMaxCharactersLength() ?? "",
                 ];
             }
         }
@@ -2499,6 +2507,8 @@ class SettingsController extends AbstractController {
                 "requiredEdit" => "",
                 "defaultValue" => "",
                 "elements" => "",
+                "minCharactersLength" => "",
+                "maxCharactersLength" => "",
             ];
         }
 
