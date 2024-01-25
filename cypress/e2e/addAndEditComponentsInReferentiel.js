@@ -2,10 +2,9 @@ const user = Cypress.config('user');
 
 describe('Setup the environment', () => {
     it('Reset the db', () => {
-        cy.startingCypressEnvironnement('$FTP_HOST')
+        cy.startingCypressEnvironnement()
     });
 })
-
 
 describe('Add and edit components in Referentiel > Fournisseur', () => {
     beforeEach(() => {
