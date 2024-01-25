@@ -31,9 +31,6 @@ jobs:
                     ref: ${{ github.event.head_commit.id }}
                     path: projects/wiistock
 
-            -   name: echo id groupid
-                run: id -u && id -g
-
             -   name: replace MAIN_USER_ID=1000 and MAIN_GROUP_ID=1000 to MAIN_USER_ID=0 and MAIN_GROUP_ID=0
                 run: sed -i 's/MAIN_USER_ID=1000/MAIN_USER_ID=0/g' .env && sed -i 's/MAIN_GROUP_ID=1000/MAIN_GROUP_ID=0/g' .env && cat .env
 
@@ -50,10 +47,10 @@ jobs:
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
             -   name: Build & run containers
-                run: docker compose up --build -d app
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build
 
             -   name: Install yarn dependencies in app
-                run: docker exec wiistock_app yarn
+                run: docker exec wiistock-cypress_app yarn
 
             -   name: Down containers
                 run: docker compose down
