@@ -3,7 +3,7 @@ let SSH_ON_APP = 'sshpass -p $SSHPASS ssh -o StrictHostKeyChecking=no www-data@a
 
 Cypress.Commands.add(
     'startingCypressEnvironnement',
-    (urlToCurl = undefined,
+    (urlToCurl = 'https://github.com/wiilog/wiistock/releases/download/v7.8.8/cypressDB.sql',
      sqlFileName = 'BDD_cypress.sql',
      pathToFile = '/etc/sqlscripts') => {
 
