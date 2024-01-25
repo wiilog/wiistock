@@ -58,7 +58,7 @@ jobs:
                 run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
 
             -   name: volume mount does not work on docher in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock wiistock-cypress_app:/var/www/
+                run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
 
             -   name: pwd ls -la
                 run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
