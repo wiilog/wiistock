@@ -295,6 +295,22 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                             "fr" => "\"{1}\" : La taille du fichier ne doit pas dépasser 10 Mo.",
                             "en" => "\"{1}\": The file size must not exceed 10 MB.",
                         ],
+                        [
+                            "fr" => "Le nombre de caractères du champ {1} ne peut être supérieur à {2}.",
+                            "en" => "{1} field length can't be upper than {2}",
+                        ],
+                        [
+                            "fr" => "Le nombre de caractères du champ {1} ne peut être inférieur à {2}.",
+                            "en" => "{1} field length can't be lower than {2}",
+                        ],
+                        [
+                            "fr" => "Le nombre de caractères de ce champ ne peut être inférieur à {1}.",
+                            "en" => "Field length can't be upper than {1}",
+                        ],
+                        [
+                            "fr" => "Le nombre de caractères de ce champ ne peut être inférieur à {1}.",
+                            "en" => "Field length can't be lower than {1}",
+                        ],
                     ],
                 ],
                 "Emails" => [

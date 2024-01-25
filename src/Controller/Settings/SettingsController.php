@@ -2512,11 +2512,17 @@ class SettingsController extends AbstractController {
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
-                    "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE
+                    "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
                         ? "<input type='text' name='elements' required class='$class' value='$elements'/>"
                         : "",
                     "displayedOnLabel" => $type->getCategory()->getLabel() === CategoryType::DEMANDE_DISPATCH
                         ? "<input type='checkbox' name='displayedOnLabel' class='$class' $displayedOnLabel/>"
+                        : "",
+                    "minCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='minCharactersLength' min='1' class='$class' value='{$freeField->getMinCharactersLength()}'/>"
+                        : "",
+                    "maxCharactersLength" => $freeField->getTypage() === FreeField::TYPE_TEXT
+                        ? "<input type='number' name='maxCharactersLength' min='1' class='$class' value='{$freeField->getMaxCharactersLength()}'/>"
                         : "",
                 ];
             } else {
@@ -2533,6 +2539,8 @@ class SettingsController extends AbstractController {
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
                     "displayedOnLabel" => $freeField->isDisplayedOnLabel() ? "oui" : "non",
+                    "minCharactersLength" => $freeField->getMinCharactersLength() ?? "",
+                    "maxCharactersLength" => $freeField->getMaxCharactersLength() ?? "",
                 ];
             }
         }
@@ -2553,6 +2561,8 @@ class SettingsController extends AbstractController {
                 "defaultValue" => "",
                 "elements" => "",
                 "displayedOnLabel" => "",
+                "minCharactersLength" => "",
+                "maxCharactersLength" => "",
             ];
         }
 
