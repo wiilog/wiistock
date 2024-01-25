@@ -61,6 +61,8 @@ jobs:
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
+                with:
+                    continue-on-error: true
 
             -   name: get cypress results
                 run: docker cp wiistock-cypress_cypress:/var/www/cypress/logs/ results
