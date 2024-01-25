@@ -8,6 +8,8 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dashboard;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
@@ -149,6 +151,7 @@ class DashboardSettingsController extends AbstractController {
         $natureRepository = $entityManager->getRepository(Nature::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $languageRepository = $entityManager->getRepository(Language::class);
+        $fieldsParamRepository = $entityManager->getRepository(FixedFieldByType::class);
 
         $values = json_decode($request->request->get('values'), true);
         $values += [ //default values should be initialized here
@@ -177,9 +180,11 @@ class DashboardSettingsController extends AbstractController {
             "entity" => '',
             "treatmentDelay" => null,
             "natures" => [],
-            "tooltip" => $componentType->getHint()
+            "tooltip" => $componentType->getHint(),
+            "pickLocations" => [],
+            "dropLocations" => [],
+            "dispatchEmergencies" => [],
         ];
-
         $entities = [];
         $entityTypes = [];
         $entityStatuses = [];
@@ -269,7 +274,7 @@ class DashboardSettingsController extends AbstractController {
             $entityTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         }
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation"] as $field) {
+        foreach(["locations", "firstOriginLocation", "secondOriginLocation", "firstDestinationLocation", "secondDestinationLocation", "pickLocations", "dropLocations"] as $field) {
             if(!empty($values[$field])) {
                 $values[$field] = $locationRepository->findBy(['id' => $values[$field]]);
             }
@@ -322,6 +327,33 @@ class DashboardSettingsController extends AbstractController {
 
         if(!empty($values['natures'])) {
             $values['natures'] = $natureRepository->findBy(['id' => $values['natures']]);
+        }
+
+
+        if(!empty($values['pickLocations'])) {
+            $values['pickLocations'] = Stream::from($locationRepository->findBy(['id' => $values['pickLocations']]))
+                    ->map(fn(Emplacement $pickLocation) => [
+                        'label' => $pickLocation->getLabel(),
+                        'value' => $pickLocation->getId(),
+                        'selected' => true
+                    ])
+                    ->toArray();
+        }
+
+        if(!empty($values['dropLocations'])) {
+            $values['dropLocations'] = Stream::from($locationRepository->findBy(['id' => $values['dropLocations']]))
+                    ->map(fn(Emplacement $dropLocation) => [
+                        'label' => $dropLocation->getLabel(),
+                        'value' => $dropLocation->getId(),
+                        'selected' => true
+                    ])
+                    ->toArray();
+        }
+
+        if(!empty($values['dispatchEmergencies'])) {
+            $values['dispatchEmergencies'] = Stream::from($fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY))
+                ->filter(fn($emergency) => in_array($emergency, $values['dispatchEmergencies']))
+                ->toArray();
         }
 
         $values['languages'] = $languageRepository->findBy(['hidden' => false]);
@@ -393,6 +425,7 @@ class DashboardSettingsController extends AbstractController {
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $deliveryOrderStatuses = $statusRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
+        $dispatchEmergencies = $fieldsParamRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
         $natures = $natureRepository->findAll();
         if($templateName) {
@@ -421,7 +454,14 @@ class DashboardSettingsController extends AbstractController {
                     'entityTypes' => $entityTypes,
                     'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
-                    'values' => $values
+                    'values' => $values,
+                    'dispatchEmergencies' => Stream::from($dispatchEmergencies)
+                        ->map(fn(string $emergency) => [
+                            'label' => $emergency,
+                            'value' => $emergency,
+                            'selected' => in_array($emergency, $values['dispatchEmergencies']),
+                        ])
+                        ->toArray(),
                 ])
             ]);
         } else {

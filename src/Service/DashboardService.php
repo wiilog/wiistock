@@ -1072,10 +1072,18 @@ class DashboardService {
             switch ($config['entity']) {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_HANDLING:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY:
-                case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
                     $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
+                    break;
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
+                    $count = $repository->countByFilters($entityManager, [
+                        'types' => $entityTypes,
+                        'statuses' => $entityStatuses,
+                        'pickLocations' => $config['pickLocations'],
+                        'dropLocations' => $config['dropLocations'],
+                        'dispatchEmergencies' => $config['dispatchEmergencies'],
+                    ]);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING:
                     $result = QueryBuilderHelper::countByStatuses($entityManager, $entityToClass[$config['entity']], $entityStatuses);
