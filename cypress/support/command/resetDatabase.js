@@ -4,8 +4,8 @@ let SSH_ON_APP = 'sshpass -p $SSHPASS ssh -o StrictHostKeyChecking=no www-data@a
 Cypress.Commands.add(
     'startingCypressEnvironnement',
     (urlToCurl = 'https://github.com/wiilog/wiistock/releases/download/v7.8.8/cypressDB.sql',
-     sqlFileName = 'BDD_cypress.sql',
-     pathToFile = '/etc/sqlscripts') => {
+     sqlFileName = 'dev-script.sql',
+     pathToFile = '/cypress/SQL_script') => {
 
         //get the shema of db in .env.local file
         cy.exec(`grep DATABASE_URL .env.local`, {failOnNonZeroExit: false}).then((result) => {
@@ -66,7 +66,7 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
 })
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
-    cy.exec(`curl -o ${pathToFile}/${fileName} ${urlToFTP}`);
+    cy.exec(`curl -o --user $FTP_USER:$FTP_PASSWORD  ${pathToFile}/${fileName} ${urlToFTP}`);
 })
 
 Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {

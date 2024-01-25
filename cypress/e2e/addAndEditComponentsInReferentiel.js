@@ -2,7 +2,7 @@ const user = Cypress.config('user');
 
 describe('Setup the environment', () => {
     it('Reset the db', () => {
-        cy.startingCypressEnvironnement()
+        cy.startingCypressEnvironnement('$FTP_HOST')
     });
 })
 
