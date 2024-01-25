@@ -519,15 +519,20 @@ function treatInputError($input, errors, form) {
         const minLength = parseInt($input.attr('minlength'));
         const maxLength = parseInt($input.attr('maxlength'));
 
-        if (val && val.length < minLength) {
+        if (val && minLength && val.length < minLength) {
             errors.push({
                 elements: [$input],
-                message: `Le nombre de caractères ne peut être inférieur à ${minLength}.`,
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être inférieur à {1}.", {
+                    1: minLength,
+                }),
             });
-        } else if (val && val.length > maxLength) {
+        }
+        else if (val && maxLength && val.length > maxLength) {
             errors.push({
                 elements: [$input],
-                message: `Le nombre de caractères ne peut être supérieur à ${maxLength}.`,
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être supérieur à {1}.", {
+                    1: maxLength,
+                }),
             });
         }
     }

@@ -535,12 +535,26 @@ function processInputsForm($modal, data, isAttachmentForm) {
             const minLength = parseInt($input.attr('minlength'));
             const maxLength = parseInt($input.attr('maxlength'));
 
-            if (val && val.length < minLength) {
-                errorMessages.push(`Le nombre de caractères du champ <strong>${label}</strong> ne peut être inférieur à ${minLength}.`);
+            if (val && minLength && val.length < minLength) {
+                errorMessages.push(
+                    Translation.of('Général', '', 'Modale', "Le nombre de caractères du champ {1} ne peut être inférieur à {2}.", {
+                        1: label,
+                        2: minLength,
+                    })
+                );
                 $isInvalidElements.push($input);
-            } else if (val && val.length > maxLength) {
-                errorMessages.push(`Le nombre de caractères du champ <strong>${label}</strong> ne peut être supérieur à ${maxLength}.`);
+            }
+            else if (val && maxLength && val.length > maxLength) {
+                errorMessages.push(
+                    Translation.of('Général', '', 'Modale', "Le nombre de caractères du champ {1} ne peut être supérieur à {2}.", {
+                        1: label,
+                        2: maxLength,
+                    })
+                );
                 $isInvalidElements.push($input);
+            }
+            else {
+                saveData($input, data, name, val, isAttachmentForm);
             }
         } else {
             if ($editorContainer.length > 0) {

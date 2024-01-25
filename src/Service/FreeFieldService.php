@@ -78,7 +78,7 @@ class FreeFieldService {
                 $freeField = $freeFieldRepository->find($freeFieldId);
 
                 if ($freeField) {
-                    self::processErrors($freeField, $data, $userLanguage, $defaultLanguage);
+                    $this->processErrors($freeField, $data, $userLanguage, $defaultLanguage);
                     $freeFields[$freeField->getId()] = $this->manageJSONFreeField($freeField, $data[$freeFieldId], $user);
                 }
             }
@@ -87,23 +87,30 @@ class FreeFieldService {
         $entity->setFreeFields($freeFields);
     }
 
-    public static function processErrors(FreeField $freeField,
-                                         array     $data,
-                                         Language  $userLanguage,
-                                         Language  $defaultLanguage): void {
+    public function processErrors(FreeField $freeField,
+                                  array     $data,
+                                  Language  $userLanguage,
+                                  Language  $defaultLanguage): void {
         if($freeField->getTypage() === FreeField::TYPE_TEXT) {
             $value = trim($data[$freeField->getId()]);
             $name = $freeField->getLabelIn($userLanguage, $defaultLanguage);
-            $message = "Le nombre de caractères du champ libre <strong>$name</strong> ne peut être {type} à {length}.";
 
             $minCharactersLength = $freeField->getMinCharactersLength() ?? null;
             if ($minCharactersLength && $value && (strlen($value) < $minCharactersLength)) {
-                throw new FormException(str_replace(["{type}", "{length}"], ["inférieur", $minCharactersLength], $message));
+                $errorMessage = $this->translationService->translate('Général', null, "Modale", "Le nombre de caractères du champ {1} ne peut être inférieur à {2}.", [
+                    1 => "<strong>{$name}</strong>",
+                    2 => $minCharactersLength,
+                ]);
+                throw new FormException($errorMessage);
             }
 
             $maxCharactersLength = $freeField->getMaxCharactersLength() ?? null;
             if ($maxCharactersLength && $value && (strlen($value) > $maxCharactersLength)) {
-                throw new FormException(str_replace(["{type}", "{length}"], ["supérieur", $maxCharactersLength], $message));
+                $errorMessage = $this->translationService->translate('Général', null, "Modale", "Le nombre de caractères du champ {1} ne peut être supérieur à {2}.", [
+                    1 => "<strong>{$name}</strong>",
+                    2 => $maxCharactersLength,
+                ]);
+                throw new FormException($errorMessage);
             }
         }
     }
