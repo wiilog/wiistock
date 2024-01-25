@@ -19,6 +19,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
+                    ref: main
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
@@ -46,8 +47,8 @@ jobs:
                     touch projects/wiistock/config/generated.yaml &&
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
-            -   name: ls
-                run: ls -la projects/wiistock && ls -la
+            -   name: tree
+                run: tree
 
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
