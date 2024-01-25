@@ -530,9 +530,6 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
 
                 savePackLine(dispatchId, $row);
             });
-            if(modifiable) {
-                scrollToBottom();
-            }
             if (!$table.data('initialized')) {
                 $table.data('initialized', true);
                 // Resize table to avoid bug related to WIIS-8276,
