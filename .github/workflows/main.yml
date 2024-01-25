@@ -29,7 +29,7 @@ jobs:
                     repository: wiilog/wiistock
                     #ref: ${{ github.event.pull_request.head.sha }}
                     ref: ${{ github.event.head_commit.id }}
-                    path: projects/wiistock
+                    path: projects/
 
             #-   name: replace MAIN_USER_ID=1000 and MAIN_GROUP_ID=1000 to MAIN_USER_ID=0 and MAIN_GROUP_ID=0
             #    run: sed -i 's/MAIN_USER_ID=1000/MAIN_USER_ID=0/g' .env && sed -i 's/MAIN_GROUP_ID=1000/MAIN_GROUP_ID=0/g' .env && cat .env
