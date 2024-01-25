@@ -53,19 +53,20 @@ jobs:
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up app --build -d
 
-            # TODO VIRER ========================================================================================
-            -   name: pwd ls -la
-                run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
-
             -   name: volume mount does not work on docher in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
-
-            -   name: pwd ls -la
-                run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
-            # TODO VIRER ========================================================================================
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
+
+            -   name: get cypress results
+                run: docker cp wiistock-cypress_cypress:/var/www/cypress/logs/ results
+
+            -   name: put the results in the artifacts
+                uses: actions/upload-artifact@v2
+                with:
+                    name: cypress-results
+                    path: results
