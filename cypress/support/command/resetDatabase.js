@@ -5,7 +5,7 @@ Cypress.Commands.add(
     'startingCypressEnvironnement',
     (urlToCurl = undefined,
      sqlFileName = 'BDD_cypress.sql',
-     pathToFile = '/etc/sqlscripts') => {
+     pathToFile = '/etc/cypress/sqlscripts') => {
 
         //get the shema of db in .env.local file
         cy.exec(`grep DATABASE_URL .env.local`, {failOnNonZeroExit: false}).then((result) => {
@@ -65,8 +65,9 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 --execute="DROP DATABASE IF EXISTS ${databaseName}; CREATE DATABASE ${databaseName};"`);
 })
 
-Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
-    // todo : a voir si on a lesd permisions de curl direct dans ce fichier créé dans le docker file, sinon faire => cy.exec('mkdir -p /etc/sqlscripts');
+Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/cypresssqlscripts', fileName = 'BDD_cypress.sql') => {
+    // todo : a voir si on a lesd permisions de curl direct dans ce fichier créé dans le docker file, sinon faire =>
+    cy.exec(`mkdir -p ${pathToFile}`);
     cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
 })
 
