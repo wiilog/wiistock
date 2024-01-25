@@ -29,6 +29,24 @@ const TYPINGS = {
     [MULTIPLE_LIST_TYPING]: `Liste multiple`,
 };
 
+const TEXT_TYPING = `text`;
+const NUMBER_TYPING = `number`;
+const BOOLEAN_TYPING = `booleen`;
+const DATE_TYPING = `date`;
+const DATETIME_TYPING = `datetime`;
+const LIST_TYPING = `list`;
+const MULTIPLE_LIST_TYPING = `list multiple`;
+
+const TYPINGS = {
+    [TEXT_TYPING]: `Texte`,
+    [NUMBER_TYPING]: `Nombre`,
+    [BOOLEAN_TYPING]: `Oui/Non`,
+    [DATE_TYPING]: `Date`,
+    [DATETIME_TYPING]: `Date et heure`,
+    [LIST_TYPING]: `Liste`,
+    [MULTIPLE_LIST_TYPING]: `Liste multiple`,
+};
+
 const $saveButton = $(`.save-settings`);
 const $discardButton = $(`.discard-settings`);
 const $managementButtons = $(`.save-settings, .discard-settings`);
