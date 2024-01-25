@@ -65,8 +65,7 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 --execute="DROP DATABASE IF EXISTS ${databaseName}; CREATE DATABASE ${databaseName};"`);
 })
 
-Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/cypresssqlscripts', fileName = 'BDD_cypress.sql') => {
-    // todo : a voir si on a lesd permisions de curl direct dans ce fichier créé dans le docker file, sinon faire =>
+Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/cypress/sqlscripts', fileName = 'BDD_cypress.sql') => {
     cy.exec(`mkdir -p ${pathToFile}`);
     cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
 })
