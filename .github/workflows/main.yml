@@ -47,26 +47,17 @@ jobs:
                     touch projects/wiistock/config/generated.yaml &&
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
-            -   name: tree
-                run: tree
-
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
-
-            -   name: docker ps
-                run: docker ps
-
-            -   name: cat
-                run: cat docker-compose-cypress.yml && cat docker-compose.yml
-
-            -   name: pwd && ls
-                run: docker exec wiistock-cypress_app pwd && docker exec wiistock-cypress_app ls -la
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
 
-            -   name: Down containers
-                run: docker compose down
+            #-   name: Down containers
+            #    run: docker compose down
+
+            -   name: docker cp
+                run: docker cp projects/wiistock/ wiistock-cypress_app:/var/www
 
             -   name: Run cypress
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --abort-on-container-exit
