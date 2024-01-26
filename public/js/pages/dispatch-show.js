@@ -561,8 +561,6 @@ function initializePacksTable(dispatchId, {modifiable, initialVisibleColumns}) {
     });
 
     if(modifiable) {
-        scrollToBottom();
-
         WysiwygManager.initializeOneLineWYSIWYG($table);
 
         $table.on(`keydown`, `[name="quantity"]`, function(event) {
