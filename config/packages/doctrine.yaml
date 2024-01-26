@@ -49,3 +49,6 @@ doctrine:
                 DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
                 CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs
                 DAYNAME: DoctrineExtensions\Query\Mysql\DayName
+
+                # Custom DQL functions
+                FIRST: App\DQL\Functions\FirstFunction
