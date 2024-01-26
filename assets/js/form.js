@@ -227,9 +227,11 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
+
             if($input.is('[data-intl-tel-input]')){
                 $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
             }
+
             const $multipleKey = $input.closest(`[data-multiple-key]`);
             if ($multipleKey.exists()) {
                 const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);

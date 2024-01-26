@@ -1207,47 +1207,64 @@ function onTypeChange($select) {
     toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
     typeChoice($select, $freeFieldsContainer);
 
-    const type = parseInt($select.val());
+    const typeId = parseInt($select.val());
 
     const $selectStatus = $modal.find('select[name="status"]');
-    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
+    $selectStatus.find('option[data-type-id!="' + typeId + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
 
     let $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
     if(!$errorEmptyStatus.length) {
         $errorEmptyStatus = $selectStatus.closest('.form-item').find('.error-empty-status');
+
+        if(!$errorEmptyStatus.length) {
+            $errorEmptyStatus = $modal.find('.error-empty-status');
+        }
     }
     $errorEmptyStatus.addClass('d-none');
 
-    if(!type) {
+    if(!typeId) {
         $selectStatus.removeClass('d-none');
+        $selectStatus.siblings('.select2-container').removeClass('d-none');
         $selectStatus.prop('disabled', true);
     } else {
-        const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + type + '"]');
+        const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + typeId + '"]');
         $selectStatus.prop('disabled', false);
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
-        if ($correspondingStatuses.length > 1) {
+        const [type] = $select.select2('data');
+
+        if ($correspondingStatuses.length > 1 || type?.statusCount > 1) {
             $selectStatus.removeClass('d-none');
-            if (defaultStatuses[type]) {
-                $selectStatus.val(defaultStatuses[type]);
+            $selectStatus.siblings('.select2-container').removeClass('d-none');
+            if (defaultStatuses[typeId]) {
+                $selectStatus.val(defaultStatuses[typeId]);
             } else if ($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
             } else {
                 $selectStatus.removeAttr('disabled');
             }
-        } else if($correspondingStatuses.length === 1) {
-            $selectStatus.val($modal.find('select[name="status"] option:not(.d-none):first').val())
-                .removeClass('d-none')
-                .prop('disabled', true);
-        } else if (type) {
+        } else if($correspondingStatuses.length === 1 || type?.statusCount === 1) {
+            const firstStatus = $modal.find('select[name="status"] option:not(.d-none):first').val();
+
+            if (firstStatus) {
+                // option loaded in DOM
+                $selectStatus
+                    .val(firstStatus)
+                    .prop('disabled', true);
+            }
+
+            $selectStatus.removeClass('d-none');
+            $selectStatus.siblings('.select2-container').removeClass('d-none');
+        } else if (typeId) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
+            $selectStatus.siblings('.select2-container').addClass('d-none');
         }
 
         if ($modal.attr('id') === 'modalNewHandling') {
-            $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
+            $.post(Routing.generate('handling_users_by_type'), {id: typeId}, function (data) {
                 const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {
