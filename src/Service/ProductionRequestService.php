@@ -440,8 +440,8 @@ class ProductionRequestService
 
         $statusesToProgress = [
             Statut::TREATED => 100,
-            Statut::NOT_TREATED => 60,
-            Statut::IN_PROGRESS => 30,
+            Statut::NOT_TREATED => 30,
+            Statut::IN_PROGRESS => 60,
         ];
         return [
             'href' => $href ?? null,
