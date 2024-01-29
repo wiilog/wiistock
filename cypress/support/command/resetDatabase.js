@@ -5,7 +5,7 @@ Cypress.Commands.add(
     'startingCypressEnvironnement',
     (urlToCurl = undefined,
      sqlFileName = 'BDD_cypress.sql',
-     pathToFile = '/etc/sqlscripts') => {
+     pathToFile = '/etc/cypress/sqlscripts') => {
 
         //get the shema of db in .env.local file
         cy.exec(`grep DATABASE_URL .env.local`, {failOnNonZeroExit: false}).then((result) => {
@@ -66,6 +66,7 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
 })
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
+    cy.exec(`mkdir -p ${pathToFile}`);
     cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
 })
 
