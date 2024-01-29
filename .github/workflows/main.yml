@@ -65,12 +65,6 @@ jobs:
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
                 continue-on-error: true
 
-            -   name: docker ps
-                run: docker ps -a
-
-            -   name: Check Docker Compose Logs
-                run: docker-compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress logs
-
             -   name: get cypress results
                 run: docker cp wiistock_cypress:/var/www/cypress/logs/ results
 
