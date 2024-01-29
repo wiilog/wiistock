@@ -4,26 +4,55 @@
 namespace App\EventListener;
 
 
+use AllowDynamicProperties;
+use App\Entity\CategorieCL;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\TrackingMovement;
+use App\Service\FreeFieldService;
+use App\Service\MailerService;
+use App\Service\TrackingMovementService;
+use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Contracts\Service\Attribute\Required;
 
 
-class TrackingMovementListener
+#[AllowDynamicProperties] class TrackingMovementListener implements EventSubscriber
 {
+    #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
+
+    public function getSubscribedEvents(): array {
+        return [
+            'preRemove',
+            'onFlush',
+            'postFlush',
+        ];
+    }
+
     /**
      * @param TrackingMovement $movementToDelete
      * @param LifecycleEventArgs $lifecycleEventArgs
      * @throws ORMException
      * @throws OptimisticLockException
      */
+    #[AsEventListener(event: 'preRemove')]
     public function preRemove(TrackingMovement $movementToDelete,
-                              LifecycleEventArgs $lifecycleEventArgs) {
+                              LifecycleEventArgs $lifecycleEventArgs): void
+    {
         $entityManager = $lifecycleEventArgs->getEntityManager();
 
         $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
@@ -40,6 +69,47 @@ class TrackingMovementListener
         $pack = $movementToDelete->getPack();
         if ($pack) {
             $pack->removeTrackingMovement($movementToDelete);
+        }
+    }
+
+    #[AsEventListener(event: 'onFlush')]
+    public function onFlush(OnFlushEventArgs $args): void {
+        $this->entityInsertBuffer = $args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions();
+    }
+
+    #[AsEventListener(event: 'postFlush')]
+    public function postFlush(PostFlushEventArgs $args): void {
+        foreach ($this->entityInsertBuffer ?? [] as $entity) {
+            if ($entity instanceof TrackingMovement) {
+                if ($entity->isDrop()) {
+                    $location = $entity->getEmplacement();
+                    if ($location->isSendEmailToManagers()) {
+                        $managers = $location?->getManagers();
+                        if ($managers) {
+                            $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
+                                $args->getObjectManager(),
+                                $entity,
+                                ["freeFieldCategoryLabel" => CategorieCL::MVT_TRACA],
+                                null,
+                            );
+
+                            $this->mailerService->sendMail(
+                                "FOLLOW GT // Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
+                                [
+                                    'name' => 'mails/contents/mailDropLuOnLocation.html.twig',
+                                    'context' => [
+                                        'trackingMovement' => $entity,
+                                        'location' => $location,
+                                        'from' => $this->trackingMovementService->getFromColumnData($entity),
+                                        'freeFields' => $freeFields,
+                                    ],
+                                ],
+                                $managers->toArray()
+                            );
+                        }
+                    }
+                }
+            }
         }
     }
 

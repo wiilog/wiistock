@@ -135,7 +135,6 @@ class MailerService
                 $mailer->send($message);
             } catch (TransportExceptionInterface $e) {
                 $this->exceptionLoggerService->sendLog($e);
-                throw $e;
             }
         }
 

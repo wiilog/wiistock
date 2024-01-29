@@ -130,6 +130,8 @@ class TrackingMovement {
         $this->firstDropRecords = new ArrayCollection();
         $this->lastTrackingRecords = new ArrayCollection();
         $this->attachments = new ArrayCollection();
+        $this->deliveryRequest = null;
+        $this->shippingRequest = null;
     }
 
     public function getId(): ?int {
