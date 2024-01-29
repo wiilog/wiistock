@@ -424,4 +424,43 @@ class ProductionRequestService
 
         $this->CSVExportService->putLine($output, $row);
     }
+
+    public function parseRequestForCard(ProductionRequest $productionRequest): array {
+
+        $requestStatus = $productionRequest->getStatus()?->getCode();
+        $requestState = $productionRequest->getStatus()?->getState();
+        $requestType = $productionRequest->getType()?->getLabel();
+
+        $deliveryDateEstimated = $productionRequest->getExpectedAt() ? $productionRequest->getExpectedAt()->format('d/m/Y H:i') : '';
+        $estimatedFinishTimeLabel = $productionRequest->getExpectedAt() ? 'Date attendue' : '';
+
+        $href = $this->router->generate('production_request_show', ['id' => $productionRequest->getId()]);
+
+        $bodyTitle = $productionRequest->getManufacturingOrderNumber() . ' - ' . $requestType;
+
+        $statusesToProgress = [
+            Statut::TREATED => 100,
+            Statut::NOT_TREATED => 60,
+            Statut::IN_PROGRESS => 30,
+        ];
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page de la de demande de production',
+            'estimatedFinishTime' => $deliveryDateEstimated,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $productionRequest->getDropLocation() ? $productionRequest->getDropLocation()->getLabel() : 'Non défini',
+            'requestNumber' => $productionRequest->getNumber(),
+            'requestDate' => $productionRequest->getCreatedAt()->format('d/m/Y H:i'),
+            'requestUser' => $productionRequest->getTreatedBy() ? $productionRequest->getTreatedBy()->getUsername() : 'Non défini',
+            'cardColor' => 'white',
+            'bodyColor' => 'light-grey',
+            'topRightIcon' => 'livreur.svg',
+            'emergencyText' => '',
+            'progress' => $statusesToProgress[$requestState] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => 'light-grey',
+        ];
+    }
 }

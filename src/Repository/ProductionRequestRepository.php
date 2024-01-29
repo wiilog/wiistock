@@ -6,6 +6,8 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
+use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -348,6 +350,31 @@ class ProductionRequestRepository extends EntityRepository
         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $language, $defaultLanguage, ["status", "type"]);
 
         return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
+        $qb = $this->createQueryBuilder("production_request");
+
+        if($requester) {
+            $qb
+                ->andWhere("production_request.createdBy = :createdBy")
+                ->setParameter("createdBy", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("production_request.type IN (:types)")
+                ->setParameter("types", $types);
+        }
+
+        return $qb
+            ->innerJoin("production_request.status", "status")
+            ->andWhere('status.state != ' . Statut::TREATED)
+            ->addOrderBy('status.state', 'ASC')
+            ->addOrderBy('production_request.createdAt', 'ASC')
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }
