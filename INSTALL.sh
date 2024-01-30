@@ -108,6 +108,9 @@ echo ">>>> Mise à jour du style & du routing"
 php bin/console assets:install --symlink public
 yarn build
 
+echo ">>>> Déconnexion de tous les utilisateurs"
+php bin/console app:sessions:close:all
+
 echo ">>>> Mise en environnement de production"
 sed -i "s/APP_ENV=.*/APP_ENV=prod/g" .env.local
 rm -rf var/cache
