@@ -14,6 +14,7 @@ use App\Entity\Menu;
 use App\Entity\Action;
 use App\Service\IOT\IOTService;
 use App\Service\TriggerActionService;
+use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -159,6 +160,11 @@ class TriggerActionController extends AbstractController
                                 ...isset($data["dropOnLocation"]) ? ["dropOnLocation" => $data["dropOnLocation"]] : [],
                             ]
                         );
+
+                        if ($data['lastTrigger'] ?? false) {
+                            $triggerAction->setLastTrigger((new DateTime())->setTimestamp($data['lastTrigger']));
+                        }
+
                         $entityManager->persist($triggerAction);
                     }
                 }
@@ -239,9 +245,14 @@ class TriggerActionController extends AbstractController
                 $templateId = $requestTemplate->getId();
             }
 
+            $templateTypes = TriggerAction::TEMPLATE_TYPES;
+            if (in_array($triggerAction->getActionType(), [TriggerAction::ACTION_TYPE_ZONE_ENTER, TriggerAction::ACTION_TYPE_ZONE_EXIT])) {
+                $templateTypes[TriggerAction::DROP_ON_LOCATION] = 'Dépose sur emplacement';
+            }
+
             $json = $this->renderView('trigger_action/edit_content_modal.html.twig', [
                 'triggerAction' => $triggerAction,
-                'templateTypes' => TriggerAction::TEMPLATE_TYPES,
+                'templateTypes' => $templateTypes,
                 'profile' => $sensor ? $sensor->getProfile()->getName() : "",
                 'templates' => $templates ?? [],
                 'templateId' => $templateId ?? null,
@@ -257,7 +268,6 @@ class TriggerActionController extends AbstractController
     public function edit(EntityManagerInterface $entityManager,
                          Request $request,
                          TriggerActionService $triggerActionService): Response {
-
         if ($data = json_decode($request->getContent(), true)) {
             $triggerActionRepository = $entityManager->getRepository(TriggerAction::class);
             $requestTemplateRepository= $entityManager->getRepository(RequestTemplate::class);
@@ -265,15 +275,30 @@ class TriggerActionController extends AbstractController
 
             $triggerAction = $triggerActionRepository->find($data['id']);
 
+            if ($triggerAction->getSensorWrapper()->getSensor()->getProfile()->getName() === IOTService::INEO_TRK_TRACER ) {
+                // this simplest way to edit the triggerAction is to delete it and create a new one
+                $sensorWrapper = $triggerAction->getSensorWrapper();
+                $sensorWrapper->removeTriggerAction($triggerAction);
+                $entityManager->remove($triggerAction);
+                $creationResponce = $this->new($entityManager, $request, $triggerActionService);
+
+                return json_decode($creationResponce->getContent(), true)["success"]
+                    ? new JsonResponse([
+                        'success' => true,
+                        'msg' => "L'actionneur a bien été modifié",
+                    ])
+                    : $creationResponce;
+            }
+
             $type = $data['templateType'];
 
             if($type === TriggerAction::ALERT){
-                $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
+                $alertTemplate = $alertTemplateRepository->findOneBy(["id" => $data['templatesForAction'] ?? $data['templates']]);
                 $triggerAction
                     ->setRequestTemplate(null)
                     ->setAlertTemplate($alertTemplate);
             } else if ($type === TriggerAction::REQUEST) {
-                $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $data['templatesForAction']]);
+                $requestTemplate = $requestTemplateRepository->findOneBy(["id" => $data['templatesForAction'] ?? $data['templates']]);
                 $triggerAction
                     ->setAlertTemplate(null)
                     ->setRequestTemplate($requestTemplate);
@@ -370,7 +395,7 @@ class TriggerActionController extends AbstractController
             $html = $this->renderView('trigger_action/modalButton.html.twig', [
                 "profile" => $sensor ? $sensor->getProfile()->getName() : "",
                 "templateTypes" => [
-                    TriggerAction::DROP_ON_LOCATION => "Dépôt sur emplacement",
+                    TriggerAction::DROP_ON_LOCATION => "Dépose sur emplacement",
                     ...TriggerAction::TEMPLATE_TYPES,
                 ]
             ]);

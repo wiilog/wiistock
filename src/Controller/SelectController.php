@@ -882,6 +882,7 @@ class SelectController extends AbstractController {
             CategoryType::PRODUCTION,
             $request->query->get("term"),
             [
+                "countStatuses" => true,
                 "language" => $language,
                 "defaultLanguage" => $defaultLanguage,
                 "withDropLocation" => $withDropLocation,

@@ -63,6 +63,7 @@ class FiltreSupController extends AbstractController
                 'customerOrderNumber' => FiltreSup::FIELD_CUSTOMER_ORDER_NUMBER,
                 'useTruckArrivals' => FiltreSup::FIELD_USE_TRUCK_ARRIVALS,
                 'manufacturingOrderNumber' => FiltreSup::FIELD_MANUFACTURING_ORDER_NUMBER,
+                'productArticleCode' => FiltreSup::FIELD_PRODUCT_ARTICLE_CODE,
                 'attachmentAssigned' => FiltreSup::FIELD_ATTACHMENTS_ASSIGNED,
             ];
             foreach ($user->getFiltresSup() as $filtreSup) {

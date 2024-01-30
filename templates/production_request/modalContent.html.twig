@@ -36,20 +36,37 @@
     <div class="col-6 mb-2">
         {{ form.select(fieldCode, fieldLabel, true, {
             type: 'status',
-            disabled: productionRequest.type ? false : true,
+            disabled: not productionRequest.type,
             value: productionRequest.status ? productionRequest.status.id : null,
-            items: productionRequest.status ? {
-                0: {
+            items: productionRequest.status
+                ? [{
                     'value': productionRequest.status.id,
                     'label':  productionRequest.status.nom,
                     'selected': true
-                }
-            } : null,
+                }]
+                : [],
             includeParams: '[name=type]',
-            additionalAttributes: productionRequest.type ? [] : [
-                { name: 'onChange', value: 'displayAttachmentRequired($(this))' },
-            ],
+            additionalAttributes: productionRequest.type
+                ? []
+                : [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
         }) }}
+        <div class="error-empty-status d-none">
+            {% include 'utils/warningSelectEmpty.html.twig' with {
+                array: [],
+                warningLabel: 'Attention ! Aucun statut pour ce type',
+                redirectPath: path('settings_item', {
+                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_PRODUCTION'),
+                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_FULL_SETTINGS'),
+                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                }),
+                redirectLabel: 'Créer un statut',
+                block: true,
+                rights: {
+                    menu: constant('App\\Entity\\Menu::PARAM'),
+                    action: constant('App\\Entity\\Action::CREATE')
+                }
+            } %}
+        </div>
     </div>
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').name %}
@@ -86,9 +103,11 @@
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
-            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt|date('Y-m-d'), {
+            {% set canEditExpectedAt = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
+            {% set requiredOnform = canEditExpectedAt and fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d') : null, {
                 type: 'date',
+                disabled: not canEditExpectedAt,
             }) }}
         </div>
     {% endif %}
@@ -161,15 +180,15 @@
     {% endif %}
 
     <!-- CHAMPS LIBRES -->
-    {% set typeChampsLibres = typeChampsLibres ?? (productionRequest.type ? [{
+    {% set typeFreeFields = typeFreeFields ?? (productionRequest.type ? [{
         typeId: productionRequest.type.id,
         champsLibres: productionRequest.type.champsLibres,
     }] : []) %}
     <div class="col-12">
         <span class="toggle-collapsible expanded">{{ trans('Général', null, 'Modale', 'Champs libres') }}</span>
         <div class="collapsible expanded free-fields-container mb-2">
-            {% for type in typeChampsLibres %}
-                <div class="{{ typeChampsLibres|length > 1 ? ' d-none' }}"
+            {% for type in typeFreeFields %}
+                <div class="{{ typeFreeFields|length > 1 ? ' d-none' }}"
                      data-type="{{ type.typeId }}">
                     {% include 'free_field/freeFieldsEdit.html.twig' with {
                         freeFields: type.champsLibres,
@@ -198,12 +217,9 @@
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
         <div class="col-6 mb-2">
-            {% include 'attachment/attachment.html.twig' with {
+            {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
-                required: false,
-                override: true,
-                labelTitle: constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value,
-            } %}
+            }) }}
         </div>
     {% else %}
         {{ form.hidden('isAttachmentForm', 1) }}

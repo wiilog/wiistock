@@ -1,3 +1,5 @@
+import AJAX, {POST, GET} from "@app/ajax";
+
 let tableProduction;
 
 global.onProductionRequestTypeChange = onProductionRequestTypeChange;
@@ -14,6 +16,7 @@ $(function () {
 
     const filtersContainer = $('.filters-container');
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
+    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
 
     filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
         updateSelectedStatusesCount($(this).closest('.statuses-filter').find('[name*=statuses-filter]:checked').length);
@@ -51,7 +54,7 @@ function initTableShippings() {
 
     if (!initialVisible) {
         return AJAX
-            .route(AJAX.GET, 'production_request_api_columns')
+            .route(GET, 'production_request_api_columns')
             .json()
             .then(columns => proceed(columns));
     } else {
@@ -69,7 +72,7 @@ function initTableShippings() {
             order: [['number', "desc"]],
             ajax: {
                 url: pathProduction,
-                type: AJAX.POST,
+                type: POST,
             },
             rowConfig: {
                 needsRowClickAction: true,
@@ -93,6 +96,7 @@ function initTableShippings() {
 }
 
 function onProductionRequestTypeChange($select){
+    onTypeChange($select);
     const $modal = $select.closest(`.modal`);
     const $typeSelect = $modal.find(`[name=type]`);
     const $selectStatus = $modal.find(`[name=status]`);
@@ -104,7 +108,9 @@ function onProductionRequestTypeChange($select){
     const defaultStatus = optionData['defaultStatus'];
     if(defaultStatus){
         const [id, value] = defaultStatus.split(':');
-        $selectStatus.append(new Option(value, id, true, true)).trigger(`change`);
+        $selectStatus
+            .append(new Option(value, id, true, true))
+            .trigger(`change`);
     }
 
     if (optionData.dropLocationId && optionData.dropLocationLabel) {
@@ -126,7 +132,7 @@ function displayAttachmentRequired($select) {
 function initProductionRequestModal($modal, submitRoute) {
     Form
         .create($modal, {clearOnOpen: true})
-        .submitTo(AJAX.POST, submitRoute, {
+        .submitTo(POST, submitRoute, {
             tables: [tableProduction],
         });
 }

@@ -1,5 +1,3 @@
-import AJAX, {GET} from "@app/ajax";
-
 const $modalNewTriggerAction = $('#modalNewTriggerAction');
 const $modalEditTriggerAction = $('#modalEditTriggerAction');
 const $sensorSelect = $modalNewTriggerAction.find('[name=sensorWrapper]');
@@ -99,7 +97,7 @@ function onTemplateTypeChange($select) {
 
         if (type) {
             AJAX
-                .route(GET, 'get_templates', {type})
+                .route(AJAX.GET, 'get_templates', {type})
                 .json()
                 .then(({results}) => {
                     $templatesSelect.empty();

@@ -250,6 +250,8 @@ class ProductionRequestService
             $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
+        $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+
         $attachments = $productionRequest->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
@@ -321,7 +323,7 @@ class ProductionRequestService
 
         $message = "<br>";
         if ($data->has(FixedFieldEnum::dropLocation->name)
-            && $productionRequest->getDropLocation()?->getId() !== $data->get(FixedFieldEnum::dropLocation->name) ? intval($data->get(FixedFieldEnum::dropLocation->name)) : null) {
+            && $productionRequest->getDropLocation()?->getId() !== $data->getInt(FixedFieldEnum::dropLocation->name) ? intval($data->get(FixedFieldEnum::dropLocation->name)) : null) {
             $dropLocation = $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name));
             $message .= "<strong>".FixedFieldEnum::dropLocation->value."</strong> : {$dropLocation->getLabel()}.<br>";
         }
@@ -352,14 +354,12 @@ class ProductionRequestService
         }
 
         if ($data->has(FixedFieldEnum::quantity->name)
-            && $productionRequest->getQuantity() !== null
-            && $productionRequest->getQuantity() !== intval($data->get(FixedFieldEnum::quantity->name))) {
+            && intval($productionRequest->getQuantity()) !== intval($data->get(FixedFieldEnum::quantity->name))) {
             $message .= "<strong>".FixedFieldEnum::quantity->value."</strong> : {$data->get(FixedFieldEnum::quantity->name)}<br>";
         }
 
         if ($data->has(FixedFieldEnum::lineCount->name)
-            && $productionRequest->getLineCount() !== null
-            && $productionRequest->getLineCount() !== intval($data->get(FixedFieldEnum::lineCount->name))) {
+            && intval($productionRequest->getLineCount()) !== intval($data->get(FixedFieldEnum::lineCount->name))) {
             $message .= "<strong>".FixedFieldEnum::lineCount->value."</strong> : {$data->get(FixedFieldEnum::lineCount->name)}<br>";
         }
 
@@ -396,6 +396,8 @@ class ProductionRequestService
 
     public function productionRequestPutLine($output, array $productionRequest, array $freeFieldsConfig, array $freeFieldsById): void {
         $freeFieldValues = $freeFieldsById[$productionRequest['id']];
+        $comment = $productionRequest[FixedFieldEnum::comment->name];
+
         $row = [
             $productionRequest[FixedFieldEnum::number->name],
             $productionRequest[FixedFieldEnum::createdAt->name],
@@ -411,7 +413,7 @@ class ProductionRequestService
             $productionRequest[FixedFieldEnum::quantity->name],
             $productionRequest[FixedFieldEnum::emergency->name],
             $productionRequest[FixedFieldEnum::projectNumber->name],
-            strip_tags(FixedFieldEnum::comment->name),
+            $comment ? strip_tags($comment) : null,
             ...(Stream::from($freeFieldsConfig['freeFields'])
                 ->map(function(FreeField $freeField, $freeFieldId) use ($freeFieldValues) {
                     $value = $freeFieldValues[$freeFieldId] ?? null;

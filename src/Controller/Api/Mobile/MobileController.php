@@ -197,6 +197,7 @@ class MobileController extends AbstractApiController
                         'userId' => $loggedUser->getId(),
                         'fieldsParam' => $fieldsParam ?? [],
                         'dispatchDefaultWaybill' => $wayBillData ?? [],
+                        'appContext' => $_SERVER['APP_CONTEXT'],
                     ];
                 } else {
                     $data = [
@@ -2343,13 +2344,12 @@ class MobileController extends AbstractApiController
 
         if($rights['inventory']){
             // inventory
-            $articlesInventory = $inventoryMissionRepository->getCurrentMissionArticlesNotTreated();
-            $refArticlesInventory = $inventoryMissionRepository->getCurrentMissionRefNotTreated();
+            $inventoryItems = $inventoryMissionRepository->getInventoriableArticlesAndReferences();
+
             $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
             $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
             // prises en cours
             $stockTaking = $trackingMovementRepository->getPickingByOperatorAndNotDropped($user, TrackingMovementRepository::MOUVEMENT_TRACA_STOCK);
-
         }
 
         $projects = Stream::from($projectRepository->findAll())
@@ -2506,10 +2506,7 @@ class MobileController extends AbstractApiController
             'transportRoundLines' => $transportRoundLines ?? [],
             'handlings' => $handlings ?? [],
             'handlingAttachments' => $handlingAttachments ?? [],
-            'articlesInventaire' => array_merge(
-                $articlesInventory ?? [],
-                $refArticlesInventory ?? []
-            ),
+            'inventoryItems' => $inventoryItems ?? [],
             'inventoryMission' => $inventoryMissions ?? [],
             'inventoryLocationZone' => $inventoryLocationsZone ?? [],
             'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),

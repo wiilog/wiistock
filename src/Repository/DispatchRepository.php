@@ -334,7 +334,7 @@ class DispatchRepository extends EntityRepository
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
             ->addSelect('dispatch.id AS id')
-            ->addSelect('dispatch_created_by.username AS createdBy')
+            ->addSelect('dispatch_created_by.id AS createdBy')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')

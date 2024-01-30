@@ -66,7 +66,7 @@ class DispatchController extends AbstractApiController
 
             $dispatchId = $dispatchArray['id'] ?? null;
 
-            $createdBy = $userRepository->findOneBy(['username' => $dispatchArray['createdBy']]);
+            $createdBy = $userRepository->findOneBy(['id' => $dispatchArray['createdBy']]);
             $createdAt = $this->getFormatter()->parseDatetime($dispatchArray['createdAt']);
             $validationDate = $this->getFormatter()->parseDatetime($dispatchArray['validatedAt']);
 

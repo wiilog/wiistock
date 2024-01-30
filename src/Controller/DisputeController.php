@@ -172,18 +172,28 @@ class DisputeController extends AbstractController
 		}
 	}
 
-    /**
-     * @Route("/histo/{dispute}", name="histo_dispute_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     */
-	public function apiHistoricLitige(EntityManagerInterface $entityManager,
-                                      Dispute                $dispute): Response
-    {
+    #[Route("/histo/{dispute}", name: "histo_dispute_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    public function apiHistoricLitige(EntityManagerInterface $entityManager,
+                                      Request                $request,
+                                      Dispute                $dispute): Response {
         $rows = [];
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $disputeHistoryRecordRepository = $entityManager->getRepository(DisputeHistoryRecord::class);
-        $disputeHistory = $disputeHistoryRecordRepository->findBy(['dispute' => $dispute]);
-
+        $requestData = $request->request->all();
+        $order = $requestData['order'][0];
+        $sortColumn = $requestData['columns'][$order['column']];
+        $direction = $order['dir'];
+        $data['recordsTotal'] = $disputeHistoryRecordRepository->count(
+            ['dispute' => $dispute],
+        );
+        $data['recordsFiltered'] = $data['recordsTotal'];
+        $disputeHistory = $disputeHistoryRecordRepository->findBy(
+            ['dispute' => $dispute],
+            [$sortColumn['data'] => $direction],
+                $requestData['length'] ?? null,
+                $requestData['start'] ?? null
+        );
         foreach ($disputeHistory as $record) {
             $dispute = $record->getDispute();
             $categoryStatus = match(true) {
@@ -196,13 +206,12 @@ class DisputeController extends AbstractController
             $rows[] = [
                 'user' => $this->getFormatter()->user($record->getUser()),
                 'date' => $this->getFormatter()->datetime($record->getDate()),
-                'commentaire' => nl2br($record->getComment()),
-                'status' => $this->getFormatter()->status($disputeStatus) ?: $record->getStatusLabel(),
-                'type' => $this->getFormatter()->type($disputeType) ?? $record->getTypeLabel()
+                'comment' => nl2br($record->getComment()),
+                'statusLabel' => $this->getFormatter()->status($disputeStatus) ?: $record->getStatusLabel(),
+                'typeLabel' => $this->getFormatter()->type($disputeType) ?? $record->getTypeLabel()
             ];
         }
         $data['data'] = $rows;
-
         return new JsonResponse($data);
     }
 

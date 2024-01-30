@@ -79,7 +79,6 @@
 
         .header-wrapper .header .logo {
             display: inline-block;
-            height: 100%;
             margin-left: 2%;
             max-width: 50%;
         }
@@ -107,14 +106,6 @@
 
         .header-wrapper .header .custom-icon-container.custom-icon-container-c128 .custom-icon {
             display: inline-block;
-        }
-
-        .header-wrapper .header .custom-icon-container.custom-icon-container-c128 .custom-icon .icon {
-            height: 80%;
-        }
-
-        .header-wrapper .header .custom-icon-container.custom-icon-container-qrcode .custom-icon .icon {
-            width: 100%;
         }
 
         .header-wrapper .header .custom-icon-container .custom-icon .text {
@@ -174,12 +165,13 @@
         {% if hasHeader %}
             <div class="header-wrapper">
                 <div class="header">
+                    {% set imageWidth = width * 0.70 %}
                     {% if logo %}
-                        <img class="logo" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
+                        <img class="logo" width="{{ imageWidth }}px" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ logo }}" alt="logo">
                     {% endif %}
 
                     {% if typeLogoArrivalUl %}
-                        <img class="logo" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ typeLogoArrivalUl }}" alt="Type logo">
+                        <img class="logo" width="{{ imageWidth }}px" src="{{ app.request.scheme ~ '://'~ app.request.httpHost ~ "/" ~ typeLogoArrivalUl }}" alt="Type logo">
                     {% endif %}
 
                     {% if firstCustomIconIsDefined or secondCustomIconIsDefined %}
@@ -188,7 +180,8 @@
                                 {% if firstCustomIconIsDefined %}
                                     <div class="custom-icon first-custom-icon">
                                         <img class="icon"
-                                             src="{{ firstCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/" ~ config.firstCustomIcon.icon) }}"
+                                             width="{{ imageWidth }}px"
+                                             src="{{ firstCustomIconIsDefined ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ config.firstCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.firstCustomIcon.text }}</div>
                                     </div>
@@ -197,7 +190,8 @@
                                 {% if secondCustomIconIsDefined %}
                                     <div class="custom-icon second-custom-icon">
                                         <img class="icon"
-                                             src="{{ secondCustomIconIsDefined ? ('https://' ~ app.request.httpHost ~ "/" ~ config.secondCustomIcon.icon) }}"
+                                             width="{{ imageWidth }}px"
+                                             src="{{ secondCustomIconIsDefined ? (app.request.scheme ~ '://' ~ app.request.httpHost ~ "/" ~ config.secondCustomIcon.icon) }}"
                                              alt="icone">
                                         <div class="text">{{ config.secondCustomIcon.text }}</div>
                                     </div>
