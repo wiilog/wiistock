@@ -430,7 +430,7 @@ class TransportController extends AbstractApiController
             ->isEmpty();
 
         if ($allPacksRejected) {
-            $transportRoundService->reprepareTransportRoundDeliveryLine($manager, $order->getTransportRoundLines()->last());
+            $transportRoundService->reprepareTransportRoundDeliveryLine($manager, $order->getTransportRoundLines()->last(), $this->getUser());
         }
 
         $manager->flush();
@@ -590,7 +590,9 @@ class TransportController extends AbstractApiController
 
         $finishedStatus = $manager->getRepository(Statut::class)
             ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ROUND, TransportRound::STATUS_FINISHED);
-        $statusHistoryService->updateStatus($manager, $round, $finishedStatus);
+        $statusHistoryService->updateStatus($manager, $round, $finishedStatus, [
+            "initiatedBy" => $user,
+        ]);
 
         $manager->flush();
 
@@ -610,6 +612,7 @@ class TransportController extends AbstractApiController
                                TranslationService      $translation): Response
     {
         $data = $request->request;
+        $user = $this->getUser();
         $round = $manager->find(TransportRound::class, $data->get('round'));
 
         $statusRepository = $manager->getRepository(Statut::class);
@@ -643,7 +646,9 @@ class TransportController extends AbstractApiController
 
         $hasRejected = false;
 
-        $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing);
+        $statusHistoryService->updateStatus($manager, $round, $deliveryOrderOngoing, [
+            "initiatedBy" => $user,
+        ]);
 
         foreach ($round->getTransportRoundLines() as $line) {
             $order = $line->getOrder();
@@ -664,7 +669,7 @@ class TransportController extends AbstractApiController
                     $orderStatus = $deliveryOrderOngoing;
                 } else if ($allRejected) {
                     $hasRejected = true;
-                    $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $this->getUser());
+                    $transportRoundService->rejectTransportRoundDeliveryLine($manager, $line, $user);
                 }
             } else {
                 $requestStatus = $collectRequestOngoing;
@@ -674,16 +679,22 @@ class TransportController extends AbstractApiController
             if (isset($requestStatus) && isset($orderStatus) && !$line->getRejectedAt()) {
                 $statusHistoryRequest = $statusHistoryService->updateStatus($manager,
                     $request,
-                    $deliveryRequestOngoing);
-                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing);
+                    $deliveryRequestOngoing,
+                    [
+                        "initiatedBy" => $user,
+                    ]
+                );
+                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $deliveryOrderOngoing, [
+                    "initiatedBy" => $user,
+                ]);
 
                 $historyService->persistTransportHistory($manager, $request, TransportHistoryService::TYPE_ONGOING, [
-                    "user" => $this->getUser(),
+                    "user" => $user,
                     "history" => $statusHistoryRequest,
                 ]);
 
                 $historyService->persistTransportHistory($manager, $order, TransportHistoryService::TYPE_ONGOING, [
-                    "user" => $this->getUser(),
+                    "user" => $user,
                     "history" => $statusHistoryOrder,
                 ]);
             }
@@ -755,6 +766,7 @@ class TransportController extends AbstractApiController
         $originalRequest = $request;
         $order = $request->getOrder();
         $now = new DateTime('now');
+        $user = $this->getUser();
 
         $isEdit = $request->getStatus()->getCode() !== TransportRequest::STATUS_ONGOING
             && $request->getStatus()->getCode() !== TransportRequest::STATUS_TO_DELIVER
@@ -820,7 +832,7 @@ class TransportController extends AbstractApiController
                         $trackingMovement = $trackingMovementService
                             ->createTrackingMovement($line->getPack(),
                                 $patient,
-                                $this->getUser(),
+                                $user,
                                 $now,
                                 true,
                                 true,
@@ -873,8 +885,12 @@ class TransportController extends AbstractApiController
                 $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
                     TransportOrder::STATUS_FINISHED);
 
-                $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order->getRequest(), $requestStatus);
-                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+                $statusHistoryRequest = $statusHistoryService->updateStatus($manager, $order->getRequest(), $requestStatus, [
+                    "initiatedBy" => $user,
+                ]);
+                $statusHistoryOrder = $statusHistoryService->updateStatus($manager, $order, $orderStatus, [
+                    "initiatedBy" => $user,
+                ]);
             }
 
             if($originalRequest instanceof TransportCollectRequest && $originalRequest->getDelivery()) {
@@ -925,6 +941,7 @@ class TransportController extends AbstractApiController
         $motive = $data->get('motive');
         $comment = $data->get('comment');
         $order = $request->getOrder();
+        $user = $this->getUser();
         $now = new DateTime();
 
         $entityForStatusCheck = $request instanceof TransportCollectRequest && $request->getDelivery()
@@ -954,12 +971,12 @@ class TransportController extends AbstractApiController
 
                 $entity = $entity instanceof TransportCollectRequest && $entity->getDelivery() ? $entity->getDelivery() : $entity;
                 $historyService->persistTransportHistory($manager, $entity, $historyType, [
-                    "user" => $this->getUser(),
+                    "user" => $user,
                     "reason" => $motive,
                 ]);
 
                 $historyService->persistTransportHistory($manager, $entity->getOrder(), $historyType, [
-                    "user" => $this->getUser(),
+                    "user" => $user,
                     "reason" => $motive,
                 ]);
             }
@@ -1020,7 +1037,9 @@ class TransportController extends AbstractApiController
                 $collectHasDelivery = $request instanceof TransportCollectRequest && $request->getDelivery();
 
                 if (!$collectHasDelivery) {
-                    $statusHistoryService->updateStatus($manager, $entity, $status);
+                    $statusHistoryService->updateStatus($manager, $entity, $status, [
+                        "initiatedBy" => $user,
+                    ]);
                 } else {
                     //pas d'historique de statut car livraison collecte
                     $notCollectedStatus = $manager->getRepository(Statut::class)
@@ -1094,8 +1113,12 @@ class TransportController extends AbstractApiController
                     $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT,
                         TransportOrder::STATUS_TO_CONTACT);
 
-                    $statusHistoryService->updateStatus($manager, $request, $requestStatus);
-                    $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+                    $statusHistoryService->updateStatus($manager, $request, $requestStatus, [
+                        "initiatedBy" => $user,
+                    ]);
+                    $statusHistoryService->updateStatus($manager, $order, $orderStatus, [
+                        "initiatedBy" => $user,
+                    ]);
 
                     $request->setStatus($requestStatus)
                         ->setTimeSlot(null)
@@ -1119,9 +1142,15 @@ class TransportController extends AbstractApiController
                 $orderFinished = $manager->getRepository(Statut::class)
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_DELIVERY, TransportOrder::STATUS_FINISHED);
 
-                $statusHistoryService->updateStatus($manager, $deliveryRequest, $requestFinished);
-                $statusHistoryService->updateStatus($manager, $deliveryOrder, $orderFinished);
-                $statusHistoryService->updateStatus($manager, $request, $requestNotCollected);
+                $statusHistoryService->updateStatus($manager, $deliveryRequest, $requestFinished, [
+                    "initiatedBy" => $user,
+                ]);
+                $statusHistoryService->updateStatus($manager, $deliveryOrder, $orderFinished, [
+                    "initiatedBy" => $user,
+                ]);
+                $statusHistoryService->updateStatus($manager, $request, $requestNotCollected, [
+                    "initiatedBy" => $user,
+                ]);
             }
         }
 
@@ -1286,14 +1315,20 @@ class TransportController extends AbstractApiController
                     $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
                         TransportOrder::STATUS_DEPOSITED);
 
-                    $statusHistoryService->updateStatus($manager, $request, $requestStatus);
-                    $statusHistoryService->updateStatus($manager, $order, $orderStatus);
+
+                    $user = $this->getUser();
+                    $statusHistoryService->updateStatus($manager, $request, $requestStatus, [
+                        "initiatedBy" => $user,
+                    ]);
+                    $statusHistoryService->updateStatus($manager, $order, $orderStatus, [
+                        "initiatedBy" => $user,
+                    ]);
 
                     $transportHistoryService->persistTransportHistory($manager,
                         $order->getRequest(),
                         TransportHistoryService::TYPE_PACKS_DEPOSITED,
                         [
-                            "user" => $this->getUser(),
+                            "user" => $user,
                             "location" => $location,
                         ]);
 
@@ -1301,7 +1336,7 @@ class TransportController extends AbstractApiController
                         $order,
                         TransportHistoryService::TYPE_PACKS_DEPOSITED,
                         [
-                            "user" => $this->getUser(),
+                            "user" => $user,
                             "location" => $location,
                         ]);
                 }

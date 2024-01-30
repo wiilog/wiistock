@@ -1113,7 +1113,9 @@ class MobileController extends AbstractApiController
             $statusId = $request->request->get('statusId');
             $newStatus = $statusRepository->find($statusId);
             if (!empty($newStatus)) {
-                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus);
+                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus, [
+                    "initiatedBy" => $nomadUser,
+                ]);
             }
 
             $treatmentDelay = $request->request->get('treatmentDelay');

@@ -119,6 +119,7 @@ class DispatchController extends AbstractApiController
                 if($draftStatus){
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                         'date' => $createdAt,
+                        "initiatedBy" => $createdBy,
                     ]);
                 } else {
                     $errors[] = "Vous devez paramétrer un statut Brouillon et un à traiter pour ce type";
@@ -129,6 +130,7 @@ class DispatchController extends AbstractApiController
                     $dispatch->setValidationDate($validationDate);
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => $validationDate,
+                        "initiatedBy" => $createdBy,
                     ]);
                 }
             }
@@ -150,6 +152,7 @@ class DispatchController extends AbstractApiController
                             $dispatch->setValidationDate($validationDate);
                             $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                                 'date' => $validationDate,
+                                "initiatedBy" => $createdBy,
                             ]);
                         }
                     }
@@ -411,12 +414,13 @@ class DispatchController extends AbstractApiController
             ]);
         }
 
+        $currentUser = $this->getUser();
         $now = new DateTime();
         $emergency = $request->request->get('emergency');
         $dispatch = (new Dispatch())
             ->setNumber($dispatchNumber)
             ->setCreationDate($now)
-            ->setRequester($this->getUser())
+            ->setRequester($currentUser)
             ->setType($type)
             ->setStatus($draftStatuses[0])
             ->setLocationFrom($pickLocation)
@@ -436,6 +440,7 @@ class DispatchController extends AbstractApiController
 
         $statusHistoryService->updateStatus($manager, $dispatch, $draftStatuses[0], [
             'setStatus' => false,
+            "initiatedBy" => $currentUser,
         ]);
 
         $manager->flush();
@@ -489,7 +494,9 @@ class DispatchController extends AbstractApiController
         }
         $dispatch
             ->setValidationDate(new DateTime('now'));
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
+            "initiatedBy" => $user,
+        ]);
 
         $entityManager->flush();
 
