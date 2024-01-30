@@ -59,8 +59,8 @@ jobs:
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
             -   name: Build & run containers
-                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up app --build -d
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up app --build -d
+                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
@@ -71,7 +71,7 @@ jobs:
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
 
-            -   name: Add FOS routing
+            -   name: Add FOS config
                 run: docker exec wiistock-cypress_app php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Run cypress

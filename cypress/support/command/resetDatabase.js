@@ -37,7 +37,7 @@ Cypress.Commands.add(
                 //load fixtures
                 cy.doctrineFixturesLoad();
                  // build assets
-                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
+                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build:only:production'`, {timeout: 120000});
             }
         });
     })
