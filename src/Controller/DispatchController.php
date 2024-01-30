@@ -396,9 +396,7 @@ class DispatchController extends AbstractController {
             ->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
             ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
-            "initiatedBy" => $currentUser
-        ]);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
 
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
             $dispatch->setCommentaire($comment);
@@ -1112,10 +1110,7 @@ class DispatchController extends AbstractController {
                     $dispatch
                         ->setValidationDate($now);
 
-                    $user = $this->getUser();
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                        "initiatedBy" => $user
-                    ]);
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
 
                     $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
                     if ($automaticallyCreateMovementOnValidation) {
@@ -1126,7 +1121,7 @@ class DispatchController extends AbstractController {
                                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                                     $pack,
                                     $dispatch->getLocationFrom(),
-                                    $user,
+                                    $this->getUser(),
                                     $now,
                                     false,
                                     false,
@@ -1226,9 +1221,7 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
-            "initiatedBy" => $this->getUser()
-        ]);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus);
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [
@@ -1517,9 +1510,7 @@ class DispatchController extends AbstractController {
 
         if($overConsumptionBillStatus->count() === 1) {
             $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
-            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                "initiatedBy" => $this->getUser(),
-            ]);
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
             if (!$dispatch->getValidationDate()) {
                 $dispatch->setValidationDate(new DateTime('now'));
             }

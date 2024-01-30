@@ -48,7 +48,6 @@ class OrderController extends AbstractController {
         $choosenDate = DateTime::createFromFormat("Y-m-d" , $data["dateCollect"]);
         $choosenDate->setTime(0, 0);
         if ($choosenDate >= new DateTime("today midnight")){
-            $user = $userService->getUser();
             $statusRepository = $entityManager->getRepository(Statut::class);
 
             $order = $entityManager->find(TransportOrder::class, $data["orderId"]);
@@ -78,12 +77,11 @@ class OrderController extends AbstractController {
 
                 $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status, [
                     "forceCreation" => false,
-                    "initiatedBy" => $user,
                 ]);
 
                 $operationHistoryService->persistTransportHistory($entityManager, $order, OperationHistoryService::TYPE_CONTACT_VALIDATED, [
-                    'user' => $user,
-                    'history' => $statusHistoryRequest,
+                    'user' => $userService->getUser(),
+                    'history' => $statusHistoryRequest
                 ]);
             }
 
@@ -92,7 +90,6 @@ class OrderController extends AbstractController {
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_COLLECT, TransportRequest::STATUS_TO_COLLECT);
 
                 $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $request, $status, [
-                    "initiatedBy" => $user,
                     "forceCreation" => false,
                 ]);
 

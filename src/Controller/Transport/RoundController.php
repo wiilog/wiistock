@@ -77,9 +77,8 @@ class RoundController extends AbstractController {
     public function api(Request $request, EntityManagerInterface $manager): Response {
         $filterSupRepository = $manager->getRepository(FiltreSup::class);
         $roundRepository = $manager->getRepository(TransportRound::class);
-        $user = $this->getUser();
 
-        $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $user);
+        $filters = $filterSupRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_TRANSPORT_ROUNDS, $this->getUser());
         $queryResult = $roundRepository->findByParamAndFilters($request->request, $filters);
 
         $orderedTransportRounds = Stream::from($queryResult["data"])
@@ -466,7 +465,6 @@ class RoundController extends AbstractController {
         $transportRoundId = $request->request->get('transportRoundId');
         $coordinates = json_decode($request->request->get('coordinates'), true) ?: [];
         $ordersAndTimes = json_decode($request->request->get('affectedOrders'), true);
-        $user = $this->getUser();
 
         $expectedAt = FormatHelper::parseDatetime("$expectedAtDate $expectedAtTime");
         if (!$expectedAt) {
@@ -506,9 +504,7 @@ class RoundController extends AbstractController {
                 ->setNumber($number)
                 ->setCreatedBy($this->getUser());
 
-            $statusHistoryService->updateStatus($entityManager, $transportRound, $roundStatus, [
-                "initiatedBy" => $user,
-            ]);
+            $statusHistoryService->updateStatus($entityManager, $transportRound, $roundStatus);
 
             $entityManager->persist($transportRound);
         }
@@ -603,17 +599,11 @@ class RoundController extends AbstractController {
                     $orderOngoingStatus = $transportRequest instanceof TransportDeliveryRequest ? $deliveryOrderOngoingStatus : $collectOrderOngoingStatus;
                     $requestOngoingStatus = $transportRequest instanceof TransportDeliveryRequest ? $deliveryRequestOngoingStatus : $collectRequestOngoingStatus;
 
-                    $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderAssignedStatus, [
-                        "initiatedBy" => $user,
-                    ]);
+                    $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderAssignedStatus);
 
                     if ($roundIsOngoing) {
-                        $statusHistoryService->updateStatus($entityManager, $transportRequest, $requestOngoingStatus, [
-                            "initiatedBy" => $user,
-                        ]);
-                        $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus, [
-                            "initiatedBy" => $user,
-                        ]);
+                        $statusHistoryService->updateStatus($entityManager, $transportRequest, $requestOngoingStatus);
+                        $orderStatusHistory = $statusHistoryService->updateStatus($entityManager, $transportOrder, $orderOngoingStatus);
                     }
 
                     $operationHistoryService->persistTransportHistory($entityManager, $transportOrder, OperationHistoryService::TYPE_AFFECTED_ROUND, [
