@@ -1189,8 +1189,9 @@ class DispatchController extends AbstractController {
                     $dispatch
                         ->setValidationDate($now);
 
+                    $user = $this->getUser();
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                        "initiatedBy" => $this->getUser()
+                        "initiatedBy" => $user
                     ]);
 
                     $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
@@ -1202,7 +1203,7 @@ class DispatchController extends AbstractController {
                                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                                     $pack,
                                     $dispatch->getLocationFrom(),
-                                    $this->getUser(),
+                                    $user,
                                     $now,
                                     false,
                                     false,
