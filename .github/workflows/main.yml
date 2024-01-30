@@ -65,7 +65,8 @@ jobs:
             -   name: Give right
                 run: chown -R root:root projects/wiistock
 
-
+            -   name: Create build folder
+                run: mkdir -p projects/wiistock/public/build
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
