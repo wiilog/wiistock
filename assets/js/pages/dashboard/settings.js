@@ -6,6 +6,15 @@ const MAX_NUMBER_ROWS = 6;
 const MAX_COMPONENTS_IN_CELL = 2;
 const MAX_NUMBER_PAGES = 8;
 
+global.openModalComponentTypeNextStep = openModalComponentTypeNextStep;
+global.loadDashboards = loadDashboards;
+global.onEntityChange = onEntityChange;
+global.toggleTreatmentDelay = toggleTreatmentDelay;
+global.MODE_DISPLAY = MODE_DISPLAY;
+global.MODE_EDIT = MODE_EDIT;
+global.MODE_EXTERNAL = MODE_EXTERNAL;
+global.mode = mode;
+
 /**
  * @type {{
  *     dashboardIndex: int
