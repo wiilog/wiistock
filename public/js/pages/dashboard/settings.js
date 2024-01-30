@@ -45,9 +45,7 @@ $(window).resize(function () {
     }, 100);
 });
 
-function loadDashboards(m, refreshRate) {
-    mode = m;
-
+function loadDashboards(mode, refreshRate) {
     if (mode === undefined) {
         showBSAlert(`Configuration invalide`, `danger`);
     }
@@ -57,24 +55,35 @@ function loadDashboards(m, refreshRate) {
 
     $(window).on("hashchange", loadCurrentDashboard);
 
-    $(`.save-dashboards`).on('click', function () {
-        wrapLoadingOnActionButton($(this), onDashboardSaved);
-    });
-    registerComponentOnChange();
     $(document).keydown(onArrowNavigation);
-    $addRowButton.on('click', onRowAdded);
-    $dashboard.on(`click`, `.delete-row`, onRowDeleted);
-    $dashboard.on(`click`, `.edit-row`, onRowEdit);
 
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
-    $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
+    if (mode === MODE_EDIT) {
+        $(`.save-dashboards`).on('click', function () {
+            wrapLoadingOnActionButton($(this), onDashboardSaved);
+        });
+        registerComponentOnChange();
+        $addRowButton.on('click', onRowAdded);
+        $dashboard.on(`click`, `.delete-row`, onRowDeleted);
+        $dashboard.on(`click`, `.edit-row`, onRowEdit);
 
-    $('button.add-dashboard-modal-submit').on('click', onPageAdded);
-    $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
+        $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
+        $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
 
-    $(window).bind('beforeunload', hasEditDashboard);
+        $('button.add-dashboard-modal-submit').on('click', onPageAdded);
+        $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);
 
-    if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        $(window).bind('beforeunload', hasEditDashboard);
+
+        $(document)
+            .arrive(".segments-list .segment-hour", function () {
+                onSegmentInputChange($(this), true);
+            });
+
+        $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
+            $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
+        });
+    }
+    else if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
         setInterval(function () {
             $.get(Routing.generate("dashboards_fetch", {mode}), function (response) {
                 dashboards = JSON.parse(response.dashboards);
@@ -86,15 +95,6 @@ function loadDashboards(m, refreshRate) {
             })
         }, refreshRate * 60 * 1000);
     }
-
-    $(document)
-        .arrive(".segments-list .segment-hour", function () {
-            onSegmentInputChange($(this), true);
-        });
-
-    $(document).on(`change`, `input[name=displayDeliveryOrderContentCheckbox]`, function () {
-        $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
-    });
 }
 
 function registerComponentOnChange() {
