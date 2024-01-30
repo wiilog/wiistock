@@ -250,6 +250,8 @@ class ProductionRequestService
             $productionRequest->setComment($data->get(FixedFieldEnum::comment->name));
         }
 
+        $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
+
         $attachments = $productionRequest->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
