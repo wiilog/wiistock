@@ -195,24 +195,19 @@ class ShippingRequestController extends AbstractController {
                         StatusHistoryService   $statusHistoryService): JsonResponse {
         $data = $request->request;
         $now = new \DateTime('now');
-        $user = $this->getUser();
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $shippingRequest = new ShippingRequest();
         $shippingRequest
             ->setNumber($uniqueNumberService->create($entityManager, ShippingRequest::NUMBER_PREFIX, ShippingRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_TRANSPORT))
             ->setCreatedAt($now)
-            ->setCreatedBy($user);
+            ->setCreatedBy($this->getUser());
 
         $statusHistoryService->updateStatus(
             $entityManager,
             $shippingRequest,
             $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::SHIPPING_REQUEST, ShippingRequest::STATUS_DRAFT),
-            [
-                'setStatus' => true,
-                'date' => $now,
-                'initiatedBy' => $user,
-            ],
+            ['setStatus' => true, 'date' => $now],
         );
 
         $entityManager->persist($shippingRequest);
@@ -506,10 +501,7 @@ class ShippingRequestController extends AbstractController {
             $entityManager,
             $shippingRequest,
             $newStatusForShippingRequest,
-            [
-                'setStatus'=> true,
-                'initiatedBy' => $currentUser
-            ],
+            ['setStatus'=> true],
         );
 
         // Check that the status has been updated
@@ -640,7 +632,7 @@ class ShippingRequestController extends AbstractController {
         if (!$packLocation) {
             throw new FormException("L'emplacement d'expédition par défaut n'est pas paramétré");
         }
-        $user = $this->getUser();
+
         if (isset($data['packing'])) {
             if ($isEdit) {
                 try {
@@ -706,7 +698,7 @@ class ShippingRequestController extends AbstractController {
                     $articleOrReference = $referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE ? $referenceArticle : $article ;
 
                     $stockMovement = $stockMovementService->createMouvementStock(
-                        $user,
+                        $this->getUser(),
                         null,
                         $pickedQuantity,
                         $articleOrReference,
@@ -722,7 +714,7 @@ class ShippingRequestController extends AbstractController {
                     $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
                         $articleOrReference->getTrackingPack() ?: $articleOrReference->getBarCode(),
                         $packLocation,
-                        $user,
+                        $this->getUser(),
                         $now,
                         false,
                         null,
@@ -742,7 +734,7 @@ class ShippingRequestController extends AbstractController {
                         $trackingMovementDropLogisticUnit = $trackingMovementService->createTrackingMovement(
                             $trackingMovementDrop->getPack(),
                             $packLocation,
-                            $user,
+                            $this->getUser(),
                             $now,
                             false,
                             null,
@@ -787,7 +779,6 @@ class ShippingRequestController extends AbstractController {
                 'setStatus' => true,
                 'date' => $now,
                 'forceCreation' => false,
-                'initiatedBy' => $user,
             ],
         );
 
@@ -925,10 +916,7 @@ class ShippingRequestController extends AbstractController {
                 $entityManager,
                 $shippingRequest,
                 $shippedStatus,
-                [
-                    'setStatus' => true,
-                    'initiatedBy' => $user,
-                ]
+                ['setStatus' => true]
             );
 
             /** @var ShippingRequestPack $packLines */

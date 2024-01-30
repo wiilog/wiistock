@@ -265,7 +265,7 @@ class TransportRoundService
         }
 
         if($request->getStatus()->getCode() !== TransportRequest::STATUS_TO_PREPARE) {
-            $this->reprepareTransportRoundDeliveryLine($entityManager, $line, $user);
+            $this->reprepareTransportRoundDeliveryLine($entityManager, $line);
         }
 
         $this->operationHistoryService->persistTransportHistory($entityManager, $request, OperationHistoryService::TYPE_REJECTED_DELIVERY, [
@@ -285,7 +285,7 @@ class TransportRoundService
         $round->setRejectedOrderCount($round->getRejectedOrderCount() + 1);
     }
 
-    public function reprepareTransportRoundDeliveryLine(EntityManagerInterface $entityManager, TransportRoundLine $line, Utilisateur $user): void {
+    public function reprepareTransportRoundDeliveryLine(EntityManagerInterface $entityManager, TransportRoundLine $line): void {
         $order = $line->getOrder();
         $request = $order->getRequest();
 
@@ -306,11 +306,8 @@ class TransportRoundService
 
         $this->statusHistoryService->updateStatus($entityManager, $request, $deliveryRequestToPrepare, [
             'forceCreation' => false,
-            'initiatedBy' => $user,
         ]);
-        $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign, [
-            'initiatedBy' => $user,
-        ]);
+        $this->statusHistoryService->updateStatus($entityManager, $order, $deliveryOrderToAssign);
 
         if($request instanceof TransportDeliveryRequest && $request->getCollect()) {
             $collect = $request->getCollect();

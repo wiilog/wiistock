@@ -588,18 +588,14 @@ class RequestController extends AbstractController {
                 ]);
             }
 
-            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest, [
-                "initiatedBy" => $loggedUser,
-            ]);
+            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
             $operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryRequest,
                 'user' => $loggedUser
             ]);
 
             $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
-            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder, [
-                "initiatedBy" => $loggedUser,
-            ]);
+            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
             $operationHistoryService->persistTransportHistory($entityManager, $transportOrder, OperationHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryOrder,
                 'user' => $loggedUser

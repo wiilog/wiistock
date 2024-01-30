@@ -204,7 +204,7 @@ class HandlingController extends AbstractController {
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
 
         /** @var Utilisateur $requester */
-        $requester = $user;
+        $requester = $this->getUser();
 
         $carriedOutOperationCount = $post->get('carriedOutOperationCount');
 
@@ -224,7 +224,6 @@ class HandlingController extends AbstractController {
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
-            "initiatedBy" => $this->getUser(),
         ]);
 
         if ($status && $status->isTreated()) {
@@ -629,9 +628,7 @@ class HandlingController extends AbstractController {
         $handling = $handlingRepository->find($request['handling']);
         $requester = $this->getUser();
 
-        $statusHistoryService->updateStatus($entityManager, $handling, $status, [
-            "initiatedBy" => $this->getUser()
-        ]);
+        $statusHistoryService->updateStatus($entityManager, $handling, $status);
 
         if ($status->isTreated()) {
             $handling->setValidationDate(new \DateTime());
