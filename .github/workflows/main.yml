@@ -26,7 +26,7 @@ jobs:
 
             -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
                 run: |
-                    sed -i "s/FTP_HOST=ftp:\/\/ftp\.wiilog\.fr/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
+                    sed -i "s/FTP_HOST=ftp\.wiilog\.fr/FTP_HOST=ftp:\/\/${{ secrets.WIISTOCK_DOCKER_FTP_HOST }}/g" .env
                     sed -i "s/FTP_USER=ftp/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
                     sed -i "s/FTP_PASSWORD=ftp/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
 
