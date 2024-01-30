@@ -61,8 +61,8 @@ jobs:
                 run: docker exec wiistock-cypress_app yarn
 
             -   name: Run cypress
-                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
+                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
                 continue-on-error: true
 
             -   name: get cypress results
