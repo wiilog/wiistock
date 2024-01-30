@@ -70,6 +70,9 @@ class ProductionRequest extends StatusHistoryContainer
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $treatedAt = null;
+
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedProductionRequests')]
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $treatedBy = null;
@@ -272,6 +275,18 @@ class ProductionRequest extends StatusHistoryContainer
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getTreatedAt(): ?\DateTimeInterface
+    {
+        return $this->treatedAt;
+    }
+
+    public function setTreatedAt(\DateTimeInterface $treatedAt): static
+    {
+        $this->treatedAt = $treatedAt;
 
         return $this;
     }

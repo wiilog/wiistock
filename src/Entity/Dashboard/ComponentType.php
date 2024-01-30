@@ -39,6 +39,7 @@ class ComponentType
     public const HANDLING_TRACKING = 'handling_tracking';
     public const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
     public const DAILY_HANDLING = 'daily_handling';
+    public const DAILY_PRODUCTION = 'daily_production';
     public const DAILY_OPERATIONS = 'daily_operations';
     public const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
     public const PENDING_REQUESTS = 'pending_requests';
@@ -94,6 +95,7 @@ class ComponentType
             self::PENDING_REQUESTS,
             self::DAILY_DISPATCHES,
             self::DAILY_HANDLING,
+            self::DAILY_PRODUCTION,
             self::DAILY_OPERATIONS,
             self::DAILY_HANDLING_INDICATOR,
         ],

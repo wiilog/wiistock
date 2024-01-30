@@ -208,6 +208,10 @@ class ProductionRequestService
             if ($data->has(FixedFieldEnum::status->name)) {
                 $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
                 $productionRequest->setStatus($status);
+
+                if($status->isTreated()){
+                    $productionRequest->setTreatedAt($createdAt);
+                }
             }
         }
 

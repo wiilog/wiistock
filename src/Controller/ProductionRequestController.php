@@ -350,7 +350,9 @@ class ProductionRequestController extends AbstractController
             );
 
             if ($newStatus->isTreated()) {
-                $productionRequest->setTreatedBy($this->getUser());
+                $productionRequest
+                    ->setTreatedBy($this->getUser())
+                    ->setTreatedAt(new DateTime());
             }
 
             $entityManager->persist($statusHistory);
