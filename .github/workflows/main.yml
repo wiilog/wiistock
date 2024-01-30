@@ -63,7 +63,7 @@ jobs:
                 # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
 
             -   name: Give right
-                run: chown -R root:root projects/wiistock
+                run: chown -R 1000:1000 projects/wiistock
 
             -   name: Create build folder
                 run: mkdir -p projects/wiistock/public/build
