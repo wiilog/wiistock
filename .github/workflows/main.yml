@@ -59,7 +59,7 @@ jobs:
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
             - name: Add FOS routing
-              run: docker ex ec wiistock-cypress_app php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
+              run: docker exec wiistock-cypress_app php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Build & run containers
                 # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up app --build -d
