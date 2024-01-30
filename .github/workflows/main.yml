@@ -58,6 +58,9 @@ jobs:
                     touch projects/wiistock/config/generated.yaml &&
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
+            -   name: Give right
+                run: chmod -R 777 projects/wiistock/ # TODO: remove this line (pa bo grègwoêre a dit)
+
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
                 # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
