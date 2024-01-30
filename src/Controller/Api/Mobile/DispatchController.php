@@ -94,6 +94,7 @@ class DispatchController extends AbstractApiController
                 $locationFrom = $dispatchArray['locationFromId'] ? $locationRepository->find($dispatchArray['locationFromId']) : null;
                 $locationTo = $dispatchArray['locationToId'] ? $locationRepository->find($dispatchArray['locationToId']) : null;
                 $requester = $dispatchArray['requester'] ? $userRepository->findOneBy(['username' => $dispatchArray['requester']]) : null;
+                $requester = $requester ?? $createdBy;
                 $wasDraft = true;
 
                 $numberFormat = $settingRepository->getOneParamByLabel(Setting::DISPATCH_NUMBER_FORMAT);
@@ -105,21 +106,21 @@ class DispatchController extends AbstractApiController
                 $dispatch = (new Dispatch())
                     ->setNumber($dispatchNumber)
                     ->setCreationDate($createdAt)
-                    ->setRequester($requester ?? $createdBy)
+                    ->setCreatedBy($createdBy)
+                    ->setRequester($requester)
                     ->setType($type)
                     ->setLocationFrom($locationFrom)
                     ->setLocationTo($locationTo)
                     ->setCarrierTrackingNumber($dispatchArray['carrierTrackingNumber'])
                     ->setCommentaire($dispatchArray['comment'])
                     ->setEmergency($dispatchArray['emergency'] ?? null)
-                    ->setCreatedBy($createdBy)
                     ->setUpdatedAt($syncedAt);
                 $entityManager->persist($dispatch);
 
                 if($draftStatus){
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
                         'date' => $createdAt,
-                        "initiatedBy" => $createdBy,
+                        "initiatedBy" => $requester,
                     ]);
                 } else {
                     $errors[] = "Vous devez paramétrer un statut Brouillon et un à traiter pour ce type";
@@ -130,7 +131,7 @@ class DispatchController extends AbstractApiController
                     $dispatch->setValidationDate($validationDate);
                     $statusHistoryService->updateStatus($entityManager, $dispatch, $toTreatStatus, [
                         'date' => $validationDate,
-                        "initiatedBy" => $createdBy,
+                        "initiatedBy" => $requester,
                     ]);
                 }
             }

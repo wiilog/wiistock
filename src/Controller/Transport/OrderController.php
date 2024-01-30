@@ -83,8 +83,8 @@ class OrderController extends AbstractController {
                     ->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_ORDER_COLLECT, TransportOrder::STATUS_TO_ASSIGN);
 
                 $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $order, $status, [
-                    "forceCreation" => false,
                     "initiatedBy" => $user,
+                    "forceCreation" => false,
                 ]);
 
                 $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
@@ -103,7 +103,7 @@ class OrderController extends AbstractController {
                 ]);
 
                 $transportHistoryService->persistTransportHistory($entityManager, $request, TransportHistoryService::TYPE_CONTACT_VALIDATED, [
-                    'user' => $userService->getUser(),
+                    'user' => $user,
                     'history' => $statusHistoryRequest
                 ]);
             }

@@ -402,6 +402,7 @@ class TransportController extends AbstractApiController
         $data = $request->request;
         $pack = $manager->getRepository(Pack::class)->findOneBy(['code' => $data->get('pack')]);
         $rejectMotive = $data->get('rejectMotive');
+        $currentUser = $this->getUser();
 
         $transportDeliveryOrderPack = $pack->getTransportDeliveryOrderPack();
         $order = $transportDeliveryOrderPack->getOrder();
@@ -410,7 +411,7 @@ class TransportController extends AbstractApiController
         $round = $order->getTransportRoundLines()->last()->getTransportRound();
 
         $transportDeliveryOrderPack
-            ->setRejectedBy($this->getUser())
+            ->setRejectedBy($currentUser)
             ->setRejectReason($rejectMotive)
             ->setState(TransportDeliveryOrderPack::REJECTED_STATE);
 
@@ -420,7 +421,7 @@ class TransportController extends AbstractApiController
             [$order, $request],
             TransportHistoryService::TYPE_DROP_REJECTED_PACK,
             [
-                'user' => $this->getUser(),
+                'user' => $currentUser,
                 'pack' => $pack,
                 'reason' => $rejectMotive,
             ]);
@@ -430,7 +431,7 @@ class TransportController extends AbstractApiController
             ->isEmpty();
 
         if ($allPacksRejected) {
-            $transportRoundService->reprepareTransportRoundDeliveryLine($manager, $order->getTransportRoundLines()->last(), $this->getUser());
+            $transportRoundService->reprepareTransportRoundDeliveryLine($manager, $order->getTransportRoundLines()->last(), $currentUser);
         }
 
         $manager->flush();
@@ -552,7 +553,7 @@ class TransportController extends AbstractApiController
         $trackingMovement = $trackingMovementService->createTrackingMovement(
             $emptyRoundPack,
             $location,
-            $this->getUser(),
+            $user,
             $now,
             true,
             true,
@@ -1178,6 +1179,8 @@ class TransportController extends AbstractApiController
         $depositedCollectPacks = json_decode($data->get("depositedCollectPacks"), true);
         $location = $manager->find(Emplacement::class, $data->get("location"));
 
+        $user = $this->getUser();
+
         if ($depositedDeliveryPacks) {
             $depositedTransports = [];
             $transportById = [];
@@ -1192,7 +1195,7 @@ class TransportController extends AbstractApiController
                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                     $pack,
                     $location,
-                    $this->getUser(),
+                    $user,
                     new DateTime(),
                     true,
                     true,
@@ -1217,7 +1220,7 @@ class TransportController extends AbstractApiController
                     [$transport, $transport->getRequest()],
                     TransportHistoryService::TYPE_PACKS_FAILED,
                     [
-                        "user" => $this->getUser(),
+                        "user" => $user,
                         "message" => Stream::from($packs)
                             ->map(fn(Pack $pack) => $pack->getCode())
                             ->join(", "),
@@ -1250,7 +1253,7 @@ class TransportController extends AbstractApiController
                     $trackingMovement = $trackingMovementService->createTrackingMovement(
                         $createdPack,
                         $location,
-                        $this->getUser(),
+                        $user,
                         new DateTime(),
                         true,
                         true,
@@ -1315,8 +1318,6 @@ class TransportController extends AbstractApiController
                     $orderStatus = $statusRepository->findOneByCategorieNameAndStatutCode($orderCategory,
                         TransportOrder::STATUS_DEPOSITED);
 
-
-                    $user = $this->getUser();
                     $statusHistoryService->updateStatus($manager, $request, $requestStatus, [
                         "initiatedBy" => $user,
                     ]);
