@@ -78,7 +78,6 @@ class Import {
         ],
         self::ENTITY_RECEPTION => [
             'orderNumber',
-            'expectedDate',
             'quantity',
             'reference',
         ],
