@@ -1,12 +1,10 @@
 <?php
-// Every 5 minutes
-// */5 * * * *
+// Every deployment
 
-namespace App\Command\sessions;
+namespace App\Command\Sessions;
 
-use App\Entity\Wiilock;
+
 use App\Service\SessionHistoryRecordService;
-use App\Service\WiilockService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -15,23 +13,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: "app:sessions:close:inactives",
-    description: "Close inactive sessions History Records"
+    name: 'app:sessions:close:all',
+    description: 'Close sessions History Records and Sessions.'
 )]
-class CloseInactiveSessionsCommand extends Command
-{
+class CloseAllSessionsCommand extends Command {
     #[Required]
     public EntityManagerInterface $entityManager;
 
     #[Required]
     public SessionHistoryRecordService $sessionHistoryRecordService;
 
-    #[Required]
-    public WiilockService $wiilockService;
-
     public function execute(InputInterface $input, OutputInterface $output): int {
-        $this->wiilockService->toggleFeedingCommand($this->entityManager, false, Wiilock::INACTIVE_SESSIONS_CLEAN_KEY);
-        $this->entityManager->flush();
+        $this->entityManager->getConnection()->executeQuery('DELETE FROM user_session');
         $this->sessionHistoryRecordService->closeInactiveSessions($this->entityManager);
         return 0;
     }
