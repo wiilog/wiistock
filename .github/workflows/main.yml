@@ -66,11 +66,11 @@ jobs:
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
 
+            -   name: Install composer dependencies in app
+                run: docker exec wiistock-cypress_app composer install
+
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
-
-            -   name: Install symfony dependencies in app
-                run: docker exec wiistock-cypress_app composer install
 
             -   name: Run cypress
                 #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit

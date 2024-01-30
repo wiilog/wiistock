@@ -36,8 +36,8 @@ Cypress.Commands.add(
                 cy.doctrineSchemaUpdate();
                 //load fixtures
                 cy.doctrineFixturesLoad();
-                // yarn & yarn build & composer install
-                cy.buildAndInstallDependencies();
+                 // build assets
+                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
             }
         });
     })
@@ -52,12 +52,6 @@ Cypress.Commands.add('changeDatabase', (newDatabaseName) => {
             cy.exec(`sed -i 's|${currentLine}|${newLine}|' .env.local`);
         }
     });
-})
-
-Cypress.Commands.add('buildAndInstallDependencies', () => {
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && composer install'`, {timeout: 120000});
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn'`, {timeout: 120000});
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
 })
 
 Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
