@@ -76,6 +76,7 @@ Cypress.Commands.add('doctrineSchemaUpdate', () => {
 })
 
 Cypress.Commands.add('doctrineFixturesLoad', () => {
+    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console d:f:l --append --group=types --no-interaction'`);
     cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console d:f:l --append --group=fixtures --no-interaction'`);
 })
 
