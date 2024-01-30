@@ -24,6 +24,12 @@ jobs:
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
 
+            -   name: Change  FTP credential in .env (FTP_HOST & FTP_USER & FTP_PASSWORD)
+                run: | 
+                    sed -i "s/FTP_HOST=ftp:\/\/ftp\.wiilog\.fr/FTP_HOST=${{ secrets.FTP_HOST }}/g" .env
+                    sed -i "s/FTP_USER=ftp/FTP_USER=${{ secrets.FTP_USER }}/g" .env
+                    sed -i "s/FTP_PASSWORD=ftp/FTP_PASSWORD=${{ secrets.FTP_PASSWORD }}/g" .env
+
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
