@@ -63,10 +63,7 @@ jobs:
                 # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
 
             -   name: Give right
-                run: chown -R 1000:1000 projects/wiistock
-
-            -   name: Create build folder
-                run: mkdir -p projects/wiistock/public/build
+                run: docker exec wiistock-cypress_app chown -R www-data:www-data ./
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
