@@ -2117,7 +2117,7 @@ class DispatchController extends AbstractController {
         $statusId = $request->get("status");
         $inProgressStatus = $entityManager->getRepository(Statut::class)->find($statusId);
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $inProgressStatus);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $inProgressStatus, ["initiatedBy" => $this->getUser()]);
         $entityManager->flush();
         $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
 
