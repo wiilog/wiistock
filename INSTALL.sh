@@ -118,10 +118,10 @@ mkdir -p cache
 
 php bin/console cache:clear
 chown -R :www-data var/cache var/sessions cache && \
-    chown :www-data public/uploads
+    chown :www-data public/uploads config/generated.yaml
 chmod g+s public/uploads var/cache var/sessions cache
 chmod g+w -R var/cache var/sessions cache && \
-    chmod g+w public/uploads
+    chmod g+w public/uploads config/generated.yaml
 
 declare -A TIMES
 TIMES[dashboard-feeds]="*/5 * * * *"
