@@ -194,7 +194,9 @@ class TransportService {
 
         ['status' => $status, 'subcontracted' => $subcontracted] = $this->getStatusRequest($entityManager, $transportRequest, $expectedAt);
         if ($creation) { // transport creation
-            $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+            $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status, [
+                'initiatedBy' => $loggedUser,
+            ]);
 
             $historyType = $transportRequest instanceof TransportDeliveryRequest && $data->getBoolean('collectLinked')
                 ? TransportHistoryService::TYPE_BOTH_REQUEST_CREATION
@@ -233,7 +235,9 @@ class TransportService {
                 && !$orderInRound
             );
             if ($canChangeStatus){
-                $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+                $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status, [
+                    'initiatedBy' => $loggedUser,
+                ]);
             }
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_EDITED, [
                 'user' => $loggedUser,
@@ -409,7 +413,9 @@ class TransportService {
 
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
         if($transportOrder->getStatus()?->getId() !== $status->getId()) {
-            $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
+            $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status, [
+                'initiatedBy' => $user,
+            ]);
             $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
                 'history' => $statusHistory,
                 'user' => $user
@@ -813,7 +819,8 @@ class TransportService {
         $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transport, $status, [
             'date' => $date,
             'forceCreation' => false,
-            'setStatus' => $setStatus
+            'setStatus' => $setStatus,
+            'initiatedBy' => $loggedUser,
         ]);
 
         $this->transportHistoryService->persistTransportHistory($entityManager, $transport, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [

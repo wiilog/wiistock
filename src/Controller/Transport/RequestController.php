@@ -295,6 +295,8 @@ class RequestController extends AbstractController {
         $statusRepository = $entityManager->getRepository(Statut::class);
         $order = $transportRequest->getOrder();
 
+        $currentUser = $this->getUser();
+
         $canPacking = (
             isset($order)
             && $transportRequest instanceof TransportDeliveryRequest
@@ -323,15 +325,17 @@ class RequestController extends AbstractController {
 
         if($transportRequest->getStatus()->getCode() == TransportRequest::STATUS_TO_PREPARE) {
             $status = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::TRANSPORT_REQUEST_DELIVERY, TransportRequest::STATUS_TO_DELIVER);
-            $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+            $statusHistoryService->updateStatus($entityManager, $transportRequest, $status, [
+                "initiatedBy" => $currentUser,
+            ]);
         }
 
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_LABELS_PRINTING, [
-            'user' => $this->getUser()
+            'user' => $currentUser
         ]);
 
         $transportHistoryService->persistTransportHistory($entityManager, $order, TransportHistoryService::TYPE_LABELS_PRINTING, [
-            'user' => $this->getUser()
+            'user' => $currentUser
         ]);
 
         $entityManager->flush();
@@ -593,14 +597,18 @@ class RequestController extends AbstractController {
                 ]);
             }
 
-            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest);
+            $statusHistoryRequest = $statusHistoryService->updateStatus($entityManager, $transportRequest, $statusRequest, [
+                "initiatedBy" => $loggedUser,
+            ]);
             $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryRequest,
                 'user' => $loggedUser
             ]);
 
             $statusOrder = $statusRepository->findOneByCategorieNameAndStatutCode($categoryOrder, TransportOrder::STATUS_CANCELLED);
-            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder);
+            $statusHistoryOrder = $statusHistoryService->updateStatus($entityManager, $transportOrder, $statusOrder, [
+                "initiatedBy" => $loggedUser,
+            ]);
             $transportHistoryService->persistTransportHistory($entityManager, $transportOrder, TransportHistoryService::TYPE_CANCELLED, [
                 'history' => $statusHistoryOrder,
                 'user' => $loggedUser

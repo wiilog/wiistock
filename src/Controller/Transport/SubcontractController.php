@@ -189,7 +189,9 @@ class SubcontractController extends AbstractController
             ]);
         }
 
-        $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
+        $statusHistory = $statusHistoryService->updateStatus($entityManager, $transportRequest, $status, [
+            "initiatedBy" => $loggedUser,
+        ]);
         $transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $transportHistoryType, [
             'history' => $statusHistory,
         ]);
