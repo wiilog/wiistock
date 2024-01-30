@@ -105,7 +105,9 @@ function onProductionRequestTypeChange($select){
     const defaultStatus = $typeSelect.select2('data').length > 0 ? $typeSelect.select2('data')[0]['defaultStatus'] : undefined;
     if(defaultStatus){
         const [id, value] = defaultStatus.split(':');
-        $selectStatus.append(new Option(value, id, true, true)).trigger(`change`);
+        $selectStatus
+            .append(new Option(value, id, true, true))
+            .trigger(`change`);
     }
 }
 
