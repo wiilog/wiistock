@@ -17,8 +17,7 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
-                    # ref: WIIS-9654
-                    ref: ${{ github.event.pull_request.head.sha }}
+                    ref: WIIS-9654
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
