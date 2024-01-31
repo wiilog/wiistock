@@ -61,7 +61,9 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
     cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
-})
+    // cat sql file
+    cy.log(`cat ${pathToFile}/${fileName}`);
+    })
 
 Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 ${databaseName} < ${pathToFile}/${sqlFileName}`);

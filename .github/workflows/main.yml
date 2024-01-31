@@ -110,7 +110,7 @@ jobs:
                     path: cypress_videos
 
             -   name: Copy the var log folder from the container to the folder var_log
-                run: docker cp wiistock_cypress:/var/www/var/log/prod.log prod_log
+                run: docker cp wiistock_cypress:/var/www/var/log/dev.log prod_log
 
             -   name: Put the prod_log folder in the artifacts
                 uses: actions/upload-artifact@v2
