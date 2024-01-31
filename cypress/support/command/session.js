@@ -10,7 +10,10 @@ Cypress.Commands.add('register', (username, email, password  ) => {
 
 Cypress.Commands.add('login', (user) => {
     cy.session([user.email, user.password], () => {
-        cy.visit('/login');
+
+        cy.visit('/login', {failOnStatusCode: false});
+        cy.contains(`Symfony Exception`).should('not.exist') // or an assertion for something that should be on the page if it didn't 404
+
         cy.get('[name=_username]').type(user.email);
         cy.get('[name=_password]').type(user.password);
         cy.get('button[type=submit]').click();
