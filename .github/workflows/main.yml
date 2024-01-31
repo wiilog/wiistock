@@ -83,22 +83,13 @@ jobs:
             -   name: Run cypress
                 #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
-                continue-on-error: true
 
             -   name: Copy logs, videos, and dev.log from the container
+                if: failure()
                 run: |
                     docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
                     docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
                     docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
-
-            -   name: Check and upload Cypress logs
-                run: |
-                    if [ -d "cypress_logs" ] && [ -n "$(ls -A cypress_logs)" ]; then
-                      echo "Cypress logs exist, indicating errors."
-                      exit 1
-                    else
-                      echo "No Cypress logs found."
-                    fi
 
             -   name: Upload Cypress logs artifact
                 uses: actions/upload-artifact@v2
