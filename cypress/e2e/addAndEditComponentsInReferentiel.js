@@ -6,6 +6,7 @@ describe('Setup the environment', () => {
     it('Reset the db', () => {
         cy.startingCypressEnvironnement('$FTP_HOST')
         uncaughtException();
+        cy.log("test")
     });
 })
 describe('Add and edit components in Referentiel > Fournisseur', () => {
