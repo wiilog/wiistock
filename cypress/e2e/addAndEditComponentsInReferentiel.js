@@ -8,7 +8,6 @@ describe('Setup the environment', () => {
         uncaughtException();
     });
 })
-
 describe('Add and edit components in Referentiel > Fournisseur', () => {
     beforeEach(() => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
