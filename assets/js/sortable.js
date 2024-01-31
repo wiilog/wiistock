@@ -21,11 +21,6 @@ export default class Sortable {
 
         //fix a bug in which sorting triggers the event but doesn't
         //actually move the item in the new container
-
-
-
-
-
         return sortables;
     }
 }

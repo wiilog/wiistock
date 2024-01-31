@@ -172,3 +172,29 @@
     height: 15px;
     background-color: $primary;
 }
+
+.previous-week {
+    width: 30px;
+    display: block;
+    margin-top: 15px;
+    margin-right: 10px;
+    padding-bottom: 1rem;
+
+    &:not(.d-none) {
+        display: flex;
+        align-items: center;
+    }
+}
+
+.next-week {
+    width: 30px;
+    display: block;
+    margin-top: 15px;
+    margin-left: 10px;
+    padding-bottom: 1rem;
+
+    &:not(.d-none) {
+        display: flex;
+        align-items: center;
+    }
+}

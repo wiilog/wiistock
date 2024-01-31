@@ -8,12 +8,12 @@ import moment from "moment";
 global.callbackSaveFilter = callbackSaveFilter;
 global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
 
-const $modalUpdateProductionRequestStatus = $('#modalUpdateProductionRequestStatus');
+const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
 
 let planning = null;
 
 $(function () {
-    planning = new Planning($('.production-request-planning'), {route: 'production_request_planning_api', baseDate: moment().startOf(`isoWeek`)});
+    planning = new Planning($(`.production-request-planning`), {route: `production_request_planning_api`, baseDate: moment().startOf(`isoWeek`)});
     planning.onPlanningLoad(() => {
         onPlanningLoaded(planning);
     });
@@ -24,15 +24,14 @@ $(function () {
 
 function callbackSaveFilter() {
     if (planning) {
-        console.log("test");
         planning.fetch();
     }
 }
 
 function refreshColumnHint($column) {
-    const productionRequestCount = $column.find('.preparation-card').length;
+    const productionRequestCount = $column.find(`.preparation-card`).length;
     const productionRequestHint = `${productionRequestCount} demande${productionRequestCount > 1 ? `s` : ``}`;
-    $column.find('.column-hint-container').html(`<span class='font-weight-bold'>${productionRequestHint}</span>`);
+    $column.find(`.column-hint-container`).html(`<span class='font-weight-bold'>${productionRequestHint}</span>`);
 }
 
 function initializeFilters() {
@@ -43,35 +42,78 @@ function initializeFilters() {
 }
 
 function onPlanningLoaded(planning) {
-    Sortable.create('.planning-card-container', {
-        acceptFrom: '.planning-card-container',
-        items: '.can-drag',
-        handle: '.can-drag',
+    const $navigationButtons = $(`.previous-week, .next-week`);
+
+    Sortable.create(`.planning-card-container`, {
+        acceptFrom: `.planning-card-container`,
+        items: `.can-drag`,
+        handle: `.can-drag`,
     });
 
-    const $cardContainers = planning.$container.find('.planning-card-container');
+    Sortable.create($navigationButtons, {
+        acceptFrom: `.planning-card-container`,
+        items: `.can-drag`,
+        handle: `.can-drag`,
+    });
+
+    const $cardContainers = planning.$container.find(`.planning-card-container`);
+
+    $navigationButtons.removeClass(`d-none`);
+
+    $navigationButtons.on(`sortenter`, function (e) {
+        const $button = $(e.target);
+
+        $button.trigger(`click`);
+        $button.find(`.placeholder-container`).remove();
+    });
+
+    $navigationButtons.on(`sortleave`, function (e) {
+        $navigationButtons.find(`.placeholder-container`).remove();
+    })
+
+    $navigationButtons.on(`sortupdate`, function (e) {
+        const $button = $(e.target);
+        if($button.is(`.previous-week, .next-week`)) {
+            $button.find(`.planning-card`).remove();
+        }
+
+        $button.find(`.placeholder-container`).remove();
+    });
 
     $cardContainers
-        .on('sortupdate', function (e) {
+        .on(`sortupdate`, function (e) {
+            $navigationButtons.find(`.placeholder-container`).remove();
+
             const $origin = $(e.detail.origin.container);
             const $card = $(e.detail.item);
-            const productionRequest = $card.data('production-request-id');
-            const $destination = $card.closest('.planning-card-container');
-            const $column = $destination.closest('.production-request-card-column');
-            const date = $column.data('date');
+            const productionRequest = $card.data(`production-request-id`);
+            const $destination = $card.closest(`.planning-card-container`);
+            const $column = $destination.closest(`.production-request-card-column`);
+            const date = $column.data(`date`);
+
+            const order = Array.from($(e.target).find(`.planning-card`)).map((card) => $(card).data(`production-request-id`));
+
+            const currentProductionRequestIndex = order.indexOf(productionRequest);
+            const previousProductionRequest = order[currentProductionRequestIndex - 1] || null;
+            const nextProductionRequest = order[currentProductionRequestIndex + 1] || null;
+
+            const stringifiedOrder = JSON.stringify([previousProductionRequest, nextProductionRequest]);
+
             wrapLoadingOnActionButton($destination, () => (
-                AJAX.route(PUT, 'preparation_edit_preparation_date', {date, productionRequest})
+                AJAX.route(PUT, `production_request_planning_update_expected_at`, {productionRequest, date, order: stringifiedOrder})
                     .json()
                     .then(() => {
+                        $(`.tooltip`).tooltip(`hide`);
                         refreshColumnHint($column);
-                        refreshColumnHint($origin.closest('.production-request-card-column'));
+                        refreshColumnHint($origin.closest(`.production-request-card-column`));
+                        planning.fetch();
                     })
             ));
         });
 }
 
 function initializePlanningNavigation() {
-    $('.today-date').on('click', function () {
+    $(`.today-date`).on(`click`, function () {
         wrapLoadingOnActionButton($(this), () => (
             planning
                 .resetBaseDate(true)
@@ -81,7 +123,7 @@ function initializePlanningNavigation() {
         ));
     });
 
-    $('.decrement-date').on('click', function () {
+    $(document).on(`click`, `.decrement-date, .previous-week`, function () {
         wrapLoadingOnActionButton($(this), () => (
             planning.previousWeek()
                 .then(() => {
@@ -90,7 +132,7 @@ function initializePlanningNavigation() {
         ));
     });
 
-    $('.increment-date').on('click', function () {
+    $(document).on(`click`, `.increment-date, .next-week`, function () {
         wrapLoadingOnActionButton($(this), () => (
             planning.nextWeek()
                 .then(() => {
@@ -101,27 +143,27 @@ function initializePlanningNavigation() {
 }
 
 function changeNavigationButtonStates() {
-    $('.today-date')
-        .prop('disabled', moment().week() === planning.baseDate.week());
+    $(`.today-date`)
+        .prop(`disabled`, moment().week() === planning.baseDate.week());
 }
 
 function openModalUpdateProductionRequestStatus($container){
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .onOpen(() => {
-            Modal.load('production_request_update_status_content',
+            Modal.load(`production_request_update_status_content`,
                 {
-                    id: $container.closest(`a`).data('production-request-id'),
+                    id: $container.closest(`a`).data(`production-request-id`),
                 },
                 $modalUpdateProductionRequestStatus,
-                $modalUpdateProductionRequestStatus.find('.modal-body')
+                $modalUpdateProductionRequestStatus.find(`.modal-body`)
             );
         })
-        .submitTo(POST, 'production_request_update_status', {
+        .submitTo(POST, `production_request_update_status`, {
             success: () => {
                 planning.fetch();
             }
         });
 
-    $modalUpdateProductionRequestStatus.modal('show');
+    $modalUpdateProductionRequestStatus.modal(`show`);
 }
 

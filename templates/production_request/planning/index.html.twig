@@ -19,7 +19,7 @@
 {% block pageContainerClass 'd-flex flex-fill flex-column' %}
 {% block page_content %}
     <div class="mx-4 wii-page-card flex-fill d-flex flex-column" style="margin-top: -15px">
-        <div class="row">
+        <div class="row" style="margin: 0 25px">
             <div class="col-auto">
                 <button class="btn btn-outline-primary today-date mr-0 h-100"
                         disabled
@@ -28,14 +28,16 @@
                 </button>
             </div>
             <div class="col-auto">
-                <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center"
-                        data-loader-color="black">
+                <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center has-tooltip"
+                        data-loader-color="black"
+                        title="Semaine précédente">
                     <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
                 </button>
             </div>
             <div class="col-auto">
-                <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center"
-                        data-loader-color="black">
+                <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center has-tooltip"
+                        data-loader-color="black"
+                        title="Semaine suivante">
                     <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
                 </button>
             </div>
@@ -48,7 +50,23 @@
                 </button>
             </div>
         </div>
-        <div class="production-request-planning"></div>
+        <div class="d-flex flex-fill production-request-planning-container">
+            <div class="previous-week pointer d-none">
+                <img class="has-tooltip"
+                     title="Glisser-déposer une carte pour passer à la semaine précédente."
+                     src="{{ asset("svg/arrow-left.svg") }}"
+                     width="30"
+                >
+            </div>
+            <div class="production-request-planning"></div>
+            <div class="next-week pointer d-none">
+                <img class="has-tooltip"
+                     title="Glisser-déposer une carte pour passer à la semaine suivante."
+                     src="{{ asset("svg/arrow.svg") }}"
+                     width="30"
+                >
+            </div>
+        </div>
     </div>
 
     {% include "production_request/planning/modalUpdateProductionRequestStatus.html.twig" %}

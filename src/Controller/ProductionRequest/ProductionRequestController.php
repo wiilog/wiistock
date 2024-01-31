@@ -462,10 +462,9 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/update-status", name: "update_status", options: ["expose" => true], methods: "POST")]
-    public function productionRequestUpdateStatus(EntityManagerInterface $entityManager,
+    #[Route("/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
+    public function updateStatus(EntityManagerInterface $entityManager,
                                                   Request $request,
-                                                  FixedFieldService $fieldsParamService,
                                                   ProductionRequestService $productionRequestService,
                                                   OperationHistoryService $operationHistoryService,
                                                   StatusHistoryService $statusHistoryService): JsonResponse {

@@ -19,6 +19,7 @@ use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
 use App\Service\StatusService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -159,5 +160,66 @@ class PlanningController extends AbstractController {
     #[Route("/external", name: "external")]
     public function external(): Response {
         return $this->render("production_request/planning/external.html.twig");
+    }
+
+    #[Route("/update-expected-at/{productionRequest}/{date}/{order}", name: "update_expected_at", options: ["expose" => true], methods: self::PUT)]
+    #[HasPermission([Menu::PRODUCTION, Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST])]
+    public function updateExpectedAt(ProductionRequest      $productionRequest,
+                                     string                 $date,
+                                     string                 $order,
+                                     EntityManagerInterface $entityManager): Response {
+
+        $date = new DateTime($date);
+        $order = json_decode($order);
+
+        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
+
+        $productionRequests = Stream::from($order)
+            ->map(static function(?int $productionRequestId) use ($productionRequestRepository) {
+                if($productionRequestId) {
+                    return $productionRequestRepository->find($productionRequestId);
+                } else {
+                    return null;
+                }
+            })
+            ->toArray();
+
+        $emptyColumn = Stream::from($productionRequests)->filter()->isEmpty();
+        $currentExpectedAt = $productionRequest->getExpectedAt();
+        $newExpectedAt = new DateTime("{$date->format("Y-m-d")} {$currentExpectedAt->format("H:i:s")}");
+        if($emptyColumn) {
+            $productionRequest->setExpectedAt($newExpectedAt);
+        } elseif(isset($productionRequests[0])) {
+            $previousProductionRequest = $productionRequests[0];
+            $productionRequest->setExpectedAt($previousProductionRequest->getExpectedAt()->modify("+1 minute"));
+        } else {
+            $nextProductionRequest = $productionRequests[1];
+
+            $productionRequestExpectedAt = $productionRequest->getExpectedAt();
+            $nextProductionRequestExpectedAt = $nextProductionRequest->getExpectedAt();
+            $productionRequestExpectedAtTimeToSeconds = (
+                ((int)$productionRequestExpectedAt->format("H") * 3600)
+                + ((int)$productionRequestExpectedAt->format("i") * 60)
+                + ((int)$productionRequestExpectedAt->format("s"))
+            );
+
+            $nextProductionRequestExpectedAtTimeToSeconds = (
+                ((int)$nextProductionRequestExpectedAt->format("H") * 3600)
+                + ((int)$nextProductionRequestExpectedAt->format("i") * 60)
+                + ((int)$nextProductionRequestExpectedAt->format("s"))
+            );
+
+            if($productionRequestExpectedAtTimeToSeconds < $nextProductionRequestExpectedAtTimeToSeconds) {
+                $productionRequest->setExpectedAt($newExpectedAt);
+            } else {
+                $productionRequest->setExpectedAt($nextProductionRequest->getExpectedAt()->modify("-1 minute"));
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+        ]);
     }
 }

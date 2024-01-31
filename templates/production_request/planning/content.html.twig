@@ -7,7 +7,7 @@
         {% set cardSelector = date.cardSelector ?? null %}
         {% set cards = allCards[cardSelector] ?? [] %}
 
-        <div class="col-12 planning-col {{ columnClass }} preparation-card-column"
+        <div class="col-12 planning-col {{ columnClass }} production-request-card-column"
              data-date="{{ cardSelector }}">
             <div class="wii-box border flex-fill d-flex flex-column">
                 <div class="header">
@@ -31,3 +31,4 @@
         </div>
     {% endfor %}
 </div>
+
