@@ -37,7 +37,7 @@ Cypress.Commands.add(
                 //load fixtures
                 cy.doctrineFixturesLoad();
                  // build assets
-                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build:only:production'`, {timeout: 120000});
+                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
             }
         });
     })
@@ -61,7 +61,7 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
     cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
-    // cat sql file
+    // todo remove this cat sql file
     cy.log(`cat ${pathToFile}/${fileName}`);
     })
 
