@@ -11,6 +11,10 @@
 
         &.planning-container-7 {
             .planning-col {
+                &.forced {
+                    flex: 1 !important;
+                }
+
                 flex: 0 0 calc(100% / 7);
             }
 
@@ -76,6 +80,26 @@
         align-content: flex-start;
         flex: 1;
         flex-wrap: wrap;
+
+        &.scrollable {
+            max-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            &::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            &::-webkit-scrollbar-track {
+                border-radius: 5px;
+                background-color: $light-grey;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                border-radius: 10px;
+                background-color: $medium-grey;
+            }
+        }
     }
 }
 
@@ -118,6 +142,20 @@
         flex-direction: column;
         border-left-width: 5px;
         border-left-style: solid;
+
+        .expand-card-button {
+            mask: url("../../public/svg/double-arrow-right.svg");
+            background: $black;
+            width: 20px;
+            height: 20px;
+            display: block;
+            margin-top: 10px;
+            rotate: 90deg;
+
+            &[aria-expanded=true] {
+                rotate: 270deg;
+            }
+        }
     }
 }
 

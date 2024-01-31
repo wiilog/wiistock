@@ -56,12 +56,14 @@ export default class Planning {
 
     onPlanningLoad(callback) {
         this.$container.on(PLANNING_EVENT_LOADED, function() {
-            callback(event, this)
+            callback(event, this);
         });
     }
 
-    resetBaseDate() {
-        this.baseDate = moment();
+    resetBaseDate(weekBeginning = false) {
+        this.baseDate = weekBeginning
+            ? moment().startOf(`isoWeek`)
+            : moment();
         return this.fetch();
     }
 
@@ -72,6 +74,16 @@ export default class Planning {
 
     nextDate() {
         this.baseDate = this.baseDate.add(this.step, 'days');
+        return this.fetch();
+    }
+
+    previousWeek() {
+        this.baseDate = this.baseDate.subtract(1, `weeks`).startOf(`isoWeek`);
+        return this.fetch();
+    }
+
+    nextWeek() {
+        this.baseDate = this.baseDate.add(1, `weeks`).startOf(`isoWeek`);
         return this.fetch();
     }
 }

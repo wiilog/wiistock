@@ -1,3 +1,4 @@
+import 'drag-drop-touch';
 import sortable from '../../node_modules/html5sortable/dist/html5sortable.es.js';
 import $ from 'jquery';
 
