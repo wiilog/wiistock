@@ -1,32 +1,38 @@
-<div class="col-6 mb-2">
-    {{ form.input('productionRequestNumber', 'Numéro demande production', false , production_request.number, {
-        disabled: true,
-    }) }}
-</div>
+{% import 'form.html.twig' as form %}
 
-<div class="col-6 mb-2">
-    {{ form.select(fieldCode, fieldLabel, true, {
-        type: 'status',
-        disabled: not productionRequest.type,
-        value: productionRequest.status ? productionRequest.status.id : null,
-        items: productionRequest.status
-        ? [{
-            'value': productionRequest.status.id,
-            'label':  productionRequest.status.nom,
-            'selected': true
-        }]
-        : [],
-        includeParams: '[name=type]',
-        additionalAttributes: productionRequest.type
-        ? []
-        : [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
-    }) }}
-</div>
+{% set displayAction = 'displayedEdit' %}
+{% set requiredAction = 'requiredEdit' %}
+{{ form.hidden('productionRequestId', productionRequest.id) }}
+{{ form.hidden('type', productionRequest.type.id) }}
 
-{% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
+<div class="row">
+    <div class="col-12 mb-2">
+        {{ form.input('productionRequestNumber', 'Numéro demande production', false , productionRequest.number, {
+            disabled: true,
+        }) }}
+    </div>
+
+    <div class="col-12 mb-2">
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::status').name %}
+        {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::status').value %}
+        {{ form.select(fieldCode, fieldLabel, true, {
+            type: 'status',
+            value: productionRequest.status ? productionRequest.status.id : null,
+            items: productionRequest.status
+            ? [{
+                'value': productionRequest.status.id,
+                'label':  productionRequest.status.nom,
+                'selected': true
+            }]
+            : [],
+            includeParams: '[name=type]',
+        }) }}
+    </div>
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div class="col-12 mb-2">
             {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
             {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, productionRequest.comment) }}
         </div>
@@ -35,7 +41,7 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name %}
     {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
     {% if displayOnform %}
-        <div class="col-6 mb-2">
+        <div class="col-12 mb-2">
             {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
                 isNew: productionRequest.id is null,
             }) }}
@@ -43,3 +49,4 @@
     {% else %}
         {{ form.hidden('isAttachmentForm', 1) }}
     {% endif %}
+</div>

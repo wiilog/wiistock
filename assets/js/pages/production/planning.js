@@ -1,13 +1,16 @@
+import {POST} from "../../ajax";
+
 const $modalUpdateProductionRequestStatus = $('#modalUpdateProductionRequestStatus');
 
+global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
 $(function() {
 
 });
 
-function openModalUpdateProductionRequestStatus($container){
+function openModalUpdateProductionRequestStatus($container, prodId){
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .onOpen(() => {
-            Modal.load('',//TODO faire la route permettant de récupérer le contenu à afficher dans la modale
+            Modal.load('production_request_update_status_content',
                 {
                     id: $container.closest('a').data('production-request-id') || ''
                 },
@@ -15,5 +18,11 @@ function openModalUpdateProductionRequestStatus($container){
                 $modalUpdateProductionRequestStatus.find('.modal-body')
             );
         })
-        .submitTo();//TODO faire la route d'enregistrement de la modale
+        .submitTo(POST, 'production_request_update_status', {
+            success: () => {
+                console.log('Refresh le planning');
+            }
+        });
+
+    $modalUpdateProductionRequestStatus.modal('show');
 }
