@@ -138,7 +138,7 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
         });
     })
 })
-/*
+
 describe('Add and edit components in Referentiel > Emplacements', () => {
     beforeEach(() => {
         cy.intercept('POST', 'emplacement/api').as('emplacement_api');
@@ -935,4 +935,4 @@ describe('Add and edit components in Referentiel > Clients', () => {
         })
     })
 })
-*/
+
