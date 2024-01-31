@@ -61,14 +61,13 @@ jobs:
                     touch projects/wiistock/config/generated.yaml &&
                     echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
 
-            -   name: Give right
-                run: chmod -R 777 projects/wiistock/ # TODO: remove this line (pa bo grègwoêre a dit)
+            -   name: Give all right to wiistock
+                run: chmod -R 777 projects/wiistock/
 
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
-                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up app --build -d
 
-            -   name: Give right
+            -   name: Give right to www-data user
                 run: docker exec wiistock-cypress_app chown -R www-data:www-data ./
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
@@ -81,8 +80,7 @@ jobs:
                 run: docker exec wiistock-cypress_app yarn
 
             -   name: Run cypress
-                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress # --exit-code-from cypress : exit with the same code as cypress
 
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
                 if: failure()
