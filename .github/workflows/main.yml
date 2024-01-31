@@ -87,7 +87,7 @@ jobs:
 
             -   name: Check if there are errors in the logs folder and exit if there are
                 run: |
-                    if [ "$(ls -A cypress_logs)" ]; then
+                    if [ "$(ls -A /var/www/cypress/logs)" ]; then
                         echo "There are errors in the logs folder"
                         exit 1
                     else
@@ -112,11 +112,11 @@ jobs:
                     name: cypress-videos
                     path: cypress_videos
 
-            -   name: Copy the var log folder from the container to the folder var_log
-                run: docker cp wiistock_cypress:/var/www/var/log/dev.log prod_log
+            -   name: Copy the dev.log from the container to the folder dev_log
+                run: docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
 
-            -   name: Put the prod_log folder in the artifacts
+            -   name: Put the dev.log file in the artifacts
                 uses: actions/upload-artifact@v2
                 with:
-                    name: prod_log
-                    path: prod_log
+                    name: dev_log
+                    path: dev_log
