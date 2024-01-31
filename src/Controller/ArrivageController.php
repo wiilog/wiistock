@@ -66,6 +66,7 @@ use WiiCommon\Helper\Stream;
 /**
  * @Route("/arrivage")
  */
+class ArrivageController extends AbstractController {
 
     #[Required]
     public UserService $userService;
