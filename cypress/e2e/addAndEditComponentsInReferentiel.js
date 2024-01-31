@@ -14,8 +14,7 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
         cy.intercept('POST', 'fournisseur/api').as('supplier_api');
         cy.login(user);
 
-        cy.visit('/', {failOnStatusCode: false});
-        cy.contains(`Symfony Exception`).should('not.exist') // or an assertion for something that should be on the page if it didn't 404
+        cy.visit('/',);
 
         cy.navigateInNavMenu('referentiel', 'supplier_index');
     })

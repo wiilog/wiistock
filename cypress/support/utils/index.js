@@ -1,3 +1,5 @@
+// Description: This file contains all the utils functions used in the tests
+
 /*
  * This method allow to get the index of a column in a datatable by its name (th)
  * @param columnName : name of the column (in French)
@@ -16,7 +18,7 @@ export function getColumnIndexByColumnName(columnName, tableId) {
 }
 
 /*
-    * This method need to be used at the top of the test file to avoid uncaught exception in the test
+  * This method need to be used at the top of the test file to avoid uncaught exception in the test
  */
 export function uncaughtException(){
     Cypress.on('uncaught:exception', (err, runnable) => {
