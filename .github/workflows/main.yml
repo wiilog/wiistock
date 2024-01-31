@@ -81,29 +81,33 @@ jobs:
                 run: docker exec wiistock-cypress_app yarn
 
             -   name: Run cypress
+                id: run_cypress
                 #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress
 
             -   name: Copy logs, videos, and dev.log from the container
-                if: failure()
+                if: steps.run_cypress.outcome == 'failure'
                 run: |
                     docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
                     docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
                     docker cp wiistock_cypress:/var/www/var/log/dev.log dev_log
 
             -   name: Upload Cypress logs artifact
+                if: steps.run_cypress.outcome == 'success'
                 uses: actions/upload-artifact@v2
                 with:
                   name: cypress-logs
                   path: cypress_logs
 
             -   name: Upload Cypress videos artifact
+                if: steps.run_cypress.outcome == 'success'
                 uses: actions/upload-artifact@v2
                 with:
                   name: cypress-videos
                   path: cypress_videos
 
             -   name: Upload dev.log artifact
+                if: steps.run_cypress.outcome == 'success'
                 uses: actions/upload-artifact@v2
                 with:
                   name: dev-log
