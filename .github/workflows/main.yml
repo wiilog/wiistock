@@ -81,12 +81,11 @@ jobs:
                 run: docker exec wiistock-cypress_app yarn
 
             -   name: Run cypress
-                id: run_cypress
-                #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
+                # run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress
 
             -   name: Copy logs, videos, and dev.log from the container # run only if cypress fail
-                if: steps.run_cypress.outputs.exit-code != 0
+                if: failure()
                 run: |
                     docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
                     docker cp wiistock_cypress:/var/www/cypress/videos/ cypress_videos
