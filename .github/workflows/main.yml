@@ -47,11 +47,14 @@ jobs:
             -   name: Pull from dockerhub wiilog/wiistock-app
                 run: docker pull wiilog/wiistock-app:latest
 
-            -   name: Copy .env.example to .env.local
+            -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
 
             -   name: Change db string URL .env.local
                 run: sed -i 's/root@127\.0\.0\.1:3306/root:example@mysql:3306/g' projects/wiistock/.env.local
+
+            -   name: cat .env.local
+                run: cat projects/wiistock/.env.local
 
             -   name: Add generated.yaml to wiistock
                 run: |
@@ -104,10 +107,10 @@ jobs:
                     path: cypress_videos
 
             -   name: Copy the var log folder from the container to the folder var_log
-                run: docker cp wiistock_cypress:/var/www/var/log/ var_log
+                run: docker cp wiistock_cypress:/var/www/var/log/prod.log prod_log
 
-            -   name: Put the var log folder in the artifacts
+            -   name: Put the prod_log folder in the artifacts
                 uses: actions/upload-artifact@v2
                 with:
-                    name: var-log
-                    path: var_log
+                    name: prod_log
+                    path: prod_log
