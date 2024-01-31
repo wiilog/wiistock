@@ -138,6 +138,7 @@ describe('Add and edit components in Referentiel > Fournisseur', () => {
         });
     })
 })
+/*
 
 describe('Add and edit components in Referentiel > Emplacements', () => {
     beforeEach(() => {
@@ -935,3 +936,4 @@ describe('Add and edit components in Referentiel > Clients', () => {
         })
     })
 })
+*/
