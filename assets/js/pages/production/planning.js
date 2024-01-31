@@ -1,11 +1,15 @@
 import '@styles/planning.scss';
 import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
-import AJAX, {PUT} from "@app/ajax";
+import AJAX, {POST, PUT} from "@app/ajax";
 import Planning from "@app/planning";
 import moment from "moment";
 
 global.callbackSaveFilter = callbackSaveFilter;
+global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
+
+const $modalUpdateProductionRequestStatus = $('#modalUpdateProductionRequestStatus');
+
 let planning = null;
 
 $(function () {
@@ -101,4 +105,23 @@ function changeNavigationButtonStates() {
     $todayDate.prop('disabled', moment().week() === planning.baseDate.week());
 }
 
+function openModalUpdateProductionRequestStatus($container, prodId){
+    Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
+        .onOpen(() => {
+            Modal.load('production_request_update_status_content',
+                {
+                    id: $container.closest('a').data('production-request-id') || ''
+                },
+                $modalUpdateProductionRequestStatus,
+                $modalUpdateProductionRequestStatus.find('.modal-body')
+            );
+        })
+        .submitTo(POST, 'production_request_update_status', {
+            success: () => {
+                console.log('Refresh le planning');
+            }
+        });
+
+    $modalUpdateProductionRequestStatus.modal('show');
+}
 

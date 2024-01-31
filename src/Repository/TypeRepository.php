@@ -107,9 +107,14 @@ class TypeRepository extends EntityRepository {
     }
 
     public function getForSelect(?string $category, ?string $term, array $options = []): array {
+        $query = $this->createSelectBuilder($category, $options);
         $countStatuses = $options['countStatuses'] ?? false;
 
-        $queryBuilder = $this->createSelectBuilder($category, $options);
+        if ($options['withDropLocation'] ?? false) {
+            $query->leftJoin('type.dropLocation', 'dropLocation')
+                ->addSelect('dropLocation.id AS dropLocationId')
+                ->addSelect('dropLocation.label AS dropLocationLabel');
+        }
 
         if ($countStatuses) {
             $countStatusesQuery = $this->getEntityManager()
@@ -120,10 +125,10 @@ class TypeRepository extends EntityRepository {
                 ->andWhere('sub_query_type.id = type.id')
                 ->getQuery()
                 ->getDQL();
-            $queryBuilder ->addSelect("($countStatusesQuery) AS statusCount");
+            $query->addSelect("($countStatusesQuery) AS statusCount");
         }
 
-        return $queryBuilder
+        return $query
             ->andWhere("type.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
