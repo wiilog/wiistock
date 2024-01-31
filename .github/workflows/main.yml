@@ -85,6 +85,15 @@ jobs:
                 run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
                 continue-on-error: true
 
+            -   name: Check if there are errors in the logs folder and exit if there are
+                run: |
+                    if [ "$(ls -A cypress_logs)" ]; then
+                        echo "There are errors in the logs folder"
+                        exit 1
+                    else
+                        echo "There are no errors in the logs folder"
+                    fi
+
             -   name: Copy the logs from the container to the folder cypress_logs
                 run: docker cp wiistock_cypress:/var/www/cypress/logs/ cypress_logs
 
