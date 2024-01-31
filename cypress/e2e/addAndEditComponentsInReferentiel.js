@@ -6,7 +6,6 @@ describe('Setup the environment', () => {
     it('Reset the db', () => {
         cy.startingCypressEnvironnement('$FTP_HOST')
         uncaughtException();
-        cy.log('test')
     });
 })
 
