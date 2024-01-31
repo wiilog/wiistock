@@ -1,11 +1,9 @@
 name: run-cypress
 
 on:
-    push:
+   pull_request:
         branches:
-            - WIIS-9654
-        #pull_request:
-        #    - todo
+             - "*"
 
 jobs:
     cypress-run:
@@ -19,7 +17,8 @@ jobs:
                 with:
                     repository: wiilog/wiistock-docker
                     token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
-                    ref: WIIS-9654
+                    # ref: WIIS-9654
+                    ref: ${{ github.event.pull_request.head.sha }}
 
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
@@ -37,8 +36,8 @@ jobs:
                 uses: actions/checkout@v4
                 with:
                     repository: wiilog/wiistock
-                    #ref: ${{ github.event.pull_request.head.sha }}
-                    ref: ${{ github.event.head_commit.id }}
+                    ref: ${{ github.event.pull_request.head.sha }}
+                    #ref: ${{ github.event.head_commit.id }}
                     path: projects/wiistock
 
             -   name: Login to docker hub
