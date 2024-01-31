@@ -1,12 +1,11 @@
-Cypress.on('uncaught:exception', (err, runnable) => {
-    return false;
-});
+import {uncaughtException} from "../support/utils";
 
 const user = Cypress.config('user');
 
 describe('Setup the environment', () => {
     it('Reset the db', () => {
         cy.startingCypressEnvironnement('$FTP_HOST')
+        uncaughtException();
     });
 })
 

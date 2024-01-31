@@ -14,3 +14,12 @@ export function getColumnIndexByColumnName(columnName, tableId) {
             return index;
         });
 }
+
+/*
+    * This method need to be used at the top of the test file to avoid uncaught exception in the test
+ */
+export function uncaughtException(){
+    Cypress.on('uncaught:exception', (err, runnable) => {
+        return false;
+    });
+}
