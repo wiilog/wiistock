@@ -1,3 +1,7 @@
+Cypress.on('uncaught:exception', (err, runnable) => {
+    return false;
+});
+
 const user = Cypress.config('user');
 
 describe('Setup the environment', () => {

@@ -56,9 +56,6 @@ jobs:
             -   name: Change APP_ENV=prod to APP_ENV=dev
                 run: sed -i 's/APP_ENV=prod/APP_ENV=dev/g' projects/wiistock/.env.local
 
-            -   name: cat .env.local
-                run: cat projects/wiistock/.env.local
-
             -   name: Add generated.yaml to wiistock
                 run: |
                     touch projects/wiistock/config/generated.yaml &&
@@ -82,9 +79,6 @@ jobs:
 
             -   name: Install yarn dependencies in app
                 run: docker exec wiistock-cypress_app yarn
-
-            -   name: Add FOS config
-                run: docker exec wiistock-cypress_app php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Run cypress
                 #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
