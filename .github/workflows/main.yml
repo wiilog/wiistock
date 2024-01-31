@@ -82,7 +82,7 @@ jobs:
 
             -   name: Run cypress
                 #  run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -f docker-compose-cypress-actions.yml -p wiistock-cypress up cypress --abort-on-container-exit
-                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress
+                run: docker compose -f docker-compose.yml -f docker-compose-cypress.yml -p wiistock-cypress up cypress --exit-code-from cypress
 
             -   name: Copy logs, videos, and dev.log from the container
                 if: failure()
