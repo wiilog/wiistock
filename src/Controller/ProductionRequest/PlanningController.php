@@ -88,7 +88,6 @@ class PlanningController extends AbstractController {
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
         $cards = Stream::from($productionRequests)
             ->keymap(function(ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository) {
-                dump($productionRequest->getFreeFields());
                 $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
                 $fields = Stream::from([
                     FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),

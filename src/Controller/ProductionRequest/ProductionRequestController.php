@@ -469,7 +469,7 @@ class ProductionRequestController extends AbstractController
                                                   ProductionRequestService $productionRequestService,
                                                   OperationHistoryService $operationHistoryService,
                                                   StatusHistoryService $statusHistoryService): JsonResponse {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
+        $data = $request->request;
 
         $statusRepository = $entityManager->getRepository(Statut::class);
         $newStatus = $statusRepository->find($data->getInt('status'));
@@ -514,7 +514,7 @@ class ProductionRequestController extends AbstractController
 
         return $this->json([
             "success" => true,
-            "msg" => "Demande de production modifiée avec succès",
+            "msg" => "La demande de production a été modifiée avec succès.",
         ]);
     }
 }

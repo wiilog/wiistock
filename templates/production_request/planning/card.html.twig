@@ -10,7 +10,8 @@
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
             <div class="{{ emergency ? 'col-8' : 'col-12' }}">
-                <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white prevent-default">
+                <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white prevent-default"
+                     onclick="openModalUpdateProductionRequestStatus($(this))">
                     {{ productionRequest.status|format_helper("status")|capitalize }}
                 </div>
                 <div class="mt-1">

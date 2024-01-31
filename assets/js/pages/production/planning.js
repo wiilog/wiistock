@@ -101,16 +101,16 @@ function initializePlanningNavigation() {
 }
 
 function changeNavigationButtonStates() {
-    const $todayDate = $('.today-date');
-    $todayDate.prop('disabled', moment().week() === planning.baseDate.week());
+    $('.today-date')
+        .prop('disabled', moment().week() === planning.baseDate.week());
 }
 
-function openModalUpdateProductionRequestStatus($container, prodId){
+function openModalUpdateProductionRequestStatus($container){
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .onOpen(() => {
             Modal.load('production_request_update_status_content',
                 {
-                    id: $container.closest('a').data('production-request-id') || ''
+                    id: $container.closest(`a`).data('production-request-id'),
                 },
                 $modalUpdateProductionRequestStatus,
                 $modalUpdateProductionRequestStatus.find('.modal-body')
@@ -118,7 +118,7 @@ function openModalUpdateProductionRequestStatus($container, prodId){
         })
         .submitTo(POST, 'production_request_update_status', {
             success: () => {
-                console.log('Refresh le planning');
+                planning.fetch();
             }
         });
 
