@@ -412,7 +412,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
         const $input = $(this);
         const name = $input.attr('name');
 
-        let $formGroupLabel = $input.closest('.form-group').find('label');
+        let $formGroupLabel = $input.closest('.form-group').find('.field-label, label');
         if (!$formGroupLabel.exists()) {
             $formGroupLabel = $input.closest('label').find('.wii-field-name');
         }
@@ -529,6 +529,32 @@ function processInputsForm($modal, data, isAttachmentForm) {
         } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
+            }
+        } else if ($input.attr(`type`) === `text`) {
+            const val = $input.val().trim();
+            const minLength = parseInt($input.attr('minlength'));
+            const maxLength = parseInt($input.attr('maxlength'));
+
+            if (val && minLength && val.length < minLength) {
+                errorMessages.push(
+                    Translation.of('Général', '', 'Modale', "Le nombre de caractères du champ {1} ne peut être inférieur à {2}.", {
+                        1: label,
+                        2: minLength,
+                    })
+                );
+                $isInvalidElements.push($input);
+            }
+            else if (val && maxLength && val.length > maxLength) {
+                errorMessages.push(
+                    Translation.of('Général', '', 'Modale', "Le nombre de caractères du champ {1} ne peut être supérieur à {2}.", {
+                        1: label,
+                        2: maxLength,
+                    })
+                );
+                $isInvalidElements.push($input);
+            }
+            else {
+                saveData($input, data, name, val, isAttachmentForm);
             }
         } else {
             if ($editorContainer.length > 0) {

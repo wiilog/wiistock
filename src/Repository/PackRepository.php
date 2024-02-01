@@ -310,7 +310,7 @@ class PackRepository extends EntityRepository
                             ->leftJoin('m3.emplacement', 'e3')
                             ->orderBy('e3.label', $order);
                     } else if ($column === 'packNature') {
-                        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], 'nature', ["order" => $order]);
+                        $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $options['language'], $options['defaultLanguage'], ['nature'], ["order" => $order]);
                     } else if ($column === 'packLastDate') {
                         $queryBuilder
                             ->leftJoin('pack.lastTracking', 'm3')
@@ -359,8 +359,7 @@ class PackRepository extends EntityRepository
         ];
     }
 
-    public function getCurrentPackOnLocations(array $locations, array $options = [])
-    {
+    public function getCurrentPackOnLocations(array $locations, array $options = []) {
         $natures = $options['natures'] ?? [];
         $isCount = $options['isCount'] ?? true;
         $field = $options['field'] ?? 'pack.id';

@@ -1447,12 +1447,14 @@ class ReceptionController extends AbstractController {
                                          ArticleDataService $articleDataService,
                                          PDFGeneratorService $PDFGeneratorService): Response {
         $articleIds = json_decode($request->query->get('articleIds'), true);
+        $forceTagEmpty = $request->query->getBoolean('forceTagEmpty');
         $tag = $request->query->get('template')
                 ? $entityManager->getRepository(TagTemplate::class)->find($request->query->get('template'))
                 : null;
+
         if(empty($articleIds)) {
             $barcodeConfigs = Stream::from($reception->getReceptionReferenceArticles())
-                ->flatMap(function(ReceptionReferenceArticle $recepRef) use ($request, $refArticleDataService, $articleDataService, $reception, $tag) {
+                ->flatMap(static function(ReceptionReferenceArticle $recepRef) use ($entityManager, $forceTagEmpty, $request, $refArticleDataService, $articleDataService, $reception, $tag) {
                     $referenceArticle = $recepRef->getReferenceArticle();
 
                     if ($referenceArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
@@ -1461,12 +1463,15 @@ class ReceptionController extends AbstractController {
                         $articlesReception = $recepRef->getArticles()->toArray();
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
-                                ->filter(function(Article $article) use ($tag) {
-                                    return
-                                        $article->getType()?->getTags()?->isEmpty() &&
-                                        (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+                                ->filter(static function(Article $article) use ($entityManager, $forceTagEmpty, $tag) {
+                                    $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                                    $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                                        ->some(static function (TagTemplate $tag) use ($article) {
+                                            return $tag->getTypes()->contains($article->getType());
+                                        });
+                                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                                 })
-                                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
+                                ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
                         }
                     }
@@ -1477,12 +1482,15 @@ class ReceptionController extends AbstractController {
         } else {
             $articles = $entityManager->getRepository(Article::class)->findBy(['id' => $articleIds]);
             $barcodeConfigs = Stream::from($articles)
-                ->filter(function(Article $article) use ($tag) {
-                    return
-                        $article->getType()?->getTags()?->isEmpty() &&
-                        (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+                ->filter(static function(Article $article) use ($entityManager, $forceTagEmpty, $tag) {
+                    $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                    $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                        ->some(static function (TagTemplate $tag) use ($article) {
+                            return $tag->getTypes()->contains($article->getType());
+                        });
+                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                 })
-                ->map(fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
+                ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
         }
 

@@ -22,6 +22,7 @@ const PAGE_INV_MISSIONS = 'inv_missions';
 const PAGE_INV_SHOW_MISSION = 'inv_mission_show';
 const PAGE_RECEIPT_ASSOCIATION = 'receipt_association';
 const PAGE_DISPATCHES = 'acheminement';
+const PAGE_PRODUCTION = 'production';
 const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
@@ -496,37 +497,12 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
         $filterDateExpectedPicker.format('YYYY-MM-DD');
     }
 
-    const valFunction = {
-        'filter-input': ($input) => ($input.val() || '').trim(),
-        'filter-select2': ($input) => ($input.select2('data') || [])
-                .filter(({id, text}) => (id.trim() && text.trim()))
-                .map(({id, text}) => ({id, text: text.replace(/(\r\n|\n|\r)/gm, "").trim()})),
-        'filter-checkbox': ($input) => $input.is(':checked'),
-        'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
-    };
-
     let params = {
         page,
-        ...(Object.keys(valFunction).reduce((acc, key) => {
-            let $fields;
-            if($table.closest(`.settings`).exists()) {
-                $fields = $table.closest(`.settings-content`).find(`.filters-container .${key}`);
-            } else {
-                $fields = $(`.filters-container .${key}`);
-            }
+        ...serializeFilters($table),
+    }
 
-            const values = {};
-            $fields.each(function () {
-                const $elem = $(this);
-                values[$elem.data('override-name') || $elem.attr('name')] = valFunction[key]($elem);
-            });
 
-            return ({
-                ...acc,
-                ...values
-            })
-        }, {}))
-    };
     let format = 'd/m/Y';
     if (needsDateFormatting) {
         const $userFormat = $('#userDateFormat');
@@ -559,6 +535,37 @@ function saveFilters(page, tableSelector, callback, needsDateFormatting = false)
             showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
         }
     }, 'json');
+}
+
+function serializeFilters($table = undefined) {
+    const valFunction = {
+        'filter-input': ($input) => ($input.val() || ``).trim(),
+        'filter-select2': ($input) => ($input.select2(`data`) || [])
+            .filter(({id, text}) => (id.trim() && text.trim()))
+            .map(({id, text}) => ({id, text: text.replace(/(\r\n|\n|\r)/gm, ``).trim()})),
+        'filter-checkbox': ($input) => $input.is(`:checked`),
+        'filter-switch': ($input) => $input.closest(`.wii-expanded-switch, .wii-switch`).find(':checked').val(),
+    };
+
+    return Object.keys(valFunction).reduce((acc, key) => {
+        let $fields;
+        if($table && $table.closest(`.settings`).exists()) {
+            $fields = $table.closest(`.settings-content`).find(`.filters-container .${key}`);
+        } else {
+            $fields = $(`.filters-container .${key}`);
+        }
+
+        const values = {};
+        $fields.each(function () {
+            const $elem = $(this);
+            values[$elem.data(`override-name`) || $elem.attr(`name`)] = valFunction[key]($elem);
+        });
+
+        return ({
+            ...acc,
+            ...values
+        });
+    }, {});
 }
 
 function initDatePickers() {
@@ -888,6 +895,7 @@ function displayFiltersSup(data, needsDateFormatting = false) {
                     break;
 
                 case 'emergency':
+                case 'attachmentAssigned':
                 case 'customs':
                 case 'frozen':
                 case 'carrierTrackingNumberNotAssigned':
@@ -1059,6 +1067,9 @@ function initOnTheFlyCopies($elems) {
     });
 }
 
+/**
+ * @deprecated Use exportFile's utils.js function instead
+ */
 function saveExportFile(routeName,
                         needsDateFilters = true,
                         routeParam = {},
@@ -1196,47 +1207,64 @@ function onTypeChange($select) {
     toggleRequiredChampsLibres($select, 'create', $freeFieldsContainer);
     typeChoice($select, $freeFieldsContainer);
 
-    const type = parseInt($select.val());
+    const typeId = parseInt($select.val());
 
     const $selectStatus = $modal.find('select[name="status"]');
-    $selectStatus.find('option[data-type-id!="' + type + '"]').addClass('d-none');
+    $selectStatus.find('option[data-type-id!="' + typeId + '"]').addClass('d-none');
     $selectStatus.val(null).trigger('change');
 
     let $errorEmptyStatus = $selectStatus.siblings('.error-empty-status');
     if(!$errorEmptyStatus.length) {
         $errorEmptyStatus = $selectStatus.closest('.form-item').find('.error-empty-status');
+
+        if(!$errorEmptyStatus.length) {
+            $errorEmptyStatus = $modal.find('.error-empty-status');
+        }
     }
     $errorEmptyStatus.addClass('d-none');
 
-    if(!type) {
+    if(!typeId) {
         $selectStatus.removeClass('d-none');
+        $selectStatus.siblings('.select2-container').removeClass('d-none');
         $selectStatus.prop('disabled', true);
     } else {
-        const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + type + '"]');
+        const $correspondingStatuses = $selectStatus.find('option[data-type-id="' + typeId + '"]');
         $selectStatus.prop('disabled', false);
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
-        if ($correspondingStatuses.length > 1) {
+        const [type] = $select.select2('data');
+
+        if ($correspondingStatuses.length > 1 || type?.statusCount > 1) {
             $selectStatus.removeClass('d-none');
-            if (defaultStatuses[type]) {
-                $selectStatus.val(defaultStatuses[type]);
+            $selectStatus.siblings('.select2-container').removeClass('d-none');
+            if (defaultStatuses[typeId]) {
+                $selectStatus.val(defaultStatuses[typeId]);
             } else if ($correspondingStatuses.length === 1) {
                 $selectStatus.val($correspondingStatuses[0].value);
             } else {
                 $selectStatus.removeAttr('disabled');
             }
-        } else if($correspondingStatuses.length === 1) {
-            $selectStatus.val($modal.find('select[name="status"] option:not(.d-none):first').val())
-                .removeClass('d-none')
-                .prop('disabled', true);
-        } else if (type) {
+        } else if($correspondingStatuses.length === 1 || type?.statusCount === 1) {
+            const firstStatus = $modal.find('select[name="status"] option:not(.d-none):first').val();
+
+            if (firstStatus) {
+                // option loaded in DOM
+                $selectStatus
+                    .val(firstStatus)
+                    .prop('disabled', true);
+            }
+
+            $selectStatus.removeClass('d-none');
+            $selectStatus.siblings('.select2-container').removeClass('d-none');
+        } else if (typeId) {
             $errorEmptyStatus.removeClass('d-none');
             $selectStatus.addClass('d-none');
+            $selectStatus.siblings('.select2-container').addClass('d-none');
         }
 
         if ($modal.attr('id') === 'modalNewHandling') {
-            $.post(Routing.generate('handling_users_by_type'), {id: type}, function (data) {
+            $.post(Routing.generate('handling_users_by_type'), {id: typeId}, function (data) {
                 const $select2 = $modal.find('select[name=receivers]');
                 $select2.empty().trigger('change');
                 Object.entries(data).forEach(([key, value]) => {

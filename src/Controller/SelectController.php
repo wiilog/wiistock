@@ -19,6 +19,7 @@ use App\Entity\Inventory\InventoryCategory;
 use App\Entity\IOT\Pairing;
 use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorWrapper;
+use App\Entity\Language;
 use App\Entity\LocationGroup;
 use App\Entity\Menu;
 use App\Entity\NativeCountry;
@@ -40,6 +41,8 @@ use App\Entity\Utilisateur;
 use App\Entity\VisibilityGroup;
 use App\Entity\Zone;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
+use App\Service\LanguageService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -56,7 +59,7 @@ class SelectController extends AbstractController {
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
-        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? null;
+        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? $request->query->get("typedispatchdroplocation") ?? null;
         $typeDispatchPickLocation = $request->query->get("typeDispatchPickLocation") ?? null;
         $term = $request->query->get("term");
         $addGroup = $request->query->getBoolean("add-group");
@@ -864,6 +867,30 @@ class SelectController extends AbstractController {
 
         return $this->json([
             'results' => $allLocations
+        ]);
+    }
+
+    #[Route('/select/types/production', name: 'ajax_select_production_request_type', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
+    public function productionRequestType(Request $request, EntityManagerInterface $manager, LanguageService $languageService): Response {
+        $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
+        $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
+        $withDropLocation = $request->query->getBoolean('with-drop-location');
+
+        $results = $manager->getRepository(Type::class)->getForSelect(
+            CategoryType::PRODUCTION,
+            $request->query->get("term"),
+            [
+                "countStatuses" => true,
+                "language" => $language,
+                "defaultLanguage" => $defaultLanguage,
+                "withDropLocation" => $withDropLocation,
+            ]
+        );
+
+        return $this->json([
+            "results" => $results,
         ]);
     }
 }

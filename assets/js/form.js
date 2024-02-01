@@ -227,9 +227,11 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
+
             if($input.is('[data-intl-tel-input]')){
                 $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
             }
+
             const $multipleKey = $input.closest(`[data-multiple-key]`);
             if ($multipleKey.exists()) {
                 const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -282,19 +284,34 @@ export default class Form {
             return data;
         }
 
+        const globalErrors = [];
+
         // display errors under each field
         for(const error of errors) {
             if (error.elements && error.elements.length > 0) {
+                Form.showInvalidFields(error.elements, !error.global ? error.message : undefined)
                 if (error.global) {
-                    error.elements.forEach(($elem) => Form.showInvalid($elem));
-                    Flash.add(`danger`, error.message);
-                } else {
-                    error.elements.forEach(($elem) => Form.showInvalid($elem, error.message));
+                    globalErrors.push(error.message);
+                }
+                else {
+                    const currentGlobalErrors = Form.getInvalidGlobalErrors(error.elements, error.message);
+                    if (currentGlobalErrors.length > 0) {
+                        globalErrors.push(...currentGlobalErrors);
+                    }
                 }
             }
             else {
-                Flash.add(`danger`, error.message);
+                // remove duplicate messages
+                if (error.message && globalErrors.indexOf(error.message) === -1) {
+                    globalErrors.push(error.message);
+                }
             }
+        }
+
+        // Remove global duplicates errors and show
+        const cleanedGlobalErrors = globalErrors.filter((message, index) => message && globalErrors.indexOf(message) === index);
+        for(const message of cleanedGlobalErrors) {
+            Flash.add(`danger`, message);
         }
 
         return errors.length === 0 ? data : false;
@@ -325,7 +342,37 @@ export default class Form {
         }
     }
 
-    static showInvalid($field, message) {
+    static showInvalidFields(elements, message) {
+        if (message) {
+            elements.forEach(($field) => {
+                const {$formField, $dataField, $parent} = Form.getErrorConf($field)
+
+                $formField.addClass(`is-invalid`);
+                $parent.find(`.invalid-feedback`).remove();
+
+                if (!$dataField.is(`[data-global-error]`)) {
+                    $parent.append(`<span class="invalid-feedback d-inline-block">${message}</span>`);
+                }
+            });
+        }
+    }
+
+    static getInvalidGlobalErrors(elements, message) {
+        const errors = [];
+        if (message) {
+            elements.forEach(($field) => {
+                const {label, $dataField} = Form.getErrorConf($field)
+                const prefixMessage = label ? `${label} : ` : '';
+
+                if ($dataField.is(`[data-global-error]`)) {
+                    errors.push(`${prefixMessage}${message}`);
+                }
+            });
+        }
+        return errors;
+    }
+
+    static getErrorConf($field) {
         let $parent;
         if($field.is(`[data-s2-initialized]`)) {
             $field = $field.parent().find(`.select2-selection`);
@@ -339,26 +386,24 @@ export default class Form {
             $parent = $field.closest(`label, .wii-checkbox, .wii-radio-container, .dropFrame`);
         }
 
-        $field.addClass(`is-invalid`);
-        $parent.find(`.invalid-feedback`).remove();
-        $field = $field.is(`.select2-selection`)
+        const $dataField = $field.is(`.select2-selection`)
             ? $field.closest(`.select2-container`).siblings(`select`)
             : $field;
 
-        if($field.is(`[data-global-error]`)) {
-            let label = $field.data(`global-error`)
-                || $parent.find(`.field-label`).text()
-                || $field.data('field-label');
-            label = label
-                .trim()
-                .replace(/\*$/, '');
-            const prefixMessage = label ? `${label} : ` : '';
-            Flash.add(`danger`, `${prefixMessage}${message}`);
-        } else {
-            if (message) {
-                $parent.append(`<span class="invalid-feedback d-inline-block">${message}</span>`);
-            }
-        }
+        let label = $dataField.data(`global-error`)
+            || $parent.find(`.field-label`).text()
+            || $dataField.data('field-label');
+
+        label = (label || '')
+            .trim()
+            .replace(/\*$/, '');
+
+        return {
+            label,
+            $parent,
+            $dataField, // base field like select for select2 elements
+            $formField: $field, // displayed element
+        };
     }
 
 }
@@ -471,6 +516,28 @@ function treatInputError($input, errors, form) {
             errors.push({
                 elements: [$input],
                 message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
+            });
+        }
+    }
+    else if ($input.attr(`type`) === `text`) {
+        const val = $input.val().trim();
+        const minLength = parseInt($input.attr('minlength'));
+        const maxLength = parseInt($input.attr('maxlength'));
+
+        if (val && minLength && val.length < minLength) {
+            errors.push({
+                elements: [$input],
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être inférieur à {1}.", {
+                    1: minLength,
+                }),
+            });
+        }
+        else if (val && maxLength && val.length > maxLength) {
+            errors.push({
+                elements: [$input],
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être supérieur à {1}.", {
+                    1: maxLength,
+                }),
             });
         }
     }

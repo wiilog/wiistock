@@ -405,8 +405,8 @@ select.is-invalid {
     line-height: 1;
 }
 
-.bg-primary-followgt {
-    background: linear-gradient(-64deg, $header-right, $header-left);
+.bg-wiistock-gradient {
+    background: $linear-gradient;
 }
 
 .dataTables_processing {
@@ -1256,6 +1256,12 @@ label.required:after {
         .history-line-right-content {
             position: relative;
 
+            .subtitle {
+                position: absolute;
+                top: 70%;
+                left: 10px;
+            }
+
             &.last-history-line::before {
                 background-color: $medium-grey !important;
             }
@@ -1311,6 +1317,7 @@ label.required:after {
                 &:after {
                     border: 3px solid $medium-grey;
                     outline: 2px solid $white;
+                    z-index: 3;
                 }
 
                 &:before {

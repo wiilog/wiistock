@@ -95,10 +95,19 @@
                             {% elseif freeField.typage == constant('App\\Entity\\FreeField::TYPE_TEXT') %}
                                 {{ form.input(freeField.id, displayedLabel, needed, entityValue, {
                                     inputClass: 'needs-default',
-                                    additionalAttributes: [{
-                                        name: 'data-init',
-                                        value: entityValue
-                                    }],
+                                    attributes: {
+                                        'data-init': entityValue,
+                                        ...freeField.minCharactersLength
+                                            ? {
+                                                minlength: freeField.minCharactersLength,
+                                            }
+                                            : {},
+                                        ...freeField.maxCharactersLength
+                                            ? {
+                                                maxlength: freeField.maxCharactersLength,
+                                            }
+                                            : {},
+                                    },
                                     labelOptions: {
                                         smallText: labelSmallText
                                     }

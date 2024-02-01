@@ -28,6 +28,7 @@ use App\Service\FormatService;
 use App\Service\FreeFieldService;
 use App\Service\GeoService;
 use App\Service\IOT\IOTService;
+use App\Service\OperationHistoryService;
 use App\Service\PackService;
 use App\Service\SettingsService;
 use App\Service\StatusHistoryService;
@@ -70,7 +71,7 @@ class TransportService {
     public StatusHistoryService $statusHistoryService;
 
     #[Required]
-    public TransportHistoryService $transportHistoryService;
+    public OperationHistoryService $operationHistoryService;
 
     #[Required]
     public FreeFieldService $freeFieldService;
@@ -197,25 +198,25 @@ class TransportService {
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
 
             $historyType = $transportRequest instanceof TransportDeliveryRequest && $data->getBoolean('collectLinked')
-                ? TransportHistoryService::TYPE_BOTH_REQUEST_CREATION
-                : TransportHistoryService::TYPE_REQUEST_CREATION;
+                ? OperationHistoryService::TYPE_BOTH_REQUEST_CREATION
+                : OperationHistoryService::TYPE_REQUEST_CREATION;
 
-            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, $historyType, [
+            $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, $historyType, [
                 'history' => $statusHistory,
                 'user' => $loggedUser,
             ]);
 
             if ($subcontracted) {
                 $settingRepository = $entityManager->getRepository(Setting::class);
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACTED, [
+                $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_SUBCONTRACTED, [
                     'user' => $loggedUser,
                 ]);
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
                     'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
                 ]);
             }
             elseif ($status == TransportRequest::STATUS_AWAITING_VALIDATION) {
-                $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
+                $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_AWAITING_VALIDATION, [
                     'user' => $loggedUser,
                 ]);
             }
@@ -235,16 +236,16 @@ class TransportService {
             if ($canChangeStatus){
                 $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportRequest, $status);
             }
-            $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_REQUEST_EDITED, [
+            $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_REQUEST_EDITED, [
                 'user' => $loggedUser,
                 'history' => $statusHistory ?? null
             ]);
 
             if ($transportOrder) {
-                $this->transportHistoryService->persistTransportHistory(
+                $this->operationHistoryService->persistTransportHistory(
                     $entityManager,
                     $transportOrder,
-                    TransportHistoryService::TYPE_REQUEST_EDITED,
+                    OperationHistoryService::TYPE_REQUEST_EDITED,
                     [ 'user' => $loggedUser,]
                 );
             }
@@ -253,11 +254,11 @@ class TransportService {
                 if ($subcontracted) {
                     if ($oldStatus->getCode() !== TransportRequest::STATUS_SUBCONTRACTED) {
                         $settingRepository = $entityManager->getRepository(Setting::class);
-                        $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_NO_MONITORING, [
+                        $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_NO_MONITORING, [
                             'message' => $settingRepository->getOneParamByLabel(Setting::NON_BUSINESS_HOURS_MESSAGE) ?: ''
                         ]);
 
-                        $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_SUBCONTRACTED, [
+                        $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_SUBCONTRACTED, [
                             'user' => $loggedUser,
                         ]);
                     }
@@ -265,7 +266,7 @@ class TransportService {
                 else if ($oldStatus->getCode() !== TransportRequest::STATUS_AWAITING_VALIDATION
                     && $status->getCode() === TransportRequest::STATUS_AWAITING_VALIDATION) {
                     $settingRepository = $entityManager->getRepository(Setting::class);
-                    $this->transportHistoryService->persistTransportHistory($entityManager, $transportRequest, TransportHistoryService::TYPE_AWAITING_VALIDATION, [
+                    $this->operationHistoryService->persistTransportHistory($entityManager, $transportRequest, OperationHistoryService::TYPE_AWAITING_VALIDATION, [
                         'user' => $loggedUser,
                     ]);
                 }
@@ -396,21 +397,21 @@ class TransportService {
         }
 
         if ($creation) {
-            $transportHistoryType = TransportHistoryService::TYPE_REQUEST_CREATION;
+            $transportHistoryType = OperationHistoryService::TYPE_REQUEST_CREATION;
         }
         else {
             $transportHistoryType = match($statusCode) {
-                TransportOrder::STATUS_TO_ASSIGN => TransportHistoryService::TYPE_ACCEPTED,
-                TransportOrder::STATUS_SUBCONTRACTED => TransportHistoryService::TYPE_SUBCONTRACTED,
-                TransportOrder::STATUS_TO_CONTACT => TransportHistoryService::TYPE_AWAITING_PLANNING,
-                TransportOrder::STATUS_AWAITING_VALIDATION => TransportHistoryService::TYPE_AWAITING_VALIDATION,
+                TransportOrder::STATUS_TO_ASSIGN => OperationHistoryService::TYPE_ACCEPTED,
+                TransportOrder::STATUS_SUBCONTRACTED => OperationHistoryService::TYPE_SUBCONTRACTED,
+                TransportOrder::STATUS_TO_CONTACT => OperationHistoryService::TYPE_AWAITING_PLANNING,
+                TransportOrder::STATUS_AWAITING_VALIDATION => OperationHistoryService::TYPE_AWAITING_VALIDATION,
             };
         }
 
         $status = $statusRepository->findOneByCategorieNameAndStatutCode($categoryStatusName, $statusCode);
         if($transportOrder->getStatus()?->getId() !== $status->getId()) {
             $statusHistory = $this->statusHistoryService->updateStatus($entityManager, $transportOrder, $status);
-            $this->transportHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
+            $this->operationHistoryService->persistTransportHistory($entityManager, $transportOrder, $transportHistoryType, [
                 'history' => $statusHistory,
                 'user' => $user
             ]);
@@ -816,7 +817,7 @@ class TransportService {
             'setStatus' => $setStatus
         ]);
 
-        $this->transportHistoryService->persistTransportHistory($entityManager, $transport, TransportHistoryService::TYPE_SUBCONTRACT_UPDATE, [
+        $this->operationHistoryService->persistTransportHistory($entityManager, $transport, OperationHistoryService::TYPE_SUBCONTRACT_UPDATE, [
             'history' => $statusHistory,
             'statusDate' => $date,
             'user' => $loggedUser

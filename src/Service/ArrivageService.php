@@ -292,8 +292,10 @@ class ArrivageService {
         if ($urgent) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
             $arrivage
-                ->setIsUrgent(true);
+                ->setIsUrgent(true)
+                ->setDropLocation($locationRepository->find($dropLocationId));;
         }
 
         if ($urgent && !empty($emergencies)) {
@@ -887,13 +889,16 @@ class ArrivageService {
                 $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS] = $utilisateurRepository->findBy(['id' => explode(",", $keptFields[FixedFieldStandard::FIELD_CODE_RECEIVERS])]);
             }
 
+            if(isset($keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE])) {
+                $keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE] = $utilisateurRepository->findBy(['id' => $keptFields[FixedFieldStandard::FIELD_CODE_BUYERS_ARRIVAGE]]);
+            }
+
             $arrivalCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::ARRIVAGE]);
 
             $html = $this->templating->render("arrivage/modalNewArrivage.html.twig", [
                 "keptFields" => $keptFields,
                 "typesArrival" => $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]),
                 "statuses" => $statuses,
-                "users" => $utilisateurRepository->findBy(['status' => true], ['username' => 'ASC']),
                 "fournisseurs" => $fournisseurRepository->findBy([], ['nom' => 'ASC']),
                 "natures" => $natures,
                 "carriers" => $transporteurRepository->findAllSorted(),
@@ -917,22 +922,23 @@ class ArrivageService {
     }
 
     public function getDefaultDropLocation(EntityManagerInterface $entityManager,
-                                           Arrivage               $arrivage): ?Emplacement {
+                                           Arrivage               $arrivage,
+                                           ?Emplacement           $enteredLocation): ?Emplacement {
         $settingRepository = $entityManager->getRepository(Setting::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
 
-        if ($arrivage->getDropLocation()) {
-            return $arrivage->getDropLocation();
+        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
+        if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
+            return $locationRepository->find($emergenciesArrivalsLocation);
+        }
+
+        if ($enteredLocation) {
+            return $enteredLocation;
         }
 
         $customsArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_CUSTOMS);
         if($arrivage->getCustoms() && $customsArrivalsLocation) {
             return $locationRepository->find($customsArrivalsLocation);
-        }
-
-        $emergenciesArrivalsLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
-        if($arrivage->getIsUrgent() && $emergenciesArrivalsLocation) {
-            return $locationRepository->find($emergenciesArrivalsLocation);
         }
 
         $receiverDefaultLocation = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_RECIPIENT);

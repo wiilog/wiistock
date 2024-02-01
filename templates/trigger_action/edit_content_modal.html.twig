@@ -19,37 +19,54 @@
     <div class="row sensor-details-container flex-column trigger-action-data">
         <div class="sensor-type">
             {% set actionType = triggerAction.actionType %}
+            {% set isActionTypeZone = actionType in [
+                constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_ENTER'),
+                constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ZONE_EXIT')
+            ] %}
+
             {% if actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_TEMPERATURE') or actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_HYGROMETRY') %}
                 {% include 'trigger_action/modalEditConfig.html.twig' with {
                     actionType
                 } %}
             {% elseif actionType == constant('App\\Entity\\IOT\\TriggerAction::ACTION_TYPE_ACTION') %}
                 {% include ('trigger_action/modalButton.html.twig') %}
+            {% elseif isActionTypeZone %}
+                <div class="col">
+                    {{  form.hidden('sensorWrapper', triggerAction.sensorWrapper.id) }}
+                    {% if triggerAction.lastTrigger %}
+                        {{  form.hidden('lastTrigger', triggerAction.lastTrigger.timestamp) }}
+                    {% endif %}
+                    {% include ('trigger_action/modalTracer.html.twig') with {
+                        triggerAction,
+                    }%}
+                </div>
             {% endif %}
         </div>
-        <div class="form-group col-12 col-md-6">
-            <label class="wii-field-name">Type de modèle*</label>
-            <div class="w-100">
-                <select class="form-control data needed" name="templateType" onchange="onTemplateTypeChange($(this))">
-                    <option value=""></option>
-                    {% for value, label in templateTypes %}
-                        {% set selected = (
-                            (value == constant('App\\Entity\\IOT\\TriggerAction::ALERT') and triggerAction.alert)
-                            or (value == constant('App\\Entity\\IOT\\TriggerAction::REQUEST') and triggerAction.request)
-                        ) %}
-                        <option {{ selected ? 'selected' }} value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
+        {% if not isActionTypeZone %}
+            <div class="form-group col-12 col-md-6">
+                <label class="wii-field-name">Type de modèle*</label>
+                <div class="w-100">
+                    <select class="form-control data needed" name="templateType" onchange="onTemplateTypeChange($(this))">
+                        <option value=""></option>
+                        {% for value, label in templateTypes %}
+                            {% set selected = (
+                                (value == constant('App\\Entity\\IOT\\TriggerAction::ALERT') and triggerAction.alert)
+                                or (value == constant('App\\Entity\\IOT\\TriggerAction::REQUEST') and triggerAction.request)
+                            ) %}
+                            <option {{ selected ? 'selected' }} value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group col-12 col-md-6">
-            {{ form.select('templatesForAction', 'Modèle', true, {
-                items: templates|map(template => {
-                    value: template.id,
-                    label: template.name,
-                    selected: template.id is same as(templateId),
-                }),
-            }) }}
-        </div>
+            <div class="form-group col-12 col-md-6">
+                {{ form.select('templatesForAction', 'Modèle', true, {
+                    items: templates|map(template => {
+                        value: template.id,
+                        label: template.name,
+                        selected: template.id is same as(templateId),
+                    }),
+                }) }}
+            </div>
+        {% endif %}
     </div>
 </form>

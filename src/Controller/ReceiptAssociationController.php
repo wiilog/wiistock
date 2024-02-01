@@ -46,9 +46,10 @@ class ReceiptAssociationController extends AbstractController
 
     #[Route("/api", name: "receipt_association_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ASSO])]
-    public function api(Request $request): Response
+    public function api(Request                $request,
+                        EntityManagerInterface $entityManager): Response
     {
-        $data = $this->receiptAssociationService->getDataForDatatable($request->request);
+        $data = $this->receiptAssociationService->getDataForDatatable($entityManager, $request->request);
 
         return $this->json($data);
     }
@@ -74,15 +75,13 @@ class ReceiptAssociationController extends AbstractController
     #[Route("/form-submit", name: "receipt_association_form_submit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::CREATE])]
     public function formSubmit(Request                $request,
-                               EntityManagerInterface $manager,
+                               EntityManagerInterface $entityManager,
                                TranslationService     $translation): Response
     {
         $post = $request->request;
         $user = $this->userService->getUser();
-        $now = new DateTime('now');
 
-        $settingRepository = $manager->getRepository(Setting::class);
-        $logisticUnitRepository = $manager->getRepository(Pack::class);
+        $receiptAssociationRepository = $entityManager->getRepository(ReceiptAssociation::class);
 
         $logisticUnitCodes = $post->getBoolean("existingLogisticUnits")
             ? Stream::from(json_decode($post->get("logisticUnits"), true))
@@ -96,65 +95,25 @@ class ReceiptAssociationController extends AbstractController
             ->flatten()
             ->toArray();
 
-        $logisticUnits = $logisticUnitRepository->findBy(["code" => $logisticUnitCodes]);
+        $receiptAssociations = $this->receiptAssociationService->persistReceiptAssociation($entityManager, $receptionNumbers, $logisticUnitCodes, $user);
 
-        if (count($logisticUnits) !== count($logisticUnitCodes)) {
-            $invalidLogisticUnits = Stream::diff(
-                $logisticUnitCodes,
-                Stream::from($logisticUnits)
-                    ->map(static fn(Pack $logisticUnit) => $logisticUnit->getCode())
-                    ->toArray()
-            )->toArray();
+        foreach($receiptAssociations as $receiptAssociation) {
+            if ($receiptAssociation->getLogisticUnits()->isEmpty()) {
+                $existingReceiptAssociations = $receiptAssociationRepository->findBy(['receptionNumber' => $receiptAssociation->getReceptionNumber()]);
+                $existingAssociationWithoutLogisticUnit = !Stream::from($existingReceiptAssociations)
+                    ->filter(fn(ReceiptAssociation $existingReceiptAssociation) => $existingReceiptAssociation->getLogisticUnits()->isEmpty())
+                    ->isEmpty();
 
-            if (count($invalidLogisticUnits) > 1) {
-                $joinedInvalidLogisticUnits = implode(", ", $invalidLogisticUnits);
-                throw new FormException("Les unités logistiques <strong>$joinedInvalidLogisticUnits</strong> n'existent pas.");
-            } else {
-                throw new FormException("L'unité logistique <strong>$invalidLogisticUnits[0]</strong> n'existe pas.");
+                if ($existingAssociationWithoutLogisticUnit) {
+                    throw new FormException($translation->translate('Traçabilité', 'Association BR', "Une association sans unité logistique avec ce numéro de réception existe déjà"));
+                }
             }
         }
 
-        if (empty($logisticUnits)) {
-            $receiptAssociations = $manager->getRepository(ReceiptAssociation::class)->findBy(['receptionNumber' => $receptionNumbers]);
-            $existingAssociationWithoutLogisticUnit = !Stream::from($receiptAssociations)
-                ->filter(fn(ReceiptAssociation $receiptAssociation) => $receiptAssociation->getLogisticUnits()->isEmpty())
-                ->isEmpty();
-
-            if ($existingAssociationWithoutLogisticUnit) {
-                throw new FormException($translation->translate('Traçabilité', 'Association BR', "Une association sans unité logistique avec ce numéro de réception existe déjà"));
-            }
-        }
-
-        foreach ($receptionNumbers as $receptionNumber) {
-            $receiptAssociation = (new ReceiptAssociation())
-                ->setReceptionNumber($receptionNumber)
-                ->setUser($user)
-                ->setCreationDate($now);
-
-            if (!empty($logisticUnits)) {
-                $receiptAssociation->setLogisticUnits(new ArrayCollection($logisticUnits));
-            }
-
-            $manager->persist($receiptAssociation);
-        }
-
-        if ($settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_UL)
-            && $settingRepository->getOneParamByLabel(Setting::BR_ASSOCIATION_DEFAULT_MVT_LOCATION_RECEPTION_NUM)) {
-            $this->receiptAssociationService->createMovements($receptionNumbers, $logisticUnits);
-        }
-
-        $manager->flush();
+        $entityManager->flush();
         return $this->json([
             "success" => true,
             "msg" => "{$translation->translate('Traçabilité', 'Association BR', "L'association BR a bien été créée")}."
-        ]);
-    }
-
-    #[Route("/form-template", name: "receipt_association_form_template", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
-    public function formTemplate(): Response
-    {
-        return $this->json([
-            "html" => $this->renderView("receipt_association/modal/form.html.twig"),
         ]);
     }
 

@@ -9,13 +9,14 @@ use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\Dispute;
+use App\Entity\OperationHistory\TransportHistoryRecord;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\Transport\TransportHistory;
 use App\Entity\Transport\TransportRequest;
 use App\Entity\Type;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -73,15 +74,32 @@ class TypeRepository extends EntityRepository {
 
     private function createSelectBuilder(?string $category, array $options = []): QueryBuilder {
         $alreadyDefinedTypes = $options['alreadyDefinedTypes'] ?? [];
+        $language = $options['language'] ?? null;
+        $defaultLanguage = $options['defaultLanguage'] ?? null;
 
-        $qb = $this->createQueryBuilder("type");
+        $subQueryBuilder = $this->createQueryBuilder('sub_type')
+            ->select("CONCAT_WS(':', join_status.id, (COALESCE(join_translation.translation, join_translation_default.translation, join_status.nom)))")
+            ->leftJoin("sub_type.statuts", "join_status", Join::WITH, "join_status.defaultForCategory = 1")
+            ->leftJoin("join_status.labelTranslation", "join_labelTranslation")
+            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+            ->andWhere("type.id = sub_type.id")
+            ->getQuery()
+            ->getDQL();
 
-        $qb->select("type.id AS id, type.label AS text")
-            ->join("type.category", "category")
-            ->andWhere("category.label = '$category'");
+
+        $qb = $this->createQueryBuilder("type")
+            ->addSelect("type.id AS id")
+            ->addSelect("type.label AS text")
+            ->addSelect("($subQueryBuilder) AS defaultStatus")
+            ->innerJoin("type.category", "category")
+            ->andWhere("category.label = '$category'")
+            ->setParameter("language", $language)
+            ->setParameter("default", $defaultLanguage);
 
         if (!empty($alreadyDefinedTypes)) {
-            $qb->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
+            $qb
+                ->andWhere("type.id NOT IN (:alreadyDefinedTypes)")
                 ->setParameter("alreadyDefinedTypes", $alreadyDefinedTypes);
         }
 
@@ -89,7 +107,28 @@ class TypeRepository extends EntityRepository {
     }
 
     public function getForSelect(?string $category, ?string $term, array $options = []): array {
-        return $this->createSelectBuilder($category, $options)
+        $query = $this->createSelectBuilder($category, $options);
+        $countStatuses = $options['countStatuses'] ?? false;
+
+        if ($options['withDropLocation'] ?? false) {
+            $query->leftJoin('type.dropLocation', 'dropLocation')
+                ->addSelect('dropLocation.id AS dropLocationId')
+                ->addSelect('dropLocation.label AS dropLocationLabel');
+        }
+
+        if ($countStatuses) {
+            $countStatusesQuery = $this->getEntityManager()
+                ->createQueryBuilder()
+                ->select('COUNT(DISTINCT sub_query_join_status.id)')
+                ->from(Type::class, 'sub_query_type')
+                ->leftJoin('sub_query_type.statuts', 'sub_query_join_status')
+                ->andWhere('sub_query_type.id = type.id')
+                ->getQuery()
+                ->getDQL();
+            $query->addSelect("($countStatusesQuery) AS statusCount");
+        }
+
+        return $query
             ->andWhere("type.label LIKE :term")
             ->setParameter("term", "%$term%")
             ->getQuery()
@@ -100,7 +139,7 @@ class TypeRepository extends EntityRepository {
         return $this->createSelectBuilder($category, $options)
             ->select("COUNT(type)")
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getFirstResult();
     }
 
     public function getIdAndLabelByCategoryLabel($category) {
@@ -161,7 +200,7 @@ class TypeRepository extends EntityRepository {
             ['class' => Handling::class, 'where' => 'item.type = :id'],
             ['class' => Dispatch::class, 'where' => 'item.type = :id'],
             ['class' => TransportRequest::class, 'where' => 'item.type = :id'],
-            ['class' => TransportHistory::class, 'where' => 'item.type = :id'],
+            ['class' => TransportHistoryRecord::class, 'where' => 'item.type = :id'],
         ];
 
         $resultsCount = array_map(function(array $table) use ($entityManager, $typeId) {

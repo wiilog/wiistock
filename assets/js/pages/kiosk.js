@@ -94,13 +94,7 @@ $(function () {
                 .json()
                 .then(({exists, inStock, referenceForErrorModal, codeArticle}) => {
                     $modalWaiting.modal('hide');
-                    const $articleDataInput = $('[name=reference-article-input]');
-                    if($articleDataInput && referenceForErrorModal === $referenceRefInput.val()) {
-                        $current.removeClass('active').addClass('d-none');
-                        $($current.next()[0]).addClass('active').removeClass('d-none');
-                        $currentTimelineEvent.removeClass('current');
-                        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
-                    } else if (exists && inStock) {
+                    if (exists && inStock) {
                         let $errorMessage = $modalInStockWarning.find('#stock-error-message');
                         $errorMessage.html(originalMessage
                             .replace('@reference', `<span class="bold">${referenceForErrorModal}</span>`)
@@ -111,8 +105,17 @@ $(function () {
                         $modalInStockWarning.find('button.outline').on('click', function () {
                             window.location.href = Routing.generate('kiosk_index', {token}, true);
                         });
-                    } else if ((scannedreference && scannedreference !== $referenceRefInput.val()) || exists) {
-                        window.location.href = Routing.generate('kiosk_form', {token, scannedReference: $referenceRefInput.val()});
+                    } else if (scannedreference !== $referenceRefInput.val()) {
+                        window.location.href = Routing.generate('kiosk_form', {
+                            token,
+                            scannedReference: $referenceRefInput.val(),
+                            notExistRefresh: !exists,
+                        });
+                    } else {
+                        $current.removeClass('active').addClass('d-none');
+                        $($current.next()[0]).addClass('active').removeClass('d-none');
+                        $currentTimelineEvent.removeClass('current');
+                        $($currentTimelineEvent.next()[0]).addClass('current').removeClass('future');
                     }
                 });
         }

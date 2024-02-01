@@ -677,11 +677,15 @@ class PreparationController extends AbstractController
         $lignesArticle = $preparation->getReferenceLines()->toArray();
 
         $barCodesArticles = Stream::from($articles)
-            ->filter(function(PreparationOrderArticleLine $line) use ($forceTagEmpty, $tag) {
+            ->filter(function(PreparationOrderArticleLine $line) use ($entityManager, $forceTagEmpty, $tag) {
                 $article = $line->getArticle();
-                return
-                    (!$forceTagEmpty || $article->getType()?->getTags()?->isEmpty()) &&
-                    (empty($tag) || in_array($article->getType(), $tag->getTypes()->toArray()));
+
+                $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                    ->some(static function (TagTemplate $tag) use ($article) {
+                        return $tag->getTypes()->contains($article->getType());
+                    });
+                return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
             })
             ->map(fn(PreparationOrderArticleLine $line) => $articleDataService->getBarcodeConfig($line->getArticle()))
             ->toArray();

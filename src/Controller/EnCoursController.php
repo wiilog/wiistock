@@ -36,6 +36,7 @@ class EnCoursController extends AbstractController
         $query = $request->query;
 
         $locationsFilterStr = $query->has('locations') ? $query->get('locations', '') : '';
+        $naturesFilterStr = $query->get('natures', '');
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
         $useTruckArrivals = $query->getBoolean('useTruckArrivalsFromDashboard');
 
@@ -48,11 +49,18 @@ class EnCoursController extends AbstractController
             $locationsFilter = [];
         }
 
+        if (!empty($naturesFilterStr)) {
+            $naturesFilter = explode(',', $naturesFilterStr);
+        } else {
+            $naturesFilter = [];
+        }
+
         return $this->render('en_cours/index.html.twig', [
             'userLanguage' => $this->getUser()->getLanguage(),
             'defaultLanguage' => $languageService->getDefaultLanguage(),
             'emplacements' => $emplacementRepository->findWhereArticleIs(),
             'locationsFilter' => $locationsFilter,
+            'naturesFilter' => $naturesFilter,
             'natures' => $natureRepository->findAll(),
             'minLocationFilter' => $minLocationFilter,
             'multiple' => true,
@@ -72,6 +80,7 @@ class EnCoursController extends AbstractController
         $query = $request->query;
         $fromDashboard = $query->has('fromDashboard') && $query->get('fromDashboard');
         $useTruckArrivals = $request->request->getBoolean('useTruckArrivals');
+        $natures = $request->request->all('natures');
 
         if (!$fromDashboard) {
             $filtersParam = $filtreSupRepository->getOnebyFieldAndPageAndUser(
@@ -87,7 +96,7 @@ class EnCoursController extends AbstractController
                 $natureParamSplit = explode(';', $natureParam);
                 return $natureParamSplit[0] ?? 0;
             },
-            $filtersParam ? explode(',', $filtersParam) : []
+            $filtersParam ? explode(',', $filtersParam) : $natures
         );
         $response = $enCoursService->getEnCours([$emplacement->getId()], $natureIds, false, 100, $this->getUser(), $useTruckArrivals);
         return new JsonResponse([

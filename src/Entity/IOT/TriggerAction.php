@@ -14,12 +14,14 @@ class TriggerAction {
 
     const REQUEST = "request";
     const ALERT = "alert";
+    const DROP_ON_LOCATION = "dropOnLocation";
     const TEMPLATE_TYPES = [
         self::REQUEST => "Demande",
         self::ALERT => "Alerte",
     ];
     const LOWER = "lower";
     const HIGHER = "higher";
+
     const COMPARATORS = [
         self::LOWER => "Inférieure",
         self::HIGHER => "Supérieure",
@@ -27,10 +29,15 @@ class TriggerAction {
 
     const ACTION_TYPE_TEMPERATURE = "temperature";
     const ACTION_TYPE_HYGROMETRY = "hygrometry";
+    const ACTION_TYPE_ZONE_ENTER = "zone_enter";
+    const ACTION_TYPE_ZONE_EXIT = "zone_exit";
+
     const ACTION_TYPE_ACTION = "action";
     const ACTION_DATA_TYPES = [
         self::ACTION_TYPE_TEMPERATURE => IOTService::DATA_TYPE_TEMPERATURE,
         self::ACTION_TYPE_HYGROMETRY => IOTService::DATA_TYPE_HYGROMETRY,
+        self::ACTION_TYPE_ZONE_ENTER => IOTService::DATA_TYPE_ZONE_ENTER,
+        self::ACTION_TYPE_ZONE_EXIT => IOTService::DATA_TYPE_ZONE_EXIT,
     ];
 
     #[ORM\Id]
