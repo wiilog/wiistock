@@ -69,6 +69,7 @@ class FiltreSup {
     const FIELD_CUSTOMER_ORDER_NUMBER = 'customerOrderNumber';
     const FIELD_USE_TRUCK_ARRIVALS = 'useTruckArrivals';
     const FIELD_MANUFACTURING_ORDER_NUMBER = 'manufacturingOrderNumber';
+    const FIELD_PRODUCT_ARTICLE_CODE = 'productArticleCode';
     const FIELD_ATTACHMENTS_ASSIGNED = 'attachmentsAssigned';
     const FIELD_SUBJECT = 'subject';
     const FIELD_DESTINATION = 'destination';

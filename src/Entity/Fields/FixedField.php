@@ -103,7 +103,7 @@ abstract class FixedField {
             FixedFieldStandard::FIELD_CODE_TRUCK_ARRIVAL_CARRIER,
         ],
         FixedFieldStandard::ENTITY_CODE_PRODUCTION => [
-            FixedFieldStandard::FIELD_CODE_ATTACHMENTS,
+            FixedFieldEnum::attachments->name,
         ],
     ];
 

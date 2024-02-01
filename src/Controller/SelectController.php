@@ -59,7 +59,7 @@ class SelectController extends AbstractController {
     public function locations(Request $request, EntityManagerInterface $manager): Response {
         $deliveryType = $request->query->get("deliveryType") ?? null;
         $collectType = $request->query->get("collectType") ?? null;
-        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? null;
+        $typeDispatchDropLocation = $request->query->get("typeDispatchDropLocation") ?? $request->query->get("typedispatchdroplocation") ?? null;
         $typeDispatchPickLocation = $request->query->get("typeDispatchPickLocation") ?? null;
         $term = $request->query->get("term");
         $addGroup = $request->query->getBoolean("add-group");
@@ -876,13 +876,16 @@ class SelectController extends AbstractController {
         $defaultSlug = LanguageHelper::clearLanguage($languageService->getDefaultSlug());
         $defaultLanguage = $manager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
         $language = $this->getUser()->getLanguage() ?: $defaultLanguage;
+        $withDropLocation = $request->query->getBoolean('with-drop-location');
 
         $results = $manager->getRepository(Type::class)->getForSelect(
             CategoryType::PRODUCTION,
             $request->query->get("term"),
             [
+                "countStatuses" => true,
                 "language" => $language,
                 "defaultLanguage" => $defaultLanguage,
+                "withDropLocation" => $withDropLocation,
             ]
         );
 
