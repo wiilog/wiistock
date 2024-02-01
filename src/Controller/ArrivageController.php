@@ -1600,18 +1600,22 @@ class ArrivageController extends AbstractController {
         $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
         $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
-        if ($request->files->has('file')) {
+        $settingRepository = $entityManager->getRepository(Setting::class);
 
-            if (!isset($_SERVER["DN_READER_URL"]) || !isset($_SERVER["DN_READER_SECRET_KEY"])) {
+        if ($request->files->has('file')) {
+            $dnReaderUrl = $settingRepository->getOneParamByLabel(Setting::DN_READER_URL);
+            $dnReaderSecretKey = $settingRepository->getOneParamByLabel(Setting::DN_READER_SECRET_KEY);
+
+            if (!$dnReaderUrl || !$dnReaderSecretKey) {
                 throw new FormException("La configuration de l'instance permettant de récupérer les informations du BL est invalide");
             }
 
             $uploadedFile = $request->files->get('file');
             $file = DataPart::fromPath($uploadedFile->getRealPath());
-            $url = $_SERVER["DN_READER_URL"] . '/api/';
+            $url = $dnReaderUrl . '/api/';
 
             $formData = new FormDataPart([
-                "secretKey" => $_SERVER["DN_READER_SECRET_KEY"],
+                "secretKey" => $dnReaderSecretKey,
                 "file" => $file,
             ]);
 
