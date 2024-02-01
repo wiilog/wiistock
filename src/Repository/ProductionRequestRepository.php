@@ -7,6 +7,7 @@ use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
+use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
@@ -355,8 +356,15 @@ class ProductionRequestRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByStatusCodesAndExpectedAt(array $filters, array $statuses, DateTime $start, DateTime $end): array
-    {
+    /**
+     * @param Statut[] $statuses
+     * @return ProductionRequest[]
+     */
+    public function findByStatusCodesAndExpectedAt(array $filters, array $statuses, DateTime $start, DateTime $end): array {
+        if (empty($statuses)) {
+            return [];
+        }
+
         $startStr = $start->format('Y-m-d');
         $endStr = $end->format('Y-m-d');
 
@@ -377,7 +385,7 @@ class ProductionRequestRepository extends EntityRepository
             ->getQuery()
             ->getDQL();
 
-        $queryBuilder = $this->createQueryBuilder('production_request')
+        $queryBuilder = $queryBuilder
             ->innerJoin('production_request.status', 'join_status')
             ->andWhere($expr->andX(
                 "LOWER(DAYNAME(production_request.expectedAt)) IN ($daysWorkedSubQuery)",
@@ -398,31 +406,30 @@ class ProductionRequestRepository extends EntityRepository
             ->addOrderBy("production_request.expectedAt", Criteria::ASC)
             ->addOrderBy("production_request.createdAt", Criteria::ASC);
 
+        // TODO WIIS-10767
         foreach ($filters as $filter) {
-            if ($queryBuilder !== []) {
-                if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
-                    $users = explode(',', $filter['value']);
-                    $queryBuilder
-                        ->join('production_request.createdBy', 'filter_createdBy')
-                        ->andWhere('filter_createdBy.id IN (:users)')
-                        ->setParameter('users', $users);
-                } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
-                    $types = explode(",", $filter["value"]);
-                    $queryBuilder
-                        ->join('production_request.type', 'filter_type')
-                        ->andWhere('filter_type.id IN (:types)')
-                        ->setParameter('types', $types);
-                } else if ($filter['field'] === FiltreSup::FIELD_STATUT) {
-                    $statuses = explode(",", $filter["value"]);
-                    $queryBuilder
-                        ->join('production_request.type', 'filter_status')
-                        ->andWhere('filter_status.id IN (:statuses)')
-                        ->setParameter('statuses', $statuses);
-                } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
-                    $queryBuilder
-                        ->andWhere('production_request.number = :number')
-                        ->setParameter('number', $filter['value']);
-                }
+            if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
+                $users = explode(',', $filter['value']);
+                $queryBuilder
+                    ->join('production_request.createdBy', 'filter_createdBy')
+                    ->andWhere('filter_createdBy.id IN (:users)')
+                    ->setParameter('users', $users);
+            } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
+                $types = explode(",", $filter["value"]);
+                $queryBuilder
+                    ->join('production_request.type', 'filter_type')
+                    ->andWhere('filter_type.id IN (:types)')
+                    ->setParameter('types', $types);
+            } else if ($filter['field'] === FiltreSup::FIELD_STATUT) {
+                $statuses = explode(",", $filter["value"]);
+                $queryBuilder
+                    ->join('production_request.type', 'filter_status')
+                    ->andWhere('filter_status.id IN (:statuses)')
+                    ->setParameter('statuses', $statuses);
+            } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
+                $queryBuilder
+                    ->andWhere('production_request.number = :number')
+                    ->setParameter('number', $filter['value']);
             }
         }
 

@@ -32,7 +32,7 @@ class SubLineFixedFieldRepository extends EntityRepository
             ->toArray();
     }
 
-    function findByEntityForEntity(string $entity): array {
+    function findByEntityCode(string $entity): array {
         return $this->createQueryBuilder("fixed_field")
             ->where("fixed_field.entityCode = :entity")
             ->orderBy("fixed_field.displayedUnderCondition", "ASC")
@@ -41,7 +41,7 @@ class SubLineFixedFieldRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findByEntityAndCode(string $entity, string $field): ?SubLineFixedField {
+    public function findOneByEntityAndCode(string $entity, string $field): ?SubLineFixedField {
         return $this->createQueryBuilder("subLineFixedField")
             ->where("subLineFixedField.entityCode = :entity")
             ->andWhere("subLineFixedField.fieldCode = :field")

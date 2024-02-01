@@ -9,6 +9,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\DaysWorked;
+use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
@@ -18,6 +19,7 @@ use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\WorkFreeDay;
+use App\Service\LanguageService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -55,6 +57,7 @@ class PlanningController extends AbstractController {
     #[Route('/api', name: 'api', options: ['expose' => true], methods: self::GET)]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface $entityManager,
+                        LanguageService        $languageService,
                         Request                $request): Response {
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -63,6 +66,11 @@ class PlanningController extends AbstractController {
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $user = $this->getUser();
+        $defaultLanguage = $languageService->getDefaultLanguage();
+        $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
+
 
         $daysWorked = $daysWorkedRepository->getLabelWorkedDays();
         $workFreeDays = $workFreeDayRepository->getWorkFreeDaysToDateTime(true);
@@ -87,23 +95,41 @@ class PlanningController extends AbstractController {
             ->toArray();
 
         $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
+
+        $allTypes = Stream::from($productionRequests)
+            ->map(fn (ProductionRequest $productionRequest) => $productionRequests)
+            ->unique()
+            ->toArray();
+        $freeFieldsByType = $allTypes
+            ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
+                ->keymap(fn(FreeField $freeField) => [
+                    $freeField->getType()->getId(),
+                    $freeField
+                ], true)
+                ->toArray()
+            : [];
+        $fixedFields = Stream::from($fixedFieldRepository->findByEntityCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, [
+            FixedFieldEnum::lineCount->name,
+            FixedFieldEnum::projectNumber->name,
+            FixedFieldEnum::comment->name,
+            FixedFieldEnum::attachments->name
+        ]))
+            ->keymap(fn(FixedField $fixedField) => [
+                $fixedField->getFieldCode(),
+                $fixedField
+            ])
+            ->toArray();
+
         $cards = Stream::from($productionRequests)
-            ->keymap(function(ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository) {
-                $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($productionRequest->getType(), CategorieCL::PRODUCTION_REQUEST);
+            ->keymap(function(ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields) {
                 $fields = Stream::from([
                     FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
                     FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
                     FixedFieldEnum::comment->name => $this->getFormatter()->html($productionRequest->getComment()),
                     FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
-                    ...Stream::from($freeFields)
-                        ->keymap(fn(FreeField $freeField) => [
-                            $freeField->getLabel(),
-                            $productionRequest->getFreeFieldValue($freeField->getId())
-                        ])
-                        ->toArray(),
-                    ])
-                    ->filter(static function (string $value, string $field) use ($fixedFieldRepository) {
-                        $fixedField = $fixedFieldRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, $field);
+                ])
+                    ->filter(static function (string $value, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
+                        $fixedField = $fixedFields[$fieldCode] ?? null;
 
                         return (!$fixedField || ($fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit()))
                                 && !in_array($value, [null, ""]);
@@ -112,6 +138,13 @@ class PlanningController extends AbstractController {
                         FixedFieldEnum::fromCase($field) ?: $field,
                         $value
                     ])
+                    ->concat(
+                        Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
+                            ->keymap(fn(FreeField $freeField) => [
+                                $freeField->getLabelIn($userLanguage, $defaultLanguage),
+                                $productionRequest->getFreeFieldValue($freeField->getId())
+                            ])
+                    )
                     ->toArray();
 
                 return [
