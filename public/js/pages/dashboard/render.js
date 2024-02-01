@@ -12,7 +12,6 @@ const MARQUEE_PADDING = `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 
 const OVERRIDE_FONT_RED = {color: `#D73353`};
 
-const ONGOING_PACK = 'ongoing_packs';
 const DAILY_ARRIVALS = 'daily_arrivals';
 const LATE_PACKS = 'late_packs';
 const CARRIER_TRACKING = 'carrier_tracking';
@@ -20,7 +19,6 @@ const DAILY_ARRIVALS_AND_PACKS = 'daily_arrivals_and_packs';
 const RECEIPT_ASSOCIATION = 'receipt_association';
 const WEEKLY_ARRIVALS_AND_PACKS = 'weekly_arrivals_and_packs';
 const PENDING_REQUESTS = 'pending_requests';
-const ENTRIES_TO_HANDLE = 'entries_to_handle';
 const PACK_TO_TREAT_FROM = 'pack_to_treat_from';
 const DROP_OFF_DISTRIBUTED_PACKS = 'drop_off_distributed_packs';
 const ARRIVALS_EMERGENCIES_TO_RECEIVE = 'arrivals_emergencies_to_receive';
@@ -38,39 +36,10 @@ const DAILY_DISPATCHES = 'daily_dispatches';
 const EXTERNAL_IMAGE = 'external_image';
 const HANDLING_TRACKING = 'handling_tracking';
 const DAILY_DELIVERY_ORDERS = 'daily_delivery_orders';
+export const ONGOING_PACK = 'ongoing_packs';
+export const ENTRIES_TO_HANDLE = 'entries_to_handle';
 
 const SECURITY_PADDING = 0;
-let DELAYS = {};
-
-global.drawChartWithHisto = drawChartWithHisto;
-global.renderComponent = renderComponent;
-global.hideOrShowStackButton = hideOrShowStackButton;
-global.ONGOING_PACK = ONGOING_PACK;
-global.DAILY_ARRIVALS = DAILY_ARRIVALS;
-global.LATE_PACKS = LATE_PACKS;
-global.CARRIER_TRACKING = CARRIER_TRACKING;
-global.DAILY_ARRIVALS_AND_PACKS = DAILY_ARRIVALS_AND_PACKS;
-global.RECEIPT_ASSOCIATION = RECEIPT_ASSOCIATION;
-global.WEEKLY_ARRIVALS_AND_PACKS = WEEKLY_ARRIVALS_AND_PACKS;
-global.PENDING_REQUESTS = PENDING_REQUESTS;
-global.ENTRIES_TO_HANDLE = ENTRIES_TO_HANDLE;
-global.PACK_TO_TREAT_FROM = PACK_TO_TREAT_FROM;
-global.DROP_OFF_DISTRIBUTED_PACKS = DROP_OFF_DISTRIBUTED_PACKS;
-global.ARRIVALS_EMERGENCIES_TO_RECEIVE = ARRIVALS_EMERGENCIES_TO_RECEIVE;
-global.DAILY_ARRIVALS_EMERGENCIES = DAILY_ARRIVALS_EMERGENCIES;
-global.REQUESTS_TO_TREAT = REQUESTS_TO_TREAT;
-global.DAILY_HANDLING_INDICATOR = DAILY_HANDLING_INDICATOR;
-global.ORDERS_TO_TREAT = ORDERS_TO_TREAT;
-global.DAILY_HANDLING = DAILY_HANDLING;
-global.DAILY_OPERATIONS = DAILY_OPERATIONS;
-global.MONETARY_RELIABILITY_GRAPH = MONETARY_RELIABILITY_GRAPH;
-global.MONETARY_RELIABILITY_INDICATOR = MONETARY_RELIABILITY_INDICATOR;
-global.ACTIVE_REFERENCE_ALERTS = ACTIVE_REFERENCE_ALERTS;
-global.REFERENCE_RELIABILITY = REFERENCE_RELIABILITY;
-global.DAILY_DISPATCHES = DAILY_DISPATCHES;
-global.EXTERNAL_IMAGE = EXTERNAL_IMAGE;
-global.HANDLING_TRACKING = HANDLING_TRACKING;
-global.DAILY_DELIVERY_ORDERS = DAILY_DELIVERY_ORDERS;
 
 $(function() {
     Chart.defaults.global.defaultFontFamily = 'Myriad';
@@ -184,7 +153,7 @@ const creators = {
  * @param data
  * @return {boolean}
  */
-function renderComponent(component, $container, data) {
+export function renderComponent(component, $container, data) {
     data.__meterKey = component.meterKey;
     $container.empty();
 
@@ -200,14 +169,14 @@ function renderComponent(component, $container, data) {
             displayLegendTranslation(data);
         }
 
-        const {callback, arguments} = creators[component.meterKey];
+        const {callback, arguments: callbackArguments} = creators[component.meterKey];
         const $element = callback(
             data,
             Object.assign({
                 meterKey: component.meterKey,
                 rowSize: $container.closest('.dashboard-row').data('size'),
                 component: component
-            }, arguments || {})
+            }, callbackArguments || {})
         );
 
         if($element) {
@@ -762,7 +731,7 @@ function createExternalImage(data, config) {
 
 //fonctions à sortir dans un autre fichier
 
-function drawChartWithHisto($button, path, beforeAfter = 'now') {
+export function drawChartWithHisto($button, path, beforeAfter = 'now') {
     let $dashboardBox = $button.closest('.dashboard-box');
     let $rangeBtns = $dashboardBox.find('.range-buttons');
     let $firstDay = $rangeBtns.find('.firstDay');
@@ -1281,7 +1250,7 @@ function resetColorPickersElementsToForm($modal, data) {
     }
 }
 
-function hideOrShowStackButton(){
+export function hideOrShowStackButton(){
     $('.stack-button').toggleClass('d-none');
     $('input[name="stackValues"]').prop('checked', false);
 }
