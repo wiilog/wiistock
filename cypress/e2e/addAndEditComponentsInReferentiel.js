@@ -543,7 +543,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         }
         const propertiesMap = {
             'Nom': 'name',
-            'Prenom': 'firstname',
+            'Prénom': 'firstname',
             'DocumentID': 'documentID',
             'Transporteur': 'carrier',
         }
@@ -559,7 +559,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
                 cy.get('#modalNewChauffeur input[name=documentID]').type(driver.documentID);
 
                 // todo bug
-                cy.select2Ajax('transporteur', driver.carrier , '', true, '/chauffeur/autocomplete*')
+                cy.select2Ajax('transporteur', driver.carrier , '', true, '/select/carrier*')
 
                 cy.get('button#submitNewChauffeur').click().wait('@chauffeur_new');
             })
@@ -582,7 +582,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
         }]
         const propertiesMap = {
             'Nom': 'name',
-            'Prenom': 'firstname',
+            'Prénom': 'firstname',
             'DocumentID': 'documentID',
             'Transporteur': 'carrier',
         }
@@ -604,7 +604,7 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
                 .click();
 
             // todo bug
-            cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', false, '/chauffeur/autocomplete*')
+            cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', false, '/select/carrier*')
 
             cy.get('button#submitEditChauffeur').click().wait('@chauffeur_edit');
             cy.get('#modalEditChauffeur').should('not.be.visible');
