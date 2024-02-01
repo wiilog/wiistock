@@ -102,7 +102,7 @@ class PlanningController extends AbstractController {
             ->toArray();
         $freeFieldsByType = $allTypes
             ? Stream::from($freeFieldRepository->findByTypeAndCategorieCLLabel($allTypes, CategorieCL::PRODUCTION_REQUEST))
-                ->keymap(fn(FreeField $freeField) => [
+                ->keymap(static fn(FreeField $freeField) => [
                     $freeField->getType()->getId(),
                     $freeField
                 ], true)
@@ -114,7 +114,7 @@ class PlanningController extends AbstractController {
             FixedFieldEnum::comment->name,
             FixedFieldEnum::attachments->name
         ]))
-            ->keymap(fn(FixedField $fixedField) => [
+            ->keymap(static fn(FixedField $fixedField) => [
                 $fixedField->getFieldCode(),
                 $fixedField
             ])
@@ -130,21 +130,21 @@ class PlanningController extends AbstractController {
                 ])
                     ->filter(static function (string $value, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
                         $fixedField = $fixedFields[$fieldCode] ?? null;
-
-                        return (!$fixedField || ($fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit()))
-                                && !in_array($value, [null, ""]);
+                        return $fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit();
                     })
                     ->keymap(static fn(string $value, string $field) => [
                         FixedFieldEnum::fromCase($field) ?: $field,
                         $value
                     ])
-                    ->concat(
+                    ->concat( // concat fixedField with freeField
                         Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
-                            ->keymap(fn(FreeField $freeField) => [
+                            ->keymap(static fn(FreeField $freeField) => [
                                 $freeField->getLabelIn($userLanguage, $defaultLanguage),
                                 $productionRequest->getFreeFieldValue($freeField->getId())
                             ])
                     )
+                    // remove element without values
+                    ->filter(static fn(string $value) => !in_array($value, [null, ""]))
                     ->toArray();
 
                 return [
