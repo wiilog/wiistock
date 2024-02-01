@@ -1233,7 +1233,7 @@ function onTypeChange($select) {
         $correspondingStatuses.removeClass('d-none');
         const defaultStatuses = JSON.parse($selectStatus.siblings('input[name="defaultStatuses"]').val() || '{}');
 
-        const [type] = $select.select2('data');
+        const [type] = $select.is('[data-s2-initialized]') ? $select.select2('data') : [];
 
         if ($correspondingStatuses.length > 1 || type?.statusCount > 1) {
             $selectStatus.removeClass('d-none');
