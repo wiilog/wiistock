@@ -187,37 +187,13 @@ class ProductionRequestController extends AbstractController
     public function new(EntityManagerInterface   $entityManager,
                         Request                  $request,
                         ProductionRequestService $productionRequestService,
-                        OperationHistoryService  $operationHistoryService,
-                        StatusHistoryService     $statusHistoryService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $data, $request->files);
+
+        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
         $entityManager->persist($productionRequest);
-
-        $statusHistory = $statusHistoryService->updateStatus(
-            $entityManager,
-            $productionRequest,
-            $productionRequest->getStatus(),
-            [
-                "forceCreation" => true,
-                "setStatus" => false,
-                "initiatedBy" => $this->getUser(),
-            ]
-        );
-
-        $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-            $entityManager,
-            $productionRequest,
-            OperationHistoryService::TYPE_REQUEST_CREATION,
-            [
-                "user" => $productionRequest->getCreatedBy(),
-                "date" => $productionRequest->getCreatedAt(),
-                "statusHistory" => $statusHistory,
-            ]
-        );
-        $entityManager->persist($productionRequestHistoryRecord);
-
         $entityManager->flush();
+
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été créée."
@@ -319,56 +295,33 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route('/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
-    #[HasPermission([Menu::PRODUCTION, Action::CREATE_PRODUCTION_REQUEST])]
+    #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function edit(EntityManagerInterface   $entityManager,
                          Request                  $request,
+                         UserService              $userService,
                          ProductionRequestService $productionRequestService,
-                         OperationHistoryService  $operationHistoryService,
-                         StatusHistoryService     $statusHistoryService,
+                         ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
+
+
+        $status = $productionRequest->getStatus();
+
+        $hasRightToEdit = (
+            $status
+            && (
+                ($status->isInProgress() && $userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST))
+                || ($status->isNotTreated() && $userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TO_TREAT_PRODUCTION_REQUEST))
+                || ($status->isTreated() && $userService->hasRightFunction(Menu::PRODUCTION, Action::EDIT_TREATED_PRODUCTION_REQUEST))
+            )
+        );
+
+        if (!$hasRightToEdit) {
+            throw new FormException("Vous n'avez pas les droits pour modifier cette demande de production");
+        }
+
+        $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
-
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $newStatus = $statusRepository->find($data->getInt('status'));
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $productionRequestToEdit = $productionRequestRepository->find($data->get('id'));
-        $historyDataToDisplay = $productionRequestService->buildMessageForEdit($entityManager, $productionRequestToEdit, $data, $request->files);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequestToEdit, $data, $request->files);
-        $entityManager->persist($productionRequest);
-
-        if($productionRequestToEdit->getStatus()->getId() !== $data->getInt('status')){
-            $statusHistory = $statusHistoryService->updateStatus(
-                $entityManager,
-                $productionRequest,
-                $newStatus,
-                [
-                    "forceCreation" => true,
-                    "setStatus" => true,
-                    "initiatedBy" => $this->getUser(),
-                ]
-            );
-
-            if ($newStatus->isTreated()) {
-                $productionRequest->setTreatedBy($this->getUser());
-            }
-
-            $entityManager->persist($statusHistory);
-        }
-
-        if(strip_tags($historyDataToDisplay)){
-            $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-                $entityManager,
-                $productionRequest,
-                OperationHistoryService::TYPE_REQUEST_EDITED_DETAILS,
-                [
-                    "user" => $this->getUser(),
-                    "message" => $historyDataToDisplay,
-                ]
-            );
-            $entityManager->persist($productionRequestHistoryRecord);
-        }
-
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
         $entityManager->flush();
         return $this->json([
             'success' => true,
@@ -445,9 +398,9 @@ class ProductionRequestController extends AbstractController
 
 
 
-    #[Route("/update-status-content/{id}", name: "update_status_content", options: ["expose" => true], methods: "GET")]
+    #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: "GET")]
     public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
-                                                         ProductionRequest $productionRequest): JsonResponse {
+                                                         ProductionRequest      $productionRequest): JsonResponse {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         $html = $this->renderView('production_request/planning/modalUpdateProductionRequestStatusContent.html.twig', [
@@ -461,52 +414,24 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
-    public function updateStatus(EntityManagerInterface $entityManager,
-                                                  Request $request,
-                                                  ProductionRequestService $productionRequestService,
-                                                  OperationHistoryService $operationHistoryService,
-                                                  StatusHistoryService $statusHistoryService): JsonResponse {
-        $data = $request->request;
+    #[Route("/{productionRequest}/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
+    public function updateStatus(EntityManagerInterface   $entityManager,
+                                 ProductionRequest        $productionRequest,
+                                 Request                  $request,
+                                 ProductionRequestService $productionRequestService): JsonResponse {
 
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $newStatus = $statusRepository->find($data->getInt('status'));
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $productionRequestToEdit = $productionRequestRepository->find($data->get('productionRequestId'));
-        $historyDataToDisplay = $productionRequestService->buildMessageForEdit($entityManager, $productionRequestToEdit, $data, $request->files);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequestToEdit, $data, $request->files);
+        $productionRequestService->checkRoleForEdition($productionRequest);
 
-        if($productionRequestToEdit->getStatus()->getId() !== $data->getInt('status')){
-            $statusHistory = $statusHistoryService->updateStatus(
-                $entityManager,
-                $productionRequest,
-                $newStatus,
-                [
-                    "forceCreation" => true,
-                    "setStatus" => true,
-                    "initiatedBy" => $this->getUser(),
-                ]
-            );
+        // TODO check les droit en front sur le planning (pas d'ouverture de modale)
 
-            if ($newStatus->isTreated()) {
-                $productionRequest->setTreatedBy($this->getUser());
-            }
+        $currentUser = $this->getUser();
 
-            $entityManager->persist($statusHistory);
-        }
+        $inputBag = new InputBag([
+            FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
+            FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
+        ]);
 
-        if(strip_tags($historyDataToDisplay)){
-            $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-                $entityManager,
-                $productionRequest,
-                OperationHistoryService::TYPE_REQUEST_EDITED_DETAILS,
-                [
-                    "user" => $this->getUser(),
-                    "message" => $historyDataToDisplay,
-                ]
-            );
-            $entityManager->persist($productionRequestHistoryRecord);
-        }
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
 
         $entityManager->flush();
 

@@ -208,10 +208,12 @@ class PlanningController extends AbstractController {
 
     #[Route("/update-expected-at/{productionRequest}/{date}/{order}", name: "update_expected_at", options: ["expose" => true], methods: self::PUT)]
     #[HasPermission([Menu::PRODUCTION, Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST])]
-    public function updateExpectedAt(ProductionRequest      $productionRequest,
-                                     string                 $date,
-                                     string                 $order,
-                                     EntityManagerInterface $entityManager): Response {
+    public function updateExpectedAt(ProductionRequest       $productionRequest,
+                                     string                  $date,
+                                     string                  $order,
+                                     EntityManagerInterface  $entityManager,
+                                     FormatService           $formatService,
+                                     OperationHistoryService $operationHistoryService): Response {
 
         $date = new DateTime($date);
         $order = json_decode($order);
@@ -230,12 +232,12 @@ class PlanningController extends AbstractController {
 
         $emptyColumn = Stream::from($productionRequests)->filter()->isEmpty();
         $currentExpectedAt = $productionRequest->getExpectedAt();
-        $newExpectedAt = new DateTime("{$date->format("Y-m-d")} {$currentExpectedAt->format("H:i:s")}");
+        $defaultNewExpectedAt = new DateTime("{$date->format("Y-m-d")} {$currentExpectedAt->format("H:i:s")}");
         if($emptyColumn) {
-            $productionRequest->setExpectedAt($newExpectedAt);
-        } elseif(isset($productionRequests[0])) {
+            $newExpectedAt = $defaultNewExpectedAt;
+        } else if(isset($productionRequests[0])) {
             $previousProductionRequest = $productionRequests[0];
-            $productionRequest->setExpectedAt($previousProductionRequest->getExpectedAt()->modify("+1 minute"));
+            $newExpectedAt = $previousProductionRequest->getExpectedAt()->modify("+1 minute");
         } else {
             $nextProductionRequest = $productionRequests[1];
 
@@ -254,11 +256,22 @@ class PlanningController extends AbstractController {
             );
 
             if($productionRequestExpectedAtTimeToSeconds < $nextProductionRequestExpectedAtTimeToSeconds) {
-                $productionRequest->setExpectedAt($newExpectedAt);
+                $newExpectedAt = $defaultNewExpectedAt;
             } else {
-                $productionRequest->setExpectedAt($nextProductionRequest->getExpectedAt()->modify("-1 minute"));
+                $newExpectedAt = $nextProductionRequest->getExpectedAt()->modify("-1 minute");
             }
         }
+
+        $productionRequest->setExpectedAt($newExpectedAt);
+        $operationHistoryService->persistProductionHistory(
+            $entityManager,
+            $productionRequest,
+            OperationHistoryService::TYPE_REQUEST_EDITED_DETAILS,
+            [
+                "user" => $this->getUser(),
+                "message" => "<br>" . "<strong>" . FixedFieldEnum::expectedAt->value . "</strong> : " . $formatService->datetime($newExpectedAt, "", true) . "<br>",
+            ]
+        );
 
         $entityManager->flush();
 

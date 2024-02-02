@@ -105,7 +105,7 @@
         <div class="col-6 mb-2">
             {% set canEditExpectedAt = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
             {% set requiredOnform = canEditExpectedAt and fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d') : null, {
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d H:i') : null, {
                 type: 'datetime-local',
                 disabled: not canEditExpectedAt,
             }) }}

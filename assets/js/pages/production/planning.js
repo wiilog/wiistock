@@ -3,6 +3,8 @@ import '@styles/pages/preparation/planning.scss';
 import Sortable from "@app/sortable";
 import AJAX, {POST, PUT} from "@app/ajax";
 import Planning from "@app/planning";
+import Form from "@app/form";
+import Modal from "@app/modal";
 import moment from "moment";
 
 global.callbackSaveFilter = callbackSaveFilter;
@@ -148,17 +150,21 @@ function changeNavigationButtonStates() {
 }
 
 function openModalUpdateProductionRequestStatus($container){
+    const productionRequest = $container.closest(`a`).data(`production-request-id`);
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .onOpen(() => {
             Modal.load(`production_request_update_status_content`,
                 {
-                    id: $container.closest(`a`).data(`production-request-id`),
+                    productionRequest,
                 },
                 $modalUpdateProductionRequestStatus,
                 $modalUpdateProductionRequestStatus.find(`.modal-body`)
             );
         })
         .submitTo(POST, `production_request_update_status`, {
+            routeParams: {
+                productionRequest,
+            },
             success: () => {
                 planning.fetch();
             }
