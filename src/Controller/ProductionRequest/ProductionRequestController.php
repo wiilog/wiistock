@@ -403,7 +403,7 @@ class ProductionRequestController extends AbstractController
                                                          ProductionRequest      $productionRequest): JsonResponse {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $html = $this->renderView('production_request/planning/modalUpdateProductionRequestStatusContent.html.twig', [
+        $html = $this->renderView('production_request/planning/modal/update-status-form.html.twig', [
             "productionRequest" => $productionRequest,
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
         ]);
@@ -421,8 +421,6 @@ class ProductionRequestController extends AbstractController
                                  ProductionRequestService $productionRequestService): JsonResponse {
 
         $productionRequestService->checkRoleForEdition($productionRequest);
-
-        // TODO check les droit en front sur le planning (pas d'ouverture de modale)
 
         $currentUser = $this->getUser();
 

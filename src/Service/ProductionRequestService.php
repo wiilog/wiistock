@@ -513,6 +513,9 @@ class ProductionRequestService
         $this->CSVExportService->putLine($output, $row);
     }
 
+    /**
+     * Checking right in front side in production_request/planning/card.html.twig
+     */
     public function checkRoleForEdition(ProductionRequest $productionRequest): void {
         $status = $productionRequest->getStatus();
 
