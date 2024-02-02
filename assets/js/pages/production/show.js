@@ -1,4 +1,6 @@
 import AJAX, {DELETE, GET} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
 
 global.deleteProductionRequest = deleteProductionRequest;
 
@@ -10,6 +12,9 @@ $(function () {
     Form
         .create($modalEditProductionRequest)
         .submitTo(AJAX.POST, 'production_request_edit', {
+            routeParams: {
+                productionRequest: productionRequestId
+            },
             success: () => {
                 window.location.reload();
             }

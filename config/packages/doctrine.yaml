@@ -48,3 +48,4 @@ doctrine:
                 IF: DoctrineExtensions\Query\Mysql\IfElse
                 DATEDIFF: DoctrineExtensions\Query\Mysql\DateDiff
                 CONCAT_WS: DoctrineExtensions\Query\Mysql\ConcatWs
+                DAYNAME: DoctrineExtensions\Query\Mysql\DayName

@@ -1,41 +1,42 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\ProductionRequest;
 
 use App\Annotation\HasPermission;
+use App\Controller\AbstractController;
 use App\Entity\Action;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Fields\FixedFieldEnum;
-use App\Entity\FiltreSup;
 use App\Entity\Fields\FixedFieldStandard;
-use App\Entity\CategorieCL;
+use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Menu;
+use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\ProductionRequest;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Service\AttachmentService;
 use App\Helper\LanguageHelper;
+use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FixedFieldService;
 use App\Service\FreeFieldService;
+use App\Service\LanguageService;
+use App\Service\OperationHistoryService;
 use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
-use App\Service\StatusHistoryService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\OperationHistory\ProductionHistoryRecord;
-use App\Entity\StatusHistory;
-use App\Service\LanguageService;
-use App\Service\OperationHistoryService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -46,7 +47,7 @@ use WiiCommon\Helper\Stream;
 #[Route('/production', name: 'production_request_')]
 class ProductionRequestController extends AbstractController
 {
-    #[Route('/', name: 'index', methods: ['GET'])]
+    #[Route('/index', name: 'index', methods: ['GET'])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function index(Request $request,
                           EntityManagerInterface   $entityManager,
@@ -186,37 +187,13 @@ class ProductionRequestController extends AbstractController
     public function new(EntityManagerInterface   $entityManager,
                         Request                  $request,
                         ProductionRequestService $productionRequestService,
-                        OperationHistoryService  $operationHistoryService,
-                        StatusHistoryService     $statusHistoryService,
                         FixedFieldService        $fieldsParamService): JsonResponse {
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, true);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $data, $request->files);
+
+        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, new ProductionRequest(), $this->getUser(), $data, $request->files);
         $entityManager->persist($productionRequest);
-
-        $statusHistory = $statusHistoryService->updateStatus(
-            $entityManager,
-            $productionRequest,
-            $productionRequest->getStatus(),
-            [
-                "forceCreation" => true,
-                "setStatus" => false,
-                "initiatedBy" => $this->getUser(),
-            ]
-        );
-
-        $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-            $entityManager,
-            $productionRequest,
-            OperationHistoryService::TYPE_REQUEST_CREATION,
-            [
-                "user" => $productionRequest->getCreatedBy(),
-                "date" => $productionRequest->getCreatedAt(),
-                "statusHistory" => $statusHistory,
-            ]
-        );
-        $entityManager->persist($productionRequestHistoryRecord);
-
         $entityManager->flush();
+
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été créée."
@@ -284,10 +261,9 @@ class ProductionRequestController extends AbstractController
                 "entity" => $productionRequest,
                 "history" => Stream::from($productionRequest->getHistory())
                     ->sort(static fn(ProductionHistoryRecord $h1, ProductionHistoryRecord $h2) => (
-                    ($h2->getDate() <=> $h1->getDate())
+                        ($h2->getDate() <=> $h1->getDate())
                         ?: ($h2->getId() <=> $h1->getId())
-                    )
-                    )
+                    ))
                     ->map(static fn(ProductionHistoryRecord $productionHistory) => [
                         "record" => $productionHistory,
                         "icon" => $operationHistoryService->getIconFromType($productionHistory->getRequest(), $productionHistory->getType()),
@@ -319,56 +295,18 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route('/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
-    #[HasPermission([Menu::PRODUCTION, Action::CREATE_PRODUCTION_REQUEST])]
+    #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     public function edit(EntityManagerInterface   $entityManager,
                          Request                  $request,
                          ProductionRequestService $productionRequestService,
-                         OperationHistoryService  $operationHistoryService,
-                         StatusHistoryService     $statusHistoryService,
+                         ProductionRequest        $productionRequest,
                          FixedFieldService        $fieldsParamService): JsonResponse {
+
+        $productionRequestService->checkRoleForEdition($productionRequest);
+
+        $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
-
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $newStatus = $statusRepository->find($data->getInt('status'));
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $productionRequestToEdit = $productionRequestRepository->find($data->get('id'));
-        $historyDataToDisplay = $productionRequestService->buildMessageForEdit($entityManager, $productionRequestToEdit, $data, $request->files);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequestToEdit, $data, $request->files);
-        $entityManager->persist($productionRequest);
-
-        if($productionRequestToEdit->getStatus()->getId() !== $data->getInt('status')){
-            $statusHistory = $statusHistoryService->updateStatus(
-                $entityManager,
-                $productionRequest,
-                $newStatus,
-                [
-                    "forceCreation" => true,
-                    "setStatus" => true,
-                    "initiatedBy" => $this->getUser(),
-                ]
-            );
-
-            if ($newStatus->isTreated()) {
-                $productionRequest->setTreatedBy($this->getUser());
-            }
-
-            $entityManager->persist($statusHistory);
-        }
-
-        if(strip_tags($historyDataToDisplay)){
-            $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-                $entityManager,
-                $productionRequest,
-                OperationHistoryService::TYPE_REQUEST_EDITED_DETAILS,
-                [
-                    "user" => $this->getUser(),
-                    "message" => $historyDataToDisplay,
-                ]
-            );
-            $entityManager->persist($productionRequestHistoryRecord);
-        }
-
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
         $entityManager->flush();
         return $this->json([
             'success' => true,
@@ -441,79 +379,5 @@ class ProductionRequestController extends AbstractController
         } else {
             throw new BadRequestHttpException();
         }
-    }
-
-
-
-    #[Route("/update-status-content/{id}", name: "update_status_content", options: ["expose" => true], methods: "GET")]
-    public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
-                                                         ProductionRequest $productionRequest): JsonResponse {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
-
-        $html = $this->renderView('production_request/planning/modalUpdateProductionRequestStatusContent.html.twig', [
-            "productionRequest" => $productionRequest,
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-        ]);
-
-        return $this->json([
-            "success" => true,
-            "html" => $html
-        ]);
-    }
-
-    #[Route("/update-status", name: "update_status", options: ["expose" => true], methods: "POST")]
-    public function productionRequestUpdateStatus(EntityManagerInterface $entityManager,
-                                                  Request $request,
-                                                  FixedFieldService $fieldsParamService,
-                                                  ProductionRequestService $productionRequestService,
-                                                  OperationHistoryService $operationHistoryService,
-                                                  StatusHistoryService $statusHistoryService): JsonResponse {
-        $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
-
-        $statusRepository = $entityManager->getRepository(Statut::class);
-        $newStatus = $statusRepository->find($data->getInt('status'));
-        $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
-        $productionRequestToEdit = $productionRequestRepository->find($data->get('productionRequestId'));
-        $historyDataToDisplay = $productionRequestService->buildMessageForEdit($entityManager, $productionRequestToEdit, $data, $request->files);
-        $productionRequest = $productionRequestService->updateProductionRequest($entityManager, $productionRequestToEdit, $data, $request->files);
-
-        if($productionRequestToEdit->getStatus()->getId() !== $data->getInt('status')){
-            $statusHistory = $statusHistoryService->updateStatus(
-                $entityManager,
-                $productionRequest,
-                $newStatus,
-                [
-                    "forceCreation" => true,
-                    "setStatus" => true,
-                    "initiatedBy" => $this->getUser(),
-                ]
-            );
-
-            if ($newStatus->isTreated()) {
-                $productionRequest->setTreatedBy($this->getUser());
-            }
-
-            $entityManager->persist($statusHistory);
-        }
-
-        if(strip_tags($historyDataToDisplay)){
-            $productionRequestHistoryRecord = $operationHistoryService->persistProductionHistory(
-                $entityManager,
-                $productionRequest,
-                OperationHistoryService::TYPE_REQUEST_EDITED_DETAILS,
-                [
-                    "user" => $this->getUser(),
-                    "message" => $historyDataToDisplay,
-                ]
-            );
-            $entityManager->persist($productionRequestHistoryRecord);
-        }
-
-        $entityManager->flush();
-
-        return $this->json([
-            "success" => true,
-            "msg" => "Demande de production modifiée avec succès",
-        ]);
     }
 }

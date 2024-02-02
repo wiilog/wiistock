@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Production | Liste{% endblock %}
+{% block title %}Production | Liste des OF{% endblock %}
 {% block title_tooltip %}Production | Liste{% endblock %}
 
 {% block page_filter %}
@@ -56,7 +56,7 @@
         'reload': true
     } %}
 
-    {% include 'production_request/modalNewProductionRequest.html.twig' with {
+    {% include 'production_request/modal/new.html.twig' with {
         productionRequest,
         fieldsParam,
         emergencies,

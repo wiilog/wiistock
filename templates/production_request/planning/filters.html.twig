@@ -1,0 +1,22 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block filters %}
+    {% include 'filters/filter_item/filterBasicString.html.twig' with {
+        name: 'requestNumber',
+        placeholder: 'Numéro de demande',
+    }%}
+
+    {% include 'filters/filter_item/filterUser.html.twig' with {
+        name: 'operators',
+        placeholder: 'Opérateurs'
+    } %}
+
+    {% include 'filters/filter_item/filterTypeMultiple.html.twig' with {
+        types,
+        onchange : 'onFilterTypeChange($(this))',
+    } %}
+
+    {% include 'filters/filter_item/filterMultipleStatuses.html.twig' with {
+        filterStatus: [],
+    } %}
+{% endblock %}
