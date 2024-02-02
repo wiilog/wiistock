@@ -10,6 +10,12 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 class AbstractController extends SymfonyAbstractController {
 
+    protected const GET = "GET";
+    protected const POST = "POST";
+    protected const PUT = "PUT";
+    protected const PATCH = "PATCH";
+    protected const DELETE = "DELETE";
+
     #[Required]
     public CacheService $cacheService;
 

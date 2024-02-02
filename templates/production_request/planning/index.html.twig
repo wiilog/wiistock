@@ -1,0 +1,91 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Production | Planning{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('production-planning') }}
+    {{ encore_entry_link_tags('preparation-planning') }}
+{% endblock %}
+
+{% block page_filter %}
+    {% include "production_request/planning/filters.html.twig" with {
+        page: 'PAGE_PRODUCTION_PLANNING',
+        marginClass: 'm-0 m-md-4',
+        callback: 'callbackSaveFilter',
+    } %}
+{% endblock %}
+
+{% block pageContainerClass 'd-flex flex-fill flex-column' %}
+{% block page_content %}
+    <div class="mx-4 wii-page-card flex-fill d-flex flex-column" style="margin-top: -15px">
+        <div class="row" style="margin: 0 25px">
+            <div class="col-auto">
+                <button class="btn btn-outline-primary today-date mr-0 h-100"
+                        disabled
+                        data-loader-color="black">
+                    Aujourd'hui
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center has-tooltip"
+                        data-loader-color="black"
+                        title="Semaine précédente">
+                    <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
+                </button>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center has-tooltip"
+                        data-loader-color="black"
+                        title="Semaine suivante">
+                    <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
+                </button>
+            </div>
+            <div class="col-auto ml-auto">
+                <button class="btn btn-primary ml-auto launch-preparation-button" tabindex="0">
+                    <span class=" d-flex align-items-center">
+                        <i class="mr-2 fas fa-external-link-alt"></i>
+                        <a href="{{ path('production_request_planning_external') }}" target="_blank">Lien externe</a>
+                    </span>
+                </button>
+            </div>
+        </div>
+        <div class="d-flex flex-fill production-request-planning-container">
+            <div class="previous-week pointer d-none">
+                <img class="has-tooltip"
+                     title="Glisser-déposer une carte pour passer à la semaine précédente."
+                     src="{{ asset("svg/arrow-left.svg") }}"
+                     width="30"
+                >
+            </div>
+            <div class="production-request-planning"></div>
+            <div class="next-week pointer d-none">
+                <img class="has-tooltip"
+                     title="Glisser-déposer une carte pour passer à la semaine suivante."
+                     src="{{ asset("svg/arrow.svg") }}"
+                     width="30"
+                >
+            </div>
+        </div>
+    </div>
+
+    {% include 'utils/modal/empty-modal.html.twig' with {
+        id: 'modalUpdateProductionRequestStatus',
+        header: {
+            title: 'Changer de statut'
+        },
+        footer: {
+            elements: [
+                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
+                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
+            ],
+        }
+    } %}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('filters') }}
+    {{ encore_entry_script_tags('production-planning') }}
+{% endblock %}

@@ -106,6 +106,7 @@ export default class Form {
      * @param {{
      *    keepModal: boolean|undefined,
      *    success: function|undefined,
+     *    routeParams: {[string]: string}|undefined,
      *    tables: Datatable|Datatable[],
      * }} options
      * @returns {Form}
@@ -113,7 +114,7 @@ export default class Form {
     submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method, route)
+                () => AJAX.route(method, route, options.routeParams || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {

@@ -179,7 +179,7 @@ class FormatService
         $short = $options['short'] ?? false;
         $time = $options['time'] ?? false;
         $year = $options['year'] ?? true;
-        $at = ($options['removeAt'] ?? false) ? 'à' : '';
+        $at = ($options['addAt'] ?? false) ? 'à' : '';
 
         return $date
             ? (($short

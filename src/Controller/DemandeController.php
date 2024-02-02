@@ -244,13 +244,13 @@ class DemandeController extends AbstractController
 
         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $fields = $deliveryRequestService->getVisibleColumnsConfig($entityManager, $this->getUser());
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
@@ -834,7 +834,7 @@ class DemandeController extends AbstractController
                                     Pack                   $logisticUnit,
                                     TranslationService     $translation): JsonResponse {
         $fieldsParamRepository = $manager->getRepository(FixedFieldStandard::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $projectField = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $projectRequired = $projectField->isDisplayedCreate() && $projectField->isRequiredCreate()
             || $projectField->isDisplayedEdit() && $projectField->isRequiredEdit();
@@ -899,21 +899,21 @@ class DemandeController extends AbstractController
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
         $userRepository = $entityManager->getRepository(Utilisateur::class);
 
-        $defaultReceiverParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+        $defaultReceiverParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
         $defaultReceiver = '';
         if(!empty($defaultReceiverParam->getElements())){
             $defaultReceiver = $userRepository->find($defaultReceiverParam->getElements()[0]);
         }
 
-        $defaultTypeParam = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+        $defaultTypeParam = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
         $defaultType = null;
         if(!empty($defaultTypeParam->getElements())){
             $defaultType = $typeRepository->find($defaultTypeParam->getElements()[0]);
         }
 
         $receiverEqualRequester = boolval($settingRepository->getOneParamByLabel(Setting::RECEIVER_EQUALS_REQUESTER));
-        $demandeFieldParamExpectedAt = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
-        $demandeFieldParamProject = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $demandeFieldParamExpectedAt = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_EXPECTED_AT);;
+        $demandeFieldParamProject = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
         $recipient = $receiverEqualRequester ? $this->getUser() : $defaultReceiver;
         $defaultDeliveryLocations = $settingsService->getDefaultDeliveryLocationsByTypeId($entityManager);
         $requiredFreeField = $defaultType ? $freeFieldRepository->getByTypeAndRequiredCreate($defaultType) : [];

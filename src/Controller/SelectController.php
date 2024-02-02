@@ -728,7 +728,7 @@ class SelectController extends AbstractController {
      */
     public function deliveryLogisticUnits(Request $request, EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
-        $projectField = $fieldsParamRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
+        $projectField = $fieldsParamRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DELIVERY_REQUEST_PROJECT);
 
         $results = $entityManager->getRepository(Pack::class)->getForSelectFromDelivery(
             $request->query->get("term"),

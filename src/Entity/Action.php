@@ -151,6 +151,7 @@ class Action {
     const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
     const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
     const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+    const DISPLAY_PRODUCTION_REQUEST_PLANNING = "afficher Production - Planning";
 
     // menu paramétrage
     const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
