@@ -311,7 +311,7 @@ class PDFGeneratorService {
                         'code' => $pack->getCode(),
                         'type' => $isCode128 ? 'c128' : 'qrcode',
                         'width' => $isCode128 ? 1 : 48,
-                        'height' => 48,
+                        'height' => 40,
                     ],
                     'dispatch' => [
                         'number' => $dispatch->getNumber(),
