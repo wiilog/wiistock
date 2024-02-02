@@ -229,6 +229,7 @@ class Action {
     const MODULE_ACCESS_DELIVERY_ORDER = 'Accès ordre de livraison';
     const MODULE_ACCESS_MANUAL_DELIVERY = 'Accès livraison manuelle';
     const MODULE_ACCESS_COLLECT_ORDER = 'Accès ordre de collecte';
+    const MODULE_ACCESS_MANUAL_COLLECT = 'Accès collecte manuelle';
     const MODULE_ACCESS_TRANSFER_ORDER = 'Accès ordre de transfert';
     const MODULE_ACCESS_MANUAL_TRANSFER = 'Accès transfert manuel';
     const MODULE_ACCESS_INVENTORY = 'Accès inventaire';

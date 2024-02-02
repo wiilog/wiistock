@@ -203,29 +203,8 @@ class CollecteController extends AbstractController
                         EntityManagerInterface $entityManager): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $statutRepository = $entityManager->getRepository(Statut::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
 
-            $date = new DateTime('now');
-
-            $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
-            $numero = 'C-' . $date->format('YmdHis');
-            $collecte = new Collecte();
-            $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
-            $type = $typeRepository->find($data['type']);
-
-            $collecte
-                ->setDemandeur($utilisateurRepository->find($data['demandeur']))
-                ->setNumero($numero)
-                ->setDate($date)
-                ->setType($type)
-                ->setStatut($status)
-                ->setPointCollecte($emplacementRepository->find($data['emplacement']))
-                ->setObjet(substr($data['Objet'], 0, 255))
-                ->setCommentaire($data['commentaire'] ?? null)
-                ->setstockOrDestruct($destination);
+            $collecte = $this->collecteService->createDemandeCollecte($entityManager, $data);
 
             $entityManager->persist($collecte);
 
