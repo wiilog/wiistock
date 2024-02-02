@@ -4,8 +4,8 @@
     productionRequest.status
     and (
         (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
-        (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
-        (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
+        or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
+        or (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
     )
 ) %}
 
