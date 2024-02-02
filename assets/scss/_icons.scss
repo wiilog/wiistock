@@ -139,6 +139,7 @@ $icons: (
     "settings-document-template": "../../public/svg/settings-document-template.svg",
     "question-mark": "../../public/svg/question-mark.svg",
     "production": "../../public/svg/production.svg",
+    "camera": "../../public/svg/camera.svg",
 );
 
 @each $iconName, $iconPath in $icons {

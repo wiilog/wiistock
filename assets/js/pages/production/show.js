@@ -1,6 +1,7 @@
 import AJAX, {DELETE, GET} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
+import Camera from "@app/camera";
 
 global.deleteProductionRequest = deleteProductionRequest;
 
@@ -11,6 +12,13 @@ $(function () {
 
     Form
         .create($modalEditProductionRequest)
+        .onOpen(() => {
+            $modalEditProductionRequest
+                .find(`.take-picture-modal-button`)
+                .on(`click`, function () {
+                    Camera.init($modalEditProductionRequest.find(`[name="files[]"]`));
+                });
+        })
         .submitTo(AJAX.POST, 'production_request_edit', {
             routeParams: {
                 productionRequest: productionRequestId

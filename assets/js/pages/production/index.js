@@ -1,4 +1,5 @@
 import AJAX, {POST, GET} from "@app/ajax";
+import Camera from "@app/camera";
 
 let tableProduction;
 
@@ -6,7 +7,7 @@ global.onProductionRequestTypeChange = onProductionRequestTypeChange;
 global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
-    initTableShippings().then((table) => {
+    initProductionRequestsTable().then((table) => {
         tableProduction = table;
         initProductionRequestModal($(`#modalNewProductionRequest`), `production_request_new`);
     });
@@ -35,7 +36,7 @@ $(function () {
     });
 });
 
-function initTableShippings() {
+function initProductionRequestsTable() {
     const $filtersContainer = $(".filters-container");
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
 
@@ -132,6 +133,13 @@ function displayAttachmentRequired($select) {
 function initProductionRequestModal($modal, submitRoute) {
     Form
         .create($modal, {clearOnOpen: true})
+        .onOpen(() => {
+            $modal
+                .find(`.take-picture-modal-button`)
+                .on(`click`, function () {
+                    Camera.init($modal.find(`[name="files[]"]`));
+                });
+        })
         .submitTo(POST, submitRoute, {
             tables: [tableProduction],
         });

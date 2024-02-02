@@ -1,0 +1,56 @@
+@import "variables";
+
+#take-picture-modal {
+
+    .modal-dialog {
+        width: fit-content;
+    }
+
+    .camera-frame-container {
+        display: flex;
+
+        .camera-frame, .image-preview {
+            width: 640px;
+            height: 480px;
+            border-radius: 10px;
+        }
+
+        .take-picture-button {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: $white;
+            border: 3px solid $black;
+            outline: $white solid 3px;
+            margin-bottom: 30px;
+            cursor: pointer;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .retry-picture-button {
+            background: url("../../public/svg/refresh.svg");
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            display: block;
+            z-index: 10;
+            bottom: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin-bottom: 30px;
+            filter: brightness(0) invert(1);
+            cursor: pointer;
+        }
+
+        .image-preview {
+            position: absolute;
+            background-repeat: no-repeat;
+        }
+    }
+}
