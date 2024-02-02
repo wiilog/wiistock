@@ -29,13 +29,13 @@ use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
 use App\Service\ProductionRequestService;
-use App\Service\StatusHistoryService;
 use App\Service\StatusService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,7 +47,7 @@ use WiiCommon\Helper\Stream;
 #[Route('/production', name: 'production_request_')]
 class ProductionRequestController extends AbstractController
 {
-    #[Route('/', name: 'index', methods: ['GET'])]
+    #[Route('/index', name: 'index', methods: ['GET'])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function index(Request $request,
                           EntityManagerInterface   $entityManager,
@@ -285,10 +285,9 @@ class ProductionRequestController extends AbstractController
                 "entity" => $productionRequest,
                 "history" => Stream::from($productionRequest->getHistory())
                     ->sort(static fn(ProductionHistoryRecord $h1, ProductionHistoryRecord $h2) => (
-                    ($h2->getDate() <=> $h1->getDate())
+                        ($h2->getDate() <=> $h1->getDate())
                         ?: ($h2->getId() <=> $h1->getId())
-                    )
-                    )
+                    ))
                     ->map(static fn(ProductionHistoryRecord $productionHistory) => [
                         "record" => $productionHistory,
                         "icon" => $operationHistoryService->getIconFromType($productionHistory->getRequest(), $productionHistory->getType()),
