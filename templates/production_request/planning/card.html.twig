@@ -1,4 +1,14 @@
 {% set canDrag = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
+{# same as ProductionRequestService::checkRoleForEdition #}
+{% set canUpdateStatus = (
+    productionRequest.status
+    and (
+        (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
+        (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
+        (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
+    )
+) %}
+
 {% set emergency = productionRequest.emergency ?? null %}
 <a class="planning-card preparation-card pointer can-drag has-tooltip"
    href="{{ path('production_request_show', {id: productionRequest.id}) }}"
@@ -10,9 +20,11 @@
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
             <div class="{{ emergency ? 'col-8' : 'col-12' }}">
-                <div class="preparation-status rounded px-2 py-1 d-inline-block bg-white prevent-default"
-                     onclick="openModalUpdateProductionRequestStatus($(this))">
-                    {{ productionRequest.status|format_helper("status")|capitalize }}
+                <div class="rounded px-2 py-1 d-inline-block bg-white {{ canUpdateStatus ? "prevent-default" }}"
+                     {% if canUpdateStatus %}
+                        onclick="openModalUpdateProductionRequestStatus($(this))"
+                     {% endif %}>
+                    {{ productionRequest.status|format_helper("status") }}
                 </div>
                 <div class="mt-1">
                     <span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>

@@ -22,9 +22,12 @@ use App\Entity\WorkFreeDay;
 use App\Service\FormatService;
 use App\Service\LanguageService;
 use App\Service\OperationHistoryService;
+use App\Service\ProductionRequestService;
 use App\Service\StatusService;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -277,6 +280,46 @@ class PlanningController extends AbstractController {
 
         return $this->json([
             "success" => true,
+        ]);
+    }
+    #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: "GET")]
+    public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
+                                                         ProductionRequest      $productionRequest): JsonResponse {
+        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
+
+        $html = $this->renderView('production_request/planning/modal/update-status-form.html.twig', [
+            "productionRequest" => $productionRequest,
+            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
+        ]);
+
+        return $this->json([
+            "success" => true,
+            "html" => $html
+        ]);
+    }
+
+    #[Route("/{productionRequest}/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
+    public function updateStatus(EntityManagerInterface   $entityManager,
+                                 ProductionRequest        $productionRequest,
+                                 Request                  $request,
+                                 ProductionRequestService $productionRequestService): JsonResponse {
+
+        $productionRequestService->checkRoleForEdition($productionRequest);
+
+        $currentUser = $this->getUser();
+
+        $inputBag = new InputBag([
+            FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
+            FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
+        ]);
+
+        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
+
+        $entityManager->flush();
+
+        return $this->json([
+            "success" => true,
+            "msg" => "La demande de production a été modifiée avec succès.",
         ]);
     }
 }

@@ -153,7 +153,7 @@ function openModalUpdateProductionRequestStatus($container){
     const productionRequest = $container.closest(`a`).data(`production-request-id`);
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .onOpen(() => {
-            Modal.load(`production_request_update_status_content`,
+            Modal.load(`production_request_planning_update_status_content`,
                 {
                     productionRequest,
                 },
@@ -161,7 +161,7 @@ function openModalUpdateProductionRequestStatus($container){
                 $modalUpdateProductionRequestStatus.find(`.modal-body`)
             );
         })
-        .submitTo(POST, `production_request_update_status`, {
+        .submitTo(POST, `production_request_planning_update_status`, {
             routeParams: {
                 productionRequest,
             },
