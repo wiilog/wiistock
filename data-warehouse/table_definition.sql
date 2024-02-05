@@ -677,6 +677,35 @@ CREATE TABLE dw_capteur_champs_libres
     valeur       text
 );
 
+CREATE TABLE dw_production
+(
+    production_id        integer,
+    numero_of            varchar(255),
+    urgence              varchar(255),
+    date_attendue        timestamp(0),
+    numero_projet        varchar(255),
+    code_produit_article varchar(255),
+    emplacement_depose   varchar(255),
+    piece_jointe         varchar(255),
+    quantite             integer,
+    nombre_lignes        integer
+);
+
+CREATE TABLE dw_production_statut
+(
+    production_id integer,
+    statut        varchar(255),
+    date_statut   timestamp(0),
+    utilisateur   varchar(255)
+);
+
+CREATE TABLE dw_production_champs_libres
+(
+    production_id varchar(255),
+    libelle       varchar(255),
+    valeur        text
+);
+
 CREATE TABLE dw_informations
 (
     version varchar(255)
