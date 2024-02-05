@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Production | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
+{% block title %}Production | Liste des OF | {{ trans('Général', null, 'Header', 'Détails') }}{% endblock %}
 {% block title_tooltip %}Production | Détails{% endblock %}
 {% block titleLink path('production_request_index') %}
 
@@ -51,8 +51,8 @@
                                                 title: trans('Général', '', 'Modale', 'Supprimer'),
                                                 icon: "wii-icon wii-icon-trash-black",
                                                 attributes: {
-                                                onclick: "deleteProductionRequest(" ~ productionRequest.id ~ ")",
-                                            },
+                                                    onclick: "deleteProductionRequest(" ~ productionRequest.id ~ ")",
+                                                },
                                             }
                                         ]
                                     } %}
@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    {% include 'production_request/modalEditProductionRequest.html.twig' with {
+    {% include 'production_request/modal/edit.html.twig' with {
         productionRequest,
         fieldsParam,
         emergencies,

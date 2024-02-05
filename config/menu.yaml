@@ -10,6 +10,17 @@ parameters:
             rights:
                 menu: App\Entity\Menu::PRODUCTION
                 action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+            sub:
+                -   label: 'Liste des OF'
+                    path: 'production_request_index'
+                    rights:
+                        menu: App\Entity\Menu::PRODUCTION
+                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+                -   label: 'Planning'
+                    path: 'production_request_planning_index'
+                    rights:
+                        menu: App\Entity\Menu::PRODUCTION
+                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST_PLANNING
 
         -   label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
             icon: 'traca'
