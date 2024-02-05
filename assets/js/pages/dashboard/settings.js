@@ -1,4 +1,4 @@
-import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "../../../../public/js/pages/dashboard/render";
+import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
 const MODE_EDIT = 0;
 const MODE_DISPLAY = 1;
 const MODE_EXTERNAL = 2;

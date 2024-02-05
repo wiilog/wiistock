@@ -227,7 +227,7 @@ function createTooltip(text) {
     } else {
         return `
             <div class="points has-tooltip" title="${trimmedText}">
-                <img src="../../../svg/timeline-information-dashboard.svg" alt="Icône" width="12px">
+                <img src="svg/timeline-information-dashboard.svg" alt="Icône" width="12px">
             </div>
         `;
     }
@@ -528,31 +528,6 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
 
 /**
  * @param {*} data
- * @return {boolean|jQuery}
- */
-function createCarrierTrackingElement(data) {
-    if(!data || data.carriers === undefined) {
-        console.error(`Invalid data for carrier tracking element.`);
-        return false;
-    }
-
-    const carriers = Array.isArray(data.carriers) ? data.carriers.join(', ') : data.carriers;
-    const title = typeof data.title === 'object' ? data.title[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title || "";
-    const numberingConfig = {numbering: 0};
-
-    return $(`
-        <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container')}>
-            <div class="title">
-                ${withStyle(data, numberingConfig, 1, title)}
-            </div>
-            ${createTooltip(isObject(data.tooltip) ? data.tooltip[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
-            <h1 class="scroll">${withStyle(data, numberingConfig, 2, carriers)}</h1>
-        </div>
-    `);
-}
-
-/**
- * @param {*} data
  * @param config
  * @param redefinedNumberingConfig
  * @return {boolean|jQuery}
@@ -753,6 +728,10 @@ export function drawChartWithHisto($button, path, beforeAfter = 'now') {
     });
 }
 
+export function hideOrShowStackButton(){
+    $('.stack-button').toggleClass('d-none');
+    $('input[name="stackValues"]').prop('checked', false);
+}
 
 function updateSimpleChartData(chart, data, label, stack = false,
                                {data: subData, label: lineChartLabel} = {data: undefined, label: undefined}, chartColors = []) {
@@ -1248,11 +1227,6 @@ function resetColorPickersElementsToForm($modal, data) {
             }
         }
     }
-}
-
-export function hideOrShowStackButton(){
-    $('.stack-button').toggleClass('d-none');
-    $('input[name="stackValues"]').prop('checked', false);
 }
 
 Chart.Tooltip.positioners.middle = elements => {
