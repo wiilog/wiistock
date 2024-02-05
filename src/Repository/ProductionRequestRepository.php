@@ -11,6 +11,7 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -354,7 +355,7 @@ class ProductionRequestRepository extends EntityRepository
             ->getResult();
     }
 
-    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []) {
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []): array {
         $qb = $this->createQueryBuilder("production_request");
 
         if($requester) {
@@ -370,10 +371,11 @@ class ProductionRequestRepository extends EntityRepository
         }
 
         return $qb
-            ->innerJoin("production_request.status", "status")
-            ->andWhere('status.state != ' . Statut::TREATED)
-            ->addOrderBy('status.state', 'ASC')
-            ->addOrderBy('production_request.createdAt', 'ASC')
+            ->innerJoin("production_request.status", "join_status")
+            ->andWhere('join_status.state != :statusState')
+            ->addOrderBy('join_status.state', Criteria::ASC)
+            ->addOrderBy('production_request.createdAt', Criteria::ASC)
+            ->setParameter('statusState', Statut::TREATED)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

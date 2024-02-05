@@ -421,7 +421,7 @@ class DashboardSettingsService {
             if ($config["kind"] == "production" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST)))) {
                 $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
                 if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
-                    $pendingDispatches = Stream::from($productionRequestRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
+                    $pendingProductionRequests = Stream::from($productionRequestRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
                         ->map(function(ProductionRequest $productionRequest) use ($averageRequestTimesByType) {
                             return $this->productionRequestService->parseRequestForCard($productionRequest);
                         })
@@ -429,7 +429,7 @@ class DashboardSettingsService {
                 }
             }
 
-            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
+            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? [], $pendingProductionRequests ?? []);
         }
 
         if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {

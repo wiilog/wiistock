@@ -426,17 +426,16 @@ class ProductionRequestService
     }
 
     public function parseRequestForCard(ProductionRequest $productionRequest): array {
-
         $requestStatus = $productionRequest->getStatus()?->getCode();
         $requestState = $productionRequest->getStatus()?->getState();
-        $requestType = $productionRequest->getType()?->getLabel();
+        $requestType = $this->formatService->type($productionRequest->getType());
 
-        $deliveryDateEstimated = $productionRequest->getExpectedAt() ? $productionRequest->getExpectedAt()->format('d/m/Y H:i') : '';
+        $productionRequestExpectedAT = $productionRequest->getExpectedAt() ? $this->formatService->datetime($productionRequest->getExpectedAt()) : '';
         $estimatedFinishTimeLabel = $productionRequest->getExpectedAt() ? 'Date attendue' : '';
 
         $href = $this->router->generate('production_request_show', ['id' => $productionRequest->getId()]);
 
-        $bodyTitle = $productionRequest->getManufacturingOrderNumber() . ' - ' . $requestType;
+        $bodyTitle = `${$productionRequest->getManufacturingOrderNumber()} - ${$requestType}`;
 
         $statusesToProgress = [
             Statut::TREATED => 100,
@@ -445,15 +444,15 @@ class ProductionRequestService
         ];
         return [
             'href' => $href ?? null,
-            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page de la de demande de production',
-            'estimatedFinishTime' => $deliveryDateEstimated,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page de la demande de production',
+            'estimatedFinishTime' => $productionRequestExpectedAT,
             'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
             'requestStatus' => $requestStatus,
             'requestBodyTitle' => $bodyTitle,
-            'requestLocation' => $productionRequest->getDropLocation() ? $productionRequest->getDropLocation()->getLabel() : 'Non défini',
+            'requestLocation' => $this->formatService->location($productionRequest->getDropLocation(), 'Non défini'),
             'requestNumber' => $productionRequest->getNumber(),
-            'requestDate' => $productionRequest->getCreatedAt()->format('d/m/Y H:i'),
-            'requestUser' => $productionRequest->getTreatedBy() ? $productionRequest->getTreatedBy()->getUsername() : 'Non défini',
+            'requestDate' => $this->formatService->datetime($productionRequest->getCreatedAt()),
+            'requestUser' => $this->formatService->user($productionRequest->getTreatedBy(), 'Non défini'),
             'cardColor' => 'white',
             'bodyColor' => 'light-grey',
             'topRightIcon' => 'livreur.svg',
