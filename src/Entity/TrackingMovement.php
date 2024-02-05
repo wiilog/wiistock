@@ -10,12 +10,15 @@ use App\Repository\TrackingMovementRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrackingMovementRepository::class)]
 class TrackingMovement {
 
     use FreeFieldsManagerTrait;
+
+    const DEFAULT_QUANTITY = 1;
 
     const TYPE_PRISE = 'prise';
     const TYPE_DEPOSE = 'depose';
@@ -64,14 +67,17 @@ class TrackingMovement {
     #[ORM\JoinColumn(name: 'mouvement_stock_id', referencedColumnName: 'id', nullable: true)]
     private ?MouvementStock $mouvementStock = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $finished = null;
 
-    #[ORM\Column(type: 'integer', nullable: false, options: ['default' => 1])]
-    private ?int $quantity = null;
+    #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => self::DEFAULT_QUANTITY])]
+    private ?int $quantity = self::DEFAULT_QUANTITY;
+
+    #[ORM\Column(type: Types::BIGINT, nullable: true)]
+    private ?int $orderIndex = 0;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
     private ?Reception $reception = null;
@@ -126,7 +132,6 @@ class TrackingMovement {
     private ?TrackingMovement $mainMovement = null;
 
     public function __construct() {
-        $this->quantity = 1;
         $this->firstDropRecords = new ArrayCollection();
         $this->lastTrackingRecords = new ArrayCollection();
         $this->attachments = new ArrayCollection();
@@ -531,6 +536,15 @@ class TrackingMovement {
 
     public function getShippingRequest(): ?ShippingRequest {
         return $this->shippingRequest;
+    }
+
+    public function setOrderIndex(?int $orderIndex): self {
+        $this->orderIndex = $orderIndex;
+        return $this;
+    }
+
+    public function getOrderIndex(): ?int {
+        return $this->orderIndex;
     }
 
 }
