@@ -1547,7 +1547,7 @@ class DashboardService {
         $productionTypesFilter = $config['productionTypes'] ?? [];
         $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
         $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
-        $date = $config['date'] ?? 'endDate';
+        $date = $config['date'] ?? 'creationDate';
         $separateType = isset($config['separateType']) && $config['separateType'];
 
         switch ($date) {
@@ -1563,7 +1563,7 @@ class DashboardService {
                 break;
         }
 
-        $hint = "Nombre d'acheminements ayant leurs dates $type sur les jours présentés";
+        $hint = "Nombre de demandes de productions ayant leurs dates $type sur les jours présentés";
 
         $productionRepository = $entityManager->getRepository(ProductionRequest::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -1584,7 +1584,7 @@ class DashboardService {
         if ($separateType) {
             $types = $typeRepository->findBy(['id' => $productionTypesFilter]);
             $chartData = Stream::from($chartData)
-                ->reduce(function ($carry, $data, $date) use ($types) {
+                ->reduce(static function ($carry, $data, $date) use ($types) {
                     foreach ($types as $type) {
                         $carry[$date][$type->getLabel()] = 0;
                     }

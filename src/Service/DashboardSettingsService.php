@@ -1408,7 +1408,7 @@ class DashboardSettingsService {
                 $productionTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['productionTypes']]);
                 $counter = 0;
                 $chartColors = Stream::from($productionTypes)
-                    ->reduce(function (array $carry, Type $type) use ($config, &$counter, $values) {
+                    ->reduce(static function (array $carry, Type $type) use ($config, &$counter, $values) {
                         srand($type->getId());
                         $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF));
                         $counter++;
@@ -1419,14 +1419,12 @@ class DashboardSettingsService {
                 $values['chartColors'] = $chartColors;
 
                 $chartColorsLabels = Stream::from($productionTypes)
-                    ->map(function (Type $type) {
-                        return $type->getLabel();
-                    })->toArray();
+                    ->map(fn(Type $type) => $this->formatService->type($type))->toArray();
                 $values['chartColorsLabels'] = $chartColorsLabels;
 
                 $chartValues = Stream::from($productionTypes)
                     ->reduce(function (array $carry, Type $type) {
-                        $carry[$type->getLabel()] = rand(10, 18);
+                        $carry[$this->formatService->type($type)] = rand(10, 18);
                         return $carry;
                     }, []);
 
@@ -1446,7 +1444,7 @@ class DashboardSettingsService {
             $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
             $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
             $chartData = Stream::from($keysToKeep)
-                ->reduce(function(array $carry, string $key) use ($chartData) {
+                ->reduce(static function(array $carry, string $key) use ($chartData) {
                     if (isset($chartData[$key])) {
                         $carry[$key] = $chartData[$key];
                     }

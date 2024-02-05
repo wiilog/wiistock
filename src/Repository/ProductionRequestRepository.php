@@ -443,7 +443,7 @@ class ProductionRequestRepository extends EntityRepository
                                  bool $separateType,
                                  array $productionStatusesFilter = [],
                                  array $productionTypesFilter = [],
-                                 string $date = "createdAt")
+                                 string $date = "createdAt"): array|int
     {
         $associatedFieldLabelWithName = [
             "creationDate" => "createdAt",
@@ -453,15 +453,15 @@ class ProductionRequestRepository extends EntityRepository
 
         $qb = $this->createQueryBuilder('production_request')
             ->select('COUNT(production_request) ' . ($separateType ? ' AS count' : ''))
-            ->join('production_request.type','type')
+            ->join('production_request.type','join_type')
             ->andWhere("production_request.$associatedFieldLabelWithName[$date] BETWEEN :dateMin AND :dateMax")
             ->setParameter('dateMin', $dateMin)
             ->setParameter('dateMax', $dateMax);
 
         if ($separateType) {
             $qb
-                ->groupBy('type.id')
-                ->addSelect('type.label as typeLabel');
+                ->groupBy('join_type.id')
+                ->addSelect('join_type.label AS typeLabel');
         }
 
         if (!empty($productionStatusesFilter)) {

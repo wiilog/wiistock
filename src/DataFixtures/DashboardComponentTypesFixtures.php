@@ -1008,7 +1008,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     Dashboard\ComponentType::DEFAULT_CHART_COLOR,
                 ],
                 'chartColorsLabels' => [
-                    'Services'
+                    'Productions'
                 ],
                 'chartData' => [
                     '04/01' => 6,
@@ -1047,7 +1047,7 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '10/01' => [
                         'Type1' => 23,
                         'Type2' => 8,
-                    ]
+                    ],
                 ],
                 'textColor-1' => "#000000",
                 'textBold-1' => false,
