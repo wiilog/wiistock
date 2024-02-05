@@ -28,8 +28,7 @@ use WiiCommon\Helper\Stream;
 class ProductionRequestRepository extends EntityRepository
 {
 
-    public function getLastNumberByDate(string $date): ?string
-    {
+    public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('production_request')
             ->select('production_request.number')
             ->where('production_request.number LIKE :value')
@@ -41,8 +40,7 @@ class ProductionRequestRepository extends EntityRepository
     }
 
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
-    {
+    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array {
         $qb = $this->createQueryBuilder('production_request')
             ->groupBy('production_request.id');
 
@@ -406,7 +404,6 @@ class ProductionRequestRepository extends EntityRepository
             ->addOrderBy("production_request.expectedAt", Criteria::ASC)
             ->addOrderBy("production_request.createdAt", Criteria::ASC);
 
-        // TODO WIIS-10767
         foreach ($filters as $filter) {
             if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
                 $users = explode(',', $filter['value']);
@@ -414,16 +411,16 @@ class ProductionRequestRepository extends EntityRepository
                     ->join('production_request.createdBy', 'filter_createdBy')
                     ->andWhere('filter_createdBy.id IN (:users)')
                     ->setParameter('users', $users);
-            } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
+            } else if ($filter['field'] === FiltreSup::FIELD_MULTIPLE_TYPES) {
                 $types = explode(",", $filter["value"]);
                 $queryBuilder
                     ->join('production_request.type', 'filter_type')
                     ->andWhere('filter_type.id IN (:types)')
                     ->setParameter('types', $types);
-            } else if ($filter['field'] === FiltreSup::FIELD_STATUT) {
+            } else if ($filter['field'] === 'statuses-filter') {
                 $statuses = explode(",", $filter["value"]);
                 $queryBuilder
-                    ->join('production_request.type', 'filter_status')
+                    ->join('production_request.status', 'filter_status')
                     ->andWhere('filter_status.id IN (:statuses)')
                     ->setParameter('statuses', $statuses);
             } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
