@@ -263,7 +263,7 @@ class TrackingMovementRepository extends EntityRepository
                     $orderId = ($column === 'datetime')
                         ? $order
                         : 'DESC';
-                    $qb->addOrderBy('tracking_movement.id', $orderId);
+                    $qb->addOrderBy('tracking_movement.orderIndex', $orderId);
                 }
             }
         }
@@ -276,7 +276,7 @@ class TrackingMovementRepository extends EntityRepository
 
         if(!$params->has("order")) {
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
-            $qb->addOrderBy("tracking_movement.id", "DESC");
+            $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
         // compte éléments filtrés
@@ -505,7 +505,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
             ->andWhere('join_article.id = :article')
             ->orderBy('tracking_movement.datetime', 'DESC')
-            ->addOrderBy('tracking_movement.id', 'DESC')
+            ->addOrderBy('tracking_movement.orderIndex', 'DESC')
             ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
             ->setParameter('article', $article);
 

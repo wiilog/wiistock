@@ -460,8 +460,11 @@ class TrackingMovementService extends AbstractController
              && in_array($type->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])) {
             $type = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_UNGROUP);
 
+            [$_, $orderIndex] = hrtime();
+
             $trackingUngroup = new TrackingMovement();
             $trackingUngroup
+                ->setOrderIndex($orderIndex)
                 ->setQuantity($pack->getQuantity())
                 ->setOperateur($user)
                 ->setUniqueIdForMobile($fromNomade ? $this->generateUniqueIdForMobile($entityManager, $date) : null)
@@ -482,6 +485,8 @@ class TrackingMovementService extends AbstractController
             $tracking->setPackParent($parent);
             $tracking->setGroupIteration($parent->getGroupIteration());
         }
+        [$_, $orderIndex] = hrtime();
+        $tracking->setOrderIndex($orderIndex);
 
         return $tracking;
     }
@@ -1212,9 +1217,10 @@ class TrackingMovementService extends AbstractController
                     return $movement;
                 }
 
-                if(!$pickMvtOnArticleWithLU && in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE]) && $pack?->getChildArticles()?->count()) {
+                if(!$pickMvtOnArticleWithLU
+                    && in_array($trackingType->getCode(), [TrackingMovement::TYPE_PRISE, TrackingMovement::TYPE_DEPOSE])
+                    && $pack?->getChildArticles()?->count()) {
                     foreach($pack->getChildArticles() as $childArticle) {
-                        /** @var TrackingMovement $movement */
                         $movement = $this->persistTrackingMovement(
                             $entityManager,
                             $childArticle->getTrackingPack() ?? $childArticle->getBarCode(),
@@ -1236,18 +1242,10 @@ class TrackingMovementService extends AbstractController
                     }
                 }
 
-                if(count($newMovements) > 1) {
-                    return [
-                        "success" => true,
-                        "multiple" => true,
-                        "movements" => $newMovements,
-                    ];
-                } else {
-                    return [
-                        "success" => true,
-                        "movement" => $newMovements[0],
-                    ];
-                }
+                return [
+                    "success" => true,
+                    "movements" => $newMovements,
+                ];
             }
         }
         else { // it's a group

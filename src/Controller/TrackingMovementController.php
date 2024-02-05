@@ -51,9 +51,9 @@ class TrackingMovementController extends AbstractController
 
     #[Route("/", name: "mvt_traca_index", options: ["expose" => true])]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV])]
-    public function index(Request $request,
-                          EntityManagerInterface $entityManager,
-                          FilterSupService $filterSupService,
+    public function index(Request                 $request,
+                          EntityManagerInterface  $entityManager,
+                          FilterSupService        $filterSupService,
                           TrackingMovementService $trackingMovementService): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $statutRepository = $entityManager->getRepository(Statut::class);
@@ -189,7 +189,6 @@ class TrackingMovementController extends AbstractController
 
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
-        $codeToPack = [];
         $createdMouvements = [];
         try {
             if (!empty($post->get('is-group'))) {
@@ -220,18 +219,14 @@ class TrackingMovementController extends AbstractController
                 );
 
                 if ($res['success']) {
-                    if (empty($res['multiple'])) {
-                        $createdMouvements[] = $res['movement'];
-                    }
-                    else {
-                        array_push($createdMouvements, ...$res['movements']);
-                    }
+                    array_push($createdMouvements, ...$res['movements']);
                 }
                 else {
                     return $this->json($this->treatPersistTrackingError($res));
                 }
             }
             else {
+                $codeToPack = [];
                 $packArrayFiltered = Stream::explode(',', $packCode)
                     ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
@@ -253,14 +248,15 @@ class TrackingMovementController extends AbstractController
                     );
 
                     if ($pickingRes['success']) {
-                        if (empty($pickingRes['multiple'])) {
-                            $createdMouvements[] = $pickingRes['movement'];
-                            $mainPack = $pickingRes['movement']->getPack();
-                        }
-                        else {
-                            array_push($createdMouvements, ...$pickingRes['movements']);
-                            $mainPack = $pickingRes['parent'] ?? null;
-                        }
+                        array_push($createdMouvements, ...$pickingRes['movements']);
+
+                        $codeToPack = Stream::from($pickingRes['movements'])
+                            ->keymap(fn(TrackingMovement $movement) => [
+                                $movement->getPack()->getCode(),
+                                $movement->getPack()
+                            ])
+                            ->concat($codeToPack, true)
+                            ->toArray();
                     }
                     else {
                         return $this->json($this->treatPersistTrackingError($pickingRes));
@@ -268,7 +264,7 @@ class TrackingMovementController extends AbstractController
 
                     $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
-                        $mainPack ?? $pack,
+                        $codeToPack[$pack] ?? $pack,
                         $dropLocation,
                         $operator,
                         $date,
@@ -282,20 +278,19 @@ class TrackingMovementController extends AbstractController
                     );
 
                     if ($dropRes['success']) {
-                        if (empty($dropRes['multiple'])) {
-                            $createdMouvements[] = $dropRes['movement'];
-                            $createdPack = $dropRes['movement']->getPack();
-                        }
-                        else {
-                            array_push($createdMouvements, ...$dropRes['movements']);
-                            $createdPack = $dropRes['parent'] ?? null;
-                        }
+                        array_push($createdMouvements, ...$dropRes['movements']);
+
+                        $codeToPack = Stream::from($dropRes['movements'])
+                            ->keymap(fn(TrackingMovement $movement) => [
+                                $movement->getPack()->getCode(),
+                                $movement->getPack()
+                            ])
+                            ->concat($codeToPack, true)
+                            ->toArray();
                     }
                     else {
                         return $this->json($this->treatPersistTrackingError($dropRes));
                     }
-
-                    $codeToPack[$pack] = $createdPack;
                 }
             }
         } catch (Exception $exception) {
@@ -693,7 +688,7 @@ class TrackingMovementController extends AbstractController
             } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
                 return [
                     "success" => false,
-                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementé"),
+                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée"),
                 ];
             }
 
