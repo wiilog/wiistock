@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
@@ -1028,18 +1029,13 @@ class ReferenceArticleRepository extends EntityRepository {
 			JOIN oc.statut s");
     }
 
-    public function countByEmplacement($emplacementId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.emplacement e
-            WHERE e.id =:emplacementId
-           "
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('reference_article')
+            ->select('COUNT(reference_article.id)')
+            ->andWhere('reference_article.emplacement = :location')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countByMission($mission)

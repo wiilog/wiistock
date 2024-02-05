@@ -92,9 +92,6 @@ class Emplacement implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: LocationCluster::class, mappedBy: 'locations')]
     private Collection $clusters;
 
-    #[ORM\OneToMany(mappedBy: 'dropLocation', targetEntity: Arrivage::class)]
-    private Collection $arrivals;
-
     #[ORM\ManyToMany(targetEntity: Type::class)]
     #[ORM\JoinTable(name: 'location_allowed_delivery_type')]
     private Collection $allowedDeliveryTypes;
@@ -167,7 +164,6 @@ class Emplacement implements PairedEntity {
         $this->dispatchesTo = new ArrayCollection();
         $this->dropTypes = new ArrayCollection();
         $this->pickTypes = new ArrayCollection();
-        $this->arrivals = new ArrayCollection();
         $this->allowedDeliveryTypes = new ArrayCollection();
         $this->allowedCollectTypes = new ArrayCollection();
         $this->pairings = new ArrayCollection();
@@ -606,34 +602,6 @@ class Emplacement implements PairedEntity {
             $this->clusters->removeElement($locationCluster);
             $locationCluster->removeLocation($this);
         }
-        return $this;
-    }
-
-    /**
-     * @return Collection|Arrivage[]
-     */
-    public function getArrivals(): Collection {
-        return $this->arrivals;
-    }
-
-    public function addArrival(Arrivage $arrival): self {
-        if(!$this->arrivals->contains($arrival)) {
-            $this->arrivals[] = $arrival;
-            $arrival->setDropLocation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArrival(Arrivage $arrival): self {
-        if($this->arrivals->contains($arrival)) {
-            $this->arrivals->removeElement($arrival);
-            // set the owning side to null (unless already changed)
-            if($arrival->getDropLocation() === $this) {
-                $arrival->setDropLocation(null);
-            }
-        }
-
         return $this;
     }
 

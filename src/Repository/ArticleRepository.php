@@ -837,18 +837,13 @@ class ArticleRepository extends EntityRepository {
 		return $query->getOneOrNullResult();
 	}
 
-    public function countByEmplacement($emplacementId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(article)
-			FROM App\Entity\Article article
-			JOIN article.emplacement e
-			WHERE e.id = :emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('article')
+            ->select('COUNT(article.id)')
+            ->andWhere('article.emplacement = :location')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countByMission($mission)
