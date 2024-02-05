@@ -95,7 +95,6 @@
             {{ form.select('dispatchEmergencies', "Type(s) d'urgence de la demande", false, {
                 type: '',
                 items: dispatchEmergencies ?? [],
-                emptyOption: {text: '', value: ''},
                 multiple: true,
                 selectAllLabel: 'Tous les types',
             }) }}

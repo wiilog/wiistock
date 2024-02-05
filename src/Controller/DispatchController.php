@@ -275,7 +275,7 @@ class DispatchController extends AbstractController {
                 ...(!empty($preFilledEmergency) ? [[
                     'field' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
                     'value' => $preFilledEmergency,
-                ]] : [])
+                ]] : []),
             ];
         }
 

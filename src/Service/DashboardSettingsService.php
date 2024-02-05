@@ -1315,9 +1315,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 $statuses = $config['entityStatuses'];
                 $types = $config['entityTypes'];
-                $pickLocations = $config['pickLocations'];
-                $dropLocations = $config['dropLocations'];
-                $dispatchEmergencies = $config['dispatchEmergencies'];
+                $pickLocations = $config['pickLocations'] ?? [];
+                $dropLocations = $config['dropLocations'] ?? [];
+                $dispatchEmergencies = $config['dispatchEmergencies'] ?? [];
                 $redirect = isset($config['redirect']) && $config['redirect'];
                 $link = $redirect ? $this->router->generate('dispatch_index', [
                     'statuses' => $statuses,
