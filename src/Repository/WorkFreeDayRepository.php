@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\WorkFreeDay;
-use DateTime;
 use Doctrine\ORM\EntityRepository;
+use WiiCommon\Helper\Stream;
 
 /**
  * @method WorkFreeDay|null   find($id, $lockMode = null, $lockVersion = null)
@@ -14,16 +14,17 @@ use Doctrine\ORM\EntityRepository;
  */
 class WorkFreeDayRepository extends EntityRepository
 {
-    /**
-     * @return DateTime[]
-     */
-    public function  getWorkFreeDaysToDateTime(): array {
-        $workFreeDays = $this->createQueryBuilder('day')
-            ->select('day.day')
+    public function getWorkFreeDaysToDateTime($needsFormat = false): array {
+        $workFreeDays = $this->createQueryBuilder('work_free_day')
+            ->select('work_free_day.day')
             ->getQuery()
-            ->execute();
-        return array_map(function (array $workFreeDay) {
-            return $workFreeDay['day'];
-        }, $workFreeDays);
+            ->getResult();
+
+        return Stream::from($workFreeDays)
+            ->map(static fn(array $workFreeDay) => $needsFormat
+                ? $workFreeDay["day"]->format("Y-m-d")
+                : $workFreeDay["day"]
+            )
+            ->toArray();
     }
 }

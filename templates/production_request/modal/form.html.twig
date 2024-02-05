@@ -25,6 +25,8 @@
             } : null,
             additionalAttributes: productionRequest.type ? [] : [
                 { name: 'onChange', value: 'onProductionRequestTypeChange($(this))' },
+                { name: 'data-other-params'},
+                { name: 'data-other-params-with-drop-location', value: 'true' }
             ],
         }) }}
     </div>
@@ -34,20 +36,37 @@
     <div class="col-6 mb-2">
         {{ form.select(fieldCode, fieldLabel, true, {
             type: 'status',
-            disabled: productionRequest.type ? false : true,
+            disabled: not productionRequest.type,
             value: productionRequest.status ? productionRequest.status.id : null,
-            items: productionRequest.status ? {
-                0: {
+            items: productionRequest.status
+                ? [{
                     'value': productionRequest.status.id,
                     'label':  productionRequest.status.nom,
                     'selected': true
-                }
-            } : null,
+                }]
+                : [],
             includeParams: '[name=type]',
-            additionalAttributes: productionRequest.type ? [] : [
-                { name: 'onChange', value: 'displayAttachmentRequired($(this))' },
-            ],
+            additionalAttributes: productionRequest.type
+                ? []
+                : [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
         }) }}
+        <div class="error-empty-status d-none">
+            {% include 'utils/warningSelectEmpty.html.twig' with {
+                array: [],
+                warningLabel: 'Attention ! Aucun statut pour ce type',
+                redirectPath: path('settings_item', {
+                    'category': constant('App\\Controller\\Settings\\SettingsController::CATEGORY_PRODUCTION'),
+                    'menu': constant('App\\Controller\\Settings\\SettingsController::MENU_FULL_SETTINGS'),
+                    'submenu': constant('App\\Controller\\Settings\\SettingsController::MENU_STATUSES'),
+                }),
+                redirectLabel: 'Créer un statut',
+                block: true,
+                rights: {
+                    menu: constant('App\\Entity\\Menu::PARAM'),
+                    action: constant('App\\Entity\\Action::CREATE')
+                }
+            } %}
+        </div>
     </div>
 
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').name %}
@@ -86,8 +105,8 @@
         <div class="col-6 mb-2">
             {% set canEditExpectedAt = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
             {% set requiredOnform = canEditExpectedAt and fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
-            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d') : null, {
-                type: 'date',
+            {{ form.input(fieldCode, fieldLabel, requiredOnform, productionRequest.expectedAt ? productionRequest.expectedAt|date('Y-m-d H:i') : null, {
+                type: 'datetime-local',
                 disabled: not canEditExpectedAt,
             }) }}
         </div>
@@ -152,6 +171,10 @@
                     value: productionRequest.dropLocation.id,
                     label: productionRequest.dropLocation.label
                 }],
+                additionalAttributes: [
+                    {name: "data-other-params"},
+                    {name: "data-other-params-typeDispatchDropLocation", value: productionRequest.type ? productionRequest.type.id : ""},
+                ],
             }) }}
         </div>
     {% endif %}
