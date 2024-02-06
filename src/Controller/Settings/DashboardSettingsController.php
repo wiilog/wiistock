@@ -161,6 +161,7 @@ class DashboardSettingsController extends AbstractController {
             "arrivalTypes" => [],
             "handlingTypes" => [],
             "dispatchTypes" => [],
+            "productionTypes" => [],
             "referenceTypes" => [],
             "managers" => [],
             "arrivalStatuses" => [],
@@ -170,6 +171,7 @@ class DashboardSettingsController extends AbstractController {
             "displayDeliveryOrderContent" => null,
             "displayDeliveryOrderWithExpectedDate" => null,
             "dispatchStatuses" => [],
+            "productionStatuses" => [],
             "entityTypes" => [],
             "separateType" => false,
             "stackValues" => false,
@@ -305,12 +307,20 @@ class DashboardSettingsController extends AbstractController {
             $values['handlingTypes'] = $typeRepository->findBy(['id' => $values['handlingTypes']]);
         }
 
+        if(!empty($values['productionTypes'])) {
+            $values['productionTypes'] = $typeRepository->findBy(['id' => $values['productionTypes']]);
+        }
+
         if(!empty($values['arrivalStatuses'])) {
             $values['arrivalStatuses'] = $statusRepository->findBy(['id' => $values['arrivalStatuses']]);
         }
 
         if(!empty($values['dispatchStatuses'])) {
             $values['dispatchStatuses'] = $statusRepository->findBy(['id' => $values['dispatchStatuses']]);
+        }
+
+        if(!empty($values['productionStatuses'])) {
+            $values['productionStatuses'] = $statusRepository->findBy(['id' => $values['productionStatuses']]);
         }
 
         if(!empty($values['deliveryOrderStatuses'])) {
@@ -391,6 +401,7 @@ class DashboardSettingsController extends AbstractController {
 
         $arrivalTypes = $typeRepository->findByCategoryLabels([CategoryType::ARRIVAGE]);
         $dispatchTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]);
+        $productionTypes = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
         $referenceTypes = $typeRepository->findByCategoryLabels([CategoryType::ARTICLE]);
         $arrivalStatuses = $statusRepository->findByCategorieName(CategorieStatut::ARRIVAGE);
         $handlingTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_HANDLING]);
@@ -398,6 +409,7 @@ class DashboardSettingsController extends AbstractController {
         $handlingStatuses = $statusRepository->findByCategorieName(CategorieStatut::HANDLING);
         $deliveryOrderStatuses = $statusRepository->findByCategorieName(CategorieStatut::ORDRE_LIVRAISON);
         $dispatchStatuses = $statusRepository->findByCategorieName(CategorieStatut::DISPATCH);
+        $productionStatuses = $statusRepository->findByCategorieName(CategorieStatut::PRODUCTION);
 
         $natures = $natureRepository->findAll();
         if($templateName) {
@@ -411,6 +423,7 @@ class DashboardSettingsController extends AbstractController {
                     'direction' => $request->request->get('direction'),
                     'cellIndex' => $request->request->get('cellIndex'),
                     'arrivalTypes' => $arrivalTypes,
+                    'productionTypes' => $productionTypes,
                     'handlingTypes' => $handlingTypes,
                     'deliveryOrderTypes' => $deliveryOrderTypes,
                     'displayDeliveryOrderWithExpectedDate' => $values['displayDeliveryOrderWithExpectedDate'] ?? '',
@@ -422,6 +435,7 @@ class DashboardSettingsController extends AbstractController {
                     'handlingStatuses' => $handlingStatuses,
                     'deliveryOrderStatuses' => $deliveryOrderStatuses,
                     'dispatchStatuses' => $dispatchStatuses,
+                    'productionStatuses' => $productionStatuses,
                     'entities' => $entities,
                     'entityTypes' => $entityTypes,
                     'entityStatuses' => $entityStatuses,

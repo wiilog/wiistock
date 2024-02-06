@@ -1233,17 +1233,17 @@ class ArticleRepository extends EntityRepository {
             ->getResult();
     }
 
-    private function getCollectableArticlesQueryBuilder(?ReferenceArticle $referenceArticle, bool $lastMonthOutput = true): QueryBuilder {
+    private function getCollectableArticlesQueryBuilder(?ReferenceArticle $referenceArticle, bool $useCollectableDelay = true): QueryBuilder {
         $queryBuilder = $this->createQueryBuilder("article")
             ->join('article.statut', 'statut')
             ->andWhere("article.inactiveSince IS NOT NULL")
             ->andWhere("statut.code = :inactive")
             ->setParameter("inactive", Article::STATUT_INACTIF);
 
-        if ($lastMonthOutput) {
+        if ($useCollectableDelay) {
             $queryBuilder
-                ->andWhere("article.inactiveSince > :one_month_ago")
-                ->setParameter("one_month_ago", new DateTime("-1 month"));
+                ->andWhere("article.inactiveSince > :collectable_delay")
+                ->setParameter("collectable_delay", new DateTime(Article::COLLECTABLE_DELAY));
         }
 
         if($referenceArticle) {
@@ -1277,9 +1277,7 @@ class ArticleRepository extends EntityRepository {
             ->addSelect('article.barCode AS barcode')
             ->addSelect('join_location.label AS location')
             ->addSelect('0 AS is_ref')
-            ->leftJoin('article.emplacement', 'join_location')
-            ->andWhere("article.inactiveSince > :one_month_ago")
-            ->setParameter("one_month_ago", new DateTime("-1 month"));
+            ->leftJoin('article.emplacement', 'join_location');
 
         if ($barcode) {
             $queryBuilder

@@ -27,6 +27,7 @@ const REQUESTS_TO_TREAT = 'requests_to_treat';
 const DAILY_HANDLING_INDICATOR = 'daily_handling_indicator';
 const ORDERS_TO_TREAT = 'orders_to_treat';
 const DAILY_HANDLING = 'daily_handling';
+const DAILY_PRODUCTION = 'daily_production';
 const DAILY_OPERATIONS = 'daily_operations';
 const MONETARY_RELIABILITY_GRAPH = 'monetary_reliability_graph';
 const MONETARY_RELIABILITY_INDICATOR = 'monetary_reliability_indicator';
@@ -124,6 +125,9 @@ const creators = {
         arguments: {route: `handling_index`}
     },
     [DAILY_HANDLING]: {
+        callback: createChart
+    },
+    [DAILY_PRODUCTION]: {
         callback: createChart
     },
     [DAILY_OPERATIONS]: {

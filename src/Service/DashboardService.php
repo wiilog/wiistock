@@ -23,6 +23,7 @@ use App\Entity\DaysWorked;
 use App\Entity\Emplacement;
 use App\Entity\LatePack;
 use App\Entity\Nature;
+use App\Entity\ProductionRequest;
 use App\Entity\ReceiptAssociation;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -1535,5 +1536,74 @@ class DashboardService {
         }
 
         return array_values($contentStack);
+    }
+
+    public function persistDailyProductions(EntityManagerInterface $entityManager,
+                                            Dashboard\Component $component): void
+    {
+        $config = $component->getConfig();
+
+        $productionStatusesFilter = $config['productionStatuses'] ?? [];
+        $productionTypesFilter = $config['productionTypes'] ?? [];
+        $scale = $config['scale'] ?? self::DEFAULT_DAILY_REQUESTS_SCALE;
+        $period = $config['period'] ?? self::DAILY_PERIOD_PREVIOUS_DAYS;
+        $date = $config['date'] ?? 'creationDate';
+        $separateType = isset($config['separateType']) && $config['separateType'];
+
+        switch ($date) {
+            case 'validationDate':
+                $type = "de validation";
+                break;
+            case 'treatmentDate':
+                $type = "de traitement";
+                break;
+            case 'creationDate':
+            default:
+                $type =  "de création";
+                break;
+        }
+
+        $hint = "Nombre de demandes de productions ayant leurs dates $type sur les jours présentés";
+
+        $productionRepository = $entityManager->getRepository(ProductionRequest::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+
+        $workFreeDaysRepository = $entityManager->getRepository(WorkFreeDay::class);
+        $workFreeDays = $workFreeDaysRepository->getWorkFreeDaysToDateTime();
+
+        $chartData = $this->getDailyObjectsStatistics(
+            $entityManager,
+            $scale,
+            function(DateTime $dateMin, DateTime $dateMax) use ($productionRepository, $productionStatusesFilter, $productionTypesFilter, $date, $separateType) {
+                return $productionRepository->countByDates($dateMin, $dateMax, $separateType, $productionStatusesFilter, $productionTypesFilter, $date);
+            },
+            $workFreeDays,
+            $period
+        );
+
+        if ($separateType) {
+            $types = $typeRepository->findBy(['id' => $productionTypesFilter]);
+            $chartData = Stream::from($chartData)
+                ->reduce(static function ($carry, $data, $date) use ($types) {
+                    foreach ($types as $type) {
+                        $carry[$date][$type->getLabel()] = 0;
+                    }
+                    foreach ($data as $datum) {
+                        if (isset($datum['typeLabel']) && $datum['typeLabel']) {
+                            $carry[$date][$datum['typeLabel']] = $datum['count'];
+                        }
+                    }
+                    return $carry;
+                }, []);
+        }
+        $chartColors = $config['chartColors'] ?? [];
+
+        $chartData['hint'] = $hint;
+        $meter = $this->persistDashboardMeter($entityManager, $component, DashboardMeter\Chart::class);
+        $meter
+            ->setData($chartData);
+        if ($chartColors) {
+            $meter->setChartColors($chartColors);
+        }
     }
 }
