@@ -1,3 +1,4 @@
+import {drawChartWithHisto, renderComponent, hideOrShowStackButton, ENTRIES_TO_HANDLE, ONGOING_PACK} from "@app/pages/dashboard/render";
 const MODE_EDIT = 0;
 const MODE_DISPLAY = 1;
 const MODE_EXTERNAL = 2;
@@ -5,6 +6,18 @@ const MODE_EXTERNAL = 2;
 const MAX_NUMBER_ROWS = 6;
 const MAX_COMPONENTS_IN_CELL = 2;
 const MAX_NUMBER_PAGES = 8;
+
+global.openModalComponentTypeNextStep = openModalComponentTypeNextStep;
+global.loadDashboards = loadDashboards;
+global.onEntityChange = onEntityChange;
+global.toggleTreatmentDelay = toggleTreatmentDelay;
+global.drawChartWithHisto = drawChartWithHisto;
+global.renderComponent = renderComponent;
+global.hideOrShowStackButton = hideOrShowStackButton;
+global.MODE_DISPLAY = MODE_DISPLAY;
+global.MODE_EDIT = MODE_EDIT;
+global.MODE_EXTERNAL = MODE_EXTERNAL;
+global.mode = mode;
 
 /**
  * @type {{

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
+use App\Entity\Arrivage;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\Action;
@@ -262,7 +263,7 @@ class LocationController extends AbstractController {
      */
     public function checkEmplacementCanBeDeleted(Request $request, EntityManagerInterface $manager): Response {
         if ($emplacementId = json_decode($request->getContent(), true)) {
-            $isUsedBy = $this->isEmplacementUsed($manager, $emplacementId);
+            $isUsedBy = $this->isLocationUsed($manager, $emplacementId);
             if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
@@ -279,57 +280,84 @@ class LocationController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    private function isEmplacementUsed(EntityManagerInterface $entityManager,
-                                       int                    $emplacementId): array {
+    private function isLocationUsed(EntityManagerInterface $entityManager,
+                                    int                    $locationId): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $stockMovementRepository = $entityManager->getRepository(MouvementStock::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $collecteRepository = $entityManager->getRepository(Collecte::class);
-        $livraisonRepository = $entityManager->getRepository(Livraison::class);
-        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $collectRepository = $entityManager->getRepository(Collecte::class);
+        $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
+        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $arrivalRepository = $entityManager->getRepository(Arrivage::class);
 
-        $location = $locationRepository->find($emplacementId);
+        $location = $locationRepository->find($locationId);
 
         $usedBy = [];
+        $deliveryRequests = $deliveryRequestRepository->countByLocation($location);
+        if ($deliveryRequests > 0) {
+            $usedBy[] = 'demandes';
+        }
 
-        $demandes = $demandeRepository->countByEmplacement($emplacementId);
-        if ($demandes > 0) $usedBy[] = 'demandes';
+        $dispatches = $dispatchRepository->countByLocation($location);
+        if ($dispatches > 0) {
+            $usedBy[] = 'acheminements';
+        }
 
-        $dispatches = $dispatchRepository->countByEmplacement($emplacementId);
-        if ($dispatches > 0) $usedBy[] = 'acheminements';
+        $deliveryOrders = $deliveryOrderRepository->countByLocation($location);
+        if ($deliveryOrders > 0) {
+            $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
+        }
 
-        $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
-        if ($livraisons > 0) $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
+        $collects = $collectRepository->countByLocation($location);
+        if ($collects > 0) {
+            $usedBy[] = 'collectes';
+        }
 
-        $collectes = $collecteRepository->countByEmplacement($emplacementId);
-        if ($collectes > 0) $usedBy[] = 'collectes';
+        $stockMovements = $stockMovementRepository->countByLocation($location);
+        if ($stockMovements > 0) {
+            $usedBy[] = 'mouvements de stock';
+        }
 
-        $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
-        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
+        $trackingMovements = $trackingMovementRepository->countByLocation($location);
+        if ($trackingMovements > 0) {
+            $usedBy[] = 'mouvements de traçabilité';
+        }
 
-        $trackingMovements = $trackingMovementRepository->countByEmplacement($emplacementId);
-        if ($trackingMovements > 0) $usedBy[] = 'mouvements de traçabilité';
+        $referenceArticles = $referenceArticleRepository->countByLocation($location);
+        if ($referenceArticles > 0) {
+            $usedBy[] = 'références article';
+        }
 
-        $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
-        if ($refArticle > 0) $usedBy[] = 'références article';
-
-        $articles = $articleRepository->countByEmplacement($emplacementId);
-        if ($articles > 0) $usedBy[] = 'articles';
+        $articles = $articleRepository->countByLocation($location);
+        if ($articles > 0) {
+            $usedBy[] = 'articles';
+        }
 
         //can't delete request if there's order so there is no need to count orders
-        $transferRequests = $transferRequestRepository->countByLocation($emplacementId);
-        if ($transferRequests > 0) $usedBy[] = 'demandes de transfert';
+        $transferRequests = $transferRequestRepository->countByLocation($locationId);
+        if ($transferRequests > 0) {
+            $usedBy[] = 'demandes de transfert';
+        }
 
-        $round = $locationRepository->countRound($emplacementId);
-        if ($round > 0) $usedBy[] = 'tournées';
+        $rounds = $locationRepository->countRound($locationId);
+        if ($rounds > 0) {
+            $usedBy[] = 'tournées';
+        }
 
         $inventoryLocationMissions = $inventoryLocationMissionRepository->count(['location' => $location]);
-        if ($inventoryLocationMissions > 0) $usedBy[] = "missions d'inventaire";
+        if ($inventoryLocationMissions > 0) {
+            $usedBy[] = "missions d'inventaire";
+        }
+
+        $arrivals = $arrivalRepository->countByLocation($location);
+        if($arrivals > 0) {
+            $usedBy[] = "arrivages";
+        }
 
         return $usedBy;
     }
@@ -351,7 +379,7 @@ class LocationController extends AbstractController {
                     if(!$emplacement->getInventoryLocationMissions()->isEmpty()){
                         throw new FormException("Vous ne pouvez pas supprimer cette emplacement car il est lié à une ou plusieurs missions d'inventaire.");
                     }
-                    $usedEmplacement = $this->isEmplacementUsed($entityManager, $emplacementId);
+                    $usedEmplacement = $this->isLocationUsed($entityManager, $emplacementId);
 
                     if (!empty($usedEmplacement)) {
                         $emplacement->setIsActive(false);

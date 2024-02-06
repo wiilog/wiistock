@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Dispatch;
-use App\Entity\DispatchPack;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
@@ -12,8 +12,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Expr\Select;
-use http\Exception\RuntimeException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 use App\Service\VisibleColumnService;
@@ -310,18 +309,16 @@ class DispatchRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    public function countByEmplacement($emplacementId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(d)
-            FROM App\Entity\Dispatch d
-            WHERE d.locationFrom = :emplacementId
-            OR d.locationTo = :emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder("dispatch")
+            ->select("COUNT(dispatch.id)")
+            ->andWhere("
+                dispatch.locationFrom = :location
+                OR dispatch.locationTo = :location
+            ")
+            ->setParameter("location", $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**
@@ -345,7 +342,7 @@ class DispatchRepository extends EntityRepository
         $queryBuilder
             ->select('dispatch_requester.username AS requester')
             ->addSelect('dispatch.id AS id')
-            ->addSelect('dispatch_created_by.username AS createdBy')
+            ->addSelect('dispatch_created_by.id AS createdBy')
             ->addSelect('dispatch.number AS number')
             ->addSelect('dispatch.startDate AS startDate')
             ->addSelect('dispatch.endDate AS endDate')

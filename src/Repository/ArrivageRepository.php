@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Arrivage;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Language;
@@ -493,5 +494,14 @@ class ArrivageRepository extends EntityRepository
             ->setParameter("default", $default)
             ->getQuery()
             ->getResult();
+    }
+
+    public function countByLocation(Emplacement $dropLocation): int {
+        return $this->createQueryBuilder("arrival")
+            ->select("COUNT(arrival.id)")
+            ->innerJoin("arrival.dropLocation", "join_dropLocation", Join::WITH, "join_dropLocation.id = :dropLocation")
+            ->setParameter("dropLocation", $dropLocation->getId())
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

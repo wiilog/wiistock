@@ -33,9 +33,9 @@ $(function () {
             const $customers = $(event.target)
             // pre-filling customer information according to the customer
             const [customer] = $customers.select2('data');
-            $modalNewDispatch.find('[name=customerPhone]')?.val(customer?.phoneNumber);
-            $modalNewDispatch.find('[name=customerRecipient]')?.val(customer?.recipient);
-            $modalNewDispatch.find('[name=customerAddress]')?.val(customer?.address);
+            $modalNewDispatch.find('[name=customerPhone]').val(customer?.phoneNumber);
+            $modalNewDispatch.find('[name=customerRecipient]').val(customer?.recipient);
+            $modalNewDispatch.find('[name=customerAddress]').val(customer?.address);
         })
         .onOpen(() => {
             initNewDispatchEditor('#modalNewDispatch');

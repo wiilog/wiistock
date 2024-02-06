@@ -7,6 +7,7 @@ use App\Entity\FreeField;
 use App\Entity\Language;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
@@ -62,24 +63,56 @@ class FreeFieldService {
     }
 
 
-    public function manageFreeFields($entity,
-                                     array $data,
+    public function manageFreeFields(mixed                  $entity,
+                                     array                  $data,
                                      EntityManagerInterface $entityManager,
-                                     Utilisateur $user = null) {
-        $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $freeFields = [];
-        $champsLibresKey = array_keys($data);
-        foreach ($champsLibresKey as $field) {
-            if (gettype($field) === 'integer') {
-                $champLibre = $champLibreRepository->find($field);
-                if ($champLibre) {
-                    $freeFields[$champLibre->getId()] = $this->manageJSONFreeField($champLibre, $data[$field], $user);
-                }
+                                     Utilisateur            $user = null): void
+    {
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+        $userLanguage = $user?->getLanguage() ?: $this->languageService->getDefaultLanguage();
+        $defaultLanguage = $this->languageService->getDefaultLanguage();
 
+        $freeFields = [];
+        foreach (array_keys($data) as $freeFieldId) {
+            if (is_int($freeFieldId)) {
+                $freeField = $freeFieldRepository->find($freeFieldId);
+
+                if ($freeField) {
+                    $this->processErrors($freeField, $data, $userLanguage, $defaultLanguage);
+                    $freeFields[$freeField->getId()] = $this->manageJSONFreeField($freeField, $data[$freeFieldId], $user);
+                }
             }
         }
 
         $entity->setFreeFields($freeFields);
+    }
+
+    public function processErrors(FreeField $freeField,
+                                  array     $data,
+                                  Language  $userLanguage,
+                                  Language  $defaultLanguage): void {
+        if($freeField->getTypage() === FreeField::TYPE_TEXT) {
+            $value = trim($data[$freeField->getId()]);
+            $name = $freeField->getLabelIn($userLanguage, $defaultLanguage);
+
+            $minCharactersLength = $freeField->getMinCharactersLength() ?? null;
+            if ($minCharactersLength && $value && (strlen($value) < $minCharactersLength)) {
+                $errorMessage = $this->translationService->translate('Général', null, "Modale", "Le nombre de caractères du champ {1} ne peut être inférieur à {2}.", [
+                    1 => "<strong>{$name}</strong>",
+                    2 => $minCharactersLength,
+                ]);
+                throw new FormException($errorMessage);
+            }
+
+            $maxCharactersLength = $freeField->getMaxCharactersLength() ?? null;
+            if ($maxCharactersLength && $value && (strlen($value) > $maxCharactersLength)) {
+                $errorMessage = $this->translationService->translate('Général', null, "Modale", "Le nombre de caractères du champ {1} ne peut être supérieur à {2}.", [
+                    1 => "<strong>{$name}</strong>",
+                    2 => $maxCharactersLength,
+                ]);
+                throw new FormException($errorMessage);
+            }
+        }
     }
 
     public function manageJSONFreeField(FreeField   $freeField,

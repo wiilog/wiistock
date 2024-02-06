@@ -106,6 +106,7 @@ export default class Form {
      * @param {{
      *    keepModal: boolean|undefined,
      *    success: function|undefined,
+     *    routeParams: {[string]: string}|undefined,
      *    tables: Datatable|Datatable[],
      * }} options
      * @returns {Form}
@@ -113,7 +114,7 @@ export default class Form {
     submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method, route)
+                () => AJAX.route(method, route, options.routeParams || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {
@@ -227,9 +228,11 @@ export default class Form {
 
         eachInputs(form, config, ($input, value) => {
             treatInputError($input, errors, form);
+
             if($input.is('[data-intl-tel-input]')){
                 $input.val(window.intlTelInputGlobals.getInstance($input[0]).getNumber());
             }
+
             const $multipleKey = $input.closest(`[data-multiple-key]`);
             if ($multipleKey.exists()) {
                 const multipleKey = JSON.parse(data.get($multipleKey.data(`multiple-key`)) || `{}`);
@@ -307,7 +310,7 @@ export default class Form {
         }
 
         // Remove global duplicates errors and show
-        const cleanedGlobalErrors = globalErrors.filter((message, index) => globalErrors.indexOf(message) === index);
+        const cleanedGlobalErrors = globalErrors.filter((message, index) => message && globalErrors.indexOf(message) === index);
         for(const message of cleanedGlobalErrors) {
             Flash.add(`danger`, message);
         }
@@ -359,9 +362,12 @@ export default class Form {
         const errors = [];
         if (message) {
             elements.forEach(($field) => {
-                const {label} = Form.getErrorConf($field)
+                const {label, $dataField} = Form.getErrorConf($field)
                 const prefixMessage = label ? `${label} : ` : '';
-                errors.push(`${prefixMessage}${message}`)
+
+                if ($dataField.is(`[data-global-error]`)) {
+                    errors.push(`${prefixMessage}${message}`);
+                }
             });
         }
         return errors;
@@ -511,6 +517,28 @@ function treatInputError($input, errors, form) {
             errors.push({
                 elements: [$input],
                 message: `Le numéro de ${$input.is(`[data-fax]`) ? `fax` : `téléphone`} n'est pas valide`,
+            });
+        }
+    }
+    else if ($input.attr(`type`) === `text`) {
+        const val = $input.val().trim();
+        const minLength = parseInt($input.attr('minlength'));
+        const maxLength = parseInt($input.attr('maxlength'));
+
+        if (val && minLength && val.length < minLength) {
+            errors.push({
+                elements: [$input],
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être inférieur à {1}.", {
+                    1: minLength,
+                }),
+            });
+        }
+        else if (val && maxLength && val.length > maxLength) {
+            errors.push({
+                elements: [$input],
+                message: Translation.of('Général', '', 'Modale', "Le nombre de caractères de ce champ ne peut être supérieur à {1}.", {
+                    1: maxLength,
+                }),
             });
         }
     }

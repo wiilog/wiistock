@@ -62,7 +62,7 @@ class OperationHistoryService {
     public const TYPE_REQUEST_EDITED_DETAILS = "REQUEST_EDITED_DETAILS";
 
     public const CONTENT = [
-        self::TYPE_REQUEST_CREATION => "{user} a créé la {category}",
+        self::TYPE_REQUEST_CREATION => "{user} a créé la {category}.{message}",
         self::TYPE_BOTH_REQUEST_CREATION => "{user} a créé la livraison et une collecte",
         self::TYPE_AFFECTED_ROUND => "{user} a affecté la {category} à la tournée {round} et au livreur {deliverer}",
         self::TYPE_REQUEST_AFFECTED_ROUND => "La {category} a été affectée sur une tournée",
@@ -248,21 +248,17 @@ class OperationHistoryService {
         if ($history instanceof TransportHistoryRecord) {
             $replace = [
                 ...$replace,
-                ...[
-                    "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
-                    "{pack}" => $this->formatEntity($history->getPack()),
-                    "{round}" => $this->formatEntity($history->getRound()),
-                    "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
-                    "{reason}" => $this->formatEntity($history->getReason()),
-                    "{location}" => $this->formatEntity($history->getLocation()),
-                ],
+                "{category}" => $this->formatEntity($history->getRequest() ? get_class($history->getRequest()) : get_class($history->getOrder()->getRequest())),
+                "{pack}" => $this->formatEntity($history->getPack()),
+                "{round}" => $this->formatEntity($history->getRound()),
+                "{deliverer}" => $this->formatEntity($history->getDeliverer(), false),
+                "{reason}" => $this->formatEntity($history->getReason()),
+                "{location}" => $this->formatEntity($history->getLocation()),
             ];
-        } elseif ($history instanceof ProductionHistoryRecord) {
+        } else if ($history instanceof ProductionHistoryRecord) {
             $replace = [
                 ...$replace,
-                ...[
-                    "{category}" => $this->formatEntity(get_class($history->getRequest())),
-                ],
+                "{category}" => $this->formatEntity(get_class($history->getRequest())),
             ];
         }
 

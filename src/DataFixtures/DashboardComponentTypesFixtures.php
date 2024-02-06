@@ -1000,7 +1000,64 @@ class DashboardComponentTypesFixtures extends Fixture implements FixtureGroupInt
                     '<span class="dashboard-stats dashboard-stats-counter">3</span>'
                 ]
             ]
-        ]
+        ],
+        'Nombre de productions quotidiennes' => [
+            'hint' => 'Nombre de productions ayant leur date attendue sur les jours présentés',
+            'exampleValues' => [
+                'chartColors' => [
+                    Dashboard\ComponentType::DEFAULT_CHART_COLOR,
+                ],
+                'chartColorsLabels' => [
+                    'Productions'
+                ],
+                'chartData' => [
+                    '04/01' => 6,
+                    '05/01' => 8,
+                    '06/01' => 4,
+                    '07/01' => 5,
+                    '08/01' => 1,
+                    '09/01' => 3,
+                    '10/01' => 2,
+                ],
+                'chartDataMultiple' => [
+                    '04/01' => [
+                        'Type1' => 25,
+                        'Type2' => 12,
+                    ],
+                    '05/01' => [
+                        'Type1' => 10,
+                        'Type2' => 12,
+                    ],
+                    '06/01' => [
+                        'Type1' => 4,
+                        'Type2' => 12,
+                    ],
+                    '07/01' => [
+                        'Type1' => 25,
+                        'Type2' => 9,
+                    ],
+                    '08/01' => [
+                        'Type1' => 15,
+                        'Type2' => 12,
+                    ],
+                    '09/01' => [
+                        'Type1' => 2,
+                        'Type2' => 12,
+                    ],
+                    '10/01' => [
+                        'Type1' => 23,
+                        'Type2' => 8,
+                    ],
+                ],
+                'textColor-1' => "#000000",
+                'textBold-1' => false,
+                'textItalic-1' => false,
+                'textUnderline-1' => false,
+            ],
+            'category' => Dashboard\ComponentType::CATEGORY_REQUESTS,
+            'template' => Dashboard\ComponentType::DAILY_PRODUCTION,
+            'meterKey' => Dashboard\ComponentType::DAILY_PRODUCTION,
+        ],
     ];
 
     public function __construct(SpecificService $specificService) {

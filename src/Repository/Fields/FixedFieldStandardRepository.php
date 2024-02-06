@@ -2,6 +2,7 @@
 
 namespace App\Repository\Fields;
 
+use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldStandard;
 use Doctrine\ORM\EntityRepository;
 use WiiCommon\Helper\Stream;
@@ -59,16 +60,28 @@ class FixedFieldStandardRepository extends EntityRepository
 		return array_column($query->execute(), 'fieldCode');
 	}
 
-    function findByEntityForEntity(string $entity): array {
-        return $this->createQueryBuilder("fixed_field")
-            ->where("fixed_field.entityCode = :entity")
+    /**
+     * @param string[] $fieldCodes
+     * @return FixedFieldStandard[]
+     */
+    function findByEntityCode(string $entityCode, array $fieldCodes = []): array {
+        $queryBuilder = $this->createQueryBuilder("fixed_field");
+
+        if (!empty($fieldCodes)) {
+            $queryBuilder
+                ->andWhere("fixed_field.fieldCode IN (:fieldCodes)")
+                ->setParameter('fieldCodes', $fieldCodes);
+        }
+
+        return $queryBuilder
+            ->andWhere("fixed_field.entityCode = :entityCode")
             ->orderBy("fixed_field.fieldLabel", "ASC")
-            ->setParameter("entity", $entity)
+            ->setParameter("entityCode", $entityCode)
             ->getQuery()
             ->getResult();
     }
 
-    public function findByEntityAndCode(string $entity, string $field): ?FixedFieldStandard {
+    public function findOneByEntityAndCode(string $entity, string $field): ?FixedFieldStandard {
         return $this->createQueryBuilder("f")
             ->where("f.entityCode = :entity")
             ->andWhere("f.fieldCode = :field")

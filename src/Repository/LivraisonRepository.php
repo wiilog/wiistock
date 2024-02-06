@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Livraison;
 use App\Entity\ReferenceArticle;
@@ -32,17 +33,13 @@ class LivraisonRepository extends EntityRepository
 		'Type' => 'type'
 	];
 
-    public function countByEmplacement($emplacementId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(l)
-            FROM App\Entity\Livraison l
-            JOIN l.destination dest
-            WHERE dest.id = :emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('delivery_order')
+            ->select('COUNT(delivery_order.id)')
+            ->andWhere('delivery_order.destination = :location')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

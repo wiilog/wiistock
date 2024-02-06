@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\FiltreRef;
 use App\Entity\FreeField;
 use App\Entity\Inventory\InventoryCategory;
@@ -21,9 +22,9 @@ use App\Entity\VisibilityGroup;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
@@ -945,12 +946,50 @@ class ReferenceArticleRepository extends EntityRepository {
             ->getOneOrNullResult()['max'] ?: 0;
     }
 
-    public function getByPreparationsIds($preparationsIds): array
-    {
+    public function getByPreparationsIds(array $preparationsIds): array {
+        $selectedLocationsSubQuery = function(string $stockManagement, string $subArticleAlias): string  {
+            $queryBuilder = $this->getEntityManager()->createQueryBuilder()
+                ->select("{$subArticleAlias}_location.label")
+                ->from(Article::class, $subArticleAlias)
+                ->innerJoin("$subArticleAlias.emplacement", "{$subArticleAlias}_location")
+                ->innerJoin("$subArticleAlias.statut", "{$subArticleAlias}_status", Join::WITH, "{$subArticleAlias}_status.code = :status")
+                ->innerJoin("$subArticleAlias.articleFournisseur", "{$subArticleAlias}_supplierArticle")
+                ->innerJoin("{$subArticleAlias}_supplierArticle.referenceArticle", "{$subArticleAlias}_referenceArticle", Join::WITH, "{$subArticleAlias}_referenceArticle = reference_article");
+
+            if ($stockManagement === ReferenceArticle::STOCK_MANAGEMENT_FEFO) {
+                $queryBuilder
+                    ->andWhere("{$subArticleAlias}_referenceArticle.stockManagement = :fefoStockManagement")
+                    ->orderBy("IF($subArticleAlias.expiryDate IS NOT NULL, 1, 0)", Criteria::DESC)
+                    ->addOrderBy("$subArticleAlias.expiryDate", Criteria::ASC)
+                    ->addOrderBy("$subArticleAlias.stockEntryDate", Criteria::ASC)
+                    ->addOrderBy("$subArticleAlias.id", Criteria::ASC);
+            }
+            else { // if ($stockManagement === 'FIFO')
+                $queryBuilder
+                    ->andWhere("{$subArticleAlias}_referenceArticle.stockManagement = :fifoStockManagement")
+                    ->andWhere("$subArticleAlias.stockEntryDate IS NOT NULL")
+                    ->orderBy("$subArticleAlias.stockEntryDate", Criteria::ASC);
+            }
+
+            return $queryBuilder
+                ->getQuery()
+                ->getDQL();
+        };
+
         return $this->createQueryBuilder('reference_article')
             ->select('reference_article.reference AS reference')
             ->addSelect('reference_article.typeQuantite AS type_quantite')
-            ->addSelect('join_location.label AS location')
+            ->addSelect("
+                IF(
+                    reference_article.typeQuantite = :articleQuantityType,
+                    IF(
+                        reference_article.stockManagement = :fefoStockManagement,
+                        FIRST({$selectedLocationsSubQuery(ReferenceArticle::STOCK_MANAGEMENT_FEFO, "sub_articleFEFO")}),
+                        FIRST({$selectedLocationsSubQuery(ReferenceArticle::STOCK_MANAGEMENT_FIFO, "sub_articleFIFO")})
+                    ),
+                    join_location.label
+                ) AS location"
+            )
             ->addSelect('reference_article.libelle AS label')
             ->addSelect('join_preparationLine.quantityToPick AS quantity')
             ->addSelect('1 as is_ref')
@@ -962,9 +1001,13 @@ class ReferenceArticleRepository extends EntityRepository {
             ->join('join_preparationLine.preparation', 'join_preparation')
             ->leftJoin('join_preparationLine.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_preparation.id IN (:preparationsIds)')
-            ->setParameter('preparationsIds', $preparationsIds, Connection::PARAM_STR_ARRAY)
+            ->setParameter('preparationsIds', $preparationsIds)
+            ->setParameter('articleQuantityType', ReferenceArticle::QUANTITY_TYPE_ARTICLE)
+            ->setParameter("status", Article::STATUT_ACTIF)
+            ->setParameter("fefoStockManagement", ReferenceArticle::STOCK_MANAGEMENT_FEFO)
+            ->setParameter("fifoStockManagement", ReferenceArticle::STOCK_MANAGEMENT_FIFO)
             ->getQuery()
-            ->execute();
+            ->getResult();
     }
 
     public function getByLivraisonsIds($livraisonsIds)
@@ -1028,18 +1071,13 @@ class ReferenceArticleRepository extends EntityRepository {
 			JOIN oc.statut s");
     }
 
-    public function countByEmplacement($emplacementId)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(ra)
-            FROM App\Entity\ReferenceArticle ra
-            JOIN ra.emplacement e
-            WHERE e.id =:emplacementId
-           "
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('reference_article')
+            ->select('COUNT(reference_article.id)')
+            ->andWhere('reference_article.emplacement = :location')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countByMission($mission)
