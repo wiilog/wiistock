@@ -32,9 +32,6 @@ jobs:
                     sed -i "s/FTP_USER=ftp/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
                     sed -i "s/FTP_PASSWORD=ftp/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
 
-            -   name: echo changes
-                run: cat .env
-
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
@@ -42,8 +39,8 @@ jobs:
                     ref: ${{ github.event.pull_request.head.sha }}
                     path: projects/wiistock
 
-            -   name: Login to docker hub
-                run: docker login --username ${{ secrets.WIISTOCK_DOCKER_USER }} --password ${{ secrets.WIISTOCK_DOCKER_ACCESS_TOCKEN }}
+            #-   name: Login to docker hub
+            #    run: docker login --username ${{ secrets.WIISTOCK_DOCKER_USER }} --password ${{ secrets.WIISTOCK_DOCKER_ACCESS_TOCKEN }}
 
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
