@@ -64,7 +64,7 @@ class ProductionRequest extends StatusHistoryContainer
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $number = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]

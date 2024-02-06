@@ -14,6 +14,7 @@ use App\Entity\Handling;
 use App\Entity\Language;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\ProductionRequest;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
@@ -62,6 +63,9 @@ class DashboardSettingsService {
 
     #[Required]
     public DispatchService $dispatchService;
+
+    #[Required]
+    public ProductionRequestService $productionRequestService;
 
     #[Required]
     public TransferRequestService $transferRequestService;
@@ -417,7 +421,18 @@ class DashboardSettingsService {
                 }
             }
 
-            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? []);
+            if ($config["kind"] == "production" && ($mode === self::MODE_EXTERNAL || ($this->userService->getUser() && $this->userService->hasRightFunction(Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST)))) {
+                $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
+                if($config["shown"] === Dashboard\ComponentType::REQUESTS_EVERYONE || $mode !== self::MODE_EXTERNAL) {
+                    $pendingProductionRequests = Stream::from($productionRequestRepository->findRequestToTreatByUserAndTypes($loggedUser, self::MAX_REQUESTS_TO_DISPLAY, $config["entityTypes"] ?? []))
+                        ->map(function(ProductionRequest $productionRequest) use ($averageRequestTimesByType) {
+                            return $this->productionRequestService->parseRequestForCard($productionRequest);
+                        })
+                        ->toArray();
+                }
+            }
+
+            $values["requests"] = array_merge($pendingDeliveries ?? [], $pendingCollects ?? [], $pendingHandlings ?? [], $pendingTransfers ?? [], $pendingDispatches ?? [], $pendingProductionRequests ?? []);
         }
 
         if(isset($config['cardBackgroundColor']) && $config['cardBackgroundColor'] !== '#ffffff') {

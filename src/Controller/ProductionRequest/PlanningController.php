@@ -105,12 +105,12 @@ class PlanningController extends AbstractController {
                 ->toArray();
 
             $filters = Stream::from($filters)
-                ->filter(static fn(array $filter) => (
-                    $filter["field"] === FiltreSup::FIELD_REQUEST_NUMBER
-                    || $filter["field"] === FiltreSup::FIELD_TYPE
-                    || $filter["field"] === FiltreSup::FIELD_OPERATORS
-                    || $filter["field"] === FiltreSup::FIELD_STATUT
-                ))
+                ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
+                    FiltreSup::FIELD_REQUEST_NUMBER,
+                    FiltreSup::FIELD_MULTIPLE_TYPES,
+                    FiltreSup::FIELD_OPERATORS,
+                    'statuses-filter',
+                ])))
                 ->toArray();
 
             $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);

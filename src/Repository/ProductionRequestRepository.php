@@ -9,6 +9,7 @@ use App\Entity\Language;
 use App\Entity\ProductionRequest;
 use App\Entity\Statut;
 use App\Entity\WorkFreeDay;
+use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
@@ -28,8 +29,7 @@ use WiiCommon\Helper\Stream;
 class ProductionRequestRepository extends EntityRepository
 {
 
-    public function getLastNumberByDate(string $date): ?string
-    {
+    public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('production_request')
             ->select('production_request.number')
             ->where('production_request.number LIKE :value')
@@ -41,8 +41,7 @@ class ProductionRequestRepository extends EntityRepository
     }
 
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
-    {
+    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array {
         $qb = $this->createQueryBuilder('production_request')
             ->groupBy('production_request.id');
 
@@ -406,7 +405,6 @@ class ProductionRequestRepository extends EntityRepository
             ->addOrderBy("production_request.expectedAt", Criteria::ASC)
             ->addOrderBy("production_request.createdAt", Criteria::ASC);
 
-        // TODO WIIS-10767
         foreach ($filters as $filter) {
             if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
                 $users = explode(',', $filter['value']);
@@ -414,16 +412,16 @@ class ProductionRequestRepository extends EntityRepository
                     ->join('production_request.createdBy', 'filter_createdBy')
                     ->andWhere('filter_createdBy.id IN (:users)')
                     ->setParameter('users', $users);
-            } else if ($filter['field'] === FiltreSup::FIELD_TYPE) {
+            } else if ($filter['field'] === FiltreSup::FIELD_MULTIPLE_TYPES) {
                 $types = explode(",", $filter["value"]);
                 $queryBuilder
                     ->join('production_request.type', 'filter_type')
                     ->andWhere('filter_type.id IN (:types)')
                     ->setParameter('types', $types);
-            } else if ($filter['field'] === FiltreSup::FIELD_STATUT) {
+            } else if ($filter['field'] === 'statuses-filter') {
                 $statuses = explode(",", $filter["value"]);
                 $queryBuilder
-                    ->join('production_request.type', 'filter_status')
+                    ->join('production_request.status', 'filter_status')
                     ->andWhere('filter_status.id IN (:statuses)')
                     ->setParameter('statuses', $statuses);
             } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
@@ -434,6 +432,32 @@ class ProductionRequestRepository extends EntityRepository
         }
 
         return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []): array {
+        $qb = $this->createQueryBuilder("production_request");
+
+        if($requester) {
+            $qb
+                ->andWhere("production_request.createdBy = :createdBy")
+                ->setParameter("createdBy", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("production_request.type IN (:types)")
+                ->setParameter("types", $types);
+        }
+
+        return $qb
+            ->innerJoin("production_request.status", "join_status")
+            ->andWhere('join_status.state != :statusState')
+            ->addOrderBy('join_status.state', Criteria::ASC)
+            ->addOrderBy('production_request.createdAt', Criteria::ASC)
+            ->setParameter('statusState', Statut::TREATED)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

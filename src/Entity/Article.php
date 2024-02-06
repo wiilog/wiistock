@@ -38,6 +38,7 @@ class Article implements PairedEntity {
     const USED_ASSOC_COLLECT_ORDER = 6;
     const USED_ASSOC_INVENTORY_ENTRY = 7;
     const BARCODE_PREFIX = 'ART';
+    const COLLECTABLE_DELAY = "-180 days";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

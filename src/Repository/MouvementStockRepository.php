@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\MouvementStock;
 use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ReferenceArticle;
@@ -36,18 +37,16 @@ class MouvementStockRepository extends EntityRepository
         'barCode' => 'barCode'
     ];
 
-    public function countByEmplacement($emplacementId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(m)
-            FROM App\Entity\MouvementStock m
-            JOIN m.emplacementFrom ef
-            JOIN m.emplacementTo et
-            WHERE ef.id = :emplacementId OR et.id =:emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('stock_movement')
+            ->select('COUNT(stock_movement.id)')
+            ->andWhere('
+                stock_movement.emplacementFrom = :location
+                OR stock_movement.emplacementTo = :location
+            ')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countAll()
