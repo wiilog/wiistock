@@ -532,4 +532,42 @@ class ProductionRequestService
             throw new FormException("Vous n'avez pas les droits pour modifier cette demande de production");
         }
     }
+
+    public function parseRequestForCard(ProductionRequest $productionRequest): array {
+        $requestStatus = $productionRequest->getStatus()?->getCode();
+        $requestState = $productionRequest->getStatus()?->getState();
+        $requestType = $this->formatService->type($productionRequest->getType());
+
+        $productionRequestExpectedAT = $productionRequest->getExpectedAt() ? $this->formatService->datetime($productionRequest->getExpectedAt()) : '';
+        $estimatedFinishTimeLabel = $productionRequest->getExpectedAt() ? 'Date attendue' : '';
+
+        $href = $this->router->generate('production_request_show', ['id' => $productionRequest->getId()]);
+
+        $bodyTitle = `${$productionRequest->getManufacturingOrderNumber()} - ${$requestType}`;
+
+        $statusesToProgress = [
+            Statut::TREATED => 100,
+            Statut::NOT_TREATED => 30,
+            Statut::IN_PROGRESS => 60,
+        ];
+        return [
+            'href' => $href ?? null,
+            'errorMessage' => 'Vous n\'avez pas les droits d\'accéder à la page de la demande de production',
+            'estimatedFinishTime' => $productionRequestExpectedAT,
+            'estimatedFinishTimeLabel' => $estimatedFinishTimeLabel,
+            'requestStatus' => $requestStatus,
+            'requestBodyTitle' => $bodyTitle,
+            'requestLocation' => $this->formatService->location($productionRequest->getDropLocation(), 'Non défini'),
+            'requestNumber' => $productionRequest->getNumber(),
+            'requestDate' => $this->formatService->datetime($productionRequest->getCreatedAt()),
+            'requestUser' => $this->formatService->user($productionRequest->getTreatedBy(), 'Non défini'),
+            'cardColor' => 'white',
+            'bodyColor' => 'light-grey',
+            'topRightIcon' => 'livreur.svg',
+            'emergencyText' => '',
+            'progress' => $statusesToProgress[$requestState] ?? 0,
+            'progressBarColor' => '#2ec2ab',
+            'progressBarBGColor' => 'light-grey',
+        ];
+    }
 }

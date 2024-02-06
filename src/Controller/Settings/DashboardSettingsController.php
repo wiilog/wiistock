@@ -223,6 +223,11 @@ class DashboardSettingsController extends AbstractController {
                         'categoryType' => CategoryType::SHIPPING_REQUEST,
                         'categoryStatus' => CategorieStatut::SHIPPING_REQUEST,
                         'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING
+                    ],
+                    'Production' => [
+                        'categoryType' => CategoryType::PRODUCTION,
+                        'categoryStatus' => CategorieStatut::PRODUCTION,
+                        'key' => Dashboard\ComponentType::REQUESTS_TO_TREAT_PRODUCTION,
                     ]
                 ];
             }
