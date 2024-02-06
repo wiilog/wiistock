@@ -36,8 +36,8 @@ Cypress.Commands.add(
                 cy.doctrineSchemaUpdate();
                 //load fixtures
                 cy.doctrineFixturesLoad();
-                // yarn & yarn build & composer install
-                cy.buildAndInstallDependencies();
+                 // build assets
+                cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
             }
         });
     })
@@ -54,20 +54,14 @@ Cypress.Commands.add('changeDatabase', (newDatabaseName) => {
     });
 })
 
-Cypress.Commands.add('buildAndInstallDependencies', () => {
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && composer install'`, {timeout: 120000});
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn'`, {timeout: 120000});
-    cy.exec(`${SSH_ON_APP} 'cd /var/www && yarn build'`, {timeout: 120000});
-})
-
 Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
     // run sql files to drop and recreate database
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 --execute="DROP DATABASE IF EXISTS ${databaseName}; CREATE DATABASE ${databaseName};"`);
 })
 
 Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
-    cy.exec(`curl -o ${pathToFile}/${fileName} ${urlToFTP}`);
-})
+    cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
+    })
 
 Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 ${databaseName} < ${pathToFile}/${sqlFileName}`);
@@ -82,6 +76,7 @@ Cypress.Commands.add('doctrineSchemaUpdate', () => {
 })
 
 Cypress.Commands.add('doctrineFixturesLoad', () => {
+    cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console d:f:l --append --group=types --no-interaction'`);
     cy.exec(`${SSH_ON_APP} '/usr/local/bin/php /var/www/bin/console d:f:l --append --group=fixtures --no-interaction'`);
 })
 

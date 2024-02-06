@@ -97,3 +97,31 @@ Cypress.Commands.add('select2', (selectName, value) => {
         }
     })
 })
+
+/**
+ * @description: This command removes previous select2 values from a dropdown based on the specified name.
+ * @param {string} selectName : The name attribute of the select dropdown.
+ * @example :
+ * cy.removePreviousSelect2Values('locations');
+ */
+Cypress.Commands.add('removePreviousSelect2Values', (selectName) => {
+    // todo : bug if select2 have more than 1 value
+    cy.get(`select[name=${selectName}]`).as('select');
+    cy.get('@select')
+        .siblings('.select2')
+        .find('.select2-selection__choice__remove')
+        .click();
+});
+
+/**
+ * @description: This command removes previous select2 ajax values from a dropdown based on the specified name.
+ * @param {string} selectName : The name attribute of the select dropdown.
+ * @example :
+ * cy.removePreviousSelect2AjaxValues('locations');
+ */
+Cypress.Commands.add('removePreviousSelect2AjaxValues', (selectName) => {
+    cy.get(`select[name=${selectName}]`)
+        .siblings('.select2')
+        .find('.select2-selection__clear')
+        .click();
+})

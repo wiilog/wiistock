@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalNewChauffeur" role="dialog"
       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -24,11 +26,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="wii-field-name" for="transporteur">Transporteur*</label>
-                    <div class="w-100">
-                        <select type="text" class="form-control data ajax-autocomplete-transporteur d-block needed w-100" name="transporteur">
-                        </select>
-                    </div>
+                    {{ form.select('transporteur', 'Transporteur', true, {
+                        type: 'carrier',
+                    } ) }}
                 </div>
             </div>
             {% include 'utils/modal/footer.html.twig' with {
@@ -37,7 +37,6 @@
                     {classes: 'btn btn-success', id: 'submitNewChauffeur', text: 'Enregistrer'}
                 ],
             } %}
-
         </div>
     </div>
 </div>
