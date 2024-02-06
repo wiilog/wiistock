@@ -253,6 +253,9 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::DAILY_DELIVERY_ORDERS:
                 $values += $this->serializeDailyDeliveryOrders($componentType, $config, $meter, $example);
                 break;
+            case Dashboard\ComponentType::DAILY_PRODUCTION:
+                $values += $this->serializeDailyProductions($entityManager, $componentType, $config, $example, $meter);
+                break;
             case Dashboard\ComponentType::DAILY_HANDLING:
             case Dashboard\ComponentType::DAILY_OPERATIONS:
                 $values += $this->serializeDailyHandlingOrOperations($entityManager, $componentType, $config, $example, $meter);
@@ -1398,5 +1401,78 @@ class DashboardSettingsService {
             $this->dashboardService->updateComponentLocationCluster($entityManager, $component, 'locations');
             $entityManager->flush();
         }
+    }
+
+    private function serializeDailyProductions(EntityManagerInterface $entityManager,
+                                               Dashboard\ComponentType $componentType,
+                                               array $config,
+                                               bool $example = false,
+                                               DashboardMeter\Chart $chart = null): array {
+        $separateType = isset($config['separateType']) && $config['separateType'];
+        if (!$example) {
+            if ($chart) {
+                $values = ["chartData" => $chart->getData(), 'chartColors' => $chart->getChartColors()];
+            } else {
+                $values = ["chartData" => []];
+            }
+        } else {
+            $values = $componentType->getExampleValues();
+            $values['separateType'] = $config['separateType'] ?? false;
+            $values['productionTypes'] = $config['productionTypes'] ?? '';
+            if (!empty($config['productionTypes']) && $separateType) {
+                $productionTypes = $entityManager->getRepository(Type::class)->findBy(['id' => $config['productionTypes']]);
+                $counter = 0;
+                $chartColors = Stream::from($productionTypes)
+                    ->reduce(static function (array $carry, Type $type) use ($config, &$counter, $values) {
+                        srand($type->getId());
+                        $carry[$type->getLabel()] = $config['chartColors'][$type->getLabel()] ?? sprintf('#%06X', mt_rand(0, 0xFFFFFF));
+                        $counter++;
+                        return $carry;
+                    }, []);
+
+                srand();
+                $values['chartColors'] = $chartColors;
+
+                $chartColorsLabels = Stream::from($productionTypes)
+                    ->map(fn(Type $type) => $this->formatService->type($type))->toArray();
+                $values['chartColorsLabels'] = $chartColorsLabels;
+
+                $chartValues = Stream::from($productionTypes)
+                    ->reduce(function (array $carry, Type $type) {
+                        $carry[$this->formatService->type($type)] = rand(10, 18);
+                        return $carry;
+                    }, []);
+
+                $chartDataMultiple = Stream::from($values['chartDataMultiple'])
+                    ->map(function () use ($chartValues) {
+                        return $chartValues;
+                    })->toArray();
+                $values['chartDataMultiple'] = $chartDataMultiple;
+            } else {
+                $values['chartColors'] = (isset($config['chartColors']) && isset($config['chartColors'][0]))
+                    ? [$config['chartColors'][0]]
+                    : [Dashboard\ComponentType::DEFAULT_CHART_COLOR];
+            }
+
+            $scale = $config['scale'] ?? DashboardService::DEFAULT_WEEKLY_REQUESTS_SCALE;
+
+            $chartData = $separateType ? ($values['chartDataMultiple'] ?? []) : ($values['chartData'] ?? []);
+            $keysToKeep = array_slice(array_keys($chartData), 0, $scale);
+            $chartData = Stream::from($keysToKeep)
+                ->reduce(static function(array $carry, string $key) use ($chartData) {
+                    if (isset($chartData[$key])) {
+                        $carry[$key] = $chartData[$key];
+                    }
+                    return $carry;
+                }, []);
+
+            $values['chartColors'] = $values['chartColors'] ?? $config['chartColors'] ?? [];
+
+            $values['chartData'] = $chartData;
+
+            $values['date'] = $config['date'] ?? "";
+        }
+        $values['multiple'] = $separateType;
+        return $values;
     }
 }

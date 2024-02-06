@@ -461,4 +461,44 @@ class ProductionRequestRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 bool $separateType,
+                                 array $productionStatusesFilter = [],
+                                 array $productionTypesFilter = [],
+                                 string $date = "createdAt"): array|int
+    {
+        $associatedFieldLabelWithName = [
+            "creationDate" => "createdAt",
+            "expectedDate" => "expectedAt",
+            "treatmentDate" => "treatedAt",
+        ];
+
+        $qb = $this->createQueryBuilder('production_request')
+            ->select('COUNT(production_request) ' . ($separateType ? ' AS count' : ''))
+            ->join('production_request.type','join_type')
+            ->andWhere("production_request.$associatedFieldLabelWithName[$date] BETWEEN :dateMin AND :dateMax")
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+
+        if ($separateType) {
+            $qb
+                ->groupBy('join_type.id')
+                ->addSelect('join_type.label AS typeLabel');
+        }
+
+        if (!empty($productionStatusesFilter)) {
+            $qb
+                ->andWhere('production_request.status IN (:productionStatuses)')
+                ->setParameter('productionStatuses', $productionStatusesFilter);
+        }
+
+        if (!empty($productionTypesFilter)) {
+            $qb
+                ->andWhere('production_request.type IN (:productionTypes)')
+                ->setParameter('productionTypes', $productionTypesFilter);
+        }
+        return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
+    }
 }

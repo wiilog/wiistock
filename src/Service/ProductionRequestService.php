@@ -201,21 +201,21 @@ class ProductionRequestService
             "quantity" => $productionRequest->getQuantity(),
             "lineCount" => $productionRequest->getLineCount(),
         ];
+        $now = new DateTime();
 
         if(!$productionRequest->getId()){
-            $createdAt = new DateTime();
             $user = $this->userService->getUser();
             $number = $this->uniqueNumberService->create(
                 $entityManager,
                 ProductionRequest::NUMBER_PREFIX,
                 ProductionRequest::class,
                 UniqueNumberService::DATE_COUNTER_FORMAT_PRODUCTION_REQUEST,
-                $createdAt,
+                $now,
             );
 
             $productionRequest
                 ->setNumber($number)
-                ->setCreatedAt($createdAt)
+                ->setCreatedAt($now)
                 ->setCreatedBy($user);
 
             if ($data->has(FixedFieldEnum::type->name)) {
@@ -228,6 +228,12 @@ class ProductionRequestService
         if ($data->has(FixedFieldEnum::status->name)) {
             $status = $statusRepository->find($data->get(FixedFieldEnum::status->name));
             $productionRequest->setStatus($status);
+
+            if($status->isTreated()){
+                $productionRequest
+                    ->setTreatedAt($now)
+                    ->setTreatedAt(new DateTime());
+            }
         }
 
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
