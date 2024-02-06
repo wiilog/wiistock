@@ -84,10 +84,14 @@ class DispatchController extends AbstractController {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $query = $request->query;
-        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
-        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses') : [];
+        $typesFilter = $query->has('types') ? $query->all('types') : [];
+        $pickLocationsFilter = $query->has('pickLocations') ? $query->all('pickLocations') : [];
+        $dropLocationsFilter = $query->has('dropLocations') ? $query->all('dropLocations') : [];
+        $emergenciesFilter = $query->has('dispatchEmergencies') ? $query->all('dispatchEmergencies') : [];
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
         /** @var Utilisateur $currentUser */
@@ -103,6 +107,14 @@ class DispatchController extends AbstractController {
             $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
                 ->filterMap(fn(Type $type) => $type->getLabelIn($currentUser->getLanguage()))
                 ->toArray();
+        }
+
+        if (!empty($pickLocationsFilter)) {
+            $pickLocationsFilter = Stream::from($locationRepository->findBy(['id' => $pickLocationsFilter]));
+        }
+
+        if (!empty($dropLocationsFilter)) {
+            $dropLocationsFilter = Stream::from($locationRepository->findBy(['id' => $dropLocationsFilter]));
         }
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
@@ -159,6 +171,9 @@ class DispatchController extends AbstractController {
             'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
             'statusFilter' => $statusesFilter,
             'typesFilter' => $typesFilter,
+            'pickLocationsFilter' => $pickLocationsFilter,
+            'dropLocationsFilter' => $dropLocationsFilter,
+            'emergenciesFilter' => $emergenciesFilter,
             'fromDashboard' => $fromDashboard,
             'dispatch' => new Dispatch(),
             'defaultType' => $typeRepository->findOneBy(['category' => $dispatchCategoryType, 'defaultType' => true]),
@@ -230,6 +245,15 @@ class DispatchController extends AbstractController {
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
                 : [];
+            $preFilledPickLocations = $request->query->has('pickLocationFilter')
+                ? implode(",", $request->query->all('pickLocationFilter'))
+                : [];
+            $preFilledDropLocations = $request->query->has('dropLocationFilter')
+                ? implode(",", $request->query->all('dropLocationFilter'))
+                : [];
+            $preFilledEmergency = $request->query->has('emergencyFilter')
+                ? implode(",", $request->query->all('emergencyFilter'))
+                : [];
 
             $preFilledFilters = [
                 [
@@ -239,7 +263,19 @@ class DispatchController extends AbstractController {
                 [
                     'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
                     'value' => $preFilledTypes,
-                ]
+                ],
+                ...(!empty($preFilledPickLocations) ? [[
+                    'field' => FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS,
+                    'value' => $preFilledPickLocations,
+                ]] : []),
+                ...(!empty($preFilledDropLocations) ? [[
+                    'field' => FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS,
+                    'value' => $preFilledDropLocations,
+                ]] : []),
+                ...(!empty($preFilledEmergency) ? [[
+                    'field' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
+                    'value' => $preFilledEmergency,
+                ]] : []),
             ];
         }
 

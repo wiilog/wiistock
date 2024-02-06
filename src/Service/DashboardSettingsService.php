@@ -1125,6 +1125,8 @@ class DashboardSettingsService {
             ];
         }
 
+        $values['emergency'] = !empty($config['dispatchEmergencies']);
+
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);
         }
@@ -1331,8 +1333,18 @@ class DashboardSettingsService {
             case Dashboard\ComponentType::REQUESTS_TO_TREAT:
                 $statuses = $config['entityStatuses'];
                 $types = $config['entityTypes'];
+                $pickLocations = $config['pickLocations'] ?? [];
+                $dropLocations = $config['dropLocations'] ?? [];
+                $dispatchEmergencies = $config['dispatchEmergencies'] ?? [];
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('dispatch_index', ['statuses' => $statuses, 'types' => $types, 'fromDashboard' => true]) : null;
+                $link = $redirect ? $this->router->generate('dispatch_index', [
+                    'statuses' => $statuses,
+                    'types' => $types,
+                    'pickLocations' => $pickLocations,
+                    'dropLocations' => $dropLocations,
+                    'dispatchEmergencies' => $dispatchEmergencies,
+                    'fromDashboard' => true,
+                ]) : null;
                 break;
             default:
                 $link = null;

@@ -81,6 +81,7 @@ function loadDashboards(m, refreshRate) {
 
     $modalComponentTypeSecondStep.on(`click`, `.select-all-types`, onSelectAll);
     $modalComponentTypeSecondStep.on(`click`, `.select-all-statuses`, onSelectAll);
+    $modalComponentTypeSecondStep.on(`click`, `.select-all-options`, onSelectAll);
 
     $('button.add-dashboard-modal-submit').on('click', onPageAdded);
     $pagination.on(`click`, `.delete-dashboard`, onPageDeleted);

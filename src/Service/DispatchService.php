@@ -137,7 +137,8 @@ class DispatchService {
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->visibleColumnService,  [
             'defaultLanguage' => $defaultLanguage,
-            'language' => $language
+            'language' => $language,
+            'fromDashboard' => $fromDashboard,
         ]);
 
         $dispatchesArray = $queryResult['data'];

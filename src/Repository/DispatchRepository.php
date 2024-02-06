@@ -11,6 +11,7 @@ use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -154,7 +155,12 @@ class DispatchRepository extends EntityRepository
                         ->setParameter('logisticUnitIds', $value);
                     break;
                 case FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS:
-                    [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+                    if($options['fromDashboard']) {
+                        $locations = explode(",", $filter["value"]);
+                        $locationGroups = explode(",", $filter["value"]);
+                    } else {
+                        [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+                    }
 
                     $qb->leftJoin('dispatch.locationTo', 'drop_location')
                         ->leftJoin("drop_location.locationGroup", "drop_location_group")
@@ -166,7 +172,12 @@ class DispatchRepository extends EntityRepository
                         ->setParameter("filter_drop_locations", $locations);
                     break;
                 case FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS:
-                    [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+                    if($options['fromDashboard']) {
+                        $locations = explode(",", $filter["value"]);
+                        $locationGroups = explode(",", $filter["value"]);
+                    } else {
+                        [$locations, $locationGroups] = $this->extractLocationsAndGroups($filter);
+                    }
 
                     $qb->leftJoin('dispatch.locationFrom', 'pick_location')
                         ->leftJoin("pick_location.locationGroup", "pick_location_group")
@@ -672,5 +683,32 @@ class DispatchRepository extends EntityRepository
             $locations,
             $locationGroups,
         ];
+    }
+
+    public function countByFilters(EntityManagerInterface $entityManager,
+                                   array $filters = []){
+        $qb = $this->createQueryBuilder('dispatch')
+            ->select('COUNT(dispatch)')
+            ->innerJoin('dispatch.statut', 'status', JOIN::WITH, 'status.id IN (:statuses)')
+            ->innerJoin('dispatch.type', 'type', JOIN::WITH, 'type.id IN (:types)')
+            ->setParameter('types', $filters['types'])
+            ->setParameter('statuses', $filters['statuses']);
+
+        if(!empty($filters['pickLocations'])){
+            $qb->innerJoin('dispatch.locationFrom', 'pickLocation', JOIN::WITH, 'pickLocation.id IN (:pickLocations)')
+                ->setParameter('pickLocations', $filters['pickLocations']);
+        }
+
+        if(!empty($filters['dropLocations'])){
+            $qb->innerJoin('dispatch.locationTo', 'dropLocation', JOIN::WITH, 'dropLocation.id IN (:dropLocations)')
+                ->setParameter('dropLocations', $filters['dropLocations']);
+        }
+
+        if(!empty($filters['dispatchEmergencies'])){
+            $qb->andWhere('dispatch.emergency IN (:dispatchEmergencies)')
+                ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
+        }
+
+        return $qb->getQuery()->getSingleScalarResult();
     }
 }
