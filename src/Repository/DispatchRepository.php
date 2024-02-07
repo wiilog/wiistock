@@ -11,6 +11,7 @@ use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
+use App\Service\UniqueNumberService;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -314,12 +315,15 @@ class DispatchRepository extends EntityRepository
      * @param $date
      * @return mixed|null
      */
-    public function getLastNumberByDate(string $date): ?string {
+    public function getLastNumberByDate(string $date, ?string $prefix, ?string $format): ?string {
+        $value = ($format === UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH)
+            ? ($date . '%')
+            : (Dispatch::NUMBER_PREFIX . '-' . $date . '%');
         $result = $this->createQueryBuilder('dispatch')
             ->select('dispatch.number')
             ->where('dispatch.number LIKE :value')
             ->addOrderBy('dispatch.number', 'DESC')
-            ->setParameter('value', Dispatch::NUMBER_PREFIX . '-' . $date . '%')
+            ->setParameter('value', $value)
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
