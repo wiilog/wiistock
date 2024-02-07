@@ -1,0 +1,64 @@
+{% set external = external is defined and external %}
+
+{% if navigationHeaderButtons is defined and navigationHeaderButtons %}
+    <div class="col-auto">
+        <button class="btn btn-outline-primary today-date mr-0 h-100"
+                disabled
+                data-loader-color="black">
+            Aujourd'hui
+        </button>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary decrement-date mr-0 h-100 d-flex align-items-center has-tooltip"
+                data-loader-color="black"
+                title="Semaine précédente">
+            <i class="wii-icon wii-icon-arrow-left wii-icon-15px"></i>
+        </button>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary increment-date h-100 d-flex align-items-center has-tooltip"
+                data-loader-color="black"
+                title="Semaine suivante">
+            <i class="wii-icon wii-icon-arrow-right wii-icon-15px"></i>
+        </button>
+    </div>
+
+    {% if not external %}
+        <div class="col-auto ml-auto">
+            <button class="btn btn-primary ml-auto launch-preparation-button" tabindex="0">
+            <span class=" d-flex align-items-center">
+                <i class="mr-2 fas fa-external-link-alt"></i>
+                <a href="{{ path('production_request_planning_external', {token}) }}" target="_blank">Lien externe</a>
+            </span>
+            </button>
+        </div>
+    {% endif %}
+{% endif %}
+
+{% if previousWeekSideButton is defined and previousWeekSideButton %}
+    <div class="previous-week pointer d-none">
+        <img class="has-tooltip"
+            {% if not external %}
+                title="Glisser-déposer une carte pour passer à la semaine précédente."
+            {% else %}
+                title="Semaine précédente"
+            {% endif %}
+            src="{{ asset("svg/arrow-left.svg") }}"
+            width="30"
+        >
+    </div>
+{% endif %}
+
+{% if nextWeekSideButton is defined and nextWeekSideButton %}
+    <div class="next-week pointer d-none">
+        <img class="has-tooltip"
+            {% if not external %}
+                title="Glisser-déposer une carte pour passer à la semaine suivante."
+            {% else %}
+                title="Semaine suivante"
+            {% endif %}
+            src="{{ asset("svg/arrow.svg") }}"
+            width="30"
+        >
+    </div>
+{% endif %}

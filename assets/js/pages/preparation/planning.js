@@ -14,6 +14,7 @@ $(function () {
     planning.onPlanningLoad(() => {
         onPlanningLoaded(planning);
     });
+    planning.fetch();
 
     initializeFilters();
     initializePlanningNavigation();

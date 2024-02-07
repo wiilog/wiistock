@@ -1,7 +1,8 @@
-{% set canDrag = hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
+{% set canDrag = not external and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST')) %}
 {# same as ProductionRequestService::checkRoleForEdition #}
 {% set canUpdateStatus = (
-    productionRequest.status
+    not external
+    and productionRequest.status
     and (
         (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
         or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
@@ -10,10 +11,12 @@
 ) %}
 
 {% set emergency = productionRequest.emergency ?? null %}
-<a class="planning-card preparation-card pointer can-drag has-tooltip"
-   href="{{ path('production_request_show', {id: productionRequest.id}) }}"
-   data-production-request-id="{{ productionRequest.id }}"
-   data-status="{{ productionRequest.status ? productionRequest.status.code }}"
+<a class="planning-card preparation-card {{ not external ? 'pointer' }} can-drag has-tooltip"
+   {% if not external %}
+       href="{{ path('production_request_show', {id: productionRequest.id}) }}"
+       data-status="{{ productionRequest.status ? productionRequest.status.code }}"
+   {% endif %}
+   data-id="{{ productionRequest.id }}"
    title="Attendu le {{ productionRequest.expectedAt|format_helper("longDate", {time: true, addAt: true}) }}"
 >
     <div class="planning-card-wrapper"
@@ -55,8 +58,8 @@
             {% endif %}
 
             {% if fields is not empty %}
-                {% set uniqueId = "cardCollapse" ~ random() %}
-                <div class="col-12 collapse" id="{{ uniqueId }}">
+                {% set id = "cardCollapse-" ~ random() %}
+                <div class="col-12 collapse" id="{{ id }}">
                     {% for name, value in fields %}
                         <div class="mt-1">
                             {{ name }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ value }}</span>
@@ -66,7 +69,7 @@
 
                 <div class="col-12 d-flex justify-content-center">
                     <div class="expand-card-button prevent-default" type="button" data-toggle="collapse"
-                         data-target="#{{ uniqueId }}" aria-expanded="false" aria-controls="cardCollapse"></div>
+                         data-target="#{{ id }}" aria-expanded="false" aria-controls="cardCollapse"></div>
                 </div>
             {% endif %}
         </div>

@@ -1,0 +1,56 @@
+{% import "form.html.twig" as form %}
+
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('production-planning') }}
+    {{ encore_entry_link_tags('preparation-planning') }}
+{% endblock %}
+
+{% block body %}
+    <div class="wrapper pl-0 bg-wiistock-gradient {{ app_context }}">
+        <div class="dashboard-ext p-2">
+            <div class="header-container header-ext position-relative">
+                {% include 'header.html.twig' with {
+                    external: true
+                } %}
+                <span class="refresh-date external">Actualisé le : {{ firstRefreshDate }}</span>
+            </div>
+            <div class="dashboard-container">
+                <div class="mx-4 wii-page-card flex-fill d-flex flex-column">
+                    <div class="row">
+                        {% include "production_request/planning/navigation-buttons.html.twig" with {
+                            navigationHeaderButtons: true,
+                            external: true,
+                        } %}
+                    </div>
+                    <div class="row flex-fill">
+                        <div class="col-12">
+                            <div class="d-flex flex-fill production-request-planning-container h-100">
+                                {% include "production_request/planning/navigation-buttons.html.twig" with {
+                                    previousWeekSideButton: true,
+                                    external: true,
+                                } %}
+                                <div class="production-request-planning"></div>
+                                {% include "production_request/planning/navigation-buttons.html.twig" with {
+                                    nextWeekSideButton: true,
+                                    external: true,
+                                } %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ form.hidden("external", 1) }}
+    {{ form.hidden("expandedCards", null) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('filters') }}
+    {{ encore_entry_script_tags('production-planning') }}
+{% endblock %}

@@ -21,6 +21,7 @@ $(function () {
                 .join(',')
         })
     });
+    planning.fetch();
 
     const $button = $('.planning-switch').find('[name=status]');
 
