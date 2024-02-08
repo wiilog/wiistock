@@ -265,7 +265,7 @@ class TrackingMovementController extends AbstractController
                     else {
                         return $this->json($this->treatPersistTrackingError($pickingRes));
                     }
-
+ /// Modification test
                     $dropRes = $trackingMovementService->persistTrackingMovementForPackOrGroup(
                         $entityManager,
                         $mainPack ?? $pack,
