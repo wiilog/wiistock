@@ -273,14 +273,9 @@ class UtilisateurRepository extends EntityRepository implements UserLoaderInterf
         preg_match($pattern, $cleanName, $matches);
         $names = explode(' ', $matches ?? $matches[1] ?: $cleanName);
         $queryBuilder = $this->createQueryBuilder("user");
-        $exprBuilder = $queryBuilder->expr();
         foreach ($names as $name) {
             $queryBuilder
-                ->andwhere('(' .
-                    $exprBuilder->orX(
-                        "user.username LIKE :$name",
-                    )
-                    . ')')
+                ->andwhere("user.username LIKE :$name")
                 ->setParameter($name, "%$name%");
         }
         $query = $queryBuilder->getQuery();
