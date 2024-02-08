@@ -1,6 +1,6 @@
 {% set external = external is defined and external %}
 
-{% if navigationHeaderButtons is defined and navigationHeaderButtons %}
+{% macro navigationHeaderButtons(external, token = null) %}
     <div class="col-auto">
         <button class="btn btn-outline-primary today-date mr-0 h-100"
                 disabled
@@ -33,9 +33,9 @@
             </button>
         </div>
     {% endif %}
-{% endif %}
+{% endmacro %}
 
-{% if previousWeekSideButton is defined and previousWeekSideButton %}
+{% macro previousWeekSideButton(external) %}
     <div class="previous-week pointer d-none">
         <img class="has-tooltip"
             {% if not external %}
@@ -47,9 +47,9 @@
             width="30"
         >
     </div>
-{% endif %}
+{% endmacro %}
 
-{% if nextWeekSideButton is defined and nextWeekSideButton %}
+{% macro nextWeekSideButton(external) %}
     <div class="next-week pointer d-none">
         <img class="has-tooltip"
             {% if not external %}
@@ -61,4 +61,4 @@
             width="30"
         >
     </div>
-{% endif %}
+{% endmacro %}

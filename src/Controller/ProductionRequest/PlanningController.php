@@ -58,7 +58,7 @@ class PlanningController extends AbstractController {
                     $status['label']
                 ])
                 ->toArray(),
-            "token" => $_SERVER["APP_PLANNING_TOKEN"] ?? "",
+            "token" => $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"] ?? "",
         ]);
     }
 
@@ -150,7 +150,6 @@ class PlanningController extends AbstractController {
                     $fields = Stream::from([
                         FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
                         FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-                        FixedFieldEnum::comment->name => $this->getFormatter()->html($productionRequest->getComment()),
                         FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
                     ])
                         ->filter(static function (mixed $_, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
@@ -211,7 +210,7 @@ class PlanningController extends AbstractController {
 
     #[Route("/externe/{token}", name: "external")]
     public function external(string $token): Response {
-        if ($token !== $_SERVER["APP_PLANNING_TOKEN"]) {
+        if ($token !== $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"]) {
             return $this->redirectToRoute("access_denied");
         }
 

@@ -14,12 +14,12 @@
                     <div class="header">
                         <span class="wii-title">{{ label }}</span>
                     </div>
-                    <div class="d-flex flex-fill flex-column">
-                        {% if columnHint %}
-                            <div class="column-hint-container">
-                                {{ columnHint|raw }}
-                            </div>
-                        {% endif %}
+                    {% if columnHint %}
+                        <div class="column-hint-container">
+                            {{ columnHint|raw }}
+                        </div>
+                    {% endif %}
+                    <div class="d-flex flex-fill flex-column maxh-100 overflow-y-hidden">
                         <div class="planning-card-container scrollable"
                              data-loader-color="black"
                              data-loader-size="normal">
