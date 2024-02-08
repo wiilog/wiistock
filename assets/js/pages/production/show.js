@@ -4,20 +4,30 @@ import Modal from "@app/modal";
 import Camera from "@app/camera";
 
 global.deleteProductionRequest = deleteProductionRequest;
-
 global.openModalEditProductionRequest = openModalEditProductionRequest;
+
 const $modalEditProductionRequest = $('#modalEditProductionRequest');
+
+let camera = null;
+
 $(function () {
     const productionRequestId = $(`[name=productionRequestId]`).val();
+    Camera.init($modalEditProductionRequest.find(`.take-picture-modal-button`))
+        .then(function (instance) {
+            camera = instance;
+        });
 
     Form
         .create($modalEditProductionRequest)
         .onOpen(() => {
-            $modalEditProductionRequest
-                .find(`.take-picture-modal-button`)
-                .on(`click`, function () {
-                    Camera.init($modalEditProductionRequest.find(`[name="files[]"]`));
-                });
+            const $takePictureModalButton = $modalEditProductionRequest.find(`.take-picture-modal-button`);
+            if(camera) {
+                $takePictureModalButton
+                    .off(`click.productionRequestTakePicture`)
+                    .on(`click.productionRequestTakePicture`, function () {
+                        wrapLoadingOnActionButton($(this), () => camera.open($modalEditProductionRequest.find(`[name="files[]"]`)));
+                    });
+            }
         })
         .submitTo(AJAX.POST, 'production_request_edit', {
             routeParams: {

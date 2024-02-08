@@ -14,6 +14,7 @@ global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequest
 const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
 
 let planning = null;
+let camera = null;
 
 $(function () {
     planning = new Planning($(`.production-request-planning`), {route: `production_request_planning_api`, baseDate: moment().startOf(`isoWeek`)});
@@ -23,6 +24,10 @@ $(function () {
 
     initializeFilters();
     initializePlanningNavigation();
+    Camera.init($modalUpdateProductionRequestStatus.find(`.take-picture-modal-button`))
+        .then(function (instance) {
+            camera = instance;
+        });
 });
 
 function callbackSaveFilter() {
@@ -162,13 +167,16 @@ function openModalUpdateProductionRequestStatus($container){
                 $modalUpdateProductionRequestStatus.find(`.modal-body`),
                 {
                     onOpen: () => {
-                        $modalUpdateProductionRequestStatus
-                            .find(`.take-picture-modal-button`)
-                            .on(`click`, function () {
-                                Camera.init($modalUpdateProductionRequestStatus.find(`[name="files[]"]`));
-                            });
-                    }
-                }
+                        const $takePictureModalButton = $modalUpdateProductionRequestStatus.find(`.take-picture-modal-button`);
+                        if(camera) {
+                            $takePictureModalButton
+                                .off(`click.productionRequestTakePicture`)
+                                .on(`click.productionRequestTakePicture`, function () {
+                                    wrapLoadingOnActionButton($(this), () => camera.open($modalUpdateProductionRequestStatus.find(`[name="files[]"]`)));
+                                });
+                        }
+                    },
+                },
             );
         })
         .submitTo(POST, `production_request_planning_update_status`, {

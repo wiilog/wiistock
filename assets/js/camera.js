@@ -1,5 +1,8 @@
 import CameraPhoto, {FACING_MODES} from "jslib-html5-camera-photo";
 import Flash, {ERROR} from "@app/flash";
+import {tooltipConfig} from "@app/tooltips";
+import {dataURLtoFile} from "@app/utils";
+import moment from "moment";
 
 export default class Camera {
     cameraPhoto;
@@ -8,34 +11,72 @@ export default class Camera {
     static ENVIRONMENT_MODE = FACING_MODES.ENVIRONMENT;
     static USER_MODE = FACING_MODES.USER;
     static DEFAULT_RESOLUTION = {width: 640, height: 480};
+    static VIDEO_INPUT_TYPE = `videoinput`;
 
-    static init($filesInput) {
-        this.enumerate().then((videoDevices) => {
-            if (videoDevices.length > 0) {
-                this.proceed($filesInput);
+    static async init($takePictureModalButton) {
+        return enumerateVideoDevices().then((videoDevices) => {
+            const videoDevicesLength = videoDevices.length;
+            if (videoDevicesLength > 0) {
+                const $takePictureModal = $(`#take-picture-modal`);
+                const $videoDevice = $takePictureModal.find(`[name=videoDevice]`);
+
+                const camera = new Camera();
+                camera.cameraPhoto = new CameraPhoto($takePictureModal.find(`.camera-frame`)[0]);
+
+                $videoDevice
+                    .prop(`disabled`, videoDevicesLength === 1)
+                    .append(videoDevices
+                        .reduce((acc, {deviceId, label}) => `
+                            ${acc}
+                            <option value="${deviceId}" ${videoDevicesLength === 1 ? `selected` : ``}>
+                                ${label}
+                            </option>
+                        `, ``)
+                    );
+
+                if(videoDevicesLength > 1) {
+                    $videoDevice
+                        .off(`change.videoDevice`)
+                        .on(`change.videoDevice`, function () {
+                            const deviceId = $(this).val();
+
+                            stopCamera(camera).then(() => {
+                                console.log($takePictureModal.find(`.modal-body`));
+                                wrapLoadingOnActionButton($takePictureModal.find(`.modal-body`), () => (
+                                    startCamera(camera, {device: deviceId}
+                                )))
+                            });
+                        });
+                }
+
+                return camera;
             } else {
-                Flash.add(ERROR, `Votre système ne dispose pas d'entrée vidéo.`);
+                $takePictureModalButton
+                    .prop(`disabled`, true)
+                    .attr(`title`, `Votre système ne dispose pas d'entrée vidéo.`)
+                    .tooltip(tooltipConfig);
+                return undefined;
             }
         });
     }
 
-    static proceed($filesInput) {
+    async open($filesInput) {
         const $takePictureModal = $(`#take-picture-modal`);
         const $takePictureButton = $takePictureModal.find(`.take-picture-button`);
         const $retryPictureButton = $takePictureModal.find(`.retry-picture-button`);
         const $imagePreview = $takePictureModal.find(`.image-preview`);
 
-        const camera = new Camera();
-        camera.cameraPhoto = new CameraPhoto($takePictureModal.find(`.camera-frame`)[0]);
+        const camera = this;
 
-        camera.start().then(() => {
+        return startCamera(camera).then(() => {
             $takePictureModal.modal(`show`);
 
             $takePictureButton
-                .off(`click`)
-                .on(`click`, function () {
+                .off(`click.takePictureButton`)
+                .on(`click.takePictureButton`, function () {
                     camera.base64Image = camera.cameraPhoto.getDataUri({});
-                    camera.stop().then(() => {
+
+                    stopCamera(camera).then(() => {
                         $imagePreview.css(`background-image`, `url(${camera.base64Image})`);
                         $takePictureButton.addClass(`d-none`);
                         $retryPictureButton.removeClass(`d-none`);
@@ -44,20 +85,22 @@ export default class Camera {
                 });
 
             $retryPictureButton
-                .off(`click`)
-                .on(`click`, function () {
-                    camera.start({}).then(() => {
-                        $imagePreview.css(`background-image`, ``);
+                .off(`click.retryPictureButton`)
+                .on(`click.retryPictureButton`, function () {
+                    wrapLoadingOnActionButton($imagePreview, () => (
+                        startCamera(camera).then(() => {
+                            $imagePreview.css(`background-image`, ``);
 
-                        $retryPictureButton.addClass(`d-none`);
-                        $takePictureButton.removeClass(`d-none`);
-                        $takePictureModal.find(`[type=submit]`).prop(`disabled`, true);
-                    });
+                            $retryPictureButton.addClass(`d-none`);
+                            $takePictureButton.removeClass(`d-none`);
+                            $takePictureModal.find(`[type=submit]`).prop(`disabled`, true);
+                        })
+                    ));
                 });
 
             $takePictureModal
-                .off(`click.takePicture`)
-                .on(`click.takePicture`, `[type=submit]:not([disabled])`, function () {
+                .off(`click.takePictureModalSubmit`)
+                .on(`click.takePictureModalSubmit`, `[type=submit]:not([disabled])`, function () {
                     const date = moment().format(`DD-MM-YYYY-H-m-ss`);
                     const filename = `photo_${date}.png`;
                     const newFile = dataURLtoFile(camera.base64Image, filename);
@@ -68,45 +111,51 @@ export default class Camera {
                 });
 
             $takePictureModal
+                .off(`hidden.bs.modal`)
                 .on(`hidden.bs.modal`, function () {
                     $retryPictureButton.addClass(`d-none`);
                     $takePictureButton.removeClass(`d-none`);
                     $imagePreview.css(`background-image`, ``);
-                    camera.stop();
+                    stopCamera(camera);
                 });
         });
     }
+}
 
-    /**
-     * Start camera with parameters
-     * @param {{
-     *      device: string|undefined,
-     *      resolution: {
-     *          width: string,
-     *          height: string
-     *      }|undefined
-     * }|{}} options
-     */
-    start(options = {}) {
-        const device = options.device || Camera.USER_MODE;
-        const resolution = options.resolution || Camera.DEFAULT_RESOLUTION;
+/**
+ * Start camera with parameters
+ * @param {Camera} camera
+ * @param {{
+ *      device: string|undefined,
+ *      resolution: {
+ *          width: string,
+ *          height: string
+ *      }|undefined
+ * }|{}} options
+ */
+function startCamera(camera, options = {}) {
+    const device = options.device || Camera.USER_MODE;
+    const resolution = options.resolution || Camera.DEFAULT_RESOLUTION;
 
-        return this.cameraPhoto.startCamera(device, resolution)
-            .catch((e) => {
-                Flash.add(ERROR, `Vous n'avez pas autorisé l'application à utiliser la caméra.`);
-                throw e;
-            });
-    }
+    return camera.cameraPhoto.startCamera(device, resolution)
+        .catch((e) => {
+            Flash.add(ERROR, `Vous n'avez pas autorisé l'application à utiliser la caméra.`);
+            throw e;
+        });
+}
 
-    stop() {
-        return this.cameraPhoto.stopCamera()
-            .catch(() => {});
-    }
+/**
+ * Start camera with parameters
+ * @param {Camera} camera
+ */
+function stopCamera(camera) {
+    return camera.cameraPhoto.stopCamera()
+        .catch(() => {});
+}
 
-    static async enumerate() {
-        return navigator.mediaDevices.enumerateDevices()
-            .then((cameras) => {
-                return cameras.filter(({kind}) => kind === `videoinput`);
-            });
-    }
+async function enumerateVideoDevices() {
+    return navigator.mediaDevices.enumerateDevices()
+        .then((cameras) => {
+            return cameras.filter(({kind}) => kind === Camera.VIDEO_INPUT_TYPE);
+        });
 }

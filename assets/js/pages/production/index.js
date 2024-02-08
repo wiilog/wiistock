@@ -1,15 +1,23 @@
 import AJAX, {POST, GET} from "@app/ajax";
 import Camera from "@app/camera";
+import Form from "@app/form";
 
 let tableProduction;
 
 global.onProductionRequestTypeChange = onProductionRequestTypeChange;
 global.displayAttachmentRequired = displayAttachmentRequired;
 
+let camera = null;
+
 $(function () {
+    const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
+    Camera.init($modalNewProductionRequest.find(`.take-picture-modal-button`))
+        .then(function (instance) {
+            camera = instance;
+        });
     initProductionRequestsTable().then((table) => {
         tableProduction = table;
-        initProductionRequestModal($(`#modalNewProductionRequest`), `production_request_new`);
+        initProductionRequestModal($modalNewProductionRequest, `production_request_new`);
     });
 
     const $userFormat = $('#userDateFormat');
@@ -17,7 +25,7 @@ $(function () {
 
     const filtersContainer = $('.filters-container');
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
-    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
+    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgences', false));
 
     filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
         updateSelectedStatusesCount($(this).closest('.statuses-filter').find('[name*=statuses-filter]:checked').length);
@@ -27,7 +35,7 @@ $(function () {
 
     getUserFiltersByPage(PAGE_PRODUCTION);
 
-    $(`.export-button`).on(`click`, function() {
+    $(`.export-button`).on(`click`, function () {
         exportFile(`production_request_export`, {}, {
             needsAllFilters: true,
             needsDateFormatting: true,
@@ -134,11 +142,14 @@ function initProductionRequestModal($modal, submitRoute) {
     Form
         .create($modal, {clearOnOpen: true})
         .onOpen(() => {
-            $modal
-                .find(`.take-picture-modal-button`)
-                .on(`click`, function () {
-                    Camera.init($modal.find(`[name="files[]"]`));
-                });
+            const $takePictureModalButton = $modal.find(`.take-picture-modal-button`);
+            if(camera) {
+                $takePictureModalButton
+                    .off(`click.productionRequestTakePicture`)
+                    .on(`click.productionRequestTakePicture`, function () {
+                        wrapLoadingOnActionButton($(this), () => camera.open($modal.find(`[name="files[]"]`)));
+                    });
+            }
         })
         .submitTo(POST, submitRoute, {
             tables: [tableProduction],

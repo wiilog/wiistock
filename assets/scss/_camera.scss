@@ -8,6 +8,7 @@
 
     .camera-frame-container {
         display: flex;
+        justify-content: center;
 
         .camera-frame, .image-preview {
             width: 640px;

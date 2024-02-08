@@ -10,7 +10,6 @@ global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
 global.exportFile = exportFile;
-global.dataURLtoFile = dataURLtoFile;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -173,15 +172,15 @@ function exportFile(route, params = {}, options = {}) {
     ));
 }
 
-function dataURLtoFile(dataURL, filename) {
+export function dataURLtoFile(dataURL, filename) {
     const arr = dataURL.split(`,`);
     const mime = arr[0].match(/:(.*?);/)[1];
     const bstr = atob(arr[arr.length - 1]);
-    let length = bstr.length;
-    const u8arr = new Uint8Array(length);
+    let index = bstr.length;
+    const u8arr = new Uint8Array(index);
 
-    while (length--) {
-        u8arr[length] = bstr.charCodeAt(length);
+    while (index--) {
+        u8arr[index] = bstr.charCodeAt(index);
     }
 
     return new File([u8arr], filename, {type: mime});
