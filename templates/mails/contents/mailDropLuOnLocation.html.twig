@@ -1,0 +1,49 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+    <div>
+        <p>
+            Bonjour,
+        </p>
+        <p>
+            Une ou plusieurs unités logistiques ont été déposées dans un emplacement dont vous êtes responsables.
+
+        </p>
+
+        <ul style="list-style-type: none;">
+            <li>
+                Emplacement : <strong>{{ location.label }}</strong>
+            </li>
+            <li>
+                Opérateur : <strong>{{ trackingMovement.operateur }}</strong>
+            </li>
+            <li>
+                Date et heure de la dépose : <strong>{{ trackingMovement.datetime|date('d/m/Y H:i:s') }}</strong>
+            </li>
+            <li>
+                Champs libres sur le mouvement :
+                <ul>
+                    {% for freeField in freeFields %}
+                        <li>{{ freeField.label }} : <strong>{{ freeField.value }}</strong></li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>
+                Numéro de l'unité logistique : <strong>{{ trackingMovement.pack.code }}</strong>
+            </li>
+            <li>
+                {% set nature = trackingMovement.pack.nature %}
+                Nature : <strong>{{ nature ? nature.label : '-' }}</strong>
+            </li>
+            <li>
+                Quantité : <strong>{{ trackingMovement.quantity }}</strong>
+            </li>
+            <li>
+                Issu de : <strong>{{ from.fromLabel }} {{ from.from }}</strong>
+            </li>
+            <li>
+                Commentaire : <strong>{{ trackingMovement.commentaire|raw }}</strong>
+            </li>
+        </ul>
+    </div>
+{% endblock %}
