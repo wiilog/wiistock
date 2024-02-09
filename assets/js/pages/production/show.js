@@ -6,28 +6,16 @@ import Camera from "@app/camera";
 global.deleteProductionRequest = deleteProductionRequest;
 global.openModalEditProductionRequest = openModalEditProductionRequest;
 
-const $modalEditProductionRequest = $('#modalEditProductionRequest');
-
-let camera = null;
-
 $(function () {
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
     const productionRequestId = $(`[name=productionRequestId]`).val();
-    Camera.init($modalEditProductionRequest.find(`.take-picture-modal-button`))
-        .then(function (instance) {
-            camera = instance;
-        });
-
     Form
         .create($modalEditProductionRequest)
         .onOpen(() => {
-            const $takePictureModalButton = $modalEditProductionRequest.find(`.take-picture-modal-button`);
-            if(camera) {
-                $takePictureModalButton
-                    .off(`click.productionRequestTakePicture`)
-                    .on(`click.productionRequestTakePicture`, function () {
-                        wrapLoadingOnActionButton($(this), () => camera.open($modalEditProductionRequest.find(`[name="files[]"]`)));
-                    });
-            }
+            Camera.init(
+                $modalEditProductionRequest.find(`.take-picture-modal-button`),
+                $modalEditProductionRequest.find(`[name="files[]"]`)
+            );
         })
         .submitTo(AJAX.POST, 'production_request_edit', {
             routeParams: {
@@ -61,6 +49,7 @@ export function getOperationHistory(productionRequestId) {
 }
 
 function openModalEditProductionRequest(){
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
     $modalEditProductionRequest.modal('show');
 }
 

@@ -8,12 +8,11 @@ export default class Camera {
     cameraPhoto;
     base64Image;
 
-    static ENVIRONMENT_MODE = FACING_MODES.ENVIRONMENT;
     static USER_MODE = FACING_MODES.USER;
     static DEFAULT_RESOLUTION = {width: 640, height: 480};
     static VIDEO_INPUT_TYPE = `videoinput`;
 
-    static async init($takePictureModalButton) {
+    static async init($openModalButton, $inputFile) {
         return enumerateVideoDevices().then((videoDevices) => {
             const videoDevicesLength = videoDevices.length;
             if (videoDevicesLength > 0) {
@@ -24,24 +23,34 @@ export default class Camera {
                 camera.cameraPhoto = new CameraPhoto($takePictureModal.find(`.camera-frame`)[0]);
 
                 $videoDevice
-                    .prop(`disabled`, videoDevicesLength === 1)
-                    .append(videoDevices
-                        .reduce((acc, {deviceId, label}) => `
-                            ${acc}
-                            <option value="${deviceId}" ${videoDevicesLength === 1 ? `selected` : ``}>
-                                ${label}
-                            </option>
-                        `, ``)
+                    .empty()
+                    .append(
+                        ...videoDevices.map(({deviceId, label}) => (
+                            $('<option/>', {
+                                value: deviceId,
+                                text: label
+                            })
+                        ))
                     );
 
-                if(videoDevicesLength > 1) {
+                if(camera) {
+                    $openModalButton
+                        .off(`click.cameraOpenModal`)
+                        .on(`click.cameraOpenModal`, function () {
+                            wrapLoadingOnActionButton($(this), () => camera.open($inputFile));
+                        });
+                }
+
+                if (videoDevicesLength === 1) {
+                    $videoDevice.prop(`disabled`, videoDevicesLength === 1);
+                }
+                else { // if(videoDevicesLength > 1)
                     $videoDevice
-                        .off(`change.videoDevice`)
-                        .on(`change.videoDevice`, function () {
+                        .off(`change.cameraOpenModal`)
+                        .on(`change.cameraOpenModal`, function () {
                             const deviceId = $(this).val();
 
                             stopCamera(camera).then(() => {
-                                console.log($takePictureModal.find(`.modal-body`));
                                 wrapLoadingOnActionButton($takePictureModal.find(`.modal-body`), () => (
                                     startCamera(camera, {device: deviceId}
                                 )))
@@ -49,9 +58,13 @@ export default class Camera {
                         });
                 }
 
+                $videoDevice
+                    .val(videoDevices[0].deviceId)
+                    .trigger('change');
+
                 return camera;
             } else {
-                $takePictureModalButton
+                $openModalButton
                     .prop(`disabled`, true)
                     .attr(`title`, `Votre système ne dispose pas d'entrée vidéo.`)
                     .tooltip(tooltipConfig);

@@ -7,17 +7,22 @@ let tableProduction;
 global.onProductionRequestTypeChange = onProductionRequestTypeChange;
 global.displayAttachmentRequired = displayAttachmentRequired;
 
-let camera = null;
-
 $(function () {
-    const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
-    Camera.init($modalNewProductionRequest.find(`.take-picture-modal-button`))
-        .then(function (instance) {
-            camera = instance;
-        });
     initProductionRequestsTable().then((table) => {
         tableProduction = table;
-        initProductionRequestModal($modalNewProductionRequest, `production_request_new`);
+
+        const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
+        Form
+            .create($modalNewProductionRequest, {clearOnOpen: true})
+            .onOpen(() => {
+                Camera.init(
+                    $modalNewProductionRequest.find(`.take-picture-modal-button`),
+                    $modalNewProductionRequest.find(`[name="files[]"]`)
+                );
+            })
+            .submitTo(POST, `production_request_new`, {
+                tables: [tableProduction],
+            });
     });
 
     const $userFormat = $('#userDateFormat');
@@ -135,23 +140,4 @@ function displayAttachmentRequired($select) {
     const requiredAttachment = statusData && statusData.requiredAttachment ? 1 : 0;
     $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
     $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
-}
-
-
-function initProductionRequestModal($modal, submitRoute) {
-    Form
-        .create($modal, {clearOnOpen: true})
-        .onOpen(() => {
-            const $takePictureModalButton = $modal.find(`.take-picture-modal-button`);
-            if(camera) {
-                $takePictureModalButton
-                    .off(`click.productionRequestTakePicture`)
-                    .on(`click.productionRequestTakePicture`, function () {
-                        wrapLoadingOnActionButton($(this), () => camera.open($modal.find(`[name="files[]"]`)));
-                    });
-            }
-        })
-        .submitTo(POST, submitRoute, {
-            tables: [tableProduction],
-        });
 }
