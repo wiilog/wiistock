@@ -1,0 +1,35 @@
+{% import "form.html.twig" as form %}
+
+<div class="modal fade" id="take-picture-modal" role="dialog" aria-hidden="true" data-modal-type="new">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Prendre une photo"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="camera-frame-container">
+                            <video class="camera-frame" autoplay playsinline></video>
+                            <div class="take-picture-button has-tooltip" title="Prendre une photo"></div>
+                            <div class="retry-picture-button d-none has-tooltip" title="Recommencer la prise"></div>
+                            <div class="image-preview" data-loader-size="normal"></div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        {{ form.select("videoDevice", "Entrée vidéo", true, {
+                            inputClass: "w-50",
+                        }) }}
+                    </div>
+                </div>
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit', disabled: true}
+                ],
+            } %}
+        </div>
+    </div>
+</div>

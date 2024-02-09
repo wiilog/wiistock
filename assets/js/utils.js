@@ -171,3 +171,17 @@ function exportFile(route, params = {}, options = {}) {
             .catch(() => showBSAlert(`Une erreur est survenue lors de l'export des données. Veuillez réduire le volume de données exportées.`, `danger`))
     ));
 }
+
+export function dataURLtoFile(dataURL, filename) {
+    const arr = dataURL.split(`,`);
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[arr.length - 1]);
+    let index = bstr.length;
+    const u8arr = new Uint8Array(index);
+
+    while (index--) {
+        u8arr[index] = bstr.charCodeAt(index);
+    }
+
+    return new File([u8arr], filename, {type: mime});
+}

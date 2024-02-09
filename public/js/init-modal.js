@@ -902,7 +902,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal
 function displayAttachements(files, $dropFrame, isMultiple = true, lineClass = '') {
     const errorMessages = [];
 
-    const $fileBag = $dropFrame.siblings('.file-bag');
+    const $fileBag = $dropFrame.closest(`.attachments-container`).find('.file-bag');
 
     if (!isMultiple) {
         $fileBag.empty();
@@ -1046,7 +1046,9 @@ function saveInputFiles($inputFile, options) {
     let dropFrame = $inputFile.closest('.dropFrame');
 
     displayAttachements(filesToSave, dropFrame, isMultiple, lineClass);
-    if (!singleton) $inputFile[0].value = '';
+    if (!singleton) {
+        $inputFile[0].value = '';
+    }
 }
 
 function resetDroppedFiles() {

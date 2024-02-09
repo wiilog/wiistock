@@ -6,6 +6,7 @@ import Planning from "@app/planning";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import moment from "moment";
+import Camera from "@app/camera";
 
 global.callbackSaveFilter = callbackSaveFilter;
 global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
@@ -158,7 +159,15 @@ function openModalUpdateProductionRequestStatus($container){
                     productionRequest,
                 },
                 $modalUpdateProductionRequestStatus,
-                $modalUpdateProductionRequestStatus.find(`.modal-body`)
+                $modalUpdateProductionRequestStatus.find(`.modal-body`),
+                {
+                    onOpen: () => {
+                        Camera.init(
+                            $modalUpdateProductionRequestStatus.find(`.take-picture-modal-button`),
+                            $modalUpdateProductionRequestStatus.find(`[name="files[]"]`)
+                        );
+                    },
+                },
             );
         })
         .submitTo(POST, `production_request_planning_update_status`, {
