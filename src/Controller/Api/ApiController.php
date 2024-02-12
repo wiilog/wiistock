@@ -8,7 +8,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 #[Rest\Route("/api")]
 class ApiController extends AbstractApiController {
 
-    #[Rest\Get("/ping")]
+    #[Rest\Get("/ping", name: 'api_ping', options: ["expose" => true])]
     #[Rest\View]
     public function ping(): JsonResponse {
         $response = new JsonResponse(['success' => true]);
