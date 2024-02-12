@@ -45,7 +45,8 @@ $(window).resize(function () {
     }, 100);
 });
 
-function loadDashboards(mode, refreshRate) {
+function loadDashboards(m, refreshRate) {
+    mode = m;
     if (mode === undefined) {
         showBSAlert(`Configuration invalide`, `danger`);
     }
