@@ -327,9 +327,11 @@ export default class Select2 {
                 .closest(closest)
                 .find(selector);
 
+            const getName = (elem) => $(elem).data('include-params-name') || elem.name;
+
             const values = $fields
-                .filter((_, elem) => elem.name && elem.value)
-                .keymap((elem) => [elem.name, elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
+                .filter((_, elem) => getName(elem) && elem.value)
+                .keymap((elem) => [getName(elem), elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
 
             params = {
                 ...params,
