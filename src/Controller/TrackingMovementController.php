@@ -251,10 +251,11 @@ class TrackingMovementController extends AbstractController
                         array_push($createdMouvements, ...$pickingRes['movements']);
 
                         $codeToPack = Stream::from($pickingRes['movements'])
-                            ->keymap(fn(TrackingMovement $movement) => [
-                                $movement->getPack()->getCode(),
-                                $movement->getPack()
-                            ])
+                            ->keymap(static function(TrackingMovement $movement) {
+                                $pack = $movement->getPack();
+
+                                return [$pack->getCode(), $pack];
+                            })
                             ->concat($codeToPack, true)
                             ->toArray();
                     }
@@ -281,10 +282,11 @@ class TrackingMovementController extends AbstractController
                         array_push($createdMouvements, ...$dropRes['movements']);
 
                         $codeToPack = Stream::from($dropRes['movements'])
-                            ->keymap(fn(TrackingMovement $movement) => [
-                                $movement->getPack()->getCode(),
-                                $movement->getPack()
-                            ])
+                            ->keymap(static function(TrackingMovement $movement) {
+                                $pack = $movement->getPack();
+
+                                return [$pack->getCode(), $pack];
+                            })
                             ->concat($codeToPack, true)
                             ->toArray();
                     }
@@ -688,7 +690,7 @@ class TrackingMovementController extends AbstractController
             } else if ($res['error'] === Pack::IN_ONGOING_RECEPTION) {
                 return [
                     "success" => false,
-                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée"),
+                    "msg" => $this->translationService->translate("Traçabilité", "Mouvements", "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée."),
                 ];
             }
 

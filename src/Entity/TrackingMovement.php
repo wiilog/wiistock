@@ -41,17 +41,17 @@ class TrackingMovement {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Pack::class, inversedBy: 'trackingMovements')]
     #[ORM\JoinColumn(name: 'pack_id', nullable: false)]
     private ?Pack $pack = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $uniqueIdForMobile = null;
 
-    #[ORM\Column(type: 'datetime', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, length: 255, nullable: true)]
     private ?DateTime $datetime = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
@@ -76,7 +76,7 @@ class TrackingMovement {
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => self::DEFAULT_QUANTITY])]
     private ?int $quantity = self::DEFAULT_QUANTITY;
 
-    #[ORM\Column(type: Types::BIGINT, nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private ?int $orderIndex = 0;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'trackingMovements')]
@@ -106,7 +106,7 @@ class TrackingMovement {
     #[ORM\OneToOne(mappedBy: 'lastTracking', targetEntity: Pack::class)]
     private ?Pack $linkedPackLastTracking = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $groupIteration = null;
 
     #[ORM\OneToMany(mappedBy: 'firstDrop', targetEntity: LocationClusterRecord::class)]

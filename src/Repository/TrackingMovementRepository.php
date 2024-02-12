@@ -12,10 +12,9 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
@@ -261,10 +260,10 @@ class TrackingMovementRepository extends EntityRepository
                         }
                     }
 
-                    $orderId = ($column === 'datetime')
+                    $order = ($column === 'datetime')
                         ? $order
-                        : 'DESC';
-                    $qb->addOrderBy('tracking_movement.orderIndex', $orderId);
+                        : Criteria::DESC;
+                    $qb->addOrderBy('tracking_movement.orderIndex', $order);
                 }
             }
         }
