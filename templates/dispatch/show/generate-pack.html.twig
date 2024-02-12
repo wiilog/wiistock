@@ -58,11 +58,17 @@
                         }) }}
                     </div>
 
-
+                    {% set defaultPrinter = app.user.defaultPrinter %}
                     <div class="col-12 form-group mt-2">
                         {{ form.select("printer", "Imprimante", true, {
                             type: "printer",
-                            value: app.user.defaultPrinter ? app.user.defaultPrinter.id : null,
+                            items: defaultPrinter
+                                ? [{
+                                    label: defaultPrinter.name,
+                                    value: defaultPrinter.id,
+                                    selected: true,
+                                }]
+                                : [],
                         }) }}
                     </div>
                 </div>
