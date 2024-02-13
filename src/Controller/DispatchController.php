@@ -56,7 +56,6 @@ use App\Service\VisibleColumnService;
 use DateTime;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\Entity;
 use Exception;
 use Knp\Bundle\SnappyBundle\Snappy\Response\PdfResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -65,6 +64,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -2060,46 +2060,69 @@ class DispatchController extends AbstractController {
         );
     }
 
-    #[Route("/etiquette/printAll", name: "print_all_tickets", options: ['expose' => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function printAllTickets(Request                 $request,
-                                    EntityManagerInterface  $entityManager,
-                                    PDFGeneratorService     $PDFGeneratorService,
-                                    DispatchService         $dispatchService): Response
+    #[Route("/dispatch-print-logistic-units", name: "dispatch_print_logistic_units", options: ['expose' => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function printLogisticUnits(Request                $request,
+                                       EntityManagerInterface $entityManager,
+                                       PDFGeneratorService    $PDFGeneratorService,
+                                       DispatchService        $dispatchService): Response
     {
         $fixedFieldByTypeRepository = $entityManager->getRepository(FixedFieldByType::class);
-        $packRepository = $entityManager->getRepository(Pack::class);
-        $dispatch = $entityManager->getRepository(Dispatch::class);
+        $dispatchRepository = $entityManager->getRepository(Dispatch::class);
+        $dispatchPackRepository = $entityManager->getRepository(DispatchPack::class);
+        $freeFieldRepository = $entityManager->getRepository(FreeField::class);
 
-        $data = $request->query->all();
-        $codeULs = $data ? $data['codeULs'] : [];
+        $query = $request->query;
 
-        if(empty($codeULs)) {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Aucune unité logistique."
-            ]);
+        $dispatch = $dispatchRepository->find($query->get("dispatch"));
+        $dispatchPacks = $dispatch->getDispatchPacks();
+
+        $logisticUnits = !$query->has("dispatchPack")
+            ? Stream::from($dispatchPacks)
+                ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+                ->toArray()
+            : Stream::from([$dispatchPackRepository->find($query->get("dispatchPack"))])
+                ->filter(static fn(?DispatchPack $dispatchPack) => (
+                    $dispatchPack
+                    && $dispatch
+                    && $dispatchPack->getDispatch()?->getId() === $dispatch->getId()
+                ))
+                ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack())
+                ->toArray();
+
+        if(empty($logisticUnits)) {
+            throw new UnauthorizedHttpException("Aucune étiquette à imprimer.");
         }
 
-        $packs = $packRepository->findBy(['id' => $codeULs]);
-        $dispatch = $dispatch->find($data['dispatch']);
-        $dispatchType = $dispatch->getType();
+        $type = $dispatch->getType();
+        $freeFields = $freeFieldRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_DISPATCH);
+        $dispatchFreeFields = $dispatch->getFreeFields();
 
-        $fieldsParam = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
-            ->keymap(static fn(FixedFieldByType $field) => [$field->getFieldCode(), [
-                FixedFieldByType::ATTRIBUTE_ON_LABEL => $field->isOnLabel($dispatchType),
-            ]])
+        $fixedFields = Stream::from($fixedFieldByTypeRepository->findBy(["entityCode" => FixedFieldStandard::ENTITY_CODE_DISPATCH]))
+            ->keymap(static fn(FixedFieldByType $field) => [
+                $field->getFieldCode(),
+                [FixedFieldByType::ATTRIBUTE_ON_LABEL => $field->isOnLabel($type)]
+            ])
             ->toArray();
 
-        $tag = null;
+        $freeFields = Stream::from($freeFields)
+            ->filterMap(function(FreeField $freeField) use ($dispatchFreeFields) {
+                $id = $freeField->getId();
+                $value = $dispatchFreeFields[$id] ?? null;
 
-        $barcodeConfigs = Stream::from($packs)
-            ->map(fn(Pack $pack) => $dispatchService->getBarcodeDispatchConfig($pack, $dispatch, $fieldsParam))
+                return $freeField->isDisplayedOnLabel() && !in_array($value, ["", null])
+                    ? $this->formatService->freeField($value, $freeField)
+                    : null;
+            })
             ->toArray();
 
-        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfigs, 'Acheminement', $tag?->getPrefix() ?? 'ETQ');
+        $barcodeConfig = Stream::from($logisticUnits)
+            ->map(static fn(Pack $pack) => $dispatchService->getBarcodeDispatchConfig($pack, $dispatch, $fixedFields, $freeFields))
+            ->toArray();
+
+        $fileName = $PDFGeneratorService->getBarcodeFileName($barcodeConfig, "Acheminement");
 
         return new PdfResponse(
-            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfigs, false, $tag),
+            $PDFGeneratorService->generatePDFBarCodes($fileName, $barcodeConfig),
             $fileName
         );
     }

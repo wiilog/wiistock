@@ -2215,7 +2215,8 @@ class DispatchService {
 
     public function getBarcodeDispatchConfig(Pack                   $pack,
                                              Dispatch               $dispatch,
-                                             ?Array                 $fieldsParam): array
+                                             ?array                 $fieldsParam,
+                                             array                  $freeFields): array
     {
         $code = $pack->getCode();
         $labels = [];
@@ -2236,11 +2237,11 @@ class DispatchService {
         }
 
         if (isset($fieldsParam['carrier']) && $fieldsParam['carrier']['onLabel']) {
-            $labels[] = $dispatch->getCarrier() ? $dispatch->getCarrier() : '';
+            $labels[] = $dispatch->getCarrier() ?: '';
         }
 
         if (isset($fieldsParam['carrierTrackingNumber']) && $fieldsParam['carrierTrackingNumber']['onLabel']) {
-            $labels[] = $dispatch->getCarrierTrackingNumber() ? $dispatch->getCarrierTrackingNumber() : '';
+            $labels[] = $dispatch->getCarrierTrackingNumber() ?: '';
         }
 
         if (isset($fieldsParam['deadline']) && $fieldsParam['deadline']['onLabel']) {
@@ -2252,11 +2253,11 @@ class DispatchService {
         }
 
         if (isset($fieldsParam['emergency']) && $fieldsParam['emergency']['onLabel']) {
-            $labels[] = $dispatch->getEmergency() ? $dispatch->getEmergency() : '';
+            $labels[] = $dispatch->getEmergency() ?: '';
         }
 
         if (isset($fieldsParam['commandNumber']) && $fieldsParam['commandNumber']['onLabel']) {
-            $labels[] = $dispatch->getCommandNumber() ? $dispatch->getCommandNumber() : '';
+            $labels[] = $dispatch->getCommandNumber() ?: '';
         }
 
         if (isset($fieldsParam['pickLocation']) && $fieldsParam['pickLocation']['onLabel']) {
@@ -2268,7 +2269,7 @@ class DispatchService {
         }
 
         if (isset($fieldsParam['destination']) && $fieldsParam['destination']['onLabel']) {
-            $labels[] = $dispatch->getDestination() ? $dispatch->getDestination() : '';
+            $labels[] = $dispatch->getDestination() ?: '';
         }
 
         if (isset($fieldsParam['requester']) && $fieldsParam['requester']['onLabel']) {
@@ -2276,15 +2277,19 @@ class DispatchService {
         }
 
         if (isset($fieldsParam['customerName']) && $fieldsParam['customerName']['onLabel']) {
-            $labels[] = $dispatch->getCustomerName() ? $dispatch->getCustomerName() : '';
+            $labels[] = $dispatch->getCustomerName() ?: '';
         }
 
         if (isset($fieldsParam['customerPhone']) && $fieldsParam['customerPhone']['onLabel']) {
-            $labels[] = $dispatch->getCustomerPhone() ? $dispatch->getCustomerPhone() : '';
+            $labels[] = $dispatch->getCustomerPhone() ?: '';
         }
 
         if (isset($fieldsParam['customerAddress']) && $fieldsParam['customerAddress']['onLabel']) {
-            $labels[] = $dispatch->getCustomerAddress() ? $dispatch->getCustomerAddress() : '';
+            $labels[] = $dispatch->getCustomerAddress() ?: '';
+        }
+
+        if (!empty($freeFields)) {
+            array_push($labels, ...$freeFields);
         }
 
         return [

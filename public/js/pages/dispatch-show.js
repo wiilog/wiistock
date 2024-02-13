@@ -921,36 +921,30 @@ function registerVolumeCompute() {
     });
 }
 
+function printSingleLogisticUnit($button){
+    const dispatchId = $(`#dispatchId`).val();
+    const dispatchPack = $button.data(`id`);
 
-function printSingleTicket($button){
-    const $dispatchId = $('#dispatchId').val();
-    const $packVal = $button.attr('data-id');
-    postPrintTickets($dispatchId, [$packVal]);
+    postLogisticUnitsPrinting($button, dispatchId, dispatchPack);
 }
 
-function printAllTickets() {
-    const $table = $('#packTable');
-    const $rows = $table.find('tbody tr');
-    const $dispatchId = $('#dispatchId').val();
+function printAllLogisticUnits($button) {
+    const $dispatchId = $(`#dispatchId`).val();
 
-    let codeULs = [];
-    $rows.each(function() {
-        const $row = $(this);
-        const $packVal = $row.find(`.print-pack-row`).attr('data-id');
-        codeULs.push($packVal);
-    });
-
-    // last row is empty
-    codeULs = codeULs.filter((codeUL) => codeUL !== undefined);
-
-    postPrintTickets($dispatchId, codeULs);
+    postLogisticUnitsPrinting($button, $dispatchId);
 }
 
-function postPrintTickets(dispatchId, codeULs) {
-    return AJAX.route(`POST`, `print_all_tickets`, {dispatch: dispatchId, codeULs})
-        .file({
-            success: "Vos tickets ont bien été imprimés.",
-            error: "Erreur lors de l'impression des tickets."
+function postLogisticUnitsPrinting($button, dispatchId, dispatchPack = undefined) {
+    return wrapLoadingOnActionButton($button, () => (
+        AJAX.route(AJAX.POST, `dispatch_print_logistic_units`, {
+            dispatch: dispatchId,
+            ...(dispatchPack
+                ? {dispatchPack}
+                : {})
         })
-        .then(() =>  window.location.reload())
+            .file({
+                success: `Les étiquettes ont bien été imprimées.`,
+                error: `Aucune étiquette à imprimer.`,
+            })
+    ));
 }
