@@ -196,15 +196,12 @@ class HandlingController extends AbstractController {
 
         $containsHours = $post->get('desired-date') && str_contains($post->get('desired-date'), ':');
 
-        $user = $this->getUser();
-        $format = ($user && $user->getDateFormat() ? $user->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
+        $currentUser = $this->getUser();
+        $format = ($currentUser && $currentUser->getDateFormat() ? $currentUser->getDateFormat() : Utilisateur::DEFAULT_DATE_FORMAT) . ($containsHours ? ' H:i' : '');
         $desiredDate = $post->get('desired-date') ? DateTime::createFromFormat($format, $post->get('desired-date')) : null;
         $fileBag = $request->files->count() > 0 ? $request->files : null;
 
         $handlingNumber = $uniqueNumberService->create($entityManager, Handling::NUMBER_PREFIX, Handling::class, UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT);
-
-        /** @var Utilisateur $requester */
-        $requester = $this->getUser();
 
         $carriedOutOperationCount = $post->get('carriedOutOperationCount');
 
@@ -212,7 +209,7 @@ class HandlingController extends AbstractController {
             ->setNumber($handlingNumber)
             ->setCreationDate($date)
             ->setType($type)
-            ->setRequester($requester)
+            ->setRequester($currentUser)
             ->setSubject(substr($post->get('subject'), 0, 64))
             ->setSource($post->get('source') ?? '')
             ->setDestination($post->get('destination') ?? '')
@@ -224,11 +221,12 @@ class HandlingController extends AbstractController {
 
         $statusHistoryService->updateStatus($entityManager, $handling, $status, [
             "forceCreation" => false,
+            "initiatedBy" => $currentUser,
         ]);
 
         if ($status && $status->isTreated()) {
             $handling->setValidationDate($date);
-            $handling->setTreatedByHandling($requester);
+            $handling->setTreatedByHandling($currentUser);
         }
 
         $receivers = $post->get('receivers');
@@ -243,7 +241,7 @@ class HandlingController extends AbstractController {
             }
         }
 
-        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $user);
+        $freeFieldService->manageFreeFields($handling, $post->all(), $entityManager, $currentUser);
 
         if (isset($fileBag)) {
             $fileNames = [];
@@ -628,7 +626,9 @@ class HandlingController extends AbstractController {
         $handling = $handlingRepository->find($request['handling']);
         $requester = $this->getUser();
 
-        $statusHistoryService->updateStatus($entityManager, $handling, $status);
+        $statusHistoryService->updateStatus($entityManager, $handling, $status, [
+            "initiatedBy" => $requester,
+        ]);
 
         if ($status->isTreated()) {
             $handling->setValidationDate(new \DateTime());
