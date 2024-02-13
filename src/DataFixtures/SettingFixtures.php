@@ -32,7 +32,6 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
         $output = new ConsoleOutput();
 
         $parametreGlobalRepository = $manager->getRepository(Setting::class);
-        $fixedFieldByTypeRepository = $manager->getRepository(FixedFieldByType::class);
 
         $globalParameterLabels = [
             Setting::MAX_SESSION_TIME => [
@@ -404,6 +403,8 @@ class SettingFixtures extends Fixture implements FixtureGroupInterface {
                     FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH,
                 ]),
             ],
+            Setting::DISPATCH_OVERCONSUMPTION_CHANGE_TYPE => ["default" => null,],
+            Setting::DISPATCH_OVERCONSUMPTION_CHANGE_STATUS => ["default" => null,],
         ];
 
         $appClient = $this->specificService->getAppClient();

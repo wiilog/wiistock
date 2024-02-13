@@ -290,20 +290,28 @@ class StatusController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/form-template/{mode}/{type}/{status}", name: "status_form_template", options: ["expose" => true], defaults: ["status" => null], methods: "GET")]
-    public function formTemplate(Type $type, string $mode, ?int $status, EntityManagerInterface $manager): Response {
-        $roleRepository = $manager->getRepository(Role::class);
-        $typeRepository = $manager->getRepository(Type::class);
-        $natureRepository = $manager->getRepository(Nature::class);
+    #[Route("/status-form-template/{mode}/{status}", name: "status_form_template", options: ["expose" => true], defaults: ["status" => null], methods: "GET")]
+    public function formTemplate(EntityManagerInterface $entityManager,
+                                 Request                $request,
+                                 string                 $mode,
+                                 ?int                   $status,): Response {
+        $roleRepository = $entityManager->getRepository(Role::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $natureRepository = $entityManager->getRepository(Nature::class);
 
         $status = $status
-            ? $manager->find(Statut::class, $status)
+            ? $entityManager->find(Statut::class, $status)
+            : null;
+
+        $typeId = $request->request->get('type');
+        $type = $typeId
+            ? $typeRepository->find($typeId)
             : null;
 
         return $this->json([
             "html" => $this->renderView("settings/trace/acheminements/status_form/form.html.twig", [
                 "status" => $status ?: new Statut(),
-                "type" => $type,
+                "type" => $type ?? $status->getType(),
                 "mode" => $mode,
                 "roles" => $roleRepository->findAll(),
                 "dispatchTypes" => $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_DISPATCH]),

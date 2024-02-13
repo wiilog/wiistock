@@ -31,8 +31,6 @@ use App\Entity\Transporteur;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
-use App\Repository\Fields\FixedFieldByTypeRepository;
-use App\Repository\SettingRepository;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
@@ -1635,23 +1633,71 @@ class DispatchController extends AbstractController {
                                           Dispatch               $dispatch,
                                           StatusHistoryService   $statusHistoryService): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
+        $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
 
-        $dispatchStatuses = $statutRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType());
+        $dispatchStatuses = $statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType());
         $overConsumptionBillStatus = Stream::from($dispatchStatuses)
             ->filter(static fn(Statut $status) => $status->getOverconsumptionBillGenerationStatus());
 
+        $now = new DateTime();
+
+        $currentUser = $this->getUser();
+
         if($overConsumptionBillStatus->count() === 1) {
-            $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
+            $untreatedStatus = $statusRepository->find($overConsumptionBillStatus->first());
             $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
-                "initiatedBy" => $this->getUser()
+                "initiatedBy" => $currentUser,
+                "date" => $now,
             ]);
             if (!$dispatch->getValidationDate()) {
-                $dispatch->setValidationDate(new DateTime('now'));
+                $dispatch->setValidationDate($now);
             }
 
             $entityManager->flush();
             $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+        }
+        else {
+            $dispatchChangeTypeSetting = $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_CHANGE_TYPE);
+            $dispatchChangeType = $dispatchChangeTypeSetting
+                ? $typeRepository->find($dispatchChangeTypeSetting)
+                : null;
+
+            $dispatchChangeStatusSetting = $settingRepository->getOneParamByLabel(Setting::DISPATCH_OVERCONSUMPTION_CHANGE_STATUS);
+            $dispatchChangeStatus = $dispatchChangeStatusSetting
+                ? $statusRepository->find($dispatchChangeStatusSetting)
+                : null;
+            if ($dispatchChangeType
+                && $dispatchChangeStatus
+                && $dispatchChangeType->getId() === $dispatchChangeStatus->getType()?->getId()
+                && $dispatchChangeType->getId() === $dispatch->getType()?->getId()) {
+                $oldStatus = $dispatch->getStatut();
+                $statusHistoryService->updateStatus($entityManager, $dispatch, $dispatchChangeStatus, [
+                    "initiatedBy" => $currentUser,
+                    "date" => $now,
+                ]);
+                if (!$oldStatus
+                    || (
+                        $oldStatus->isDraft()
+                        && !$dispatchChangeStatus->isDraft()
+                    )) {
+                    $dispatch
+                        ->setValidationDate($now);
+                }
+                if (!$oldStatus
+                    || (
+                        !$oldStatus->isTreated()
+                        && $dispatchChangeStatus->isTreated()
+                    )) {
+                    $dispatch
+                        ->setTreatmentDate($now)
+                        ->setTreatedBy($currentUser);
+                }
+
+                $entityManager->flush();
+                $dispatchService->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
+            }
         }
 
         $dispatchStatus = $dispatch->getStatut();
