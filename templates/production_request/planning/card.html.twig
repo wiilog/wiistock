@@ -10,7 +10,7 @@
 ) %}
 
 {% set emergency = productionRequest.emergency ?? null %}
-<a class="planning-card preparation-card pointer can-drag has-tooltip"
+<a class="planning-card preparation-card pointer {{ canDrag ? "can-drag" }} has-tooltip"
    href="{{ path('production_request_show', {id: productionRequest.id}) }}"
    data-production-request-id="{{ productionRequest.id }}"
    data-status="{{ productionRequest.status ? productionRequest.status.code }}"
