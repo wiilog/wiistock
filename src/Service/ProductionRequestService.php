@@ -10,6 +10,7 @@ use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Menu;
 use App\Entity\ProductionRequest;
+use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -72,6 +73,9 @@ class ProductionRequestService
 
     #[Required]
     public CSVExportService $CSVExportService;
+
+    #[Required]
+    public MailerService $mailerService;
 
     private ?array $freeFieldsConfig = null;
 
@@ -549,7 +553,7 @@ class ProductionRequestService
 
         $href = $this->router->generate('production_request_show', ['id' => $productionRequest->getId()]);
 
-        $bodyTitle = `${$productionRequest->getManufacturingOrderNumber()} - ${$requestType}`;
+        $bodyTitle = "{$productionRequest->getManufacturingOrderNumber()} - $requestType";
 
         $statusesToProgress = [
             Statut::TREATED => 100,
@@ -575,5 +579,63 @@ class ProductionRequestService
             'progressBarColor' => '#2ec2ab',
             'progressBarBGColor' => 'light-grey',
         ];
+    }
+
+    public function sendUpdateStatusEmail(ProductionRequest $productionRequest): void {
+        $settingRepository = $this->entityManager->getRepository(Setting::class);
+        $userRepository = $this->entityManager->getRepository(Utilisateur::class);
+
+        $typeLabel = $this->formatService->type($productionRequest->getType());
+        $status = $productionRequest->getStatus();
+        $isTreatedStatus = $status->isTreated();
+        $isNew = $productionRequest->getStatusHistory()->count() === 1;
+
+        $subject = $isNew && !$isTreatedStatus
+            ? "Notification de création d'une demande de production"
+            : (!$isTreatedStatus
+                ? "Notification d'évolution de votre demande de production"
+                : "Notification de traitement de votre demande de production"
+            );
+        $state = !$isNew ? "Changement de statut" : "Création";
+        $title = "$state d'une demande de production de type $typeLabel vous concernant :";
+
+        $to = [];
+        $sendingEmailEveryStatusChangeIfEmergency = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY);
+        $copyingRequesterNotificationEmailIfEmergency = $settingRepository->getOneParamByLabel(Setting::COPYING_REQUESTER_NOTIFICATION_EMAIL_IF_EMERGENCY);
+        $hasEmergency = !!$productionRequest->getEmergency();
+        if($hasEmergency) {
+            if($sendingEmailEveryStatusChangeIfEmergency) {
+                $sendingEmailEveryStatusChangeIfEmergencyUsers = $settingRepository->getOneParamByLabel(Setting::SENDING_EMAIL_EVERY_STATUS_CHANGE_IF_EMERGENCY_USERS);
+
+                if($sendingEmailEveryStatusChangeIfEmergencyUsers) {
+                    $users = $userRepository->findBy(["id" => explode(",", $sendingEmailEveryStatusChangeIfEmergencyUsers)]);
+                    array_push($to, ...$users);
+                }
+            }
+
+            if($copyingRequesterNotificationEmailIfEmergency) {
+                $to[] = $userRepository->find($copyingRequesterNotificationEmailIfEmergency);
+            }
+        }
+
+        if($status->getSendNotifToDeclarant()) {
+            $to[] = $productionRequest->getCreatedBy();
+        }
+
+        $notifiedUsers = $status->getNotifiedUsers();
+        if(!$notifiedUsers->isEmpty()) {
+            array_push($to, ...$notifiedUsers);
+        }
+
+        $this->mailerService->sendMail(
+            $subject,
+            $this->templating->render("mails/production_request/updated-status.html.twig", [
+                "productionRequest" => $productionRequest,
+                "title" => $title,
+                "isNew" => $isNew,
+                "isTreatedStatus" => $isTreatedStatus,
+            ]),
+            $to,
+        );
     }
 }

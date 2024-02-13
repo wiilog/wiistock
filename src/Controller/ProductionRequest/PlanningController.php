@@ -313,9 +313,14 @@ class PlanningController extends AbstractController {
             FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
         ]);
 
+        $oldStatus = $productionRequest->getStatus();
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
 
         $entityManager->flush();
+
+        if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
+            $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
 
         return $this->json([
             "success" => true,

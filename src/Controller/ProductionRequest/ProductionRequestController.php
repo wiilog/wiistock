@@ -47,7 +47,7 @@ use WiiCommon\Helper\Stream;
 #[Route('/production', name: 'production_request_')]
 class ProductionRequestController extends AbstractController
 {
-    #[Route('/index', name: 'index', methods: ['GET'])]
+    #[Route('/index', name: 'index', methods: [self::GET])]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function index(Request $request,
                           EntityManagerInterface   $entityManager,
@@ -146,7 +146,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: ['GET'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-columns", name: "api_columns", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function apiColumns(ProductionRequestService $service, EntityManagerInterface $entityManager): Response {
         /** @var Utilisateur $currentUser */
@@ -156,7 +156,7 @@ class ProductionRequestController extends AbstractController
         return new JsonResponse($columns);
     }
 
-    #[Route("/api", name: "api", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST])]
     public function api(Request                  $request,
                         ProductionRequestService $productionRequestService,
@@ -182,7 +182,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/new', name: 'new', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::PRODUCTION, Action::CREATE_PRODUCTION_REQUEST])]
     public function new(EntityManagerInterface   $entityManager,
                         Request                  $request,
@@ -194,13 +194,15 @@ class ProductionRequestController extends AbstractController
         $entityManager->persist($productionRequest);
         $entityManager->flush();
 
+        $productionRequestService->sendUpdateStatusEmail($productionRequest);
+
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été créée."
         ]);
     }
 
-    #[Route('/delete/{productionRequest}', name: 'delete', options: ['expose' => true], methods: 'DELETE', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/delete/{productionRequest}', name: 'delete', options: ['expose' => true], methods: self::DELETE, condition: 'request.isXmlHttpRequest()')]
     public function delete(ProductionRequest      $productionRequest,
                            EntityManagerInterface $entityManager,
                            AttachmentService      $attachmentService,
@@ -229,7 +231,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: "GET")]
+    #[Route("/{id}/status-history-api", name: "status_history_api", options: ['expose' => true], methods: self::GET)]
     public function statusHistoryApi(ProductionRequest $productionRequest,
                                      LanguageService   $languageService): JsonResponse {
         $user = $this->getUser();
@@ -252,7 +254,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/{id}/operation-history-api", name: "operation_history_api", options: ['expose' => true], methods: "GET")]
+    #[Route("/{id}/operation-history-api", name: "operation_history_api", options: ['expose' => true], methods: self::GET)]
     public function productionHistoryApi(ProductionRequest       $productionRequest,
                                          OperationHistoryService $operationHistoryService): JsonResponse {
         return $this->json([
@@ -273,7 +275,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route("/colonne-visible", name: "set_visible_columns", options: ["expose" => true], methods: ['POST'], condition: "request.isXmlHttpRequest()")]
+    #[Route("/colonne-visible", name: "set_visible_columns", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST], mode: HasPermission::IN_JSON)]
     public function saveColumnVisible(Request                $request,
                                       EntityManagerInterface $entityManager,
@@ -295,7 +297,7 @@ class ProductionRequestController extends AbstractController
         ]);
     }
 
-    #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{productionRequest}/edit', name: 'edit', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function edit(EntityManagerInterface   $entityManager,
                          Request                  $request,
                          ProductionRequestService $productionRequestService,
@@ -306,15 +308,23 @@ class ProductionRequestController extends AbstractController
 
         $currentUser = $this->getUser();
         $data = $fieldsParamService->checkForErrors($entityManager, $request->request, FixedFieldStandard::ENTITY_CODE_PRODUCTION, false);
+
+        $oldStatus = $productionRequest->getStatus();
         $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $data, $request->files);
+
         $entityManager->flush();
+
+        if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
+            $productionRequestService->sendUpdateStatusEmail($productionRequest);
+        }
+
         return $this->json([
             'success' => true,
             'msg' => "Votre demande de production a bien été modifiée."
         ]);
     }
 
-    #[Route("/export", name: "export", options: ["expose" => true], methods: "GET", condition: "request.isXmlHttpRequest()")]
+    #[Route("/export", name: "export", options: ["expose" => true], methods: self::GET, condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::PRODUCTION, Action::EXPORT_PRODUCTION_REQUEST])]
     public function export(EntityManagerInterface    $entityManager,
                            Request                   $request,
