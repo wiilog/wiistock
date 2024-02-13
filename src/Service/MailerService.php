@@ -25,6 +25,13 @@ class MailerService
 
     private const TEST_EMAIL = 'test@wiilog.fr';
     public const PORT_SSL = 587;
+    public const NO_MAIL_DOMAINS = [
+        "nomail.fr",
+        "nomail.com",
+    ];
+
+    // visit https://i.stack.imgur.com/dmsiJ.png for the details
+    public const EMAIL_SLICING_REGEX = "/^(?<Email>.*@)?(?<Protocol>\w+:\/\/)?(?<SubDomain>(?:[\w-]{2,63}\.){0,127}?)?(?<DomainWithTLD>(?<Domain>[\w-]{2,63})\.(?<TopLevelDomain>[\w-]{2,63}?)(?:\.(?<CountryCode>[a-z]{2}))?)(?:[:](?<Port>\d+))?(?<Path>(?:[\/]\w*)+)?(?<QString>(?<QSParams>(?:[?&=][\w-]*)+)?(?:[#](?<Anchor>\w*))*)?$/";
 
     #[Required]
     public Environment $templating;
@@ -135,7 +142,6 @@ class MailerService
                 $mailer->send($message);
             } catch (TransportExceptionInterface $e) {
                 $this->exceptionLoggerService->sendLog($e);
-                throw $e;
             }
         }
 
@@ -172,7 +178,9 @@ class MailerService
 
             foreach ($emails as $email) {
                 // ignore if invalid email
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                // ignore if the domain is in NO_MAIL_DOMAINS
+                preg_match(self::EMAIL_SLICING_REGEX, $email, $slicedAddress);
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && !in_array($slicedAddress["DomainWithTLD"] ?? null, self::NO_MAIL_DOMAINS)){
                     if (!isset($contents[$slug])) {
                         if (!is_string($template)) {
                             $context = $template['context'];

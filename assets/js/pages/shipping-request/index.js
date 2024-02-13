@@ -1,5 +1,6 @@
 import {GET, POST} from "@app/ajax";
 import {initModalFormShippingRequest} from "@app/pages/shipping-request/form";
+import Routing from '@app/fos-routing';
 
 let tableShippings;
 

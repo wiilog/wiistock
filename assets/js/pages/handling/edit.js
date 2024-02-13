@@ -1,5 +1,5 @@
  import {getStatusHistory} from "@app/pages/handling/common";
-import AJAX from "@app/ajax";
+ import Routing from '@app/fos-routing';
 
 $(function () {
     const handlingId = Number($(`input[name=handlingId]`).val());

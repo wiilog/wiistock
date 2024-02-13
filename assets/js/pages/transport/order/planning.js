@@ -5,6 +5,7 @@ import moment from 'moment';
 import Planning from "@app/planning";
 import AJAX, {GET} from "@app/ajax";
 import Flash from "@app/flash";
+import Routing from '@app/fos-routing';
 
 let planning;
 

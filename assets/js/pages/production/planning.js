@@ -6,6 +6,7 @@ import Planning from "@app/planning";
 import Form from "@app/form";
 import Modal from "@app/modal";
 import moment from "moment";
+import Camera from "@app/camera";
 
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 
@@ -58,6 +59,7 @@ function initializeFilters() {
 
     Select2Old.init($filtersContainer.find(`.filter-select2[name=multipleTypes]`), `Types`);
     getUserFiltersByPage(PAGE_PRODUCTION_PLANNING);
+    initFilterStatusMutiple();
 }
 
 function onPlanningLoaded(planning) {
@@ -208,7 +210,15 @@ function openModalUpdateProductionRequestStatus($container){
                     productionRequest,
                 },
                 $modalUpdateProductionRequestStatus,
-                $modalUpdateProductionRequestStatus.find(`.modal-body`)
+                $modalUpdateProductionRequestStatus.find(`.modal-body`),
+                {
+                    onOpen: () => {
+                        Camera.init(
+                            $modalUpdateProductionRequestStatus.find(`.take-picture-modal-button`),
+                            $modalUpdateProductionRequestStatus.find(`[name="files[]"]`)
+                        );
+                    },
+                },
             );
         })
         .submitTo(POST, `production_request_planning_update_status`, {

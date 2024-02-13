@@ -21,6 +21,7 @@ use App\Repository\EmplacementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OneToMany;
 
@@ -35,13 +36,13 @@ class Emplacement implements PairedEntity {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private ?string $label = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'destination', targetEntity: Livraison::class)]
@@ -59,16 +60,16 @@ class Emplacement implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'emplacement', targetEntity: ReferenceArticle::class)]
     private Collection $referenceArticles;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $isDeliveryPoint = null;
 
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
     private ?bool $isOngoingVisibleOnMobile;
 
-    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => true])]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => true])]
     private ?bool $isActive;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $dateMaxTime = null;
 
     #[ORM\OneToMany(mappedBy: 'locationDropzone', targetEntity: Utilisateur::class)]
@@ -135,7 +136,7 @@ class Emplacement implements PairedEntity {
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Vehicle $vehicle = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $email = null;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
@@ -150,6 +151,13 @@ class Emplacement implements PairedEntity {
 
     #[ORM\ManyToMany(targetEntity: InventoryMissionRule::class, mappedBy: 'locations')]
     private Collection $inventoryMissionRules;
+
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    #[ORM\JoinTable(name: 'location_manager')]
+    private Collection $managers;
+
+    #[ORM\Column(type: Types::BOOLEAN, nullable: false, options: ['default' => false])]
+    private ?bool $sendEmailToManagers = false;
 
     public function __construct() {
         $this->clusters = new ArrayCollection();
@@ -180,6 +188,7 @@ class Emplacement implements PairedEntity {
 
         $this->isOngoingVisibleOnMobile = false;
         $this->isActive = true;
+        $this->managers = new ArrayCollection();
     }
 
     public function getId(): ?int {
@@ -1096,4 +1105,46 @@ class Emplacement implements PairedEntity {
         return $this;
     }
 
+    /**
+     * @return Collection<int, Utilisateur>
+     */
+    public function getManagers(): Collection
+    {
+        return $this->managers;
+    }
+
+    public function addManager(Utilisateur $manager): static
+    {
+        if (!$this->managers->contains($manager)) {
+            $this->managers->add($manager);
+        }
+
+        return $this;
+    }
+
+    public function removeManager(Utilisateur $manager): static
+    {
+        $this->managers->removeElement($manager);
+
+        return $this;
+    }
+
+    public function setManagers(array $managers): self
+    {
+        $this->managers = new ArrayCollection($managers);
+
+        return $this;
+    }
+
+    public function isSendEmailToManagers(): ?bool
+    {
+        return $this->sendEmailToManagers;
+    }
+
+    public function setSendEmailToManagers(bool $sendEmailToManagers): static
+    {
+        $this->sendEmailToManagers = $sendEmailToManagers;
+
+        return $this;
+    }
 }

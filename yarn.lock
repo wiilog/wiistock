@@ -1422,6 +1422,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/jslib-html5-camera-photo@^3.1.5":
+  version "3.1.5"
+  resolved "https://registry.yarnpkg.com/@types/jslib-html5-camera-photo/-/jslib-html5-camera-photo-3.1.5.tgz#3f98069dc2b7d92ae41893b1165f9d8d7c6e1f83"
+  integrity sha512-3YMgLmEgH5CW73YmkWVoqFmqqDlytPq46DnjspvJEDKfS20wKbJpSTpLSamsH+ibLetY6XjFRy8/k1pszLRFRA==
+
 "@types/json-schema@*", "@types/json-schema@^7.0.5", "@types/json-schema@^7.0.6":
   version "7.0.7"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.7.tgz#98a993516c859eb0d5c4c8f098317a9ea68db9ad"
@@ -4487,6 +4492,11 @@ jsesc@~0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-0.5.0.tgz#e7dee66e35d6fc16f710fe91d5cf69f70f08911d"
   integrity sha1-597mbjXW/Bb3EP6R1c9p9w8IkR0=
+
+jslib-html5-camera-photo@^3.3.4:
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/jslib-html5-camera-photo/-/jslib-html5-camera-photo-3.3.4.tgz#ae859b1747f8dd709edeb98ea28a5c0802871157"
+  integrity sha512-qysjLnP4bud0+g0qs5uA/7i569x+6ID2ufgezf9XQ+BE3EvhYjz177vi9WXLEuq+V6C/WXEv73NUICvHm5VGmQ==
 
 json-parse-better-errors@^1.0.2:
   version "1.0.2"

@@ -298,7 +298,7 @@ class PlanningController extends AbstractController {
                                                          ProductionRequest      $productionRequest): JsonResponse {
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
-        $html = $this->renderView('production_request/planning/modal/update-status-form.html.twig', [
+        $html = $this->renderView('production_request/planning/update-status-form.html.twig', [
             "productionRequest" => $productionRequest,
             "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
         ]);

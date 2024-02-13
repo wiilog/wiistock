@@ -1,6 +1,6 @@
 import '@styles/pages/reception/show.scss';
 
-import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from "@app/ajax";
 import Select2 from "@app/select2";
 import Modal from "@app/modal";

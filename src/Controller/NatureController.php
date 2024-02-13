@@ -64,6 +64,10 @@ class NatureController extends AbstractController
     public function new(Request $request, TranslationService $translation, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $labels = $data['labels'];
+
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
             foreach ($labels as $label) {
                 if (preg_match("[[,;]]", $label['label'])) {
                     return $this->json([
@@ -71,9 +75,6 @@ class NatureController extends AbstractController
                         "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
                     ]);
                 }
-
-                $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
-                $natureRepository = $entityManager->getRepository(Nature::class);
 
                 if ($natureRepository->findDuplicates($label["label"], $label["language-id"])) {
                     $language = $entityManager->find(Language::class, $label["language-id"]);

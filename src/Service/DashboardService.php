@@ -1081,9 +1081,9 @@ class DashboardService {
                     $count = $repository->countByFilters($entityManager, [
                         'types' => $entityTypes,
                         'statuses' => $entityStatuses,
-                        'pickLocations' => $config['pickLocations'],
-                        'dropLocations' => $config['dropLocations'],
-                        'dispatchEmergencies' => $config['dispatchEmergencies'],
+                        'pickLocations' => $config['pickLocations'] ?? [],
+                        'dropLocations' => $config['dropLocations'] ?? [],
+                        'dispatchEmergencies' => $config['dispatchEmergencies'] ?? [],
                     ]);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING:

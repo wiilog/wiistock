@@ -20,12 +20,16 @@ class UniqueNumberService
     const DATE_COUNTER_FORMAT_TRANSPORT = 'ymd-CC';
     const DATE_COUNTER_FORMAT_TRUCK_ARRIVAL = 'YmdHis_\{\0\}_CC';
     const DATE_COUNTER_FORMAT_DISPATCH_LONG = 'YmdHis-CCCC';
-    const DATE_COUNTER_FORMAT_DISPATCH = 'ymdHis-CC';
+    const DATE_COUNTER_FORMAT_DISPATCH = 'ymdHisCC';
     const DATE_COUNTER_FORMAT_PRODUCTION_REQUEST = 'YmdHiCCCC';
 
     const ENTITIES_NUMBER_WITHOUT_DASH = [
         Reception::class,
-        TransportRequest::class
+        TransportRequest::class,
+    ];
+
+    const FORMAT_NUMBER_WITHOUT_PREFIX_AND_DASH = [
+        UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH,
     ];
 
     #[Required]
@@ -65,7 +69,7 @@ class UniqueNumberService
         $counterFormat = $matches[2];
 
         $dateStr = $date->format($dateFormat);
-        $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix);
+        $lastNumber = $entityRepository->getLastNumberByDate($dateStr, $prefix, $format);
         $counterLen = strlen($counterFormat);
         $lastCounter = (
         (!empty($lastNumber) && $counterLen <= strlen($lastNumber))
@@ -74,7 +78,9 @@ class UniqueNumberService
         );
         $currentCounterStr = sprintf("%0{$counterLen}u", $lastCounter + 1);
         $dateStr = !empty($dateFormat) ? $date->format($dateFormat) : '';
-        $smartPrefix = !empty($prefix) ? ($prefix . (!in_array($entity, self::ENTITIES_NUMBER_WITHOUT_DASH) ? '-' : '')) : '';
+        $smartPrefix = !empty($prefix) && !in_array($format, self::FORMAT_NUMBER_WITHOUT_PREFIX_AND_DASH)
+            ? ($prefix . (!in_array($entity, self::ENTITIES_NUMBER_WITHOUT_DASH) ? '-' : ''))
+            : '';
 
         foreach ($params as $key => $data) {
             $dateStr = str_replace("{" . $key . "}", $data, $dateStr);

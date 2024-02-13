@@ -1,7 +1,11 @@
-$('.select2').select2();
-let modalDeleteEmplacement = $('#modalDeleteEmplacement');
-let submitDeleteEmplacement = $('#submitDeleteEmplacement');
-let urlDeleteEmplacement = Routing.generate('emplacement_delete', true);
+import AJAX, {POST, DELETE} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
+
+global.printLocationsBarCodes = printLocationsBarCodes;
+global.editZone = editZone;
+global.deleteZone = deleteZone;
 
 const locationsTableConfig = {
     processing: true,
@@ -10,7 +14,7 @@ const locationsTableConfig = {
     order: [['name', 'desc']],
     ajax: {
         url: Routing.generate("emplacement_api", true),
-        type: "POST",
+        type: POST,
         dataSrc: function (json) {
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
@@ -27,15 +31,17 @@ const locationsTableConfig = {
         {data: 'pairing', title: '', className: 'pairing-row'},
         {data: 'name', title: 'Nom'},
         {data: 'description', title: 'Description'},
-        {data: 'deliveryPoint', title: 'Point de ' + Translation.of('Demande', 'Livraison', 'Livraison', false).toLowerCase()},
-        {data: 'ongoingVisibleOnMobile', title: 'Encours visible'},
-        {data: 'maxDelay', title: 'Délai maximum'},
-        {data: 'active', title: 'Actif / Inactif'},
+        {data: 'isDeliveryPoint', title: 'Point de ' + Translation.of('Demande', 'Livraison', 'Livraison', false).toLowerCase()},
+        {data: 'isOngoingVisibleOnMobile', title: 'Encours visible sur nomade'},
+        {data: 'maximumTrackingDelay', title: 'Délai maximum de Tracabilité'},
+        {data: 'status', title: 'Statut'},
         {data: 'allowedNatures', title: `Natures autorisées`, orderable: false},
         {data: 'allowedTemperatures', title: 'Températures autorisées', orderable: false},
         {data: 'signatories', title: 'Signataires', orderable: false},
         {data: 'email', title: 'Email'},
         {data: 'zone', title: 'Zone'},
+        {data: 'sendEmailToManagers', title: 'Envoi d\'email à chaque dépose aux responsables de l\'emplacement', orderable: false},
+        {data: 'managers', title: 'Responsables', orderable: false},
     ]
 };
 
@@ -46,7 +52,7 @@ const groupsTableConfig = {
     order: [['label', 'desc']],
     ajax: {
         url: Routing.generate("location_group_api", true),
-        type: "POST",
+        type: POST,
     },
     rowConfig: {
         needsRowClickAction: true,
@@ -72,7 +78,7 @@ const zonesTableConfig = {
     order: [['name', 'desc']],
     ajax: {
         url: Routing.generate("zones_api", true),
-        type: "POST",
+        type: POST,
     },
     rowConfig: {
         needsRowClickAction: true,
@@ -101,7 +107,8 @@ let locationsTable;
 let groupsTable;
 let zonesTable;
 
-$(document).ready(() => {
+$(function() {
+    $('.select2').select2();
     managePrintButtonTooltip(true, $('#btnPrint'));
 
     switchPageBasedOnHash();
@@ -131,39 +138,60 @@ function switchLocations() {
     window.location.hash = HASH_LOCATIONS;
 
     if(!locationsTable) {
-        locationsTable = initDataTable(`locationsTable`, locationsTableConfig);
 
-        $(`.new-location`).on(`click`, function() {
-            wrapLoadingOnActionButton($(this), () => (
-                AJAX.route(`GET`, `location_api_new`)
-                    .json()
-                    .then(({content}) => {
-                        const $modal = $(`#modalNewEmplacement`);
-                        $modal.find(`.modal-body`).html(content);
-                        $('.select2').select2();
+        const $locationTable = $(`#locationsTable`);
+        locationsTable = initDataTable($locationTable, locationsTableConfig);
 
-                        $modal.modal(`show`);
-                    })
-            ))
-        });
+        $(document)
+            .on('click', '.edit-location', function() {
+                const locationId = $(this).data('id');
+                Modal.load('location_get_form', {location: locationId }, $('#modalEditLocation'), $(this));
+            })
+            .on('click', '.delete-location', function() {
+                let id = $(this).data('id');
+                Modal.confirm({
+                    ajax: {
+                        method: DELETE,
+                        route: 'emplacement_delete',
+                        params: {
+                            location: id,
+                        },
+                    },
+                    message: 'Voulez-vous réellement supprimer cet emplacement ?',
+                    title: 'Supprimer l\'emplacement',
+                    validateButton: {
+                        color: 'danger',
+                        label: 'Supprimer'
+                    },
+                    table: locationsTable,
+                });
+            });
 
-        let $modalNewEmplacement = $("#modalNewEmplacement");
-        let $submitNewEmplacement = $("#submitNewEmplacement");
-        let urlNewEmplacement = Routing.generate('emplacement_new', true);
-        InitModal($modalNewEmplacement, $submitNewEmplacement, urlNewEmplacement, {tables: [locationsTable]});
+        const $newLocationButton = $('.new-location');
+        const $modalNewLocation = $('#modalNewLocation');
+        Form
+            .create($modalNewLocation)
+            .onOpen(() => {
+                Modal.load('location_get_form', {}, $modalNewLocation, $newLocationButton)
+            })
+            .submitTo(
+                POST,
+                "emplacement_new",
+                {
+                    tables: [locationsTable],
+                }
+            )
 
-        InitModal(modalDeleteEmplacement, submitDeleteEmplacement, urlDeleteEmplacement, {
-            tables: [locationsTable],
-            success: () => {},
-            error: (response) => {
-                showBSAlert(response.msg, 'danger');
-            }
-        });
+        Form
+            .create('#modalEditLocation')
+            .submitTo(
+                POST,
+                "emplacement_edit",
+                {
+                    tables: [locationsTable],
+                }
+            )
 
-        let $modalModifyEmplacement = $('#modalEditEmplacement');
-        let $submitModifyEmplacement = $('#submitEditEmplacement');
-        let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
-        InitModal($modalModifyEmplacement, $submitModifyEmplacement, urlModifyEmplacement, {tables: [locationsTable]});
     } else {
         locationsTable.ajax.reload();
     }
@@ -224,7 +252,7 @@ function switchZones() {
                 .clearSubmitListeners()
                 .onSubmit((data, form) => {
                     form.loading(() => (
-                        AJAX.route(AJAX.POST, 'zone_new')
+                        AJAX.route(POST, 'zone_new')
                             .json(data)
                             .then(({success}) => {
                                 if(success){
@@ -253,7 +281,7 @@ function deleteZone($button){
     const zone = $button.data('id');
     Modal.confirm({
         ajax: {
-            method: AJAX.DELETE,
+            method: DELETE,
             route: 'zone_delete',
             params: {zone},
         },
@@ -276,7 +304,7 @@ function editZone(zoneId){
         .clearSubmitListeners()
         .onSubmit((data, form) => {
             form.loading(() => (
-                AJAX.route(AJAX.POST, 'zone_edit')
+                AJAX.route(POST, 'zone_edit')
                     .json(data)
                     .then(({success}) => {
                         if(success){
@@ -287,22 +315,6 @@ function editZone(zoneId){
             ), false)
         });
     $modalEditZone.modal(`show`);
-}
-
-function checkAndDeleteRowEmplacement(icon) {
-    let modalBody = modalDeleteEmplacement.find('.modal-body');
-    let id = icon.data('id');
-    let param = JSON.stringify(id);
-    $.post(Routing.generate('emplacement_check_delete'), param, function (resp) {
-        modalBody.html(resp.html);
-        submitDeleteEmplacement.attr('value', id);
-
-        if (resp.delete == false) {
-            submitDeleteEmplacement.text('Désactiver');
-        } else {
-            submitDeleteEmplacement.text('Supprimer');
-        }
-    });
 }
 
 function printLocationsBarCodes($button, event) {

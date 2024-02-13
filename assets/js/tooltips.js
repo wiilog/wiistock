@@ -1,4 +1,4 @@
-const tooltipConfig = {
+export const tooltipConfig = {
     html: true,
     trigger : `hover`,
     container: `body`,

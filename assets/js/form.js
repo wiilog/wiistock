@@ -591,6 +591,27 @@ function treatInputError($input, errors, form) {
             }
         }
     }
+
+    const htmlValidity = $input.get(0).validity;
+
+    if (htmlValidity && !htmlValidity.valid) {
+        // Object.keys doesn't work with HTML validty object ValidityState
+        const validityKeys = [];
+        for(const key in htmlValidity){
+            if (key !== 'valid') {
+                validityKeys.push(key);
+            }
+        }
+        const message = validityKeys
+            .filter((key) => htmlValidity[key])
+            .map((key) => $input.data(`error-${key.toLowerCase()}`))
+            .filter((message) => message)
+            .join('<br/>');
+        errors.push({
+            elements: [$input],
+            message,
+        });
+    }
 }
 
 function formatInputValue($input) {

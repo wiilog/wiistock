@@ -318,7 +318,7 @@ a {
 }
 
 //  reprise du form-control.is-invalid de bootstrap
-.is-invalid:not(label, .wii-radio, .wii-checkbox) {
+.is-invalid:not(label, .wii-radio, .wii-checkbox), input[pattern]:invalid {
     border: 1px solid $danger !important;
     background-repeat: no-repeat;
     background-position: center right calc(2.25rem / 4);

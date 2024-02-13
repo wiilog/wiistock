@@ -1,5 +1,6 @@
 import EditableDatatable, {MODE_CLICK_EDIT, MODE_NO_EDIT, SAVE_MANUALLY, STATE_VIEWING} from "../../editatable";
 import AJAX, {GET} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';
 const MODE_RECEPTION_DISPUTE = 'reception-dispute';
