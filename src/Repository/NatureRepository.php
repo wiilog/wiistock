@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Nature;
 use App\Helper\QueryBuilderHelper;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 
 /**
@@ -15,7 +16,7 @@ use Symfony\Component\HttpFoundation\InputBag;
  */
 class NatureRepository extends EntityRepository
 {
-    public function findByParams(InputBag $params): array {
+    public function findByParams(InputBag $params, $options = []): array {
         $qb = $this->createQueryBuilder('nature');
         $total = QueryBuilderHelper::count($qb, 'nature');
 
@@ -40,7 +41,16 @@ class NatureRepository extends EntityRepository
                 $order = $params->all('order')[0]['dir'];
                 if (!empty($order)) {
                     $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
-                    if(property_exists(Nature::class, $column)) {
+
+                    if($column === "label") {
+                        $qb
+                            ->leftJoin("nature.labelTranslation", "join_labelTranslation")
+                            ->leftJoin("join_labelTranslation.translations", "join_translation", Join::WITH, "join_translation.language = :language")
+                            ->leftJoin("join_labelTranslation.translations", "join_translation_default", Join::WITH, "join_translation_default.language = :default")
+                            ->setParameter("language", $options["language"])
+                            ->setParameter("default", $options["defaultLanguage"])
+                            ->orderBy("IFNULL(join_translation.translation, IFNULL(join_translation_default.translation, nature.label))", $order);
+                    } else if(property_exists(Nature::class, $column)) {
                         $qb->orderBy('nature.' . $column, $order);
                     }
                 }
@@ -93,19 +103,6 @@ class NatureRepository extends EntityRepository
             WHERE pack.nature = :id
            "
         )->setParameter('id', $id);
-
-        return $query->getSingleScalarResult();
-    }
-
-    public function countAll()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-        /** @lang DQL */
-            "SELECT COUNT(n)
-            FROM App\Entity\Nature n
-           "
-        );
 
         return $query->getSingleScalarResult();
     }
