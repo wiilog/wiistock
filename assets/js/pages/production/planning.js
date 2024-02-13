@@ -42,6 +42,7 @@ function initializeFilters() {
 
     Select2Old.init($filtersContainer.find(`.filter-select2[name=multipleTypes]`), `Types`);
     getUserFiltersByPage(PAGE_PRODUCTION_PLANNING);
+    initFilterStatusMutiple();
 }
 
 function onPlanningLoaded(planning) {
