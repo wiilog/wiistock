@@ -3708,12 +3708,11 @@ class MobileController extends AbstractApiController
     public function finishManualCollect(Request                   $request,
                                         EntityManagerInterface    $entityManager,
                                         DemandeCollecteService    $demandeCollecteService,
-                                        NotificationService       $notificationService,
+                                        ExceptionLoggerService    $exceptionLoggerService,
                                         MouvementStockService     $mouvementStockService,
                                         OrdreCollecteService      $ordreCollecteService): Response
     {
         $data = $request->request;
-        $response = [];
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $collecteReferenceRepository = $entityManager->getRepository(CollecteReference::class);
         $references = json_decode($data->get('references'), true);
@@ -3735,11 +3734,12 @@ class MobileController extends AbstractApiController
         try {
             $entityManager->flush();
         }
-        catch (Exception $e) {
-            $response = [
+        catch (Exception $error) {
+            $exceptionLoggerService->sendLog($error, $request);
+            return new JsonResponse([
                 'success' => false,
                 'message' => 'Erreur lors de la création de la demande de collecte',
-            ];
+            ]);
         }
 
         //Ajout des références dans la demande
@@ -3787,11 +3787,12 @@ class MobileController extends AbstractApiController
 
         try {
             $entityManager->flush();
-        } catch(Exception $e) {
-            $response = [
+        } catch(Exception $error) {
+            $exceptionLoggerService->sendLog($error, $request);
+            return new JsonResponse([
                 'success' => false,
                 'message' => "Erreur lors de l'ajout des références dans la demande de collecte"
-            ];
+            ]);
         }
 
         //Création de l'ordre de collecte
@@ -3800,11 +3801,12 @@ class MobileController extends AbstractApiController
         try {
             $entityManager->flush();
         }
-        catch (Exception $e) {
-            $response = [
+        catch (Exception $error) {
+            $exceptionLoggerService->sendLog($error, $request);
+            return new JsonResponse([
                 'success' => false,
                 'message' => "Erreur lors de la création de l'ordre de collecte",
-            ];
+            ]);
         }
 
         //Traitement de l'ordre de collecte
@@ -3823,14 +3825,18 @@ class MobileController extends AbstractApiController
 
             $ordreCollecteService->finishCollecte($ordreCollecte, $this->getUser(), $date, $movements);
         }
-        catch(Exception $e) {
-            $response = [
+        catch(Exception $error) {
+            $exceptionLoggerService->sendLog($error, $request);
+            return new JsonResponse([
                 'success' => false,
                 'message' => 'Une référence de la collecte n\'est pas active, vérifiez les transferts de stock en cours associés à celle-ci.'
-            ];
+            ]);
         }
 
-        return new JsonResponse($response);
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'La collecte manuelle a été effectué avec succès.',
+        ]);
     }
 }
 
