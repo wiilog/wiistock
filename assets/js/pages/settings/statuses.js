@@ -294,6 +294,7 @@ function initializeStatusesByTypes($container, canEdit, mode) {
             const url = Routing.generate(`settings_statuses_api`, {mode, type})
             table.setURL(url);
         });
+    $typeFilters.first().trigger('click');
 
     $addButton
         .on('click', function() {
