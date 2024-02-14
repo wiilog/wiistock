@@ -1159,14 +1159,15 @@ class DispatchController extends AbstractController {
     }
 
     #[Route("/{id}/validate", name: "dispatch_validate_request", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function validateDispatchRequest(Request                $request,
-                                            EntityManagerInterface $entityManager,
-                                            Dispatch               $dispatch,
-                                            TranslationService     $translationService,
-                                            DispatchService        $dispatchService,
-                                            NotificationService    $notificationService,
-                                            StatusHistoryService   $statusHistoryService,
-                                            TrackingMovementService $trackingMovementService): Response {
+    public function validateDispatchRequest(Request                 $request,
+                                            EntityManagerInterface  $entityManager,
+                                            Dispatch                $dispatch,
+                                            TranslationService      $translationService,
+                                            DispatchService         $dispatchService,
+                                            NotificationService     $notificationService,
+                                            StatusHistoryService    $statusHistoryService,
+                                            TrackingMovementService $trackingMovementService): Response
+    {
         $status = $dispatch->getStatut();
         $now = new DateTime('now');
 
@@ -1193,25 +1194,36 @@ class DispatchController extends AbstractController {
                     ]);
 
                     $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
-                    if ($automaticallyCreateMovementOnValidation) {
-                        $automaticallyCreateMovementOnValidationTypes = explode(',', $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES));
+                    $dispatchLocationFrom = $dispatch->getLocationFrom();
+
+                    if ($automaticallyCreateMovementOnValidation
+                        && $dispatchLocationFrom) {
+                        $automaticallyCreateMovementOnValidationTypes = Stream::explode(',', $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION_TYPES))
+                            ->filter()
+                            ->toArray();
+
                         if(in_array($dispatch->getType()->getId(), $automaticallyCreateMovementOnValidationTypes)) {
                             foreach ($dispatch->getDispatchPacks() as $dispatchPack) {
                                 $pack = $dispatchPack->getPack();
-                                $trackingMovement = $trackingMovementService->createTrackingMovement(
-                                    $pack,
-                                    $dispatch->getLocationFrom(),
-                                    $user,
-                                    $now,
-                                    false,
-                                    false,
-                                    TrackingMovement::TYPE_DEPOSE,
-                                    [
-                                        'from' => $dispatch,
-                                        "quantity" => $dispatchPack->getQuantity(),
-                                    ]
-                                );
-                                $entityManager->persist($trackingMovement);
+                                $lastTracking = $pack->getLastTracking();
+                                if (!$lastTracking
+                                    || $lastTracking->getType()?->getCode() !== TrackingMovement::TYPE_DEPOSE
+                                    || $lastTracking->getEmplacement()?->getId() !== $dispatchLocationFrom->getId()) {
+                                    $trackingMovement = $trackingMovementService->createTrackingMovement(
+                                        $pack,
+                                        $dispatchLocationFrom,
+                                        $user,
+                                        $now,
+                                        false,
+                                        false,
+                                        TrackingMovement::TYPE_DEPOSE,
+                                        [
+                                            'from' => $dispatch,
+                                            "quantity" => $dispatchPack->getQuantity(),
+                                        ]
+                                    );
+                                    $entityManager->persist($trackingMovement);
+                                }
                             }
                         }
                     }
