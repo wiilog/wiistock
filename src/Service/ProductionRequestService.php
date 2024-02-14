@@ -590,7 +590,8 @@ class ProductionRequestService
         $isTreatedStatus = $status->isTreated();
         $isNew = $productionRequest->getStatusHistory()->count() === 1;
 
-        $subject = $isNew && !$isTreatedStatus
+        $subject = "FOLLOW GT // ";
+        $subject .= $isNew && !$isTreatedStatus
             ? "Notification de création d'une demande de production"
             : (!$isTreatedStatus
                 ? "Notification d'évolution de votre demande de production"
