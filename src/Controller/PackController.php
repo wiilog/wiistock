@@ -430,11 +430,8 @@ class PackController extends AbstractController
         $logisticUnitId = $logisticUnit->getId();
 
         $articleRows = Stream::from($arrival->getReceptions())
-            ->filter(static fn(Reception $reception) =>
-                Stream::from($reception->getLines())
-                    ->some(static fn(ReceptionLine $receptionLine) => $receptionLine->getPack()->getId() === $logisticUnitId))
             ->flatMap(static fn(Reception $reception) => $reception->getLines())
-            ->filter(static fn(ReceptionLine $receptionLine) => $receptionLine->getPack()->getId() === $logisticUnitId)
+            ->filter(static fn(ReceptionLine $receptionLine) => $receptionLine->getPack()?->getId() === $logisticUnitId)
             ->flatMap(static fn(ReceptionLine $receptionLine) => $receptionLine->getReceptionReferenceArticles())
             ->map(static function(ReceptionReferenceArticle $receptionReferenceArticle): array {
                 $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
