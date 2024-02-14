@@ -523,11 +523,28 @@ class TrackingMovementService extends AbstractController
         return $tracking;
     }
 
-    private function handleDispatchAutomaticStatuses(Dispatch $dispatch, Utilisateur $user, TrackingMovement $trackingMovement, EntityManagerInterface $entityManager): void {
+    private function handleDispatchAutomaticStatuses(Dispatch               $dispatch,
+                                                     Utilisateur            $user,
+                                                     TrackingMovement       $trackingMovement,
+                                                     EntityManagerInterface $entityManager): void
+    {
+
+        if ($dispatch->getStatut()?->isTreated()) {
+            return;
+        }
+
         $statuses = $dispatch->getType()->getStatuts()
-            ->filter(static fn(Statut $status) => ($status->isAutomatic() &&
-                    (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null) === $trackingMovement->getType()->getCode() &&
-                    $status !== $dispatch->getStatut()) || ($status->isTreated() && $status->isAutomaticAllPacksOnDepositLocation()));
+            ->filter(static fn(Statut $status) => (
+                (
+                    $status->isAutomatic()
+                    && (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null) === $trackingMovement->getType()->getCode()
+                    && $status->getId() !== $dispatch->getStatut()->getId()
+                )
+                || (
+                    $status->isTreated()
+                    && $status->isAutomaticAllPacksOnDepositLocation()
+                )
+            ));
 
         $dispatchNatures = Stream::from($dispatch->getDispatchPacks())
             ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getNature()?->getId())
@@ -536,9 +553,12 @@ class TrackingMovementService extends AbstractController
 
         foreach($statuses as $status) {
             $validNatures = Stream::from($dispatchNatures)
-                ->some(fn(?int $natureId) => !$natureId || $status->getAutomaticStatusExcludedNatures()
+                ->some(fn(?int $natureId) => (
+                    !$natureId
+                    || $status->getAutomaticStatusExcludedNatures()
                         ->filter(fn(Nature $nature) => $nature->getId() === $natureId)
-                        ->isEmpty());
+                        ->isEmpty()
+                ));
 
             if(!$validNatures) {
                 continue;
