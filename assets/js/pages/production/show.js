@@ -1,10 +1,12 @@
 import AJAX, {DELETE, GET} from "@app/ajax";
 import Form from "@app/form";
 import Modal from "@app/modal";
-import Camera from "@app/camera";
+import Camera from "@app/camera"
+import {displayAttachmentRequired} from './form'
 
 global.deleteProductionRequest = deleteProductionRequest;
 global.openModalEditProductionRequest = openModalEditProductionRequest;
+global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
     const $modalEditProductionRequest = $('#modalEditProductionRequest');

@@ -46,9 +46,7 @@
                 }]
                 : [],
             includeParams: '[name=type]',
-            additionalAttributes: productionRequest.type
-                ? []
-                : [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
+            additionalAttributes: [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
         }) }}
         <div class="error-empty-status d-none">
             {% include 'utils/warningSelectEmpty.html.twig' with {
