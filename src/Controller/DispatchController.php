@@ -1683,7 +1683,8 @@ class DispatchController extends AbstractController {
             if ($dispatchChangeType
                 && $dispatchChangeStatus
                 && $dispatchChangeType->getId() === $dispatchChangeStatus->getType()?->getId()
-                && $dispatchChangeType->getId() === $dispatch->getType()?->getId()) {
+                && $dispatchChangeType->getId() === $dispatch->getType()?->getId()
+                && $dispatchChangeStatus->getId() !== $dispatch->getStatut()?->getId()) {
                 $oldStatus = $dispatch->getStatut();
                 $statusHistoryService->updateStatus($entityManager, $dispatch, $dispatchChangeStatus, [
                     "initiatedBy" => $currentUser,
