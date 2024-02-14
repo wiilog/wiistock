@@ -29,16 +29,14 @@ export default class Planning {
         this.$container
             .addClass(PLANNING_DATA)
             .data(PLANNING_DATA, this);
-
-        this.fetch();
     }
 
     fetch() {
-        const params = this.params || (() => ({}));
+        const params = this.params || {};
         return AJAX
             .route(GET, this.route, {
                 date: this.baseDate.format('YYYY-MM-DD'),
-                ...(params()),
+                ...params,
             })
             .json()
             .then(({template}) => {
@@ -50,6 +48,18 @@ export default class Planning {
                 else {
                     this.$container.append($template);
                 }
+
+                const $expandedCards = $(`[name=expandedCards]`);
+                if($expandedCards.exists() && $expandedCards.val()) {
+                    const expandedCards = $expandedCards
+                        .val()
+                        .split(`;`)
+                        .map((id) => `.planning-card[data-id=${id}] .collapse`)
+                        .join(`, `);
+
+                    this.$container.find(expandedCards).collapse('show');
+                }
+
                 this.$container.trigger(PLANNING_EVENT_LOADED);
             });
     }

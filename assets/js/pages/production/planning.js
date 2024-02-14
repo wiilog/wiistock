@@ -8,21 +8,38 @@ import Modal from "@app/modal";
 import moment from "moment";
 import Camera from "@app/camera";
 
+const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
+
 global.callbackSaveFilter = callbackSaveFilter;
 global.openModalUpdateProductionRequestStatus = openModalUpdateProductionRequestStatus;
 
 const $modalUpdateProductionRequestStatus = $(`#modalUpdateProductionRequestStatus`);
 
 let planning = null;
+let external = null;
 
 $(function () {
-    planning = new Planning($(`.production-request-planning`), {route: `production_request_planning_api`, baseDate: moment().startOf(`isoWeek`)});
+    external = Boolean($(`[name=external]`).val());
+
+    planning = new Planning($(`.production-request-planning`), {
+        route: `production_request_planning_api`,
+        params: {
+            external,
+        },
+        baseDate: moment().startOf(`isoWeek`),
+    });
+
     planning.onPlanningLoad(() => {
         onPlanningLoaded(planning);
     });
 
     initializeFilters();
     initializePlanningNavigation();
+    planning.fetch();
+
+    if(external) {
+        initPlanningRefresh();
+    }
 });
 
 function callbackSaveFilter() {
@@ -47,6 +64,7 @@ function initializeFilters() {
 
 function onPlanningLoaded(planning) {
     const $navigationButtons = $(`.previous-week, .next-week`);
+    const $expandedCards = $(`[name=expandedCards]`);
 
     Sortable.create(`.planning-card-container`, {
         acceptFrom: `.planning-card-container`,
@@ -90,12 +108,12 @@ function onPlanningLoaded(planning) {
 
             const $origin = $(e.detail.origin.container);
             const $card = $(e.detail.item);
-            const productionRequest = $card.data(`production-request-id`);
+            const productionRequest = $card.data(`id`);
             const $destination = $card.closest(`.planning-card-container`);
             const $column = $destination.closest(`.production-request-card-column`);
             const date = $column.data(`date`);
 
-            const order = Array.from($(e.target).find(`.planning-card`)).map((card) => $(card).data(`production-request-id`));
+            const order = Array.from($(e.target).find(`.planning-card`)).map((card) => $(card).data(`id`));
 
             const currentProductionRequestIndex = order.indexOf(productionRequest);
             const previousProductionRequest = order[currentProductionRequestIndex - 1] || null;
@@ -114,6 +132,26 @@ function onPlanningLoaded(planning) {
                     })
             ));
         });
+
+    $cardContainers.find(`[id^=cardCollapse-]`).on(`show.bs.collapse hide.bs.collapse`, function (e) {
+        const productionRequestId = $(this).closest(`.planning-card`).data(`id`);
+        let currentExpandedCards = $expandedCards.val()
+            ? $expandedCards.val().split(`;`)
+            : [];
+
+        const eventType = e.type;
+        if(eventType === `show`) {
+            currentExpandedCards.push(productionRequestId);
+        } else if(eventType === `hide`) {
+            const index = currentExpandedCards.indexOf(`${productionRequestId}`);
+
+            if(index > -1) {
+                currentExpandedCards.splice(index, 1);
+            }
+        }
+
+        $expandedCards.val(currentExpandedCards.join(`;`));
+    });
 }
 
 function initializePlanningNavigation() {
@@ -123,6 +161,10 @@ function initializePlanningNavigation() {
                 .resetBaseDate(true)
                 .then(() => {
                     changeNavigationButtonStates();
+
+                    if(external) {
+                        updateRefreshRate();
+                    }
                 })
         ));
     });
@@ -132,6 +174,10 @@ function initializePlanningNavigation() {
             planning.previousWeek()
                 .then(() => {
                     changeNavigationButtonStates();
+
+                    if(external) {
+                        updateRefreshRate();
+                    }
                 })
         ));
     });
@@ -141,6 +187,10 @@ function initializePlanningNavigation() {
             planning.nextWeek()
                 .then(() => {
                     changeNavigationButtonStates();
+
+                    if(external) {
+                        updateRefreshRate();
+                    }
                 })
         ));
     });
@@ -152,7 +202,7 @@ function changeNavigationButtonStates() {
 }
 
 function openModalUpdateProductionRequestStatus($container){
-    const productionRequest = $container.closest(`a`).data(`production-request-id`);
+    const productionRequest = $container.closest(`a`).data(`id`);
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
         .clearOpenListeners()
         .onOpen(() => {
@@ -184,3 +234,14 @@ function openModalUpdateProductionRequestStatus($container){
     $modalUpdateProductionRequestStatus.modal(`show`);
 }
 
+function initPlanningRefresh() {
+    setInterval(function () {
+        planning.fetch().then(() => {
+            updateRefreshRate();
+        });
+    }, EXTERNAL_PLANNING_REFRESH_RATE);
+}
+
+function updateRefreshRate() {
+    $(`.refresh-date`).html(`Actualisé le : ${moment().format(`DD/MM/YYYY HH:mm`)}`);
+}

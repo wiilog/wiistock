@@ -58,6 +58,7 @@ class PlanningController extends AbstractController {
                     $status['label']
                 ])
                 ->toArray(),
+            "token" => $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"] ?? "",
         ]);
     }
 
@@ -73,6 +74,8 @@ class PlanningController extends AbstractController {
         $workFreeDayRepository = $entityManager->getRepository(WorkFreeDay::class);
         $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $freeFieldRepository = $entityManager->getRepository(FreeField::class);
+
+        $external = $request->query->getBoolean("external");
 
         $user = $this->getUser();
         $defaultLanguage = $languageService->getDefaultLanguage();
@@ -98,19 +101,20 @@ class PlanningController extends AbstractController {
             ->toArray();
 
         if (!empty($planningDays)) {
-            $filters = $supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION_PLANNING, $this->getUser());
+            $filters = [];
+            if(!$external) {
+                $filters = Stream::from($supFilterRepository->getFieldAndValueByPageAndUser(FiltreSup::PAGE_PRODUCTION_PLANNING, $user))
+                    ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
+                            FiltreSup::FIELD_REQUEST_NUMBER,
+                            FiltreSup::FIELD_MULTIPLE_TYPES,
+                            FiltreSup::FIELD_OPERATORS,
+                            'statuses-filter',
+                        ])))
+                    ->toArray();
+            }
 
             $statuses = Stream::from($statusRepository->findByCategorieName(CategorieStatut::PRODUCTION))
                 ->filter(static fn(Statut $status) => $status->isDisplayedOnSchedule())
-                ->toArray();
-
-            $filters = Stream::from($filters)
-                ->filter(static fn(array $filter) => ($filter["value"] != "" &&  in_array($filter["field"], [
-                    FiltreSup::FIELD_REQUEST_NUMBER,
-                    FiltreSup::FIELD_MULTIPLE_TYPES,
-                    FiltreSup::FIELD_OPERATORS,
-                    'statuses-filter',
-                ])))
                 ->toArray();
 
             $productionRequests = $productionRequestRepository->findByStatusCodesAndExpectedAt($filters, $statuses, $planningStart, $planningEnd);
@@ -142,11 +146,10 @@ class PlanningController extends AbstractController {
                 ->toArray();
 
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields) {
+                ->keymap(function (ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
                     $fields = Stream::from([
                         FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
                         FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-                        FixedFieldEnum::comment->name => $this->getFormatter()->html($productionRequest->getComment()),
                         FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
                     ])
                         ->filter(static function (mixed $_, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
@@ -175,6 +178,7 @@ class PlanningController extends AbstractController {
                             "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
                             "inPlanning" => true,
                             "fields" => $fields,
+                            "external" => $external,
                         ])
                     ];
                 }, true)
@@ -204,9 +208,16 @@ class PlanningController extends AbstractController {
         ]);
     }
 
-    #[Route("/external", name: "external")]
-    public function external(): Response {
-        return $this->render("production_request/planning/external.html.twig");
+    #[Route("/externe/{token}", name: "external")]
+    public function external(string $token): Response {
+        if ($token !== $_SERVER["APP_PRODUCTION_REQUEST_PLANNING_TOKEN"]) {
+            return $this->redirectToRoute("access_denied");
+        }
+
+        return $this->render("production_request/planning/external.html.twig", [
+            "token" => $token,
+            "firstRefreshDate" => (new DateTime())->format("d/m/Y H:i"),
+        ]);
     }
 
     #[Route("/update-expected-at/{productionRequest}/{date}/{order}", name: "update_expected_at", options: ["expose" => true], methods: self::PUT)]

@@ -1,0 +1,44 @@
+{% import "form.html.twig" as form %}
+{% import "production_request/planning/navigation-buttons.html.twig" as navigationButtons %}
+
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('production-planning') }}
+    {{ encore_entry_link_tags('preparation-planning') }}
+{% endblock %}
+
+{% block body %}
+    <div class="wrapper pl-0 bg-wiistock-gradient {{ app_context }}">
+        <div class="dashboard-ext p-2">
+            <div class="header-container header-ext position-relative">
+                {% include 'header.html.twig' with {
+                    external: true
+                } %}
+                <span class="refresh-date external">Actualisé le : {{ firstRefreshDate }}</span>
+            </div>
+            <div class="dashboard-container">
+                <div class="mx-4 wii-page-card flex-fill d-flex flex-column maxh-100" >
+                    <div class="row">
+                        {{ navigationButtons.navigationHeaderButtons(true) }}
+                    </div>
+                    <div class="d-flex flex-fill production-request-planning-container">
+                        {{ navigationButtons.previousWeekSideButton(true) }}
+                        <div class="production-request-planning"></div>
+                        {{ navigationButtons.nextWeekSideButton(true) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ form.hidden("external", 1) }}
+    {{ form.hidden("expandedCards", null) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('filters') }}
+    {{ encore_entry_script_tags('production-planning') }}
+{% endblock %}
