@@ -792,7 +792,7 @@ class ReceptionService
             'quantityType' => $referenceArticle->getTypeQuantite(),
             'reference' => $referenceArticle?->getReference(),
             'label' => $referenceArticle?->getLibelle(),
-            'emergency' => $line->getEmergencyTriggered(),
+            'emergency' => $referenceArticle->getIsUrgent(),
             'typeId' => $typeId
         ];
     }
