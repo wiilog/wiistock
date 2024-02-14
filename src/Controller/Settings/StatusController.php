@@ -294,7 +294,7 @@ class StatusController extends AbstractController
     public function formTemplate(EntityManagerInterface $entityManager,
                                  Request                $request,
                                  string                 $mode,
-                                 ?int                   $status,): Response {
+                                 ?int                   $status): Response {
         $roleRepository = $entityManager->getRepository(Role::class);
         $typeRepository = $entityManager->getRepository(Type::class);
         $natureRepository = $entityManager->getRepository(Nature::class);
@@ -303,7 +303,7 @@ class StatusController extends AbstractController
             ? $entityManager->find(Statut::class, $status)
             : null;
 
-        $typeId = $request->request->get('type');
+        $typeId = $request->query->get('type');
         $type = $typeId
             ? $typeRepository->find($typeId)
             : null;
