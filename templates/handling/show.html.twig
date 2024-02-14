@@ -39,7 +39,7 @@
                         </div>
                         <div class="d-flex align-items-center justify-content-end">
                             <span class="wii-field-name">
-                                {{ handling.requester.username }}
+                                {{ handling.requester|format_helper('user', '-')  }}
                             </span>
                         </div>
                     </div>
