@@ -526,9 +526,8 @@ class TrackingMovementService extends AbstractController
     private function handleDispatchAutomaticStatuses(Dispatch $dispatch, Utilisateur $user, TrackingMovement $trackingMovement, EntityManagerInterface $entityManager): void {
         $statuses = $dispatch->getType()->getStatuts()
             ->filter(static fn(Statut $status) => ($status->isAutomatic() &&
-                    $status->getAutomaticStatusMovementType() === $trackingMovement->getType()->getCode() &&
+                    (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null) === $trackingMovement->getType()->getCode() &&
                     $status !== $dispatch->getStatut()) || ($status->isTreated() && $status->isAutomaticAllPacksOnDepositLocation()));
-
 
         $dispatchNatures = Stream::from($dispatch->getDispatchPacks())
             ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getNature()?->getId())
@@ -562,9 +561,9 @@ class TrackingMovementService extends AbstractController
                         );
                     } else {
                         return (
-                            $status->getAutomaticStatusExcludedNatures()->contains($pack->getNature())
+                            !$status->getAutomaticStatusExcludedNatures()->contains($pack->getNature())
                             || (
-                                $lastTracking->getType()->getCode() === $status->getAutomaticStatusMovementType()
+                                $lastTracking->getType()->getCode() === (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null)
                                 && $status->getAutomaticStatusLocations()->contains($locationLastTracking)
                             )
                         );
