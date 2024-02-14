@@ -63,7 +63,7 @@ class MailerService
         }
 
         $filteredRecipients = Stream::from(!is_array($to) ? [$to] : $to)
-            ->filter(fn($user) => $user && (is_string($user) || $user->getStatus()));
+            ->filter(static fn($user) => $user && (is_string($user) || $user->getStatus()));
 
         $contents = $this->createContents($filteredRecipients, $subject, $template);
 
@@ -113,7 +113,6 @@ class MailerService
                 ->html($body);
 
             $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
-
 
             $to = (is_array($to) || $to instanceof Traversable) ? $to : [$to];
             foreach ($to as $email) {

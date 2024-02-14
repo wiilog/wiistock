@@ -204,6 +204,7 @@ function changeNavigationButtonStates() {
 function openModalUpdateProductionRequestStatus($container){
     const productionRequest = $container.closest(`a`).data(`id`);
     Form.create($modalUpdateProductionRequestStatus, {clearOnOpen: true})
+        .clearOpenListeners()
         .onOpen(() => {
             Modal.load(`production_request_planning_update_status_content`,
                 {
