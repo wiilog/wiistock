@@ -336,7 +336,9 @@ class StatusController extends AbstractController
         $categoryStatusRepository = $manager->getRepository(CategorieStatut::class);
 
         $mode = $query->get("mode");
-        $locationIds = explode(",", $query->get("locations", ""));
+        $locationIds = Stream::explode(",", $query->get("locations", ""))
+            ->filter()
+            ->toArray();
         $labels = json_decode($query->get("labels"), true);
 
         $status = $query->get("status")
