@@ -175,7 +175,7 @@ function newTrackingNumber() {
         .onOpen(()=> {
             $modal.find('select[name="trackingNumbers"]').empty();
         })
-        .submitTo(POST, 'add_tracking_number', {
+        .submitTo(POST, 'truck_arrival_add_tracking_number', {
             success: () => {
                 truckArrivalLinesTable.ajax.reload();
             }
