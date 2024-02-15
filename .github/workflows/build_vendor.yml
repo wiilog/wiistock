@@ -48,9 +48,6 @@ jobs:
             -   name: Build & run containers
                 run: docker compose -f docker-compose.yml up app --build -d
 
-            -   name: Give right to www-data user
-                run: docker exec wiistock_app chown -R www-data:www-data ./
-
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
                 run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
 
