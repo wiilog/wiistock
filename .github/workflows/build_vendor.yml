@@ -49,13 +49,13 @@ jobs:
                 run: docker compose -f docker-compose.yml up app --build -d
 
             -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
+                run: docker cp projects/wiistock/. wiistock_app:/var/www/
 
             -   name: Install composer dependencies in app
-                run: docker exec wiistock-cypress_app composer install
+                run: docker exec wiistock_app composer install
 
             -   name: Copy vendor
-                run: docker cp wiistock_cypress:/var/www/var/vendor app-vendor
+                run: docker cp wiistock_app:/var/www/var/vendor app-vendor
 
             -   name: zip vendor
                 run: zip -r vendor.zip app-vendor
