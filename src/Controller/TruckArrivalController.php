@@ -16,6 +16,7 @@ use App\Entity\Transporteur;
 use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\FilterSupService;
 use App\Service\ReserveService;
@@ -288,10 +289,20 @@ class TruckArrivalController extends AbstractController
         }
 
         $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
-        foreach ($trackingNumbers as $lineNumber) {
-            $line = $lineNumberRepository->findBy(['number' => $lineNumber], ['id' => 'DESC'], 1)[0] ?? null;
 
-            if ($lineNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
+        $lines = Stream::from($lineNumberRepository->findBy(['number' => $trackingNumbers], ['id' => 'DESC']) ?? [])
+            ->filter(static fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()?->isDisableTrackingNumber());
+
+        if (!$lines->isEmpty()) {
+            $trackingNumbers = $lines
+                ->map(static fn (TruckArrivalLine $line) => $line->getNumber())
+                ->join(', ');
+
+            throw new FormException("Les numéros de tracking {$trackingNumbers} ont déjà été scanné dans un arrivage camion. Veuillez les supprimer pour enregistrer.");
+        }
+
+        foreach ($trackingNumbers as $lineNumber) {
+            if ($lineNumber) {
                 $arrivalLine = new TruckArrivalLine();
                 $arrivalLine
                     ->setTruckArrival($truckArrival)
