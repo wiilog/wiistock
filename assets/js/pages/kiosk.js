@@ -15,6 +15,12 @@ const $modalInformation = $("#modal-information");
 const $modalWaiting = $("#modal-waiting");
 
 $(function () {
+    //In order to always have a valid session cookie, we make a call to the server to extend session lifetime.
+    const sessionLifeTime = $("[name=maxSessionTime]").val()
+    setInterval(() => {
+        AJAX.route(GET, `api_ping`).json().then(()=> {})
+    }, (sessionLifeTime - 1) * 60 * 1000 );
+
     if ($modalPrintHistory) {
         $('#openModalPrintHistory').on('click', function () {
             $modalPrintHistory.modal('show');

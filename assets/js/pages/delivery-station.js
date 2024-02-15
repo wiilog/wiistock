@@ -1,4 +1,5 @@
 import Routing from '@app/fos-routing';
+import AJAX, {GET} from "@app/ajax";
 
 import '@styles/pages/kiosk.scss';
 import '@styles/pages/delivery-station.scss';
@@ -47,6 +48,12 @@ const $referenceInformations = $(`.reference-informations`);
 $(function () {
     toggleAutofocus();
     $treatedDeliveryContainer.find(`.delay`).text(REDIRECT_TO_HOME_DELAY / 1000);
+
+    //In order to always have a valid session cookie, we make a call to the server to extend session lifetime.
+    const sessionLifeTime = $(`[name=maxSessionTime]`).val()
+    setInterval(() => {
+        AJAX.route(GET, `api_ping`).json().then(()=> {})
+    }, (sessionLifeTime - 1) * 60 * 1000 );
 
     $loginButton.on(`click`, function () {
         processLogin($(this));
