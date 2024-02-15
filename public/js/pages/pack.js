@@ -271,7 +271,7 @@ function toExport() {
         );
     } else {
         saveExportFile(
-            `export_groups`,
+            `group_export`,
             true,
             {},
             false,

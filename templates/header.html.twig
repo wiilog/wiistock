@@ -97,7 +97,7 @@
                         and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::CREATE_PRODUCTION_REQUEST'))
                         ) %}
                     <div class="col-auto pr-0 mr-0">
-                        <a class="header-icon cart" href="{{ path('cart') }}">
+                        <a class="header-icon cart" href="{{ path('cart_index') }}">
                             {% set referencesQuantity = app.user.cart.references|length %}
                             {% set articlesQuantity = app.user.cart.articles|length %}
                             {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}

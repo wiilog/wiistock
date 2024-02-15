@@ -31,14 +31,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-#[Route('/arrivage-camion')]
+#[Route('/arrivage-camion', name: "truck_arrival_")]
 class TruckArrivalController extends AbstractController
 {
-    #[Route('/', name: 'truck_arrival_index', methods: 'GET')]
+    #[Route('/', name: 'index', methods: self::GET)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function index(TruckArrivalService $truckArrivalService,
-                          EntityManagerInterface $entityManager,
-                          FilterSupService $filterSupService ): Response {
+    public function index(TruckArrivalService       $truckArrivalService,
+                          EntityManagerInterface    $entityManager,
+                          FilterSupService          $filterSupService ): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
@@ -58,11 +58,11 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/voir/{id}', name: 'truck_arrival_show', methods: 'GET')]
+    #[Route('/voir/{id}', name: 'show', methods: self::GET)]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function show(TruckArrival $truckArrival,
+    public function show(TruckArrival           $truckArrival,
                          EntityManagerInterface $entityManager,
-                         TruckArrivalService $truckArrivalService): Response {
+                         TruckArrivalService    $truckArrivalService): Response {
         $lineAssociated = $truckArrival->getTrackingLines()
                 ->filter(fn(TruckArrivalLine $line) => $line->getArrivals()->count())
                 ->count()
@@ -83,7 +83,7 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/api-columns', name: 'truck_arrival_api_columns', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-columns', name: 'api_columns', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
     public function apiColumns(TruckArrivalService $truckArrivalService): Response {
         return new JsonResponse(
@@ -91,18 +91,20 @@ class TruckArrivalController extends AbstractController
         );
     }
 
-    #[Route('/api-list', name: 'truck_arrival_api_list', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/api-list', name: 'api_list', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function apiList(TruckArrivalService $truckArrivalService,
-                            EntityManagerInterface $entityManager,
+    public function apiList(TruckArrivalService     $truckArrivalService,
+                            EntityManagerInterface  $entityManager,
                             Request $request): JsonResponse {
         return new JsonResponse(
             $truckArrivalService->getDataForDatatable($entityManager, $request, $this->getUser()),
         );
     }
 
-    #[Route('/save-columns', name: 'save_column_visible_for_truck_arrival', methods: 'POST', condition: 'request.isXmlHttpRequest()')]
-    public function saveColumns(VisibleColumnService $visibleColumnService, Request $request, EntityManagerInterface $entityManager): Response {
+    #[Route('/save-columns', name: 'save_column_visible', methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    public function saveColumns(VisibleColumnService    $visibleColumnService,
+                                Request                 $request,
+                                EntityManagerInterface  $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $fields = array_keys($data);
         $user = $this->getUser();
@@ -117,27 +119,27 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/truck-arrival-lines-api', name: 'truck_arrival_lines_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/truck-arrival-lines-api', name: 'lines_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::SETTINGS_DISPLAY_TRUCK_ARRIVALS])]
-    public function truckArrivalLinesApi(TruckArrivalLineService $truckArrivalLineService,
-                                         EntityManagerInterface $entityManager,
-                                         Request $request): JsonResponse {
+    public function truckArrivalLinesApi(TruckArrivalLineService    $truckArrivalLineService,
+                                         EntityManagerInterface     $entityManager,
+                                         Request                    $request): JsonResponse {
         return new JsonResponse(
             $truckArrivalLineService->getDataForDatatable($entityManager, $request),
         );
     }
 
-    #[Route('/truck-arrival-lines-quality-reserves-api', name: 'truck_arrival_lines_quality_reserves_api', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/truck-arrival-lines-quality-reserves-api', name: 'lines_quality_reserves_api', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS])]
-    public function truckArrivalLinesQualityReservesApi(ReserveService $reserveService,
-                                                        EntityManagerInterface $entityManager,
-                                                        Request $request): JsonResponse {
+    public function truckArrivalLinesQualityReservesApi(ReserveService          $reserveService,
+                                                        EntityManagerInterface  $entityManager,
+                                                        Request                 $request): JsonResponse {
         return new JsonResponse(
             $reserveService->getDataForDatatable($entityManager, $request),
         );
     }
 
-    #[Route('/supprimer-ligne', name: 'truck_arrival_lines_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/supprimer-ligne', name: 'lines_delete', options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_CARRIER_TRACKING_NUMBER], mode: HasPermission::IN_JSON)]
     public function deleteLine(Request                $request,
                                EntityManagerInterface $entityManager): Response
@@ -168,10 +170,10 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/supprimer-ligne-reserve', name: 'truck_arrival_line_reserve_delete', options: ['expose' => true], methods: 'GET|POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/supprimer-ligne-reserve', name: 'line_reserve_delete', options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_TRUCK_ARRIVALS], mode: HasPermission::IN_JSON)]
-    public function deleteReserve(Request $request,
-                           EntityManagerInterface $entityManager): Response {
+    public function deleteReserve(  Request                 $request,
+                                    EntityManagerInterface  $entityManager): Response {
         $reserveRepository = $entityManager->getRepository(Reserve::class);
         $reserve = $reserveRepository->find($request->query->get('reserveId'));
 
@@ -184,9 +186,10 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/form/edit/{id}', name: 'truck_arrival_form_edit', options: ['expose' => true], methods: 'GET', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/form/edit/{id}', name: 'form_edit', options: ['expose' => true], methods: self::GET, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
-    public function formEdit(TruckArrival $truckArrival, EntityManagerInterface $entityManager): Response {
+    public function formEdit(TruckArrival           $truckArrival,
+                             EntityManagerInterface $entityManager): Response {
         $fieldsParamRepository = $entityManager->getRepository(FixedFieldStandard::class);
 
         return new JsonResponse([
@@ -198,7 +201,7 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/formulaire', name: 'truck_arrival_form_submit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/formulaire', name: 'form_submit', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::CREATE_TRUCK_ARRIVALS])]
     public function submit(Request                $request,
                            EntityManagerInterface $entityManager,
@@ -318,10 +321,10 @@ class TruckArrivalController extends AbstractController
         ]);
     }
 
-    #[Route('/{truckArrival}/delete', name: 'truck_arrival_delete', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{truckArrival}/delete', name: 'delete', options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::TRACA, Action::DELETE_TRUCK_ARRIVALS])]
-    public function delete(TruckArrival $truckArrival,
-                           EntityManagerInterface $entityManager): Response {
+    public function delete(TruckArrival             $truckArrival,
+                           EntityManagerInterface   $entityManager): Response {
 
         $hasLinesAssociatedToArrival = $truckArrival->getTrackingLines()->count() > 0
             ? Stream::from($truckArrival->getTrackingLines())
@@ -349,8 +352,9 @@ class TruckArrivalController extends AbstractController
     // Reçois info POST du show.js
     // Si le nouveau nombre existe déjà -> erreur
     // Sinon -> enregistre en BDD le nombre et message succès
-    #[Route('/add-tracking-number', name: 'add_tracking_number', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
-    public function addTrackingNumber(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/add-tracking-number', name: 'add_tracking_number', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
+    public function addTrackingNumber(Request                   $request,
+                                      EntityManagerInterface    $entityManager): Response
     {
         $data = $request->request->all();
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
@@ -451,7 +455,8 @@ class TruckArrivalController extends AbstractController
 
     #[Route('/reserves/supprimer/{entity}', name: 'settings_reserve_type_delete', options: ['expose' => true])]
     #[HasPermission([Menu::PARAM, Action::DELETE])]
-    public function deleteReserveType(EntityManagerInterface $manager, ReserveType $entity): JsonResponse {
+    public function deleteReserveType(EntityManagerInterface    $manager,
+                                      ReserveType               $entity): JsonResponse {
         $reserveTypeRepository = $manager->getRepository(ReserveType::class);
         if (count($reserveTypeRepository->findAll()) === 1) {
             return new JsonResponse([
