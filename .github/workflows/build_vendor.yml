@@ -1,1 +1,71 @@
+name: build_vendor
 
+on:
+    workflow_dispatch:
+    push:
+#        tags:
+#            - 'v*'
+        branches:
+            - 'WIIS-10930'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        container:
+            image: docker:latest
+            options: --user root
+
+        steps:
+            -   name: Checkout wiistock-docker
+                uses: actions/checkout@v4
+                with:
+                    repository: wiilog/wiistock-docker
+                    token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
+                    ref: main
+
+            -   name: Setup environment wiistock-docker
+                run: cp .env.example .env
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
+                with:
+                    repository: wiilog/wiistock
+#                    ref: ${{ github.event.pull_request.head.sha }}
+                    ref: WIIS-10930
+                    path: projects/wiistock
+
+            -   name: Copy .env to .env.local
+                run: cp projects/wiistock/.env projects/wiistock/.env.local
+
+            -   name: Add generated.yaml to wiistock
+                run: |
+                    touch projects/wiistock/config/generated.yaml &&
+                    echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
+
+            -   name: Give all right to wiistock
+                run: chmod -R 777 projects/wiistock/
+
+            -   name: Build & run containers
+                run: docker compose -f docker-compose.yml up app --build -d
+
+            -   name: Give right to www-data user
+                run: docker exec wiistock_app chown -R www-data:www-data ./
+
+            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
+                run: docker cp projects/wiistock/. wiistock-cypress_app:/var/www/
+
+            -   name: Install composer dependencies in app
+                run: docker exec wiistock-cypress_app composer install
+
+            -   name: Copy vendor
+                run: docker cp wiistock_cypress:/var/www/var/vendor app-vendor
+
+            -   name: zip vendor
+                run: zip -r vendor.zip app-vendor
+
+
+            -   name: Upload vendor
+                uses: actions/upload-artifact@v2
+                with:
+                    name: vendor.zip
+                    path: vendor.zip
