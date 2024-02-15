@@ -52,10 +52,10 @@ jobs:
                 run: docker cp projects/wiistock/. wiistock_app:/var/www/
 
             -   name: Give right to www-data user
-                run: docker exec wiistock_app chown -R www-data:www-data ./
+                run: docker exec -u root wiistock_app chown -R www-data:www-data ./
 
             -   name: Install composer dependencies in app
-                run: docker exec wiistock_app composer install
+                run: docker exec -u root wiistock_app composer install
 
             -   name: Copy vendor
                 run: docker cp wiistock_app:/var/www/vendor app-vendor
