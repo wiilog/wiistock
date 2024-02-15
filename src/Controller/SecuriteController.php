@@ -40,27 +40,12 @@ class SecuriteController extends AbstractController {
     #[Required]
     public Twig_Environment $templating;
 
-    /**
-     * @Route("/", name="default")
-     */
+    #[Route("/", name: "default")]
     public function index(): Response {
         return $this->redirectToRoute('login');
     }
 
-    /**
-     * @Route("/verification-connexion", name="check_login", options={"expose"=true})
-     */
-    public function checkLogin(): Response {
-        return $this->json([
-            "success" => true,
-            "loggedIn" => $this->getUser() !== null,
-        ]);
-    }
-
-
-    /**
-     * @Route("/login/{success}", name="login", options={"expose"=true}, methods={"GET", "POST"})
-     */
+    #[Route("/login/{success}", name: "login", options: ["expose" => true], methods: [ self::GET,  self::POST])]
     public function login(AuthenticationUtils $authenticationUtils,
                           EntityManagerInterface $entityManager,
                           SessionHistoryRecordService $sessionHistoryRecordService,
@@ -96,9 +81,7 @@ class SecuriteController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/register", name="register")
-     */
+    #[Route("/register", name: "register")]
     public function register(Request $request,
                              PasswordService $passwordService,
                              EntityManagerInterface $entityManager): Response {
@@ -152,27 +135,20 @@ class SecuriteController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/acces-refuse", name="access_denied")
-     */
+    #[Route("/acces-refuse", name: "access_denied")]
     public function access_denied(): Response {
         return $this->render('securite/access_denied.html.twig');
     }
 
-    /**
-     * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
-     */
+    #[Route("/change-password", name: "change_password", options: ["expose" => true], methods: [ self::GET, self::POST])]
     public function change_password(Request $request): Response {
         $token = $request->get('token');
         return $this->render('securite/change_password.html.twig', ['token' => $token]);
     }
 
-    /**
-     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/change-password-in-bdd", name: "change_password_in_bdd", options: ["expose" => true], methods: [ self::POST], condition: "request.isXmlHttpRequest()")]
     public function change_password_in_bdd(Request $request,
                                            EntityManagerInterface $entityManager): Response {
-
         $data = $request->query->all();
         $user = $entityManager->getRepository(Utilisateur::class)->findOneBy(['token' => $data['token']]);
 
@@ -214,23 +190,17 @@ class SecuriteController extends AbstractController {
         return $this->json($response);
     }
 
-    /**
-     * @Route("/logout", name="logout")
-     */
+    #[Route("/logout", name: "logout")]
     public function logout(): Response {
         return $this->redirectToRoute('login');
     }
 
-    /**
-     * @Route("/oubli", name="forgotten")
-     */
+    #[Route("/oubli", name: "forgotten")]
     public function forgot(): Response {
         return $this->render('securite/resetPassword.html.twig');
     }
 
-    /**
-     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/verifier-email", name: "check_email", options: ["expose" => true], methods: [ self::POST], condition: "request.isXmlHttpRequest()")]
     public function checkEmail(Request $request, EntityManagerInterface $entityManager): Response {
 
         $userRepository = $entityManager->getRepository(Utilisateur::class);
