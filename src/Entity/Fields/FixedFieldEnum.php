@@ -1,6 +1,9 @@
 <?php
 namespace App\Entity\Fields;
 
+use ReflectionEnum;
+use ReflectionException;
+
 enum FixedFieldEnum: string
 {
     case id = "Id";
@@ -20,4 +23,29 @@ enum FixedFieldEnum: string
     case projectNumber = "Numéro projet";
     case comment = "Commentaire";
     case attachments = 'Pièces jointes';
+    case name = "Nom";
+    case description = "Description";
+    case maximumTrackingDelay = "Délai maximum de Tracabilité";
+    case zone = "Zone";
+    case allowedNatures = "Natures autorisées";
+    case allowedTemperatures = "Températures autorisées";
+    case allowedDeliveryTypes = "Types de commandes autorisés";
+    case allowedCollectTypes= "Types de collectes autorisés";
+    case isDeliveryPoint = "Point de livraison";
+    case isOngoingVisibleOnMobile = "Encours visible sur nomade";
+    case signatories = "Signataires";
+    case email = "Email";
+    case sendEmailToManagers = "Envoi d'email à chaque dépose aux responsables de l'emplacement";
+    case managers = "Responsables";
+
+    public static function fromCase(string $case): string|null {
+        try {
+            return (new ReflectionEnum(self::class))
+                ->getCase($case)
+                ->getValue()
+                ->value;
+        } catch (ReflectionException) {
+            return null;
+        }
+    }
 }

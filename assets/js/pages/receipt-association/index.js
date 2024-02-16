@@ -1,5 +1,6 @@
 import AJAX from "@app/ajax";
 import Form from "@app/form";
+import Routing from '@app/fos-routing';
 
 $(function () {
     $(`.select2`).select2();

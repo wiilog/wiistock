@@ -15,7 +15,7 @@ $(function () {
 });
 
 function hideColumns(table, data) {
-    if (data?.forEach) {
+    if (data && data.forEach) {
         data.forEach(function (col) {
             table.column(col + ':name').visible(false);
         });
@@ -24,7 +24,7 @@ function hideColumns(table, data) {
 
 function showColumns(table, data) {
     table.columns().visible(false);
-    if (data?.forEach) {
+    if (data && data.forEach) {
         data.forEach(function (col) {
             table.columns(col + ':name').visible(true);
         });
@@ -232,10 +232,10 @@ function datatableDrawCallback({   response,
     if (needsSearchOverride && $searchInput.length > 0) {
         overrideSearch($searchInput, table);
     }
-    if (needsColumnHide && response?.json) {
+    if (needsColumnHide && response && response.json) {
         hideColumns(table, response.json.columnsToHide);
     }
-    if (needsColumnShow && response?.json) {
+    if (needsColumnShow && response && response.json) {
         showColumns(table, response.json.visible);
     }
     if (needsEmplacementSearchOverride) {

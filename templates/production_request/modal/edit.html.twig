@@ -1,0 +1,28 @@
+<div class="modal fade"
+     id="modalEditProductionRequest"
+     role="dialog"
+     aria-hidden="true"
+     data-modal-type="edit">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title: "Modifier demande de production"
+            } %}
+
+            <div class="modal-body modal-input container-fluid">
+                {% include 'production_request/modal/form.html.twig' with {
+                    productionRequest,
+                    fieldsParam,
+                    emergencies,
+                }%}
+            </div>
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Annuler'},
+                    {classes: 'btn btn-success data', text: 'Enregistrer', type: 'submit', id: 'submitEditProductionRequest'}
+                ],
+            } %}
+
+        </div>
+    </div>
+</div>

@@ -41,6 +41,8 @@ class Type {
     const LABEL_SCHEDULED_IMPORT = 'Import planifié';
     const LABEL_UNIQUE_IMPORT = 'Import unique';
 
+    const DEFAULT_COLOR = "#3353D7";
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]

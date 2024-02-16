@@ -1,5 +1,6 @@
-import {LOADING_CLASS} from "../../../../loading";
-import Flash, {INFO} from "../../../../flash";
+import {LOADING_CLASS} from "@app/loading";
+import Flash, {INFO} from "@app/flash";
+import Routing from '@app/fos-routing';
 
 global.discardChanges = discardChanges;
 global.saveSettings = saveSettings;

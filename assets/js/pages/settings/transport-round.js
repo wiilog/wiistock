@@ -1,4 +1,5 @@
-import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "../../editatable";
+import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY} from "@app/editatable";
+import Routing from '@app/fos-routing';
 
 const $managementButtons = $(`.save-settings, .discard-settings`);
 

@@ -9,6 +9,7 @@ use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
+use App\Helper\LanguageHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -30,10 +31,23 @@ class NatureService
     #[Required]
     public FormatService $formatService;
 
-    public function getDataForDatatable(InputBag $params)
-    {
+    #[Required]
+    public LanguageService $languageService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
+
+    public function getDataForDatatable(InputBag $params): array {
         $natureRepository = $this->manager->getRepository(Nature::class);
-        $queryResult = $natureRepository->findByParams($params);
+
+        $defaultSlug = LanguageHelper::clearLanguage($this->languageService->getDefaultSlug());
+        $defaultLanguage = $this->entityManager->getRepository(Language::class)->findOneBy(['slug' => $defaultSlug]);
+        $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
+
+        $queryResult = $natureRepository->findByParams($params, [
+            "defaultLanguage" => $defaultLanguage,
+            "language" => $language,
+        ]);
 
         $natures = $queryResult['data'];
 
@@ -84,7 +98,7 @@ class NatureService
             'color' => $nature->getColor() ? '<div style="background-color:' . $nature->getColor() . ';"><br></div>' : 'Non définie',
             'description' => $nature->getDescription() ?? 'Non définie',
             'temperatures' => Stream::from($nature->getTemperatureRanges())->map(fn(TemperatureRange $temperature) => $temperature->getValue())->join(", "),
-            'actions' => $this->templating->render('nature_param/datatableNatureRow.html.twig', [
+            'actions' => $this->templating->render('nature/action-row.html.twig', [
                 'natureId' => $nature->getId(),
             ]),
         ];

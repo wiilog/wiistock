@@ -2,10 +2,14 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 
+use App\Entity\IOT\Sensor;
 use App\Entity\IOT\SensorMessage;
+use App\Entity\Menu;
 use App\Entity\Nature;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
@@ -39,6 +43,9 @@ class EmplacementDataService {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UserService $userService;
+
     private array $labeledCacheLocations = [];
 
     public function persistLocation(array $data, EntityManagerInterface $entityManager): Emplacement
@@ -49,16 +56,16 @@ class EmplacementDataService {
         $naturesRepository = $entityManager->getRepository(Nature::class);
         $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-        if(!empty($data['zone'])) {
-            $zone = $zoneRepository->find($data['zone']) ?? $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
+        if(!empty($data[FixedFieldEnum::zone->name])) {
+            $zone = $zoneRepository->find($data[FixedFieldEnum::zone->name]) ?? $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         } else {
             $zone = $zoneRepository->findOneBy(['name' => Zone::ACTIVITY_STANDARD_ZONE_NAME]);
         }
 
-        if(!empty($data['signatories'])) {
-            $signatoryIds = is_array($data['signatories'])
-                ? $data['signatories']
-                : Stream::explode(',', $data['signatories'])
+        if(!empty($data[FixedFieldEnum::signatories->name])) {
+            $signatoryIds = is_array($data[FixedFieldEnum::signatories->name])
+                ? $data[FixedFieldEnum::signatories->name]
+                : Stream::explode(',', $data[FixedFieldEnum::signatories->name])
                     ->filter()
                     ->map(fn(string $id) => trim($id))
                     ->toArray();
@@ -68,27 +75,38 @@ class EmplacementDataService {
                 : [];
         }
 
-        $location = (new Emplacement())
-            ->setLabel($data["label"])
-            ->setDescription($data["description"] ?? null)
-            ->setIsActive($data["isActive"] ?? true)
-            ->setDateMaxTime($data['dateMaxTime'] ?? null)
-            ->setIsDeliveryPoint($data["isDeliveryPoint"] ?? null)
-            ->setIsOngoingVisibleOnMobile($data["isDeliveryPoint"] ?? false)
-            ->setAllowedDeliveryTypes(!empty($data['allowedDeliveryTypes']) ? $typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]) : [])
-            ->setAllowedCollectTypes(!empty($data['allowedCollectTypes']) ? $typeRepository->findBy(["id" => $data["allowedCollectTypes"]]) : [])
-            ->setAllowedNatures(!empty($data['allowed-natures']) ? $naturesRepository->findBy(["id" => $data["allowed-natures"]]) : [])
-            ->setTemperatureRanges(!empty($data['allowedTemperatures']) ? $temperatureRangeRepository->findBy(["id" => $data["allowedTemperatures"]]) : [])
-            ->setSignatories($signatories ?? [])
-            ->setEmail($data["email"] ?? null);
+        if (!empty($data[FixedFieldEnum::managers->name])) {
+            $managerIds = Stream::explode(",", $data[FixedFieldEnum::managers->name])
+                ->filter()
+                ->toArray();
+            if (!empty($managerIds)) {
+                $managers = $userRepository->findBy(["id" => $managerIds]);
+            }
+        }
 
-        $location->setProperty('zone', $zone);
+        $location = (new Emplacement())
+            ->setLabel($data[FixedFieldEnum::name->name])
+            ->setDescription($data[FixedFieldEnum::description->name] ?? null)
+            ->setIsActive($data[FixedFieldEnum::status->name] ?? true)
+            ->setSendEmailToManagers($data[FixedFieldEnum::sendEmailToManagers->name] ?? false)
+            ->setDateMaxTime($data[FixedFieldEnum::maximumTrackingDelay->name] ?? null)
+            ->setIsDeliveryPoint($data[FixedFieldEnum::isDeliveryPoint->name] ?? null)
+            ->setIsOngoingVisibleOnMobile($data[FixedFieldEnum::isOngoingVisibleOnMobile->name] ?? false)
+            ->setAllowedDeliveryTypes(!empty($data[FixedFieldEnum::allowedDeliveryTypes->name]) ? $typeRepository->findBy(["id" => $data[FixedFieldEnum::allowedDeliveryTypes->name]]) : [])
+            ->setAllowedCollectTypes(!empty($data[FixedFieldEnum::allowedCollectTypes->name]) ? $typeRepository->findBy(["id" => $data[FixedFieldEnum::allowedCollectTypes->name]]) : [])
+            ->setAllowedNatures(!empty($data[FixedFieldEnum::allowedNatures->name]) ? $naturesRepository->findBy(["id" => $data[FixedFieldEnum::allowedNatures->name]]) : [])
+            ->setManagers($managers ?? [])
+            ->setTemperatureRanges(!empty($data[FixedFieldEnum::allowedTemperatures->name]) ? $temperatureRangeRepository->findBy(["id" => $data[FixedFieldEnum::allowedTemperatures->name]]) : [])
+            ->setSignatories($signatories ?? [])
+            ->setEmail($data[FixedFieldEnum::email->name] ?? null);
+
+        $location->setProperty(FixedFieldEnum::zone->name, $zone);
         $entityManager->persist($location);
 
         return $location;
     }
 
-    public function getEmplacementDataByParams($params = null) {
+    public function getEmplacementDataByParams($params = null): array {
         $user = $this->security->getUser();
 
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
@@ -119,22 +137,22 @@ class EmplacementDataService {
         ];
     }
 
-    public function dataRowEmplacement(EntityManagerInterface $manager, Emplacement $emplacement) {
-        $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
+    public function dataRowEmplacement(EntityManagerInterface $manager, Emplacement $location): array {
+        $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $location->getId()]);
 
         $sensorMessageRepository = $manager->getRepository(SensorMessage::class);
 
-        $allowedNatures = Stream::from($emplacement->getAllowedNatures())
+        $allowedNatures = Stream::from($location->getAllowedNatures())
             ->map(fn(Nature $nature) => $this->formatService->nature($nature))
             ->join(", ");
 
-        $allowedTemperatures = Stream::from($emplacement->getTemperatureRanges())
+        $allowedTemperatures = Stream::from($location->getTemperatureRanges())
             ->map(fn(TemperatureRange $temperature) => $temperature->getValue())
             ->join(", ");
 
-        $linkedGroup = $emplacement->getLocationGroup();
+        $linkedGroup = $location->getLocationGroup();
         $groupLastMessage = $linkedGroup ?  $sensorMessageRepository->getLastSensorMessage($linkedGroup) : null;
-        $locationLastMessage = $sensorMessageRepository->getLastSensorMessage($emplacement);
+        $locationLastMessage = $sensorMessageRepository->getLastSensorMessage($location);
 
         $sensorCode = $groupLastMessage && $groupLastMessage->getSensor()->getAvailableSensorWrapper()
             ? $groupLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
@@ -142,27 +160,58 @@ class EmplacementDataService {
                 ? $locationLastMessage->getSensor()->getAvailableSensorWrapper()->getName()
                 : null);
 
-        $hasPairing = !$emplacement->getPairings()->isEmpty() || !$emplacement->getSensorMessages()->isEmpty();
+        $hasPairing = !$location->getPairings()->isEmpty() || !$location->getSensorMessages()->isEmpty();
 
         return [
-            'id' => $emplacement->getId(),
-            'name' => $emplacement->getLabel() ?: 'Non défini',
-            'description' => $emplacement->getDescription() ?: 'Non défini',
-            'deliveryPoint' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
-            'ongoingVisibleOnMobile' => $emplacement->isOngoingVisibleOnMobile() ? 'oui' : 'non',
-            'maxDelay' => $emplacement->getDateMaxTime() ?? '',
-            'active' => $emplacement->getIsActive() ? 'actif' : 'inactif',
-            'allowedNatures' => $allowedNatures,
-            'allowedTemperatures' => $allowedTemperatures,
-            'signatories' => $this->formatService->users($emplacement->getSignatories()),
-            'email' => $emplacement->getEmail(),
-            'zone' => $emplacement->getZone() ? $emplacement->getZone()->getName() : "",
-            'actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
-                'url' => $url,
-                'emplacementId' => $emplacement->getId(),
-                'location' => $emplacement,
-                'linkedGroup' => $linkedGroup,
-                'hasPairing' => $hasPairing
+            'id' => $location->getId(),
+            FixedFieldEnum::name->name => $location->getLabel() ?: 'Non défini',
+            FixedFieldEnum::description->name => $location->getDescription() ?: 'Non défini',
+            FixedFieldEnum::isDeliveryPoint->name => $this->formatService->bool($location->getIsDeliveryPoint()),
+            FixedFieldEnum::isOngoingVisibleOnMobile->name => $this->formatService->bool($location->isOngoingVisibleOnMobile()),
+            FixedFieldEnum::maximumTrackingDelay->name => $location->getDateMaxTime() ?? '',
+            FixedFieldEnum::status->name => $location->getIsActive() ? 'actif' : 'inactif',
+            FixedFieldEnum::allowedNatures->name => $allowedNatures,
+            FixedFieldEnum::allowedTemperatures->name => $allowedTemperatures,
+            FixedFieldEnum::signatories->name => $this->formatService->users($location->getSignatories()),
+            FixedFieldEnum::email->name => $location->getEmail(),
+            FixedFieldEnum::zone->name => $location->getZone() ? $location->getZone()->getName() : "",
+            FixedFieldEnum::managers->name => $this->formatService->users($location->getManagers()),
+            FixedFieldEnum::sendEmailToManagers->name => $this->formatService->bool($location->isSendEmailToManagers()),
+            "actions" => $this->templating->render("utils/action-buttons/dropdown.html.twig", [
+                "actions" => [
+                    [
+                        "title" => "Modifier",
+                        "hasRight" => $this->userService->hasRightFunction(Menu::REFERENTIEL, Action::EDIT),
+                        "actionOnClick" => true,
+                        "class" => "edit-location",
+                        "attributes" => [
+                            "data-id" => $location->getId(),
+                        ],
+                    ],
+                    [
+                        "title" => "Imprimer",
+                        "icon" => "wii-icon wii-icon-printer-black",
+                        "href" => $this->router->generate('print_single_location_bar_code', ['location' => $location->getId()]),
+                    ],
+                    [
+                        "title" => "Historique des données",
+                        "icon" => "wii-icon wii-icon-pairing",
+                        "hasRight" => (
+                            $hasPairing
+                            && $this->userService->hasRightFunction(Menu::IOT, Action::DISPLAY_SENSOR)
+                        ),
+                        "href" => $this->router->generate('show_data_history', ['id' => $location->getId(), "type" => Sensor::LOCATION]),
+                    ],
+                    [
+                        "title" => "Supprimer",
+                        "icon" => "wii-icon wii-icon-trash-black",
+                        "hasRight" => $this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE),
+                        "class" => "delete-location",
+                        "attributes" => [
+                            "data-id" => $location->getId(),
+                        ],
+                    ],
+                ],
             ]),
             'pairing' => $this->templating->render('pairing-icon.html.twig', [
                 'sensorCode' => $sensorCode,

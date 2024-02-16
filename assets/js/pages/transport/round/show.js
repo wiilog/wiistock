@@ -2,6 +2,7 @@ import '@styles/pages/transport/common.scss';
 import '@styles/pages/transport/round-plan.scss'
 import {Map} from '@app/map';
 import {getStatusHistory, getTransportRoundTimeline} from "@app/pages/transport/common";
+import Wiistock from '@app/general';
 
 $(function () {
     const map = Map.create(`map`);

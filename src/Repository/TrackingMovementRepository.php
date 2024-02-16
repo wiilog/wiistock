@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
 use App\Entity\Statut;
@@ -11,10 +12,9 @@ use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
-use Doctrine\ORM\NoResultException;
 use Symfony\Component\HttpFoundation\InputBag;
 
 
@@ -260,10 +260,10 @@ class TrackingMovementRepository extends EntityRepository
                         }
                     }
 
-                    $orderId = ($column === 'datetime')
+                    $order = ($column === 'datetime')
                         ? $order
-                        : 'DESC';
-                    $qb->addOrderBy('tracking_movement.id', $orderId);
+                        : Criteria::DESC;
+                    $qb->addOrderBy('tracking_movement.orderIndex', $order);
                 }
             }
         }
@@ -276,7 +276,7 @@ class TrackingMovementRepository extends EntityRepository
 
         if(!$params->has("order")) {
             $qb->addOrderBy("tracking_movement.datetime", "DESC");
-            $qb->addOrderBy("tracking_movement.id", "DESC");
+            $qb->addOrderBy("tracking_movement.orderIndex", "DESC");
         }
 
         // compte éléments filtrés
@@ -404,23 +404,11 @@ class TrackingMovementRepository extends EntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @param $locationId
-     * @return int|mixed|string
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     */
-    public function countByEmplacement($locationId)
-    {
-        $qb = $this->createQueryBuilder('tracking_movement');
-
-        $qb
-            ->select('COUNT(tracking_movement)')
-            ->join('tracking_movement.emplacement', 'join_location')
-            ->where('join_location.id = :locationId')
-            ->setParameter('locationId', $locationId);
-
-        return $qb
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('tracking_movement')
+            ->select('COUNT(tracking_movement.id)')
+            ->andWhere('tracking_movement.emplacement = :location')
+            ->setParameter('location', $location)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -505,7 +493,7 @@ class TrackingMovementRepository extends EntityRepository
             ->leftJoin('tracking_movement.logisticUnitParent', 'join_logisticUnitParent')
             ->andWhere('join_article.id = :article')
             ->orderBy('tracking_movement.datetime', 'DESC')
-            ->addOrderBy('tracking_movement.id', 'DESC')
+            ->addOrderBy('tracking_movement.orderIndex', 'DESC')
             ->setMaxResults(self::MAX_ARTICLE_TRACKING_MOVEMENTS_TIMELINE)
             ->setParameter('article', $article);
 

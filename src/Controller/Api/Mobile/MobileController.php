@@ -879,13 +879,14 @@ class MobileController extends AbstractApiController
                                     [
                                         'mouvementStock' => $movement,
                                         'preparation' => $preparation,
+                                        'quantity' => $movement->getQuantity(),
                                     ]
                                 );
                                 $entityManager->persist($trackingMovementPick);
                                 $entityManager->flush();
                                 $trackingMovementDrop = $trackingMovementService->createTrackingMovement(
                                     $code,
-                                    $movement->getEmplacementTo(),
+                                    $emplacementPrepa,
                                     $nomadUser,
                                     $dateEnd,
                                     true,
@@ -894,6 +895,7 @@ class MobileController extends AbstractApiController
                                     [
                                         'mouvementStock' => $movement,
                                         'preparation' => $preparation,
+                                        'quantity' => $movement->getQuantity(),
                                     ]
                                 );
 
@@ -1114,7 +1116,9 @@ class MobileController extends AbstractApiController
             $statusId = $request->request->get('statusId');
             $newStatus = $statusRepository->find($statusId);
             if (!empty($newStatus)) {
-                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus);
+                $statusHistoryService->updateStatus($entityManager, $handling, $newStatus, [
+                    "initiatedBy" => $nomadUser,
+                ]);
             }
 
             $treatmentDelay = $request->request->get('treatmentDelay');

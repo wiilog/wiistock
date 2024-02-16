@@ -1,3 +1,5 @@
+import Routing from '@app/fos-routing';
+
 export function initializeLicencesPage() {
     initDataTable('tableSessionHistoryRecords', {
         order: [['openedAt', 'desc']],

@@ -1,84 +1,84 @@
-<div class="{{ bigger is defined ? bigger }}">
-    {% set multiple = multiple is defined and multiple %}
-    {% set required = required is defined and required %}
-    {% set editAttachments = editAttachments is not defined or editAttachments %}
-    {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
-    {% set buttonOnly = buttonOnly is defined and buttonOnly %}
-    {% set noLabel = noLabel is defined and noLabel %}
-    {% set disabled = disabled is defined and disabled %}
-    {% set labelTitle = label is defined and label ? label : "Pièces jointes" %}
-    {% set name = nameInput is defined and nameInput ? nameInput : null %}
-    {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
-        and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
-    {% set buttonTitle = buttonTitle is defined and buttonTitle ? buttonTitle : null %}
-    {% set formats = formats is defined and formats ? formats : null %}
+{% set addPhotoButton = addPhotoButton is defined and addPhotoButton %}
 
-    <input type="hidden" name="isAttachmentForm" value="1"/>
-    <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
-    <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
+<div class="attachments-container">
+    <div class="{{ bigger is defined ? bigger }} {{ addPhotoButton ? "d-flex" }}">
+        {% set multiple = multiple is defined and multiple %}
+        {% set required = required is defined and required %}
+        {% set editAttachments = editAttachments is not defined or editAttachments %}
+        {% set fieldNameClass = fieldNameClass is defined and fieldNameClass ? fieldNameClass : '' %}
+        {% set buttonOnly = buttonOnly is defined and buttonOnly %}
+        {% set noLabel = noLabel is defined and noLabel %}
+        {% set disabled = disabled is defined and disabled %}
+        {% set labelTitle = label is defined and label ? label : "Pièces jointes" %}
+        {% set name = nameInput is defined and nameInput ? nameInput : null %}
+        {% set dropFrameName = attachmentLineOptions.dropFrameName is defined
+            and attachmentLineOptions.dropFrameName ? attachmentLineOptions.dropFrameName : "" %}
+        {% set buttonTitle = buttonTitle is defined and buttonTitle ? buttonTitle : null %}
+        {% set formats = formats is defined and formats ? formats : null %}
 
-    {% if not noLabel %}
-        <label for="dropfile"
-               class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">
+        <input type="hidden" name="isAttachmentForm" value="1"/>
+        <input type="hidden" name="isFileNeeded" value="{{ required ? 1 : 0 }}"/>
+        <input type="hidden" name="isSheetFileNeeded" value="{{ required ? 1 : 0 }}"/>
+
+        {% if not noLabel %}
+            <label for="dropfile"
+                   class="{{ override is not defined or not override ? 'wii-field-name' }} {{ fieldNameClass }} {{ labelTitle }}">
             <span class="attachment-label">
                 {{ trans('Général', null, 'Modale', labelTitle) }}
             </span>{{ required ? '*' }}
-        </label>
-    {% endif %}
-    {% if editAttachments %}
-        <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
-             data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
-             data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
-             ondragenter="dragEnterDiv(event, $(this))"
-             ondragover="dragOverDiv(event, $(this))"
-             ondragleave="dragLeaveDiv(event, $(this))"
-             ondrop="saveDroppedFiles(event, $(this))">
-            {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
-            <div class="drop-file-hint d-flex flex-column justify-content-center">
-                {% if not buttonOnly %}
-                    <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
-                {% endif %}
-                <button onclick="openFileExplorer($(this))" class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}" type="button" {{ disabled ? 'disabled' }}>
-                    <i class="fa fa-folder-open mr-2"></i>
-                    {% if buttonOnly %}
-                        {{ buttonTitle ? : 'Importer' }}
-                    {% else %}
-                        {{ trans('Général', null, 'Modale', buttonTitle ? : 'Parcourir vos fichiers') }}
+            </label>
+        {% endif %}
+        {% if editAttachments %}
+            <div class="dropFrame {{ dropFrameName }} {{ buttonOnly ? 'button-only p-0' }} justify-content-md-center {{ small ?? false ? 'small-frame' }}"
+                 data-arrivage-id="{{ arrivage is defined ? arrivage.id : '' }}"
+                 data-litige-id="{{ dispute is defined ? dispute.id : '' }}"
+                 ondragenter="dragEnterDiv(event, $(this))"
+                 ondragover="dragOverDiv(event, $(this))"
+                 ondragleave="dragLeaveDiv(event, $(this))"
+                 ondrop="saveDroppedFiles(event, $(this))">
+                {% set text = text is not defined ? 'Faites glisser vos pièces jointes' : text %}
+                <div class="drop-file-hint d-flex flex-column justify-content-center">
+                    {% if not buttonOnly %}
+                        <span class="mb-2">{{ trans('Général', null, 'Modale', 'Faites glisser vos pièces jointes ou') }}&ensp;</span>
                     {% endif %}
-                </button>
-                {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
-                {% if not name %}
-                    <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }} class="d-none fileInput"
-                           onchange="saveInputFiles(
-                                        $(this),
-                                        {
-                                            lineClass: '{{ lineClass }}'
-                                        }
-                                    )"
-                           {% if formats %}
-                               accept="{{ formats }}"
-                           {% endif %}
-                    >
-                {% else %}
-                    <input type="file"
-                           name="{{ name }}"
-                           class="data-file d-none fileInput"
-                           onchange="saveInputFiles(
-                                        $(this),
-                                        {
-                                            singleton: true,
-                                            lineClass: '{{ lineClass }}'
-                                        }
-                                    )"
-                        {% if formats %}
-                            accept="{{ formats }}"
+                    <button onclick="openFileExplorer($(this))"
+                            class="btn btn-primary {{ buttonOnly ? 'w-fit-content' }}"
+                            type="button" {{ disabled ? 'disabled' }}>
+                        <i class="fa fa-folder-open mr-2"></i>
+                        {% if buttonOnly %}
+                            {{ buttonTitle ? : 'Importer' }}
+                        {% else %}
+                            {{ trans('Général', null, 'Modale', 'Parcourir vos fichiers') }}
                         {% endif %}
-                    >
-                {% endif %}
+                    </button>
+                    {% set lineClass = (attachmentLineOptions ?? false) and (attachmentLineOptions.sheetFileClass ?? false) ? attachmentLineOptions.sheetFileClass : '' %}
+                    {% if not name %}
+                        <input type="file" name="files[]" {{ (unique is not defined) or (not unique) ? 'multiple' }}
+                               class="d-none fileInput"
+                               onchange="saveInputFiles($(this), {lineClass: '{{ lineClass }}'})"
+                            {% if formats %}
+                                accept="{{ formats }}"
+                            {% endif %}
+                        >
+                    {% else %}
+                        <input type="file"
+                               name="{{ name }}"
+                               class="data-file d-none fileInput"
+                               onchange="saveInputFiles($(this), {singleton: true, lineClass: '{{ lineClass }}'})"
+                            {% if formats %}
+                                accept="{{ formats }}"
+                            {% endif %}
+                        >
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    {% endif %}
-    <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
+        {% endif %}
+        {% if addPhotoButton %}
+            <button class="btn btn-primary ml-3 take-picture-modal-button">
+                <span class="wii-icon wii-icon-camera wii-icon-25px px-3"></span>
+            </button>
+        {% endif %}
+    </div>
     {% if attachments is defined %}
         {% if isNew != true %}
             {% for attachment in attachments %}
@@ -91,4 +91,5 @@
             {% endfor %}
         {% endif %}
     {% endif %}
+    <div class="file-bag" {% if icon is defined %}data-icon="{{ icon }}"{% endif %}></div>
 </div>

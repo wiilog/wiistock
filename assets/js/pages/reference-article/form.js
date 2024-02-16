@@ -2,6 +2,7 @@ import '@styles/details-page.scss';
 import AJAX, {POST} from "@app/ajax";
 import {computeDescriptionFormValues} from "./common";
 import Form from "@app/form";
+import Routing from '@app/fos-routing';
 
 global.onTypeQuantityChange = onTypeQuantityChange;
 global.toggleEmergency = toggleEmergency;

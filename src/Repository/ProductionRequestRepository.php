@@ -2,13 +2,18 @@
 
 namespace App\Repository;
 
+use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Language;
 use App\Entity\ProductionRequest;
+use App\Entity\Statut;
+use App\Entity\WorkFreeDay;
+use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
 use App\Service\VisibleColumnService;
 use DateTime;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -24,8 +29,7 @@ use WiiCommon\Helper\Stream;
 class ProductionRequestRepository extends EntityRepository
 {
 
-    public function getLastNumberByDate(string $date): ?string
-    {
+    public function getLastNumberByDate(string $date): ?string {
         $result = $this->createQueryBuilder('production_request')
             ->select('production_request.number')
             ->where('production_request.number LIKE :value')
@@ -37,8 +41,7 @@ class ProductionRequestRepository extends EntityRepository
     }
 
 
-    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array
-    {
+    public function findByParamsAndFilters(InputBag $params, array $filters, VisibleColumnService $visibleColumnService, array $options = []): array {
         $qb = $this->createQueryBuilder('production_request')
             ->groupBy('production_request.id');
 
@@ -350,5 +353,152 @@ class ProductionRequestRepository extends EntityRepository
         return $queryBuilder
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @param Statut[] $statuses
+     * @return ProductionRequest[]
+     */
+    public function findByStatusCodesAndExpectedAt(array $filters, array $statuses, DateTime $start, DateTime $end): array {
+        if (empty($statuses)) {
+            return [];
+        }
+
+        $startStr = $start->format('Y-m-d');
+        $endStr = $end->format('Y-m-d');
+
+        $queryBuilder = $this->createQueryBuilder('production_request');
+
+        $expr = $queryBuilder->expr();
+
+        $daysWorkedSubQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select("sub_daysWorked.day")
+            ->from(DaysWorked::class, "sub_daysWorked")
+            ->andWhere("sub_daysWorked.worked = 1")
+            ->getQuery()
+            ->getDQL();
+
+        $workFreeDaysSubQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select("sub_workFreeDay.day")
+            ->from(WorkFreeDay::class, "sub_workFreeDay")
+            ->getQuery()
+            ->getDQL();
+
+        $queryBuilder = $queryBuilder
+            ->innerJoin('production_request.status', 'join_status')
+            ->andWhere($expr->andX(
+                "LOWER(DAYNAME(production_request.expectedAt)) IN ($daysWorkedSubQuery)",
+                "DATE_FORMAT(production_request.expectedAt, '%Y-%m-%d') NOT IN ($workFreeDaysSubQuery)",
+            ))
+            ->andWhere('production_request.expectedAt BETWEEN :start AND :end')
+            ->andWhere('join_status IN (:statuses)')
+            ->setParameter('statuses', $statuses)
+            ->setParameter('start', $startStr)
+            ->setParameter('end', $endStr)
+            ->orderBy("
+                IF(
+                    production_request.emergency IS NOT NULL AND production_request.emergency <> '',
+                    1,
+                    0
+                )
+            ", Criteria::DESC)
+            ->addOrderBy("production_request.expectedAt", Criteria::ASC)
+            ->addOrderBy("production_request.createdAt", Criteria::ASC);
+
+        foreach ($filters as $filter) {
+            if ($filter['field'] === FiltreSup::FIELD_OPERATORS) {
+                $users = explode(',', $filter['value']);
+                $queryBuilder
+                    ->join('production_request.createdBy', 'filter_createdBy')
+                    ->andWhere('filter_createdBy.id IN (:users)')
+                    ->setParameter('users', $users);
+            } else if ($filter['field'] === FiltreSup::FIELD_MULTIPLE_TYPES) {
+                $types = explode(",", $filter["value"]);
+                $queryBuilder
+                    ->join('production_request.type', 'filter_type')
+                    ->andWhere('filter_type.id IN (:types)')
+                    ->setParameter('types', $types);
+            } else if ($filter['field'] === 'statuses-filter') {
+                $statuses = explode(",", $filter["value"]);
+                $queryBuilder
+                    ->join('production_request.status', 'filter_status')
+                    ->andWhere('filter_status.id IN (:statuses)')
+                    ->setParameter('statuses', $statuses);
+            } else if ($filter['field'] === FiltreSup::FIELD_REQUEST_NUMBER) {
+                $queryBuilder
+                    ->andWhere('production_request.number = :number')
+                    ->setParameter('number', $filter['value']);
+            }
+        }
+
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findRequestToTreatByUserAndTypes(?Utilisateur $requester, int $limit, array $types = []): array {
+        $qb = $this->createQueryBuilder("production_request");
+
+        if($requester) {
+            $qb
+                ->andWhere("production_request.createdBy = :createdBy")
+                ->setParameter("createdBy", $requester);
+        }
+
+        if(!empty($types)) {
+            $qb
+                ->andWhere("production_request.type IN (:types)")
+                ->setParameter("types", $types);
+        }
+
+        return $qb
+            ->innerJoin("production_request.status", "join_status")
+            ->andWhere('join_status.state != :statusState')
+            ->addOrderBy('join_status.state', Criteria::ASC)
+            ->addOrderBy('production_request.createdAt', Criteria::ASC)
+            ->setParameter('statusState', Statut::TREATED)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countByDates(DateTime $dateMin,
+                                 DateTime $dateMax,
+                                 bool $separateType,
+                                 array $productionStatusesFilter = [],
+                                 array $productionTypesFilter = [],
+                                 string $date = "createdAt"): array|int
+    {
+        $associatedFieldLabelWithName = [
+            "creationDate" => "createdAt",
+            "expectedDate" => "expectedAt",
+            "treatmentDate" => "treatedAt",
+        ];
+
+        $qb = $this->createQueryBuilder('production_request')
+            ->select('COUNT(production_request) ' . ($separateType ? ' AS count' : ''))
+            ->join('production_request.type','join_type')
+            ->andWhere("production_request.$associatedFieldLabelWithName[$date] BETWEEN :dateMin AND :dateMax")
+            ->setParameter('dateMin', $dateMin)
+            ->setParameter('dateMax', $dateMax);
+
+        if ($separateType) {
+            $qb
+                ->groupBy('join_type.id')
+                ->addSelect('join_type.label AS typeLabel');
+        }
+
+        if (!empty($productionStatusesFilter)) {
+            $qb
+                ->andWhere('production_request.status IN (:productionStatuses)')
+                ->setParameter('productionStatuses', $productionStatusesFilter);
+        }
+
+        if (!empty($productionTypesFilter)) {
+            $qb
+                ->andWhere('production_request.type IN (:productionTypes)')
+                ->setParameter('productionTypes', $productionTypesFilter);
+        }
+        return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
 }

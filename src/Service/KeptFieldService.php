@@ -24,7 +24,7 @@ class KeptFieldService {
         $repository = $this->manager->getRepository(KeptFieldValue::class);
         $user = $this->security->getUser();
 
-        $keptFields = Stream::from($fieldsParamRepository->findByEntityForEntity($entity))
+        $keptFields = Stream::from($fieldsParamRepository->findByEntityCode($entity))
             ->filter(fn(FixedFieldStandard $field) => $field->isKeptInMemory())
             ->map(fn(FixedFieldStandard $field) => $field->getFieldCode())
             ->toArray();

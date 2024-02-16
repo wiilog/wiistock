@@ -1,5 +1,6 @@
 import '@styles/details-page.scss';
 import {GET, POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 $(function () {
     const articleId = $(`input[name=article-id]`).val();

@@ -29,6 +29,7 @@ class Dispatch extends StatusHistoryContainer {
     const NUMBER_FORMATS = [
         'aaaammjjxxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DEFAULT,
         'aaaammjjhhmmss-xxxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH_LONG,
+        'aammjjhhmmssxx' => UniqueNumberService::DATE_COUNTER_FORMAT_DISPATCH,
     ];
 
     public const LOGISTIC_UNIT_FILTER_MAX_RESULTS = 30;

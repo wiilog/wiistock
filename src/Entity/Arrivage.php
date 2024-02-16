@@ -99,7 +99,7 @@ class Arrivage {
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'arrivals')]
     private ?Type $type = null;
 
-    #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'arrivals')]
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
     private ?Emplacement $dropLocation = null;
 
     #[ORM\OneToOne(mappedBy: 'arrival', targetEntity: Reception::class)]
@@ -476,19 +476,7 @@ class Arrivage {
     }
 
     public function setDropLocation(?Emplacement $dropLocation): self {
-        $oldDropLocation = $this->getDropLocation();
-
-        if($oldDropLocation
-            && $oldDropLocation !== $dropLocation) {
-            $oldDropLocation->removeArrival($this);
-        }
-
         $this->dropLocation = $dropLocation;
-
-        if($this->dropLocation
-            && $oldDropLocation !== $this->dropLocation) {
-            $this->dropLocation->addArrival($this);
-        }
 
         return $this;
     }

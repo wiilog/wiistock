@@ -473,6 +473,28 @@ function processInputsForm($modal, data, isAttachmentForm) {
             if ($input.is(':not(input)')) {
                 $isInvalidElements.push($input.parent());
             }
+        } else if ($input.is(':invalid')) {
+            const htmlValidity = $input.get(0).validity;
+
+            if (htmlValidity && !htmlValidity.valid) {
+                // Object.keys doesn't work with HTML validty object ValidityState
+                const validityKeys = [];
+                for(const key in htmlValidity){
+                    if (key !== 'valid') {
+                        validityKeys.push(key);
+                    }
+                }
+                const message = validityKeys
+                    .filter((key) => htmlValidity[key])
+                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
+                    .filter((message) => message)
+                    .join('<br/>');
+
+                if (message) {
+                    $isInvalidElements.push($input);
+                    errorMessages.push(message);
+                }
+            }
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
@@ -698,7 +720,8 @@ function processFilesForm($modal, data) {
     const required = $requiredFileField.val() === '1';
 
     const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
-    const sheetFile = $('input[name=fileSheet]').get(0)?.files;
+    const $sheetFile = $('input[name=fileSheet]');
+    const sheetFile = $sheetFile.exists() ? $sheetFile.get(0).files : undefined;
     const $requiredSheetFileField = $modal.find('input[name="isSheetFileNeeded"][type="hidden"]');
     const requiredSheetFile = $requiredSheetFileField.val() === '1';
     const alreadyExistSheetFile = $('input[name=savedSheetFile]').length ? true : false;
@@ -901,7 +924,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal
 function displayAttachements(files, $dropFrame, isMultiple = true, lineClass = '') {
     const errorMessages = [];
 
-    const $fileBag = $dropFrame.siblings('.file-bag');
+    const $fileBag = $dropFrame.closest(`.attachments-container`).find('.file-bag');
 
     if (!isMultiple) {
         $fileBag.empty();
@@ -1045,7 +1068,9 @@ function saveInputFiles($inputFile, options) {
     let dropFrame = $inputFile.closest('.dropFrame');
 
     displayAttachements(filesToSave, dropFrame, isMultiple, lineClass);
-    if (!singleton) $inputFile[0].value = '';
+    if (!singleton) {
+        $inputFile[0].value = '';
+    }
 }
 
 function resetDroppedFiles() {

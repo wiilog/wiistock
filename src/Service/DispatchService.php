@@ -137,7 +137,8 @@ class DispatchService {
         $language = $this->security->getUser()->getLanguage() ?: $defaultLanguage;
         $queryResult = $dispatchRepository->findByParamAndFilters($params, $filters ?? [], $this->userService->getUser(), $this->visibleColumnService,  [
             'defaultLanguage' => $defaultLanguage,
-            'language' => $language
+            'language' => $language,
+            'fromDashboard' => $fromDashboard,
         ]);
 
         $dispatchesArray = $queryResult['data'];
@@ -591,7 +592,9 @@ class DispatchService {
             ->setTreatmentDate($date)
             ->setTreatedBy($loggedUser);
 
-        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus);
+        $this->statusHistoryService->updateStatus($entityManager, $dispatch, $treatedStatus, [
+            "initiatedBy" => $loggedUser,
+        ]);
 
         $parsedPacks = [];
         foreach ($dispatchPacks as $dispatchPack) {
@@ -1772,7 +1775,7 @@ class DispatchService {
             $this->statusHistoryService->updateStatus($entityManager, $dispatch, $groupedSignatureStatus, [
                 'initiatedBy' => $operator,
                 'validatedBy' => $signatory,
-                'date' => $signatureDate
+                'date' => $signatureDate,
             ]);
         } else {
             throw new FormException("L'acheminement {$dispatch->getNumber()} : le type du statut sélectionné est invalide.");

@@ -1,4 +1,5 @@
 import AJAX from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 let $printTag;
 let pageTables;

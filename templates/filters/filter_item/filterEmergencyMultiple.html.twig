@@ -7,7 +7,7 @@
                     multiple="multiple"
                     {{ disabled }}>
                 {% for emergency in emergencies %}
-                    <option class="d-none" value="{{ emergency }}">{{ emergency }}</option>
+                    <option class="d-none" {{ emergenciesFilter is defined and emergency in emergenciesFilter ? 'selected' }} value="{{ emergency }}">{{ emergency }}</option>
                 {% endfor %}
             </select>
         </div>

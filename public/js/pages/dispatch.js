@@ -151,6 +151,9 @@ function initTableDispatch(groupedSignatureMode = false) {
     const hasRightGroupedSignature = $filtersContainer.find('[name="hasRightGroupedSignature"]').val();
     const $statutFilter = $filtersContainer.find(`select[name=statut]`);
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
+    const $pickLocationFilter = $filtersContainer.find(`select[name=locationPickWithGroups]`);
+    const $dropLocationFilter = $filtersContainer.find(`select[name=locationDropWithGroups]`);
+    const $emergencyFilter = $filtersContainer.find(`select[name=emergencyMultiple]`);
     let statuts;
 
     if(Boolean(hasRightGroupedSignature)){
@@ -167,7 +170,10 @@ function initTableDispatch(groupedSignatureMode = false) {
         groupedSignatureMode,
         fromDashboard,
         filterStatus: statuts,
-        preFilledTypes: $typeFilter.val()
+        preFilledTypes: $typeFilter.val(),
+        pickLocationFilter: $pickLocationFilter.val() || [],
+        dropLocationFilter: $dropLocationFilter.val() || [],
+        emergencyFilter: $emergencyFilter.val(),
     }, true);
 
     let initialVisible = $(`#tableDispatches`).data(`initial-visible`);

@@ -1191,9 +1191,9 @@ class SettingsController extends AbstractController {
                         'category' => CategoryType::DEMANDE_LIVRAISON,
                     ],
                     self::MENU_FIXED_FIELDS => function() use ($typeRepository, $fixedFieldStandardRepository, $userRepository) {
-                        $receiver = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
-                        $defaultType = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
-                        $defaultLocationByType = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
+                        $receiver = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_RECEIVER_DEMANDE);
+                        $defaultType = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_TYPE_DEMANDE);
+                        $defaultLocationByType = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_DEMANDE, FixedFieldStandard::FIELD_CODE_DESTINATION_DEMANDE);
                         $types = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
 
                         return [
@@ -1413,7 +1413,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_ARRIVALS => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $field = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
+                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_ARRIVAGE, FixedFieldStandard::FIELD_CODE_BUSINESS_UNIT);
 
                         return [
                             "businessUnit" => [
@@ -1449,8 +1449,8 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_HANDLINGS => [
                     self::MENU_FIXED_FIELDS => function() use ($userRepository, $typeRepository, $fixedFieldStandardRepository) {
-                        $field = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY);
-                        $receiversField = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
+                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                        $receiversField = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_HANDLING, FixedFieldStandard::FIELD_CODE_RECEIVERS_HANDLING);
                         $types = $this->typeGenerator(CategoryType::DEMANDE_HANDLING, false);
                         return [
                             "emergency" => [
@@ -1512,7 +1512,7 @@ class SettingsController extends AbstractController {
                 ],
                 self::MENU_EMERGENCIES => [
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $emergencyTypeField = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE);
+                        $emergencyTypeField = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_EMERGENCY, FixedFieldStandard::FIELD_CODE_EMERGENCY_TYPE);
                         return [
                             "emergencyType" => [
                                 "field" => $emergencyTypeField->getId(),
@@ -1558,7 +1558,7 @@ class SettingsController extends AbstractController {
                         ];
                     },
                     self::MENU_FIXED_FIELDS => function() use ($fixedFieldStandardRepository) {
-                        $field = $fixedFieldStandardRepository->findByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+                        $field = $fixedFieldStandardRepository->findOneByEntityAndCode(FixedFieldStandard::ENTITY_CODE_PRODUCTION, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
                         return [
                             "emergency" => [
@@ -2657,7 +2657,7 @@ class SettingsController extends AbstractController {
     {
         $subLineFieldsParamRepository = $entityManager->getRepository(SubLineFixedField::class);
         $typeRepository = $entityManager->getRepository(Type::class);
-        $rows = Stream::from($subLineFieldsParamRepository->findByEntityForEntity($entity))
+        $rows = Stream::from($subLineFieldsParamRepository->findByEntityCode($entity))
             ->map(function (SubLineFixedField $field) use ($formService, $typeRepository) {
 
                 $label = ucfirst($field->getFieldLabel());

@@ -59,6 +59,9 @@ Encore
     .addEntry('receipt-association-index', './assets/js/pages/receipt-association/index.js')
     .addEntry('production-index', './assets/js/pages/production/index.js')
     .addEntry('production-show', './assets/js/pages/production/show.js')
+    .addEntry('production-planning', './assets/js/pages/production/planning.js')
+    .addEntry('dashboard-settings', './assets/js/pages/dashboard/settings.js')
+    .addEntry('location-index', './assets/js/pages/location/index.js')
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 

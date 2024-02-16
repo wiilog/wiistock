@@ -1,0 +1,53 @@
+{% import 'form.html.twig' as form %}
+
+{% set displayAction = 'displayedEdit' %}
+{% set requiredAction = 'requiredEdit' %}
+{{ form.hidden('productionRequestId', productionRequest.id) }}
+{{ form.hidden('type', productionRequest.type.id) }}
+
+<div class="row">
+    <div class="col-12 mb-2">
+        {{ form.input('productionRequestNumber', 'Numéro demande production', false , productionRequest.number, {
+            disabled: true,
+        }) }}
+    </div>
+
+    <div class="col-12 mb-2">
+        {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::status').name %}
+        {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::status').value %}
+        {{ form.select(fieldCode, fieldLabel, true, {
+            type: 'status',
+            value: productionRequest.status ? productionRequest.status.id : null,
+            items: productionRequest.status
+            ? [{
+                'value': productionRequest.status.id,
+                'label':  productionRequest.status.nom,
+                'selected': true
+            }]
+            : [],
+            includeParams: '[name=type]',
+        }) }}
+    </div>
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::comment').name %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-12 mb-2">
+            {% set requiredOnform = fieldsParam|isFieldRequired(fieldCode, requiredAction) %}
+            {{ form.wysiwyg(fieldCode, trans('Général', null, 'Modale', 'Commentaire'), requiredOnform, productionRequest.comment) }}
+        </div>
+    {% endif %}
+
+    {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').name %}
+    {% set displayOnform = fieldsParam|isFieldRequired(fieldCode, displayAction) %}
+    {% if displayOnform %}
+        <div class="col-12 mb-2">
+            {{ form.attachment(constant('App\\Entity\\Fields\\FixedFieldEnum::attachments').value, false, productionRequest.attachments, {
+                isNew: productionRequest.id is null,
+                addPhotoButton: true,
+            }) }}
+        </div>
+    {% else %}
+        {{ form.hidden('isAttachmentForm', 1) }}
+    {% endif %}
+</div>

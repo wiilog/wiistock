@@ -27,6 +27,7 @@ const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
 const PAGE_PREPARATION_PLANNING = 'preparationPlanning';
+const PAGE_PRODUCTION_PLANNING = 'productionPlanning';
 const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
@@ -68,6 +69,12 @@ $(function () {
     $(document).arrive(`.stop-propagation`, function() {
         $(this).on("click", function (e) {
             e.stopPropagation();
+        });
+    });
+
+    $(document).arrive(`.prevent-default`, function() {
+        $(this).on(`click`, function (e) {
+            e.preventDefault();
         });
     });
 

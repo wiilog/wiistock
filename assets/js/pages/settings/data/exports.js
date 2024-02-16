@@ -1,5 +1,5 @@
-import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
 
 import Form from '@app/form';
 import Flash from '@app/flash';

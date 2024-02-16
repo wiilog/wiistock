@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
+use App\Entity\Emplacement;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Helper\QueryBuilderHelper;
@@ -33,43 +34,13 @@ class CollecteRepository extends EntityRepository
         'Type' => 'type',
     ];
 
-    public function findByStatutLabelAndUser($statutLabel, $user)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\Collecte c
-            JOIN c.statut s
-            WHERE s.nom = :statutLabel AND c.demandeur = :user "
-        )->setParameters([
-            'statutLabel' => $statutLabel,
-            'user' => $user,
-        ]);
-        return $query->execute();
-    }
-
-    public function countByStatut($statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(c)
-            FROM App\Entity\Collecte c
-            WHERE c.statut = :statut "
-        )->setParameter('statut', $statut);
-        return $query->getSingleScalarResult();
-    }
-
-    public function countByEmplacement($emplacementId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT(c)
-            FROM App\Entity\Collecte c
-            JOIN c.pointCollecte pc
-            WHERE pc.id = :emplacementId"
-        )->setParameter('emplacementId', $emplacementId);
-
-        return $query->getSingleScalarResult();
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('collect')
+            ->select('COUNT(collect.id)')
+            ->andWhere('collect.pointCollecte = :location')
+            ->setParameter('location', $location)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

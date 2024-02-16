@@ -1,5 +1,6 @@
-import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "../../editatable";
-import Flash from "../../flash";
+import EditableDatatable, {SAVE_MANUALLY, STATE_EDIT, STATE_VIEWING} from "@app/editatable";
+import Flash from "@app/flash";
+import Routing from '@app/fos-routing';
 
 global.toggleFrequencyInput = toggleFrequencyInput;
 

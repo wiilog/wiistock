@@ -147,35 +147,43 @@
         </div>
     {% endif %}
     {% if componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES')
-        or componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DELIVERY_ORDERS') %}
+        or componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DELIVERY_ORDERS')
+        or componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_PRODUCTION') %}
         <div class="form-group">
             {% set referenceDate = values.date is defined ? values.date : null %}
             {% set dailyDispatchesComponent = componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DISPATCHES') %}
             {% set dailyDeliveryOrdersComponent = componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_DELIVERY_ORDERS') %}
+            {% set dailyProductionsComponent = componentType.meterKey == constant('App\\Entity\\Dashboard\\ComponentType::DAILY_PRODUCTION') %}
             <label class="wii-field-name">Date de référence*</label>
             <div class="wii-switch-no-style needed mt-2 d-flex flex-column" data-title="Date de référence">
+                {% if dailyProductionsComponent %}
+                    <label class="pointer">
+                        <input type="radio" class="data" name="date" value="creationDate" {{ referenceDate == "creationDate" ? 'checked' }}>
+                        Date de création
+                    </label>
+                {% endif %}
                 {% if dailyDispatchesComponent %}
                     <label class="pointer">
                         <input type="radio" class="data" name="date" value="startDate" {{ referenceDate == "startDate" ? 'checked' }}>
                         Date d'échéance "Du"
                     </label>
-                {% endif %}
-                {% if dailyDispatchesComponent %}
                     <label class="pointer">
                         <input type="radio" class="data" name="date" value="endDate" {{ not referenceDate or referenceDate == "endDate" ? 'checked' }}>
                         Date d'échéance "Au"
                     </label>
                 {% endif %}
-                {% if dailyDeliveryOrdersComponent %}
+                {% if dailyDeliveryOrdersComponent or dailyProductionsComponent %}
                     <label class="pointer">
                         <input type="radio" class="data" name="date" value="expectedDate" {{ referenceDate == "expectedDate" ? 'checked' }}>
                         Date attendue
                     </label>
                 {% endif %}
-                <label class="pointer">
-                    <input type="radio" class="data" name="date" value="validationDate" {{ referenceDate == "validationDate" ? 'checked' }}>
-                    Date de validation
-                </label>
+                {% if not dailyProductionsComponent %}
+                    <label class="pointer">
+                        <input type="radio" class="data" name="date" value="validationDate" {{ referenceDate == "validationDate" ? 'checked' }}>
+                        Date de validation
+                    </label>
+                {% endif %}
                 <label class="pointer">
                     <input type="radio" class="data" name="date" value="treatmentDate" {{ referenceDate == "treatmentDate" ? 'checked' }}>
                     Date de traitement

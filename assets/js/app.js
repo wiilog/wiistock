@@ -12,8 +12,7 @@ import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
-import { library, dom } from "@fortawesome/fontawesome-svg-core";
-import Routing from '../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Routing from '@app/fos-routing';
 import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
 import Snow from 'quill/themes/snow';
@@ -254,15 +253,6 @@ jQuery.capitalize = function(string) {
 };
 
 $(document).ready(() => {
-    //logout after session has expired
-    setInterval(() => {
-        $.get(Routing.generate(`check_login`), function(response) {
-            if(!response.loggedIn) {
-                window.location.reload();
-            }
-        })
-    }, 30 * 60 * 1000 + 60 * 1000); //every 30 minutes and 30 seconds
-
     //custom datetimepickers for firefox
     if (!BrowserSupport.input("datetime-local")) {
         const observer = new MutationObserver(function () {

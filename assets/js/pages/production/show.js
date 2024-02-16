@@ -1,15 +1,26 @@
 import AJAX, {DELETE, GET} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
+import Camera from "@app/camera";
 
 global.deleteProductionRequest = deleteProductionRequest;
-
 global.openModalEditProductionRequest = openModalEditProductionRequest;
-const $modalEditProductionRequest = $('#modalEditProductionRequest');
-$(function () {
-    const productionRequestId = $(`[name=productionRequestId]`).val();
 
+$(function () {
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
+    const productionRequestId = $(`[name=productionRequestId]`).val();
     Form
         .create($modalEditProductionRequest)
+        .onOpen(() => {
+            Camera.init(
+                $modalEditProductionRequest.find(`.take-picture-modal-button`),
+                $modalEditProductionRequest.find(`[name="files[]"]`)
+            );
+        })
         .submitTo(AJAX.POST, 'production_request_edit', {
+            routeParams: {
+                productionRequest: productionRequestId
+            },
             success: () => {
                 window.location.reload();
             }
@@ -38,6 +49,7 @@ export function getOperationHistory(productionRequestId) {
 }
 
 function openModalEditProductionRequest(){
+    const $modalEditProductionRequest = $('#modalEditProductionRequest');
     $modalEditProductionRequest.modal('show');
 }
 

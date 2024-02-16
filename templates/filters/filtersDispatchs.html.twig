@@ -64,6 +64,8 @@
         {% if fieldCode in onFilterfields %}
             {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
                 name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS'),
+                locationsFilter: pickLocationsFilter,
+                isPreFilled: fromDashboard,
                 placeholder: 'Emplacement de prise',
                 disabled,
             } %}
@@ -72,6 +74,8 @@
         {% if fieldCode in onFilterfields %}
             {% include 'filters/filter_item/filterLocationAndGroups.html.twig' with {
                 name: constant('App\\Entity\\FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS'),
+                locationsFilter: dropLocationsFilter,
+                isPreFilled: fromDashboard,
                 placeholder: 'Emplacement de dépose',
                 disabled,
             } %}
@@ -95,6 +99,7 @@
     {% set fieldCode = constant('App\\Entity\\Fields\\FixedFieldStandard::FIELD_CODE_EMERGENCY') %}
     {% if fieldCode in onFilterfields %}
         {% include 'filters/filter_item/filterEmergencyMultiple.html.twig' with {
+            emergenciesFilter,
             disabled,
         } %}
     {% endif %}

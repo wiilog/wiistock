@@ -3,6 +3,7 @@ import EditableDatatable, {MODE_CLICK_EDIT_AND_ADD, MODE_NO_EDIT, SAVE_MANUALLY}
 
 import Form from '@app/form';
 import AJAX, {GET, POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 const MODE_ARRIVAL = `arrival`;
 const MODE_TRACKING = `tracking`;

@@ -112,6 +112,14 @@ class StatusService {
             ->sum();
     }
 
+    #[ArrayShape([
+        'label' => 'string',
+        'id' => 'number',
+        'code' => 'string',
+        'modes' => 'string[]',
+        'needMobileSyncDisabled' => 'boolean',
+        'automaticReceptionCreationDisabled' => 'boolean'
+    ])]
     public function getStatusStatesValues(?string $mode = null): array {
         return Stream::from([
             [

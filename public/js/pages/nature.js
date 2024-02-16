@@ -24,7 +24,7 @@ $(function () {
 });
 
 function initNatureTable() {
-    let pathNature = Routing.generate(`nature_param_api`, true);
+    let pathNature = Routing.generate(`nature_api`, true);
     let tableNatureConfig = {
         serverSide: true,
         processing: true,

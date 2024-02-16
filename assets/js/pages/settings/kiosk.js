@@ -1,5 +1,6 @@
 import AJAX, {GET, POST} from "@app/ajax";
-import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Flash, {ERROR} from "@app/flash";
+import Routing from '@app/fos-routing';
 
 $(function () {
     $(`.kiosk-link`).on(`click`, function() {
@@ -11,7 +12,7 @@ $(function () {
                     .then(({token}) => window.location.href = Routing.generate(`kiosk_index`, {token}, true));
             });
         } else {
-            Flash.add('danger', 'Tous les paramètres obligatoires doivent être renseignés.')
+            Flash.add(ERROR, 'Tous les paramètres obligatoires doivent être renseignés.')
         }
     });
 

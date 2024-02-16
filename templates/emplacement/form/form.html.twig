@@ -1,0 +1,165 @@
+{% import 'form.html.twig' as form %}
+
+{% if location.id %}
+    {{ form.hidden('id', location.id) }}
+{% endif %}
+
+<div class="form-group d-flex align-content-center">
+    {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::status') %}
+    {{ form.switch(field.name, field.value, true, [
+        {label: 'Actif', value: true, checked: location.isActive},
+        {label: 'Inactif', value: false, checked: not location.isActive},
+    ]) }}
+</div>
+
+<div class="row">
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::name') %}
+        {{ form.input(field.name, field.value, true, location.label, {
+            type: 'text',
+            attributes: {
+                "data-error-patternmismatch": "Ce champ doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d'accent",
+                pattern: constant("App\\Service\\SettingsService::CHARACTER_VALID_REGEX"),
+            },
+        }) }}
+        <div class="wii-small-text">maximum 24 caractères, lettres ou chiffres</div>
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::description') %}
+        {{ form.input(field.name, field.value, true,location.description) }}
+    </div>
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::maximumTrackingDelay') %}
+        {{ form.input(field.name, field.value ~ " HH:MM" , false,location.dateMaxTime) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::zone') %}
+        {{ form.select(field.name, field.value, true, {
+            type: 'zones',
+            items: location.zone
+                ? [{
+                    label: location.zone.name,
+                    value: location.zone.id,
+                    selected: true,
+                }]
+                : null,
+            disabled: zonesCount == 1,
+        }) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Contraintes de déposes / Autorisation de dépose
+</div>
+<div class="row">
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::allowedNatures') %}
+        {{ form.select(field.name, field.value, false, {
+            type: "",
+            multiple: true,
+            items: natures | map(nature => ({
+                label: nature.label,
+                value: nature.id,
+                selected: nature in location.allowedNatures,
+            })),
+        }) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::allowedTemperatures') %}
+        {{ form.select(field.name, field.value, false, {
+            type: "",
+            multiple: true,
+            items: temperatures | map(temperature => ({
+                label: temperature.value,
+                value: temperature.id,
+                selected: temperature in location.temperatureRanges ? 'selected'
+            })),
+        }) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::allowedDeliveryTypes') %}
+        {{ form.select(field.name, field.value, false, {
+            type: "",
+            multiple: true,
+            items: deliveryTypes | map(deliveryType => ({
+                label: deliveryType.label,
+                value: deliveryType.id,
+                selected: deliveryType in location.allowedDeliveryTypes,
+            })),
+        }) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::allowedCollectTypes') %}
+        {{ form.select(field.name, field.value, false, {
+            type: "",
+            multiple: true,
+            items: collectTypes | map(collectType => ({
+                label: collectType.label,
+                value: collectType.id,
+                selected: collectType in location.allowedCollectTypes,
+            })),
+        }) }}
+    </div>
+
+    <div class="form-group  col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::isOngoingVisibleOnMobile') %}
+        {{ form.checkbox(field.name, field.value, false, location.isOngoingVisibleOnMobile) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Acheminements - Signature groupée
+</div>
+<div class="row">
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::signatories') %}
+        {{ form.select(field.name, field.value, false, {
+            type: 'user',
+            multiple: true,
+            items: location.signatories | map(signatory => ({
+                label: signatory.username,
+                value: signatory.id,
+                selected: true,
+            })),
+        }) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::email') %}
+        {{ form.input(field.name, field.value, false,location.email) }}
+    </div>
+</div>
+
+<div class="wii-section-title my-3 d-flex align-items-center">
+    Traçabilité - emails
+</div>
+<div class="row">
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::isDeliveryPoint') %}
+        {% set fieldLabel = "Point de "~ trans('Demande', 'Livraison', 'Livraison', false) | lower %}
+        {{ form.checkbox(field.name, fieldLabel, false, location.isDeliveryPoint) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::sendEmailToManagers') %}
+        {{ form.checkbox(field.name, field.value, false, location.sendEmailToManagers) }}
+    </div>
+
+    <div class="form-group col-md-6 col-12 my-1">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::managers') %}
+        {{ form.select(field.name, field.value, false, {
+            type: 'user',
+            multiple: true,
+            items: location.managers | map(manager => ({
+                label: manager.username,
+                value: manager.id,
+                selected: true,
+            })),
+        }) }}
+    </div>
+</div>

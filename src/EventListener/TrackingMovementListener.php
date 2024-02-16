@@ -3,28 +3,52 @@
 
 namespace App\EventListener;
 
-
+use App\Entity\CategorieCL;
 use App\Entity\LocationCluster;
 use App\Entity\LocationClusterMeter;
 use App\Entity\LocationClusterRecord;
 use App\Entity\TrackingMovement;
+use App\Service\FreeFieldService;
+use App\Service\MailerService;
+use App\Service\TrackingMovementService;
+use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Event\PreRemoveEventArgs;
+use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
+use Symfony\Contracts\Service\Attribute\Required;
+use WiiCommon\Helper\Stream;
 
-
-class TrackingMovementListener
+class TrackingMovementListener implements EventSubscriber
 {
+    #[Required]
+    public MailerService $mailerService;
+
+    #[Required]
+    public TrackingMovementService $trackingMovementService;
+
+    #[Required]
+    public FreeFieldService $freeFieldService;
+
     /**
-     * @param TrackingMovement $movementToDelete
-     * @param LifecycleEventArgs $lifecycleEventArgs
-     * @throws ORMException
-     * @throws OptimisticLockException
+     * @var TrackingMovement[]
      */
+    private array $flushedTackingMovements = [];
+
+    public function getSubscribedEvents(): array {
+        return [
+            'preRemove',
+            'onFlush',
+            'postFlush',
+        ];
+    }
+
+    #[AsEventListener(event: 'preRemove')]
     public function preRemove(TrackingMovement $movementToDelete,
-                              LifecycleEventArgs $lifecycleEventArgs) {
-        $entityManager = $lifecycleEventArgs->getEntityManager();
+                              PreRemoveEventArgs $lifecycleEventArgs): void
+    {
+        $entityManager = $lifecycleEventArgs->getObjectManager();
 
         $firstDropsRecordIds = $movementToDelete->getFirstDropsRecords()
             ->map(function (LocationClusterRecord $record) {
@@ -43,12 +67,47 @@ class TrackingMovementListener
         }
     }
 
-    /**
-     * @param EntityManager $entityManager
-     * @param TrackingMovement $movementToDelete
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
+    #[AsEventListener(event: 'onFlush')]
+    public function onFlush(OnFlushEventArgs $args): void {
+        $this->flushedTackingMovements = Stream::from($args->getObjectManager()->getUnitOfWork()->getScheduledEntityInsertions())
+            ->filter(static fn($entity) => $entity instanceof TrackingMovement)
+            ->toArray();
+    }
+
+    #[AsEventListener(event: 'postFlush')]
+    public function postFlush(PostFlushEventArgs $args): void {
+        foreach ($this->flushedTackingMovements ?? [] as $trackingMovement) {
+            if ($trackingMovement->isDrop()) {
+                $location = $trackingMovement->getEmplacement();
+                if ($location && $location->isSendEmailToManagers()) {
+                    $managers = $location->getManagers();
+                    if (!$managers->isEmpty()) {
+                        $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
+                            $args->getObjectManager(),
+                            $trackingMovement,
+                            ["freeFieldCategoryLabel" => CategorieCL::MVT_TRACA],
+                            null,
+                        );
+
+                        $this->mailerService->sendMail(
+                            "FOLLOW GT // Dépose d'unité logistique sur un emplacement dont vous êtes responsable",
+                            [
+                                'name' => 'mails/contents/mailDropLuOnLocation.html.twig',
+                                'context' => [
+                                    'trackingMovement' => $trackingMovement,
+                                    'location' => $location,
+                                    'from' => $this->trackingMovementService->getFromColumnData($trackingMovement),
+                                    'freeFields' => $freeFields,
+                                ],
+                            ],
+                            $managers->toArray()
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     public function treatPackLinking(TrackingMovement $movementToDelete,
                                      EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
@@ -95,12 +154,6 @@ class TrackingMovementListener
         $entityManager->flush($pack);
     }
 
-    /**
-     * @param EntityManager $entityManager
-     * @param TrackingMovement $movementToDelete
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     private function treatFirstDropRecordLinking(TrackingMovement $movementToDelete,
                                                  EntityManager $entityManager): void {
         $pack = $movementToDelete->getPack();
@@ -140,13 +193,6 @@ class TrackingMovementListener
         $entityManager->flush($firstDropRecords->toArray());
     }
 
-    /**
-     * @param EntityManager $entityManager
-     * @param array $recordIdsToIgnore
-     * @param TrackingMovement $movementToDelete
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     private function treatLastTrackingRecordLinking(array $recordIdsToIgnore,
                                                     TrackingMovement $movementToDelete,
                                                     EntityManager $entityManager): void {
@@ -189,12 +235,6 @@ class TrackingMovementListener
         $entityManager->flush($lastTrackingRecords->toArray());
     }
 
-    /**
-     * @param EntityManager $entityManager
-     * @param TrackingMovement $trackingMovement
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
     private function treatLocationClusterMeterLinking(TrackingMovement $trackingMovement,
                                                       EntityManager $entityManager): void {
         $location = $trackingMovement->getEmplacement();
