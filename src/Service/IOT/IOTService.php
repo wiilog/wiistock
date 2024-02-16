@@ -530,7 +530,7 @@ class IOTService
         $trackingMovementService = $this->trackingMovementService;
 
         $statusPick = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE);
-        $statusDrop= $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+        $statusDrop = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
 
         foreach ($logisticUnitsToMove as $logisticUnit) {
             $trackingMovementService->persistTrackingMovementForPackOrGroup(

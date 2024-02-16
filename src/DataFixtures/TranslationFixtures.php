@@ -1531,8 +1531,8 @@ class TranslationFixtures extends Fixture implements FixtureGroupInterface
                         "en" => "The logistic unit must not match an item",
                     ],
                     [
-                        "fr" => "L'unité logistique est dans une réception en attente et ne peut pas être mouvementé",
-                        "en" => "The logistic unit is in a pending reception and can not be moved",
+                        "fr" => "L'unité logistique est dans une réception en attente et ne peut pas être mouvementée.",
+                        "en" => "The logistic unit is in a pending reception and can not be moved.",
                     ]
                 ],
             ],
