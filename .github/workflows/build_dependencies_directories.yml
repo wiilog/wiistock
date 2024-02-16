@@ -29,9 +29,6 @@ jobs:
                 with:
                     path: projects/wiistock
 
-            -   name: some checks
-                run: cat projects/wiistock/config/services.yaml
-
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
 
@@ -119,9 +116,6 @@ jobs:
                 uses: actions/checkout@v4
                 with:
                     path: projects/wiistock
-
-            -   name: some checks
-                run: cat projects/wiistock/config/services.yaml
 
             -   name: Copy .env to .env.local
                 run: cp projects/wiistock/.env projects/wiistock/.env.local
