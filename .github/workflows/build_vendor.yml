@@ -3,10 +3,8 @@ name: build_vendor
 on:
     workflow_dispatch:
     push:
-#        tags:
-#            - 'v*'
-        branches:
-            - 'WIIS-10930'
+        tags:
+            - 'v*'
 
 jobs:
     build:
