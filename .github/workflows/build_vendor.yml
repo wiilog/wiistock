@@ -26,6 +26,9 @@ jobs:
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
 
+            -   name: install zip
+                run: apk add zip
+
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
