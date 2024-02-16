@@ -3,10 +3,8 @@ name: build_vendor
 on:
     workflow_dispatch:
     push:
-#        tags:
-#            - 'v*'
-        branches:
-            - 'WIIS-10930'
+        tags:
+            - 'v*'
 
 jobs:
     build:
@@ -26,15 +24,9 @@ jobs:
             -   name: Setup environment wiistock-docker
                 run: cp .env.example .env
 
-            -   name: install zip
-                run: apk add zip
-
             -   name: Checkout wiistock
-                uses: actions/checkout@v4
+                uses: actions/checkout@v1
                 with:
-                    repository: wiilog/wiistock
-#                    ref: ${{ github.event.pull_request.head.sha }}
-                    ref: WIIS-10930
                     path: projects/wiistock
 
             -   name: Copy .env to .env.local
@@ -63,9 +55,11 @@ jobs:
             -   name: Copy vendor
                 run: docker cp wiistock_app:/var/www/vendor app-vendor
 
-            -   name: zip vendor
-                run: zip -r vendor.zip app-vendor
+            -   name: install zip
+                run: apk add zip
 
+            -   name: zip vendor
+                run: zip -r vendor.zip vendor
 
             -   name: Upload vendor
                 uses: actions/upload-artifact@v2
