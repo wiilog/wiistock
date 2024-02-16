@@ -56,7 +56,7 @@ jobs:
                 run: docker exec -u root wiistock_app composer install
 
             -   name: Copy vendor
-                run: docker cp wiistock_app:/var/www/vendor app-vendor
+                run: docker cp wiistock_app:/var/www/vendor vendor
 
             -   name: install zip
                 run: apk add zip
