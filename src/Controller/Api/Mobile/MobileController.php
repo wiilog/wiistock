@@ -1995,6 +1995,7 @@ class MobileController extends AbstractApiController
 
         $rfidPrefix = $settingRepository->getOneParamByLabel(Setting::RFID_PREFIX);
         $defaultLocationId = $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION);
+        $referenceStorageRuleCheck = (bool) $settingRepository->getOneParamByLabel(Setting::ARTICLE_LOCATION_DROP_WITH_REFERENCE_STORAGE_RULES);
         $defaultLocation = $defaultLocationId ? $locationRepository->find($defaultLocationId) : null;
 
         $now = new DateTime('now');
@@ -2026,7 +2027,7 @@ class MobileController extends AbstractApiController
 
         $fromMatrix = $request->request->getBoolean('fromMatrix');
         $destination = !empty($destinationStr)
-            ? ($fromMatrix
+            ? (!$referenceStorageRuleCheck && $fromMatrix
                 ? ($locationRepository->findOneBy(['label' => $destinationStr]) ?: $defaultLocation)
                 : $locationRepository->find($destinationStr))
             : null;
