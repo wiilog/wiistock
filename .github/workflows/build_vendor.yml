@@ -3,8 +3,10 @@ name: build_vendor
 on:
     workflow_dispatch:
     push:
-        tags:
-            - 'v*'
+#        tags:
+#            - 'v*'
+        branches:
+            - 'WIIS-10930'
 
 jobs:
     build:
@@ -25,7 +27,7 @@ jobs:
                 run: cp .env.example .env
 
             -   name: Checkout wiistock
-                uses: actions/checkout@v1
+                uses: actions/checkout@v4
                 with:
                     path: projects/wiistock
 
