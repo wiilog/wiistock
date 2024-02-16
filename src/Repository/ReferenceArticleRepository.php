@@ -947,7 +947,7 @@ class ReferenceArticleRepository extends EntityRepository {
     }
 
     public function getByPreparationsIds(array $preparationsIds): array {
-        $selectedLocationsSubQuery = function(string $stockManagement, string $subArticleAlias): string  {
+        $selectedLocationsSubQuery = function(?string $stockManagement, string $subArticleAlias): string  {
             $queryBuilder = $this->getEntityManager()->createQueryBuilder()
                 ->select("{$subArticleAlias}_location.label")
                 ->from(Article::class, $subArticleAlias)
@@ -963,11 +963,13 @@ class ReferenceArticleRepository extends EntityRepository {
                     ->addOrderBy("$subArticleAlias.expiryDate", Criteria::ASC)
                     ->addOrderBy("$subArticleAlias.stockEntryDate", Criteria::ASC)
                     ->addOrderBy("$subArticleAlias.id", Criteria::ASC);
-            }
-            else { // if ($stockManagement === 'FIFO')
+            } else if($stockManagement === ReferenceArticle::STOCK_MANAGEMENT_FIFO) {
                 $queryBuilder
                     ->andWhere("{$subArticleAlias}_referenceArticle.stockManagement = :fifoStockManagement")
                     ->andWhere("$subArticleAlias.stockEntryDate IS NOT NULL")
+                    ->orderBy("$subArticleAlias.stockEntryDate", Criteria::ASC);
+            } else {
+                $queryBuilder
                     ->orderBy("$subArticleAlias.stockEntryDate", Criteria::ASC);
             }
 
@@ -985,7 +987,11 @@ class ReferenceArticleRepository extends EntityRepository {
                     IF(
                         reference_article.stockManagement = :fefoStockManagement,
                         FIRST({$selectedLocationsSubQuery(ReferenceArticle::STOCK_MANAGEMENT_FEFO, "sub_articleFEFO")}),
-                        FIRST({$selectedLocationsSubQuery(ReferenceArticle::STOCK_MANAGEMENT_FIFO, "sub_articleFIFO")})
+                        IF(
+                            reference_article.stockManagement = :fifoStockManagement,
+                            FIRST({$selectedLocationsSubQuery(ReferenceArticle::STOCK_MANAGEMENT_FIFO, "sub_articleFIFO")}),
+                            FIRST({$selectedLocationsSubQuery(null, "sub_article")})
+                        )
                     ),
                     join_location.label
                 ) AS location"
@@ -997,8 +1003,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('join_preparation.id AS id_prepa')
             ->addSelect('join_targetLocationPicking.label AS targetLocationPicking')
             ->leftJoin('reference_article.emplacement', 'join_location')
-            ->join('reference_article.preparationOrderReferenceLines', 'join_preparationLine')
-            ->join('join_preparationLine.preparation', 'join_preparation')
+            ->innerJoin('reference_article.preparationOrderReferenceLines', 'join_preparationLine')
+            ->innerJoin('join_preparationLine.preparation', 'join_preparation')
             ->leftJoin('join_preparationLine.targetLocationPicking', 'join_targetLocationPicking')
             ->andWhere('join_preparation.id IN (:preparationsIds)')
             ->setParameter('preparationsIds', $preparationsIds)
