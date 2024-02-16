@@ -79,9 +79,9 @@ class TrackingMovementListener implements EventSubscriber
         foreach ($this->flushedTackingMovements ?? [] as $trackingMovement) {
             if ($trackingMovement->isDrop()) {
                 $location = $trackingMovement->getEmplacement();
-                if ($location->isSendEmailToManagers()) {
-                    $managers = $location?->getManagers();
-                    if ($managers) {
+                if ($location && $location->isSendEmailToManagers()) {
+                    $managers = $location->getManagers();
+                    if (!$managers->isEmpty()) {
                         $freeFields = $this->freeFieldService->getFilledFreeFieldArray(
                             $args->getObjectManager(),
                             $trackingMovement,
