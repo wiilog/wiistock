@@ -69,3 +69,11 @@ jobs:
                 with:
                     name: vendor.zip
                     path: vendor.zip
+
+            -   name: Upload vendor on the release
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: vendor.zip
+                    asset_name: vendor.zip
+                    tag: ${{ github.ref }}
