@@ -17,7 +17,7 @@ global.hideOrShowStackButton = hideOrShowStackButton;
 global.MODE_DISPLAY = MODE_DISPLAY;
 global.MODE_EDIT = MODE_EDIT;
 global.MODE_EXTERNAL = MODE_EXTERNAL;
-global.mode = mode;
+global.mode = undefined;
 
 /**
  * @type {{
@@ -42,7 +42,6 @@ global.mode = mode;
 let dashboards = [];
 let currentDashboard = null;
 let somePagesDeleted = false;
-let mode = undefined;
 
 const $addRowButton = $('button.add-row-modal-submit');
 const $dashboard = $('.dashboard');
@@ -58,8 +57,9 @@ $(window).resize(function () {
     }, 100);
 });
 
-function loadDashboards(mode, refreshRate) {
-    if (mode === undefined) {
+function loadDashboards(m, refreshRate) {
+    global.mode = m;
+    if (global.mode === undefined) {
         showBSAlert(`Configuration invalide`, `danger`);
     }
 
@@ -70,7 +70,7 @@ function loadDashboards(mode, refreshRate) {
 
     $(document).keydown(onArrowNavigation);
 
-    if (mode === MODE_EDIT) {
+    if (global.mode === MODE_EDIT) {
         $(`.save-dashboards`).on('click', function () {
             wrapLoadingOnActionButton($(this), onDashboardSaved);
         });
@@ -97,9 +97,9 @@ function loadDashboards(mode, refreshRate) {
             $(this).closest(`.wii-checkbox`).next().toggleClass(`d-none`, !$(this).is(`:checked`));
         });
     }
-    else if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+    else if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
         setInterval(function () {
-            $.get(Routing.generate("dashboards_fetch", {mode}), function (response) {
+            $.get(Routing.generate("dashboards_fetch", {mode: global.mode}), function (response) {
                 dashboards = JSON.parse(response.dashboards);
                 currentDashboard = dashboards.find(({dashboardIndex: currentDashboardIndex}) => currentDashboardIndex === currentDashboard.dashboardIndex);
 
@@ -266,11 +266,11 @@ function renderCurrentDashboard() {
                 }
             });
 
-        if (mode === MODE_DISPLAY || mode === MODE_EXTERNAL) {
+        if (global.mode === MODE_DISPLAY || global.mode === MODE_EXTERNAL) {
             $(`.header-title`).html(`Dashboard | <span class="bold">${currentDashboard.name}</span>`);
             document.title = document.title.split('|')[0] + ` | ${currentDashboard.name}`;
         }
-        if (currentDashboard.componentCount && mode !== MODE_EDIT) {
+        if (currentDashboard.componentCount && global.mode !== MODE_EDIT) {
             whenRenderIsDone(componentsToBeRenderedCount, (renderedComponents) => {
                 colorComponentsBasedOnDelay(renderedComponents);
             })
@@ -345,7 +345,7 @@ function updateAddRowButton() {
 
 function renderRow(row) {
     const $rowWrapper = $(`<div/>`, {class: `dashboard-row-wrapper`});
-    const flexFill = mode !== MODE_EXTERNAL ? 'flex-fill' : '';
+    const flexFill = global.mode !== MODE_EXTERNAL ? 'flex-fill' : '';
     const $row = $(`<div/>`, {
         class: `dashboard-row ${flexFill}`,
         'data-row-index': `${row.rowIndex}`,
@@ -393,7 +393,7 @@ function renderRow(row) {
         $rowWrapper.append($component);
     }
 
-    if (mode === MODE_EDIT) {
+    if (global.mode === MODE_EDIT) {
         $row.append(`
             <div class="action-row-container">
                 <div class="bg-white w-px-30 rounded">
@@ -443,7 +443,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
                     }));
                 }
 
-                if (mode === MODE_EDIT) {
+                if (global.mode === MODE_EDIT) {
                     const $editButton = component.template
                         ? $('<div/>', {
                             class: 'dropdown-item pointer',
@@ -477,7 +477,7 @@ function renderCardComponent({columnIndex, cellIndex, component}) {
             });
     } else {
         $componentContainer.addClass('empty');
-        if (mode === MODE_EDIT) {
+        if (global.mode === MODE_EDIT) {
             const isCellSplit = cellIndex !== null;
             const $addComponent = $('<button/>', {
                 class: 'btn btn-light dashboard-button d-flex align-items-center',
@@ -522,7 +522,7 @@ function renderDashboardPagination() {
         .reverse()
         .forEach($item => $pagination.prepend($item));
 
-    if (mode === MODE_EDIT) {
+    if (global.mode === MODE_EDIT) {
         $(`.dashboard-pagination`).append(`
             <button class="btn btn-primary mx-1 d-flex align-items-center"
                     data-toggle="modal"
@@ -557,7 +557,7 @@ function createDashboardSelectorItem(dashboard) {
     });
 
     let $editable = ``;
-    if (mode === MODE_EDIT) {
+    if (global.mode === MODE_EDIT) {
         const externalRoute = Routing.generate('dashboards_external', {
             token: $(`.dashboards-token`).val(),
         });

@@ -224,8 +224,8 @@ function generateAttributes(data, classes) {
 
 function createTooltip(text) {
     const trimmedText = (text || "").trim();
-    if (mode === MODE_EDIT
-        || mode === MODE_EXTERNAL
+    if (global.mode === MODE_EDIT
+        || global.mode === MODE_EXTERNAL
         || !trimmedText) {
         return ``;
     } else {
@@ -254,9 +254,9 @@ function createPendingRequests(data, {rowSize}) {
     return $(`
         <div ${generateAttributes(data, 'dashboard-box dashboard-stats-container h-100')}>
             <div class="title">
-                ${applyStyle(data, numberingConfig, 1, isObject(data.title) ? data.title[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title)}
+                ${applyStyle(data, numberingConfig, 1, isObject(data.title) ? data.title[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title)}
             </div>
-            ${createTooltip(isObject(data.tooltip) ? data.tooltip[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
+            ${createTooltip(isObject(data.tooltip) ? data.tooltip[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
             <div class="d-flex row no-gutters h-100 overflow-auto overflow-x-hidden pending-request-wrapper">
                 ${content}
             </div>
@@ -279,7 +279,7 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
 
     const requestUserFirstLetter = request.requestUser.charAt(0).toUpperCase();
 
-    const defaultCardSize = `col-12 col-lg-${mode === MODE_EDIT ? '6' : '4'} col-xl-${mode === MODE_EDIT ? '6' : '3'}`;
+    const defaultCardSize = `col-12 col-lg-${global.mode === MODE_EDIT ? '6' : '4'} col-xl-${global.mode === MODE_EDIT ? '6' : '3'}`;
     const cardSizeRowSizeMatching = {
         1: 'col-12 col-lg-4 col-xl-3',
         2: 'col-12 col-lg-5',
@@ -289,8 +289,8 @@ function renderRequest(data, request, rowSize, redefinedNumberingConfig, firstIt
         6: 'col-12',
     }
     const cardSize = cardSizeRowSizeMatching[rowSize] || defaultCardSize;
-    const link = mode !== MODE_EDIT && request.href ? `href="${request.href}" onclick="${onCardClick}"` : ``;
-    const cursor = mode === MODE_EDIT ? `cursor-default` : ``;
+    const link = global.mode !== MODE_EDIT && request.href ? `href="${request.href}" onclick="${onCardClick}"` : ``;
+    const cursor = global.mode === MODE_EDIT ? `cursor-default` : ``;
 
     return `
         <div class="d-flex ${cardSize} p-1">
@@ -440,7 +440,7 @@ function createLatePacksElement(data) {
         console.error(`Invalid data for late packs element.`);
         return false;
     }
-    const title = typeof data.title === 'object' ? data.title[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title || "";
+    const title = typeof data.title === 'object' ? data.title[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title || "";
     const numberingConfig = {numbering: 0};
 
     generateEditor(data, numberingConfig, [1, 2, 3]);
@@ -468,7 +468,7 @@ function createLatePacksElement(data) {
             <div class="title">
                 ${applyStyle(data, numberingConfig, 1, title)}
             </div>
-            ${createTooltip(isObject(data.tooltip) ? data.tooltip[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
+            ${createTooltip(isObject(data.tooltip) ? data.tooltip[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
             ${content}
         </div>
     `);
@@ -490,14 +490,14 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
         return false;
     }
 
-    const hasRangeButton = (route && !hideRange && mode !== MODE_EDIT && mode !== MODE_EXTERNAL);
+    const hasRangeButton = (route && !hideRange && global.mode !== MODE_EDIT && global.mode !== MODE_EXTERNAL);
 
     const dashboardBoxContainerClass = hasRangeButton
         ? 'dashboard-box-container-title-content'
         : 'dashboard-box-container-title-content-rangeButton w-100';
     const numberingConfig = {numbering: 0};
 
-    const title = typeof data.title === 'object' ? data.title[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title || "";
+    const title = typeof data.title === 'object' ? data.title[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.title || "";
 
     const pagination = hasRangeButton
         ? `
@@ -521,7 +521,7 @@ function createChart(data, {route, cssClass, hideRange} = {route: null, cssClass
             <div class="title">
                 ${withStyle(data, redefinedNumberingConfig || numberingConfig, 1, title)}
             </div>
-            ${createTooltip(data.chartData.hint || isObject(data.tooltip) ? data.tooltip[mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
+            ${createTooltip(data.chartData.hint || isObject(data.tooltip) ? data.tooltip[global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG] : data.tooltip)}
             <div class="flex-fill content">
                 <canvas class="${cssClass || ''}"></canvas>
             </div>
@@ -567,7 +567,7 @@ function createIndicatorElement(data, config, redefinedNumberingConfig = null) {
     const numberingConfig = {numbering: 0};
     const smartNumberingConfig = redefinedNumberingConfig ? redefinedNumberingConfig : numberingConfig;
     const randomId = guidGenerator();
-    const slug = mode === MODE_EXTERNAL ? 'french' : USER_SLUG;
+    const slug = global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG;
 
     const $element = $(element, Object.assign({
         class: `dashboard-box dashboard-box-indicator text-center dashboard-stats-container ${customContainerClass}`,
@@ -1021,7 +1021,7 @@ function loadLatePacks($table, data) {
             $dataTable._fnScrollDraw();
         }
     };
-    if(mode === MODE_EDIT) {
+    if(global.mode === MODE_EDIT) {
         datatablePacksConfig.data = data.tableData;
     } else {
         datatablePacksConfig.ajax = {
@@ -1063,7 +1063,7 @@ function updateMultipleChartData(chart, data) {
     chart.data.datasets = [];
 
     const dataKeys = Object.keys(chartData);
-    const slug = mode === MODE_EXTERNAL ? 'french' : USER_SLUG;
+    const slug = global.mode === MODE_EXTERNAL ? 'french' : USER_SLUG;
     for(const key of dataKeys) {
         const dataSubKeys = Object.keys(chartData[key]);
         chart.data.labels.push(key);

@@ -171,8 +171,8 @@ function initTableDispatch(groupedSignatureMode = false) {
         fromDashboard,
         filterStatus: statuts,
         preFilledTypes: $typeFilter.val(),
-        pickLocationFilter: $pickLocationFilter.val(),
-        dropLocationFilter: $dropLocationFilter.val(),
+        pickLocationFilter: $pickLocationFilter.val() || [],
+        dropLocationFilter: $dropLocationFilter.val() || [],
         emergencyFilter: $emergencyFilter.val(),
     }, true);
 
