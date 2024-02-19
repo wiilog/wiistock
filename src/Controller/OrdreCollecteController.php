@@ -202,40 +202,12 @@ class OrdreCollecteController extends AbstractController
      * @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
      * @HasPermission({Menu::ORDRE, Action::CREATE})
      */
-    public function new(Collecte $demandeCollecte, EntityManagerInterface $entityManager, NotificationService $notificationService): Response
+    public function new(Collecte               $demandeCollecte,
+                        EntityManagerInterface $entityManager,
+                        OrdreCollecteService   $ordreCollecteService,
+                        NotificationService    $notificationService): Response
     {
-        $statutRepository = $entityManager->getRepository(Statut::class);
-        // on crée l'ordre de collecte
-        $statut = $statutRepository
-            ->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
-        $ordreCollecte = new OrdreCollecte();
-        $date = new DateTime('now');
-        $ordreCollecte
-            ->setDate($date)
-            ->setNumero('C-' . $date->format('YmdHis'))
-            ->setStatut($statut)
-            ->setDemandeCollecte($demandeCollecte);
-        foreach ($demandeCollecte->getArticles() as $article) {
-            $ordreCollecte->addArticle($article);
-        }
-        foreach ($demandeCollecte->getCollecteReferences() as $collecteReference) {
-            $ordreCollecteReference = new OrdreCollecteReference();
-            $ordreCollecteReference
-                ->setOrdreCollecte($ordreCollecte)
-                ->setQuantite($collecteReference->getQuantite())
-                ->setReferenceArticle($collecteReference->getReferenceArticle());
-            $entityManager->persist($ordreCollecteReference);
-            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
-        }
-
-        $entityManager->persist($ordreCollecte);
-
-        // on modifie statut + date validation de la demande
-        $demandeCollecte
-            ->setStatut(
-            	$statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
-			)
-            ->setValidationDate($date);
+        $ordreCollecte = $ordreCollecteService->createCollectOrder($entityManager, $demandeCollecte);
 
         try {
             $entityManager->flush();

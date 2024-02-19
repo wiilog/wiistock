@@ -804,6 +804,10 @@ class Article implements PairedEntity {
         return $this->statut->getCode() === self::STATUT_ACTIF;
     }
 
+    public function isInactive(): bool {
+        return $this->statut->getCode() === self::STATUT_INACTIF;
+    }
+
     public function getRFIDtag(): ?string {
         return $this->RFIDtag;
     }
