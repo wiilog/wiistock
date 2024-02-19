@@ -3683,22 +3683,28 @@ class MobileController extends AbstractApiController
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
 
-        $barcode = $request->query->get('barCode');
-        $referenceArticle = $referenceArticleRepository->findOneBy(['barCode' => $barcode]);
-        $article = $articleRepository->findOneBy(['barCode' => $barcode]);
+        $barcode = $request->query->get("barCode");
+        $reference = null;
+        $article = null;
+        if(str_starts_with($barcode, Article::BARCODE_PREFIX)) {
+            $article = $articleRepository->findOneBy(["barCode" => $barcode]);
+        } else {
+            $reference = $referenceArticleRepository->findOneBy(["barCode" => $barcode]);
+        }
 
+        $reference = $reference ?? ($article->isInactive() ? $article->getReferenceArticle() : null);
         return $this->json([
-            'reference' => Stream::from($referenceArticle ? [$referenceArticle] : ($article && $article->isInactive() ? [$article->getReferenceArticle()] : []))
-                ->map(fn(ReferenceArticle $referenceArticle) => [
-                    'id' => $referenceArticle->getId(),
-                    'reference' => $referenceArticle->getReference(),
-                    'label' => $referenceArticle->getLibelle(),
-                    'location' => $referenceArticle->getEmplacement()?->getLabel(),
-                    'quantityType' => $referenceArticle->getTypeQuantite(),
-                    'refArticleBarCode' => $referenceArticle->getBarCode(),
-                ])
-                ->toArray(),
-            'article' => $article && $article->isInactive() ? $article->getBarCode() : null,
+            "reference" => $reference
+                ? [
+                    "id" => $reference->getId(),
+                    "reference" => $reference->getReference(),
+                    "label" => $reference->getLibelle(),
+                    "location" => $reference->getEmplacement()?->getLabel(),
+                    "quantityType" => $reference->getTypeQuantite(),
+                    "refArticleBarCode" => $reference->getBarCode(),
+                ]
+                : [],
+            "article" => $article?->isInactive() ? $article->getBarCode() : null,
         ]);
     }
 
