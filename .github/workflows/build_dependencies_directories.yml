@@ -48,7 +48,12 @@ jobs:
                     asset_name: vendor.zip
                     tag: ${{ github.ref }}
 
-            -   name: Install build routing
+            -   name: Add generated.yaml to wiistock
+                run: |
+                    touch config/generated.yaml &&
+                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
+
+            -   name: build routing
                 run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Upload routes.json
