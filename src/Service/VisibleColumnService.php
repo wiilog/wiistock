@@ -32,8 +32,8 @@ class VisibleColumnService {
                                    bool  $forExport = false): array
     {
         $user = $this->userService->getUser();
-        $userLanguage = $user->getLanguage();
         $defaultLanguage = $this->languageService->getDefaultLanguage();
+        $userLanguage = $user?->getLanguage() ?: $defaultLanguage;
         return array_merge(
             array_map(
                 function (array $column) use ($columnsVisible, $forExport) {

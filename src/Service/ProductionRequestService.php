@@ -79,11 +79,11 @@ class ProductionRequestService
 
     private ?array $freeFieldsConfig = null;
 
-    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, Utilisateur $currentUser, bool $forExport = false): array {
+    public function getVisibleColumnsConfig(EntityManagerInterface $entityManager, ?Utilisateur $currentUser, bool $forExport = false): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::PRODUCTION, CategorieCL::PRODUCTION_REQUEST);
-        $columnsVisible = $currentUser->getVisibleColumns()['productionRequest'];
+        $columnsVisible = $currentUser ? $currentUser->getVisibleColumns()['productionRequest'] : [];
 
         $columns = [
             ...!$forExport
