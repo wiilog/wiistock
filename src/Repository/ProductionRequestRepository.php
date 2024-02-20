@@ -247,7 +247,7 @@ class ProductionRequestRepository extends EntityRepository
         $language = $options["language"] ?: $defaultLanguage;
         $dateFormat = Language::MYSQL_DATE_FORMATS[$options["userDateFormat"]] . " %H:%i:%s";
 
-        $referenceDate = $filters->getBoolean("date-choice_createdAd") ? "createdAt" : "expectedAt";
+        $referenceDate = $filters->getBoolean("date-choice_createdAt") ? "createdAt" : "expectedAt";
         $types = $filters->has("multipleTypes")
             ? Stream::from($filters->all("multipleTypes"))
                 ->map(static fn(array $type) => intval($type["id"]))
