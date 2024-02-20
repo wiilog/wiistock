@@ -1069,16 +1069,16 @@ class ReferenceArticleController extends AbstractController
         $referenceExist = isset($data['article']) && $reference;
 
         if(!$reference){
-            $reference = new ReferenceArticle();
+            $reference = (new ReferenceArticle())
+                ->setReference($data['reference'])
+                ->setLibelle($data['label'])
+                ->setCreatedBy($userRepository->getKioskUser())
+                ->setCreatedAt(new DateTime());
         }
 
         $reference
-            ->setReference($data['reference'])
-            ->setLibelle($data['label'])
             ->setStatut($status)
-            ->setCommentaire($data['comment'])
-            ->setCreatedBy($userRepository->getKioskUser())
-            ->setCreatedAt(new DateTime());
+            ->setCommentaire($data['comment']);
 
         if(!$referenceExist){
             $reference
