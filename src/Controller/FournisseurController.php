@@ -63,7 +63,8 @@ class FournisseurController extends AbstractController {
 			return $this->json([
 			    'success' => true,
                 'id' => $supplier->getId(),
-                'text' => $supplier->getCodeReference()
+                'text' => $supplier->getCodeReference(),
+                'msg' => "Le fournisseur a été crée avec succès.",
             ]);
         }
 
@@ -90,20 +91,25 @@ class FournisseurController extends AbstractController {
                          EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $supplier = $entityManager->find(Fournisseur::class, $data['id']);
+
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['code']));
+
+            if ($codeAlreadyUsed) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Ce code fournisseur est déjà utilisé.",
+                ]);
+            }
+
             $supplier
                 ->setNom($data['name'])
                 ->setCodeReference($data['code'])
                 ->setPossibleCustoms($data['possibleCustoms'])
                 ->setUrgent($data['urgent']);
 
-            try {
-                $entityManager->flush();
-            } catch (UniqueConstraintViolationException) {
-                return $this->json([
-                    'success' => false,
-                    "msg" => "Le code fournisseur : \"{$data['code']}\" existe déjà en base de données",
-                ]);
-            }
+            $entityManager->flush();
+
             return $this->json([
                 'success' => true,
                 'msg' => "Le fournisseur a bien été modifié",
