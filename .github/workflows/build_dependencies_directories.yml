@@ -14,8 +14,8 @@ jobs:
         container:
             image: wiilog/wiistock-initializer:v1
             credentials:
-                username: ${{ secrets.WIISTOCK_DOCKER_USER }}
-                password: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
+                username: ${{ secrets.DOCKER_USER }}
+                password: ${{ secrets.DOCKER_PULL_TOKEN }}
             env:
                 APP_ENV: prod
             options: --user root
