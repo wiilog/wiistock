@@ -5,8 +5,6 @@ on:
     push:
         tags:
             - 'v*'
-        branches:
-            - 'WIIS-10930'
 
 jobs:
     build_php_directories:
@@ -65,4 +63,45 @@ jobs:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
                     file: routes.json
                     asset_name: routes.json
+                    tag: ${{ github.ref }}
+
+    build_js_directories:
+        runs-on: ubuntu-latest
+        container:
+            image: wiilog/wiistock-initializer:v1
+            credentials:
+                username: ${{ secrets.DOCKER_USER }}
+                password: ${{ secrets.DOCKER_PULL_TOKEN }}
+            env:
+                APP_ENV: prod
+            options: --user root
+
+        steps:
+            -   name: go to project
+                run: mkdir /project && cd /project
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
+
+            -   name: Install composer dependencies in app
+                run: yarn install
+
+            -   name: install zip
+                run: apk add zip
+
+            -   name: zip vendor
+                run: zip -r node_modules.zip node_modules
+
+            -   name: Upload vendor
+                uses: actions/upload-artifact@v2
+                with:
+                    name: node_modules.zip
+                    path: node_modules.zip
+
+            -   name: Upload vendor on the release
+                uses: svenstaro/upload-release-action@v2
+                with:
+                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
+                    file: node_modules.zip
+                    asset_name: node_modules.zip
                     tag: ${{ github.ref }}
