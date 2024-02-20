@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Service\CSVExportService;
 use App\Service\FournisseurDataService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -95,10 +96,17 @@ class FournisseurController extends AbstractController {
                 ->setPossibleCustoms($data['possibleCustoms'])
                 ->setUrgent($data['urgent']);
 
-            $entityManager->flush();
+            try {
+                $entityManager->flush();
+            } catch (UniqueConstraintViolationException) {
+                return $this->json([
+                    'success' => false,
+                    "msg" => "Le code fournisseur : \"{$data['code']}\" existe déjà en base de données",
+                ]);
+            }
             return $this->json([
                 'success' => true,
-                'msg' => "Le fournisseur a bien été modifié"
+                'msg' => "Le fournisseur a bien été modifié",
             ]);
         }
         throw new BadRequestHttpException();
