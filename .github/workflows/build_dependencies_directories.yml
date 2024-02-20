@@ -21,13 +21,11 @@ jobs:
             options: --user root
 
         steps:
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
-                with:
-                    path: /project
-
             -   name: go to project
                 run: cd /project
+
+            -   name: Checkout wiistock
+                uses: actions/checkout@v4
 
             -   name: Install composer dependencies in app
                 run: composer install
