@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Service\CSVExportService;
 use App\Service\FournisseurDataService;
 use DateTime;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -62,7 +63,8 @@ class FournisseurController extends AbstractController {
 			return $this->json([
 			    'success' => true,
                 'id' => $supplier->getId(),
-                'text' => $supplier->getCodeReference()
+                'text' => $supplier->getCodeReference(),
+                'msg' => "Le fournisseur a été crée avec succès.",
             ]);
         }
 
@@ -89,6 +91,17 @@ class FournisseurController extends AbstractController {
                          EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $supplier = $entityManager->find(Fournisseur::class, $data['id']);
+
+            $fournisseurRepository = $entityManager->getRepository(Fournisseur::class);
+            $codeAlreadyUsed = intval($fournisseurRepository->countByCode($data['code']));
+
+            if ($codeAlreadyUsed) {
+                return $this->json([
+                    'success' => false,
+                    'msg' => "Ce code fournisseur est déjà utilisé.",
+                ]);
+            }
+
             $supplier
                 ->setNom($data['name'])
                 ->setCodeReference($data['code'])
@@ -96,9 +109,10 @@ class FournisseurController extends AbstractController {
                 ->setUrgent($data['urgent']);
 
             $entityManager->flush();
+
             return $this->json([
                 'success' => true,
-                'msg' => "Le fournisseur a bien été modifié"
+                'msg' => "Le fournisseur a bien été modifié",
             ]);
         }
         throw new BadRequestHttpException();
