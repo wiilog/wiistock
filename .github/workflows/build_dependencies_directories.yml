@@ -5,55 +5,32 @@ on:
     push:
         tags:
             - 'v*'
+        branches:
+            - 'WIIS-10930'
 
 jobs:
     build_php_directories:
         runs-on: ubuntu-latest
         container:
-            image: docker:latest
+            image: wiilog/wiistock-initializer:v1
+            credentials:
+                username: ${{ secrets.WIISTOCK_DOCKER_USER }}
+                password: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
+            env:
+                APP_ENV: prod
             options: --user root
 
         steps:
-            -   name: Checkout wiistock-docker
-                uses: actions/checkout@v4
-                with:
-                    repository: wiilog/wiistock-docker
-                    token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
-                    ref: main
-
-            -   name: Setup environment wiistock-docker
-                run: cp .env.example .env
-
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
-                    path: projects/wiistock
+                    path: /project
 
-            -   name: Copy .env to .env.local
-                run: cp projects/wiistock/.env projects/wiistock/.env.local
-
-            -   name: Add generated.yaml to wiistock
-                run: |
-                    touch projects/wiistock/config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
-
-            -   name: Give all right to wiistock
-                run: chmod -R 777 projects/wiistock/
-
-            -   name: Build & run containers
-                run: docker compose -f docker-compose.yml up app --build -d
-
-            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock_app:/var/www/
-
-            -   name: Give right to www-data user
-                run: docker exec -u root wiistock_app chown -R www-data:www-data ./
+            -   name: go to project
+                run: cd /project
 
             -   name: Install composer dependencies in app
-                run: docker exec -u root wiistock_app composer install
-
-            -   name: Copy vendor
-                run: docker cp wiistock_app:/var/www/vendor vendor
+                run: composer install
 
             -   name: install zip
                 run: apk add zip
@@ -76,10 +53,7 @@ jobs:
                     tag: ${{ github.ref }}
 
             -   name: Install build routing
-                run: docker exec -u root wiistock_app php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
-
-            -   name: Copy routes.json
-                run: docker cp wiistock_app:/var/www/public/generated/routes.json routes.json
+                run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
 
             -   name: Upload routes.json
                 uses: actions/upload-artifact@v2
@@ -93,72 +67,4 @@ jobs:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
                     file: routes.json
                     asset_name: routes.json
-                    tag: ${{ github.ref }}
-
-    build_node_modules:
-        runs-on: ubuntu-latest
-        container:
-            image: docker:latest
-            options: --user root
-
-        steps:
-            -   name: Checkout wiistock-docker
-                uses: actions/checkout@v4
-                with:
-                    repository: wiilog/wiistock-docker
-                    token: ${{ secrets.WIISTOCK_DOCKER_PULL_TOKEN }}
-                    ref: main
-
-            -   name: Setup environment wiistock-docker
-                run: cp .env.example .env
-
-            -   name: Checkout wiistock
-                uses: actions/checkout@v4
-                with:
-                    path: projects/wiistock
-
-            -   name: Copy .env to .env.local
-                run: cp projects/wiistock/.env projects/wiistock/.env.local
-
-            -   name: Add generated.yaml to wiistock
-                run: |
-                    touch projects/wiistock/config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> projects/wiistock/config/generated.yaml
-
-            -   name: Give all right to wiistock
-                run: chmod -R 777 projects/wiistock/
-
-            -   name: Build & run containers
-                run: docker compose -f docker-compose.yml up app --build -d
-
-            -   name: volume mount does not work on docker in docker so we manually copy the wiistoock
-                run: docker cp projects/wiistock/. wiistock_app:/var/www/
-
-            -   name: Give right to www-data user
-                run: docker exec -u root wiistock_app chown -R www-data:www-data ./
-
-            -   name: Install composer dependencies in app
-                run: docker exec -u root wiistock_app yarn install
-
-            -   name: Copy vendor
-                run: docker cp wiistock_app:/var/www/node_modules node_modules
-
-            -   name: install zip
-                run: apk add zip
-
-            -   name: zip vendor
-                run: zip -r node_modules.zip node_modules
-
-            -   name: Upload vendor
-                uses: actions/upload-artifact@v2
-                with:
-                    name: node_modules.zip
-                    path: node_modules.zip
-
-            -   name: Upload vendor on the release
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: node_modules.zip
-                    asset_name: node_modules.zip
                     tag: ${{ github.ref }}
