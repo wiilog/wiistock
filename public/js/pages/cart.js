@@ -357,7 +357,7 @@ function loadLogisticUnitPack() {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('POST', 'articles_logistic_units_api', {})
+            AJAX.route(AJAX.POST, 'cart_articles_logistic_units_api', {})
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);
