@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ProductionRequestRepository;
 use DateTime;
@@ -20,6 +21,7 @@ class ProductionRequest extends StatusHistoryContainer
 
     use AttachmentTrait;
     use FreeFieldsManagerTrait;
+    use CleanedCommentTrait;
 
     public const NUMBER_PREFIX = 'P';
 
@@ -220,6 +222,7 @@ class ProductionRequest extends StatusHistoryContainer
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+        $this->setCleanedComment($comment);
 
         return $this;
     }

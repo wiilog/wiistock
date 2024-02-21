@@ -7,15 +7,13 @@ use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\Resource;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 use Traversable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -139,7 +137,7 @@ class MailerService
             $mailer = (new Mailer($transport));
             try {
                 $mailer->send($message);
-            } catch (TransportExceptionInterface $e) {
+            } catch (Throwable $e) {
                 $this->exceptionLoggerService->sendLog($e);
             }
         }
