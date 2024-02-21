@@ -32,7 +32,7 @@ jobs:
                 run: apk add zip
 
             -   name: zip vendor
-                run: zip -r vendor.zip vendor
+                run: zip -r -y -qq vendor.zip vendor
 
             -   name: Upload vendor
                 uses: actions/upload-artifact@v2
@@ -91,22 +91,22 @@ jobs:
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
 
-            -   name: Install composer dependencies in app
+            -   name: Install yarn dependencies in app
                 run: yarn install
 
             -   name: install zip
                 run: apk add zip
 
-            -   name: zip vendor
-                run: zip -r node_modules.zip node_modules
+            -   name: zip node_modules
+                run: zip -r -y -qq node_modules.zip node_modules
 
-            -   name: Upload vendor
+            -   name: Upload node_modules
                 uses: actions/upload-artifact@v2
                 with:
                     name: node_modules.zip
                     path: node_modules.zip
 
-            -   name: Upload vendor on the release
+            -   name: Upload node_modules on the release
                 uses: svenstaro/upload-release-action@v2
                 with:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
