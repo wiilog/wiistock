@@ -290,14 +290,15 @@ class ArrivageService {
                                      bool                   $urgent,
                                      array                  $emergencies = []): void {
         if ($urgent) {
-            $arrivage
-                ->setIsUrgent(true);
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $dropLocation = $this->getDefaultDropLocation($entityManager, $arrivage, $locationRepository->findOneBy(['label' => $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)]));
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)
+                ?? $this->getDefaultDropLocation($entityManager, $arrivage, null);
             $arrivage
-                ->setDropLocation($dropLocation);
+                ->setIsUrgent(true)
+                ->setDropLocation($locationRepository->find($dropLocationId));;
         }
+
         if ($urgent && !empty($emergencies)) {
             foreach ($emergencies as $emergency) {
                 $emergency->setLastArrival($arrivage);
