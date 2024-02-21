@@ -686,6 +686,7 @@ CREATE TABLE dw_production
     numero_projet        varchar(255),
     code_produit_article varchar(255),
     emplacement_depose   varchar(255),
+    commentaire          text,
     piece_jointe         varchar(255),
     quantite             integer,
     nombre_lignes        integer
