@@ -292,8 +292,7 @@ class ArrivageService {
         if ($urgent) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             $locationRepository = $entityManager->getRepository(Emplacement::class);
-            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY)
-                ?? $this->getDefaultDropLocation($entityManager, $arrivage, null);
+            $dropLocationId = $settingRepository->getOneParamByLabel(Setting::DROP_OFF_LOCATION_IF_EMERGENCY);
             $arrivage
                 ->setIsUrgent(true)
                 ->setDropLocation($locationRepository->find($dropLocationId));;
