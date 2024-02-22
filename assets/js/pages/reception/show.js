@@ -88,7 +88,10 @@ $(function () {
     });
 
     $(`#buttonPrintMultipleBarcodes`).on(`click`, function () {
-        printBarcodes($(this), {reception: $(this).data(`id`)});
+        printBarcodes($(this), {
+            reception: $(this).data(`id`),
+            forceTagEmpty: true,
+        });
     });
 });
 

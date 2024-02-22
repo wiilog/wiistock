@@ -1469,7 +1469,7 @@ class ReceptionController extends AbstractController {
                                         ->some(static function (TagTemplate $tag) use ($article) {
                                             return $tag->getTypes()->contains($article->getType());
                                         });
-                                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                                 })
                                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
@@ -1488,7 +1488,7 @@ class ReceptionController extends AbstractController {
                         ->some(static function (TagTemplate $tag) use ($article) {
                             return $tag->getTypes()->contains($article->getType());
                         });
-                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                 })
                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
