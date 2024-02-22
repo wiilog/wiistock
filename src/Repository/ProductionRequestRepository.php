@@ -34,7 +34,7 @@ class ProductionRequestRepository extends EntityRepository
             ->select('production_request.number')
             ->where('production_request.number LIKE :value')
             ->addOrderBy('production_request.number', 'DESC')
-            ->setParameter('value', ProductionRequest::NUMBER_PREFIX . $date . '%')
+            ->setParameter('value', ProductionRequest::NUMBER_PREFIX . '-' . $date . '%')
             ->getQuery()
             ->execute();
         return $result ? $result[0]['number'] : null;
