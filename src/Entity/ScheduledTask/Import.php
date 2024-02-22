@@ -3,6 +3,7 @@
 namespace App\Entity\ScheduledTask;
 
 use App\Entity\Attachment;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\MouvementStock;
 use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
 use App\Entity\Statut;
@@ -37,6 +38,7 @@ class Import {
     const ENTITY_CUSTOMER = 'CUSTOMER';
     const ENTITY_PROJECT = 'PROJECT';
     const ENTITY_REF_LOCATION = 'REF_LOCATION';
+    const ENTITY_PRODUCTION = 'PRODUCTION';
     const ENTITY_LABEL = [
         self::ENTITY_ART => "Articles",
         self::ENTITY_REF => "Références",
@@ -48,7 +50,8 @@ class Import {
         self::ENTITY_LOCATION => "Emplacements",
         self::ENTITY_CUSTOMER => "Clients",
         self::ENTITY_PROJECT => "Projets",
-        self::ENTITY_REF_LOCATION => "Quantité référence par emplacement"
+        self::ENTITY_REF_LOCATION => "Quantité référence par emplacement",
+        self::ENTITY_PRODUCTION => "Productions",
     ];
 
     CONST LAST_DAY_OF_WEEK = 'last';
@@ -111,6 +114,11 @@ class Import {
             'securityQuantity',
             'conditioningQuantity',
         ],
+        self::ENTITY_PRODUCTION => [
+            FixedFieldEnum::manufacturingOrderNumber->name,
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::status->name,
+        ],
     ];
     const FIELD_PK = [
         self::ENTITY_ART_FOU => 'reference',
@@ -124,6 +132,7 @@ class Import {
         self::ENTITY_CUSTOMER => 'name',
         self::ENTITY_PROJECT => 'code',
         self::ENTITY_REF_LOCATION => 'reference',
+        self::ENTITY_PRODUCTION => FixedFieldEnum::manufacturingOrderNumber->name,
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [

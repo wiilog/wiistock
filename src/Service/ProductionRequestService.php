@@ -185,6 +185,21 @@ class ProductionRequestService
         return $row;
     }
 
+    public function getCurrentProductionRequestValues(ProductionRequest $productionRequest): array {
+        return [
+            FixedFieldEnum::status->name => $productionRequest->getStatus(),
+            FixedFieldEnum::comment->name => $productionRequest->getComment(),
+            FixedFieldEnum::dropLocation->name => $productionRequest->getDropLocation(),
+            FixedFieldEnum::manufacturingOrderNumber->name => $productionRequest->getManufacturingOrderNumber(),
+            FixedFieldEnum::emergency->name => $productionRequest->getEmergency(),
+            FixedFieldEnum::expectedAt->name => $productionRequest->getExpectedAt(),
+            FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
+            FixedFieldEnum::productArticleCode->name => $productionRequest->getProductArticleCode(),
+            FixedFieldEnum::quantity->name => $productionRequest->getQuantity(),
+            FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
+        ];
+    }
+
     public function updateProductionRequest(EntityManagerInterface $entityManager,
                                             ProductionRequest      $productionRequest,
                                             Utilisateur            $currentUser,
@@ -193,18 +208,7 @@ class ProductionRequestService
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $oldValues = [
-            "status" => $productionRequest->getStatus(),
-            "comment" => $productionRequest->getComment(),
-            "dropLocation" => $productionRequest->getDropLocation(),
-            "manufacturingOrderNumber" => $productionRequest->getManufacturingOrderNumber(),
-            "emergency" => $productionRequest->getEmergency(),
-            "expectedAt" => $productionRequest->getExpectedAt(),
-            "projectNumber" => $productionRequest->getProjectNumber(),
-            "productArticleCode" => $productionRequest->getProductArticleCode(),
-            "quantity" => $productionRequest->getQuantity(),
-            "lineCount" => $productionRequest->getLineCount(),
-        ];
+        $oldValues = $this->getCurrentProductionRequestValues($productionRequest);
         $now = new DateTime();
 
         if(!$productionRequest->getId()){
@@ -301,12 +305,12 @@ class ProductionRequestService
         return $productionRequest;
     }
 
-    private function persistHistoryRecords(EntityManagerInterface $entityManager,
+    public function persistHistoryRecords(EntityManagerInterface $entityManager,
                                            ProductionRequest      $productionRequest,
                                            Utilisateur            $currentUser,
                                            DateTime               $date,
                                            array                  $oldValues,
-                                           array                  $addedAttachments): void {
+                                           array                  $addedAttachments = []): void {
         $oldStatus = $oldValues["status"] ?? null;
         $newStatus = $productionRequest->getStatus();
         if ($newStatus
@@ -436,14 +440,14 @@ class ProductionRequestService
 
     public function buildCustomProductionHistoryMessage(ProductionRequest $productionRequest,
                                                         array             $oldValues): string {
-        $oldDropLocation = $oldValues['dropLocation'] ?? null;
-        $oldManufacturingOrderNumber = $oldValues['manufacturingOrderNumber'] ?? null;
-        $oldEmergency = $oldValues['emergency'] ?? null;
-        $oldExpectedAt = $oldValues['expectedAt'] ?? null;
-        $oldProjectNumber = $oldValues['projectNumber'] ?? null;
-        $oldProductArticleCode = $oldValues['productArticleCode'] ?? null;
-        $oldQuantity = $oldValues['quantity'] ?? null;
-        $oldLineCount = $oldValues['lineCount'] ?? null;
+        $oldDropLocation = $oldValues[FixedFieldEnum::dropLocation->name] ?? null;
+        $oldManufacturingOrderNumber = $oldValues[FixedFieldEnum::manufacturingOrderNumber->name] ?? null;
+        $oldEmergency = $oldValues[FixedFieldEnum::emergency->name] ?? null;
+        $oldExpectedAt = $oldValues[FixedFieldEnum::expectedAt->name] ?? null;
+        $oldProjectNumber = $oldValues[FixedFieldEnum::projectNumber->name] ?? null;
+        $oldProductArticleCode = $oldValues[FixedFieldEnum::productArticleCode->name] ?? null;
+        $oldQuantity = $oldValues[FixedFieldEnum::quantity->name] ?? null;
+        $oldLineCount = $oldValues[FixedFieldEnum::lineCount->name] ?? null;
 
         $message = "<br>";
         if ($productionRequest->getDropLocation()

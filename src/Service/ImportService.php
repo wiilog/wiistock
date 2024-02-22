@@ -23,6 +23,7 @@ use App\Entity\LocationGroup;
 use App\Entity\MouvementStock;
 use App\Entity\Nature;
 use App\Entity\PreparationOrder\PreparationOrderReferenceLine;
+use App\Entity\ProductionRequest;
 use App\Entity\Project;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
@@ -210,6 +211,20 @@ class ImportService
             "securityQuantity",
             "conditioningQuantity",
         ],
+        Import::ENTITY_PRODUCTION => [
+            FixedFieldEnum::createdBy->name,
+            FixedFieldEnum::type->name,
+            FixedFieldEnum::status->name,
+            FixedFieldEnum::expectedAt->name,
+            FixedFieldEnum::dropLocation->name,
+            FixedFieldEnum::lineCount->name,
+            FixedFieldEnum::manufacturingOrderNumber->name,
+            FixedFieldEnum::productArticleCode->name,
+            FixedFieldEnum::quantity->name,
+            FixedFieldEnum::emergency->name,
+            FixedFieldEnum::projectNumber->name,
+            FixedFieldEnum::comment->name,
+        ],
     ];
 
     #[Required]
@@ -271,6 +286,12 @@ class ImportService
 
     #[Required]
     public ScheduleRuleService $scheduleRuleService;
+
+    #[Required]
+    public StatusHistoryService $statusHistoryService;
+
+    #[Required]
+    public ProductionRequestService $productionRequestService;
 
     private EmplacementDataService $emplacementDataService;
 
@@ -589,6 +610,9 @@ class ImportService
                         break;
                     case Import::ENTITY_REF_LOCATION:
                         $this->importRefLocationEntity($data, $stats);
+                        break;
+                    case Import::ENTITY_PRODUCTION:
+                        $this->importProductionEntity($data, $stats, $this->currentImport->getUser());
                         break;
                 }
 
@@ -2035,6 +2059,127 @@ class ImportService
         $this->updateStats($stats, !$refLocationAlreadyExists);
     }
 
+    private function importProductionEntity(array $data, array &$stats, Utilisateur $user): void {
+        $now = new DateTime();
+        $existingProductionRequest = $this->entityManager->getRepository(ProductionRequest::class)->findOneBy([FixedFieldEnum::manufacturingOrderNumber->name => $data[FixedFieldEnum::manufacturingOrderNumber->name]]);
+        $productionRequest = ($existingProductionRequest && $existingProductionRequest->getStatus()->isNotTreated())
+            ? $existingProductionRequest
+            : new ProductionRequest();
+
+        $oldValues = $existingProductionRequest
+            ? $this->productionRequestService->getCurrentProductionRequestValues($productionRequest)
+            : [];
+
+        if (!$existingProductionRequest) {
+            $number = $this->uniqueNumberService->create($this->entityManager, ProductionRequest::NUMBER_PREFIX, ProductionRequest::class, UniqueNumberService::DATE_COUNTER_FORMAT_PRODUCTION_REQUEST, $now);
+
+            $productionRequest
+                ->setNumber($number)
+                ->setCreatedAt($now)
+                ->setCreatedBy($user);
+        }
+
+        if (isset($data[FixedFieldEnum::manufacturingOrderNumber->name])) {
+            if(!$existingProductionRequest) {
+                $productionRequest->setManufacturingOrderNumber($data[FixedFieldEnum::manufacturingOrderNumber->name]);
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::type->name])) {
+            $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::PRODUCTION, $data[FixedFieldEnum::type->name]);
+
+            if (!$existingProductionRequest) {
+                if ($type) {
+                    $productionRequest->setType($type);
+                } else {
+                    $this->throwError("Le type n'existe pas.");
+                }
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::status->name])) {
+            $status = $this->entityManager->getRepository(Statut::class)->findOneBy([
+                "nom" => $data[FixedFieldEnum::status->name],
+                "type" => $productionRequest->getType(),
+            ]);
+
+            if ($status) {
+                if((!$existingProductionRequest && $status->isNotTreated()) || $existingProductionRequest) {
+                    $productionRequest->setStatus($status);
+
+                    if ($status->isTreated()) {
+                        $productionRequest
+                            ->setTreatedBy($user)
+                            ->setTreatedAt($now);
+                    }
+                } else if(!$status->isNotTreated()) {
+                    $this->throwError("Le statut doit être en état A traiter");
+                }
+            } else {
+                $this->throwError("Le statut n'existe pas ou n'est pas lié au type.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::expectedAt->name])) {
+            if (str_contains($data[FixedFieldEnum::expectedAt->name], " ")) {
+                $expectedAt = DateTime::createFromFormat("d/m/Y H:i", $data[FixedFieldEnum::expectedAt->name]);
+            } else {
+                $expectedAt = DateTime::createFromFormat("d/m/Y", $data[FixedFieldEnum::expectedAt->name]);
+
+                if ($expectedAt) {
+                    $expectedAt->setTime(0, 0);
+                }
+            }
+
+            if ($expectedAt) {
+                if (!$existingProductionRequest || $productionRequest->getStatus()->isNotTreated()) {
+                    $productionRequest->setExpectedAt($expectedAt);
+                }
+            } else {
+                $this->throwError("Le format de la date attendue n'est pas valide.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::emergency->name])) {
+            $productionRequest->setEmergency($data[FixedFieldEnum::emergency->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::projectNumber->name])) {
+            $productionRequest->setProjectNumber($data[FixedFieldEnum::projectNumber->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::productArticleCode->name])) {
+            $productionRequest->setProductArticleCode($data[FixedFieldEnum::productArticleCode->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::dropLocation->name])) {
+            $dropLocation = $this->entityManager->getRepository(Emplacement::class)->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
+            if ($dropLocation) {
+                $productionRequest->setDropLocation($dropLocation);
+            } else {
+                $this->throwError("L'emplacement de dépose n'existe pas.");
+            }
+        }
+
+        if (isset($data[FixedFieldEnum::comment->name])) {
+            $productionRequest->setComment($data[FixedFieldEnum::comment->name]);
+        }
+
+        if (isset($data[FixedFieldEnum::quantity->name])) {
+            $productionRequest->setQuantity(intval($data[FixedFieldEnum::quantity->name]));
+        }
+
+        if (isset($data[FixedFieldEnum::lineCount->name])) {
+            $productionRequest->setLineCount(intval($data[FixedFieldEnum::lineCount->name]));
+        }
+
+        $this->productionRequestService->persistHistoryRecords($this->entityManager, $productionRequest, $user, $now, $oldValues);
+
+        $this->entityManager->persist($productionRequest);
+
+        $this->updateStats($stats, !$existingProductionRequest);
+    }
+
     private function checkAndSetChampsLibres(array $colChampsLibres,
                                                    $freeFieldEntity,
                                              bool  $isNewEntity,
@@ -2342,10 +2487,11 @@ class ImportService
         }
 
         $fieldsToAssociate = $fieldsToAssociate
-            ->keymap(fn(string $key) => [
+            ->keymap(static fn(string $key) => [
                 $key,
-                Import::FIELDS_ENTITY[$entityCode][$key]
-                ?? Import::FIELDS_ENTITY['default'][$key]
+                FixedFieldEnum::fromCase($key)
+                    ?: Import::FIELDS_ENTITY[$entityCode][$key]
+                    ?? Import::FIELDS_ENTITY['default'][$key]
                     ?? $key,
             ])
             ->map(fn(string|array $field) => is_array($field) ? $this->translationService->translate(...$field) : $field)
