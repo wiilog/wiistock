@@ -32,7 +32,7 @@ jobs:
                 run: apk add zip
 
             -   name: Zip vendor
-                run: zip -r vendor.zip vendor
+                run: zip -r -y -qq vendor.zip vendor
 
             -   name: Upload zip
                 uses: actions/upload-artifact@v2
