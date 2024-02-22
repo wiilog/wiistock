@@ -19,58 +19,33 @@ jobs:
             options: --user root
 
         steps:
-            -   name: go to project
+            -   name: Go to project
                 run: mkdir /project && cd /project
 
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
 
-            -   name: Install composer dependencies in app
+            -   name: Install php dependencies
                 run: composer install --no-scripts
 
-            -   name: install zip
+            -   name: Install zip
                 run: apk add zip
 
-            -   name: zip vendor
+            -   name: Zip vendor
                 run: zip -r vendor.zip vendor
 
-            -   name: Upload vendor
+            -   name: Upload zip
                 uses: actions/upload-artifact@v2
                 with:
                     name: vendor.zip
                     path: vendor.zip
 
-            -   name: Upload vendor on the release
+            -   name: Upload zip on the release
                 uses: svenstaro/upload-release-action@v2
                 with:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
                     file: vendor.zip
                     asset_name: vendor.zip
-                    tag: ${{ github.ref }}
-
-            -   name: Add generated.yaml to wiistock
-                run: |
-                    touch config/generated.yaml &&
-                    echo {"parameters": {"session_lifetime": 1440}} >> config/generated.yaml
-
-            -   name: build routing
-                run: php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
-
-            -   name: copy routes.json
-                run: cp public/generated/routes.json routes.json
-
-            -   name: Upload routes.json
-                uses: actions/upload-artifact@v2
-                with:
-                    name: routes.json
-                    path: routes.json
-
-            -   name: Upload routes.json on the release
-                uses: svenstaro/upload-release-action@v2
-                with:
-                    repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
-                    file: routes.json
-                    asset_name: routes.json
                     tag: ${{ github.ref }}
 
     build_js_directories:
@@ -85,28 +60,28 @@ jobs:
             options: --user root
 
         steps:
-            -   name: go to project
+            -   name: Go to project
                 run: mkdir /project && cd /project
 
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
 
-            -   name: Install composer dependencies in app
+            -   name: Install js dependencies
                 run: yarn install
 
-            -   name: install zip
+            -   name: Install zip
                 run: apk add zip
 
-            -   name: zip vendor
+            -   name: Zip node_modules
                 run: zip -r node_modules.zip node_modules
 
-            -   name: Upload vendor
+            -   name: Upload js dependencies
                 uses: actions/upload-artifact@v2
                 with:
                     name: node_modules.zip
                     path: node_modules.zip
 
-            -   name: Upload vendor on the release
+            -   name: Upload zip on the release
                 uses: svenstaro/upload-release-action@v2
                 with:
                     repo_token: ${{ secrets.WIISTOCK_ACCESS_TOKEN }}
