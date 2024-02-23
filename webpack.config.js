@@ -62,6 +62,8 @@ Encore
     .addEntry('production-planning', './assets/js/pages/production/planning.js')
     .addEntry('dashboard-settings', './assets/js/pages/dashboard/settings.js')
     .addEntry('location-index', './assets/js/pages/location/index.js')
+    .addEntry('transfer-order-index', './assets/js/pages/transfer/order/index.js')
+
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
