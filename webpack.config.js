@@ -63,6 +63,7 @@ Encore
     .addEntry('dashboard-settings', './assets/js/pages/dashboard/settings.js')
     .addEntry('location-index', './assets/js/pages/location/index.js')
     .addEntry('transfer-order-index', './assets/js/pages/transfer/order/index.js')
+    .addEntry('transfer-order-show', './assets/js/pages/transfer/order/show.js')
 
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
