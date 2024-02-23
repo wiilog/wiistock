@@ -64,6 +64,7 @@ Encore
     .addEntry('location-index', './assets/js/pages/location/index.js')
     .addEntry('transfer-order-index', './assets/js/pages/transfer/order/index.js')
     .addEntry('transfer-order-show', './assets/js/pages/transfer/order/show.js')
+    .addEntry('transfer-request-index', './assets/js/pages/transfer/request/index.js')
 
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
