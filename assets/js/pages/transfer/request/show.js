@@ -1,14 +1,24 @@
+import Routing from '@app/fos-routing';
+
 let tableArticle;
 
+
+global.onReferenceChange = onReferenceChange;
+global.validateTransfer = validateTransfer;
+global.deleteRowTransfer = deleteRowTransfer;
+
 $(function() {
+    $('.select2').select2();
+
     const transferOriginId = $('#transfer-origin-id').val();
+    const transferRequestId = $('#transferRequestId').val();
     Select2Old.articleReference($('#add-article-reference'), {
         locationFilter: transferOriginId,
     });
 
     tableArticle = initDataTable('tableArticle', {
         ajax: {
-            "url": Routing.generate('transfer_request_article_api', {transfer: id}, true),
+            "url": Routing.generate('transfer_request_article_api', {transfer: transferRequestId}, true),
             "type": "POST"
         },
         order: [['Référence', 'desc']],
@@ -25,7 +35,7 @@ $(function() {
 
     let modal = $("#modalAddArticle");
     let submit = $("#submitAddArticle");
-    let url = Routing.generate('transfer_request_add_article', {transfer: id});
+    let url = Routing.generate('transfer_request_add_article', {transfer: transferRequestId});
     InitModal(modal, submit, url, {tables: [tableArticle]});
 
     let modalDeleteArticle = $("#modalDeleteArticle");
@@ -40,12 +50,13 @@ $(function() {
 });
 
 function onReferenceChange($select) {
+    const transferRequestId = $('#transferRequestId').val();
     let reference = $select.val();
     if(!reference) {
         return;
     }
 
-    let route = Routing.generate('transfer_request_add_article', {transfer: id});
+    let route = Routing.generate('transfer_request_add_article', {transfer: transferRequestId});
     let data = JSON.stringify({
         fetchOnly: true,
         reference
@@ -60,8 +71,6 @@ function onReferenceChange($select) {
         }
     });
 }
-
-$('.select2').select2();
 
 function validateTransfer(id, $button) {
     let route = Routing.generate('transfer_request_has_articles', {id});
