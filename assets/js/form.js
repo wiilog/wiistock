@@ -607,10 +607,13 @@ function treatInputError($input, errors, form) {
             .map((key) => $input.data(`error-${key.toLowerCase()}`))
             .filter((message) => message)
             .join('<br/>');
-        errors.push({
-            elements: [$input],
-            message,
-        });
+
+        if (message) {
+            errors.push({
+                elements: [$input],
+                message,
+            });
+        }
     }
 }
 
