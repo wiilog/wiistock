@@ -585,7 +585,7 @@ class TrackingMovementService extends AbstractController
                         );
                     } else {
                         return (
-                            !$status->getAutomaticStatusExcludedNatures()->contains($pack->getNature())
+                            $status->getAutomaticStatusExcludedNatures()->contains($pack->getNature())
                             || (
                                 $lastTracking->getType()->getCode() === (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null)
                                 && $status->getAutomaticStatusLocations()->contains($locationLastTracking)
