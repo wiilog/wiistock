@@ -8,11 +8,8 @@ use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
-use App\Entity\DispatchLabelConfiguration;
-use App\Entity\DispatchLabelConfigurationField;
 use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
-use App\Entity\DispatchStatusHistory;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
 use App\Entity\Fields\FixedFieldStandard;
@@ -676,11 +673,15 @@ class DispatchService {
                 $entityManager->persist($trackingTaking);
                 $entityManager->persist($trackingDrop);
 
-                $dispatchPack->setTreated(true);
                 $parsedPacks[] = $pack;
             }
+            else {
+                $dispatchPack->setTreated(true);
+            }
         }
-        $entityManager->flush();
+        if (!empty($parsedPacks)) {
+            $entityManager->flush();
+        }
 
         $this->sendEmailsAccordingToStatus($entityManager, $dispatch, true);
 

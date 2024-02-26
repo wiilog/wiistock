@@ -517,7 +517,7 @@ class TrackingMovementService extends AbstractController
 
         $dispatch = $entityManager->getRepository(Dispatch::class)->findNotTreatedForPack($pack);
         if ($dispatch) {
-            $this->handleDispatchAutomaticStatuses($dispatch, $user, $tracking, $entityManager);
+            $this->handleDispatchAutomaticStatuses($dispatch, $user, $tracking, $entityManager, $fromNomade);
         }
 
         return $tracking;
@@ -526,13 +526,15 @@ class TrackingMovementService extends AbstractController
     private function handleDispatchAutomaticStatuses(Dispatch               $dispatch,
                                                      Utilisateur            $user,
                                                      TrackingMovement       $trackingMovement,
-                                                     EntityManagerInterface $entityManager): void
+                                                     EntityManagerInterface $entityManager,
+                                                     bool                   $fromNomade): void
     {
 
         if ($dispatch->getStatut()?->isTreated()) {
             return;
         }
 
+        /** @var Statut[] $statuses */
         $statuses = $dispatch->getType()->getStatuts()
             ->filter(static fn(Statut $status) => (
                 (
@@ -544,7 +546,8 @@ class TrackingMovementService extends AbstractController
                     $status->isTreated()
                     && $status->isAutomaticAllPacksOnDepositLocation()
                 )
-            ));
+            ))
+            ->toArray();
 
         $dispatchNatures = Stream::from($dispatch->getDispatchPacks())
             ->map(static fn(DispatchPack $dispatchPack) => $dispatchPack->getPack()->getNature()?->getId())
@@ -563,10 +566,11 @@ class TrackingMovementService extends AbstractController
             if(!$validNatures) {
                 continue;
             }
+
             $validPacks = Stream::from($dispatch->getDispatchPacks())
                 ->filter(function(DispatchPack $dispatchPack) use ($status, $dispatch, $dispatchNatures, $user) {
                     $pack = $dispatchPack->getPack();
-                    $lastTracking = $dispatchPack->getPack()->getLastTracking();
+                    $lastTracking = $pack->getLastTracking();
                     $locationLastTracking = $lastTracking?->getEmplacement();
 
                     if (!$lastTracking
@@ -593,7 +597,8 @@ class TrackingMovementService extends AbstractController
 
             if($dispatch->getDispatchPacks()->count() === $validPacks) {
                 if($dispatch->getStatut() && !$dispatch->getTreatmentDate() && !$dispatch->getStatut()->isTreated() && $status->isTreated()) {
-                    $this->dispatchService->treatDispatchRequest($entityManager, $dispatch, $status, $user);
+                    // empty array = do not treat any pack in dispatch (avoid flush)
+                    $this->dispatchService->treatDispatchRequest($entityManager, $dispatch, $status, $user, $fromNomade, []);
                 }
                 else {
                     if($status->getId() !== $dispatch->getStatut()->getId()) {
