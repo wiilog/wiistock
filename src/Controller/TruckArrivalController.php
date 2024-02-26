@@ -301,7 +301,7 @@ class TruckArrivalController extends AbstractController
                 ->map(static fn (TruckArrivalLine $line) => $line->getNumber())
                 ->join(', ');
 
-            throw new FormException("Les numéros de tracking {$trackingNumbers} ont déjà été scanné dans un arrivage camion. Veuillez les supprimer pour enregistrer.");
+            throw new FormException("Les numéros de tracking {$trackingNumbers} ont déjà été scannés dans un arrivage camion. Veuillez les supprimer pour enregistrer.");
         }
 
         foreach ($trackingNumbers as $lineNumber) {
