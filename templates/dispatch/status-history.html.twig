@@ -35,14 +35,17 @@
                 <div class="title-left {{ state == 'current' and loop.last ? 'last' }} {{ state }}">{{ history['status'] }}</div>
             </div>
             <div class="history-line-right-content
-                {{ loop.last ? 'last-history-line' }}
-                {{ loop.last ? 'last' }}
-                {{ state }}">
+                        {{ loop.last ? 'last-history-line' }}
+                        {{ loop.last ? 'last' }}
+                        {{ state }}">
+                {% if history["user"] %}
+                    <br/>
+                {% endif %}
                 <div class="title-right {{ state }} {{ not history['date'] ? 'bg-transparent' }} text-left">
                     <span class="ml-2">{{ history['date'] }}</span>
                 </div>
                 {% if history["user"] %}
-                    <div class="subtitle wii-small-text">{{ history["user"] }}</div>
+                    <div class="subtitle wii-small-text ml-3">{{ history["user"] }}</div>
                 {% endif %}
             </div>
         </div>
