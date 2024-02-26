@@ -34,8 +34,8 @@ class Statut {
     const PICK_TYPE = 1;
 
     public const MOVEMENT_TYPES = [
-        self::DROP_TYPE => "dépose",
-        self::PICK_TYPE => "prise",
+        self::DROP_TYPE => TrackingMovement::TYPE_DEPOSE,
+        self::PICK_TYPE => TrackingMovement::TYPE_PRISE,
     ];
 
     const MODE_ARRIVAL_DISPUTE = 'arrival-dispute';

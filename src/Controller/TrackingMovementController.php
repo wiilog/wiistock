@@ -21,6 +21,7 @@ use App\Entity\Attachment;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\FilterSupService;
@@ -260,7 +261,8 @@ class TrackingMovementController extends AbstractController
                 else {
                     return $this->json($this->treatPersistTrackingError($res));
                 }
-            } else {
+            }
+            else {
                 $packArrayFiltered = Stream::explode(',', $packCode)
                     ->filterMap(fn(string $code) => $code ? trim($code) : $code);
                 $pickingLocation = $emplacementRepository->find($post->get('emplacement-prise'));
@@ -329,18 +331,11 @@ class TrackingMovementController extends AbstractController
             }
         } catch (Exception $exception) {
             if($exception->getMessage() === Pack::PACK_IS_GROUP) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'unité logistique scannée est un groupe",
-                ]);
+                throw new FormException("L'unité logistique scannée est un groupe");
             } else {
                 // uncomment following line to debug
                 // throw $exception;
-
-                return $this->json([
-                    "success" => false,
-                    "msg" => "Une erreur est survenue lors du traitement de la requête",
-                ]);
+                throw new FormException("Une erreur est survenue lors du traitement de la requête");
             }
         }
 

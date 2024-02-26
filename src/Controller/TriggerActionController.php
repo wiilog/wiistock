@@ -281,7 +281,7 @@ class TriggerActionController extends AbstractController
                 $sensorWrapper->removeTriggerAction($triggerAction);
                 $entityManager->remove($triggerAction);
                 $creationResponce = $this->new($entityManager, $request, $triggerActionService);
-                dump(json_decode($creationResponce->getContent(),true));
+
                 return json_decode($creationResponce->getContent(), true)["success"]
                     ? new JsonResponse([
                         'success' => true,
