@@ -1255,6 +1255,9 @@ label.required:after {
 
         .history-line-right-content {
             position: relative;
+            flex-direction: column;
+            justify-content: center;
+            align-items: start;
 
             &.last-history-line::before {
                 background-color: $medium-grey !important;
