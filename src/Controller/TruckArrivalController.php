@@ -290,11 +290,14 @@ class TruckArrivalController extends AbstractController
 
         $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
 
-        $lines = Stream::from($lineNumberRepository->findBy(['number' => $trackingNumbers], ['id' => 'DESC']) ?? [])
-            ->filter(static fn(TruckArrivalLine $line) => !$line?->getReserve()?->getReserveType()?->isDisableTrackingNumber());
+        $notDuplicableLines = Stream::from($lineNumberRepository->findBy(['number' => $trackingNumbers], ['id' => 'DESC']) ?? [])
+            ->filter(static fn(TruckArrivalLine $line) => (
+                !$line->getReserve()
+                || !($line->getReserve()->getReserveType()?->isDisableTrackingNumber())
+            ));
 
-        if (!$lines->isEmpty()) {
-            $trackingNumbers = $lines
+        if (!$notDuplicableLines->isEmpty()) {
+            $trackingNumbers = $notDuplicableLines
                 ->map(static fn (TruckArrivalLine $line) => $line->getNumber())
                 ->join(', ');
 
