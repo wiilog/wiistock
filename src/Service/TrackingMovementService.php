@@ -26,6 +26,7 @@ use App\Entity\ReceptionLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\ShippingRequest\ShippingRequest;
+use App\Entity\StatusHistory;
 use App\Entity\TrackingMovement;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
@@ -534,17 +535,24 @@ class TrackingMovementService extends AbstractController
             return;
         }
 
+        $statusesInDispatchHistory = Stream::from($dispatch->getStatusHistory())
+            ->filterMap(static fn(StatusHistory $statusHistory) => $statusHistory->getStatus()?->getId())
+            ->toArray();
+
         /** @var Statut[] $statuses */
         $statuses = $dispatch->getType()->getStatuts()
             ->filter(static fn(Statut $status) => (
-                (
-                    $status->isAutomatic()
-                    && (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null) === $trackingMovement->getType()->getCode()
-                    && $status->getId() !== $dispatch->getStatut()->getId()
-                )
-                || (
-                    $status->isTreated()
-                    && $status->isAutomaticAllPacksOnDepositLocation()
+                !in_array($status->getId(), $statusesInDispatchHistory)
+                && (
+                    (
+                        $status->isAutomatic()
+                        && (Statut::MOVEMENT_TYPES[$status->getAutomaticStatusMovementType()] ?? null) === $trackingMovement->getType()->getCode()
+                        && $status->getId() !== $dispatch->getStatut()->getId()
+                    )
+                    || (
+                        $status->isTreated()
+                        && $status->isAutomaticAllPacksOnDepositLocation()
+                    )
                 )
             ))
             ->toArray();
