@@ -7,7 +7,9 @@ use App\Entity\PreparationOrder\Preparation;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ShippingRequest\ShippingRequest;
 use App\Repository\MouvementStockRepository;
+use DateTime;
 use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: MouvementStockRepository::class)]
@@ -21,36 +23,36 @@ class MouvementStock {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $date;
-
-    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $emplacementFrom;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $date = null;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class)]
-    private $emplacementTo;
+    private ?Emplacement $emplacementFrom = null;
+
+    #[ORM\ManyToOne(targetEntity: Emplacement::class)]
+    private ?Emplacement $emplacementTo = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'mouvements')]
-    private $user;
+    private ?Utilisateur $user = null;
 
     #[ORM\ManyToOne(targetEntity: Article::class, inversedBy: 'mouvements')]
-    private $article;
+    private ?Article $article = null;
 
     #[ORM\ManyToOne(targetEntity: ReferenceArticle::class, inversedBy: 'mouvements')]
-    private $refArticle;
+    private ?ReferenceArticle $refArticle = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private $type;
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $type = null;
 
-    #[ORM\Column(type: 'integer')]
-    private $quantity;
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $quantity = null;
 
     #[ORM\ManyToOne(targetEntity: Livraison::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'livraison_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private $livraisonOrder;
+    private ?Livraison $livraisonOrder = null;
 
     #[ORM\ManyToOne(targetEntity: Demande::class, inversedBy: 'stockMovements')]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
@@ -58,11 +60,11 @@ class MouvementStock {
 
     #[ORM\ManyToOne(targetEntity: OrdreCollecte::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'collecte_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private $collecteOrder;
+    private ?OrdreCollecte $collecteOrder = null;
 
     #[ORM\ManyToOne(targetEntity: Preparation::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'preparation_order_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private $preparationOrder;
+    private ?Preparation $preparationOrder = null;
 
     #[ORM\ManyToOne(targetEntity: ShippingRequest::class, inversedBy: 'stockMovements')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -70,17 +72,20 @@ class MouvementStock {
 
     #[ORM\ManyToOne(targetEntity: Import::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'import_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
-    private $import;
+    private ?Import $import = null;
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'mouvements')]
     #[ORM\JoinColumn(name: 'reception_order_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
-    private $receptionOrder;
+    private ?Reception $receptionOrder = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private $comment;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $comment = null;
 
     #[ORM\ManyToOne(targetEntity: TransferOrder::class, inversedBy: 'stockMovements')]
-    private $transferOrder;
+    private ?TransferOrder $transferOrder = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $unitPrice = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -260,6 +265,16 @@ class MouvementStock {
 
     public function setShippingRequest(?ShippingRequest $shippingRequest): self {
         $this->shippingRequest = $shippingRequest;
+
+        return $this;
+    }
+
+    public function getUnitPrice(): ?float {
+        return $this->unitPrice;
+    }
+
+    public function setUnitPrice(?float $unitPrice): self {
+        $this->unitPrice = $unitPrice;
 
         return $this;
     }

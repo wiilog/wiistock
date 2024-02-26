@@ -27,6 +27,7 @@ $(function() {
             {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
             {"data": 'type', 'name': 'type', 'title': 'Type'},
             {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
+            {"data": 'unitPrice', 'name': 'unitPrice', 'title': 'Prix unitaire (€)'},
         ],
     };
 

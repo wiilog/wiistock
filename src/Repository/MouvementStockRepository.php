@@ -101,6 +101,7 @@ class MouvementStockRepository extends EntityRepository
             ->addSelect('destination.label as destinationEmpl')
             ->addSelect('mouvementStock.type as type')
             ->addSelect('user.username as operator')
+            ->addSelect('mouvementStock.unitPrice AS unitPrice')
             ->leftJoin('mouvementStock.preparationOrder','preparation')
             ->leftJoin('mouvementStock.livraisonOrder','livraison')
             ->leftJoin('mouvementStock.collecteOrder','collecte')
