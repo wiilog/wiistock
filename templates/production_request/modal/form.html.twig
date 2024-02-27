@@ -194,8 +194,8 @@
                         freeFields: type.champsLibres,
                         freeFieldValues: productionRequest.freeFields,
                         colType: 'col-md-4 col-12',
-                        requiredType: 'requiredCreate',
-                        actionType: 'new',
+                        requiredType: requiredAction,
+                        actionType: productionRequest.id ? 'edit' : 'new',
                         disabledNeeded: false,
                         needsDateFormatting: true
                     } %}
