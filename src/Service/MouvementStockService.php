@@ -279,9 +279,7 @@ class MouvementStockService
             $mouvement['destinationEmpl'] ?? '',
             $mouvement['type'] ?? '',
             $mouvement['operator'] ?? '',
-            $mouvement['unitPrice'] !== null
-                ? $mouvement['unitPrice']
-                : "",
+            $mouvement['unitPrice'] ?? "",
         ];
         $CSVExportService->putLine($handle, $data);
     }

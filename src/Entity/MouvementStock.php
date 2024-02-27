@@ -84,7 +84,7 @@ class MouvementStock {
     #[ORM\ManyToOne(targetEntity: TransferOrder::class, inversedBy: 'stockMovements')]
     private ?TransferOrder $transferOrder = null;
 
-    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?float $unitPrice = null;
 
     public function getId(): ?int {
