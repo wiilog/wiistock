@@ -24,15 +24,15 @@ Cypress.Commands.add('typeInModalInputs', (modalId, dataObject, excludedAttribut
  * @description: This command checks or unchecks a checkbox inside a modal based on the provided boolean value.
  * @param {string} modalId : The ID selector of the modal.
  * @param {string} checkboxName : The name attribute of the checkbox.
- * @param {boolean} isChecked : A boolean indicating whether the checkbox should be checked (true) or unchecked (false).
+ * @param {boolean} check : A boolean indicating whether the checkbox should be checked (true) or unchecked (false).
  * @example :
  * cy.checkCheckbox('#modalNewFournisseur', 'possibleCustoms', true);
  * cy.checkCheckbox('#modalNewFournisseur', 'urgent', false);
  */
-Cypress.Commands.add('checkCheckbox', (modalId, checkboxName, isChecked) => {
+Cypress.Commands.add('checkCheckbox', (modalId, checkboxName, check) => {
     const checkboxInput = cy.get(modalId).find(`${checkboxName}`);
 
-    if (isChecked) {
+    if (check) {
         checkboxInput.check().should('be.checked');
     } else {
         checkboxInput.uncheck().should('not.be.checked');
@@ -93,4 +93,24 @@ Cypress.Commands.add('checkModalVisibility', (modalId, childElementSelector) => 
         .should('be.visible')
         .find(childElementSelector)
         .should('be.visible');
+});
+
+/**
+ * This command allows selecting an option from a dropdown <select> element within a modal.
+ * @param {string} modalId - The ID selector of the modal.
+ * @param {string} name - The name attribute of the <select> element.
+ * @param {string} value - The value of the option to be selected.
+ * @param {string|null} customId - Optional. The ID selector of a custom container where the <select> element resides.
+ *                                 If provided, the command will search for the <select> element within this container instead of the modal.
+ *                                 If not provided, the command will search for the <select> element within the modal.
+ * @example
+ * // Select an option with the value "option1" from a dropdown with the name "dropdown" within the modal with ID "#myModal"
+ * cy.select('#myModal', 'dropdown', 'option1');
+ *
+ * // Select an option with the value "option2" from a dropdown with the name "customDropdown" within a custom container with ID "#customContainer"
+ * cy.select(null, 'customDropdown', 'option2', '#customContainer');
+ */
+Cypress.Commands.add('selectInModal', (modalId, name, value, customId = null) => {
+    const select = customId ? cy.get(`${customId} select[name=${name}]`) : cy.get(`${modalId} select[name=${name}]`);
+    select.select(value, { force: true });
 });

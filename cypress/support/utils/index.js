@@ -3,6 +3,9 @@
 /*
  * This method allow to get the index of a column in a datatable by its name (th)
  * @param columnName : name of the column (in French)
+ * @param tableId : id of the table to check
+ * @param customId : id of the custom table (if the table is a custom table)
+ * @param continueOnFind : boolean to continue the test even if you find the column (return array of index)
 */
 export function getColumnIndexByColumnName(columnName, tableId) {
     return cy.get(`#${tableId} thead tr th`)
@@ -24,4 +27,14 @@ export function uncaughtException(){
     Cypress.on('uncaught:exception', (err, runnable) => {
         return false;
     });
+}
+
+
+/* This method allow to capitalize the first letter of a string
+    * @param string : string to capitalize
+ */
+
+export function capitalizeFirstLetter(string)
+{
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }

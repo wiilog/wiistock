@@ -1,3 +1,5 @@
+import {defaultTypeSpeed} from '../utils/constants';
+
 Cypress.Commands.add('select2Ajax', (selectName, value, modalName = '', shouldClick = true, requestAlias = '/select/*', shouldWait = true) => {
     cy.intercept('GET', requestAlias).as(`${requestAlias}Request`);
 
@@ -75,7 +77,7 @@ Cypress.Commands.add('select2AjaxMultiple', (selectName, value, modalName = '') 
     cy.get(getName).find('option:selected').should('have.length', value.length)
 })
 
-Cypress.Commands.add('select2', (selectName, value) => {
+Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
     const select = cy.get(`[name=${selectName}]`);
 
     if (!Array.isArray(value)) {
@@ -86,8 +88,10 @@ Cypress.Commands.add('select2', (selectName, value) => {
         cy.get(`[name=${selectName}]`)
             .siblings('.select2')
             .click()
-            .type(`${element}{enter}`)
-    })
+            .wait(100)
+            .type(`${element}{enter}`, {delay: customDelay ?? defaultTypeSpeed})
+    });
+
 
     cy.get(`[name=${selectName}]`).then(($select) => {
         if ($select.hasOwnProperty('multiple')) {
@@ -101,16 +105,29 @@ Cypress.Commands.add('select2', (selectName, value) => {
 /**
  * @description: This command removes previous select2 values from a dropdown based on the specified name.
  * @param {string} selectName : The name attribute of the select dropdown.
+ * @param {string} modalId : The ID of the modal containing the select dropdown.
  * @example :
- * cy.removePreviousSelect2Values('locations');
+ * cy.removePreviousSelect2Values('locations', 'totoId);
  */
-Cypress.Commands.add('removePreviousSelect2Values', (selectName) => {
-    // todo : bug if select2 have more than 1 value
-    cy.get(`select[name=${selectName}]`).as('select');
-    cy.get('@select')
-        .siblings('.select2')
-        .find('.select2-selection__choice__remove')
-        .click();
+Cypress.Commands.add('removePreviousSelect2Values', (selectName, modalId = null) => {
+    cy.get(`#${modalId}`).then(($modal) => {
+        if ($modal.find(`[name=${selectName}]`).siblings('.select2')
+            .find('li .select2-selection__choice__remove').length) {
+            cy.get(`[name=${selectName}]`)
+                .siblings('.select2')
+                .find('li .select2-selection__choice__remove')
+                .then(($elements) => {
+                    const numElements = $elements.length;
+                    for (let i = 0; i < numElements; i++) {
+                        cy.get(`[name=${selectName}]`)
+                            .siblings('.select2')
+                            .find('li .select2-selection__choice__remove')
+                            .eq(0)
+                            .click({force: true});
+                    }
+                });
+        }
+    })
 });
 
 /**

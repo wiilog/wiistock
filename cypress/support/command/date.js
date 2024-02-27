@@ -1,5 +1,5 @@
 Cypress.Commands.add('getTheDate', () => {
-    const date = new Date();
+/*    const date = new Date();
 
     const dateDay = ('0' + date.getDate()).slice(-2);
     const dateMonth = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -28,5 +28,34 @@ Cypress.Commands.add('getTheDate', () => {
         }
     }
 
-    return cy.wrap(dateRegex);
+    return cy.wrap(dateRegex);*/
+    Cypress.Commands.add('getTheDate', () => {
+        const date = new Date();
+        const dateDay = ('0' + date.getDate()).slice(-2);
+        const dateMonth = ('0' + (date.getMonth() + 1)).slice(-2);
+        const dateYear = date.getFullYear();
+        const dateHours = ('0' + date.getHours()).slice(-2);
+        const dateMinutes = ('0' + date.getMinutes()).slice(-2);
+
+        const tensHours = parseInt(dateHours[0]);
+        const unitsHours = parseInt(dateHours.slice(-1));
+        const tensMinutes = parseInt(dateMinutes[0]);
+        const unitsMinutes = parseInt(dateMinutes.slice(-1));
+
+        let dateRegex;
+
+        if (tensMinutes === 5 && unitsMinutes === 9) {
+            if (tensHours === 2 && unitsHours === 3) {
+                dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} (23:59|00:00)`);
+            } else {
+                dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} (${dateHours}:59|${tensHours + 1}:00)`);
+            }
+        } else {
+            const nextMinute = unitsMinutes < 9 ? unitsMinutes + 1 : '0' + (tensMinutes + 1) % 6;
+            dateRegex = new RegExp(`${dateDay}/${dateMonth}/${dateYear} ${dateHours}:${dateMinutes}|${nextMinute})`);
+        }
+
+        return cy.wrap(dateRegex);
+    });
+
 });

@@ -136,6 +136,81 @@ export const routes = {
         method: 'POST',
         route: '/clients/edit',
         alias: 'customer_edit'
-    }
+    },
+    settings_save: {
+        method: 'POST',
+        route: '/parametrage/enregistrer',
+        alias: 'settings_save'
+    },
+    settings_free_field_api: {
+        method: 'GET',
+        route: '/parametrage/champs-libres/api/*',
+        alias: 'settings_free_field_api'
+    },
+    pack_api: {
+        method: 'POST',
+        route: 'arrivage/packs/api/*',
+        alias: 'packs_api'
+    },
+    print_arrivage_bar_codes_nature_1:{
+        method: 'GET',
+        route: '/arrivage/*/etiquettes?*template=1',
+        alias: 'print_arrivage_bar_codes_nature_1'
+    },
+    print_arrivage_bar_codes_nature_2:{
+        method: 'GET',
+        route: '/arrivage/*/etiquettes?*template=2',
+        alias: 'print_arrivage_bar_codes_nature_2'
+    },
+    arrivage_new:{
+        method: 'POST',
+        route: '/arrivage/creer',
+        alias: 'arrivage_new'
+    },
+    new_dispute_template:{
+        method: 'GET',
+        route: '/arrivage/new-dispute-template*',
+        alias: 'new_dispute_template'
+    },
+    dispute_new:{
+        method: 'POST',
+        route: '/arrivage/creer-litige*',
+        alias: 'dispute_new'
+    },
+    arrivage_litiges_api: {
+        method: 'POST',
+        route: '/arrivage/litiges/api/*',
+        alias: 'arrivageLitiges_api'
+    },
+    litige_api_edit:{
+        method: 'POST',
+        route: '/arrivage/api-modifier-litige',
+        alias: 'litige_api_edit'
+    },
+    litige_edit_arrivage:{
+        method: 'POST',
+        route: '/arrivage/modifier-litige*',
+        alias: 'litige_edit_arrivage'
+    },
+    arrivage_add_pack:{
+        method: 'POST',
+        route: '/arrivage/ajouter-UL',
+        alias: 'arrivage_add_pack'
+    },
+    printPacks:{
+        method: 'GET',
+        route: '/arrivage/*/etiquettes?packs%5B%5D=*',
+        alias: 'printPacks'
+    },
+    arrivage_edit_api:{
+        method: 'POST',
+        route: '/arrivage/api-modifier',
+        alias: 'arrivage_edit_api'
+    },
+     arrivage_edit:{
+        method: 'POST',
+        route: '/arrivage/modifier',
+        alias: 'arrivage_edit'
+     }
 };
 export default routes;

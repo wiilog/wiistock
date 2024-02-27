@@ -41,10 +41,11 @@ Cypress.Commands.add('checkDataInDatatable', (object, objectId = 'label', tableI
         cy.wrap(columnIndexes).should('have.keys', expectedKeys).then(() => {
             // Use the indexes to check the values
             Object.keys(columnIndexes).forEach((objectProperty) => {
+                cy.log(`Checking ${objectProperty} with value ${object[objectProperty]}`)
                 cy.wrap(td).parent('tr')
                     .find('td')
                     .eq(columnIndexes[objectProperty])
-                    .contains(object[objectProperty].toString());
+                    .contains(object[objectProperty]?.toString());
             });
         });
     });

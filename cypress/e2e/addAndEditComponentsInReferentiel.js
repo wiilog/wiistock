@@ -207,7 +207,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             const statusValue = newLocationGroups[index].status ? "1" : "0";
             cy.checkCheckbox(modalId, `[data-title='Statut'] input`, statusValue);
 
-            cy.removePreviousSelect2Values('locations');
+            cy.removePreviousSelect2Values('locations', modalId);
 
             cy.select2AjaxMultiple('locations', newLocationGroups[index].locations, 'modalEditLocationGroup', false);
 
