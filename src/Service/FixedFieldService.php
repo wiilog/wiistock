@@ -6,18 +6,24 @@ namespace App\Service;
 
 use App\Entity\Fields\FixedField;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Type;
 use App\Exceptions\FormException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 class FixedFieldService
 {
 
     private $entityManager;
+
+    #[Required]
+    public KernelInterface $kernel;
 
     public function __construct(EntityManagerInterface $entityManager)
     {
@@ -96,5 +102,22 @@ class FixedFieldService
             });
 
         return $inputBag;
+    }
+
+    public function generateJSOutput(): void {
+        $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
+
+        $fixedFields = Stream::from(FixedFieldEnum::cases())
+            ->reduce(static function(string $acc, FixedFieldEnum $fixedField) {
+                $name = $fixedField->name;
+                $value = $fixedField->value;
+
+                return "$acc static $name = {name: \"$name\", value: \"$value\"};\n";
+            }, "\n");
+
+        $content = "//generated file for fixed fields\n";
+        $content .= "export class FixedFieldEnum { $fixedFields }\n";
+
+        file_put_contents("$outputDirectory/fixed-field-enum.js", $content);
     }
 }

@@ -14,15 +14,16 @@ $(function() {
             needsRowClickAction: true,
         },
         columns: [
-            {"data": 'actions', 'title': '', className: 'noVis', orderable: false},
-            {"data": 'reference', 'title': 'Référence'},
-            {"data": 'label', 'title': 'Libellé'},
-            {"data": 'requestedQuantity', 'title': 'Quantité demandée'},
-            {"data": 'stockQuantity', 'title': 'Quantité en stock'},
-            {"data": 'orderedQuantity', 'title': 'Quantité commandée'},
-            {"data": 'orderNumber', 'title': 'N° commande'},
-            {"data": 'supplier', 'title': 'Fournisseur'},
-            {"data": 'location', 'title': 'Emplacement (Zone)'}
+            {data: 'actions', title: '', className: 'noVis', orderable: false},
+            {data: 'reference', title: 'Référence'},
+            {data: 'label', title: 'Libellé'},
+            {data: 'requestedQuantity', title: 'Quantité demandée'},
+            {data: 'stockQuantity', title: 'Quantité en stock'},
+            {data: 'orderedQuantity', title: 'Quantité commandée'},
+            {data: 'orderNumber', title: 'N° commande'},
+            {data: 'supplier', title: 'Fournisseur'},
+            {data: 'location', title: 'Emplacement (Zone)'},
+            {data: FixedFieldEnum.unitPrice.name, title:FixedFieldEnum.unitPrice.value},
         ],
     });
 

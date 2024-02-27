@@ -22,6 +22,7 @@ import "firebase/messaging";
 import "./flash";
 import "./ajax";
 import "./utils";
+import {FixedFieldEnum} from "../../public/generated/fixed-field-enum";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -63,6 +64,7 @@ function importWiistock() {
     global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
     global.WysiwygManager = WysiwygManager;
+    global.FixedFieldEnum = FixedFieldEnum;
 
     Wiistock.initialize();
 }
