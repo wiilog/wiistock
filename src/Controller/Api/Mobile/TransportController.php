@@ -8,6 +8,7 @@ use App\Entity\Attachment;
 use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField;
 use App\Entity\Nature;
 use App\Entity\Notification;
@@ -783,8 +784,8 @@ class TransportController extends AbstractApiController
         $patient = $locationRepository->findOneBy(["label" => "Patient"]);
         if (!$patient) {
             $patient = $emplacementDataService->persistLocation([
-                "label" => "Patient",
-                "description" => "Unités logistiques livrées chez un patient",
+                FixedFieldEnum::name->name => "Patient",
+                FixedFieldEnum::description->name => "Unités logistiques livrées chez un patient",
             ], $manager);
         }
 
