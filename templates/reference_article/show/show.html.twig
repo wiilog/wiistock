@@ -28,7 +28,7 @@
     {% set hasRightEdit =
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT')) or
         hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::EDIT_PARTIALLY')) %}
-    <input type="hidden" name="reference-id" value="{{ referenceArticle.id }}">
+    {{ form.hidden("reference-id", referenceArticle.id) }}
     <div class="details-page-container d-flex justify-content-center align-content-center">
         <div class="row wii-column">
             <div class="col-12 col-md-6">
@@ -383,12 +383,15 @@
                 <div class="wii-box">
                     <div class="header wii-title">Prévision stock</div>
                     <div class="content">
-                        <div class="mb-3">
-                            {{ form.switch('period', '', false, [
-                                {label: '1 mois', value: '1', checked: true},
-                                {label: '3 mois', value: '3'},
-                                {label: '6 mois', value: '6'},
-                            ]) }}
+                        <div class="d-flex justify-content-between">
+                            <div class="mb-3">
+                                {{ form.switch('period', '', false, [
+                                    {label: '1 mois', value: '1', checked: true},
+                                    {label: '3 mois', value: '3'},
+                                    {label: '6 mois', value: '6'},
+                                ]) }}
+                            </div>
+                            <button class="btn btn-primary h-fit-content btn-get-stock-forecast">Générer une prédiction</button>
                         </div>
                         <span class="wii-field-text">Quantité</span>
                         <div class="max-h-px-300 w-100 mt-3">
@@ -455,6 +458,7 @@
             </div>
         </div>
     </div>
+    {% include "/reference_article/show/modalShowStockForecast.html.twig" %}
 {% endblock %}
 
 {% block javascripts %}

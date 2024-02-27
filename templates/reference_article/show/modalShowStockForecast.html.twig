@@ -1,0 +1,27 @@
+<div class="modal fade" id="modalShowStockForecast" role="dialog" aria-hidden="true">
+    <div class="modal-dialog  modal-xl" role="document">
+        <div class="modal-content">
+            {% include 'utils/modal/header.html.twig' with {
+                title:"Prédiction de Stock Intelligente"
+            } %}
+
+            <div class="modal-body">
+                <div class="stock-forecast d-flex justify-content-center overflow-x-hidden">
+                    <div class="spinner-border size-loader">
+                        <span class="sr-only">
+                            Chargement du graphique...
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {% include 'utils/modal/footer.html.twig' with {
+                elements: [
+                    {classes: 'btn btn-outline-secondary', dismiss: true, text: 'Fermer'}
+                ],
+                hideErrorContainer: true,
+            } %}
+
+        </div>
+    </div>
+</div>

@@ -1,5 +1,5 @@
 import '@styles/details-page.scss';
-import AJAX, {POST} from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
 import {computeDescriptionFormValues} from "./common";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
@@ -29,6 +29,21 @@ $(document).ready(() => {
         redirectRouteParams = redirectRouteParams || {};
     }
 
+    const referenceArticleId = $('input[name="reference-id"]').val();
+    const $stockForecast = $(".stock-forecast");
+    const $stockForecastShowModal = $("#modalShowStockForecast");
+    $(".btn-get-stock-forecast").on("click", function () {
+        $stockForecastShowModal.modal("show")
+        AJAX.route(
+            GET,
+            "reference_article_get_stock_forecast",
+            {
+                referenceArticle: referenceArticleId
+            }
+        ).json().then(({html})=>{
+            $stockForecast.html(html);
+        })
+    })
 
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
