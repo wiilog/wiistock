@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Service\EmplacementDataService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -36,8 +37,8 @@ class ImportEmplacementFixtures extends Fixture
 
             if (empty($emplacement) && !isset($emplacements[$label])) {
                 $emplacement = $this->emplacementDataService->persistLocation([
-                    "label" => $label,
-                    "description" => $description,
+                    FixedFieldEnum::name->name => $label,
+                    FixedFieldEnum::description->name => $description,
                 ], $manager);
 
                 $emplacements[$label] = true;

@@ -13,6 +13,7 @@ use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
 use App\Entity\DeliveryRequest\DeliveryRequestReferenceLine;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
@@ -2191,10 +2192,10 @@ class ImportService
                     $this->throwError('Erreur lors de la création de l\'emplacement : ' . $data['emplacement'] . '. La zone ' . Zone::ACTIVITY_STANDARD_ZONE_NAME . ' n\'est pas définie.');
                 }
                 $location = $this->emplacementDataService->persistLocation([
-                    "label" => $data['emplacement'],
-                    "isActive" => true,
-                    "isDeliveryPoint" => false,
-                    "zone" => $defaultZoneLocation,
+                    FixedFieldEnum::name->name => $data['emplacement'],
+                    FixedFieldEnum::status->name => true,
+                    FixedFieldEnum::isDeliveryPoint->name => false,
+                    FixedFieldEnum::zone->name => $defaultZoneLocation,
                 ], $this->entityManager);
             }
             $articleOrRef->setEmplacement($location);
