@@ -207,13 +207,12 @@ class TruckArrivalController extends AbstractController
     public function submit(Request                $request,
                            EntityManagerInterface $entityManager,
                            UniqueNumberService    $uniqueNumberService,
-                           AttachmentService      $attachmentService): Response
-    {
+                           AttachmentService      $attachmentService,
+                           TruckArrivalLineService $truckArrivalLineService): Response {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $driverRepository = $entityManager->getRepository(Chauffeur::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $truckArrivalRepository = $entityManager->getRepository(TruckArrival::class);
-        $lineNumberRepository = $entityManager->getRepository(TruckArrivalLine::class);
         $settingRepository = $entityManager->getRepository(Setting::class);
 
         $now = new DateTime();
@@ -289,20 +288,7 @@ class TruckArrivalController extends AbstractController
         }
 
         $trackingNumbers = explode(',', $data->get('trackingNumbers') ?? '');
-
-        $notDuplicableLines = Stream::from($lineNumberRepository->findBy(['number' => $trackingNumbers], ['id' => 'DESC']) ?? [])
-            ->filter(static fn(TruckArrivalLine $line) => (
-                !$line->getReserve()
-                || !($line->getReserve()->getReserveType()?->isDisableTrackingNumber())
-            ));
-
-        if (!$notDuplicableLines->isEmpty()) {
-            $trackingNumbers = $notDuplicableLines
-                ->map(static fn (TruckArrivalLine $line) => $line->getNumber())
-                ->join(', ');
-
-            throw new FormException("Les numéros de tracking {$trackingNumbers} ont déjà été scannés dans un arrivage camion. Veuillez les supprimer pour enregistrer.");
-        }
+        $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
 
         foreach ($trackingNumbers as $lineNumber) {
             if ($lineNumber) {
@@ -363,12 +349,10 @@ class TruckArrivalController extends AbstractController
         }
     }
 
-    // Reçois info POST du show.js
-    // Si le nouveau nombre existe déjà -> erreur
-    // Sinon -> enregistre en BDD le nombre et message succès
     #[Route('/add-tracking-number', name: 'add_tracking_number', options: ['expose' => true], methods: self::POST, condition: 'request.isXmlHttpRequest()')]
     public function addTrackingNumber(Request                   $request,
-                                      EntityManagerInterface    $entityManager): Response
+                                      EntityManagerInterface    $entityManager,
+                                      TruckArrivalLineService $truckArrivalLineService): Response
     {
         $data = $request->request->all();
         $truckArrivalLineRepository = $entityManager->getRepository(TruckArrivalLine::class);
@@ -376,21 +360,12 @@ class TruckArrivalController extends AbstractController
         $truckArrival = $truckArrivalRepository->find($request->request->get('truckArrival'));
 
         $trackingNumbers = explode(',', $data['trackingNumbers']);
+        $truckArrivalLineService->checkForInvalidNumber($trackingNumbers, $entityManager);
         foreach ($trackingNumbers as $trackingNumber) {
-            $line = $truckArrivalLineRepository->findBy(['number' => $trackingNumber], ['id' => 'DESC'], 1)[0] ?? null;
-
-            if ($trackingNumber && (!$line || $line?->getReserve()?->getReserveType()?->isDisableTrackingNumber())) {
-                $line = (new TruckArrivalLine())
-                    ->setNumber($trackingNumber);
-                $truckArrival->addTrackingLine($line);
-                $entityManager->persist($line);
-            } else {
-                return new JsonResponse([
-                    'success' => false,
-                    'trackingNumber' => $trackingNumber,
-                    'msg' => "Le numéro de tracking transporteur $trackingNumber existe déjà. Impossible de l'ajouter à cet arrivage camion. Veuillez en sélectionner un autre."
-                ]);
-            }
+            $line = (new TruckArrivalLine())
+                ->setNumber($trackingNumber);
+            $truckArrival->addTrackingLine($line);
+            $entityManager->persist($line);
         }
 
         $entityManager->flush();
