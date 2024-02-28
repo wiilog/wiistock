@@ -1292,8 +1292,8 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
 function initializeTruckArrivalReserves() {
     const table = EditableDatatable.create(`#TruckArrivalReserves`, {
         mode: MODE_CLICK_EDIT_AND_ADD,
-        route: Routing.generate('settings_reserves_api', true),
-        deleteRoute: `settings_reserve_type_delete`,
+        route: Routing.generate('truck_arrival_settings_reserves_api', true),
+        deleteRoute: `truck_arrival_settings_reserve_type_delete`,
         save: SAVE_MANUALLY,
         search: false,
         paging: false,

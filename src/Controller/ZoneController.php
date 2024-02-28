@@ -20,14 +20,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/zones")
- */
+
+#[Route("/zones", name: "zone_")]
 class ZoneController extends AbstractController
 {
-    #[Route("/creer", name: "zone_new", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/creer", name: "new", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
-    public function new(Request $request, EntityManagerInterface $manager): Response {
+    public function new(Request                 $request,
+                        EntityManagerInterface  $manager): Response {
         $zoneRepository = $manager->getRepository(Zone::class);
 
         $sameName = $zoneRepository->findOneBy(["name" => $request->request->get("name")]);
@@ -53,7 +53,7 @@ class ZoneController extends AbstractController
         ]);
     }
 
-    #[Route("/api", name: "zones_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function api(Request $request, ZoneService $zoneService): Response
     {
@@ -61,7 +61,7 @@ class ZoneController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route("/api-modifier", name: "zone_edit_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api-modifier", name: "edit_api", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(Request $request, EntityManagerInterface $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -76,7 +76,7 @@ class ZoneController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    #[Route("/modifier", name: "zone_edit", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/modifier", name: "edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $manager): Response {
         $data = $request->request->all();
@@ -118,7 +118,7 @@ class ZoneController extends AbstractController
         throw new NotFoundHttpException();
     }
 
-    #[Route("/{zone}/delete", name: "zone_delete", options: ["expose" => true], methods: "DELETE", condition: "request.isXmlHttpRequest()")]
+    #[Route("/{zone}/delete", name: "delete", options: ["expose" => true], methods: [self::DELETE], condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Zone                   $zone,
                            EntityManagerInterface $entityManager): Response {

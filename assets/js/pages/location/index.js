@@ -77,7 +77,7 @@ const zonesTableConfig = {
     lengthMenu: [10, 25, 50, 100],
     order: [['name', 'desc']],
     ajax: {
-        url: Routing.generate("zones_api", true),
+        url: Routing.generate("zone_api", true),
         type: POST,
     },
     rowConfig: {

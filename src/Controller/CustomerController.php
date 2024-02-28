@@ -15,10 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 
-#[Route("/clients")]
+#[Route("/clients", name: "customer_")]
 class CustomerController extends AbstractController
 {
-    #[Route("/", name: "customer_index", options: ["expose" => true], methods: "GET")]
+    #[Route("/", name: "index", options: ["expose" => true], methods: "GET")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_CUSTOMER], mode: HasPermission::IN_JSON)]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -28,7 +28,7 @@ class CustomerController extends AbstractController
     }
 
 
-    #[Route("/api", name: "customer_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_CUSTOMER], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface $entityManager): JsonResponse
     {
@@ -53,7 +53,7 @@ class CustomerController extends AbstractController
         return new JsonResponse($data);
     }
 
-    #[Route('/new', name: 'customer_new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/new', name: 'new', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
     public function new(Request $request, EntityManagerInterface $manager): Response
     {
@@ -84,7 +84,7 @@ class CustomerController extends AbstractController
         }
     }
 
-    #[Route('/edit-api', name: 'customer_edit_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/edit-api', name: 'edit_api', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editApi(EntityManagerInterface $manager,
                             Request                $request): Response
@@ -97,7 +97,7 @@ class CustomerController extends AbstractController
         return $this->json($content);
     }
 
-    #[Route('/edit', name: 'customer_edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
+    #[Route('/edit', name: 'edit', options: ['expose' => true], methods: 'POST', condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $manager) : Response
     {
@@ -155,7 +155,7 @@ class CustomerController extends AbstractController
         }
     }
 
-    #[Route('/delete/{customer}', name: 'customer_delete', options: ['expose' => true], methods: 'DELETE')]
+    #[Route('/delete/{customer}', name: 'delete', options: ['expose' => true], methods: 'DELETE')]
     #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
     public function delete(Customer $customer, EntityManagerInterface $manager): Response
     {
@@ -168,9 +168,7 @@ class CustomerController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/csv", name="get_customers_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "csv", options: ['expose' => true], methods: [self::GET])]
     public function getCustomersCSV(CSVExportService $CSVExportService, EntityManagerInterface $entityManager): Response {
         $csvHeader = [
             "Client",

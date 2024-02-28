@@ -25,24 +25,21 @@ use App\Service\TranslationService;
 use Throwable;
 use WiiCommon\Helper\StringHelper;
 
-/**
- * @Route("/groupes")
- */
+
+#[Route('/groupes', name: 'group_')]
 class GroupController extends AbstractController {
 
-    /**
-     * @Route("/api", name="group_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::DISPLAY_PACK}, mode=HasPermission::IN_JSON)
-     */
-    public function api(Request $request, GroupService $groupService): Response {
+    #[Route("/api", name: "api", options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
+    public function api(Request         $request,
+                        GroupService    $groupService): Response {
         return $this->json($groupService->getDataForDatatable($request->request));
     }
 
-    /**
-     * @Route("/api-modifier", name="group_edit_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function editApi(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/api-modifier", name: "edit_api", options: ['expose' => true], methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function editApi(Request                 $request,
+                            EntityManagerInterface  $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $natureRepository = $manager->getRepository(Nature::class);
@@ -57,10 +54,8 @@ class GroupController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="group_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/modifier", name: "edit", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $manager): Response {
         $data = json_decode($request->getContent(), true);
 
@@ -86,11 +81,10 @@ class GroupController extends AbstractController {
         throw new NotFoundHttpException();
     }
 
-    /**
-     * @Route("/api-degrouper", name="group_ungroup_api", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function ungroupApi(Request $request, EntityManagerInterface $manager): Response {
+    #[Route("/api-degrouper", name: "ungroup_api", options: ['expose' => true], methods: [self::POST, self::GET])]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function ungroupApi(Request                  $request,
+                               EntityManagerInterface   $manager): Response {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $packRepository = $manager->getRepository(Pack::class);
             $group = $packRepository->find($data['id']);
@@ -103,10 +97,8 @@ class GroupController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/degrouper", name="group_ungroup", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::TRACA, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/degrouper", name: "ungroup", options: ['expose' => true], methods: [self::POST], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::TRACA, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function ungroup(Request $request,
                             EntityManagerInterface $manager,
                             GroupService $groupService): Response {
@@ -131,10 +123,8 @@ class GroupController extends AbstractController {
         throw new NotFoundHttpException();
     }
 
-    /**
-     * @Route("/csv", name="export_groups", options={"expose"=true}, methods={"GET"})
-     * @HasPermission({Menu::TRACA, Action::EXPORT})
-     */
+    #[Route("/csv", name: "export", options: ['expose' => true], methods: [self::GET])]
+    #[HasPermission([Menu::TRACA, Action::EXPORT])]
     public function exportGroups(Request                 $request,
                                  CSVExportService        $CSVExportService,
                                  TrackingMovementService $trackingMovementService,
