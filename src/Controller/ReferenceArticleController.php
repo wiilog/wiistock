@@ -1251,7 +1251,7 @@ class ReferenceArticleController extends AbstractController
 
             $apiOutput = $apiRequest->getContent();
         } catch (\Throwable $e) {
-            throw new FormException("Une erreur s'est produite lors de la prévision de stock");
+            throw new FormException( $e->getMessage() ?: "Une erreur s'est produite lors de la prévision de stock");
         }
 
         $apiOutput = json_decode($apiOutput, true);

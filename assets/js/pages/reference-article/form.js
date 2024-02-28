@@ -32,19 +32,29 @@ $(document).ready(() => {
     const referenceArticleId = $('input[name="reference-id"]').val();
     const $stockForecast = $(".stock-forecast");
     const $stockForecastShowModal = $("#modalShowStockForecast");
-    $(".btn-get-stock-forecast").on("click", function () {
-        $stockForecastShowModal.modal("show")
+    const $getStockForecastButton = $(".btn-get-stock-forecast");
+
+    $getStockForecastButton.on("click", function () {
+        wrapLoadingOnActionButton($getStockForecastButton, () => (
         AJAX.route(
             GET,
             "reference_article_get_stock_forecast",
             {
                 referenceArticle: referenceArticleId
             }
-        ).json().then(({html})=>{
-            $stockForecast.html(html);
-        })
-    })
-
+        ).json().then(({html, success, msg}) => {
+                if (success) {
+                    $stockForecast.html(html)
+                    $stockForecastShowModal.modal("show");
+                } else {
+                    $stockForecastShowModal.modal("hide");
+                }
+            }
+        )
+        )
+        )
+    }
+    )
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
     })
