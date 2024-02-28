@@ -463,8 +463,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
                     .map((key) => $input.data(`error-${key.toLowerCase()}`))
                     .filter((message) => message)
                     .join('<br/>');
-
-
             }
         }
 
@@ -503,7 +501,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
-            console.log('------- password')
             let password = $input.val();
             let isNotChanged = $input.hasClass('optional-password') && password === "";
             if (!isNotChanged) {
@@ -527,7 +524,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 let val = Number($input.val());
                 let min = Number($input.attr('min'));
                 let max = Number($input.attr('max'));
-                console.log($input.attr('name'), val)
                 if (!isNaN(val)
                     && (
                         val > max
@@ -554,15 +550,12 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         } else if ($input.attr('type') === 'checkbox') {
-            console.log('------- checkbox')
             saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
         } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
-            console.log('------- PHONE')
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
         } else if ($input.attr(`type`) === `text`) {
-            console.log('------- TEXT')
             const val = $input.val().trim();
             const minLength = parseInt($input.attr('minlength'));
             const maxLength = parseInt($input.attr('maxlength'));
@@ -589,7 +582,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         } else {
-            console.log('------- ELSE')
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
@@ -1115,6 +1107,5 @@ function saveData($input, data, name, val, isAttachmentForm) {
         } else {
             data[name] = val;
         }
-        console.log(data)
     }
 }
