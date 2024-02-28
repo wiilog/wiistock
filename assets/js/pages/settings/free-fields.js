@@ -73,6 +73,7 @@ function generateFreeFieldForm() {
         },
         displayedCreate: `<input type="checkbox" name="displayedCreate" class="form-control data" data-global-error="Affiché à la création"/>`,
         requiredCreate: `<input type="checkbox" name="requiredCreate" class="form-control data" data-global-error="Obligatoire à la création"/>`,
+        displayedEdit: `<input type="checkbox" name="displayedEdit" class="form-control data" data-global-error="Affiché à la modification"/>`,
         requiredEdit: `<input type="checkbox" name="requiredEdit" class="form-control data" data-global-error="Obligatoire à la modification"/>`,
     };
 }
@@ -89,6 +90,7 @@ function generateFreeFieldColumns(canEdit = true, appliesTo = false) {
         {data: `defaultValue`, title: `Valeur par défaut`},
         {data: `displayedCreate`, title: `<div class='small-column'>Affiché à la création</div>`, width: `8%`},
         {data: `requiredCreate`, title: `<div class='small-column'>Obligatoire à la création</div>`, width: `8%`},
+        {data: `displayedEdit`, title: `<div class='small-column'>Affiché à la modification</div>`, width: `8%`},
         {data: `requiredEdit`, title: `<div class='small-column'>Obligatoire à la modification</div>`, width: `8%`},
     ];
 }

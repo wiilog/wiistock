@@ -2533,6 +2533,7 @@ class SettingsController extends AbstractController {
             if ($edit) {
                 $displayedCreate = $freeField->getDisplayedCreate() ? "checked" : "";
                 $requiredCreate = $freeField->isRequiredCreate() ? "checked" : "";
+                $displayedEdit = $freeField->getDisplayedEdit() ? "checked" : "";
                 $requiredEdit = $freeField->isRequiredEdit() ? "checked" : "";
                 $elements = join(";", $freeField->getElements());
 
@@ -2552,6 +2553,7 @@ class SettingsController extends AbstractController {
                     "type" => $typageCLFr,
                     "displayedCreate" => "<input type='checkbox' name='displayedCreate' class='$class' $displayedCreate/>",
                     "requiredCreate" => "<input type='checkbox' name='requiredCreate' class='$class' $requiredCreate/>",
+                    "displayedEdit" => "<input type='checkbox' name='displayedEdit' class='$class' $displayedEdit/>",
                     "requiredEdit" => "<input type='checkbox' name='requiredEdit' class='$class' $requiredEdit/>",
                     "defaultValue" => "<form>$defaultValue</form>",
                     "elements" => in_array($freeField->getTypage(), [FreeField::TYPE_LIST, FreeField::TYPE_LIST_MULTIPLE])
@@ -2574,6 +2576,7 @@ class SettingsController extends AbstractController {
                     "type" => $typageCLFr,
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
+                    "displayedEdit" => ($freeField->getDisplayedEdit() ? "oui" : "non"),
                     "requiredEdit" => ($freeField->isRequiredEdit() ? "oui" : "non"),
                     "defaultValue" => $defaultValue ?? "",
                     "elements" => $freeField->getTypage() == FreeField::TYPE_LIST || $freeField->getTypage() == FreeField::TYPE_LIST_MULTIPLE ? $this->renderView('free_field/freeFieldElems.html.twig', ['elems' => $freeField->getElements()]) : '',
