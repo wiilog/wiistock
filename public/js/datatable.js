@@ -515,12 +515,12 @@ function toggleActiveButton($button, table) {
         .draw();
 }
 
-function initSearchDate(table) {
+function initSearchDate(table, columnName = "date") {
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let indexDate = table.column('date:name').index();
+            let indexDate = table.column(columnName + ':name').index();
 
             if (typeof indexDate === "undefined") return true;
 
