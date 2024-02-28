@@ -3,7 +3,7 @@ let SSH_ON_APP = 'sshpass -p $SSHPASS ssh -o StrictHostKeyChecking=no www-data@a
 
 Cypress.Commands.add(
     'startingCypressEnvironnement',
-    (urlToCurl = undefined,
+    (needCurl = false,
      sqlFileName = 'BDD_cypress.sql',
      pathToFile = '/etc/sqlscripts') => {
 
@@ -23,8 +23,8 @@ Cypress.Commands.add(
                 cy.dropAndRecreateDatabase(currentDatabaseName);
 
                 //curl sql file
-                if (urlToCurl !== undefined) {
-                    cy.curlDatabase(urlToCurl, pathToFile, sqlFileName);
+                if (needCurl) {
+                    cy.curlDatabase(pathToFile, sqlFileName);
                 } else {
                     // if the is no url to curl, we use the sql file in the project
                     pathToFile = 'cypress/fixtures';
@@ -61,9 +61,9 @@ Cypress.Commands.add('dropAndRecreateDatabase', (databaseName = "wiistock") => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 --execute="DROP DATABASE IF EXISTS ${databaseName}; CREATE DATABASE ${databaseName};"`);
 })
 
-Cypress.Commands.add('curlDatabase', (urlToFTP, pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
-    cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD ${urlToFTP}/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
-    })
+Cypress.Commands.add('curlDatabase', (pathToFile = '/etc/sqlscripts', fileName = 'BDD_cypress.sql') => {
+    cy.exec(`curl -u $FTP_USER:$FTP_PASSWORD $FTP_HOST/cypress/SQL_script/dev-script.sql -o ${pathToFile}/${fileName}`);
+})
 
 Cypress.Commands.add('runDatabaseScript', (sqlFileName, pathToFile, databaseName ) => {
     cy.exec(`mysql -h $MYSQL_HOSTNAME -u root -p$MYSQL_ROOT_PASSWORD -P 3306 ${databaseName} < ${pathToFile}/${sqlFileName}`);

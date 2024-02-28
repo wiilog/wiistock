@@ -4,7 +4,7 @@ const user = Cypress.config('user');
 
 describe('Setup the environment', () => {
     it('Reset the db', () => {
-        cy.startingCypressEnvironnement('$FTP_HOST')
+        cy.startingCypressEnvironnement(true)
         uncaughtException();
     });
 })
