@@ -43,6 +43,7 @@ class ReceptionLineRepository extends EntityRepository {
             ->addSelect('join_receptionReferenceArticle.quantite AS receivedQuantity')
             ->addSelect('join_receptionReferenceArticle.emergencyTriggered AS emergency')
             ->addSelect('join_receptionReferenceArticle.emergencyComment AS comment')
+            ->addSelect('join_receptionReferenceArticle.unitPrice AS unitPrice')
             ->leftJoin('line.pack', 'join_pack')
             ->leftJoin('join_pack.nature', 'join_nature')
             ->leftJoin('join_pack.lastDrop', 'join_lastDrop')
@@ -112,6 +113,7 @@ class ReceptionLineRepository extends EntityRepository {
                                     "receivedQuantity" => $reference["receivedQuantity"],
                                     "emergency" => $reference["emergency"],
                                     "comment" => $reference["comment"],
+                                    "unitPrice" => $reference["unitPrice"],
                                     "quantityType" => $reference["quantityType"],
                                     "barCode" => $reference["barCode"],
                                 ]
