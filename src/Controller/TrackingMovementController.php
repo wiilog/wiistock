@@ -597,8 +597,8 @@ class TrackingMovementController extends AbstractController
             $statutRepository = $entityManager->getRepository(Statut::class);
 
             $templateDirectory = "mouvement_traca";
-
             $appropriateType = $statutRepository->find($typeId);
+            dump($appropriateType?->getCode());
             $fileToRender = match($appropriateType?->getCode()) {
                 TrackingMovement::TYPE_PRISE_DEPOSE => "$templateDirectory/newMassMvtTraca.html.twig",
                 TrackingMovement::TYPE_GROUP => "$templateDirectory/newGroupMvtTraca.html.twig",
