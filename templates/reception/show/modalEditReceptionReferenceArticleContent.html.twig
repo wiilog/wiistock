@@ -84,11 +84,15 @@
         </div>
     {% endif %}
     <div class="form-group col-6">
-        <label class="wii-field-text">Anomalie</label>
-        <label class="switch">
-            <input class="checkbox" type="checkbox" name="anomalie" {{ receptionReferenceArticle.anomalie == 'true' ? 'checked': ''}}>
-            <span class="slider round"></span>
-        </label>
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::unitPrice') %}
+        {{ form.input(field.name, field.value, false, receptionReferenceArticle.unitPrice, {
+            type: "number",
+            min: 0,
+            step: 0.001,
+        }) }}
+    </div>
+    <div class="form-group col-6 d-flex align-items-center">
+        {{ form.checkbox("anomalie", "Anomalie", false, receptionReferenceArticle.anomalie) }}
     </div>
     <div class="form-group col-12">
         <label class="wii-field-name">Commentaire</label>

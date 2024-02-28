@@ -14,6 +14,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -774,7 +775,8 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire($data['commentaire'] ?? null);
+                ->setCommentaire($data['commentaire'] ?? null)
+                ->setUnitPrice(floatval($data[FixedFieldEnum::unitPrice->name]));
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();

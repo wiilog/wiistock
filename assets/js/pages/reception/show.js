@@ -27,6 +27,7 @@ window.openTableHisto = openTableHisto;
 window.getCommentAndAddHisto = getCommentAndAddHisto;
 window.editRowLitigeReception = editRowLitigeReception;
 window.initEditReception = initEditReception;
+window.updateQuantityToReceive = updateQuantityToReceive;
 
 $(function () {
     $('.select2').select2();
@@ -821,6 +822,7 @@ function loadReceptionLines({start, search} = {}) {
                                     {data: 'orderNumber', title: 'Commande'},
                                     {data: 'quantityToReceive', title: 'À recevoir'},
                                     {data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: FixedFieldEnum.unitPrice.name, title: FixedFieldEnum.unitPrice.value},
                                     {data: 'emergency', visible: false},
                                     {data: 'comment', visible: false},
                                 ],
