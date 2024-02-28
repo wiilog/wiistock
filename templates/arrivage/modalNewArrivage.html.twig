@@ -17,13 +17,11 @@
                     {% if fieldsParam|isFieldRequired(supplierFieldCode, 'displayedCreate') %}
                         {% set supplierRequired = fieldsParam|isFieldRequired(supplierFieldCode, 'requiredCreate') %}
                         <div class="form-group col w-100">
-
-                            {{ form.select('suppliers', 'Fournisseur', supplierRequired, {
+                            {{ form.select('fournisseur', 'Fournisseur', supplierRequired, {
                                 type: 'provider',
                                 multiple: false,
-                                items: fournisseurs|map((supplier) => {value: supplier.id, label: supplier.nom, selected:true}),
-                            } ) }}
-
+                                items: fournisseurs|map((supplier) => {value: supplier.id, label: supplier.nom, selected: (keptFields[supplierFieldCode] ?? null) == supplier.id, 'possible-customs': supplier.possibleCustoms ? 1:0}),
+                            }) }}
                         </div>
                         {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE')) %}
                             <div class="form-group col-auto toggle-button-container pl-0">
@@ -286,9 +284,15 @@
                     {% if fieldsParam|isFieldRequired(dropLocationFieldCode, 'displayedCreate') %}
                         {% set dropLocationRequired = fieldsParam|isFieldRequired(dropLocationFieldCode, 'requiredCreate') %}
                         <div class="form-group w-100 col-4">
-                            {{ form.select('dropOnLocation', 'Emplacement de dépose', dropLocationRequired, {
+                            {% set keptDropLocation = keptFields[dropLocationFieldCode] ?? null %}
+                            {% set defaultLocation = defaultLocation ?? null %}
+                            {{ form.select('dropLocation', 'Emplacement de dépose', dropLocationRequired, {
                                 type: 'location',
-                                labelClass: 'w-100',
+                                emptyOption: {
+                                    text: keptDropLocation ? keptDropLocation.label : (defaultLocation ? defaultLocation.label : ''),
+                                    value: keptDropLocation ? keptDropLocation.id : (defaultLocation ? defaultLocation.id : ''),
+                                    selected: ((defaultLocation is defined and defaultLocation != null) or keptDropLocation) ? true : false,
+                                }
                             }) }}
                         </div>
                     {% endif %}
@@ -373,11 +377,11 @@
                                 <input  class="checkbox mr-2"
                                         type="checkbox"
                                         name="customs"
-                                        {{ keptFields[customsFieldCode] ?? false ? 'checked' }}
-                                        {% if defaultLocationIfCustoms is defined and defaultLocationIfCustoms is not null %}
-                                            data-default-location-if-customs-id="{{ defaultLocationIfCustoms.id }}"
-                                            data-default-location-if-customs-label="{{ defaultLocationIfCustoms.label }}"
-                                        {% endif %}
+                                    {{ keptFields[customsFieldCode] ?? false ? 'checked' }}
+                                    {% if defaultLocationIfCustoms is defined and defaultLocationIfCustoms is not null %}
+                                        data-default-location-if-customs-id="{{ defaultLocationIfCustoms.id }}"
+                                        data-default-location-if-customs-label="{{ defaultLocationIfCustoms.label }}"
+                                {% endif %}
                                 <label class="text-break text-wrap">
                                     {{ trans('Traçabilité', 'Arrivages UL', 'Champs fixes', 'Douane') }}
                                 </label>
