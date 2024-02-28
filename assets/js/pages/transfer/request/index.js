@@ -17,12 +17,7 @@ $(() => {
         })
         $statusSelector.val(valuesInt).select2();
     } else {
-        // sinon, filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_TRANSFER_REQUEST);
-        $.post(path, params, function (data) {
-            displayFiltersSup(data);
-        }, 'json');
+        getUserFiltersByPage(PAGE_TRANSFER_REQUEST);
     }
 
     const $modalNewTransferRequest = $('#modalNewTransfer');

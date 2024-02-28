@@ -8,9 +8,11 @@ $(() => {
 
     Select2Old.articleReference($(".ajax-autocomplete"));
 
+    const transferOrderId = $(`#transferOrderId`).val();
+
     initDataTable('tableArticle', {
         ajax: {
-            "url": Routing.generate('transfer_order_article_api', {transfer: id}, true),
+            "url": Routing.generate('transfer_order_article_api', {transfer: transferOrderId}, true),
             "type": "POST"
         },
         order: [['Référence', 'desc']],
@@ -25,7 +27,6 @@ $(() => {
         ],
     });
 
-    const transferOrderId = $('#transferOrderId').val();
     let modalDeleteTransfer = $("#modalDeleteTransfer");
     let submitDeleteTransfer = $("#submitDeleteTransfer");
     let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id: transferOrderId}, true)

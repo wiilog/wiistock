@@ -6,13 +6,7 @@ $(() => {
     Select2Old.user($('.filterService select[name="requesters"]'), "Demandeurs");
     Select2Old.user($('.filterService select[name="operators"]'), "Opérateurs");
 
-    // sinon, filtres enregistrés en base pour chaque utilisateur
-    let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_TRANSFER_ORDER);
-    $.post(path, params, function (data) {
-        displayFiltersSup(data);
-    }, 'json');
-
+    getUserFiltersByPage(PAGE_TRANSFER_ORDER);
 
     let transferOrderTableConfig = {
         processing: true,
