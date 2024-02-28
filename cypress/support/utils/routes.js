@@ -214,3 +214,19 @@ export const routes = {
      }
 };
 export default routes;
+
+
+/*
+    * This function allows you to intercept a route and give it an alias.
+    * @param {Object} route : The route object to intercept.
+    * @example :
+    * interceptRoute(routes.emplacement_api);
+ */
+export function interceptRoute(route) {
+    // check if the route is defined
+    try{
+        cy.intercept(route.method, route.route).as(route.alias);
+    }catch (e) {
+        console.error('The route is not defined in the routes file : ' + e);
+    }
+}

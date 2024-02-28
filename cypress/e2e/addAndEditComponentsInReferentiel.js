@@ -1,5 +1,5 @@
 import {uncaughtException} from "../support/utils";
-import routes from "../support/utils/routes";
+import routes, {interceptRoute} from "../support/utils/routes";
 const user = Cypress.config('user');
 
 describe('Setup the environment', () => {
@@ -11,16 +11,16 @@ describe('Setup the environment', () => {
 
 describe('Add and edit components in Referentiel > Emplacements', () => {
     beforeEach(() => {
-        cy.intercept(routes.emplacement_api.method, routes.emplacement_api.route).as(routes.emplacement_api.alias);
-        cy.intercept(routes.emplacements_groupes_api.method, routes.emplacements_groupes_api.route).as(routes.emplacements_groupes_api.alias);
-        cy.intercept(routes.zones_api.method, routes.zones_api.route).as(routes.zones_api.alias);
-        cy.intercept(routes.emplacement_new.method, routes.emplacement_new.route).as(routes.emplacement_new.alias);
-        cy.intercept(routes.location_api_new.method, routes.location_api_new.route).as(routes.location_api_new.alias);
-        cy.intercept(routes.emplacement_edit.method, routes.emplacement_edit.route).as(routes.emplacement_edit.alias);
-        cy.intercept(routes.location_group_new.method, routes.location_group_new.route).as(routes.location_group_new.alias);
-        cy.intercept(routes.location_group_edit.method, routes.location_group_edit.route).as(routes.location_group_edit.alias);
-        cy.intercept(routes.zone_new.method, routes.zone_new.route).as(routes.zone_new.alias);
-        cy.intercept(routes.zone_edit.method, routes.zone_edit.route).as(routes.zone_edit.alias);
+        interceptRoute(routes.emplacement_api);
+        interceptRoute(routes.emplacements_groupes_api);
+        interceptRoute(routes.zones_api);
+        interceptRoute(routes.emplacement_new);
+        interceptRoute(routes.location_api_new);
+        interceptRoute(routes.emplacement_edit);
+        interceptRoute(routes.location_group_new);
+        interceptRoute(routes.location_group_edit);
+        interceptRoute(routes.zone_new);
+        interceptRoute(routes.zone_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -28,7 +28,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     })
 
     it('should add a new location', () => {
-        const modalId = '#modalNewEmplacement';
+        const selectorModal = '#modalNewEmplacement';
         const newLocation = {
             label: 'STOCK',
             description: 'Non défini',
@@ -44,14 +44,14 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             .click()
             .wait('@location_api_new');
 
-        cy.get(modalId).should('be.visible', { timeout: 4000 }).then(() => {
+        cy.get(selectorModal).should('be.visible', { timeout: 4000 }).then(() => {
             // Type in the inputs
-            cy.typeInModalInputs(modalId, newLocation, ['zone']);
+            cy.typeInModalInputs(selectorModal, newLocation, ['zone']);
 
             cy.select2Ajax('zone', newLocation.zone);
 
             // Close and verify modal
-            cy.closeAndVerifyModal(modalId, 'submitNewEmplacement', 'emplacement_new');
+            cy.closeAndVerifyModal(selectorModal, 'submitNewEmplacement', 'emplacement_new');
 
             // Wait for the datatable to be reloaded
             cy.wait('@emplacement_api');
@@ -61,7 +61,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         });
 
         // Ensure modal is not visible
-        cy.get(modalId).should('not.be.visible');
+        cy.get(selectorModal).should('not.be.visible');
 
     });
 
@@ -91,16 +91,17 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         }
 
         const editLocation = (locationToEditName, newLocationData) => {
+            const selectorModal = '#modalEditEmplacement';
             // Click on the location to edit
             cy.clickOnRowInDatatable('locationsTable', locationToEditName);
-            cy.get('#modalEditEmplacement').should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // Edit values
-            cy.typeInModalInputs('#modalEditEmplacement', newLocationData, ['zone']);
+            cy.typeInModalInputs(selectorModal, newLocationData, ['zone']);
             cy.select2Ajax('zone', newLocationData.zone);
 
             // Submit the form
-            cy.closeAndVerifyModal('#modalEditEmplacement', 'submitEditEmplacement', 'emplacement_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditEmplacement', 'emplacement_edit');
             cy.wait('@emplacement_api');
 
             // Check all data in datatable are correct after edit
@@ -130,29 +131,29 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         const menu = 'Groupes';
         cy.get('.nav-item').find('a').contains(menu).click();
 
-        // Store modalId in a variable
-        const modalId = '#modalNewLocationGroup';
+        // Store selectorModal in a variable
+        const selectorModal = '#modalNewLocationGroup';
 
         cy.get(`button[data-toggle='modal']`).filter(':visible').click();
 
-        cy.get(modalId).should('be.visible', { timeout: 8000 }).then(() => {
-            cy.get(`${modalId} input[name=label]`).should('be.visible').then(() => {
+        cy.get(selectorModal).should('be.visible', { timeout: 8000 }).then(() => {
+            cy.get(`${selectorModal} input[name=label]`).should('be.visible').then(() => {
                 // Edit values using custom command
-                cy.typeInModalInputs(modalId, newLocationGroup, ['description', 'status', 'locations']);
-                cy.get(`${modalId} [name=description]`).type(newLocationGroup.description);
+                cy.typeInModalInputs(selectorModal, newLocationGroup, ['description', 'status', 'locations']);
+                cy.get(`${selectorModal} [name=description]`).type(newLocationGroup.description);
 
                 // Toggle button status
                 const statusValue = newLocationGroup.status ? "1" : "0";
-                cy.checkCheckbox(modalId, `[data-title='Statut'] input`, statusValue);
+                cy.checkCheckbox(selectorModal, `[data-title='Statut'] input`, statusValue);
 
                 // todo Refactor this part with the object newLocationGroup -> it doesn't work with newLocationGroup.locations :(
                 cy.select2AjaxMultiple('locations', ['ZONE 007']);
 
-                cy.get(`${modalId} button#submitNewLocationGroup`).click().wait(['@location_group_new', '@emplacements_groupes_api']);
+                cy.get(`${selectorModal} button#submitNewLocationGroup`).click().wait(['@location_group_new', '@emplacements_groupes_api']);
             });
         });
 
-        cy.get(modalId).should('not.be.visible');
+        cy.get(selectorModal).should('not.be.visible');
         cy.wait('@emplacements_groupes_api');
 
         // Change the number of locations to match with the datatable value
@@ -161,8 +162,8 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
     })
 
     it('should edit a group', () => {
-        // Store modalId in a variable
-        const modalId = '#modalEditLocationGroup';
+        // Store selectorModal in a variable
+        const selectorModal = '#modalEditLocationGroup';
         const locationGroupToEdit = ['TOTO', 'GROUPE']
         const newLocationGroups = [{
             label: 'TATA',
@@ -197,22 +198,22 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             cy.clickOnRowInDatatable('groupsTable', locationGroupToEditName);
 
             // Ensure the modal is visible
-            cy.get(modalId).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // Edit values using custom command
-            cy.typeInModalInputs(modalId, newLocationGroups[index], ['description', 'status', 'locations']);
-            cy.get(`${modalId} [name=description]`).type(newLocationGroups[index].description);
+            cy.typeInModalInputs(selectorModal, newLocationGroups[index], ['description', 'status', 'locations']);
+            cy.get(`${selectorModal} [name=description]`).type(newLocationGroups[index].description);
 
             // Toggle button status
             const statusValue = newLocationGroups[index].status ? "1" : "0";
-            cy.checkCheckbox(modalId, `[data-title='Statut'] input`, statusValue);
+            cy.checkCheckbox(selectorModal, `[data-title='Statut'] input`, statusValue);
 
-            cy.removePreviousSelect2Values('locations', modalId);
+            cy.clearSelect2('locations', "modalEditLocationGroup");
 
             cy.select2AjaxMultiple('locations', newLocationGroups[index].locations, 'modalEditLocationGroup', false);
 
             // Submit form
-            cy.closeAndVerifyModal(modalId, 'submitEditLocationGroup', 'location_group_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditLocationGroup', 'location_group_edit');
 
             // Reload datatable
             cy.wait('@emplacements_groupes_api');
@@ -243,16 +244,16 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.get('.nav-item').find('a').contains(menu).click();
 
         // Store modal ID in a variable
-        const modalId = '#modalNewZone';
+        const selectorModal = '#modalNewZone';
 
         // Trigger modal opening
-        cy.openModal(modalId);
+        cy.openModal(selectorModal);
 
         // Wait for the modal to be visible
-        cy.get(modalId).should('be.visible', { timeout: 8000 }).then(() => {
+        cy.get(selectorModal).should('be.visible', { timeout: 8000 }).then(() => {
             // Edit values using custom command
-            cy.typeInModalInputs(modalId, newArea, ['description','active']);
-            cy.get(`${modalId} [name=description]`).type(newArea.description);
+            cy.typeInModalInputs(selectorModal, newArea, ['description','active']);
+            cy.get(`${selectorModal} [name=description]`).type(newArea.description);
 
             // Edit toggle button status using custom command
             const statusValue = newArea.status ? "1" : "0";
@@ -260,7 +261,7 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
             cy.get(`#modalNewZone [data-title='Statut*'] input[value="${statusValue}"]`).click({force: true});
 
             // Submit the form and wait for intercepts
-            cy.closeAndVerifyModal(modalId, undefined, 'zones_api', true);
+            cy.closeAndVerifyModal(selectorModal, undefined, 'zones_api', true);
         });
 
         // Wait for API response
@@ -297,24 +298,24 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
         cy.wait('@zones_api');
 
         // Store modal ID in a variable
-        const modalId = '#modalEditZone';
+        const selectorModal = '#modalEditZone';
 
         areaToEdit.forEach((areaToEditName, index) => {
             // Click on the row to edit
             cy.clickOnRowInDatatable('zonesTable', areaToEditName);
-            cy.get(modalId).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // Edit values using custom command
-            cy.typeInModalInputs(modalId, newAreas[index], ['active', 'description']);
-            cy.get(`${modalId} [name=description]`).type(newAreas[index].description);
+            cy.typeInModalInputs(selectorModal, newAreas[index], ['active', 'description']);
+            cy.get(`${selectorModal} [name=description]`).type(newAreas[index].description);
 
             // Edit toggle button status using custom command
             // todo : refactor avec la méthode checkCheckbox
             const statusValue = newAreas[index].active ? "1" : "0";
-            cy.get(`${modalId} [data-title='Statut*'] input[value="${statusValue}"]`).click({force: true});
+            cy.get(`${selectorModal} [data-title='Statut*'] input[value="${statusValue}"]`).click({force: true});
 
             // Submit the form and wait for intercepts
-            cy.closeAndVerifyModal(modalId, undefined, 'zones_api', true);
+            cy.closeAndVerifyModal(selectorModal, undefined, 'zones_api', true);
 
             // Change the boolean value to match with the datatable value
             newAreas[index] = { ...newAreas[index], active: newAreas[index].active ? 'Oui' : 'Non' };
@@ -326,9 +327,9 @@ describe('Add and edit components in Referentiel > Emplacements', () => {
 
 describe('Add and edit components in Referentiel > Transporteurs', () => {
     beforeEach(() => {
-        cy.intercept(routes.transporteur_api.method, routes.transporteur_api.route).as(routes.transporteur_api.alias);
-        cy.intercept(routes.transporteur_save.method, routes.transporteur_save.route).as(routes.transporteur_save.alias);
-        cy.intercept(routes.transporteur_save_edit.method, routes.transporteur_save_edit.route).as(routes.transporteur_save_edit.alias);
+        interceptRoute(routes.transporteur_api);
+        interceptRoute(routes.transporteur_save);
+        interceptRoute(routes.transporteur_save_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -346,21 +347,21 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
             'Code': 'code',
         }
         // Store modal ID in a variable
-        const modalId = '#modalTransporteur';
+        const selectorModal = '#modalTransporteur';
         // Trigger modal opening
-        cy.openModal(modalId , 'label', '[data-cypress="newCarrier"]');
+        cy.openModal(selectorModal , 'label', '[data-cypress="newCarrier"]');
 
         // Wait for the modal to be visible
-        cy.get(modalId).should('be.visible', { timeout: 8000 }).then(() => {
+        cy.get(selectorModal).should('be.visible', { timeout: 8000 }).then(() => {
             // Edit values using custom command
-            cy.typeInModalInputs(modalId, transporter);
+            cy.typeInModalInputs(selectorModal, transporter);
 
             // Submit the form and wait for intercepts
-            cy.closeAndVerifyModal(modalId, undefined, 'transporteur_api', true);
+            cy.closeAndVerifyModal(selectorModal, undefined, 'transporteur_api', true);
         });
 
         // Wait for the modal to close
-        cy.get(modalId).should('not.be.visible');
+        cy.get(selectorModal).should('not.be.visible');
 
         // Reload datatable and check after edit
         cy.wait('@transporteur_api');
@@ -381,7 +382,7 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
             'Code': 'code',
         }
 
-        const modalId = '#modalTransporteur';
+        const selectorModal = '#modalTransporteur';
 
         // load datatable
         cy.wait('@transporteur_api');
@@ -390,13 +391,13 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
             // click on the row to edit
             cy.clickOnRowInDatatable('tableTransporteur_id', transporterToEditName);
 
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(`${selectorModal}`).should('be.visible');
 
             // edit values
-            cy.typeInModalInputs(modalId, newTransporters[index]);
+            cy.typeInModalInputs(selectorModal, newTransporters[index]);
 
             // Submit the form and wait for intercepts
-            cy.closeAndVerifyModal(modalId, undefined, 'transporteur_api', true);
+            cy.closeAndVerifyModal(selectorModal, undefined, 'transporteur_api', true);
 
             cy.checkDataInDatatable(newTransporters[index], 'label', 'tableTransporteur_id', propertiesMap)
         })
@@ -407,8 +408,8 @@ describe('Add and edit components in Referentiel > Transporteurs', () => {
 
 describe('Add and edit components in Referentiel > Chauffeurs', () => {
     beforeEach(() => {
-        cy.intercept(routes.chauffeur_new.method, routes.chauffeur_new.route).as(routes.chauffeur_new.alias);
-        cy.intercept(routes.chauffeur_edit.method, routes.chauffeur_edit.route).as(routes.chauffeur_edit.alias);
+        interceptRoute(routes.chauffeur_new);
+        interceptRoute(routes.chauffeur_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -430,20 +431,20 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
             'Transporteur': 'carrier',
         }
 
-        const modalId = '#modalNewChauffeur';
+        const selectorModal = '#modalNewChauffeur';
 
         // open modal
-        cy.openModal(modalId,'nom');
+        cy.openModal(selectorModal,'nom');
 
-        cy.get(`${modalId}`).should('be.visible', {timeout: 8000}).then(() => {
+        cy.get(`${selectorModal}`).should('be.visible', {timeout: 8000}).then(() => {
 
             // edit values
-            cy.typeInModalInputs(modalId, driver, ['carrier']);
+            cy.typeInModalInputs(selectorModal, driver, ['carrier']);
             // edit values select2
             cy.select2Ajax('transporteur', driver.carrier, '', true, '/select/carrier*')
 
             // close and verify modal is closed
-            cy.closeAndVerifyModal(modalId, 'submitNewChauffeur', 'chauffeur_new');
+            cy.closeAndVerifyModal(selectorModal, 'submitNewChauffeur', 'chauffeur_new');
         })
 
         cy.checkDataInDatatable(driver, 'nom', 'tableChauffeur_id', propertiesMap);
@@ -466,23 +467,23 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
             'Transporteur': 'carrier',
         }
 
-        const modalId = '#modalEditChauffeur';
+        const selectorModal = '#modalEditChauffeur';
 
         driverToEdit.forEach((driverToEditName, index) => {
             cy.clickOnRowInDatatable('tableChauffeur_id', driverToEditName);
 
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(`${selectorModal}`).should('be.visible');
 
             // edit values
-            cy.typeInModalInputs(modalId, newDrivers[index], ['carrier']);
+            cy.typeInModalInputs(selectorModal, newDrivers[index], ['carrier']);
 
             // clear previous value
-            cy.removePreviousSelect2AjaxValues('transporteur');
+            cy.clearSelect2AjaxValues('transporteur');
             // refill select2
             cy.select2Ajax('transporteur', newDrivers[index].carrier, 'modalEditChauffeur', false, '/select/carrier*')
 
             // submit form & wait reponse
-            cy.closeAndVerifyModal(modalId, 'submitEditChauffeur', 'chauffeur_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditChauffeur', 'chauffeur_edit');
 
             cy.checkDataInDatatable(newDrivers[index], 'nom', 'tableChauffeur_id', propertiesMap)
         })
@@ -491,9 +492,9 @@ describe('Add and edit components in Referentiel > Chauffeurs', () => {
 
 describe('Add and edit components in Referentiel > Nature', () => {
     beforeEach(() => {
-        cy.intercept(routes.nature_api.method, routes.nature_api.route).as(routes.nature_api.alias);
-        cy.intercept(routes.nature_new.method, routes.nature_new.route).as(routes.nature_new.alias);
-        cy.intercept(routes.nature_edit.method, routes.nature_edit.route).as(routes.nature_edit.alias);
+        interceptRoute(routes.nature_api);
+        interceptRoute(routes.nature_new);
+        interceptRoute(routes.nature_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -512,20 +513,20 @@ describe('Add and edit components in Referentiel > Nature', () => {
             'Code': 'code',
             "Quantité par défaut de l'arrivage": 'quantity',
         }
-        const modalId = '#modalNewNature';
+        const selectorModal = '#modalNewNature';
 
-        cy.openModal(modalId, 'label')
+        cy.openModal(selectorModal, 'label')
 
-        cy.get(`${modalId}`).should('be.visible', {timeout: 8000}).then(() => {
+        cy.get(`${selectorModal}`).should('be.visible', {timeout: 8000}).then(() => {
 
             // edit valuesz
             const languageInput = "Français"
             cy.get(`#modalNewNature [data-cypress=${languageInput}]`).type(newNature.label);
 
-            cy.typeInModalInputs(modalId, newNature, ['label']);
+            cy.typeInModalInputs(selectorModal, newNature, ['label']);
 
             // submit form & wait reponse
-            cy.closeAndVerifyModal(modalId, 'submitNewNature', 'nature_new');
+            cy.closeAndVerifyModal(selectorModal, 'submitNewNature', 'nature_new');
         })
         cy.wait('@nature_api');
 
@@ -546,23 +547,23 @@ describe('Add and edit components in Referentiel > Nature', () => {
             'Code': 'code',
             "Quantité par défaut de l'arrivage": 'quantity',
         }
-        const modalId = '#modalEditNature';
+        const selectorModal = '#modalEditNature';
 
         cy.wait('@nature_api');
 
         natureToEdit.forEach((natureToEditName, index) => {
             cy.clickOnRowInDatatable('tableNatures', natureToEditName);
 
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // edit values
             const languageInput = "Français"
             cy.get(`#modalEditNature [data-cypress=${languageInput}]`).click().clear().type(newNatures[index].label);
 
-            cy.typeInModalInputs(modalId, newNatures[index], ['label']);
+            cy.typeInModalInputs(selectorModal, newNatures[index], ['label']);
 
             // submit form
-            cy.closeAndVerifyModal(modalId, 'submitEditNature', 'nature_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditNature', 'nature_edit');
             cy.wait('@nature_api');
 
             cy.checkDataInDatatable(newNatures[index], 'label', 'tableNatures', propertiesMap)
@@ -572,9 +573,9 @@ describe('Add and edit components in Referentiel > Nature', () => {
 
 describe('Add and edit components in Referentiel > Véhicules', () => {
     beforeEach(() => {
-        cy.intercept(routes.vehicle_edit.method, routes.vehicle_edit.route).as(routes.vehicle_edit.alias);
-        cy.intercept(routes.vehicule_api.method, routes.vehicule_api.route).as(routes.vehicule_api.alias);
-        cy.intercept(routes.vehicule_new.method, routes.vehicule_new.route).as(routes.vehicule_new.alias);
+        interceptRoute(routes.vehicle_edit);
+        interceptRoute(routes.vehicule_api);
+        interceptRoute(routes.vehicule_new);
 
         cy.login(user);
         cy.visit('/');
@@ -588,15 +589,15 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
         const propertiesMap = {
             'Immatriculation': 'registrationNumber',
         }
-        const modalId = '#modalNewVehicle';
-        cy.openModal(modalId, 'registrationNumber');
+        const selectorModal = '#modalNewVehicle';
+        cy.openModal(selectorModal, 'registrationNumber');
 
         cy.get('#modalNewVehicle').should('be.visible', {timeout: 8000}).then(() => {
 
             // edit values
-            cy.typeInModalInputs(modalId, newVehicle);
+            cy.typeInModalInputs(selectorModal, newVehicle);
             // submit form
-            cy.closeAndVerifyModal(modalId, 'submitNewVehicle', 'vehicule_new', undefined, '.modal-footer button.submit' );
+            cy.closeAndVerifyModal(selectorModal, 'submitNewVehicle', 'vehicule_new', undefined, '.modal-footer button.submit' );
         })
 
         cy.wait('@vehicule_api');
@@ -613,19 +614,19 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
         const propertiesMap = {
             'Immatriculation': 'registrationNumber',
         }
-        const modalId = '#modalEditVehicle';
+        const selectorModal = '#modalEditVehicle';
         cy.wait('@vehicule_api');
 
         vehicleToEdit.forEach((vehicleToEditName, index) => {
             cy.clickOnRowInDatatable('vehicleTable_id', vehicleToEditName);
 
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // edit values
-            cy.typeInModalInputs(modalId, newVehicles[index]);
+            cy.typeInModalInputs(selectorModal, newVehicles[index]);
 
             // submit form
-            cy.closeAndVerifyModal(modalId, 'submitEditVehicle', 'vehicle_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditVehicle', 'vehicle_edit');
             cy.wait('@vehicule_api');
 
             cy.checkDataInDatatable(newVehicles[index], 'registrationNumber', 'vehicleTable_id', propertiesMap)
@@ -635,9 +636,9 @@ describe('Add and edit components in Referentiel > Véhicules', () => {
 
 describe('Add and edit components in Referentiel > Projet', () => {
     beforeEach(() => {
-        cy.intercept(routes.project_api.method, routes.project_api.route).as(routes.project_api.alias);
-        cy.intercept(routes.project_new.method, routes.project_new.route).as(routes.project_new.alias);
-        cy.intercept(routes.project_edit.method, routes.project_edit.route).as(routes.project_edit.alias);
+        interceptRoute(routes.project_api);
+        interceptRoute(routes.project_new);
+        interceptRoute(routes.project_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -654,19 +655,19 @@ describe('Add and edit components in Referentiel > Projet', () => {
             'Code': 'code',
             'Chef de projet': 'projectManager',
         }
-        const modalId = '#modalNewProject';
+        const selectorModal = '#modalNewProject';
         // open modal
-        cy.openModal(modalId, 'code','[data-toggle="modal"]' );
+        cy.openModal(selectorModal, 'code','[data-toggle="modal"]' );
 
-        cy.get(`${modalId}`).should('be.visible', {timeout: 8000}).then(() => {
+        cy.get(selectorModal).should('be.visible', {timeout: 8000}).then(() => {
 
             // edit values (let .wait() to wait for input be selected i don't know why it doesn't work without it)
-            cy.get('#modalNewProject input[name=code]').wait(500).type(newProject.code);
+            cy.get(`${selectorModal} input[name=code]`).wait(500).type(newProject.code);
 
             cy.select2Ajax('projectManager', newProject.projectManager);
 
             // submit form
-            cy.closeAndVerifyModal(modalId, undefined, 'project_new', true);
+            cy.closeAndVerifyModal(selectorModal, undefined, 'project_new', true);
         })
         // check datatable is reloaded
         cy.wait('@project_api');
@@ -686,23 +687,23 @@ describe('Add and edit components in Referentiel > Projet', () => {
             'Code': 'code',
             'Chef de projet': 'projectManager',
         }
-        const modalId = '#modalEditProject';
+        const selectorModal = '#modalEditProject';
         cy.wait('@project_api');
 
         projectToEdit.forEach((projectToEditName, index) => {
             cy.clickOnRowInDatatable('projectTable_id', projectToEditName);
 
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // edit values
-            cy.typeInModalInputs(modalId, newProjects[index], ['projectManager']);
+            cy.typeInModalInputs(selectorModal, newProjects[index], ['projectManager']);
             // remove previous value
-            cy.removePreviousSelect2AjaxValues('projectManager');
+            cy.clearSelect2AjaxValues('projectManager');
             // add new value
             cy.select2Ajax('projectManager', newProjects[index].projectManager, 'modalEditProject', false)
 
             // submit form
-            cy.closeAndVerifyModal(modalId, 'submitEditProject', 'project_edit');
+            cy.closeAndVerifyModal(selectorModal, 'submitEditProject', 'project_edit');
             cy.wait('@project_api');
 
             cy.checkDataInDatatable(newProjects[index], 'code', 'projectTable_id', propertiesMap)
@@ -712,9 +713,9 @@ describe('Add and edit components in Referentiel > Projet', () => {
 
 describe('Add and edit components in Referentiel > Clients', () => {
     beforeEach(() => {
-        cy.intercept(routes.customer_api.method, routes.customer_api.route).as(routes.customer_api.alias);
-        cy.intercept(routes.customer_new.method, routes.customer_new.route).as(routes.customer_new.alias);
-        cy.intercept(routes.customer_edit.method, routes.customer_edit.route).as(routes.customer_edit.alias);
+        interceptRoute(routes.customer_api);
+        interceptRoute(routes.customer_new);
+        interceptRoute(routes.customer_edit);
 
         cy.login(user);
         cy.visit('/');
@@ -738,17 +739,17 @@ describe('Add and edit components in Referentiel > Clients', () => {
             'Email': 'email',
             'Fax': 'fax',
         }
-        const modalId = '#modalNewCustomer';
-        cy.openModal(modalId, 'name');
+        const selectorModal = '#modalNewCustomer';
+        cy.openModal(selectorModal, 'name');
 
-        cy.get(`${modalId}`).should('be.visible', {timeout: 8000}).then(() => {
+        cy.get(selectorModal).should('be.visible', {timeout: 8000}).then(() => {
 
             // edit values (wait for input be selected i don't know why it doesn't work without it)
-            cy.get('#modalNewCustomer input[name=name]').wait(500).type(newCustomer.name);
-            cy.get('#modalNewCustomer textarea[name=address]').type(newCustomer.address);
-            cy.typeInModalInputs(modalId, newCustomer, ['address', 'name']);
+            cy.get(`${selectorModal} input[name=name]`).wait(500).type(newCustomer.name);
+            cy.get(`${selectorModal} textarea[name=address]`).type(newCustomer.address);
+            cy.typeInModalInputs(selectorModal, newCustomer, ['address', 'name']);
 
-            cy.closeAndVerifyModal(modalId, 'submitNewCustomer', 'customer_new', true);
+            cy.closeAndVerifyModal(selectorModal, 'submitNewCustomer', 'customer_new', true);
         })
         // check datatable is reloaded
         cy.wait('@customer_api');
@@ -774,20 +775,20 @@ describe('Add and edit components in Referentiel > Clients', () => {
             'Email': 'email',
             'Fax': 'fax',
         }
-        const modalId = '#modalEditCustomer';
+        const selectorModal = '#modalEditCustomer';
         cy.wait('@customer_api');
 
         customerToEdit.forEach((customerToEditName, index) => {
             cy.clickOnRowInDatatable('customerTable', customerToEditName);
-            cy.get(`${modalId}`).should('be.visible');
+            cy.get(selectorModal).should('be.visible');
 
             // edit values
-            cy.get('#modalEditCustomer [name=name]').clear().click().type(newCustomers[index].name);
-            cy.get('#modalEditCustomer [name=address]').clear().click().type(newCustomers[index].address);
-            cy.typeInModalInputs(modalId, newCustomers[index], ['address']);
+            cy.get(`${selectorModal} [name=name]`).clear().click().type(newCustomers[index].name);
+            cy.get(`${selectorModal} [name=address]`).clear().click().type(newCustomers[index].address);
+            cy.typeInModalInputs(selectorModal, newCustomers[index], ['address']);
 
             // submit form
-            cy.closeAndVerifyModal(modalId, 'submitEditCustomer', 'customer_edit')
+            cy.closeAndVerifyModal(selectorModal, 'submitEditCustomer', 'customer_edit')
 
             cy.wait('@customer_api');
 

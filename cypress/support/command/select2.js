@@ -107,9 +107,9 @@ Cypress.Commands.add('select2', (selectName, value, customDelay = null) => {
  * @param {string} selectName : The name attribute of the select dropdown.
  * @param {string} modalId : The ID of the modal containing the select dropdown.
  * @example :
- * cy.removePreviousSelect2Values('locations', 'totoId);
+ * cy.clearSelect2('locations', 'totoId);
  */
-Cypress.Commands.add('removePreviousSelect2Values', (selectName, modalId = null) => {
+Cypress.Commands.add('clearSelect2', (selectName, modalId = null) => {
     cy.get(`#${modalId}`).then(($modal) => {
         if ($modal.find(`[name=${selectName}]`).siblings('.select2')
             .find('li .select2-selection__choice__remove').length) {
@@ -136,7 +136,7 @@ Cypress.Commands.add('removePreviousSelect2Values', (selectName, modalId = null)
  * @example :
  * cy.removePreviousSelect2AjaxValues('locations');
  */
-Cypress.Commands.add('removePreviousSelect2AjaxValues', (selectName) => {
+Cypress.Commands.add('clearSelect2AjaxValues', (selectName) => {
     cy.get(`select[name=${selectName}]`)
         .siblings('.select2')
         .find('.select2-selection__clear')

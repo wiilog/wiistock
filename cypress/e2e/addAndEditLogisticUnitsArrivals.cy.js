@@ -1,5 +1,5 @@
 import {capitalizeFirstLetter, getColumnIndexByColumnName} from "../support/utils";
-import routes from "../support/utils/routes";
+import routes, {interceptRoute} from "../support/utils/routes";
 import {uncaughtException} from "../support/utils";
 
 const user = Cypress.config('user');
@@ -72,8 +72,8 @@ describe('Setup the environment', () => {
 
 describe('Get the right permissions for logistic units arrivals', () => {
     beforeEach(() => {
-        cy.intercept(routes.settings_save.method, routes.settings_save.route).as(routes.settings_save.alias);
-        cy.intercept(routes.settings_free_field_api.method, routes.settings_free_field_api.route).as(routes.settings_free_field_api.alias);
+        interceptRoute(routes.settings_save);
+        interceptRoute(routes.settings_free_field_api);
 
         cy.login(user);
         cy.visit('/');
@@ -156,19 +156,19 @@ describe('Get the right permissions for logistic units arrivals', () => {
 describe('Add and edit logistic units arrivals', () => {
 
     beforeEach(() => {
-        cy.intercept(routes.pack_api.method, routes.pack_api.route).as(routes.pack_api.alias);
-        cy.intercept(routes.print_arrivage_bar_codes_nature_1.method, routes.print_arrivage_bar_codes_nature_1.route).as(routes.print_arrivage_bar_codes_nature_1.alias);
-        cy.intercept(routes.print_arrivage_bar_codes_nature_2.method, routes.print_arrivage_bar_codes_nature_2.route).as(routes.print_arrivage_bar_codes_nature_2.alias);
-        cy.intercept(routes.arrivage_new.method, routes.arrivage_new.route).as(routes.arrivage_new.alias);
-        cy.intercept(routes.new_dispute_template.method, routes.new_dispute_template.route).as(routes.new_dispute_template.alias);
-        cy.intercept(routes.dispute_new.method, routes.dispute_new.route).as(routes.dispute_new.alias);
-        cy.intercept(routes.arrivage_litiges_api.method, routes.arrivage_litiges_api.route).as(routes.arrivage_litiges_api.alias);
-        cy.intercept(routes.litige_api_edit.method, routes.litige_api_edit.route).as(routes.litige_api_edit.alias);
-        cy.intercept(routes.litige_edit_arrivage.method, routes.litige_edit_arrivage.route).as(routes.litige_edit_arrivage.alias);
-        cy.intercept(routes.arrivage_add_pack.method, routes.arrivage_add_pack.route).as(routes.arrivage_add_pack.alias);
-        cy.intercept(routes.printPacks.method, routes.printPacks.route).as(routes.printPacks.alias);
-        cy.intercept(routes.arrivage_edit_api.method, routes.arrivage_edit_api.route).as(routes.arrivage_edit_api.alias);
-        cy.intercept(routes.arrivage_edit.method, routes.arrivage_edit.route).as(routes.arrivage_edit.alias);
+        interceptRoute(routes.pack_api);
+        interceptRoute(routes.print_arrivage_bar_codes_nature_1);
+        interceptRoute(routes.print_arrivage_bar_codes_nature_2);
+        interceptRoute(routes.arrivage_new);
+        interceptRoute(routes.new_dispute_template);
+        interceptRoute(routes.dispute_new);
+        interceptRoute(routes.arrivage_litiges_api);
+        interceptRoute(routes.litige_api_edit);
+        interceptRoute(routes.litige_edit_arrivage);
+        interceptRoute(routes.arrivage_add_pack);
+        interceptRoute(routes.printPacks);
+        interceptRoute(routes.arrivage_edit_api);
+        interceptRoute(routes.arrivage_edit);
 
         const downloadsFolder = Cypress.config('downloadsFolder');
         cy.exec(`del /q ${downloadsFolder}\\*`, {failOnNonZeroExit: false});
@@ -180,10 +180,10 @@ describe('Add and edit logistic units arrivals', () => {
 
         it("should add a new logistic units arrivals without the redirect after a new arrival", () => {
 
-            const modalId = '#modalNewArrivage';
+            const selectorModal = '#modalNewArrivage';
 
             // click btn new Arrival and verify the modal is visible
-            cy.openModal(modalId, 'noProject', 'button[name=new-arrival]')
+            cy.openModal(selectorModal, 'noProject', 'button[name=new-arrival]')
 
             //select2ajax
             cy.select2Ajax('fournisseur', LUArrivals.fournisseur, "modalNewArrivage");
@@ -199,7 +199,7 @@ describe('Add and edit logistic units arrivals', () => {
             cy.select2('acheteurs', [LUArrivals.firstAcheteurs, LUArrivals.secondAcheteurs], 300);
 
             //input
-            cy.typeInModalInputs(modalId, {
+            cy.typeInModalInputs(selectorModal, {
                 noTracking: LUArrivals.noTracking,
                 noProject: LUArrivals.noProject,
             })
@@ -216,15 +216,15 @@ describe('Add and edit logistic units arrivals', () => {
                 .type(`${numberPacksNature2}`);
 
             //select
-            cy.selectInModal(modalId, 'type', LUArrivals.type);
-            cy.selectInModal(modalId, 'status', LUArrivals.statut);
-            cy.selectInModal(modalId, 'businessUnit', LUArrivals.businessUnit);
+            cy.selectInModal(selectorModal, 'type', LUArrivals.type);
+            cy.selectInModal(selectorModal, 'status', LUArrivals.statut);
+            cy.selectInModal(selectorModal, 'businessUnit', LUArrivals.businessUnit);
 
             //checkbox
-            cy.checkCheckbox(modalId, 'input[name=customs]', true);
-            cy.checkCheckbox(modalId, 'input[name=frozen]', true);
-            cy.checkCheckbox(modalId, 'input[name=printArrivage]', false);
-            cy.checkCheckbox(modalId, 'input[name=printPacks]', false);
+            cy.checkCheckbox(selectorModal, 'input[name=customs]', true);
+            cy.checkCheckbox(selectorModal, 'input[name=frozen]', true);
+            cy.checkCheckbox(selectorModal, 'input[name=printArrivage]', false);
+            cy.checkCheckbox(selectorModal, 'input[name=printPacks]', false);
 
             // comment
             cy.get('.ql-editor')
@@ -239,7 +239,7 @@ describe('Add and edit logistic units arrivals', () => {
                 cy.wrap(logisticUnitsArrivalCreationDate).as('logisticUnitsArrivalCreationDate');
             })
 
-            cy.closeAndVerifyModal(modalId, null, 'arrivage_new', true);
+            cy.closeAndVerifyModal(selectorModal, null, 'arrivage_new', true);
 
             cy.get('#alert-modal', {timeout: 30000})
                 .should('be.visible');
@@ -267,18 +267,19 @@ describe('Add and edit logistic units arrivals', () => {
 
     it("should add a new dispute", () => {
         const arrivalsTable = 'table#arrivalsTable';
-        const tablePacks = '#tablePacks';
+        const selectorTablePacks = '#tablePacks';
+        const selectorModalNewLitige = '#modalNewLitige';
 
         cy.get(`${arrivalsTable} tbody tr`).last().click();
 
         cy.wait('@packs_api')
 
         // get the first and the last logistic units to use them in the dispute
-        cy.get('#tablePacks tbody tr').first().find('td').eq(2).then(($text) => {
+        cy.get(`${selectorTablePacks} tbody tr`).first().find('td').eq(2).then(($text) => {
             const firstLU = $text.text();
             cy.wrap(firstLU).as('firstLU');
         })
-        cy.get('#tablePacks tbody tr').last().find('td').eq(2).then(($text) => {
+        cy.get(`${selectorTablePacks} tbody tr`).last().find('td').eq(2).then(($text) => {
             const secondLU = $text.text();
             cy.wrap(secondLU).as('secondLU');
         })
@@ -287,15 +288,15 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get('button.new-dispute-modal')
             .click()
             .wait('@new_dispute_template', {timeout: 10000});
-        cy.get(`#modalNewLitige`, {timeout: 10000})
+        cy.get(selectorModalNewLitige, {timeout: 10000})
             .should('be.visible');
 
-        cy.get('#modalNewLitige [name=disputeType]')
+        cy.get(`${selectorModalNewLitige} [name=disputeType]`)
             .select(dispute.type);
 
         // remove the reporter if it's already selected
-        cy.get('#modalNewLitige').then(($modal) => {
-            if ($modal.find('[name =disputeReporter]').siblings('.select2').find('.select2-selection__clear').length) {
+        cy.get(selectorModalNewLitige).then(($modal) => {
+            if ($modal.find('[name=disputeReporter]').siblings('.select2').find('.select2-selection__clear').length) {
                 cy.get('[name=disputeReporter]')
                     .siblings('.select2')
                     .find('.select2-selection__clear')
@@ -308,7 +309,7 @@ describe('Add and edit logistic units arrivals', () => {
         // and select the new one
         cy.select2Ajax('disputeReporter', dispute.reporter);
 
-        cy.get('#modalNewLitige [name=disputeStatus]')
+        cy.get(`${selectorModalNewLitige} [name=disputeStatus]`)
             .select(dispute.status);
 
         // fill the dispute packs with the first and the last logistic units selected before
@@ -333,7 +334,7 @@ describe('Add and edit logistic units arrivals', () => {
 
     it("should edit a dispute", () => {
         const modalEditLitige = '#modalEditLitige';
-        const tablePacks = '#tablePacks';
+        const selectorTablePacks = '#tablePacks';
 
         cy.get('table#arrivalsTable tbody tr')
             .last()
@@ -342,11 +343,11 @@ describe('Add and edit logistic units arrivals', () => {
         cy.wait('@packs_api')
 
         // get the first and the last logistic units to use them in the dispute modification
-        cy.get(`${tablePacks} tbody tr`).first().find('td').eq(2).then(($text) => {
+        cy.get(`${selectorTablePacks} tbody tr`).first().find('td').eq(2).then(($text) => {
             const firstLU = $text.text();
             cy.wrap(firstLU).as('firstLU');
         })
-        cy.get(`${tablePacks} tbody tr`).last().find('td').eq(2).then(($text) => {
+        cy.get(`${selectorTablePacks} tbody tr`).last().find('td').eq(2).then(($text) => {
             const secondLU = $text.text();
             cy.wrap(secondLU).as('secondLU');
         })
@@ -412,6 +413,7 @@ describe('Add and edit logistic units arrivals', () => {
     })
 
     it("should add a new logistic units", () => {
+        const selectorModalAddPacks = '#modalAddPacks';
         // click on the last logistic units arrivals to add a new logistic units
         cy.get('#arrivalsTable tbody tr')
             .last()
@@ -423,7 +425,7 @@ describe('Add and edit logistic units arrivals', () => {
         cy.get("[data-target='#modalAddPacks']")
             .click();
 
-        cy.get('#modalAddPacks [name=project]')
+        cy.get(`${selectorModalAddPacks} [name=project]`)
             .select(newLU.project);
 
         // get all inputs[name=pack] and fill them with the random number of logistic units
@@ -437,13 +439,13 @@ describe('Add and edit logistic units arrivals', () => {
         cy.preventPageLoading();
 
         // close the modal and verify the response
-        cy.closeAndVerifyModal('#modalAddPacks', 'submitAddPacks', 'arrivage_add_pack');
+        cy.closeAndVerifyModal(selectorModalAddPacks, 'submitAddPacks', 'arrivage_add_pack');
 
     })
 
     it("should check the new logistic units", () => {
-        const tablePacks = '#tablePacks';
-        const arrivalsTable = '#arrivalsTable';
+        const selectorTablePacks = '#tablePacks';
+        const selectorArrivalsTable = '#arrivalsTable';
 
         // get logistic units number to check it after
        getColumnIndexByColumnName("N° d'arrivage UL",'arrivalsTable').then((index) => {
@@ -454,7 +456,7 @@ describe('Add and edit logistic units arrivals', () => {
        })
 
         // click on the last logistic units arrivals to check the new logistic units
-        cy.get(`${arrivalsTable} tbody tr`).last().click();
+        cy.get(`${selectorArrivalsTable} tbody tr`).last().click();
 
         cy.wait('@packs_api');
 
@@ -462,7 +464,7 @@ describe('Add and edit logistic units arrivals', () => {
         const regex = new RegExp(`${runout.join('|')}`, 'g')
 
         getColumnIndexByColumnName("Nature", 'tablePacks').then((index) => {
-            cy.get(`${tablePacks} tbody tr`)
+            cy.get(`${selectorTablePacks} tbody tr`)
                 .last()
                 .find('td')
                 .eq(index)
@@ -470,7 +472,7 @@ describe('Add and edit logistic units arrivals', () => {
         });
         getColumnIndexByColumnName("Unités logistiques", 'tablePacks').then((index) => {
             cy.get('@logisticUnitsNumber').then((logisticUnitsNumber) => {
-                cy.get('#tablePacks tbody tr')
+                cy.get(`${selectorTablePacks} tbody tr`)
                     .last()
                     .find('td')
                     .eq(index)
@@ -478,7 +480,7 @@ describe('Add and edit logistic units arrivals', () => {
             })
         });
         getColumnIndexByColumnName("Projet", 'tablePacks').then((index) => {
-            cy.get('#tablePacks tbody tr')
+            cy.get(`${selectorTablePacks} tbody tr`)
                 .last()
                 .find('td')
                 .eq(index)
@@ -487,7 +489,7 @@ describe('Add and edit logistic units arrivals', () => {
     })
 
     it("should edit a logistic units arrivals", () => {
-        const modalEditArrivage = '#modalEditArrivage';
+        const selectorModalEditArrivage = '#modalEditArrivage';
         // click on the last logistic units arrivals to edit it
         cy.get('table#arrivalsTable tbody tr').last().click();
 
@@ -501,22 +503,22 @@ describe('Add and edit logistic units arrivals', () => {
         cy.select2Ajax('chauffeur', LUArrivalsChanged.chauffeur, '', true, '', false);
 
         // remove the first and the second numeroCommandeList if they are already selected
-        cy.removePreviousSelect2Values("numeroCommandeList", "modalEditArrivage");
-        cy.removePreviousSelect2Values("acheteurs", "modalEditArrivage");
-        cy.removePreviousSelect2Values("receivers", "modalEditArrivage");
+        cy.clearSelect2("numeroCommandeList", "modalEditArrivage");
+        cy.clearSelect2("acheteurs", "modalEditArrivage");
+        cy.clearSelect2("receivers", "modalEditArrivage");
 
         // refill the select2
         cy.select2('numeroCommandeList', [LUArrivalsChanged.firstNumeroCommandeList, LUArrivalsChanged.secondNumeroCommandeList]);
         cy.select2('acheteurs', [LUArrivalsChanged.firstAcheteurs, LUArrivalsChanged.secondAcheteurs]);
         cy.select2('receivers', [LUArrivalsChanged.destinataire], 300);
 
-        cy.get(`${modalEditArrivage} select[name=statut]`)
+        cy.get(`${selectorModalEditArrivage} select[name=statut]`)
             .select(LUArrivalsChanged.statut, {force: true});
         cy.get('[name=businessUnit]')
             .select(LUArrivalsChanged.businessUnit, {force: true});
 
         // type in inputs with name attribute
-        cy.typeInModalInputs(modalEditArrivage, {
+        cy.typeInModalInputs(selectorModalEditArrivage, {
             noProject: LUArrivalsChanged.noProject,
             noTracking: LUArrivalsChanged.noTracking,
         });
@@ -527,7 +529,7 @@ describe('Add and edit logistic units arrivals', () => {
             .type(LUArrivalsChanged.comment);
 
         // remove the file if it's already selected
-        cy.get(modalEditArrivage).then(($modal) => {
+        cy.get(selectorModalEditArrivage).then(($modal) => {
             if ($modal.find(`a[data-original-title="${LUArrivals.file}"]`).siblings('svg').length) {
                 cy.get(`a[data-original-title="${LUArrivals.file}"]`).siblings('svg').then(($elements) => {
                     const numElements = $elements.length;
@@ -544,7 +546,7 @@ describe('Add and edit logistic units arrivals', () => {
             .selectFile(`cypress/fixtures/${LUArrivalsChanged.file}`, {force: true});
 
         // close the modal and verify the response
-        cy.closeAndVerifyModal(modalEditArrivage, 'submitEditArrivage', 'arrivage_edit');
+        cy.closeAndVerifyModal(selectorModalEditArrivage, 'submitEditArrivage', 'arrivage_edit');
     })
 
     it("should check the modification made on the logistic units arrivals", () => {

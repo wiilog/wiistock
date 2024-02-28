@@ -43,13 +43,14 @@ Cypress.Commands.add('checkCheckbox', (modalId, checkboxName, check) => {
  * @description: This command opens a modal and checks if a specified input is visible.
  * @param {string} modalId : The ID selector of the modal.
  * @param {string} inputName : The name attribute of the input to check visibility (default is 'name').
+ * @param {string} customSelectorBtn : The custom selector of the button to open the modal (default is null).
  * @example :
  * cy.openModal('#modalNewFournisseur');
  * cy.openModal('#modalNewFournisseur', 'customInputName');
  */
-Cypress.Commands.add('openModal', (modalId, inputName = 'name', customButtonId = null) => {
-    customButtonId ? cy.get(`${customButtonId}`).click() : cy.get(`[data-target='${modalId}']`).click();
-    customButtonId ? cy.get(`${customButtonId}`).click({force:true}) : cy.get(`[data-target='${modalId}']`).click({force:true});
+Cypress.Commands.add('openModal', (modalId, inputName = 'name', customSelectorBtn = null) => {
+    customSelectorBtn ? cy.get(`${customSelectorBtn}`).click() : cy.get(`[data-target='${modalId}']`).click();
+    customSelectorBtn ? cy.get(`${customSelectorBtn}`).click({force:true}) : cy.get(`[data-target='${modalId}']`).click({force:true});
     cy.get(modalId).find(`input[name=${inputName}]`).should('be.visible');
 });
 
