@@ -12,9 +12,7 @@ global.clearURL = clearURL;
 global.toggleDateInput = toggleDateInput;
 
 $(function () {
-    $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
-    $modalNewMvtTraca.find('.list-multiple').select2();
 
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
@@ -272,7 +270,6 @@ function switchMvtCreationType($input) {
                     $modal.find('.new-mvt-common-body').removeClass('d-none');
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
                     Select2Old.location($modal.find('.ajax-autocomplete-location'));
-                    Select2Old.initFree($modal.find('.select2-free'));
 
                     const $emptyRound = $modal.find('input[name=empty-round]');
                     if ($input.find(':selected').text().trim() === $emptyRound.val()) {
@@ -289,20 +286,10 @@ function switchMvtCreationType($input) {
                         const $pack = $moreMassMvtContainer.find('select[name="pack"]');
 
                         Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
-                        Select2Old.initFree($pack);
                         Select2Old.location($emplacementDepose, {autoSelect: true});
 
                         setTimeout(() => $emplacementPrise.select2('open'), 200);
                     }
-
-                    $modal.find(`select[name=pack]`).select2({
-                        tags: true,
-                        tokenSeparators: [" "],
-                        tokenizer: (input, selection, callback) => {
-                            return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
-                        },
-                    }).trigger('ready');
-                    $modal.find(`input[name=pack]`).trigger('ready');
                 }
             });
     }

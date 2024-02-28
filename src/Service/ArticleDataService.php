@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -347,7 +348,7 @@ class ArticleDataService
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {
                     $location = $this->emplacementDataService->persistLocation([
-                        "Label" => Emplacement::LABEL_A_DETERMINER,
+                        FixedFieldEnum::name->name => Emplacement::LABEL_A_DETERMINER,
                     ], $entityManager);
                 }
                 $location->setIsActive(true);

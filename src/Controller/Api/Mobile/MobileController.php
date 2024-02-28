@@ -19,6 +19,7 @@ use App\Entity\DispatchPack;
 use App\Entity\DispatchReferenceArticle;
 use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldByType;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -2799,8 +2800,8 @@ class MobileController extends AbstractApiController
 
         if (!$emplacementRepository->findOneBy(['label' => $request->request->get('label')])) {
             $toInsert = $emplacementDataService->persistLocation([
-                "label" => $request->request->get('label'),
-                "isDeliveryPoint" => $request->request->getBoolean('isDelivery'),
+                FixedFieldEnum::name->name => $request->request->get('label'),
+                FixedFieldEnum::isDeliveryPoint->name => $request->request->getBoolean('isDelivery'),
             ], $entityManager);
             $entityManager->flush();
 
