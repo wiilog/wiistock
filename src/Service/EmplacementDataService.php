@@ -239,7 +239,7 @@ class EmplacementDataService {
 
         if (!$location) {
             $location = $this->persistLocation([
-                "label" => $label,
+                FixedFieldEnum::name->name => $label,
             ], $entityManager);
             $entityManager->persist($location);
         }

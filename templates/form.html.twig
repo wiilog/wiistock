@@ -204,6 +204,7 @@
                                 {% if options.hiddenDropdown ?? false %}data-hidden-dropdown{% endif %}
                                 {% if options.disabledDropdownOptions ?? false %}data-disabled-dropdown-options{% endif %}
                                 {% if options.editable ?? false %}data-editable{% endif %}
+                                {% if options.editableTokenSeparator ?? false %}data-editable-token-separator="{{ options.editableTokenSeparator }}"{% endif %}
                                 {% if options.label ?? false %}data-label="{{ options.label }}"{% endif %}
                                 {% if options.noEmptyOption ?? false %}data-no-empty-option{% endif %}
                                 {% if options.autoSelect ?? false %}data-auto-select{% endif %}
