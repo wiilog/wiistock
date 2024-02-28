@@ -9,8 +9,9 @@
         </select>
     </div>
     <div class="form-group col-12">
-        {{ form.select('pack', trans('Traçabilité', 'Général', 'Unités logistiques', false), true, {
-            type: '', 
+        {{ form.select('pack', trans('Traçabilité', 'Général', 'Unités logistiques'), true, {
+            type: '',
+            editableTokenSeparator: ' ',
             multiple: true,
             editable: true,
         }) }}
