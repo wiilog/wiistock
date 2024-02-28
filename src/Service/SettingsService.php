@@ -807,6 +807,7 @@ class SettingsService {
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
+                    ->setDisplayedEdit($item["displayedEdit"] ?? true)
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"])
                     ->setMinCharactersLength($minCharactersLength)
