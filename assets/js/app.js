@@ -12,6 +12,7 @@ import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
+import Routes from "@generated/routes.json";
 import Routing from '@app/fos-routing';
 import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
@@ -22,7 +23,6 @@ import "firebase/messaging";
 import "./flash";
 import "./ajax";
 import "./utils";
-import {FixedFieldEnum} from "../../public/generated/fixed-field-enum";
 
 import BrowserSupport from './support';
 import Wiistock from './general';
@@ -64,7 +64,6 @@ function importWiistock() {
     global.Modal = Modal;
     global.wrapLoadingOnActionButton = wrapLoadingOnActionButton;
     global.WysiwygManager = WysiwygManager;
-    global.FixedFieldEnum = FixedFieldEnum;
 
     Wiistock.initialize();
 }
@@ -158,9 +157,7 @@ function importQuill() {
 }
 
 function importRouting() {
-    const routes = require('../../public/generated/routes.json');
-    Routing.setRoutingData(routes);
-
+    Routing.setRoutingData(Routes);
     global.Routing = Routing;
 }
 

@@ -62,6 +62,9 @@ Encore
     .addEntry('production-planning', './assets/js/pages/production/planning.js')
     .addEntry('dashboard-settings', './assets/js/pages/dashboard/settings.js')
     .addEntry('location-index', './assets/js/pages/location/index.js')
+    .addEntry('purchase-request-index', './assets/js/pages/purchase-request/index.js')
+    .addEntry('purchase-request-show', './assets/js/pages/purchase-request/show.js')
+
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
 
@@ -70,6 +73,7 @@ Encore
 
     .addAliases({
         '@app': path.resolve(__dirname, 'assets/js'),
+        '@generated': path.resolve(__dirname, 'assets/generated'),
         '@styles': path.resolve(__dirname, 'assets/scss')
     })
 

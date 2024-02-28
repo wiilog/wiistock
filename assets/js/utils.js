@@ -1,3 +1,7 @@
+import moment from 'moment';
+import Flash from '@app/flash';
+import AJAX, {GET, POST} from '@app/ajax';
+
 export const MAX_UPLOAD_FILE_SIZE = 10000000;
 export const MAX_IMAGE_PIXELS = 1000000;
 export const ALLOWED_IMAGE_EXTENSIONS = [`png`, `jpeg`, `jpg`, `svg`, `gif`];
@@ -10,6 +14,7 @@ global.updateImagePreview = updateImagePreview;
 global.resetImage = resetImage;
 global.onSettingsItemSelected = onSettingsItemSelected;
 global.exportFile = exportFile;
+global.getUserFiltersByPage = getUserFiltersByPage;
 
 function updateImagePreview(preview, upload, $title = null, $delete = null, $callback = null) {
     let $upload = $(upload)[0];
@@ -184,4 +189,20 @@ export function dataURLtoFile(dataURL, filename) {
     }
 
     return new File([u8arr], filename, {type: mime});
+}
+
+export function getUserFiltersByPage(page,
+                                     options = {preventPrefillFilters: false},
+                                     callback = undefined) {
+    AJAX.route(GET, `filter_get_by_page`, {page})
+        .json()
+        .then((data) => {
+            if (!options.preventPrefillFilters) {
+                displayFiltersSup(data);
+            }
+
+            if (callback) {
+                callback();
+            }
+        });
 }

@@ -1,13 +1,27 @@
+import Routing from '@app/fos-routing';
+import {GET} from '@app/ajax';
+import moment from 'moment';
+import FixedFieldEnum from '@generated/fixed-field-enum';
+
+global.deleteRowLine = deleteRowLine;
+global.openEvolutionModal = openEvolutionModal;
+global.callbackEditLineLoading = callbackEditLineLoading;
+global.clearLineAddModal = clearLineAddModal;
+global.onReferenceChange = onReferenceChange;
+
+
 $(function() {
     const purchaseRequestBuyerId = $('#purchase-request-buyer-id').val();
     Select2Old.articleReference($('#add-article-reference'), {
         buyerFilter: purchaseRequestBuyerId,
     });
 
+    const purchaseRequestId = $('#purchaseRequestId').val();
+
     const tablePurchaseRequestLines = initDataTable('tablePurchaseRequestLine', {
         ajax: {
-            "url": Routing.generate('purchase_request_lines_api', {purchaseRequest: id}, true),
-            "type": "GET"
+            "url": Routing.generate('purchase_request_lines_api', {purchaseRequest: purchaseRequestId}, true),
+            "type": GET,
         },
         order: [['reference', 'desc']],
         rowConfig: {
@@ -34,7 +48,7 @@ $(function() {
 
     let $modalAddLine = $("#modalAddPurchaseRequestLine");
     let $submitAddLine = $modalAddLine.find('.submit-button');
-    let urlAddLine = Routing.generate('purchase_request_add_line', {purchaseRequest: id});
+    let urlAddLine = Routing.generate('purchase_request_add_line', {purchaseRequest: purchaseRequestId});
     InitModal($modalAddLine, $submitAddLine, urlAddLine, {tables: [tablePurchaseRequestLines]});
 
 
@@ -65,17 +79,17 @@ $(function() {
 
     const $modalConsiderPurchaseRequest = $('#modalConsiderPurchaseRequest');
     const $submitConsiderPurchaseRequest = $modalConsiderPurchaseRequest.find('.submit-button');
-    const urlConsiderPurchaseRequest = Routing.generate('consider_purchase_request', {id: id}, true);
+    const urlConsiderPurchaseRequest = Routing.generate('consider_purchase_request', {id: purchaseRequestId}, true);
     InitModal($modalConsiderPurchaseRequest, $submitConsiderPurchaseRequest, urlConsiderPurchaseRequest);
 
     const $modalTreatPurchaseRequest = $('#modalTreatPurchaseRequest');
     const $submitTreatPurchaseRequest = $modalTreatPurchaseRequest.find('.submit-button');
-    const urlTreatPurchaseRequest = Routing.generate('treat_purchase_request', {id: id}, true);
+    const urlTreatPurchaseRequest = Routing.generate('treat_purchase_request', {id: purchaseRequestId}, true);
     InitModal($modalTreatPurchaseRequest, $submitTreatPurchaseRequest, urlTreatPurchaseRequest);
 
     let $modalValidatePurchaseRequest = $('#modalValidatePurchaseRequest');
     let $submitValidatePurchaseRequest = $('#submitValidatePurchaseRequest');
-    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: id}, true);
+    let urlValidatePurchaseRequest = Routing.generate('purchase_request_validate', {id: purchaseRequestId}, true);
     InitModal($modalValidatePurchaseRequest, $submitValidatePurchaseRequest, urlValidatePurchaseRequest, {
         success: () => {
             window.location.reload();

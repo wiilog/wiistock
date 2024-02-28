@@ -105,18 +105,18 @@ class FixedFieldService
     }
 
     public function generateJSOutput(): void {
-        $outputDirectory = "{$this->kernel->getProjectDir()}/public/generated";
+        $outputDirectory = "{$this->kernel->getProjectDir()}/assets/generated";
 
         $fixedFields = Stream::from(FixedFieldEnum::cases())
-            ->reduce(static function(string $acc, FixedFieldEnum $fixedField) {
+            ->map(static function(FixedFieldEnum $fixedField) {
                 $name = $fixedField->name;
                 $value = $fixedField->value;
 
-                return "$acc static $name = {name: \"$name\", value: \"$value\"};\n";
-            }, "\n");
+                return "\tstatic $name = {name: \"$name\", value: \"$value\"};";
+            })
+            ->join("\n");
 
-        $content = "//generated file for fixed fields\n";
-        $content .= "export class FixedFieldEnum { $fixedFields }\n";
+        $content = "export default class FixedFieldEnum { \n$fixedFields\n }\n";
 
         file_put_contents("$outputDirectory/fixed-field-enum.js", $content);
     }

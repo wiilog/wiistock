@@ -445,8 +445,35 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\n/g, ' ')
             .trim();
 
+        let validityMessage;
+
+        if ($input.is(':invalid')) {
+            const htmlValidity = $input.get(0).validity;
+
+            if (htmlValidity && !htmlValidity.valid) {
+                // Object.keys doesn't work with HTML validty object ValidityState
+                const validityKeys = [];
+                for(const key in htmlValidity){
+                    if (key !== 'valid') {
+                        validityKeys.push(key);
+                    }
+                }
+                validityMessage = validityKeys
+                    .filter((key) => htmlValidity[key])
+                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
+                    .filter((message) => message)
+                    .join('<br/>');
+
+
+            }
+        }
+
+        if (validityMessage) {
+            $isInvalidElements.push($input);
+            errorMessages.push(validityMessage);
+        }
         // validation données obligatoires
-        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
+        else if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
@@ -473,31 +500,10 @@ function processInputsForm($modal, data, isAttachmentForm) {
             if ($input.is(':not(input)')) {
                 $isInvalidElements.push($input.parent());
             }
-        } else if ($input.is(':invalid')) {
-            const htmlValidity = $input.get(0).validity;
-
-            if (htmlValidity && !htmlValidity.valid) {
-                // Object.keys doesn't work with HTML validty object ValidityState
-                const validityKeys = [];
-                for(const key in htmlValidity){
-                    if (key !== 'valid') {
-                        validityKeys.push(key);
-                    }
-                }
-                const message = validityKeys
-                    .filter((key) => htmlValidity[key])
-                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
-                    .filter((message) => message)
-                    .join('<br/>');
-
-                if (message) {
-                    $isInvalidElements.push($input);
-                    errorMessages.push(message);
-                }
-            }
         }
         // validation valeur des inputs de type password
         else if ($input.attr('type') === 'password' && $input.attr('name') === 'password') {
+            console.log('------- password')
             let password = $input.val();
             let isNotChanged = $input.hasClass('optional-password') && password === "";
             if (!isNotChanged) {
@@ -521,6 +527,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 let val = Number($input.val());
                 let min = Number($input.attr('min'));
                 let max = Number($input.attr('max'));
+                console.log($input.attr('name'), val)
                 if (!isNaN(val)
                     && (
                         val > max
@@ -547,12 +554,15 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         } else if ($input.attr('type') === 'checkbox') {
+            console.log('------- checkbox')
             saveData($input, data, name, Number($input.prop('checked')), isAttachmentForm);
         } else if ($input.hasClass('phone-number') && !dataPhonesInvalid && !$input.data('iti').isValidNumber()) {
+            console.log('------- PHONE')
             if (!dataPhonesInvalid[name]) {
                 dataPhonesInvalid[name] = true;
             }
         } else if ($input.attr(`type`) === `text`) {
+            console.log('------- TEXT')
             const val = $input.val().trim();
             const minLength = parseInt($input.attr('minlength'));
             const maxLength = parseInt($input.attr('maxlength'));
@@ -579,6 +589,7 @@ function processInputsForm($modal, data, isAttachmentForm) {
                 saveData($input, data, name, val, isAttachmentForm);
             }
         } else {
+            console.log('------- ELSE')
             if ($editorContainer.length > 0) {
                 const maxLength = parseInt($input.attr('max'));
                 if (maxLength) {
@@ -791,12 +802,14 @@ function processDataArrayForm($modal, data) {
         const $input = $(this);
         const type = $input.attr('type')
         const name = $input.attr('name');
+
         let val = type === 'number'
             ? Number($input.val())
             : ($input.hasClass('phone-number')
                     ? $input.data('iti').getNumber()
                     : $input.val()
             );
+
         if ($input.data('id')) {
             if (val) {
                 if (!dataArray[name]) {
@@ -1102,5 +1115,6 @@ function saveData($input, data, name, val, isAttachmentForm) {
         } else {
             data[name] = val;
         }
+        console.log(data)
     }
 }
