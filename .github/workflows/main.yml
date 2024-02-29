@@ -32,9 +32,6 @@ jobs:
                     sed -i "s/FTP_USER=ftp/FTP_USER=${{ secrets.WIISTOCK_DOCKER_FTP_USER }}/g" .env
                     sed -i "s/FTP_PASSWORD=ftp/FTP_PASSWORD=${{ secrets. WIISTOCK_DOCKER_FTP_PASSWORD }}/g" .env
 
-            -   name: echo .env
-                run: cat .env
-
             -   name: Checkout wiistock
                 uses: actions/checkout@v4
                 with:
