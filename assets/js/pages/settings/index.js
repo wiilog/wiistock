@@ -626,6 +626,10 @@ function initializeReceptionFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
 }
 
@@ -650,6 +654,10 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
 
     EditableDatatable.create(`#table-demande-addition-fixed-fields`, {
@@ -672,8 +680,10 @@ function initializeDemandesFixedFields($container, canEdit) {
             {data: `conditionFixedFieldValue`, title: `Valeur`},
             {data: `required`, title: `Obligatoire`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayed', required: 'required'},
+        ],
     });
-
     initializeLocationByTypeForDeliveries();
 }
 
@@ -703,6 +713,10 @@ function initializeDispatchFixedFields($container, canEdit) {
                     {data: `displayedEdit`, title: `Afficher`},
                     {data: `requiredEdit`, title: `Obligatoire`},
                 ],
+                bindCheckbox: [
+                    {displayed: 'displayedCreate', required: 'requiredCreate'},
+                    {displayed: 'displayedEdit', required: 'requiredEdit'},
+                ],
             });
         })
         .first()
@@ -724,6 +738,10 @@ function initializeDispatchFixedFields($container, canEdit) {
             {data: `label`, title: `Champ fixe`, width: `115px`},
             {data: `displayed`, title: `Afficher`, width: `70px`},
             {data: `required`, title: `Obligatoire`},
+        ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
         ],
     });
 }
@@ -748,6 +766,10 @@ function initializeArticleFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
         ],
     });
 }
@@ -774,6 +796,10 @@ function initializeArrivalFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
 }
 
@@ -797,6 +823,10 @@ function initializeHandlingFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
         ],
     });
     initializeType();
@@ -1285,6 +1315,10 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
         ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
+        ],
     });
     initializeType();
 }
@@ -1385,6 +1419,10 @@ function initializeEmergenciesFixedFields($container, canEdit) {
             {data: `displayedEdit`, title: `Afficher`},
             {data: `requiredEdit`, title: `Obligatoire`},
             {data: `displayedFilters`, title: `Afficher`},
+        ],
+        bindCheckbox: [
+            {displayed: 'displayedCreate', required: 'requiredCreate'},
+            {displayed: 'displayedEdit', required: 'requiredEdit'},
         ],
     });
 }
