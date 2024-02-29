@@ -6,6 +6,7 @@ import Select2 from "@app/select2";
 import Modal from "@app/modal";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
+import FixedFieldEnum from "@generated/fixed-field-enum";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -805,7 +806,8 @@ function loadReceptionLines({start, search} = {}) {
         () => (
             AJAX.route(GET, 'reception_lines_api', params)
                 .json()
-                .then(data => {
+                .then((data) => {
+                    console.log($logisticUnitsContainer)
                     $logisticUnitsContainer.html(data.html);
                     $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
