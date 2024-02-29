@@ -106,6 +106,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
                     targets: `date`,
                 }
             ],
+            page: 'encours',
         };
         initDataTable(tableId, tableConfig);
     }
