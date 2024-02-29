@@ -728,6 +728,14 @@ class ReferenceArticleController extends AbstractController
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
                              EntityManagerInterface $entityManager): Response {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $apiURL = $settingRepository->getOneParamByLabel(Setting::STOCK_FORECAST_URL);
+        $apiSecretKey = $settingRepository->getOnePAramByLabel(Setting::STOCK_FORECAST_SECRET_KEY);
+
+        $hasIaParams = $apiURL && $apiSecretKey;
+
+
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -749,7 +757,8 @@ class ReferenceArticleController extends AbstractController
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'hasIaParams' => $hasIaParams,
         ]);
     }
 

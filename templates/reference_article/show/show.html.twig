@@ -391,7 +391,9 @@
                                     {label: '6 mois', value: '6'},
                                 ]) }}
                             </div>
-                            <button class="btn btn-primary h-fit-content btn-get-stock-forecast">Générer une prédiction</button>
+                            {% if hasIaParams %}
+                                <button class="btn btn-primary h-fit-content btn-get-stock-forecast">Générer une prédiction</button>
+                            {% endif %}
                         </div>
                         <span class="wii-field-text">Quantité</span>
                         <div class="max-h-px-300 w-100 mt-3">
