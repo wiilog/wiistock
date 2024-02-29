@@ -1,0 +1,13 @@
+{% set allowedTypes = [
+    { label: 'entrée', operator: '+', color: 'green' },
+    { label: 'sortie', operator: '-', color: 'red' },
+    { label: 'transfert', operator: '', color: 'black' }
+] %}
+
+{% set type = allowedTypes|filter(item => item.label == type)|first %}
+
+{% if type %}
+    <span style="color: {{ type.color }}; font-weight: bold">{{ type.operator }} {{ 1 }}</span>
+{% else %}
+    {{ 1 }}
+{% endif %}

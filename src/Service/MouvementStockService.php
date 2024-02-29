@@ -93,7 +93,9 @@ class MouvementStockService
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $refArticleCheck,
             'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
-            'quantite' => $mouvement->getQuantity(),
+            'quantite' => $this->templating->render("mouvement_stock/datatableMvtStockQuantity.html.twig", [
+                "quantity"=>$mouvement->getQuantity(),
+                "type" =>$mouvement->getType()]),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
