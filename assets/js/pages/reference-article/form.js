@@ -30,7 +30,7 @@ $(document).ready(() => {
     }
 
     const referenceArticleId = $('input[name="reference-id"]').val();
-    const $stockForecast = $(".stock-forecast");
+    const $stockForecast = $(".stock-forecast-container");
     const $stockForecastShowModal = $("#modalShowStockForecast");
     const $getStockForecastButton = $(".btn-get-stock-forecast");
 
@@ -50,11 +50,9 @@ $(document).ready(() => {
                     $stockForecastShowModal.modal("hide");
                 }
             }
-        )
-        )
-        )
-    }
-    )
+        )))
+    })
+
     $periodSwitch.on('click', function () {
         buildQuantityPredictions($(this).val());
     })
