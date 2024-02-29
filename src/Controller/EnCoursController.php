@@ -10,9 +10,12 @@ use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Menu;
 use App\Entity\Nature;
+use App\Entity\Utilisateur;
 use App\Service\CSVExportService;
 use App\Service\EnCoursService;
 use App\Service\LanguageService;
+use App\Service\TranslationService;
+use App\Service\VisibleColumnService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +30,7 @@ class EnCoursController extends AbstractController
     #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO])]
     public function index(Request                $request,
                           EntityManagerInterface $entityManager,
+                          EnCoursService         $enCoursService,
                           LanguageService        $languageService): Response
     {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
@@ -39,6 +43,8 @@ class EnCoursController extends AbstractController
         $naturesFilterStr = $query->get('natures', '');
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
         $useTruckArrivals = $query->getBoolean('useTruckArrivalsFromDashboard');
+
+        $fields = $enCoursService->getVisibleColumnsConfig($this->getUser());
 
         if (!empty($locationsFilterStr)) {
             $locationsFilterId = explode(',', $locationsFilterStr);
@@ -66,6 +72,8 @@ class EnCoursController extends AbstractController
             'multiple' => true,
             'fromDashboard' => $fromDashboard,
             'useTruckArrivalsFromDashboard' => $useTruckArrivals,
+            'fields' => $fields,
+            'initial_visible_columns' => $this->apiColumns($entityManager, $enCoursService)->getContent(),
         ]);
     }
 
@@ -102,6 +110,18 @@ class EnCoursController extends AbstractController
         return new JsonResponse([
             'data' => $response
         ]);
+    }
+
+    #[Route("/api-columns", name: "encours_api_columns", options: ["expose" => true], methods: [self::GET], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO], mode: HasPermission::IN_JSON)]
+    public function apiColumns(EntityManagerInterface $entityManager,
+                               EnCoursService         $enCoursService): Response
+    {
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $columns = $enCoursService->getVisibleColumnsConfig($currentUser);
+        return new JsonResponse($columns);
     }
 
     #[Route("/check-time-worked-is-defined", name: "check_time_worked_is_defined", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
@@ -151,6 +171,29 @@ class EnCoursController extends AbstractController
             ->every(fn(Emplacement $emplacement) => $emplacement->getDateMaxTime() !== null);
         return new JsonResponse([
             'hasDelayError' => $delayError
+        ]);
+    }
+
+    #[Route("/colonne-visible", name: "save_column_visible_for_encours", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_ENCO], mode: HasPermission::IN_JSON)]
+    public function saveColumnVisible(Request                $request,
+                                      TranslationService     $translationService,
+                                      EntityManagerInterface $entityManager,
+                                      VisibleColumnService   $visibleColumnService): Response {
+        $data = json_decode($request->getContent(), true);
+        $fields = array_keys($data);
+        $fields[] = "actions";
+
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
+
+        $visibleColumnService->setVisibleColumns('onGoing', $fields, $currentUser);
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'msg' => $translationService->translate('Général', null, 'Zone liste', 'Vos préférences de colonnes à afficher ont bien été sauvegardées', false)
         ]);
     }
 }

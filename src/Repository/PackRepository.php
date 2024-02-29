@@ -14,6 +14,7 @@ use App\Entity\ReceptionLine;
 use App\Entity\TrackingMovement;
 use App\Helper\QueryBuilderHelper;
 use DateTimeInterface;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
@@ -367,6 +368,43 @@ class PackRepository extends EntityRepository
         $limit = $options['limit'] ?? null;
         $order = $options['order'] ?? 'desc';
         $onlyLate = $options['onlyLate'] ?? false;
+        $fromOnGoing = $options['fromOnGoing'] ?? false;
+        $dropOnLuStatus = $options['dropOnLuStatus'] ?? null;
+
+        $subQueryCallback = function (int $mode = 0) {
+            $queryBuilder = $this->getEntityManager()->createQueryBuilder()
+                ->select("sub_trackingMovement_$mode.id")
+                ->from(TrackingMovement::class, "sub_trackingMovement_$mode");
+
+
+            if($mode === 0){
+                $queryBuilder->innerJoin("sub_trackingMovement_$mode.logisticUnitParent", "join_logisticUnitParent_$mode", Join::WITH, "join_logisticUnitParent_$mode.id = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus");
+            }
+
+            $queryBuilder
+                ->orderBy("sub_trackingMovement_$mode.id", Criteria::DESC)
+                ->setMaxResults(1);
+
+            if($mode === 1) {
+                $queryBuilder
+                    ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subReferenceArticle_$mode.libelle)")
+                    ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
+                    ->innerJoin("join_subPack_$mode.referenceArticle", "join_subReferenceArticle_$mode");
+            }
+
+            if($mode === 2) {
+                $queryBuilder
+                    ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subArticle_$mode.label)")
+                    ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
+                    ->innerJoin("join_subPack_$mode.article", "join_subArticle_$mode")
+                    ->innerJoin("join_subArticle_$mode.articleFournisseur", "join_subSupplierArticle_$mode")
+                    ->innerJoin("join_subSupplierArticle_$mode.referenceArticle", "join_subReferenceArticle_$mode");
+            }
+
+            return $queryBuilder
+                ->getQuery()
+                ->getDQL();
+        };
 
         $queryBuilder = $this->createQueryBuilder('pack');
         $queryBuilderExpr = $queryBuilder->expr();
@@ -374,10 +412,20 @@ class PackRepository extends EntityRepository
             ->select($isCount ? $queryBuilderExpr->count($field) : $field)
             ->leftJoin('pack.nature', 'nature')
             ->leftJoin('pack.arrivage', 'pack_arrival')
-            ->leftjoin('pack.article', 'article')
+            ->leftJoin('pack.article', 'article')
             ->join('pack.lastDrop', 'lastDrop')
             ->join('lastDrop.emplacement', 'emplacement')
             ->where('pack.groupIteration IS NULL');
+
+        if($fromOnGoing) {
+            $queryBuilder
+                ->addSelect("IF(
+                    FIRST({$subQueryCallback()}) IS NOT NULL,
+                    COALESCE(FIRST({$subQueryCallback(1)}), FIRST({$subQueryCallback(2)})),
+                    NULL
+                ) AS reference_label")
+                ->setParameter("dropOnLuStatus", $dropOnLuStatus);
+        }
 
         if (!empty($locations)) {
             $queryBuilder
