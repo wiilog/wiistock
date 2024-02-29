@@ -4,8 +4,11 @@
 namespace App\Service;
 
 
+use App\Entity\CategorieStatut;
 use App\Entity\Pack;
 use App\Entity\DaysWorked;
+use App\Entity\Statut;
+use App\Entity\TrackingMovement;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
 use App\Helper\FormatHelper;
@@ -27,6 +30,12 @@ class EnCoursService
 
     #[Required]
     public TimeService $timeService;
+
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
+
+    #[Required]
+    public TranslationService $translationService;
 
     private const AFTERNOON_FIRST_HOUR_INDEX = 4;
     private const AFTERNOON_LAST_HOUR_INDEX = 6;
@@ -175,10 +184,10 @@ class EnCoursService
         $emplacementInfo = [];
 
         $fields = [
-            "pack.code",
-            "lastDrop.datetime",
-            "emplacement.dateMaxTime",
-            "emplacement.label",
+            "pack.code AS code",
+            "lastDrop.datetime AS datetime",
+            "emplacement.dateMaxTime AS dateMaxTime",
+            "emplacement.label AS label",
             "pack_arrival.id AS arrivalId",
             ...$useTruckArrivals
                 ? [
@@ -199,7 +208,8 @@ class EnCoursService
                         'limit' => $maxQueryResultLength,
                         'start' => $dropsCounter,
                         'order' => 'asc',
-                        'onlyLate' => true
+                        'onlyLate' => true,
+                        'fromOnGoing' => true,
                     ]
                 );
                 $oldestDrops = $oldestDrops[0];
@@ -213,13 +223,16 @@ class EnCoursService
                     $truckArrivalDelay = $useTruckArrivals ? $oldestDrop["truckArrivalDelay"] : 0;
                     $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
                     $isLate = $timeInformation['countDownLateTimespan'] < 0;
+                    [$reference, $label] = $oldestDrop['reference_label'] ? explode(':', $oldestDrop['reference_label']) : [null, null];
                     if ($isLate) {
                         $emplacementInfo[] = [
                             'LU' => $oldestDrop['code'],
-                            'delay' => $timeInformation['ageTimespan'],
+                            'delay' => $this->renderMillisecondsToDelay($timeInformation['ageTimespan']),
                             'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                             'late' => $isLate,
                             'emp' => $oldestDrop['label'],
+                            'libelle' => $label,
+                            'reference' => $reference,
                             'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
                                 'arrivalId' => $oldestDrop['arrivalId'],
                             ]),
@@ -234,12 +247,15 @@ class EnCoursService
             }
         } else {
 
+            $dropOnLuStatus = $this->entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DROP_LU);
             $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
                 $locations,
                 [
                     'natures' => $natures,
                     'isCount' => false,
                     'field' => Stream::from($fields)->join(","),
+                    'fromOnGoing' => true,
+                    "dropOnLuStatus" => $dropOnLuStatus,
                 ]
             );
             $oldestDrops = $oldestDrops[0];
@@ -250,12 +266,16 @@ class EnCoursService
                 $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
                 $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
                 $isLate = $timeInformation['countDownLateTimespan'] < 0;
+                [$reference, $label] = $oldestDrop['reference_label'] ? explode(':', $oldestDrop['reference_label']) : [null, null];
+
                 $emplacementInfo[] = [
                     'LU' => $oldestDrop['code'],
-                    'delay' => $timeInformation['ageTimespan'],
+                    'delay' => $this->renderMillisecondsToDelay($timeInformation['ageTimespan']),
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
                     'emp' => $oldestDrop['label'],
+                    'libelle' => $label,
+                    'reference' => $reference,
                     'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
                         'arrivalId' => $oldestDrop['arrivalId'],
                     ]),
@@ -305,4 +325,18 @@ class EnCoursService
 
     }
 
+    public function getVisibleColumnsConfig(Utilisateur $currentUser): array {
+        $columnsVisible = $currentUser->getVisibleColumns()['onGoing'];
+
+        $columns = [
+            ['title' => 'Issu de', 'name' => 'linkedArrival'],
+            ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU'],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date'],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay'],
+            ['title' => 'Référence', 'name' => 'reference'],
+            ['title' => 'Libellé', 'name' => 'libelle'],
+        ];
+
+        return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
+    }
 }

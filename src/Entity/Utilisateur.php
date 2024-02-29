@@ -44,6 +44,7 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     const DEFAULT_PACK_VISIBLE_COLUMNS = ["nature", "code", "lastMvtDate", "lastLocation", "operator", "project"];
     const DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS = ["creationDate", "unloadingLocation", "number", "trackingLinesNumber", "countTrackingLines", "operator" ,"reserves", "carrier"];
     const DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS = ["number", "status", "createdAt", "requestCaredAt", "validatedAt", "plannedAt", "expectedPickedAt", "treatedAt", "requesters", "customerOrderNumber", "customerName", "carrier"];
+    const DEFAULT_ON_GOING_VISIBLE_COLUMNS = ["linkedArrival", "LU", "date", "delay", "reference", "libelle"];
     const DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS = [
         FixedFieldEnum::number->name,
         FixedFieldEnum::createdAt->name,
@@ -74,7 +75,8 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
         'truckArrival' => self::DEFAULT_TRUCK_ARRIVAL_VISIBLE_COLUMNS,
         'arrivalPack' => self::DEFAULT_PACK_VISIBLE_COLUMNS,
         'shippingRequest' => self::DEFAULT_SHIPPING_REQUEST_VISIBLE_COLUMNS,
-        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS
+        'productionRequest' => self::DEFAULT_PRODUCTION_REQUEST_VISIBLE_COLUMNS,
+        'onGoing' => self::DEFAULT_ON_GOING_VISIBLE_COLUMNS,
     ];
     const DEFAULT_DATE_FORMAT = 'd/m/Y';
     const DATE_FORMATS_TO_DISPLAY = [

@@ -67,7 +67,8 @@
         let initialized = false;
 
         $('[data-target="#modalColumnVisible"]').on('click', function() {
-            if(initialized || {{ table }} === undefined) {
+            const tables = `{{ table }}`.split('_').filter(id => id);
+            if(initialized || (Array.isArray(tables) && tables.length === 0)) {
                 return;
             }
 
@@ -81,11 +82,15 @@
                     $modal.find('input[type="checkbox"]').each((_, check) => {
                         const $check = $(check);
                         let columnName = $check.data('name');
-                        let column = {{ table }}.column(columnName + ':name');
-                        column.visible($check.hasClass('data'));
+                        tables.forEach((table) => {
+                            console.log($.fn.DataTable.isDataTable(`#${table}`));
+                            $(`#${table}`).DataTable().column(columnName + ':name').visible($check.hasClass('data'));
+                        });
                     });
 
-                    {{ table }}.ajax.reload();
+                    tables.forEach((table) => {
+                        $(`#${table}`).DataTable().ajax.reload();
+                    });
                 };
             {% endif %}
             InitModal($modal, $submitButton, '{{ path(route) }}', config);
