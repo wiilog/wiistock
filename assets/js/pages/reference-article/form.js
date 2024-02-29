@@ -30,7 +30,7 @@ $(document).ready(() => {
     }
 
     const referenceArticleId = $('input[name="reference-id"]').val();
-    const $stockForecast = $(".stock-forecast-container");
+    const $stockForecastContainer = $(".stock-forecast-container");
     const $stockForecastShowModal = $("#modalShowStockForecast");
     const $getStockForecastButton = $(".btn-get-stock-forecast");
 
@@ -44,7 +44,7 @@ $(document).ready(() => {
             }
         ).json().then(({html, success, msg}) => {
                 if (success) {
-                    $stockForecast.html(html)
+                    $stockForecastContainer.html(html)
                     $stockForecastShowModal.modal("show");
                 } else {
                     $stockForecastShowModal.modal("hide");
