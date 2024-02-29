@@ -3,6 +3,7 @@ import Form from "@app/form";
 import Flash from "@app/flash";
 import Modal from "@app/modal";
 import Routing from '@app/fos-routing';
+import {getUserFiltersByPage} from '@app/utils';
 
 global.importTemplateChanged = importTemplateChanged;
 global.displayFirstModal = displayFirstModal;

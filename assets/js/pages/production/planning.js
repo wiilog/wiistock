@@ -7,6 +7,7 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import moment from "moment";
 import Camera from "@app/camera";
+import {getUserFiltersByPage} from '@app/utils';
 
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 

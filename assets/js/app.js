@@ -12,6 +12,7 @@ import 'leaflet.markercluster'
 import 'leaflet-ant-path';
 import intlTelInput from 'intl-tel-input';
 import '@fortawesome/fontawesome-free/js/all.js';
+import Routes from "@generated/routes.json";
 import Routing from '@app/fos-routing';
 import Quill from 'quill/dist/quill.js';
 import Toolbar from 'quill/modules/toolbar';
@@ -156,9 +157,7 @@ function importQuill() {
 }
 
 function importRouting() {
-    const routes = require('../../public/generated/routes.json');
-    Routing.setRoutingData(routes);
-
+    Routing.setRoutingData(Routes);
     global.Routing = Routing;
 }
 
