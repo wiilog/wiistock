@@ -47,7 +47,7 @@ class MenuExtension extends AbstractExtension
         $user = $this->userService->getUser();
         $role = $user->getRole();
         $menuPrefix = RoleService::MENU_CACHE_PREFIX;
-        return $this->cache->get(CacheService::PERMISSIONS, "{$menuPrefix}.{$role->getId()}", function() use ($user) {
+        return $this->cache->get(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$role->getId()}", function() use ($user) {
             $menuWithRight = [];
             $permissions = $this->roleService->getPermissions($this->userService->getUser(), true);
 

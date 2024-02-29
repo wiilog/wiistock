@@ -19,6 +19,9 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+        font.css:
+            pattern: ^/generated/font.css$
+            security: false
 
         nomade_apk:
             pattern: ^/telecharger/nomade.apk$

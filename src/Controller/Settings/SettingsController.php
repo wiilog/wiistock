@@ -879,8 +879,8 @@ class SettingsController extends AbstractController {
             $defaultLanguage->setSelected(true);
             $manager->flush();
 
-            $cacheService->delete(CacheService::LANGUAGES);
-            $cacheService->delete(CacheService::TRANSLATIONS);
+            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -928,8 +928,8 @@ class SettingsController extends AbstractController {
             $manager->remove($language);
             $manager->flush();
 
-            $cacheService->delete(CacheService::LANGUAGES);
-            $cacheService->delete(CacheService::TRANSLATIONS);
+            $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+            $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
 
             return $this->json([
                 "success" => true,
@@ -943,9 +943,10 @@ class SettingsController extends AbstractController {
      * @HasPermission({Menu::PARAM, Action::SETTINGS_DISPLAY_LABELS_PERSO})
      */
     public function saveTranslationApi(EntityManagerInterface $manager,
-                                       Request $request,
-                                       AttachmentService $attachmentService,
-                                       CacheService $cacheService ): Response {
+                                       Request                $request,
+                                       AttachmentService      $attachmentService,
+                                       SettingsService        $settingsService,
+                                       CacheService           $cacheService): Response {
         $data = $request->request;
         $file = $request->files;
         $languageRepository = $manager->getRepository(Language::class);
@@ -1003,8 +1004,10 @@ class SettingsController extends AbstractController {
 
         $manager->flush();
 
-        $cacheService->delete(CacheService::LANGUAGES);
-        $cacheService->delete(CacheService::TRANSLATIONS);
+        $cacheService->delete(CacheService::COLLECTION_LANGUAGES);
+        $cacheService->delete(CacheService::COLLECTION_TRANSLATIONS);
+
+        $settingsService->getTimestamp(true);
 
         return $this->json([
             "success" => true,

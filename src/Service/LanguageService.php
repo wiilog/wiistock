@@ -57,7 +57,7 @@ class LanguageService {
         if (!$entityManager) {
             $entityManager = $this->entityManager;
         }
-        return $this->cacheService->get(CacheService::LANGUAGES, "default-language-slug", fn() => (
+        return $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "default-language-slug", fn() => (
             $this
                 ->getDefaultLanguage($entityManager)
                 ->getSlug()
@@ -69,8 +69,8 @@ class LanguageService {
         $user = $this->security->getUser();
         $userId = $user?->getId();
 
-        return $this->cacheService->get(CacheService::LANGUAGES, "languagesSelector" . $userId, function () use ($user) {
-            $languages = $this->cacheService->get(CacheService::LANGUAGES, "languagesNotHidden", function () {
+        return $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "languagesSelector" . $userId, function () use ($user) {
+            $languages = $this->cacheService->get(CacheService::COLLECTION_LANGUAGES, "languagesNotHidden", function () {
                 $languageRepository = $this->entityManager->getRepository(Language::class);
                 return $languageRepository->findBy(["hidden" => false]);
             });

@@ -89,6 +89,9 @@ class SettingsService {
     #[Required]
     public UserService $userService;
 
+    #[Required]
+    public CacheService $cacheService;
+
     private array $settingsConstants;
 
     public function __construct() {
@@ -1237,10 +1240,7 @@ class SettingsService {
      * @param string[] $updated
      */
     private function postSaveTreatment(array $updated): void {
-        if (array_intersect($updated, [Setting::FONT_FAMILY])) {
-            $this->generateFontSCSS();
-        }
-
+        $this->getTimestamp(true);
         if (array_intersect($updated, [Setting::MAX_SESSION_TIME])) {
             $this->generateSessionConfig();
             $this->cacheClear();
@@ -1271,15 +1271,6 @@ class SettingsService {
         }
     }
 
-    public function generateFontSCSS() {
-        $path = "{$this->kernel->getProjectDir()}/public/generated/font.css";
-
-        $font = $this->manager->getRepository(Setting::class)
-                ->getOneParamByLabel(Setting::FONT_FAMILY) ?? Setting::DEFAULT_FONT_FAMILY;
-
-        file_put_contents($path, "* { font-family: \"$font\" !important; }");
-    }
-
     public function generateSessionConfig() {
         $sessionLifetime = $this->manager->getRepository(Setting::class)
             ->getOneParamByLabel(Setting::MAX_SESSION_TIME);
@@ -1294,14 +1285,12 @@ class SettingsService {
         file_put_contents($generated, Yaml::dump($config));
     }
 
-    public function yarnBuild() {
-        $env = $_SERVER["APP_ENV"] == "dev" ? "dev" : "production";
-        $process = Process::fromShellCommandline("yarn build:only:$env")
-            ->setWorkingDirectory($this->kernel->getProjectDir());
-
-        if($process->run() != 0) {
-            throw new RuntimeException($process->getOutput());
+    public function getTimestamp(bool $reset = false): string {
+        if ($reset) {
+            $this->cacheService->delete(CacheService::COLLECTION_SETTINGS, "timestamp");
         }
+
+        return $this->cacheService->get(CacheService::COLLECTION_SETTINGS, "timestamp", fn() => time());
     }
 
     public function cacheClear(): void {
