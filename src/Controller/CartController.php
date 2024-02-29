@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Type;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\CartService;
 use App\Service\SettingsService;
 use App\Service\TranslationService;
@@ -29,15 +30,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/panier")
- */
-class CartController extends AbstractController
-{
 
-    /**
-     * @Route("/", name="cart")
-     */
+#[Route("/panier", name: "cart_")]
+class CartController extends AbstractController {
+
+    #[Route("/", name: "index")]
     public function cart(EntityManagerInterface $manager,
                          SettingsService        $settingsService): Response {
         $typeRepository = $manager->getRepository(Type::class);
@@ -135,25 +132,18 @@ class CartController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/ajouter/{reference}", name="cart_add_reference", options={"expose"=true}, methods="GET|POST")
-     * @HasPermission({Menu::STOCK, Action::DISPLAY_REFE}, mode=HasPermission::IN_JSON)
-     */
-    public function addReferenceToCart(ReferenceArticle $reference, EntityManagerInterface $entityManager): JsonResponse {
+    #[Route("/ajouter/{reference}", name: "add_reference", options: ['expose' => true], methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
+    public function addReferenceToCart(ReferenceArticle         $reference,
+                                       EntityManagerInterface   $entityManager): JsonResponse {
         $cart = $this->getUser()->getCart();
         if (!$cart->getArticles()->isEmpty()){
-            return $this->json([
-                'success' => false,
-                'msg' => "Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des références."
-            ]);
+            throw new FormException("Le panier contient déjà des articles. Supprimez les pour pouvoir ajouter des références.");
         }
 
         if($cart->getReferences()->contains($reference)) {
             $referenceLabel = $reference->getReference();
-            return $this->json([
-                'success' => false,
-                'msg' => "La référence <strong>{$referenceLabel}</strong> est déjà présente dans votre panier"
-            ]);
+            throw new FormException("La référence <strong>{$referenceLabel}</strong> est déjà présente dans votre panier");
         }
         $cart->addReference($reference);
         $entityManager->flush();
@@ -165,9 +155,7 @@ class CartController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/infos/livraison/{request}", name="cart_delivery_data", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/infos/livraison/{request}", name: "delivery_data", options: ['expose' => true], methods: [self::GET])]
     public function deliveryRequestData(Demande $request): JsonResponse {
         $type = $request->getType();
 
@@ -183,9 +171,7 @@ class CartController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/infos/collecte/{request}", name="cart_collect_data", options={"expose"=true}, methods="GET")
-     */
+    #[Route("/infos/livraison/{request}", name: "collect_data", options: ['expose' => true], methods: [self::GET])]
     public function collectRequestData(Collecte $request): JsonResponse {
         $type = $request->getType();
         return $this->json([
@@ -202,9 +188,7 @@ class CartController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/retirer/{reference}", name="cart_remove_reference", options={"expose"=true})
-     */
+    #[Route("/retirer/{reference}", name: "remove_reference", options: ['expose' => true])]
     public function removeReference(EntityManagerInterface $manager, ReferenceArticle $reference): Response {
         $cart = $this->getUser()->getCart();
         $cart->removeReference($reference);
@@ -217,12 +201,10 @@ class CartController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/validate-cart", name="cart_validate", options={"expose"=true}, methods={"POST"}, condition="request.isXmlHttpRequest()")
-     */
+    #[Route("/validate-cart", name: "validate", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
     public function validateCart(Request                $request,
                                  EntityManagerInterface $entityManager,
-                                 CartService            $cartService) {
+                                 CartService            $cartService): JsonResponse {
         $data = json_decode($request->getContent(), true);
 
         /** @var Utilisateur $loggedUser */
@@ -242,7 +224,7 @@ class CartController extends AbstractController
         return $this->json($response);
     }
 
-    #[Route("/add-to-cart-logistic-units", name: "cart_add_logistic_units", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/add-to-cart-logistic-units", name: "add_logistic_units", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::TRACA, Action::DISPLAY_PACK], mode: HasPermission::IN_JSON)]
     public function addLogisticUnitsToCart(Request                $request,
                                            EntityManagerInterface $entityManager,
@@ -368,7 +350,7 @@ class CartController extends AbstractController
     }
 
 
-    #[Route("/articles-logistic-units-api", name: "articles_logistic_units_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/articles-logistic-units-api", name: "articles_logistic_units_api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
     //#[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function getLogisticUnitsAndArticlesApi(): JsonResponse {
         $articlesInCart = $this->getUser()->getCart()->getArticles();
@@ -417,7 +399,7 @@ class CartController extends AbstractController
         ]);
     }
 
-    #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/articles-remove-row-cart-api", name: "articles_remove_row_cart_api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
     public function deleteRow(EntityManagerInterface $entityManager, Request $request): Response {
         $type = $request->query->get('type');
         $cart = $this->getUser()?->getCart();

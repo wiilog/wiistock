@@ -15,6 +15,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
@@ -588,6 +589,8 @@ class PurchaseRequestController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         /** @var Statut $status */
         $status = $data['status'];
@@ -610,6 +613,13 @@ class PurchaseRequestController extends AbstractController
 
             $receptionsWithCommand = [];
 
+            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+
+            // To disable error in persistReception we check if default location setting is valid
+            $defaultLocationReception = $defaultLocationReceptionSetting
+                ? $locationRepository->find($defaultLocationReceptionSetting)
+                : null;
+
             foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
                 $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
@@ -622,11 +632,12 @@ class PurchaseRequestController extends AbstractController
                 $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
                 $reception = $receptionService->getAlreadySavedReception($entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
                 $receptionData = [
-                    'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
-                    'orderNumber' => $orderNumber,
-                    'commentaire' => $purchaseRequest->getComment() ?? '',
-                    'dateAttendue' => $expectedDate,
-                    'dateCommande' => $orderDate,
+                    "fournisseur"  => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
+                    "orderNumber"  => $orderNumber,
+                    "commentaire"  => $purchaseRequest->getComment() ?? '',
+                    "dateAttendue" => $expectedDate,
+                    "dateCommande" => $orderDate,
+                    "location"     => $defaultLocationReception?->getId()
                 ];
                 if (!$reception) {
                     $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);

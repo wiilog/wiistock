@@ -150,8 +150,18 @@ export default class Select2 {
                     config.minimumInputLength = minLength !== undefined ? minLength : 1;
                 }
             }
+            let tokenizer;
             const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
             const editable = $element.is('[data-editable]');
+            if (editable) {
+                const separator = $element.data('editable-token-separator');
+
+                if (separator) {
+                    tokenizer = (input, selection, callback) => {
+                        return Select2.tokenizer(input, selection, callback, separator);
+                    }
+                }
+            }
 
             if($element.is(`[data-keep-open]`)){
                 config.closeOnSelect = false;
@@ -164,6 +174,7 @@ export default class Select2 {
             $element.select2({
                 placeholder: $element.data(`placeholder`) || '',
                 tags: editable,
+                ...(tokenizer ? {tokenizer} : {}),
                 allowClear,
                 dropdownParent,
                 language: {
@@ -368,17 +379,21 @@ export default class Select2 {
 
     static tokenizer(input, selection, callback, delimiter) {
         let term = input.term;
-        if (term.indexOf(delimiter) < 0)
+        if (term.indexOf(delimiter) < 0) {
             return input;
-
-        let parts = term.split(delimiter);
-        for (let i = 0; i < parts.length; i++) {
-            let part = parts[i].trim();
-            callback({
-                id: part,
-                text: part
-            });
         }
+
+        const parts = term.split(delimiter);
+        for (const part of parts) {
+            const trim = part.trim();
+            if (trim) {
+                callback({
+                    id: trim,
+                    text: trim
+                });
+            }
+        }
+
         return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
 

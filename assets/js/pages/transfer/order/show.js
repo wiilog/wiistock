@@ -1,15 +1,18 @@
-let tableArticles;
+global.validateOrder = validateOrder;
+global.deleteOrder = deleteOrder;
 
-$(document).ready(() => {
+$(() => {
     $('#modalDeleteTransferWithLocation').on('show.bs.modal', function (e) {
         Select2Old.location($('.ajax-autocomplete-location'));
     })
 
     Select2Old.articleReference($(".ajax-autocomplete"));
 
-    tableArticle = initDataTable('tableArticle', {
+    const transferOrderId = $(`#transferOrderId`).val();
+
+    initDataTable('tableArticle', {
         ajax: {
-            "url": Routing.generate('transfer_order_article_api', {transfer: id}, true),
+            "url": Routing.generate('transfer_order_article_api', {transfer: transferOrderId}, true),
             "type": "POST"
         },
         order: [['Référence', 'desc']],
@@ -26,27 +29,31 @@ $(document).ready(() => {
 
     let modalDeleteTransfer = $("#modalDeleteTransfer");
     let submitDeleteTransfer = $("#submitDeleteTransfer");
-    let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id}, true)
+    let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id: transferOrderId}, true)
     InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
+
+    $('.select2').select2();
 });
 
 function deleteOrder() {
+    const isTreated = $('#transferOrderIsTreated').val() == 1;
     if (!isTreated) {
         const $modal = $('#modalDeleteTransfer');
         deleteRow($(this), $modal, $('#submitDeleteTransfer'));
         $modal.modal('show');
     } else {
+        const transferOrderId = $('#transferOrderId').val();
         let modalDeleteTransfer = $("#modalDeleteTransferWithLocation");
         let submitDeleteTransfer = $("#submitDeleteTransferWithLocation");
-        let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id}, true)
+        let urlDeleteTransfer = Routing.generate('transfer_order_delete', {id: transferOrderId}, true)
         InitModal(modalDeleteTransfer, submitDeleteTransfer, urlDeleteTransfer);
         $('#modalDeleteTransferWithLocation').modal('show');
     }
 }
 
 function validateOrder($button) {
-
-    let route = Routing.generate('transfer_order_validate', {id});
+    const transferOrderId = $('#transferOrderId').val();
+    let route = Routing.generate('transfer_order_validate', {id: transferOrderId});
 
     wrapLoadingOnActionButton($button, () => (
         $.post(route, function (response) {
@@ -56,4 +63,3 @@ function validateOrder($button) {
     ));
 }
 
-$('.select2').select2();

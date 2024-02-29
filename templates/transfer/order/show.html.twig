@@ -4,6 +4,8 @@
 {% block titleLink path('transfer_order_index') %}
 
 {% block page_content %}
+    <input type="hidden" value="{{ order.id }}" id="transferOrderId"/>
+    <input type="hidden" value="{{ order.status.code == constant('App\\Entity\\TransferOrder::TREATED') ? 1 : 0 }}" id="transferOrderIsTreated"/>
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -37,10 +39,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ order.id }};
-        let isTreated = {{ order.status.nom == constant('App\\Entity\\TransferOrder::TREATED') ? 'true' : 'false' }};
-    </script>
-
-    <script src="{{ asset('js/pages/transfer/order/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('transfer-order-show') }}
 {% endblock %}

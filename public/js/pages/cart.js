@@ -357,7 +357,7 @@ function loadLogisticUnitPack() {
     wrapLoadingOnActionButton(
         $logisticUnitsContainer,
         () => (
-            AJAX.route('POST', 'articles_logistic_units_api', {})
+            AJAX.route(AJAX.POST, 'cart_articles_logistic_units_api', {})
                 .json()
                 .then(({html}) => {
                     $logisticUnitsContainer.html(html);
@@ -391,7 +391,7 @@ function loadLogisticUnitPack() {
 }
 
 function removeLogisticUnitRow(id, type) {
-    AJAX.route('POST', 'articles_remove_row_cart_api', {id, type})
+    AJAX.route('POST', 'cart_articles_remove_row_cart_api', {id, type})
         .json()
         .then(({success, emptyCart}) => {
             if (success) {
