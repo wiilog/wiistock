@@ -35,7 +35,7 @@ class KioskService
 
         $labelText = $article->getBarCode() ? $article->getBarCode() . '\n' : '';
         $labelText .= $referenceArticle?->getLibelle() ? ' L/R :' . $referenceArticle?->getLibelle() . '\n' : '';
-        $labelText .= $article->getReference() ? 'C/R :' . $article->getReference() . '\n' : '';
+        $labelText .= $referenceArticle->getReference() ? 'C/R :' . $referenceArticle->getReference() . '\n' : '';
         $labelText .= $article->getLabel() ? 'L/A :' . $article->getLabel() . '\n' : '';
 
         return str_replace('_', '_5F', $labelText);

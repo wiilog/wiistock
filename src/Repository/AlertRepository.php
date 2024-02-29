@@ -47,13 +47,15 @@ class AlertRepository extends EntityRepository {
             ->getResult();
     }
 
-    public function getAlertDataByParams(InputBag $params, array $filters, Utilisateur $user) {
+    public function getAlertDataByParams(InputBag $params, array $filters, Utilisateur $user): array {
         $queryBuilder = $this->createQueryBuilder("a");
         $exprBuilder = $queryBuilder->expr();
 
         $queryBuilder
             ->leftJoin("a.reference", "reference")
-            ->leftJoin("a.article", "article");
+            ->leftJoin("a.article", "article")
+            ->leftJoin("article.articleFournisseur", "join_supplierArticle")
+            ->leftJoin("join_supplierArticle.referenceArticle", "join_referenceArticle");
         $visibilityGroup = $user->getVisibilityGroups();
         if (!$visibilityGroup->isEmpty()) {
             $queryBuilder
@@ -130,7 +132,7 @@ class AlertRepository extends EntityRepository {
                         ->andWhere($queryBuilder->expr()->orX(
                             'reference.reference LIKE :value',
                             'reference.libelle LIKE :value',
-                            'article.reference LIKE :value',
+                            'join_referenceArticle.reference LIKE :value',
                             'article.label LIKE :value'
                         ))
                         ->setParameter('value', '%' . str_replace('_', '\_', $search) . '%');
@@ -144,11 +146,13 @@ class AlertRepository extends EntityRepository {
 
                     switch($column) {
                         case "label":
-                            $queryBuilder->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
+                            $queryBuilder
+                                ->addSelect("COALESCE(article.label, reference.libelle) AS HIDDEN label")
                                 ->orderBy("label", $order);
                             break;
                         case "reference":
-                            $queryBuilder->addSelect("COALESCE(article.reference, reference.reference) AS HIDDEN stref")
+                            $queryBuilder
+                                ->addSelect("COALESCE(join_referenceArticle.reference, reference.reference) AS HIDDEN stref")
                                 ->orderBy("stref", $order);
                             break;
                         case "code":

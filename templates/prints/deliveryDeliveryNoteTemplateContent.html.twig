@@ -21,7 +21,7 @@
                 {% for article in pack.packArticles %}
                     <tr>
                         <td>{{ article.barcode }}</td>
-                        <td>{{ article.reference }}</td>
+                        <td>{{ article.referenceArticle.reference }}</td>
                         <td>{{ article.label | slice(0,37) }}{{ (article.label | length) > 37 ? '...' }}</td>
                         <td>{{ article.quantity }}</td>
                     </tr>

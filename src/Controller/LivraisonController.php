@@ -450,7 +450,7 @@ class LivraisonController extends AbstractController {
                 "packArticles" => Stream::from($pack->getChildArticles())
                     ->map(fn(Article $article) => [
                         "barcode" => $article->getBarCode(),
-                        "reference" => $article->getReference(),
+                        "reference" => $article->getReferenceArticle()->getReference(),
                         "label" => $article->getLabel(),
                         "quantity" => $article->getQuantite(),
                     ])

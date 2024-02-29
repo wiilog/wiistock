@@ -258,7 +258,6 @@ class DemandeCollecteService
                 ->setLabel($referenceArticle->getLibelle() . '-' . $index)
                 ->setConform(true)
                 ->setStatut($statut)
-                ->setReference($ref . '-' . $index)
                 ->setQuantite(max($data['quantity-to-pick'], 1)) // protection contre quantités < 1
                 ->setEmplacement($collecte->getPointCollecte())
                 ->setArticleFournisseur($articleFournisseur)
