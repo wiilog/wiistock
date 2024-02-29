@@ -330,11 +330,11 @@ class EnCoursService
 
         $columns = [
             ['title' => 'Issu de', 'name' => 'linkedArrival'],
-            ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU'],
-            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date'],
-            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay'],
-            ['title' => 'Référence', 'name' => 'reference'],
-            ['title' => 'Libellé', 'name' => 'libelle'],
+            ['title' => $this->translationService->translate('Traçabilité', 'Général', 'Unité logistique', false), 'name' => 'LU', 'searchable' => true],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Date de dépose', false), 'name' => 'date', 'searchable' => true],
+            ['title' => $this->translationService->translate('Traçabilité', 'Encours', 'Délai', false), 'name' => 'delay', 'searchable' => true],
+            ['title' => 'Référence', 'name' => 'reference', 'searchable' => true],
+            ['title' => 'Libellé', 'name' => 'libelle', 'searchable' => true],
         ];
 
         return $this->visibleColumnService->getArrayConfig($columns, [], $columnsVisible);
