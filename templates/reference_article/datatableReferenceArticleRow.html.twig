@@ -42,15 +42,6 @@
                         },
                     },
                     {
-                        title: "Recalculer les quantités",
-                        icon: "fas fa-sync-alt",
-                        attributes: {
-                            "onclick": "updateQuantity(" ~ reference_id ~ ")",
-                            "data-togggle": "modal",
-                            "data-id": 'update' ~ reference_id,
-                        },
-                    },
-                    {
                         hasRight: hasRight(constant("App\\Entity\\Menu::STOCK"), constant("App\\Entity\\Action::DELETE")) ,
                         title: "Supprimer",
                         icon: "wii-icon wii-icon-trash-black",
