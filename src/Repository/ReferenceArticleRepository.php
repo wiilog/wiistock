@@ -1250,7 +1250,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $quantityByReferences
             ->concat(
                 Stream::from($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_REFERENCE] ?? [])
-                    ->keymap(fn(ReferenceArticle $referenceArticle) => $referenceArticle->getQuantiteStock()),
+                    ->keymap(fn(ReferenceArticle $referenceArticle) => [$referenceArticle->getId(), $referenceArticle->getQuantiteStock()]),
                 true
             )
             ->toArray();
