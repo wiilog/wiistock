@@ -58,7 +58,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment as Twig_Environment;
 use WiiCommon\Helper\Stream;
@@ -726,6 +728,14 @@ class ReferenceArticleController extends AbstractController
                              ReferenceArticle       $referenceArticle,
                              RefArticleDataService  $refArticleDataService,
                              EntityManagerInterface $entityManager): Response {
+
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $apiURL = $settingRepository->getOneParamByLabel(Setting::STOCK_FORECAST_URL);
+        $apiSecretKey = $settingRepository->getOnePAramByLabel(Setting::STOCK_FORECAST_SECRET_KEY);
+
+        $hasIaParams = $apiURL && $apiSecretKey;
+
+
         $type = $referenceArticle->getType();
         $showOnly = $request->query->getBoolean('showOnly');
         $freeFields = $entityManager->getRepository(FreeField::class)->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
@@ -747,7 +757,8 @@ class ReferenceArticleController extends AbstractController
             'providerArticles' => $providerArticles,
             'freeFields' => $freeFields,
             'showOnly' => $showOnly,
-            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager)
+            'descriptionConfig' => $refArticleDataService->getDescriptionConfig($entityManager),
+            'hasIaParams' => $hasIaParams,
         ]);
     }
 
@@ -1218,5 +1229,45 @@ class ReferenceArticleController extends AbstractController
                 "successMessage" => $referenceExist ? $articleSuccessMessage : $referenceSuccessMessage,
             ]
         );
+    }
+
+    #[Route("/get-stock-forecast/{referenceArticle}", name: "reference_article_get_stock_forecast", options: ["expose" => true], methods: ["GET"])]
+    #[HasPermission([Menu::STOCK, Action::DISPLAY_REFE], mode: HasPermission::IN_JSON)]
+    public function getStockForecast(Request $request, HttpClientInterface $client, string $referenceArticle, EntityManagerInterface $entityManager): JsonResponse {
+        $settingRepository = $entityManager->getRepository(Setting::class);
+
+
+        $apiURL = $settingRepository->getOneParamByLabel(Setting::STOCK_FORECAST_URL);
+        $apiSecretKey = $settingRepository->getOnePAramByLabel(Setting::STOCK_FORECAST_SECRET_KEY);
+
+        if(!$apiURL || !$apiSecretKey) {
+            throw new FormException("La configuration de l'instance permettant la prévision de stock est invalide");
+        }
+
+        $formData = new FormDataPart([
+            'Content-Type'=> 'application/json',
+        ]);
+
+        $headers = $formData->getPreparedHeaders()->toArray();
+        try {
+            $apiRequest = $client->request('POST', $apiURL, [
+                "headers" => $headers,
+                "body" => json_encode([
+                    "secretKey" => $apiSecretKey,
+                    "reference" => $referenceArticle,
+                ]),
+            ]);
+
+            $apiOutput = $apiRequest->getContent();
+        } catch (\Throwable $e) {
+            throw new FormException( $e->getMessage() ?: "Une erreur s'est produite lors de la prévision de stock");
+        }
+
+        $apiOutput = json_decode($apiOutput, true);
+
+        return new JsonResponse([
+            "success" => true,
+            "html" => $apiOutput["html"] ?? "",
+        ]);
     }
 }
