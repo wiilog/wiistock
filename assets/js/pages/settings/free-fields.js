@@ -152,23 +152,23 @@ function onElementsChange() {
 }
 
 export function createArrivalsFreeFieldsPage($container, canEdit) {
-    createFreeFieldsPage($container, canEdit, MODE_ARRIVAL)
+    createFreeFieldsPage($container, canEdit, MODE_ARRIVAL);
 }
 
 export function createDispatchFreeFieldsPage($container, canEdit) {
-    createFreeFieldsPage($container, canEdit, MODE_DISPATCH)
+    createFreeFieldsPage($container, canEdit, MODE_DISPATCH);
 }
 
 export function createHandlingFreeFieldsPage($container, canEdit) {
-    createFreeFieldsPage($container, canEdit, MODE_HANDLING)
+    createFreeFieldsPage($container, canEdit, MODE_HANDLING);
 }
 
 export function createDeliveryRequestFieldsPage($container, canEdit) {
-    createFreeFieldsPage($container, canEdit, MODE_DELIVERY_REQUEST)
+    createFreeFieldsPage($container, canEdit, MODE_DELIVERY_REQUEST);
 }
 
 export function createProductionFreeFieldsPage($container, canEdit) {
-    createFreeFieldsPage($container, canEdit, MODE_PRODUCTION)
+    createFreeFieldsPage($container, canEdit, MODE_PRODUCTION);
 }
 
 export function createFreeFieldsPage($container, canEdit, mode) {

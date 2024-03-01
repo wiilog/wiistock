@@ -2571,8 +2571,9 @@ class SettingsController extends AbstractController {
                     "id" => $freeField->getId(),
                     "actions" => "<button class='btn btn-silent delete-row' data-id='{$freeField->getId()}'><i class='wii-icon wii-icon-trash text-primary'></i></button>",
                     "label" => $freeField->getLabel() ?: 'Non défini',
-                    "appliesTo" => $freeField->getCategorieCL() ? ucfirst($freeField->getCategorieCL()
-                        ->getLabel()) : "",
+                    "appliesTo" => $freeField->getCategorieCL()
+                        ? ucfirst($freeField->getCategorieCL()->getLabel())
+                        : "",
                     "type" => $typageCLFr,
                     "displayedCreate" => ($freeField->getDisplayedCreate() ? "oui" : "non"),
                     "requiredCreate" => ($freeField->isRequiredCreate() ? "oui" : "non"),
@@ -2597,6 +2598,7 @@ class SettingsController extends AbstractController {
                 "appliesTo" => "",
                 "type" => "",
                 "displayedCreate" => "",
+                "displayedEdit" => "",
                 "requiredCreate" => "",
                 "requiredEdit" => "",
                 "defaultValue" => "",
