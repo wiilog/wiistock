@@ -1059,7 +1059,7 @@ class ReferenceArticleController extends AbstractController
         $data = $request->query->all();
 
         $type = $typeRepository->find($settingRepository->getOneParamByLabel(Setting::TYPE_REFERENCE_CREATE));
-        $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
+
         $applicant = $userRepository->find($data['applicant']);
         $follower = $userRepository->find($data['follower']);
         $articleSuccessMessage = $settingRepository->getOneParamByLabel(Setting::VALIDATION_ARTICLE_ENTRY_MESSAGE);
@@ -1068,23 +1068,20 @@ class ReferenceArticleController extends AbstractController
         $reference = $refArticleRepository->findOneBy(['reference' => $data['reference']]);
         $referenceExist = isset($data['article']) && $reference;
 
-        if(!$reference){
+        if (!$reference) {
+            $status = $statutRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::REFERENCE_ARTICLE, $settingRepository->getOneParamByLabel(Setting::STATUT_REFERENCE_CREATE));
+
             $reference = (new ReferenceArticle())
                 ->setReference($data['reference'])
                 ->setLibelle($data['label'])
                 ->setCreatedBy($userRepository->getKioskUser())
-                ->setCreatedAt(new DateTime());
-        }
-
-        $reference
-            ->setStatut($status)
-            ->setCommentaire($data['comment']);
-
-        if(!$referenceExist){
-            $reference
+                ->setCreatedAt(new DateTime())
+                ->setStatut($status)
                 ->setType($type)
-                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);
+                ->setTypeQuantite(ReferenceArticle::QUANTITY_TYPE_ARTICLE);;
         }
+
+        $reference->setCommentaire($data['comment']);
 
         if($applicant){
             $reference->addManager($applicant);
@@ -1092,10 +1089,6 @@ class ReferenceArticleController extends AbstractController
 
         if($follower){
             $reference->addManager($follower);
-        }
-
-        if(!$referenceExist){
-            $reference->setBarCode($refArticleDataService->generateBarCode());
         }
 
         if($settingRepository->getOneParamByLabel(Setting::VISIBILITY_GROUP_REFERENCE_CREATE)){
@@ -1176,7 +1169,9 @@ class ReferenceArticleController extends AbstractController
                 $entityManager->persist($article);
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
-                $article->setQuantite(1)->setCreatedOnKioskAt($date);
+                $article
+                    ->setQuantite(1)
+                    ->setCreatedOnKioskAt($date);
             }
 
             $barcodesToPrint[] = [
