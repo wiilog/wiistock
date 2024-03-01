@@ -60,10 +60,10 @@ class FreeField implements Serializable {
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $requiredEdit = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 1])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private ?bool $displayedCreate = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['default' => 1])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private ?bool $displayedEdit = null;
 
     #[ORM\ManyToOne(targetEntity: CategorieCL::class)]
