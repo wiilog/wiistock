@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
@@ -244,6 +245,7 @@ class PurchaseRequestController extends AbstractController
                         : $this->formatService->location($requestLine->getLocation())
                     )
                     : '',
+                FixedFieldEnum::unitPrice->name => $requestLine->getUnitPrice(),
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
                     'lineId' => $requestLine->getId(),
                     'requestStatus' => $purchaseRequest->getStatus()
@@ -412,11 +414,11 @@ class PurchaseRequestController extends AbstractController
             }
 
             if(isset($data['orderDate']) && $data['orderDate']) {
-                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate']) ?: null;
+                $orderDate = $this->getFormatter()->parseDatetime($data['orderDate']) ?: null;
             }
 
             if(isset($data['expectedDate']) && $data['expectedDate']) {
-                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate']) ?: null;
+                $expectedDate = $this->getFormatter()->parseDatetime($data['expectedDate']) ?: null;
             }
 
             $purchaseRequestLine
@@ -424,7 +426,8 @@ class PurchaseRequestController extends AbstractController
                 ->setOrderNumber($data['orderNumber'] ?? null)
                 ->setOrderedQuantity((int) $data['orderedQuantity'] ?? null)
                 ->setOrderDate($orderDate ?? null)
-                ->setExpectedDate($expectedDate ?? null);
+                ->setExpectedDate($expectedDate ?? null)
+                ->setUnitPrice(floatval($data[FixedFieldEnum::unitPrice->name]));
 
             $entityManager->flush();
             $response = [

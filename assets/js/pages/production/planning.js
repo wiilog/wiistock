@@ -5,6 +5,7 @@ import AJAX, {PUT} from "@app/ajax";
 import Planning from "@app/planning";
 import moment from "moment";
 import {openModalUpdateProductionRequestStatus} from '@app/pages/production/form';
+import {getUserFiltersByPage} from '@app/utils';
 
 const EXTERNAL_PLANNING_REFRESH_RATE = 300000;
 

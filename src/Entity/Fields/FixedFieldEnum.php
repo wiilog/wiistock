@@ -37,6 +37,7 @@ enum FixedFieldEnum: string
     case email = "Email";
     case sendEmailToManagers = "Envoi d'email à chaque dépose aux responsables de l'emplacement";
     case managers = "Responsables";
+    case unitPrice = "Prix unitaire";
 
     public static function fromCase(string $case): string|null {
         try {
