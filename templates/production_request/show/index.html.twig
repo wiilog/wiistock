@@ -131,7 +131,24 @@
 
             <div class="col-md-8 col-12">
                 <div class="wii-box">
-                    <div class="header wii-title justify-content-between align-items-center d-flex">Informations</div>
+                    <div class="header wii-title justify-content-between align-items-center d-flex">
+                        <span>Informations</span>
+                        {% set canUpdateStatus = (
+                            productionRequest.status
+                            and (
+                                (productionRequest.status.inProgress and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_IN_PROGRESS_PRODUCTION_REQUEST')))
+                                or (productionRequest.status.notTreated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TO_TREAT_PRODUCTION_REQUEST')))
+                                or (productionRequest.status.treated and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::EDIT_TREATED_PRODUCTION_REQUEST')))
+                            )
+                        ) %}
+                        {% if canUpdateStatus %}
+                            <button type="button"
+                                    class="btn btn-primary d-flex align-items-center justify-content-center open-modal-update-production-request-status">
+                                <span class="wii-icon wii-icon-check-white mr-2"></span>
+                                Avancer la demande
+                            </button>
+                        {% endif %}
+                    </div>
                     {% if productionRequest.emergency %}
                         <div class="d-flex align-items-center justify-content-center emergency-container">
                             <img src="{{ asset('svg/timeline-urgent.svg') }}" class="mr-2" alt="Icône urgence" width="17px">
@@ -161,6 +178,8 @@
         fieldsParam,
         emergencies,
     }%}
+
+    {%  include 'production_request/modal/updateStatus.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}

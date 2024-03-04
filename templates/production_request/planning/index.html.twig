@@ -33,18 +33,8 @@
     </div>
     {{ form.hidden("expandedCards", null) }}
 
-    {% include 'utils/modal/empty-modal.html.twig' with {
-        id: 'modalUpdateProductionRequestStatus',
-        header: {
-            title: 'Changer de statut'
-        },
-        footer: {
-            elements: [
-                {classes: 'btn btn-outline-secondary', dismiss: true, text: trans('Général', null, 'Modale', 'Annuler')},
-                {classes: 'btn btn-success', text: trans('Général', null, 'Modale', 'Enregistrer'), type: 'submit'},
-            ],
-        }
-    } %}
+    {% include 'production_request/modal/updateStatus.html.twig' %}
+
 {% endblock %}
 
 {% block javascripts %}
