@@ -776,7 +776,9 @@ class ReceptionController extends AbstractController {
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($data['commentaire'] ?? null)
-                ->setUnitPrice(floatval($data[FixedFieldEnum::unitPrice->name]));
+                ->setUnitPrice(!empty($data[FixedFieldEnum::unitPrice->name])
+                    ? $data[FixedFieldEnum::unitPrice->name]
+                    : null);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();

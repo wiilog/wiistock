@@ -118,6 +118,7 @@ function initNewReferenceArticleEditor($modal) {
 function addArticle() {
     let path = Routing.generate('get_modal_new_ref', true);
     $.post(path, {}, function (modalNewRef) {
+        console.log("test 2");
         $('#reception-add-ligne').val(null).trigger('change');
         const $modal = $('#innerNewRef');
         $modal.html(modalNewRef);
@@ -154,7 +155,6 @@ function initPageModals() {
 
             setTimeout(() => SetRequestQuery({}), 1);
         }
-        Select2Old.articleReference($select);
     });
 
     let $modalDeleteReceptionReferenceArticle = $("#modalDeleteReceptionReferenceArticle");
@@ -400,6 +400,7 @@ function initModalCondit(tableFromArticle) {
 
 function initNewArticleEditor(modal, options = {}) {
     const $modal = $(modal);
+    console.log("helox");
     let $select2refs = $modal.find('[name="referenceArticle"]');
 
     Select2.destroy($select2refs);
@@ -434,6 +435,7 @@ function openModalArticlesFromLigneArticle(ligneArticleId) {
 }
 
 function articleChanged($select) {
+    console.log("test");
     const $modal = $select.closest(`.modal`);
     if(!$select.data(`select2`)) {
         return;
