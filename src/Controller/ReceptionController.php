@@ -652,7 +652,10 @@ class ReceptionController extends AbstractController {
                     ->setAnomalie($contentData['anomalie'])
                     ->setCommentaire($contentData['commentaire'] ?? null)
                     ->setReferenceArticle($refArticle)
-                    ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 1)) // protection contre quantités négatives ou nulles
+                    ->setUnitPrice(!empty($contentData[FixedFieldEnum::unitPrice->name])
+                        ? $contentData[FixedFieldEnum::unitPrice->name]
+                        : null);
 
                 if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
                     $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
