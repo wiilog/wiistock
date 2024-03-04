@@ -3,6 +3,7 @@ import Camera from "@app/camera";
 import Form from "@app/form";
 import Routing from '@app/fos-routing';
 import {displayAttachmentRequired} from './form'
+import {getUserFiltersByPage} from '@app/utils';
 
 let tableProduction;
 

@@ -1396,19 +1396,3 @@ function onSelectAll() {
 
     $select.trigger(`change`);
 }
-
-function getUserFiltersByPage(page,
-                              options = {preventPrefillFilters: false},
-                              callback = undefined) {
-    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
-        .json()
-        .then((data) => {
-            if (!options.preventPrefillFilters) {
-                displayFiltersSup(data);
-            }
-
-            if (callback) {
-                callback();
-            }
-        });
-}

@@ -1,3 +1,8 @@
+import Form from "@app/form";
+import {POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
+import {getUserFiltersByPage} from '@app/utils';
+
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
 
@@ -18,19 +23,14 @@ $(function() {
 
         $statusSelector.val(valuesInt).select2();
     } else {
-        // sinon, filtres enregistrés en base pour chaque utilisateur
-        let path = Routing.generate('filter_get_by_page');
-        let params = JSON.stringify(PAGE_PURCHASE_REQUEST);
-        $.post(path, params, function (data) {
-            displayFiltersSup(data);
-        }, 'json');
+        getUserFiltersByPage(PAGE_PURCHASE_REQUEST);
     }
 
     const $modalNewPurchaseRequest = $('#modalNewPurchaseRequest');
 
     Form
         .create($modalNewPurchaseRequest, {clearOnOpen: true})
-        .submitTo(AJAX.POST, 'purchase_request_new', {
+        .submitTo(POST, 'purchase_request_new', {
             success: ({redirect}) => {
                 window.location.href = redirect;
             }
