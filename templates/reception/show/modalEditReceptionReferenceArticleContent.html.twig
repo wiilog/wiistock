@@ -61,7 +61,6 @@
         {{ form.input("quantiteAR", "Quantité à recevoir", true, receptionReferenceArticle.quantiteAR, {
             type: "number",
             min: minValue,
-            max: receptionReferenceArticle.quantiteAR,
             attributes: {
                 onChange: "updateQuantityToReceive($(this));",
             },
@@ -69,7 +68,7 @@
     </div>
     {% if canUpdateQuantity %}
         <div class="form-group col-md-6 col-12">
-            {{ form.input("quantite", "Quantité reçue", true, receptionReferenceArticle.quantite ?? 0, {
+            {{ form.input("quantite", "Quantité reçue", true, receptionReferenceArticle.quantite ?: 0, {
                 type: "number",
                 min: 0,
                 max: receptionReferenceArticle.quantiteAR,
