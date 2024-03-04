@@ -25,8 +25,3 @@ function initTableSensor(){
     initDataTable('tableSensorMessage', tableSensorMessages);
 }
 
-function openEvolutionModal($modal) {
-    clearModal($modal);
-    $modal.modal('message');
-}
-

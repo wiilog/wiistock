@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="(3) Doctrine migrations dry-run" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console doctrine:migrations:migrate -vvv --no-interaction --dry-run" />
+  <configuration default="false" name="(1) Clear app cache" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console app:cache:clear" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="/usr/bin/docker" />
     <option name="SCRIPT_OPTIONS" value="exec -it wiistock_app bash" />

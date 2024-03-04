@@ -58,7 +58,6 @@ Encore
     .addEntry('receipt-association-index', './assets/js/pages/receipt-association/index.js')
     .addEntry('production-index', './assets/js/pages/production/index.js')
     .addEntry('production-show', './assets/js/pages/production/show.js')
-    .addEntry('production-form', './assets/js/pages/production/form.js')
     .addEntry('production-planning', './assets/js/pages/production/planning.js')
     .addEntry('dashboard-settings', './assets/js/pages/dashboard/settings.js')
     .addEntry('location-index', './assets/js/pages/location/index.js')
@@ -66,6 +65,8 @@ Encore
     .addEntry('transfer-order-show', './assets/js/pages/transfer/order/show.js')
     .addEntry('transfer-request-index', './assets/js/pages/transfer/request/index.js')
     .addEntry('transfer-request-show', './assets/js/pages/transfer/request/show.js')
+    .addEntry('purchase-request-index', './assets/js/pages/purchase-request/index.js')
+    .addEntry('purchase-request-show', './assets/js/pages/purchase-request/show.js')
 
     .addStyleEntry('pack-common', './assets/scss/utils/pack.scss')
     .autoProvidejQuery()
@@ -75,6 +76,7 @@ Encore
 
     .addAliases({
         '@app': path.resolve(__dirname, 'assets/js'),
+        '@generated': path.resolve(__dirname, 'assets/generated'),
         '@styles': path.resolve(__dirname, 'assets/scss')
     })
 

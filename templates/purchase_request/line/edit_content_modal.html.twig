@@ -1,60 +1,50 @@
-<form>
-    <div class="row">
-        <div class="form-group col-12">
-            <label class="wii-field-name">Quantité commandée*</label>
-            <input type="number"
-                   class="w-100 form-control data needed"
-                   name="orderedQuantity"
-                   min="1"
-                   title="Quantité commandée"
-                   value="{{ line.orderedQuantity }}">
-        </div>
-    </div>
-    <div class="row">
-        <div class="form-group col-12 col-md-6">
-            <label class="wii-field-name">N° commande{{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? '*' }}</label>
-            <input type="text"
-                   class="w-100 form-control data {{ fieldsParam|isFieldRequired('numCommande', 'requiredCreate') ? 'needed' }}"
-                   name="orderNumber"
-                   title="N° commande"
-                   value="{{ line.orderNumber }}">
-        </div>
-        <div class="form-group col-12 col-md-6">
-            <label class="wii-field-name">Fournisseur{{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? '*' }}</label>
-            <div class="w-100">
-                {% set supplier = line.supplier ?? line.purchaseRequest.supplier ?? null %}
-                {% set disabled = not line.supplier and line.purchaseRequest.supplier %}
-                <select
-                    class="form-control data select2 ajax-autocomplete-fournisseur {{ fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') ? 'needed' }}"
-                    title="Fournisseur"
-                    name="supplier"
-                    {{ disabled ? "disabled" }}>
-                    {% if supplier %}
-                        <option value="{{supplier.id }}" selected>{{ supplier.nom }}</option>
-                    {% endif %}
-                </select>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="form-group col-12">
-            <label class="wii-field-name">Date de commande{{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? '*' }}</label>
-            <input type="text"
-                   class="w-100 form-control data {{ fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') ? 'needed' }} datepicker orderDate"
-                   name="orderDate"
-                   title="Date de commande"
-                   data-date="{{ line.orderDate ? (line.orderDate|date('Y-m-d H:i')) }}">
+{% import "form.html.twig" as form %}
 
-        </div>
+<div class="row">
+    <div class="form-group col-md-6 col-12">
+        {{ form.input("orderedQuantity", "Quantité commandée", true, line.orderedQuantity, {
+            type: "number",
+            min: 1,
+        }) }}
     </div>
-    <div class="row">
-        <div class="form-group col-12">
-            <label class="wii-field-name">Date attendue{{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? '*' }}</label>
-            <input type="text"
-                   class="w-100 form-control data {{ fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') ? 'needed' }} datepicker expectedDate"
-                   name="expectedDate"
-                   title="Date attendue"
-                   data-date="{{ line.expectedDate ? (line.expectedDate|date('Y-m-d')) }}">
-        </div>
+    <div class="form-group col-12 col-md-6">
+        {% set required = fieldsParam|isFieldRequired('numCommande', 'requiredCreate') %}
+        {{ form.input("orderNumber", "N° commande", required, line.orderNumber) }}
     </div>
-</form>
+    <div class="form-group col-12 col-md-6">
+        {% set required = fieldsParam|isFieldRequired('fournisseur', 'requiredCreate') %}
+        {% set supplier = line.supplier ?? line.purchaseRequest.supplier ?? null %}
+        {% set disabled = not line.supplier and line.purchaseRequest.supplier %}
+        {{ form.select("supplier", "Fournisseur", required, {
+            type: "provider",
+            items: supplier ? [{
+                value: supplier.id,
+                label: supplier.nom,
+                selected: true,
+            }] : [],
+            disabled,
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set required = fieldsParam|isFieldRequired('dateCommande', 'requiredCreate') %}
+        {% set value = line.orderDate ? line.orderDate|date('Y-m-d H:i') %}
+        {{ form.input("orderDate", "Date de commande", required, value, {
+            type: "datetime-local",
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set required = fieldsParam|isFieldRequired('dateAttendue', 'requiredCreate') %}
+        {% set value = line.expectedDate ? line.expectedDate|date('Y-m-d') %}
+        {{ form.input("expectedDate", "Date attendue", required, value, {
+            type: "date",
+        }) }}
+    </div>
+    <div class="form-group col-md-6 col-12">
+        {% set field = constant('App\\Entity\\Fields\\FixedFieldEnum::unitPrice') %}
+        {{ form.input(field.name, field.value, false, line.unitPrice, {
+            type: "number",
+            min: 0,
+            step: 0.001,
+        }) }}
+    </div>
+</div>

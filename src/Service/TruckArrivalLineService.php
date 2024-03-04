@@ -13,6 +13,7 @@ use App\Entity\TruckArrival;
 use App\Entity\TruckArrivalLine;
 use App\Entity\Utilisateur;
 use App\Entity\WorkFreeDay;
+use App\Exceptions\FormException;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -152,5 +153,25 @@ class TruckArrivalLineService
         return $wasCreatedBeforeTresholdAndIsValid || $wasCreatedAfterTresholdAndIsValid;
     }
 
+    public function checkForInvalidNumber(array $trackingNumbers, EntityManagerInterface $entityManager): void {
+        $lineNumberRepository = $entityManager->getRepository(TruckArrivalLine::class);
+        $notDuplicableLines = Stream::from($lineNumberRepository->findBy(['number' => $trackingNumbers], ['id' => 'DESC']) ?? [])
+            ->filter(static fn(TruckArrivalLine $line) => (
+                !$line->getReserve()
+                || !($line->getReserve()->getReserveType()?->isDisableTrackingNumber())
+            ));
 
+        if (!$notDuplicableLines->isEmpty()) {
+            $trackingNumberCount = $notDuplicableLines->count();
+
+            $trackingNumbers = $notDuplicableLines
+                ->map(static fn (TruckArrivalLine $line) => $line->getNumber())
+                ->join(', ');
+
+            throw new FormException($trackingNumberCount === 1
+                ? "Le numéro de tracking {$trackingNumbers} a déjà été scanné dans un arrivage camion. Veuillez le supprimer pour enregistrer."
+                : "Les numéros de tracking {$trackingNumbers} ont déjà été scannés dans un arrivage camion. Veuillez les supprimer pour enregistrer."
+            );
+        }
+    }
 }

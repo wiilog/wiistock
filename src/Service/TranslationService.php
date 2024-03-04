@@ -262,8 +262,7 @@ class TranslationService {
             }
         }
 
-        $content = "//generated file for translations\n";
-        $content .= "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
+        $content = "const DEFAULT_SLUG = `{$this->languageService->getDefaultSlug()}`;\n";
         $content .= "const TRANSLATIONS = " . json_encode($this->translations) . ";\n";
 
         file_put_contents("$outputDirectory/translations.js", $content);

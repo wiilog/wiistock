@@ -419,8 +419,8 @@
                         freeFields: type.champsLibres,
                         freeFieldValues: dispatch.freeFields,
                         colType: 'col-md-4 col-12',
-                        requiredType: 'requiredCreate',
-                        actionType: 'new',
+                        requiredType: displayAction,
+                        actionType: dispatch.id ? 'edit' :'new',
                         disabledNeeded: false,
                         needsDateFormatting: true
                     } %}
