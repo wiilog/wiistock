@@ -151,28 +151,10 @@ class StatusController extends AbstractController
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "overconsumptionBillGenerationStatus" => "<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data' {$overconsumptionBillGenerationStatus}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
-                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='groupedSignaturecolor' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
-                        <datalist id='type-color'>
-                            <option>#D76433</option>
-                            <option>#D7B633</option>
-                            <option>#A5D733</option>
-                            <option>#33D7D1</option>
-                            <option>#33A5D7</option>
-                            <option>#3353D7</option>
-                            <option>#6433D7</option>
-                            <option>#D73353</option>
-                        </datalist>",
-                    "color" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$color}' list='type-color'/>
-                        <datalist id='type-color'>
-                            <option>#D76433</option>
-                            <option>#D7B633</option>
-                            <option>#A5D733</option>
-                            <option>#33D7D1</option>
-                            <option>#33A5D7</option>
-                            <option>#3353D7</option>
-                            <option>#6433D7</option>
-                            <option>#D73353</option>
-                        </datalist>",
+                    "groupedSignatureColor" => $formService->macro("color", "color", null, false, $groupedSignatureColor, [
+                            "disabled" => $disabledMobileSyncAndColor
+                        ]),
+                    "color" => $formService->macro("color", "color", null, false, $color),
                     "needsMobileSync" => "<div class='checkbox-container'><input type='checkbox' name='needsMobileSync' class='form-control data' {$disabledMobileSyncAndColor} {$needsMobileSync}/></div>",
                     "commentNeeded" => "<div class='checkbox-container'><input type='checkbox' name='commentNeeded' class='form-control data' {$commentNeeded}/></div>",
                     "automaticReceptionCreation" => "<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data $showAutomaticReceptionCreation' {$automaticReceptionCreation}/></div>",
