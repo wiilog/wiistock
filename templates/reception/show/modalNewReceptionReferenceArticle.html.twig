@@ -14,24 +14,13 @@
                     <div class="form-group col-xl-6 col-12">
                         <div class="row no-gutters align-items-end">
                             <div class="col">
-                                {# Le passage au form.html.twig ne rend plus le trigger change fonctionnel. Laisser tel quel jusqu'à trouver une solution #}
-                                <label for="reception-add-ligne"
-                                       title="référence"
-                                       class="wii-field-name">
-                                    {{ trans('Stock', 'Références', 'référence', false) }}*
-                                </label>
-                                <select class="ajax-autocomplete w-100 data form-control needed wii-field-text"
-                                        onchange="articleChanged($(this))"
-                                        id="reception-add-ligne"
-                                        name="referenceArticle">
-                                </select>
-
-                                {#{{ form.select("referenceArticle", trans('Stock', 'Références', 'référence', false), true, {
+                                {{ form.select("referenceArticle", trans('Stock', 'Références', 'référence'), true, {
+                                    type: "reference",
                                     attributes: {
-                                        id: "reception-add-ligne",
-                                        onChange: "articleChanged($(this))",
+                                        onchange: "articleChanged($(this))",
+                                        "data-other-params-active-only": 1,
                                     }
-                                }) }}#}
+                                }) }}
                             </div>
 
                             {% if hasRight(constant('App\\Entity\\Menu::ORDRE'), constant('App\\Entity\\Action::CREATE_REF_FROM_RECEP')) %}
@@ -100,7 +89,7 @@
                             step: 0.001,
                         }) }}
                     </div>
-                    <div class="form-group col-md-6 col-12">
+                    <div class="form-group col-12">
                         {{ form.checkbox("anomalie", "Anomalie", false) }}
                     </div>
                     <div class="form-group col-12">
