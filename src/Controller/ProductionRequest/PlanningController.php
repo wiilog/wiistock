@@ -138,7 +138,11 @@ class PlanningController extends AbstractController {
                 FixedFieldEnum::lineCount->name,
                 FixedFieldEnum::projectNumber->name,
                 FixedFieldEnum::comment->name,
-                FixedFieldEnum::attachments->name
+                FixedFieldEnum::attachments->name,
+                FixedFieldEnum::productArticleCode->name,
+                FixedFieldEnum::manufacturingOrderNumber->name,
+                FixedFieldEnum::dropLocation->name,
+                FixedFieldEnum::quantity->name,
             ]))
                 ->keymap(static fn(FixedField $fixedField) => [
                     $fixedField->getFieldCode(),
@@ -146,21 +150,36 @@ class PlanningController extends AbstractController {
                 ])
                 ->toArray();
 
+
+            $isfieldDisplayed = static function (array $field) use ($fixedFields) {
+                $fieldCode = ($field["field"]?? null )?->name;
+                $fixedField = $fixedFields[$fieldCode] ?? null;
+                return $fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit();
+            };
+
+            $formatField = static fn(array $field) => [
+                $field['field']->name,
+                $field['value']
+            ];
+
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
+                ->keymap(function (ProductionRequest $productionRequest) use ($formatField, $isfieldDisplayed, $formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
                     $fields = Stream::from([
-                        FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
-                        FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-                        FixedFieldEnum::attachments->name => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
+                        [
+                            "field" => FixedFieldEnum::lineCount,
+                            "value" => $productionRequest->getLineCount(),
+                        ],
+                        [
+                            "field" => FixedFieldEnum::projectNumber,
+                            "value" => $productionRequest->getProjectNumber(),
+                        ],
+                        [
+                            "field" => FixedFieldEnum::attachments,
+                            "value" => $this->getFormatter()->bool(!$productionRequest->getAttachments()->isEmpty()),
+                        ],
                     ])
-                        ->filter(static function (mixed $_, string $fieldCode) use ($fixedFieldRepository, $fixedFields) {
-                            $fixedField = $fixedFields[$fieldCode] ?? null;
-                            return $fixedField->isDisplayedCreate() || $fixedField->isDisplayedEdit();
-                        })
-                        ->keymap(static fn(mixed $value, string $field) => [
-                            FixedFieldEnum::fromCase($field) ?: $field,
-                            $value
-                        ])
+                        ->filter($isfieldDisplayed)
+                        ->keymap($formatField)
                         ->concat( // concat fixedField with freeField
                             Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
                                 ->keymap(static fn(FreeField $freeField) => [
@@ -172,6 +191,28 @@ class PlanningController extends AbstractController {
                         ->filter(static fn(mixed $value) => !in_array($value, [null, ""]))
                         ->toArray();
 
+                    $mainFields = Stream::from([
+                        [
+                            "field" => FixedFieldEnum::productArticleCode,
+                            "value" => $productionRequest->getProductArticleCode(),
+                        ],
+                        [
+                            "field" => FixedFieldEnum::manufacturingOrderNumber,
+                            "value" => $productionRequest->getManufacturingOrderNumber(),
+                        ],
+                        [
+                            "field" => FixedFieldEnum::dropLocation,
+                            "value" => $formatService->location($productionRequest->getDropLocation()),
+                        ],
+                        [
+                            "field" => FixedFieldEnum::quantity,
+                            "value" => $productionRequest->getQuantity(),
+                        ],
+                    ])
+                        ->filter($isfieldDisplayed)
+                        ->keymap($formatField)
+                        ->toArray();
+
                     return [
                         $productionRequest->getExpectedAt()->format('Y-m-d'),
                         $this->renderView('production_request/planning/card.html.twig', [
@@ -179,6 +220,7 @@ class PlanningController extends AbstractController {
                             "color" => $productionRequest->getType()->getColor() ?: Type::DEFAULT_COLOR,
                             "inPlanning" => true,
                             "fields" => $fields,
+                            "mainFields" => $mainFields,
                             "external" => $external,
                         ])
                     ];
