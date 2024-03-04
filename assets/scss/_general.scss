@@ -960,7 +960,7 @@ label.required:after {
     height: 17px;
 }
 
-.wii-icon-check-white ,.wii-icon-check {
+.wii-icon-check-white, .wii-icon-check {
     display: inline-block;
     background: $white;
     width: 17px;
@@ -1435,7 +1435,7 @@ label.required:after {
     }
 }
 
-.w-max-50{
+.w-max-50 {
     max-width: 50%;
 }
 
@@ -1521,6 +1521,7 @@ label.required:after {
             border: 2px solid transparent;
             font-size: 14px;
         }
+
         .logistic-unit-entry {
             border-color: $green;
         }
@@ -1636,4 +1637,12 @@ label.required:after {
 .copyable {
     text-decoration: underline;
     cursor: pointer;
+}
+
+.text-color-auto {
+    filter: invert(1) grayscale(1) contrast(1000);
+    color: transparent;
+    background: inherit;
+    -webkit-background-clip: text;
+    background-clip: text;
 }

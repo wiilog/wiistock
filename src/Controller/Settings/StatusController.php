@@ -40,9 +40,7 @@ class StatusController extends AbstractController
     const MODE_HANDLING = 'handling';
     const MODE_PRODUCTION = 'production';
 
-    /**
-     * @Route("/statuses-api", name="settings_statuses_api", options={"expose"=true})
-     */
+    #[Route("/statuses-api", name: "settings_statuses_api", options: ["expose" => true])]
     public function statusesApi(Request                $request,
                                 UserService            $userService,
                                 StatusService          $statusService,
@@ -110,6 +108,7 @@ class StatusController extends AbstractController
                 : "";
 
             $groupedSignatureColor = $status->getGroupedSignatureColor() ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
+            $color = $status->getColor();
             if ($edit) {
                 $stateOptions = $statusService->getStatusStatesOptions($mode, $status->getState(), true);
                 $groupedSignatureTypes = $dispatchService->getGroupedSignatureTypes($status->getGroupedSignatureType());
@@ -152,7 +151,18 @@ class StatusController extends AbstractController
                     "sendReport" => "<div class='checkbox-container'><input type='checkbox' name='sendReport' class='form-control data' {$sendReport}/></div>",
                     "overconsumptionBillGenerationStatus" => "<div class='checkbox-container'><input type='checkbox' name='overconsumptionBillGenerationStatus' class='form-control data' {$overconsumptionBillGenerationStatus}/></div>",
                     "groupedSignatureType" => "<select name='groupedSignatureType' class='data form-control select-size'>{$groupedSignatureTypes}</select>",
-                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
+                    "groupedSignatureColor" => "<input type='color' class='form-control wii-color-picker data' name='groupedSignaturecolor' value='{$groupedSignatureColor}' list='type-color' {$disabledMobileSyncAndColor}/>
+                        <datalist id='type-color'>
+                            <option>#D76433</option>
+                            <option>#D7B633</option>
+                            <option>#A5D733</option>
+                            <option>#33D7D1</option>
+                            <option>#33A5D7</option>
+                            <option>#3353D7</option>
+                            <option>#6433D7</option>
+                            <option>#D73353</option>
+                        </datalist>",
+                    "color" => "<input type='color' class='form-control wii-color-picker data' name='color' value='{$color}' list='type-color'/>
                         <datalist id='type-color'>
                             <option>#D76433</option>
                             <option>#D7B633</option>
@@ -190,6 +200,7 @@ class StatusController extends AbstractController
                     "overconsumptionBillGenerationStatus" => $this->formatService->bool($status->getOverconsumptionBillGenerationStatus()),
                     "groupedSignatureType" => $status->getGroupedSignatureType(),
                     "groupedSignatureColor" => "<div class='dt-type-color' style='background: {$groupedSignatureColor}'></div>",
+                    "color" => "<div class='dt-type-color' style='background: {$color}'></div>",
                     "needsMobileSync" => $this->formatService->bool(!in_array($status->getState(), [Statut::DRAFT, Statut::TREATED]) && $status->getNeedsMobileSync()),
                     "commentNeeded" => $this->formatService->bool($status->getCommentNeeded()),
                     "automaticReceptionCreation" => $this->formatService->bool($status->getAutomaticReceptionCreation()),
