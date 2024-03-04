@@ -27,7 +27,6 @@ class StatutRepository extends EntityRepository {
         return $query
             ->addSelect("status.id AS id")
             ->addSelect("status.nom AS text")
-            ->addSelect("status.color AS color")
             ->addSelect("status.requiredAttachment AS requiredAttachment")
             ->andWhere("status.nom LIKE :term")
             ->setParameter("term", "%$term%")
