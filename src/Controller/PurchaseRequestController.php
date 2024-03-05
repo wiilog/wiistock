@@ -130,7 +130,8 @@ class PurchaseRequestController extends AbstractController
                 "Référence",
                 "Code barre",
                 "Libellé",
-                "Fournisseur"
+                "Fournisseur",
+                "Prix unitaire",
             ];
 
             return $CSVExportService->streamResponse(
