@@ -228,7 +228,7 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
         },
         {
             data: `order`,
-            title: `Ordre`,
+            title: `<div class='small-column'>Ordre</div>`,
             class: `maxw-70px`,
             required: true
         },
