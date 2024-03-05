@@ -190,6 +190,8 @@ class ReferenceArticleRepository extends EntityRepository {
             ->addSelect('reference.barCode AS barCode')
             ->addSelect('type.id AS typeId')
             ->addSelect('reference.dangerousGoods AS dangerous')
+            ->addSelect('reference.isUrgent AS urgent')
+            ->addSelect('reference.emergencyComment AS emergencyComment')
             ->orHaving("text LIKE :term")
             ->andWhere("status.code != :draft")
             ->leftJoin("reference.statut", "status")
@@ -1250,7 +1252,7 @@ class ReferenceArticleRepository extends EntityRepository {
         return $quantityByReferences
             ->concat(
                 Stream::from($referencesByQuantityManagement[ReferenceArticle::QUANTITY_TYPE_REFERENCE] ?? [])
-                    ->keymap(fn(ReferenceArticle $referenceArticle) => $referenceArticle->getQuantiteStock()),
+                    ->keymap(fn(ReferenceArticle $referenceArticle) => [$referenceArticle->getId(), $referenceArticle->getQuantiteStock()]),
                 true
             )
             ->toArray();

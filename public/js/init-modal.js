@@ -445,8 +445,33 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\n/g, ' ')
             .trim();
 
+        let validityMessage;
+
+        if ($input.is(':invalid')) {
+            const htmlValidity = $input.get(0).validity;
+
+            if (htmlValidity && !htmlValidity.valid) {
+                // Object.keys doesn't work with HTML validty object ValidityState
+                const validityKeys = [];
+                for(const key in htmlValidity){
+                    if (key !== 'valid') {
+                        validityKeys.push(key);
+                    }
+                }
+                validityMessage = validityKeys
+                    .filter((key) => htmlValidity[key])
+                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
+                    .filter((message) => message)
+                    .join('<br/>');
+            }
+        }
+
+        if (validityMessage) {
+            $isInvalidElements.push($input);
+            errorMessages.push(validityMessage);
+        }
         // validation données obligatoires
-        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
+        else if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
@@ -472,28 +497,6 @@ function processInputsForm($modal, data, isAttachmentForm) {
             $isInvalidElements.push($input);
             if ($input.is(':not(input)')) {
                 $isInvalidElements.push($input.parent());
-            }
-        } else if ($input.is(':invalid')) {
-            const htmlValidity = $input.get(0).validity;
-
-            if (htmlValidity && !htmlValidity.valid) {
-                // Object.keys doesn't work with HTML validty object ValidityState
-                const validityKeys = [];
-                for(const key in htmlValidity){
-                    if (key !== 'valid') {
-                        validityKeys.push(key);
-                    }
-                }
-                const message = validityKeys
-                    .filter((key) => htmlValidity[key])
-                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
-                    .filter((message) => message)
-                    .join('<br/>');
-
-                if (message) {
-                    $isInvalidElements.push($input);
-                    errorMessages.push(message);
-                }
             }
         }
         // validation valeur des inputs de type password
@@ -791,12 +794,14 @@ function processDataArrayForm($modal, data) {
         const $input = $(this);
         const type = $input.attr('type')
         const name = $input.attr('name');
+
         let val = type === 'number'
             ? Number($input.val())
             : ($input.hasClass('phone-number')
                     ? $input.data('iti').getNumber()
                     : $input.val()
             );
+
         if ($input.data('id')) {
             if (val) {
                 if (!dataArray[name]) {

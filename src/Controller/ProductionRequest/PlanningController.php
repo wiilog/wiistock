@@ -66,6 +66,7 @@ class PlanningController extends AbstractController {
     #[HasPermission([Menu::PRODUCTION, Action::DISPLAY_PRODUCTION_REQUEST_PLANNING], mode: HasPermission::IN_JSON)]
     public function api(EntityManagerInterface $entityManager,
                         LanguageService        $languageService,
+                        FormatService          $formatService,
                         Request                $request): Response {
         $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
@@ -146,7 +147,7 @@ class PlanningController extends AbstractController {
                 ->toArray();
 
             $cards = Stream::from($productionRequests)
-                ->keymap(function (ProductionRequest $productionRequest) use ($fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
+                ->keymap(function (ProductionRequest $productionRequest) use ($formatService, $fixedFieldRepository, $freeFieldRepository, $userLanguage, $defaultLanguage, $freeFieldsByType, $fixedFields, $external) {
                     $fields = Stream::from([
                         FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
                         FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
@@ -164,7 +165,7 @@ class PlanningController extends AbstractController {
                             Stream::from($freeFieldsByType[$productionRequest->getType()->getId()] ?? [])
                                 ->keymap(static fn(FreeField $freeField) => [
                                     $freeField->getLabelIn($userLanguage, $defaultLanguage),
-                                    $productionRequest->getFreeFieldValue($freeField->getId())
+                                    $formatService->freeField($productionRequest->getFreeFieldValue($freeField->getId()), $freeField)
                                 ])
                         )
                         // remove element without values
@@ -291,51 +292,6 @@ class PlanningController extends AbstractController {
 
         return $this->json([
             "success" => true,
-        ]);
-    }
-    #[Route("/{productionRequest}/update-status-content", name: "update_status_content", options: ["expose" => true], methods: "GET")]
-    public function productionRequestUpdateStatusContent(EntityManagerInterface $entityManager,
-                                                         ProductionRequest      $productionRequest): JsonResponse {
-        $fixedFieldRepository = $entityManager->getRepository(FixedFieldStandard::class);
-
-        $html = $this->renderView('production_request/planning/update-status-form.html.twig', [
-            "productionRequest" => $productionRequest,
-            "fieldsParam" => $fixedFieldRepository->getByEntity(FixedFieldStandard::ENTITY_CODE_PRODUCTION),
-        ]);
-
-        return $this->json([
-            "success" => true,
-            "html" => $html
-        ]);
-    }
-
-    #[Route("/{productionRequest}/update-status", name: "update_status", options: ["expose" => true], methods: self::POST)]
-    public function updateStatus(EntityManagerInterface   $entityManager,
-                                 ProductionRequest        $productionRequest,
-                                 Request                  $request,
-                                 ProductionRequestService $productionRequestService): JsonResponse {
-
-        $productionRequestService->checkRoleForEdition($productionRequest);
-
-        $currentUser = $this->getUser();
-
-        $inputBag = new InputBag([
-            FixedFieldEnum::status->name => $request->request->get(FixedFieldEnum::status->name),
-            FixedFieldEnum::comment->name => $request->request->get(FixedFieldEnum::comment->name),
-        ]);
-
-        $oldStatus = $productionRequest->getStatus();
-        $productionRequestService->updateProductionRequest($entityManager, $productionRequest, $currentUser, $inputBag, $request->files);
-
-        $entityManager->flush();
-
-        if($oldStatus->getId() !== $productionRequest->getStatus()->getId()) {
-            $productionRequestService->sendUpdateStatusEmail($productionRequest);
-        }
-
-        return $this->json([
-            "success" => true,
-            "msg" => "La demande de production a été modifiée avec succès.",
         ]);
     }
 }

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="(4) Doctrine migrations" type="ShConfigurationType">
-    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console doctrine:migrations:migrate -vvv --no-interaction" />
+  <configuration default="false" name="(9) Translations" type="ShConfigurationType">
+    <option name="SCRIPT_TEXT" value="docker exec wiistock_app php bin/console app:update:translations" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="/usr/bin/docker" />
     <option name="SCRIPT_OPTIONS" value="exec -it wiistock_app bash" />

@@ -23,11 +23,11 @@
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
             <div class="{{ emergency ? 'col-8' : 'col-12' }}">
-                <div class="rounded px-2 py-1 d-inline-block bg-white {{ canUpdateStatus ? "prevent-default" }}"
-                     {% if canUpdateStatus %}
-                        onclick="openModalUpdateProductionRequestStatus($(this))"
-                     {% endif %}>
-                    {{ productionRequest.status|format_helper("status") }}
+                <div class="rounded px-2 py-1 d-inline-block {{ canUpdateStatus ? "prevent-default" }} {{ canUpdateStatus  ? "open-modal-update-production-request-status"}}"
+                        style="background-color: {{ productionRequest.status.color ?? 'white' }}">
+                    <span class="text-color-auto">
+                        {{ productionRequest.status|format_helper("status") }}
+                    </span>
                 </div>
                 <div class="mt-1">
                     <span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
