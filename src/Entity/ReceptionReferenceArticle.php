@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ReceptionReferenceArticleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ReceptionReferenceArticleRepository::class)]
@@ -55,6 +56,9 @@ class ReceptionReferenceArticle {
 
     #[ORM\OneToMany(mappedBy: 'receptionReferenceArticle', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
+    private ?float $unitPrice = null;
 
     public function __construct() {
         $this->articles = new ArrayCollection();
@@ -239,6 +243,16 @@ class ReceptionReferenceArticle {
             !$this->articles->isEmpty()
             || ($this->quantite && $this->quantite > 0)
         );
+    }
+
+    public function getUnitPrice(): ?float {
+        return $this->unitPrice;
+    }
+
+    public function setUnitPrice(?float $unitPrice): self {
+        $this->unitPrice = $unitPrice;
+
+        return $this;
     }
 
 }

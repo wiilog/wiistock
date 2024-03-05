@@ -1134,11 +1134,13 @@ class ReferenceArticleController extends AbstractController
                 ->setObjet($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_OBJECT))
                 ->setstockOrDestruct($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_DESTINATION));
 
+            $newQuantity = $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?: 1;
+
             $collecteReference = new CollecteReference();
             $collecteReference
                 ->setCollecte($collecte)
                 ->setReferenceArticle($reference)
-                ->setQuantite($settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_ARTICLE_QUANTITY_TO_COLLECT) ?? 1);
+                ->setQuantite($newQuantity);
             $entityManager->persist($collecteReference);
             $collecte->addCollecteReference($collecteReference);
             $entityManager->persist($collecte);
@@ -1160,7 +1162,7 @@ class ReferenceArticleController extends AbstractController
                     'emplacement' => $settingRepository->getOneParamByLabel(Setting::COLLECT_REQUEST_POINT_COLLECT),
                     'articleFournisseur' => $supplierArticle->getId(),
                     'libelle' => $reference->getLibelle(),
-                    'quantite' => 1,
+                    'quantite' => $newQuantity,
                 ]);
                 $article
                     ->setReference($reference->getReference())
@@ -1170,7 +1172,7 @@ class ReferenceArticleController extends AbstractController
             } else {
                 $article = $entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data['article']]);
                 $article
-                    ->setQuantite(1)
+                    ->setQuantite($newQuantity)
                     ->setCreatedOnKioskAt($date);
             }
 

@@ -6,6 +6,7 @@ import Select2 from "@app/select2";
 import Modal from "@app/modal";
 import Flash, {ERROR} from "@app/flash";
 import {LOADING_CLASS} from "@app/loading";
+import FixedFieldEnum from "@generated/fixed-field-enum";
 
 let modalNewLigneReception = "#modalNewLigneReception";
 let $modalNewLigneReception = $(modalNewLigneReception);
@@ -15,18 +16,18 @@ let tableHistoLitige;
 let receptionDisputesDatatable;
 let articleSearch;
 
-window.initNewArticleEditor = initNewArticleEditor;
+window.initNewReceptionReferenceArticle = initNewReceptionReferenceArticle;
 window.openModalNewReceptionReferenceArticle = openModalNewReceptionReferenceArticle;
 window.finishReception = finishReception;
 window.onRequestTypeChange = onRequestTypeChange;
 window.demandeurChanged = demandeurChanged;
-window.addArticle = addArticle;
 window.articleChanged = articleChanged;
 window.openModalArticlesFromLigneArticle = openModalArticlesFromLigneArticle;
 window.openTableHisto = openTableHisto;
 window.getCommentAndAddHisto = getCommentAndAddHisto;
 window.editRowLitigeReception = editRowLitigeReception;
 window.initEditReception = initEditReception;
+window.updateQuantityToReceive = updateQuantityToReceive;
 
 $(function () {
     $('.select2').select2();
@@ -95,34 +96,6 @@ $(function () {
     });
 });
 
-function initNewReferenceArticleEditor($modal) {
-    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseur'));
-    Select2Old.provider($modal.find('.ajax-autocomplete-fournisseurLabel'), '', 'demande_label_by_fournisseur');
-    Select2Old.location($modal.find('.ajax-autocomplete-location'));
-    let modalRefArticleNew = $("#new-ref-inner-body");
-    let submitNewRefArticle = $("#submitNewRefArticleFromRecep");
-    let urlRefArticleNew = Routing.generate('reference_article_new', true);
-    InitModal(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, {
-        keepModal: true,
-        success: ({success, data}) => {
-            if (success && data) {
-                let option = new Option(data.reference, data.id, true, true);
-                $('#reception-add-ligne').append(option).trigger('change');
-            }
-        }
-    });
-}
-
-function addArticle() {
-    let path = Routing.generate('get_modal_new_ref', true);
-    $.post(path, {}, function (modalNewRef) {
-        $('#reception-add-ligne').val(null).trigger('change');
-        const $modal = $('#innerNewRef');
-        $modal.html(modalNewRef);
-        initNewReferenceArticleEditor($modal);
-    });
-}
-
 function initPageModals() {
     let $modalNewReceptionReferenceArticle = $("#modalNewReceptionReferenceArticle");
     let $submitAddLigneArticle = $modalNewReceptionReferenceArticle.find("[type=submit]");
@@ -152,7 +125,6 @@ function initPageModals() {
 
             setTimeout(() => SetRequestQuery({}), 1);
         }
-        Select2Old.articleReference($select);
     });
 
     let $modalDeleteReceptionReferenceArticle = $("#modalDeleteReceptionReferenceArticle");
@@ -396,26 +368,19 @@ function initModalCondit(tableFromArticle) {
     });
 }
 
-function initNewArticleEditor(modal, options = {}) {
+function initNewReceptionReferenceArticle(modal, options = {}) {
     const $modal = $(modal);
-    let $select2refs = $modal.find('[name="referenceArticle"]');
-
-    Select2.destroy($select2refs);
-    Select2Old.articleReference($select2refs);
 
     clearModal(modal);
 
     const $button = $('#addArticleLigneSubmitAndRedirect');
     $button.addClass('d-none');
 
-    let $quantiteRecue =  $('#quantiteRecue');
-    let $quantiteAR = $('#quantiteAR');
-    $quantiteRecue.prop('disabled', true);
-    $quantiteRecue.val(0);
-    $quantiteAR.val(0);
+    const $referenceArticle = $modal.find('[name="referenceArticle"]');
+    $referenceArticle.trigger('change');
 
     setTimeout(() => {
-        Select2Old.open($select2refs);
+        $referenceArticle.select2(`open`);
     }, 400);
 
     if (options['unitCode'] && options['unitId']) {
@@ -443,10 +408,10 @@ function articleChanged($select) {
     let $addArticleLigneSubmit = $modalNewReceptionReferenceArticle.find("[type=submit]");
 
     if (selectedReference.length > 0) {
-        const {typeQuantity, urgent, emergencyComment} = selectedReference[0];
+        const {typeQuantite, urgent, emergencyComment} = selectedReference[0];
 
         $addArticleLigneSubmit.prop(`disabled`, false);
-        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantity !== `article`)
+        $addArticleAndRedirectSubmit.toggleClass(`d-none`, typeQuantite !== `article`)
 
         const $emergencyContainer = $(`.emergency`);
         const $emergencyCommentContainer =  $(`.emergency-comment`);
@@ -804,7 +769,7 @@ function loadReceptionLines({start, search} = {}) {
         () => (
             AJAX.route(GET, 'reception_lines_api', params)
                 .json()
-                .then(data => {
+                .then((data) => {
                     $logisticUnitsContainer.html(data.html);
                     $logisticUnitsContainer.find('.articles-container table')
                         .each(function() {
@@ -821,6 +786,7 @@ function loadReceptionLines({start, search} = {}) {
                                     {data: 'orderNumber', title: 'Commande'},
                                     {data: 'quantityToReceive', title: 'À recevoir'},
                                     {data: 'receivedQuantity', title: 'Reçu'},
+                                    {data: FixedFieldEnum.unitPrice.name, title: FixedFieldEnum.unitPrice.value},
                                     {data: 'emergency', visible: false},
                                     {data: 'comment', visible: false},
                                 ],

@@ -421,7 +421,7 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => {
+$(() => {
     $(`[data-s2]`).each((id, elem) => {
         Select2.proceed($(elem))
     });
