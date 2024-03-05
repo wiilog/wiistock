@@ -93,7 +93,7 @@ class MouvementStockService
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $refArticleCheck,
             'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
-            'quantite' => $this->getRowConfigForDatatableMvtStockQuantity($mouvement),
+            'quantite' => $this->formatHTMLQuantity($mouvement),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
@@ -110,7 +110,7 @@ class MouvementStockService
      * @param MouvementStock $mouvementStock
      * @return array {html: string}
      */
-    public function getRowConfigForDatatableMvtStockQuantity(MouvementStock $mouvementStock): string
+    public function formatHTMLQuantity(MouvementStock $mouvementStock): string
     {
         $type = $mouvementStock->getType();
         $quantity = $mouvementStock->getQuantity();
@@ -121,7 +121,11 @@ class MouvementStockService
             MouvementStock::TYPE_SORTIE => 'red',
         ];
 
-        $operator = $type === MouvementStock::TYPE_SORTIE ? '-' : '+';
+        $operator = match($type) {
+            MouvementStock::TYPE_ENTREE => '+',
+            MouvementStock::TYPE_SORTIE => '-',
+            default => ''
+        };
 
         return "<span style='font-weight: bold; color: {$colors[$type]};'>{$operator}{$quantity}</span>";
 
