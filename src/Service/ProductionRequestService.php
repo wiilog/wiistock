@@ -185,21 +185,6 @@ class ProductionRequestService
         return $row;
     }
 
-    public function getCurrentProductionRequestValues(ProductionRequest $productionRequest): array {
-        return [
-            FixedFieldEnum::status->name => $productionRequest->getStatus(),
-            FixedFieldEnum::comment->name => $productionRequest->getComment(),
-            FixedFieldEnum::dropLocation->name => $productionRequest->getDropLocation(),
-            FixedFieldEnum::manufacturingOrderNumber->name => $productionRequest->getManufacturingOrderNumber(),
-            FixedFieldEnum::emergency->name => $productionRequest->getEmergency(),
-            FixedFieldEnum::expectedAt->name => $productionRequest->getExpectedAt(),
-            FixedFieldEnum::projectNumber->name => $productionRequest->getProjectNumber(),
-            FixedFieldEnum::productArticleCode->name => $productionRequest->getProductArticleCode(),
-            FixedFieldEnum::quantity->name => $productionRequest->getQuantity(),
-            FixedFieldEnum::lineCount->name => $productionRequest->getLineCount(),
-        ];
-    }
-
     public function updateProductionRequest(EntityManagerInterface $entityManager,
                                             ProductionRequest      $productionRequest,
                                             Utilisateur            $currentUser,
@@ -208,7 +193,7 @@ class ProductionRequestService
         $typeRepository = $entityManager->getRepository(Type::class);
         $statusRepository = $entityManager->getRepository(Statut::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
-        $oldValues = $this->getCurrentProductionRequestValues($productionRequest);
+        $oldValues = $productionRequest->serialize();
         $now = new DateTime();
 
         if(!$productionRequest->getId()){

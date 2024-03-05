@@ -2060,14 +2060,19 @@ class ImportService
     }
 
     private function importProductionEntity(array $data, array &$stats, Utilisateur $user): void {
+        $productionRequestRepository = $this->entityManager->getRepository(ProductionRequest::class);
+        $typeRepository = $this->entityManager->getRepository(Type::class);
+        $statusRepository = $this->entityManager->getRepository(Statut::class);
+        $locationRepository = $this->entityManager->getRepository(Emplacement::class);
+
         $now = new DateTime();
-        $existingProductionRequest = $this->entityManager->getRepository(ProductionRequest::class)->findOneBy([FixedFieldEnum::manufacturingOrderNumber->name => $data[FixedFieldEnum::manufacturingOrderNumber->name]]);
+        $existingProductionRequest = $productionRequestRepository->findOneBy(["manufacturingOrderNumber" => $data[FixedFieldEnum::manufacturingOrderNumber->name]]);
         $productionRequest = ($existingProductionRequest && $existingProductionRequest->getStatus()->isNotTreated())
             ? $existingProductionRequest
             : new ProductionRequest();
 
         $oldValues = $existingProductionRequest
-            ? $this->productionRequestService->getCurrentProductionRequestValues($productionRequest)
+            ? $productionRequest->serialize()
             : [];
 
         if (!$existingProductionRequest) {
@@ -2076,19 +2081,12 @@ class ImportService
             $productionRequest
                 ->setNumber($number)
                 ->setCreatedAt($now)
-                ->setCreatedBy($user);
-        }
+                ->setCreatedBy($user)
+                ->setManufacturingOrderNumber($data[FixedFieldEnum::manufacturingOrderNumber->name]);
 
-        if (isset($data[FixedFieldEnum::manufacturingOrderNumber->name])) {
-            if(!$existingProductionRequest) {
-                $productionRequest->setManufacturingOrderNumber($data[FixedFieldEnum::manufacturingOrderNumber->name]);
-            }
-        }
+            if (isset($data[FixedFieldEnum::type->name])) {
+                $type = $typeRepository->findOneByCategoryLabelAndLabel(CategoryType::PRODUCTION, $data[FixedFieldEnum::type->name]);
 
-        if (isset($data[FixedFieldEnum::type->name])) {
-            $type = $this->entityManager->getRepository(Type::class)->findOneByCategoryLabelAndLabel(CategoryType::PRODUCTION, $data[FixedFieldEnum::type->name]);
-
-            if (!$existingProductionRequest) {
                 if ($type) {
                     $productionRequest->setType($type);
                 } else {
@@ -2098,7 +2096,7 @@ class ImportService
         }
 
         if (isset($data[FixedFieldEnum::status->name])) {
-            $status = $this->entityManager->getRepository(Statut::class)->findOneBy([
+            $status = $statusRepository->findOneBy([
                 "nom" => $data[FixedFieldEnum::status->name],
                 "type" => $productionRequest->getType(),
             ]);
@@ -2131,10 +2129,8 @@ class ImportService
                 }
             }
 
-            if ($expectedAt) {
-                if (!$existingProductionRequest || $productionRequest->getStatus()->isNotTreated()) {
-                    $productionRequest->setExpectedAt($expectedAt);
-                }
+            if ($expectedAt && (!$existingProductionRequest || $productionRequest->getStatus()->isNotTreated())) {
+                $productionRequest->setExpectedAt($expectedAt);
             } else {
                 $this->throwError("Le format de la date attendue n'est pas valide.");
             }
@@ -2153,7 +2149,7 @@ class ImportService
         }
 
         if (isset($data[FixedFieldEnum::dropLocation->name])) {
-            $dropLocation = $this->entityManager->getRepository(Emplacement::class)->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
+            $dropLocation = $locationRepository->findOneBy(["label" => $data[FixedFieldEnum::dropLocation->name]]);
             if ($dropLocation) {
                 $productionRequest->setDropLocation($dropLocation);
             } else {
@@ -2489,8 +2485,7 @@ class ImportService
         $fieldsToAssociate = $fieldsToAssociate
             ->keymap(static fn(string $key) => [
                 $key,
-                FixedFieldEnum::fromCase($key)
-                    ?: Import::FIELDS_ENTITY[$entityCode][$key]
+                Import::FIELDS_ENTITY[$entityCode][$key]
                     ?? Import::FIELDS_ENTITY['default'][$key]
                     ?? $key,
             ])

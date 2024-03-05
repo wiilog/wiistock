@@ -235,6 +235,19 @@ class Import {
 
             'securityQuantity' => 'Quantité de sécurité',
             'conditioningQuantity' => 'Quantité de conditionnement',
+
+            FixedFieldEnum::createdBy->name => FixedFieldEnum::createdBy->value,
+            FixedFieldEnum::type->name => FixedFieldEnum::type->value,
+            FixedFieldEnum::status->name => FixedFieldEnum::status->value,
+            FixedFieldEnum::expectedAt->name => FixedFieldEnum::expectedAt->value,
+            FixedFieldEnum::dropLocation->name => FixedFieldEnum::dropLocation->value,
+            FixedFieldEnum::lineCount->name => FixedFieldEnum::lineCount->value,
+            FixedFieldEnum::manufacturingOrderNumber->name => FixedFieldEnum::manufacturingOrderNumber->value,
+            FixedFieldEnum::productArticleCode->name => FixedFieldEnum::productArticleCode->value,
+            FixedFieldEnum::quantity->name => FixedFieldEnum::quantity->value,
+            FixedFieldEnum::emergency->name => FixedFieldEnum::emergency->value,
+            FixedFieldEnum::projectNumber->name => FixedFieldEnum::projectNumber->value,
+            FixedFieldEnum::comment->name => FixedFieldEnum::comment->value,
         ],
 
         self::ENTITY_CUSTOMER => [
