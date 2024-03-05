@@ -140,6 +140,9 @@ class Statut {
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['default' => Statut::GROUPED_SIGNATURE_DEFAULT_COLOR])]
     private ?string $groupedSignatureColor = Statut::GROUPED_SIGNATURE_DEFAULT_COLOR;
 
+    #[ORM\Column(type: Types::STRING, length: 7, nullable: true)]
+    private ?string $color = null;
+
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
     private ?bool $displayedOnSchedule = null;
 
@@ -862,6 +865,18 @@ class Statut {
     public function setGroupedSignatureColor(?string $groupedSignatureColor): self
     {
         $this->groupedSignatureColor = $groupedSignatureColor;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): self
+    {
+        $this->color = $color;
 
         return $this;
     }

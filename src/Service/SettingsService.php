@@ -1052,14 +1052,15 @@ class SettingsService {
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
-                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false);
+                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
+                        ->setColor($statusData['color'] ?? null);
 
                     if($hasRightGroupedSignature){
                         $status
                             ->setSendReport($statusData['sendReport'] ?? false)
                             ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                             ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
+                            ->setGroupedSignatureColor($statusData['groupedSignatureColor'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
                     }
 
                     // label given on creation or edit is the French one
