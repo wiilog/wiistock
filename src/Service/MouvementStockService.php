@@ -115,7 +115,7 @@ class MouvementStockService
         $type = $mouvementStock->getType();
         $quantity = $mouvementStock->getQuantity();
 
-        $colors = match ($type) {
+        $color = match ($type) {
             MouvementStock::TYPE_ENTREE => 'green',
             MouvementStock::TYPE_SORTIE => 'red',
             default => 'black'
@@ -127,7 +127,7 @@ class MouvementStockService
             default => ''
         };
 
-        return "<span style='font-weight: bold; color: {$colors[$type]};'>{$operator}{$quantity}</span>";
+        return "<span style='font-weight: bold; color: {$color};'>{$operator}{$quantity}</span>";
 
     }
 
