@@ -1077,6 +1077,7 @@ class SettingsController extends AbstractController {
                 "label" => $type->getLabel(),
                 "value" => $type->getId(),
                 "iconUrl" => $type->getLogo()?->getFullPath(),
+                "color" => $type->getColor(),
             ])
             ->toArray();
 
