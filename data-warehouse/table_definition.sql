@@ -149,6 +149,7 @@ CREATE TABLE dw_reception
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
     arrivage_id              integer,
+    prix_unitaire            float
 );
 
 CREATE TABLE dw_reference_article
@@ -210,8 +211,7 @@ CREATE TABLE dw_service
     statut                       varchar(255),
     urgence                      varchar(255),
     delais_traitement_attendu    float,
-    delais_traitement_validation float,
-    prix_unitaire                float
+    delais_traitement_validation float
 );
 
 CREATE TABLE dw_service_champs_libres
