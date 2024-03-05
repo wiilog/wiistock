@@ -120,7 +120,8 @@ CREATE TABLE dw_mouvement_stock
     code_barre_reference varchar(255),
     date                 timestamp(0),
     emplacement_stock    varchar(255),
-    code_barre_article   varchar(255)
+    code_barre_article   varchar(255),
+    prix_unitaire        float
 );
 
 CREATE TABLE dw_reception
@@ -147,7 +148,7 @@ CREATE TABLE dw_reception
     urgence_reference        varchar(3),
     urgence_reception        varchar(3),
     numero_demande_achat     varchar(255),
-    arrivage_id              integer
+    arrivage_id              integer,
 );
 
 CREATE TABLE dw_reference_article
@@ -209,7 +210,8 @@ CREATE TABLE dw_service
     statut                       varchar(255),
     urgence                      varchar(255),
     delais_traitement_attendu    float,
-    delais_traitement_validation float
+    delais_traitement_validation float,
+    prix_unitaire                float
 );
 
 CREATE TABLE dw_service_champs_libres
@@ -477,7 +479,8 @@ CREATE TABLE dw_demande_achat
     numero_reception     varchar(255),
     fournisseur          varchar(255),
     date_commande        timestamp(0),
-    date_attendue        timestamp(0)
+    date_attendue        timestamp(0),
+    prix_unitaire        float
 );
 
 CREATE TABLE dw_litige
