@@ -117,6 +117,7 @@ class ReceptionRepository extends EntityRepository
             ->addSelect('reception.manualUrgent AS receptionEmergency')
             ->addSelect('reception.urgentArticles AS referenceEmergency')
             ->addSelect('join_storageLocation.label AS storageLocation')
+            ->addSelect('receptionReferenceArticle.unitPrice  AS receptionReferenceArticleUnitPrice')
 
             ->where('reception.date BETWEEN :dateMin AND :dateMax')
 

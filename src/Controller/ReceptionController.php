@@ -1631,6 +1631,7 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
                 'unité logistique',
+                'Prix unitaire',
             ];
             $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
@@ -1653,6 +1654,7 @@ class ReceptionController extends AbstractController {
                             $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
                             $row[] = $reception['articleBarcode'] ?: '';
                             $row[] = $reception['currentLogisticUnit'] ?: '';
+                            $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
 
                             $rows[] = $row;
                         }
@@ -1668,7 +1670,9 @@ class ReceptionController extends AbstractController {
                                 $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
                                 $row[] = $reception['referenceArticleTypeLabel'] ?: '';
                                 $row[] = $reception['referenceArticleBarcode'] ?: '';
+                                $row[] = '';
                                 $row[] = $reception['currentLogisticUnit'] ?: '';
+                                $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
 
                                 $rows[] = $row;
                             }
