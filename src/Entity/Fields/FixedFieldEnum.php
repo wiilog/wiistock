@@ -38,15 +38,4 @@ enum FixedFieldEnum: string
     case sendEmailToManagers = "Envoi d'email à chaque dépose aux responsables de l'emplacement";
     case managers = "Responsables";
     case unitPrice = "Prix unitaire";
-
-    public static function fromCase(string $case): string|null {
-        try {
-            return (new ReflectionEnum(self::class))
-                ->getCase($case)
-                ->getValue()
-                ->value;
-        } catch (ReflectionException) {
-            return null;
-        }
-    }
 }

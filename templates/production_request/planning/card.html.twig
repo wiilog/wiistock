@@ -12,34 +12,24 @@
 
 {% set emergency = productionRequest.emergency ?? null %}
 <a class="planning-card preparation-card {{ not external ? 'pointer' }} {{ canDrag ? "can-drag" }} has-tooltip"
-   {% if not external %}
-       href="{{ path('production_request_show', {id: productionRequest.id}) }}"
-       data-status="{{ productionRequest.status ? productionRequest.status.code }}"
-   {% endif %}
-   data-id="{{ productionRequest.id }}"
-   title="Attendu le {{ productionRequest.expectedAt|format_helper("longDate", {time: true, addAt: true}) }}"
->
+    {% if not external %}
+        href="{{ path('production_request_show', {id: productionRequest.id}) }}"
+        data-status="{{ productionRequest.status ? productionRequest.status.code }}"
+    {% endif %}
+    data-id="{{ productionRequest.id }}"
+    title="Attendu le {{ productionRequest.expectedAt|format_helper("longDate", {time: true, addAt: true}) }}">
     <div class="planning-card-wrapper"
          style="background: {{ color }}50; border-left-color: {{ color }};">
         <div class="row">
             <div class="{{ emergency ? 'col-8' : 'col-12' }}">
-                <div class="rounded px-2 py-1 d-inline-block bg-white {{ canUpdateStatus ? "prevent-default" }} {{ canUpdateStatus  ? "open-modal-update-production-request-status"}}">
+                <div class="rounded px-2 py-1 d-inline-block bg-white {{ canUpdateStatus ? "prevent-default" }} {{ canUpdateStatus ? "open-modal-update-production-request-status" }}">
                     {{ productionRequest.status|format_helper("status") }}
                 </div>
-                <div class="mt-1">
-                    <span class="font-weight-bold">{{ productionRequest.productArticleCode ?? "-" }}</span>
-                </div>
-                <div class="mt-1">
-                    <span class="font-weight-bold">{{ productionRequest.manufacturingOrderNumber ?? "-" }}</span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::dropLocation').value %}
-                <div class="mt-1">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.dropLocation|format_helper("location", "-") }}</span>
-                </div>
-                {% set fieldLabel = constant('App\\Entity\\Fields\\FixedFieldEnum::quantity').value %}
-                <div class="mt-1">
-                    {{ fieldLabel }}&nbsp;:&nbsp;<span class="font-weight-bold">{{ productionRequest.quantity ?? "-" }}</span>
-                </div>
+                {% for name, value in mainFields %}
+                    <div class="mt-1">
+                        {{ name }}&nbsp;:&nbsp;<span class="font-weight-bold ">{{ value }}</span>
+                    </div>
+                {% endfor %}
             </div>
             {% if emergency %}
                 <div class="col-4">
