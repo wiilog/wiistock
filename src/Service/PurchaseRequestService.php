@@ -110,6 +110,7 @@ class PurchaseRequestService
             $line['barcode'] ?? '',
             $line['label'] ?? '',
             $line['supplierName'] ?? '',
+            $line['purchaseRequestLineUnitPrice'] ?? '',
         ]);
     }
 
