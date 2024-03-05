@@ -93,9 +93,7 @@ class MouvementStockService
 			'date' => $mouvement->getDate() ? $mouvement->getDate()->format('d/m/Y H:i:s') : '',
 			'refArticle' => $refArticleCheck,
             'barCode' => $mouvement->getArticle() ? $mouvement->getArticle()->getBarCode() : $mouvement->getRefArticle()->getBarCode(),
-            'quantite' => $this->templating->render("mouvement_stock/datatableMvtStockQuantity.html.twig", [
-                "quantity"=>$mouvement->getQuantity(),
-                "type" =>$mouvement->getType()]),
+            'quantite' => $this->getRowConfigForDatatableMvtStockQuantity($mouvement),
 			'origine' => $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '',
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
@@ -105,6 +103,28 @@ class MouvementStockService
 				'mvt' => $mouvement,
 			])
 		];
+    }
+
+    /**
+     * Allow to get the configuration of one line of the datatable for the quantity of a stock movement
+     * @param MouvementStock $mouvementStock
+     * @return array {html: string}
+     */
+    public function getRowConfigForDatatableMvtStockQuantity(MouvementStock $mouvementStock): string
+    {
+        $type = $mouvementStock->getType();
+        $quantity = $mouvementStock->getQuantity();
+
+        $colors = [
+            MouvementStock::TYPE_TRANSFER => 'black',
+            MouvementStock::TYPE_ENTREE => 'green',
+            MouvementStock::TYPE_SORTIE => 'red',
+        ];
+
+        $operator = $type === MouvementStock::TYPE_SORTIE ? '-' : '+';
+
+        return "<span style='font-weight: bold; color: {$colors[$type]};'>{$operator}{$quantity}</span>";
+
     }
 
     public function getFromColumnConfig(MouvementStock $mouvement): array {
