@@ -115,11 +115,11 @@ class MouvementStockService
         $type = $mouvementStock->getType();
         $quantity = $mouvementStock->getQuantity();
 
-        $colors = [
-            MouvementStock::TYPE_TRANSFER => 'black',
+        $colors = match ($type) {
             MouvementStock::TYPE_ENTREE => 'green',
             MouvementStock::TYPE_SORTIE => 'red',
-        ];
+            default => 'black'
+        };
 
         $operator = match($type) {
             MouvementStock::TYPE_ENTREE => '+',
