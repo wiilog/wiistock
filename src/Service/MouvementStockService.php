@@ -124,10 +124,10 @@ class MouvementStockService
         $operator = match($type) {
             MouvementStock::TYPE_ENTREE => '+',
             MouvementStock::TYPE_SORTIE => '-',
-            default => ''
+            default => '&nbsp;'
         };
 
-        return "<span style='font-weight: bold; color: {$color};'>{$operator}{$quantity}</span>";
+        return "<span style='font-weight: bold; color: {$color};'>{$operator}&nbsp;{$quantity}</span>";
 
     }
 
