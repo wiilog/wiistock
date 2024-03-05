@@ -223,7 +223,7 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
         },
         {
             data: 'color',
-            title: 'Couleur',
+            title: `<div class='small-column'>Couleur</div>`,
             modes: [MODE_PRODUCTION],
         },
         {
