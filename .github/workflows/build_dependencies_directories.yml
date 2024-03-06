@@ -73,7 +73,7 @@ jobs:
                 run: apk add zip
 
             -   name: Zip node_modules
-                run: zip -r node_modules.zip node_modules
+                run: zip -r -y -qq node_modules.zip node_modules
 
             -   name: Upload js dependencies
                 uses: actions/upload-artifact@v2
