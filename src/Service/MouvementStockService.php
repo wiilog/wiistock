@@ -183,7 +183,8 @@ class MouvementStockService
             ->setUser($user)
             ->setEmplacementFrom($locationFrom)
             ->setType($type)
-            ->setQuantity($quantity);
+            ->setQuantity($quantity)
+            ->setUnitPrice($article->getPrixUnitaire());
 
         if($article instanceof Article) {
             $newMouvement->setArticle($article);

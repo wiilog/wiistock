@@ -1939,6 +1939,10 @@ class ReceptionController extends AbstractController {
             $quantityToReceive = intval($articleArray['quantityToReceive']);
             unset($articleArray['quantityToReceive']);
 
+            if ($receptionReferenceArticle->getUnitPrice() !== null) {
+                $articleArray["prix"] = $receptionReferenceArticle->getUnitPrice();
+            }
+
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {
                 $article = $articleDataService->newArticle($entityManager, $articleArray);
