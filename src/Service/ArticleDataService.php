@@ -152,9 +152,12 @@ class ArticleDataService
         return $data;
     }
 
+    /**
+     * @return Article[]
+     */
     public function findAndSortActiveArticlesByRefArticle(ReferenceArticle       $refArticle,
                                                           EntityManagerInterface $entityManager,
-                                                          ?Demande               $demande = null) {
+                                                          ?Demande               $demande = null): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
         $management = $refArticle->getStockManagement();
@@ -180,7 +183,8 @@ class ArticleDataService
                         return 1;
                     }
                     return 0;
-                })->toArray()
+                })
+                ->toArray()
             : $articles ;
     }
 
@@ -478,7 +482,6 @@ class ArticleDataService
             "stockEntryDate" => $article->getStockEntryDate() ? $article->getStockEntryDate()->format('d/m/Y H:i') : '',
             "expiryDate" => $article->getExpiryDate() ? $article->getExpiryDate()->format('d/m/Y') : '',
             "comment" => $article->getCommentaire(),
-            "prixUnitaire" => $article->getPrixUnitaire(),
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),

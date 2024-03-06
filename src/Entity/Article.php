@@ -373,7 +373,7 @@ class Article implements PairedEntity {
         return $this->prixUnitaire;
     }
 
-    public function setPrixUnitaire($prixUnitaire): self {
+    public function setPrixUnitaire(?float $prixUnitaire): self {
         $this->prixUnitaire = $prixUnitaire;
 
         return $this;
