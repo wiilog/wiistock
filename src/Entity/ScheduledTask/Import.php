@@ -132,7 +132,7 @@ class Import {
         self::ENTITY_CUSTOMER => 'name',
         self::ENTITY_PROJECT => 'code',
         self::ENTITY_REF_LOCATION => 'reference',
-        self::ENTITY_PRODUCTION => FixedFieldEnum::manufacturingOrderNumber->name,
+        self::ENTITY_PRODUCTION => null,
     ];
 
     public const IMPORT_FIELDS_TO_FIELDS_PARAM = [
