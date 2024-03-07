@@ -21,11 +21,12 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:mails-litiges',
+    name: MailsLitigesComand::COMMAND_NAME,
     description: 'envoi de mails aux acheteurs pour les litiges non soldés'
 )]
 class MailsLitigesComand extends Command
 {
+    public const COMMAND_NAME = 'app:mails-litiges';
 
     #[Required]
     public RouterInterface $router;

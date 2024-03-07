@@ -21,10 +21,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 
 #[AsCommand(
-    name: 'app:feed:average:requests',
+    name: AverageRequestTimeCommand::COMMAND_NAME,
     description: 'Feeds the average request processing time'
 )]
 class AverageRequestTimeCommand extends Command {
+    public const COMMAND_NAME = 'app:feed:average:requests';
 
     private EntityManagerInterface $entityManager;
     private DateService $dateService;

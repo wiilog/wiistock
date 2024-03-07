@@ -20,10 +20,12 @@ use Throwable;
 use App\Entity\Dashboard;
 
 #[AsCommand(
-    name: 'app:feed:dashboards',
+    name: DashboardFeedCommand::COMMAND_NAME,
     description: 'Feeds the dashboard data.'
 )]
 class DashboardFeedCommand extends Command {
+    public const COMMAND_NAME = 'app:feed:dashboards';
+
     private EntityManagerInterface $entityManager;
     private DashboardService $dashboardService;
     private WiilockService $wiilockService;
