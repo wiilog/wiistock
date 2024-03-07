@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: "app:sessions:close:inactives",
+    name: CloseInactiveSessionsCommand::COMMAND_NAME,
     description: "Close inactive sessions History Records"
 )]
 class CloseInactiveSessionsCommand extends Command
