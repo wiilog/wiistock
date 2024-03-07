@@ -257,12 +257,15 @@ class EnCoursService
                                         CSVExportService $CSVExportService,
                                         array $encours)
     {
+
         $line = [
             $encours['emp'] ?: '',
             $encours['LU'] ?: '',
             $encours['date'] ?: '',
             $encours['delay'] ?: '',
-            $this->formatService->bool($encours['late'])
+            $this->formatService->bool($encours['late']),
+            $encours['reference'] ?: '',
+            $encours['libelle'] ?: '',
         ];
         $CSVExportService->putLine($handle, $line);
     }

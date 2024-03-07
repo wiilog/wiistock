@@ -146,6 +146,8 @@ class EnCoursController extends AbstractController
             'Date de dépose',
             'Delai',
             'Retard',
+            'Référence',
+            'Libellé'
         ];
 
         return $CSVExportService->streamResponse(
