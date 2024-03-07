@@ -1125,7 +1125,10 @@ class DashboardSettingsService {
             ];
         }
 
-        $values['emergency'] = !empty($config['dispatchEmergencies']);
+        $values['emergency'] = !empty($config['dispatchEmergencies'])
+            && (count($config['dispatchEmergencies']) > 1
+            || (count($config['dispatchEmergencies']) === 1
+                    && $config['dispatchEmergencies'][0] !== 'Non urgent'));
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);

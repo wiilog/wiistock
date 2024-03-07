@@ -689,8 +689,7 @@ class DispatchRepository extends EntityRepository
         ];
     }
 
-    public function countByFilters(EntityManagerInterface $entityManager,
-                                   array $filters = []){
+    public function countByFilters(array $filters = []){
         $qb = $this->createQueryBuilder('dispatch')
             ->select('COUNT(dispatch)')
             ->innerJoin('dispatch.statut', 'status', JOIN::WITH, 'status.id IN (:statuses)')
@@ -709,8 +708,12 @@ class DispatchRepository extends EntityRepository
         }
 
         if(!empty($filters['dispatchEmergencies'])){
-            $qb->andWhere('dispatch.emergency IN (:dispatchEmergencies)')
-                ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
+            if(count($filters['dispatchEmergencies']) === 1 && $filters['dispatchEmergencies'][0] === 'Non urgent'){
+                $qb->andWhere('dispatch.emergency IS NULL');
+            } else {
+                $qb->andWhere('dispatch.emergency IN (:dispatchEmergencies)')
+                    ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
+            }
         }
 
         return $qb->getQuery()->getSingleScalarResult();

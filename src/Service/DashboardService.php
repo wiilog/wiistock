@@ -1078,7 +1078,7 @@ class DashboardService {
                     $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
-                    $count = $repository->countByFilters($entityManager, [
+                    $count = $repository->countByFilters([
                         'types' => $entityTypes,
                         'statuses' => $entityStatuses,
                         'pickLocations' => $config['pickLocations'] ?? [],
