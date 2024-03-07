@@ -1,0 +1,42 @@
+<div class="row planning-container planning-container-7">
+    {% set allCards = cards ?? [] %}
+    {% if planningColumns is not empty %}
+        {% for date in planningColumns %}
+            {% set label = date.label ?? null %}
+            {% set columnClass = date.columnClass ?? null %}
+            {% set columnHint = date.columnHint ?? null %}
+            {% set cardSelector = date.cardSelector ?? null %}
+            {% set cards = allCards[cardSelector] ?? [] %}
+
+            <div class="col-12 planning-col {{ columnClass }} production-request-card-column"
+                 data-date="{{ cardSelector }}">
+                <div class="wii-box border flex-fill d-flex flex-column">
+                    <div class="header">
+                        <span class="wii-title">{{ label }}</span>
+                    </div>
+                    {% if columnHint %}
+                        <div class="column-hint-container">
+                            {{ columnHint|raw }}
+                        </div>
+                    {% endif %}
+                    <div class="d-flex flex-fill flex-column maxh-100 overflow-y-hidden">
+                        <div class="planning-card-container scrollable"
+                             data-loader-color="black"
+                             data-loader-size="normal">
+                            {% for card in cards %}
+                                {{ card|raw }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 d-flex">
+            <div class="d-flex flex-fill justify-content-center align-items-center">
+                <span>Aucun jour travaillé sur cette semaine</span>
+            </div>
+        </div>
+    {% endif %}
+</div>
+

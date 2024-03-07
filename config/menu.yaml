@@ -4,13 +4,6 @@ parameters:
             icon: 'accueil'
             path: 'app_index'
 
-        -   label: 'Production'
-            icon: 'menu-production'
-            path: 'production_request_index'
-            rights:
-                menu: App\Entity\Menu::PRODUCTION
-                action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
-
         -   label: [ 'Traçabilité', 'Général', 'Traçabilité' ]
             icon: 'traca'
             sub:
@@ -58,6 +51,24 @@ parameters:
                     rights:
                         menu: App\Entity\Menu::QUALI
                         action: App\Entity\Action::DISPLAY_LITI
+
+        -   label: 'Production'
+            icon: 'menu-production'
+            path: 'production_request_index'
+            rights:
+                menu: App\Entity\Menu::PRODUCTION
+                action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+            sub:
+                -   label: 'Liste des OF'
+                    path: 'production_request_index'
+                    rights:
+                        menu: App\Entity\Menu::PRODUCTION
+                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST
+                -   label: 'Planning'
+                    path: 'production_request_planning_index'
+                    rights:
+                        menu: App\Entity\Menu::PRODUCTION
+                        action: App\Entity\Action::DISPLAY_PRODUCTION_REQUEST_PLANNING
 
         -   label: [ 'Demande', 'Général', 'Demande' ]
             icon: 'demande'
@@ -203,7 +214,7 @@ parameters:
                     path: 'emplacement_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
-                        action: App\Entity\Action::DISPLAY_EMPL
+                        action: App\Entity\Action::DISPLAY_LOCATION
                 -   label: 'Chauffeurs'
                     path: 'chauffeur_index'
                     rights:
@@ -215,7 +226,7 @@ parameters:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_TRAN
                 -   label: 'Nature'
-                    path: 'nature_param_index'
+                    path: 'nature_index'
                     rights:
                         menu: App\Entity\Menu::REFERENTIEL
                         action: App\Entity\Action::DISPLAY_PACK_NATURE

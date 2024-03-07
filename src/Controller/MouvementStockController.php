@@ -283,7 +283,8 @@ class MouvementStockController extends AbstractController
                 'origine',
                 'destination',
                 'type',
-                'opérateur'
+                'opérateur',
+                "prix unitaire",
             ];
 
             $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);

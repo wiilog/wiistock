@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
@@ -14,29 +13,21 @@ use App\Entity\TranslationSource;
 use App\Entity\Transport\TemperatureRange;
 use App\Entity\Type;
 use App\Service\NatureService;
-use App\Service\UserService;
-
 use Doctrine\ORM\EntityManagerInterface;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Service\TranslationService;
-use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
-#[Route('/nature-unite-logistique')]
-class NatureController extends AbstractController
-{
-    #[Required]
-    public UserService $userService;
+#[Route("/nature", name: "nature_")]
+class NatureController extends AbstractController {
 
-    #[Route('/', name: "nature_param_index", options: ['expose' => true], methods: 'GET')]
+    #[Route("/", name: "index", options: ['expose' => true], methods: self::GET)]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE])]
-    public function index(EntityManagerInterface $manager)
-    {
+    public function index(EntityManagerInterface $manager): Response {
         $typeRepository = $manager->getRepository(Type::class);
 
         $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
@@ -44,26 +35,27 @@ class NatureController extends AbstractController
             'transportCollect' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::COLLECT_TRANSPORT),
             'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
         ];
-        return $this->render('nature_param/index.html.twig', [
+        return $this->render('nature/index.html.twig', [
             'temperatures' => $temperatures,
-            'types' => $types
+            'types' => $types,
         ]);
     }
 
-    #[Route("/api", name: "nature_param_api", options: ["expose" => true], methods: "GET|POST", condition: "request.isXmlHttpRequest()")]
+    #[Route("/api", name: "api", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
     #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_PACK_NATURE], mode: HasPermission::IN_JSON)]
-    public function api(Request $request, NatureService $natureService): Response
-    {
+    public function api(Request $request, NatureService $natureService): Response {
         return $this->json($natureService->getDataForDatatable($request->request));
     }
 
-    /**
-     * @Route("/creer", name="nature_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({MENU::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request, TranslationService $translation, EntityManagerInterface $entityManager): Response {
+    #[Route("/new", name: "new", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request $request, EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $labels = $data['labels'];
+
+            $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
+            $natureRepository = $entityManager->getRepository(Nature::class);
+
             foreach ($labels as $label) {
                 if (preg_match("[[,;]]", $label['label'])) {
                     return $this->json([
@@ -71,9 +63,6 @@ class NatureController extends AbstractController
                         "msg" => "Le libellé d'une nature ne peut pas contenir ; ou ,",
                     ]);
                 }
-
-                $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
-                $natureRepository = $entityManager->getRepository(Nature::class);
 
                 if ($natureRepository->findDuplicates($label["label"], $label["language-id"])) {
                     $language = $entityManager->find(Language::class, $label["language-id"]);
@@ -167,7 +156,7 @@ class NatureController extends AbstractController
                 } else {
                     return $this->json([
                         'success' => false,
-                        'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée'
+                        'msg' => 'Une nature par défaut pour les acheminements a déjà été sélectionnée.',
                     ]);
                 }
             } else {
@@ -179,20 +168,17 @@ class NatureController extends AbstractController
 
             return $this->json([
                 "success" => true,
-                "msg" => "La nature {$data["label"]} a bien été créée"
+                "msg" => "La nature {$nature->getLabel()} a bien été créée."
             ]);
         }
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api-modifier", name="nature_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function apiEdit(Request $request,
+    #[Route("api-edit", name: "api_edit", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiEdit(Request                $request,
                             EntityManagerInterface $manager,
-                            TranslationService $translationService): Response
-    {
+                            TranslationService     $translationService): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $manager->getRepository(Nature::class);
             $typeRepository = $manager->getRepository(Type::class);
@@ -208,7 +194,7 @@ class NatureController extends AbstractController
                 'transportDelivery' => $typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DELIVERY_TRANSPORT)
             ];
 
-            return new JsonResponse($this->renderView('nature_param/modalEditNatureContent.html.twig', [
+            return new JsonResponse($this->renderView('nature/modal/form.html.twig', [
                 "nature" => $nature,
                 "temperatures" => $temperatures,
                 "types" => $types
@@ -217,14 +203,11 @@ class NatureController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/modifier", name="nature_edit",  options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({MENU::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function edit(Request $request,
+    #[Route("edit", name: "edit", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function edit(Request                $request,
                          EntityManagerInterface $entityManager,
-                         TranslationService $translationService): Response
-    {
+                         TranslationService     $translationService): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
@@ -341,23 +324,20 @@ class NatureController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="nature_check_delete", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({MENU::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function checkNatureCanBeDeleted(Request $request,
-                                            EntityManagerInterface $entityManager): Response
-    {
+    #[Route("check-delete", name: "check_delete", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function checkDelete(Request                $request,
+                                EntityManagerInterface $entityManager): Response {
         if ($typeId = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
             $natureIsUsed = $natureRepository->countUsedById($typeId);
 
             if (!$natureIsUsed) {
                 $delete = true;
-                $html = $this->renderView('nature_param/modalDeleteNatureRight.html.twig');
+                $html = $this->renderView('nature/modal/delete-right.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('nature_param/modalDeleteNatureWrong.html.twig');
+                $html = $this->renderView('nature/modal/delete-wrong.html.twig');
             }
 
             return new JsonResponse([
@@ -368,13 +348,10 @@ class NatureController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/supprimer", name="nature_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({MENU::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request,
-                           EntityManagerInterface $entityManager): Response
-    {
+    #[Route("delete", name: "delete", options: ["expose" => true], methods: self::POST, condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(Request                $request,
+                           EntityManagerInterface $entityManager): Response {
         if ($data = json_decode($request->getContent(), true)) {
             $natureRepository = $entityManager->getRepository(Nature::class);
 
@@ -382,7 +359,11 @@ class NatureController extends AbstractController
 
             $entityManager->remove($nature);
             $entityManager->flush();
-            return new JsonResponse();
+
+            return $this->json([
+                "success" => true,
+                "msg" => "La nature a bien été supprimée.",
+            ]);
         }
         throw new BadRequestHttpException();
     }

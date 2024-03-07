@@ -7,12 +7,14 @@ use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
+use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
 use App\Entity\IOT\Pairing;
 use App\Entity\OrdreCollecte;
 use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Helper\FormatHelper;
 use DateTime;
@@ -209,7 +211,8 @@ class DemandeCollecteService
      */
     public function persistArticleInDemand(array $data,
                                            ReferenceArticle $referenceArticle,
-                                           Collecte $collecte, OrdreCollecte $order = null): Article {
+                                           Collecte $collecte,
+                                           OrdreCollecte $order = null): Article {
         $statutRepository = $this->entityManager->getRepository(Statut::class);
         $fournisseurRepository = $this->entityManager->getRepository(Fournisseur::class);
         $articleFournisseurRepository = $this->entityManager->getRepository(ArticleFournisseur::class);
@@ -242,7 +245,11 @@ class DemandeCollecteService
         $this->entityManager->persist($articleFournisseur);
 
         if (isset($data["article-to-pick"])) {
-            $article = $this->entityManager->getRepository(Article::class)->find($data["article-to-pick"]);
+            if(isset($data['refArticleBarCode'])){
+                $article = $this->entityManager->getRepository(Article::class)->findOneBy(['barCode' => $data["article-to-pick"]]);
+            } else {
+                $article = $this->entityManager->getRepository(Article::class)->find($data["article-to-pick"]);
+            }
             $article
                 ->setStatut($statut)
                 ->setQuantite(max($data['quantity-to-pick'], 1)); // protection contre quantités < 1
@@ -427,5 +434,32 @@ class DemandeCollecteService
             'comment' => $collect->getCommentaire() ? strip_tags($collect->getCommentaire()) : '',
             'freeFields' => $freeFieldData,
         ];
+    }
+
+    public function createDemandeCollecte(EntityManagerInterface $entityManager, array $data): Collecte{
+        $statutRepository = $entityManager->getRepository(Statut::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $emplacementRepository = $entityManager->getRepository(Emplacement::class);
+        $utilisateurRepository = $entityManager->getRepository(Utilisateur::class);
+        $date = new DateTime('now');
+
+        $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
+        $numero = 'C-' . $date->format('YmdHis');
+        $collecte = new Collecte();
+        $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
+        $type = $typeRepository->find($data['type']);
+
+        $collecte
+            ->setDemandeur($utilisateurRepository->find($data['demandeur']))
+            ->setNumero($numero)
+            ->setDate($date)
+            ->setType($type)
+            ->setStatut($status)
+            ->setPointCollecte($emplacementRepository->find($data['emplacement']))
+            ->setObjet(substr($data['Objet'], 0, 255))
+            ->setCommentaire($data['commentaire'] ?? null)
+            ->setstockOrDestruct($destination);
+
+        return $collecte;
     }
 }

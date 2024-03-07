@@ -54,6 +54,9 @@ class DataExportService
     #[Required]
     public TranslationService $translation;
 
+    #[Required]
+    public ProductionRequestService $productionRequestService;
+
     public function createReferencesHeader(array $freeFieldsConfig) {
         return array_merge([
             'reference',
@@ -223,6 +226,12 @@ class DataExportService
         ];
     }
 
+    public function createProductionRequestsHeader(): array {
+        return Stream::from($this->productionRequestService->getVisibleColumnsConfig($this->entityManager, $this->security->getUser(), true))
+            ->map(static fn(array $column) => $column["title"])
+            ->toArray();
+    }
+
     public function createArrivalsHeader(EntityManagerInterface $entityManager,
                                          array $columnToExport): array
     {
@@ -346,6 +355,16 @@ class DataExportService
         }
     }
 
+    public function exportProductionRequest(array $productionRequests,
+                                            mixed $output,
+                                            array $freeFieldsConfig,
+                                            array $freeFieldsById): void
+    {
+        foreach ($productionRequests as $productionRequest) {
+            $this->productionRequestService->productionRequestPutLine($output, $productionRequest, $freeFieldsConfig, $freeFieldsById);
+        }
+    }
+
     /**
      * @throws \Exception
      */
@@ -420,11 +439,13 @@ class DataExportService
             $export->setColumnToExport([]);
         }
 
-        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH])) {
-            $export->setPeriod($data["period"])
+        if(in_array($entity, [Export::ENTITY_ARRIVAL,Export::ENTITY_DELIVERY_ROUND, Export::ENTITY_DISPATCH, Export::ENTITY_PRODUCTION])) {
+            $export
+                ->setPeriod($data["period"])
                 ->setPeriodInterval($data["periodInterval"]);
         } else {
-            $export->setPeriod(null)
+            $export
+                ->setPeriod(null)
                 ->setPeriodInterval(null);
         }
 

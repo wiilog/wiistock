@@ -194,9 +194,11 @@ class PurchaseRequestRepository extends EntityRepository
             ->addSelect('request.considerationDate AS considerationDate')
             ->addSelect('request.processingDate AS processingDate')
             ->addSelect('request.comment AS comment')
+
             ->leftJoin('request.status', 'join_status')
             ->leftJoin('request.requester', 'join_requester')
             ->leftJoin('request.buyer', 'join_buyer')
+
             ->where("request.creationDate BETWEEN :dateMin AND :dateMax")
             ->orderBy('request.creationDate', 'DESC')
             ->addOrderBy('request.id', 'DESC')

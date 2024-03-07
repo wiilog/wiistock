@@ -5,6 +5,7 @@ import Sortable from "../../../sortable";
 import AJAX, {GET, POST} from "@app/ajax";
 import Form from "@app/form";
 import Flash, {ERROR} from "@app/flash";
+import Routing from '@app/fos-routing';
 
 const roundMarkerAlreadySaved = {};
 let mapLines = null;

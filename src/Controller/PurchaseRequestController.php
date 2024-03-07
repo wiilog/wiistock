@@ -7,6 +7,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
@@ -14,6 +15,7 @@ use App\Entity\PurchaseRequest;
 use App\Entity\PurchaseRequestLine;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Service\AttachmentService;
@@ -128,7 +130,8 @@ class PurchaseRequestController extends AbstractController
                 "Référence",
                 "Code barre",
                 "Libellé",
-                "Fournisseur"
+                "Fournisseur",
+                "Prix unitaire",
             ];
 
             return $CSVExportService->streamResponse(
@@ -243,6 +246,7 @@ class PurchaseRequestController extends AbstractController
                         : $this->formatService->location($requestLine->getLocation())
                     )
                     : '',
+                FixedFieldEnum::unitPrice->name => $requestLine->getUnitPrice(),
                 'actions' => $this->renderView('purchase_request/line/actions.html.twig', [
                     'lineId' => $requestLine->getId(),
                     'requestStatus' => $purchaseRequest->getStatus()
@@ -411,11 +415,11 @@ class PurchaseRequestController extends AbstractController
             }
 
             if(isset($data['orderDate']) && $data['orderDate']) {
-                $orderDate = DateTime::createFromFormat('d/m/Y H:i', $data['orderDate']) ?: null;
+                $orderDate = $this->getFormatter()->parseDatetime($data['orderDate']) ?: null;
             }
 
             if(isset($data['expectedDate']) && $data['expectedDate']) {
-                $expectedDate = DateTime::createFromFormat('d/m/Y', $data['expectedDate']) ?: null;
+                $expectedDate = $this->getFormatter()->parseDatetime($data['expectedDate']) ?: null;
             }
 
             $purchaseRequestLine
@@ -423,7 +427,8 @@ class PurchaseRequestController extends AbstractController
                 ->setOrderNumber($data['orderNumber'] ?? null)
                 ->setOrderedQuantity((int) $data['orderedQuantity'] ?? null)
                 ->setOrderDate($orderDate ?? null)
-                ->setExpectedDate($expectedDate ?? null);
+                ->setExpectedDate($expectedDate ?? null)
+                ->setUnitPrice(floatval($data[FixedFieldEnum::unitPrice->name]));
 
             $entityManager->flush();
             $response = [
@@ -585,6 +590,8 @@ class PurchaseRequestController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         $statusRepository = $entityManager->getRepository(Statut::class);
+        $settingRepository = $entityManager->getRepository(Setting::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         /** @var Statut $status */
         $status = $data['status'];
@@ -607,6 +614,13 @@ class PurchaseRequestController extends AbstractController
 
             $receptionsWithCommand = [];
 
+            $defaultLocationReceptionSetting = $settingRepository->getOneParamByLabel(Setting::DEFAULT_LOCATION_RECEPTION);
+
+            // To disable error in persistReception we check if default location setting is valid
+            $defaultLocationReception = $defaultLocationReceptionSetting
+                ? $locationRepository->find($defaultLocationReceptionSetting)
+                : null;
+
             foreach ($purchaseRequest->getPurchaseRequestLines() as $purchaseRequestLine) {
                 $orderNumber = $purchaseRequestLine->getOrderNumber() ?? null;
                 $expectedDate = $this->formatService->date($purchaseRequestLine->getExpectedDate());
@@ -619,11 +633,12 @@ class PurchaseRequestController extends AbstractController
                 $orderDate = $this->formatService->date($purchaseRequestLine->getOrderDate());
                 $reception = $receptionService->getAlreadySavedReception($entityManager, $receptionsWithCommand, $uniqueReceptionConstraint);
                 $receptionData = [
-                    'fournisseur' => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
-                    'orderNumber' => $orderNumber,
-                    'commentaire' => $purchaseRequest->getComment() ?? '',
-                    'dateAttendue' => $expectedDate,
-                    'dateCommande' => $orderDate,
+                    "fournisseur"  => $purchaseRequestLine->getSupplier() ? $purchaseRequestLine->getSupplier()->getId() : '',
+                    "orderNumber"  => $orderNumber,
+                    "commentaire"  => $purchaseRequest->getComment() ?? '',
+                    "dateAttendue" => $expectedDate,
+                    "dateCommande" => $orderDate,
+                    "location"     => $defaultLocationReception?->getId()
                 ];
                 if (!$reception) {
                     $reception = $receptionService->persistReception($entityManager, $this->getUser(), $receptionData);
@@ -641,7 +656,8 @@ class PurchaseRequestController extends AbstractController
                     ->setReferenceArticle($purchaseRequestLine->getReference())
                     ->setQuantiteAR($purchaseRequestLine->getOrderedQuantity())
                     ->setCommande($orderNumber)
-                    ->setQuantite(0);
+                    ->setQuantite(0)
+                    ->setUnitPrice($purchaseRequestLine->getUnitPrice());
 
                 $entityManager->persist($receptionReferenceArticle);
                 $purchaseRequestLine->setReception($reception);

@@ -1,6 +1,7 @@
 import Modal from "@app/modal";
 import Form from '@app/form';
 import AJAX, {POST} from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 let tableTransporteur = null;
 

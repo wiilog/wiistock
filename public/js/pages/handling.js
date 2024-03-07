@@ -48,7 +48,7 @@ $(function() {
         });
     });
 
-    initFilterStatusMutiple()
+    initFilterStatusMutiple();
 });
 
 function initNewHandlingEditor(modal) {

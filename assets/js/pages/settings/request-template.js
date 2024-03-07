@@ -1,4 +1,5 @@
 import {createManagementPage} from "./utils";
+import Routing from '@app/fos-routing';
 
 export function initializeRequestTemplates($container, canEdit) {
     const delivery = $container.find('#delivery-template-type').length > 0;

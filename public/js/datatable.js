@@ -15,7 +15,7 @@ $(function () {
 });
 
 function hideColumns(table, data) {
-    if (data?.forEach) {
+    if (data && data.forEach) {
         data.forEach(function (col) {
             table.column(col + ':name').visible(false);
         });
@@ -24,7 +24,7 @@ function hideColumns(table, data) {
 
 function showColumns(table, data) {
     table.columns().visible(false);
-    if (data?.forEach) {
+    if (data && data.forEach) {
         data.forEach(function (col) {
             table.columns(col + ':name').visible(true);
         });
@@ -232,10 +232,10 @@ function datatableDrawCallback({   response,
     if (needsSearchOverride && $searchInput.length > 0) {
         overrideSearch($searchInput, table);
     }
-    if (needsColumnHide && response?.json) {
+    if (needsColumnHide && response && response.json) {
         hideColumns(table, response.json.columnsToHide);
     }
-    if (needsColumnShow && response?.json) {
+    if (needsColumnShow && response && response.json) {
         showColumns(table, response.json.visible);
     }
     if (needsEmplacementSearchOverride) {
@@ -515,12 +515,12 @@ function toggleActiveButton($button, table) {
         .draw();
 }
 
-function initSearchDate(table) {
+function initSearchDate(table, columnName = "date") {
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let indexDate = table.column('date:name').index();
+            let indexDate = table.column(columnName + ':name').index();
 
             if (typeof indexDate === "undefined") return true;
 

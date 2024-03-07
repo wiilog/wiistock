@@ -445,8 +445,33 @@ function processInputsForm($modal, data, isAttachmentForm) {
             .replace(/\n/g, ' ')
             .trim();
 
+        let validityMessage;
+
+        if ($input.is(':invalid')) {
+            const htmlValidity = $input.get(0).validity;
+
+            if (htmlValidity && !htmlValidity.valid) {
+                // Object.keys doesn't work with HTML validty object ValidityState
+                const validityKeys = [];
+                for(const key in htmlValidity){
+                    if (key !== 'valid') {
+                        validityKeys.push(key);
+                    }
+                }
+                validityMessage = validityKeys
+                    .filter((key) => htmlValidity[key])
+                    .map((key) => $input.data(`error-${key.toLowerCase()}`))
+                    .filter((message) => message)
+                    .join('<br/>');
+            }
+        }
+
+        if (validityMessage) {
+            $isInvalidElements.push($input);
+            errorMessages.push(validityMessage);
+        }
         // validation données obligatoires
-        if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
+        else if (($input.hasClass('needed') && $input.is(`:not([type=radio])`))
             && $input.is(':disabled') === false
             && (val === undefined
                 || val === ''
@@ -698,7 +723,8 @@ function processFilesForm($modal, data) {
     const required = $requiredFileField.val() === '1';
 
     const $savedFiles = $modal.find('.data[name="savedFiles[]"]');
-    const sheetFile = $('input[name=fileSheet]').get(0)?.files;
+    const $sheetFile = $('input[name=fileSheet]');
+    const sheetFile = $sheetFile.exists() ? $sheetFile.get(0).files : undefined;
     const $requiredSheetFileField = $modal.find('input[name="isSheetFileNeeded"][type="hidden"]');
     const requiredSheetFile = $requiredSheetFileField.val() === '1';
     const alreadyExistSheetFile = $('input[name=savedSheetFile]').length ? true : false;
@@ -768,12 +794,14 @@ function processDataArrayForm($modal, data) {
         const $input = $(this);
         const type = $input.attr('type')
         const name = $input.attr('name');
+
         let val = type === 'number'
             ? Number($input.val())
             : ($input.hasClass('phone-number')
                     ? $input.data('iti').getNumber()
                     : $input.val()
             );
+
         if ($input.data('id')) {
             if (val) {
                 if (!dataArray[name]) {
@@ -901,7 +929,7 @@ function displayFormErrors($modal, {$isInvalidElements, errorMessages, keepModal
 function displayAttachements(files, $dropFrame, isMultiple = true, lineClass = '') {
     const errorMessages = [];
 
-    const $fileBag = $dropFrame.siblings('.file-bag');
+    const $fileBag = $dropFrame.closest(`.attachments-container`).find('.file-bag');
 
     if (!isMultiple) {
         $fileBag.empty();
@@ -1045,7 +1073,9 @@ function saveInputFiles($inputFile, options) {
     let dropFrame = $inputFile.closest('.dropFrame');
 
     displayAttachements(filesToSave, dropFrame, isMultiple, lineClass);
-    if (!singleton) $inputFile[0].value = '';
+    if (!singleton) {
+        $inputFile[0].value = '';
+    }
 }
 
 function resetDroppedFiles() {

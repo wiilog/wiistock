@@ -25,8 +25,8 @@ yarn-error.log
 /.vs-code/
 /.idea/
 /public/uploads/attachments/
-/public/uploads/attachements/
 /public/generated/
+/assets/generated/
 /config/generated.yaml
 /SnoreToast.lnk
 /desktop.ini

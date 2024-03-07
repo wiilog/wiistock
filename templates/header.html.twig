@@ -1,6 +1,6 @@
 {% import 'form.html.twig' as form %}
 
-{% set isDashboardExt = isDashboardExt is defined and isDashboardExt %}
+{% set external = external is defined and external %}
 {% set withOnlyLogo = withOnlyLogo is defined and withOnlyLogo %}
 {% set titleExists = title is defined and title is not empty %}
 {% set tooltipExists = title_tooltip is defined and title_tooltip is not empty %}
@@ -8,6 +8,7 @@
 {% set titleLink = titleLink is defined ? titleLink : '' %}
 {% set dateFormat = language_service.getDateFormats %}
 {% set defaultLangage = language_service.defaultLanguage %}
+{% set maxLengthUserLabel = 20 %}
 
 <div class="main-header">
     <div class="px-lg-3 w-100">
@@ -27,10 +28,10 @@
             </div>
 
             {% if not withOnlyLogo %}
-                {% if isDashboardExt or titleExists or subtitleExists %}
+                {% if external or titleExists or subtitleExists %}
                     <div class="col-12 col-lg user-select-none">
                         <div class="row align-items-center justify-content-lg-start justify-content-center">
-                            {% if isDashboardExt or titleExists %}
+                            {% if external or titleExists %}
                                 <div class="col-auto py-2">
                                     <h5 class="header-title text-white h5 my-0 page-title" {% if tooltipExists %}title="{{ title_tooltip }}"{% endif %}>
                                         {% if titleExists %}
@@ -58,7 +59,7 @@
                     </div>
                 {% endif %}
 
-                {% if not isDashboardExt and app.user %}
+                {% if not external and app.user %}
                     {% set hasDeliveryRights = (
                         hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::DISPLAY_DEM_LIVR'))
                         and hasRight(constant('App\\Entity\\Menu::DEM'), constant('App\\Entity\\Action::CREATE'))
@@ -97,7 +98,7 @@
                         and hasRight(constant('App\\Entity\\Menu::PRODUCTION'), constant('App\\Entity\\Action::CREATE_PRODUCTION_REQUEST'))
                         ) %}
                     <div class="col-auto pr-0 mr-0">
-                        <a class="header-icon cart" href="{{ path('cart') }}">
+                        <a class="header-icon cart" href="{{ path('cart_index') }}">
                             {% set referencesQuantity = app.user.cart.references|length %}
                             {% set articlesQuantity = app.user.cart.articles|length %}
                             {% set logisticUnitsQuantity = app.user.cart.articles|filter(article => article.currentLogisticUnit)|map(article => article.currentLogisticUnit.id)|unique|length %}
@@ -233,7 +234,7 @@
                     {% endif %}
                 {% endif %}
 
-                {% if not isDashboardExt
+                {% if not external
                     and app.user is defined
                     and app.user
                     and app.user.username is defined %}
@@ -247,12 +248,17 @@
                                'modal-edit-id': app.user.id
                            }) }}">
                             <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                            <div class="d-flex flex-column w-auto">
+                                <span class="lh-1 username flex-fill text-center">{{ app.user.username|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                                <span class="lh-1 role flex-fill text-center">{{ app.user.role.label|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                            </div>
                         </a>
                     {% else %}
-                        <div class="col col-lg-auto user d-flex align-items-center user-select-none">
-                            <div class="profile-picture">{{ app.user.username | first | upper }}</div>
-                            <div class="username flex-fill text-center text-truncate">{{ app.user.username }}</div>
+                        <div class="col col-lg-auto user d-flex pl-0 align-items-center user-select-none">
+                            <div class="d-flex flex-column w-auto">
+                                <span class="lh-1 username flex-fill text-center">{{ app.user.username|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                                <span class="lh-1 role flex-fill text-center">{{ app.user.role.label|u.truncate(maxLengthUserLabel, '...' ) }}</span>
+                            </div>
                         </div>
                     {% endif %}
 

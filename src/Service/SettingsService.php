@@ -63,7 +63,7 @@ use WiiCommon\Helper\Stream;
 
 class SettingsService {
 
-    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9\_\-\/ ]{1,24}$';
+    public const CHARACTER_VALID_REGEX = '^[A-Za-z0-9_\-\/ ]{1,24}$';
 
     #[Required]
     public EntityManagerInterface $manager;
@@ -807,6 +807,7 @@ class SettingsService {
                     ->setDefaultValue(($item["defaultValue"] ?? null) === "null" ? "" : $item["defaultValue"] ?? null)
                     ->setElements(isset($item["elements"]) ? $elements : null)
                     ->setDisplayedCreate($item["displayedCreate"])
+                    ->setDisplayedEdit($item["displayedEdit"] ?? true)
                     ->setRequiredCreate($item["requiredCreate"])
                     ->setRequiredEdit($item["requiredEdit"])
                     ->setMinCharactersLength($minCharactersLength)
@@ -1051,14 +1052,15 @@ class SettingsService {
                         ->setOverconsumptionBillGenerationStatus($statusData['overconsumptionBillGenerationStatus'] ?? false)
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
-                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false);
+                        ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
+                        ->setColor($statusData['color'] ?? null);
 
                     if($hasRightGroupedSignature){
                         $status
                             ->setSendReport($statusData['sendReport'] ?? false)
                             ->setCommentNeeded($statusData['commentNeeded'] ?? false)
                             ->setGroupedSignatureType($statusData['groupedSignatureType'] ?? '')
-                            ->setGroupedSignatureColor($statusData['color'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
+                            ->setGroupedSignatureColor($statusData['groupedSignatureColor'] ?? Statut::GROUPED_SIGNATURE_DEFAULT_COLOR);
                     }
 
                     // label given on creation or edit is the French one

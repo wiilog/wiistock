@@ -41,8 +41,10 @@ use App\Service\DeliveryRequestService;
 use App\Service\HttpService;
 use App\Service\MailerService;
 use App\Service\NotificationService;
+use App\Service\StatusHistoryService;
 use App\Service\TrackingMovementService;
 use App\Service\UniqueNumberService;
+use DateInterval;
 use DateTimeZone;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
@@ -168,6 +170,9 @@ class IOTService
 
     #[required]
     public TrackingMovementService $trackingMovementService;
+
+    #[required]
+    public StatusHistoryService $statusHistoryService;
 
     public function onMessageReceived(array $frame, EntityManagerInterface $entityManager, LoRaWANServer $loRaWANServer, bool $local = false): void {
         $messages = $this->parseAndCreateMessage($frame, $entityManager, $local, $loRaWANServer);
@@ -341,7 +346,7 @@ class IOTService
             $entityManager->persist($request);
             $entityManager->flush();
         } else if ($requestTemplate instanceof HandlingRequestTemplate) {
-            $request = $this->cleanCreateHandlingRequest($wrapper, $requestTemplate);
+            $request = $this->cleanCreateHandlingRequest($wrapper, $requestTemplate, $entityManager);
 
             $this->uniqueNumberService->createWithRetry(
                 $entityManager,
@@ -352,18 +357,30 @@ class IOTService
                     $request->setNumber($number);
                     $entityManager->persist($request);
                     $entityManager->flush();
+
+                    if (($request->getStatus()->getState() == Statut::NOT_TREATED)
+                        && $request->getType()
+                        && (($request->getType()->isNotificationsEnabled() && !$request->getType()->getNotificationsEmergencies())
+                            || $request->getType()->isNotificationsEmergency($request->getEmergency()))) {
+                        $this->notificationService->toTreat($request);
+                    }
                 }
             );
         }
     }
 
-    private function cleanCreateHandlingRequest(SensorWrapper $sensorWrapper,
-                                                HandlingRequestTemplate $requestTemplate): Handling {
+    private function cleanCreateHandlingRequest(SensorWrapper           $sensorWrapper,
+                                                HandlingRequestTemplate $requestTemplate,
+                                                EntityManagerInterface  $entityManager): Handling {
         $handling = new Handling();
         $date = new DateTime('now');
 
         $desiredDate = clone $date;
-        $desiredDate = $desiredDate->add(new \DateInterval('PT' . $requestTemplate->getDelay() . 'H'));
+        $desiredDate = $desiredDate->add(new DateInterval('PT' . $requestTemplate->getDelay() . 'H'));
+
+        $this->statusHistoryService->updateStatus($entityManager, $handling, $requestTemplate->getRequestStatus(), [
+            "forceCreation" => false,
+        ]);
 
         $handling
             ->setFreeFields($requestTemplate->getFreeFields())
@@ -374,7 +391,6 @@ class IOTService
             ->setType($requestTemplate->getRequestType())
             ->setCreationDate($date)
             ->setTriggeringSensorWrapper($sensorWrapper)
-            ->setStatus($requestTemplate->getRequestStatus())
             ->setComment($requestTemplate->getComment())
             ->setAttachments($requestTemplate->getAttachments())
             ->setSubject($requestTemplate->getSubject())
@@ -530,7 +546,7 @@ class IOTService
         $trackingMovementService = $this->trackingMovementService;
 
         $statusPick = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_PRISE);
-        $statusDrop= $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
+        $statusDrop = $statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DEPOSE);
 
         foreach ($logisticUnitsToMove as $logisticUnit) {
             $trackingMovementService->persistTrackingMovementForPackOrGroup(

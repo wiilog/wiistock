@@ -576,4 +576,42 @@ class OrdreCollecteService
         return $pairing;
     }
 
+    public function createCollectOrder(EntityManagerInterface $entityManager, Collecte $demandeCollecte): OrdreCollecte
+    {
+        // on crée l'ordre de collecte
+        $statutRepository = $entityManager->getRepository(Statut::class);
+
+        $statut = $statutRepository->findOneByCategorieNameAndStatutCode(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+
+        $date = new DateTime('now');
+        $ordreCollecte = (new OrdreCollecte())
+            ->setDate($date)
+            ->setNumero('C-' . $date->format('YmdHis'))
+            ->setStatut($statut)
+            ->setDemandeCollecte($demandeCollecte);
+        foreach ($demandeCollecte->getArticles() as $article) {
+            $ordreCollecte->addArticle($article);
+        }
+        foreach ($demandeCollecte->getCollecteReferences() as $collecteReference) {
+            $ordreCollecteReference = new OrdreCollecteReference();
+            $ordreCollecteReference
+                ->setOrdreCollecte($ordreCollecte)
+                ->setQuantite($collecteReference->getQuantite())
+                ->setReferenceArticle($collecteReference->getReferenceArticle());
+            $entityManager->persist($ordreCollecteReference);
+            $ordreCollecte->addOrdreCollecteReference($ordreCollecteReference);
+        }
+
+        $entityManager->persist($ordreCollecte);
+
+        // on modifie statut + date validation de la demande
+        $demandeCollecte
+            ->setStatut(
+                $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_A_TRAITER)
+            )
+            ->setValidationDate($date);
+
+        return $ordreCollecte;
+    }
+
 }

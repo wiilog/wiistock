@@ -1,4 +1,5 @@
 import {getStatusHistory} from "@app/pages/handling/common";
+import Routing from '@app/fos-routing';
 
 
 $(function () {

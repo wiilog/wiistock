@@ -8,6 +8,7 @@ use App\Entity\ArticleFournisseur;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\DeliveryRequestArticleLine;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FreeField;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
@@ -24,9 +25,9 @@ use App\Entity\TransferRequest;
 use App\Entity\Utilisateur;
 use App\Entity\CategorieCL;
 use App\Exceptions\FormException;
-use App\Entity\Zone;
 use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 use DateTime;
@@ -34,19 +35,33 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Twig\Environment as Twig_Environment;
-use WiiCommon\Helper\StringHelper;
 
 class ArticleDataService
 {
-    private $templating;
-    private $router;
-    private $refArticleDataService;
-    private $userService;
-    private $entityManager;
-    private $wantCLOnLabel;
-	private $clWantedOnLabel;
-	private $clIdWantedOnLabel;
-	private $typeCLOnLabel;
+    private ?bool $wantCLOnLabel = null;
+
+    private ?bool $clWantedOnLabel = null;
+
+    private ?int $clIdWantedOnLabel = null;
+
+    private ?string $typeCLOnLabel = null;
+
+    private ?array $freeFieldsConfig = null;
+
+    #[Required]
+    public Twig_Environment $templating;
+
+    #[Required]
+    public RouterInterface $router;
+
+    #[Required]
+    public RefArticleDataService $refArticleDataService;
+
+    #[Required]
+    public UserService $userService;
+
+    #[Required]
+    public EntityManagerInterface $entityManager;
 
     #[Required]
     public CSVExportService $CSVExportService;
@@ -63,26 +78,12 @@ class ArticleDataService
     #[Required]
     public EmplacementDataService $emplacementDataService;
 
-    private $visibleColumnService;
+    #[Required]
+    public VisibleColumnService $visibleColumnService;
 
-    private ?array $freeFieldsConfig = null;
-
-    public function __construct(RouterInterface $router,
-                                UserService $userService,
-                                RefArticleDataService $refArticleDataService,
-                                EntityManagerInterface $entityManager,
-                                VisibleColumnService $visibleColumnService,
-                                Twig_Environment $templating) {
-        $this->refArticleDataService = $refArticleDataService;
-        $this->templating = $templating;
-        $this->entityManager = $entityManager;
-        $this->userService = $userService;
-        $this->router = $router;
-        $this->visibleColumnService = $visibleColumnService;
-    }
-
-    public function getCollecteArticleOrNoByRefArticle(Collecte $collect, ReferenceArticle $refArticle, Utilisateur $user)
-    {
+    public function getCollecteArticleOrNoByRefArticle(Collecte         $collect,
+                                                       ReferenceArticle $refArticle,
+                                                       Utilisateur      $user): array|bool {
         $role = $user->getRole();
 
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
@@ -104,8 +105,10 @@ class ArticleDataService
         return $data;
     }
 
-    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle, Demande $request, Utilisateur $user, $needsQuantitiesCheck)
-    {
+    public function getLivraisonArticlesByRefArticle(ReferenceArticle $refArticle,
+                                                     Demande          $request,
+                                                     Utilisateur      $user,
+                                                     bool             $needsQuantitiesCheck): array|bool {
         if ($refArticle->getTypeQuantite() === ReferenceArticle::QUANTITY_TYPE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -149,7 +152,12 @@ class ArticleDataService
         return $data;
     }
 
-    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle $refArticle, EntityManagerInterface $entityManager, ?Demande $demande = null){
+    /**
+     * @return Article[]
+     */
+    public function findAndSortActiveArticlesByRefArticle(ReferenceArticle       $refArticle,
+                                                          EntityManagerInterface $entityManager,
+                                                          ?Demande               $demande = null): array {
         $articleRepository = $entityManager->getRepository(Article::class);
         $articles = $articleRepository->findActiveArticles($refArticle, null, null, null, $demande);
         $management = $refArticle->getStockManagement();
@@ -175,12 +183,12 @@ class ArticleDataService
                         return 1;
                     }
                     return 0;
-                })->toArray()
+                })
+                ->toArray()
             : $articles ;
     }
 
-    public function getViewEditArticle($article,
-                                       $isADemand = false)
+    public function getViewEditArticle($article, $isADemand = false): string
     {
         $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
 
@@ -204,7 +212,7 @@ class ArticleDataService
         ]);
     }
 
-    public function editArticle($data) {
+    public function editArticle($data): Response|bool {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::EDIT)) {
             return new RedirectResponse($this->router->generate('access_denied'));
         }
@@ -246,7 +254,9 @@ class ArticleDataService
         }
     }
 
-    public function newArticle(EntityManagerInterface $entityManager, ParameterBag|array $data, array $options = []): Article {
+    public function newArticle(EntityManagerInterface $entityManager,
+                               ParameterBag|array     $data,
+                               array                  $options = []): Article {
         $data = !($data instanceof ParameterBag) ? New ParameterBag($data) : $data;
         /** @var Article|null $existing */
         $existing = $options['existing'] ?? null;
@@ -302,7 +312,7 @@ class ArticleDataService
             }
 
             if ($data->has('prix')) {
-                $existing->setPrixUnitaire(max(0, $data->getInt('prix')));
+                $existing->setPrixUnitaire(max(0, $data->get('prix')));
             }
 
             if ($data->has('commentaire')) {
@@ -347,7 +357,7 @@ class ArticleDataService
                 $location = $emplacementRepository->findOneBy(['label' => Emplacement::LABEL_A_DETERMINER]);
                 if (!$location) {
                     $location = $this->emplacementDataService->persistLocation([
-                        "Label" => Emplacement::LABEL_A_DETERMINER,
+                        FixedFieldEnum::name->name => Emplacement::LABEL_A_DETERMINER,
                     ], $entityManager);
                 }
                 $location->setIsActive(true);
@@ -360,7 +370,7 @@ class ArticleDataService
                 ->setConform($data->getBoolean('conform', true))
                 ->setStatut($statut)
                 ->setCommentaire($data->get('commentaire'))
-                ->setPrixUnitaire($data->has('prix') ? max(0, $data->getInt('prix')) : null)
+                ->setPrixUnitaire($data->has('prix') ? max(0, $data->get('prix')) : null)
                 ->setReference("$refReferenceArticle$formattedDate$cpt")
                 ->setQuantite($quantity)
                 ->setEmplacement($location)
@@ -403,7 +413,7 @@ class ArticleDataService
         ];
     }
 
-    public function getArticleDataByParams(InputBag $params, Utilisateur $user) {
+    public function getArticleDataByParams(InputBag $params, Utilisateur $user): array {
         $articleRepository = $this->entityManager->getRepository(Article::class);
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
 
@@ -433,7 +443,7 @@ class ArticleDataService
         ];
     }
 
-    public function dataRowArticle(Article $article, Reception $reception = null)
+    public function dataRowArticle(Article $article, Reception $reception = null): array
     {
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
@@ -441,7 +451,7 @@ class ArticleDataService
         $status = $article->getStatut() ? $this->formatService->status($article->getStatut()) : 'Non défini';
 
         $supplierArticle = $article->getArticleFournisseur();
-        $referenceArticle = $supplierArticle ? $supplierArticle->getReferenceArticle() : null;
+        $referenceArticle = $supplierArticle?->getReferenceArticle();
 
         $lastMessage = $article->getLastMessage();
         $sensorCode = ($lastMessage && $lastMessage->getSensor() && $lastMessage->getSensor()->getAvailableSensorWrapper()) ? $lastMessage->getSensor()->getAvailableSensorWrapper()->getName() : null;
@@ -475,10 +485,10 @@ class ArticleDataService
             "actions" => $this->templating->render('article/datatableArticleRow.html.twig', [
                 'url' => $url,
                 'articleId' => $article->getId(),
-                'demandeId' => $lastDeliveryRequest ? $lastDeliveryRequest->getId() : null,
+                'demandeId' => $lastDeliveryRequest?->getId(),
                 'articleFilter' => $article->getBarCode(),
                 'fromReception' => isset($reception),
-                'receptionId' => $reception ? $reception->getId() : null,
+                'receptionId' => $reception?->getId(),
                 'hasPairing' => $hasPairing,
                 'targetBlank' => $reception !== null
             ]),
@@ -527,7 +537,9 @@ class ArticleDataService
 		return $generatedBarcode;
 	}
 
-    public function getBarcodeConfig(Article $article, Reception $reception = null, bool $fromKiosk = false): array {
+    public function getBarcodeConfig(Article   $article,
+                                     Reception $reception = null,
+                                     bool      $fromKiosk = false): array {
         $settingRepository = $this->entityManager->getRepository(Setting::class);
         $deliveryRequestRepository = $this->entityManager->getRepository(Demande::class);
 
@@ -537,7 +549,7 @@ class ArticleDataService
 
             $champLibreRepository = $this->entityManager->getRepository(FreeField::class);
             $categoryCLRepository = $this->entityManager->getRepository(CategorieCL::class);
-            $this->clWantedOnLabel = $settingRepository->getOneParamByLabel(Setting::CL_USED_IN_LABELS);
+            $this->clWantedOnLabel = (bool) $settingRepository->getOneParamByLabel(Setting::CL_USED_IN_LABELS);
             $this->wantCLOnLabel = (bool) $settingRepository->getOneParamByLabel(Setting::INCLUDE_BL_IN_LABEL);
 
             if (isset($this->clWantedOnLabel)) {
@@ -656,8 +668,7 @@ class ArticleDataService
     }
 
     public function getColumnVisibleConfig(EntityManagerInterface $entityManager,
-                                           Utilisateur $currentUser): array {
-
+                                           Utilisateur            $currentUser): array {
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
 
         $freeFields = $champLibreRepository->findByCategoryTypeAndCategoryCL(CategoryType::ARTICLE, CategorieCL::ARTICLE);

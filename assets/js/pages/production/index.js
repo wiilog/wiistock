@@ -1,4 +1,9 @@
 import AJAX, {POST, GET} from "@app/ajax";
+import Camera from "@app/camera";
+import Form from "@app/form";
+import Routing from '@app/fos-routing';
+import {displayAttachmentRequired} from './form'
+import {getUserFiltersByPage} from '@app/utils';
 
 let tableProduction;
 
@@ -6,9 +11,21 @@ global.onProductionRequestTypeChange = onProductionRequestTypeChange;
 global.displayAttachmentRequired = displayAttachmentRequired;
 
 $(function () {
-    initTableShippings().then((table) => {
+    initProductionRequestsTable().then((table) => {
         tableProduction = table;
-        initProductionRequestModal($(`#modalNewProductionRequest`), `production_request_new`);
+
+        const $modalNewProductionRequest = $(`#modalNewProductionRequest`);
+        Form
+            .create($modalNewProductionRequest, {clearOnOpen: true})
+            .onOpen(() => {
+                Camera.init(
+                    $modalNewProductionRequest.find(`.take-picture-modal-button`),
+                    $modalNewProductionRequest.find(`[name="files[]"]`)
+                );
+            })
+            .submitTo(POST, `production_request_new`, {
+                tables: [tableProduction],
+            });
     });
 
     const $userFormat = $('#userDateFormat');
@@ -16,7 +33,7 @@ $(function () {
 
     const filtersContainer = $('.filters-container');
     Select2Old.init(filtersContainer.find('.filter-select2[name="multipleTypes"]'), Translation.of('Demande', 'Acheminements', 'Général', 'Types', false));
-    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général','Urgences', false));
+    Select2Old.init(filtersContainer.find('.filter-select2[name="emergencyMultiple"]'), Translation.of('Demande', 'Général', 'Urgences', false));
 
     filtersContainer.find('.statuses-filter [name*=statuses-filter]').on('change', function () {
         updateSelectedStatusesCount($(this).closest('.statuses-filter').find('[name*=statuses-filter]:checked').length);
@@ -26,7 +43,7 @@ $(function () {
 
     getUserFiltersByPage(PAGE_PRODUCTION);
 
-    $(`.export-button`).on(`click`, function() {
+    $(`.export-button`).on(`click`, function () {
         exportFile(`production_request_export`, {}, {
             needsAllFilters: true,
             needsDateFormatting: true,
@@ -35,7 +52,7 @@ $(function () {
     });
 });
 
-function initTableShippings() {
+function initProductionRequestsTable() {
     const $filtersContainer = $(".filters-container");
     const $typeFilter = $filtersContainer.find(`select[name=multipleTypes]`);
 
@@ -117,22 +134,4 @@ function onProductionRequestTypeChange($select){
         $selectDropLocation.append(new Option(optionData.dropLocationLabel, optionData.dropLocationId, true, true)).trigger(`change`);
     }
     $selectDropLocation.attr('data-other-params-typeDispatchDropLocation', $typeSelect.val() || "")
-}
-
-function displayAttachmentRequired($select) {
-    const $modal = $select.closest(`.modal`);
-    const statusData = $select.select2(`data`)[0];
-
-    const requiredAttachment = statusData && statusData.requiredAttachment ? 1 : 0;
-    $modal.find(`[name=isFileNeeded]`).val(requiredAttachment);
-    $modal.find(`[name=isSheetFileNeeded]`).val(requiredAttachment);
-}
-
-
-function initProductionRequestModal($modal, submitRoute) {
-    Form
-        .create($modal, {clearOnOpen: true})
-        .submitTo(POST, submitRoute, {
-            tables: [tableProduction],
-        });
 }

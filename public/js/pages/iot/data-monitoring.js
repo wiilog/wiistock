@@ -258,7 +258,7 @@ function initLineChart(element, callback) {
                 const dataByType = sensorData instanceof Object ? sensorData : {DEFAULT_DATATYPE: sensorData};
                 Object.keys(dataByType).forEach((type) => {
                     const value = dataByType[type];
-                    if (!(sensorMessagesDatasets[type+sensor] || {})?.data) {
+                    if (!sensorMessagesDatasets[type+sensor] || !sensorMessagesDatasets[type+sensor].data) {
                         sensorMessagesDatasets[type+sensor] = {
                             label: type === DEFAULT_DATATYPE ? sensor : `${sensor} - ${type}`,
                             yAxisID: type,

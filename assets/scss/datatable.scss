@@ -28,6 +28,9 @@
 
 table.wii-table {
     tr {
+        &:nth-child(2n) {
+            background-color: $lightest-grey;
+        }
         &:hover {
             background-color: $background;
         }

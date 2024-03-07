@@ -1,5 +1,6 @@
 import 'select2';
-import {GROUP_EVERYTHING, GROUP_WHEN_NEEDED} from "./app";
+import {GROUP_EVERYTHING, GROUP_WHEN_NEEDED} from "@app/app";
+import Routing from '@app/fos-routing';
 
 const ROUTES = {
     handlingType: `ajax_select_handling_type`,
@@ -149,8 +150,18 @@ export default class Select2 {
                     config.minimumInputLength = minLength !== undefined ? minLength : 1;
                 }
             }
+            let tokenizer;
             const allowClear = !($element.is(`[multiple]`) || $element.is(`[data-no-empty-option]`));
             const editable = $element.is('[data-editable]');
+            if (editable) {
+                const separator = $element.data('editable-token-separator');
+
+                if (separator) {
+                    tokenizer = (input, selection, callback) => {
+                        return Select2.tokenizer(input, selection, callback, separator);
+                    }
+                }
+            }
 
             if($element.is(`[data-keep-open]`)){
                 config.closeOnSelect = false;
@@ -163,6 +174,7 @@ export default class Select2 {
             $element.select2({
                 placeholder: $element.data(`placeholder`) || '',
                 tags: editable,
+                ...(tokenizer ? {tokenizer} : {}),
                 allowClear,
                 dropdownParent,
                 language: {
@@ -328,9 +340,11 @@ export default class Select2 {
                 .closest(closest)
                 .find(selector);
 
+            const getName = (elem) => $(elem).data('include-params-name') || elem.name;
+
             const values = $fields
-                .filter((_, elem) => elem.name && elem.value)
-                .keymap((elem) => [elem.name, elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
+                .filter((_, elem) => getName(elem) && elem.value)
+                .keymap((elem) => [getName(elem), elem.value], needGroup ? GROUP_EVERYTHING : GROUP_WHEN_NEEDED);
 
             params = {
                 ...params,
@@ -365,17 +379,21 @@ export default class Select2 {
 
     static tokenizer(input, selection, callback, delimiter) {
         let term = input.term;
-        if (term.indexOf(delimiter) < 0)
+        if (term.indexOf(delimiter) < 0) {
             return input;
-
-        let parts = term.split(delimiter);
-        for (let i = 0; i < parts.length; i++) {
-            let part = parts[i].trim();
-            callback({
-                id: part,
-                text: part
-            });
         }
+
+        const parts = term.split(delimiter);
+        for (const part of parts) {
+            const trim = part.trim();
+            if (trim) {
+                callback({
+                    id: trim,
+                    text: trim
+                });
+            }
+        }
+
         return { term: parts.join(delimiter) }; // Rejoin unmatched tokens
     }
 
@@ -403,7 +421,7 @@ export default class Select2 {
     }
 }
 
-$(document).ready(() => {
+$(() => {
     $(`[data-s2]`).each((id, elem) => {
         Select2.proceed($(elem))
     });

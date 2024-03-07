@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Annotation\HasPermission;
+use App\Entity\Arrivage;
 use App\Entity\CategoryType;
 use App\Entity\Dispatch;
 use App\Entity\Action;
@@ -10,6 +11,7 @@ use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
 use App\Entity\Inventory\InventoryLocationMission;
 use App\Entity\Livraison;
@@ -28,6 +30,7 @@ use App\Entity\Utilisateur;
 use App\Entity\Zone;
 use App\Exceptions\FormException;
 use App\Service\PDFGeneratorService;
+use App\Service\SettingsService;
 use App\Service\TranslationService;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
@@ -52,18 +55,14 @@ class LocationController extends AbstractController {
     #[Required]
     public TranslationService $translation;
 
-    /**
-     * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "emplacement_api", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION], mode: HasPermission::IN_JSON)]
     public function api(Request $request, EmplacementDataService $emplacementDataService): Response {
         return $this->json($emplacementDataService->getEmplacementDataByParams($request->request));
     }
 
-    /**
-     * @Route("/", name="emplacement_index", methods="GET")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL})
-     */
+    #[Route("/index", name: "emplacement_index", methods: ["GET"])]
+    #[HasPermission([Menu::REFERENTIEL, Action::DISPLAY_LOCATION])]
     public function index(EntityManagerInterface $entityManager): Response {
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
 
@@ -76,110 +75,71 @@ class LocationController extends AbstractController {
         ]);
     }
 
-    /**
-     * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::CREATE}, mode=HasPermission::IN_JSON)
-     */
-    public function new(Request $request, EntityManagerInterface $entityManager, EmplacementDataService $emplacementDataService): Response {
-        if ($data = json_decode($request->getContent(), true)) {
+    #[Route("/creer", name: "emplacement_new", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::CREATE], mode: HasPermission::IN_JSON)]
+    public function new(Request                $request,
+                        EntityManagerInterface $entityManager,
+                        EmplacementDataService $emplacementDataService): Response {
+        $data = $request->request;
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null);
-            if ($errorResponse) {
-                return $errorResponse;
-            }
+        $dateMaxTime = $data->get(FixedFieldEnum::maximumTrackingDelay->name);
+        $this->checkLocationLabel($entityManager, $data->get(FixedFieldEnum::name->name));
+        $this->checkMaxTime($dateMaxTime);
 
-            $dateMaxTime = !empty($data['dateMaxTime']) ? $data['dateMaxTime'] : null;
-            $errorResponse = $this->checkMaxTime($dateMaxTime);
-            if ($errorResponse) {
-                return $errorResponse;
-            }
-
-            $email = $data['email'] ?? null;
-            if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'adresse email renseignée est invalide.",
-                ]);
-            }
-
-            $emplacement = $emplacementDataService->persistLocation($data, $entityManager);
-            $entityManager->flush();
-
-            $label = $emplacement->getLabel();
-            return $this->json([
-                'success' => true,
-                'msg' => "L'emplacement <strong>$label</strong> a bien été créé"
-            ]);
+        $email = $data->get(FixedFieldEnum::email->name);
+        if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new FormException("L'adresse email renseignée est invalide.");
         }
 
-        throw new BadRequestHttpException();
+        $emplacement = $emplacementDataService->persistLocation($data->all(), $entityManager);
+        $entityManager->flush();
+
+        $label = $emplacement->getLabel();
+        return $this->json([
+            'success' => true,
+            'msg' => "L'emplacement <strong>$label</strong> a bien été créé"
+        ]);
     }
 
-    #[Route('/api-new', name: 'location_api_new', options: ['expose' => true], methods: 'GET')]
-    public function apiNew(EntityManagerInterface $manager): Response {
-        $zoneRepository = $manager->getRepository(Zone::class);
-        $natureRepository = $manager->getRepository(Nature::class);
-        $typeRepository = $manager->getRepository(Type::class);
+    #[Route(["/form/{location}", "/form"], name: "location_get_form", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
+    public function apiEdit(EntityManagerInterface $entityManager,
+                            ?Emplacement           $location): Response {
+
+        $location = $location ?: new Emplacement();
+        $natureRepository = $entityManager->getRepository(Nature::class);
+        $typeRepository = $entityManager->getRepository(Type::class);
+        $zoneRepository = $entityManager->getRepository(Zone::class);
 
         $allNatures = $natureRepository->findAll();
         $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
         $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-        $temperatures = $manager->getRepository(TemperatureRange::class)->findBy([]);
-        $zones = $zoneRepository->findAll();
+        $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
+        $zonesCount = $zoneRepository->count([]);
+
+        if (!$location->getId()
+            && $zonesCount === 1) {
+            $location->setZone($zoneRepository->findOneBy([]));
+        }
 
         return $this->json([
-            'content' => $this->renderView('emplacement/modalNewLocationContent.html.twig', [
+            'success' => true,
+            'html' => $this->renderView("emplacement/form/form.html.twig", [
+                "location" => $location,
                 "natures" => $allNatures,
                 "deliveryTypes" => $deliveryTypes,
                 "collectTypes" => $collectTypes,
                 "temperatures" => $temperatures,
-                "locationZone" =>  count($zones) === 1 ? [
-                    "label" => $zones[0]->getName(),
-                    "value" => $zones[0]->getId(),
-                    "selected" => true
-                ] : [],
-                "selectZone" => count($zones) === 1 ? $zones[0] : null
-            ])
+                "zonesCount" => $zonesCount,
+            ]),
         ]);
     }
 
-    /**
-     * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
-    public function apiEdit(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-            $natureRepository = $entityManager->getRepository(Nature::class);
-            $typeRepository = $entityManager->getRepository(Type::class);
-            $zoneRepository = $entityManager->getRepository(Zone::class);
-
-            $allNatures = $natureRepository->findAll();
-            $emplacement = $emplacementRepository->find($data['id']);
-            $deliveryTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_LIVRAISON]);
-            $collectTypes = $typeRepository->findByCategoryLabels([CategoryType::DEMANDE_COLLECTE]);
-            $temperatures = $entityManager->getRepository(TemperatureRange::class)->findBy([]);
-            $zones = $zoneRepository->findAll();
-
-            return $this->json($this->renderView("emplacement/modalEditEmplacementContent.html.twig", [
-                "location" => $emplacement,
-                "natures" => $allNatures,
-                "deliveryTypes" => $deliveryTypes,
-                "collectTypes" => $collectTypes,
-                "temperatures" => $temperatures,
-                "selectZone" => count($zones) === 1 ? $zones[0] : null
-            ]));
-        }
-
-        throw new BadRequestHttpException();
-    }
-
-    /**
-     * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/edit", name: "emplacement_edit", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function edit(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
+        $data = $request->request;
+        if ($data->count() > 0) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $naturesRepository = $entityManager->getRepository(Nature::class);
             $typeRepository = $entityManager->getRepository(Type::class);
@@ -187,63 +147,43 @@ class LocationController extends AbstractController {
             $zoneRepository = $entityManager->getRepository(Zone::class);
             $temperatureRangeRepository = $entityManager->getRepository(TemperatureRange::class);
 
-            $errorResponse = $this->checkLocationLabel($entityManager, $data["label"] ?? null, $data['id']);
-            if ($errorResponse) {
-                return $errorResponse;
-            }
+            $dateMaxTime = $data->get(FixedFieldEnum::maximumTrackingDelay->name);
+            $locationId = $data->getInt('id');
 
-            $dateMaxTime = !empty($data['dateMaxTime']) ? $data['dateMaxTime'] : null;
-            $errorResponse = $this->checkMaxTime($dateMaxTime);
-            if ($errorResponse) {
-                return $errorResponse;
-            }
-            $zone = $zoneRepository->find($data['zone']);
-            $signatoryIds = is_array($data['signatories'])
-                ? $data['signatories']
-                : Stream::explode(',', $data['signatories'])
+            $this->checkLocationLabel($entityManager, $data->get(FixedFieldEnum::name->name), $locationId);
+            $this->checkMaxTime($dateMaxTime);
+
+            $zone = $zoneRepository->find($data->getInt(FixedFieldEnum::zone->name));
+
+            $signatoryIds = Stream::explode(',', $data->get(FixedFieldEnum::signatories->name))
                     ->filterMap(fn(string $id) => trim($id) ?: null)
                     ->toArray();
+
             $signatories = !empty($signatoryIds)
                 ? $userRepository->findBy(['id' => $signatoryIds])
                 : [];
-            $email = $data['email'] ?? null;
+            $email = $data->get(FixedFieldEnum::email->name);
             if($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return $this->json([
-                    "success" => false,
-                    "msg" => "L'adresse email renseignée est invalide.",
-                ]);
+                throw new FormException("L'adresse email renseignée est invalide.");
             }
-            $emplacement = $emplacementRepository->find($data['id']);
+
+            $emplacement = $emplacementRepository->find($locationId);
             $emplacement
-                ->setLabel($data["label"])
-                ->setDescription($data["description"])
-                ->setIsDeliveryPoint($data["isDeliveryPoint"])
-                ->setIsOngoingVisibleOnMobile($data["isOngoingVisibleOnMobile"])
+                ->setLabel($data->get(FixedFieldEnum::name->name))
+                ->setDescription($data->get(FixedFieldEnum::description->name))
+                ->setIsDeliveryPoint($data->getBoolean(FixedFieldEnum::isDeliveryPoint->name))
+                ->setIsOngoingVisibleOnMobile($data->getBoolean(FixedFieldEnum::isOngoingVisibleOnMobile->name))
+                ->setSendEmailToManagers($data->getBoolean(FixedFieldEnum::sendEmailToManagers->name))
                 ->setDateMaxTime($dateMaxTime)
-                ->setIsActive($data['isActive'])
-                ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => $data["allowedDeliveryTypes"]]))
-                ->setAllowedCollectTypes($typeRepository->findBy(["id" => $data["allowedCollectTypes"]]))
+                ->setIsActive($data->getBoolean(FixedFieldEnum::status->name))
+                ->setAllowedDeliveryTypes($typeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedDeliveryTypes->name))]))
+                ->setAllowedCollectTypes($typeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedCollectTypes->name))]))
+                ->setAllowedNatures($naturesRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedNatures->name))]))
+                ->setTemperatureRanges($temperatureRangeRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::allowedTemperatures->name))]))
+                ->setManagers($userRepository->findBy(["id" => explode(',', $data->get(FixedFieldEnum::managers->name))]))
                 ->setSignatories($signatories ?? [])
                 ->setEmail($email)
-                ->setProperty("zone", $zone);
-
-            $emplacement->getAllowedNatures()->clear();
-
-            if (!empty($data['allowed-natures'])) {
-                foreach ($data['allowed-natures'] as $allowedNatureId) {
-                    $emplacement
-                        ->addAllowedNature($naturesRepository->find($allowedNatureId));
-                }
-            }
-
-            $emplacement->getTemperatureRanges()->clear();
-
-            if (!empty($data['allowedTemperatures'])) {
-                foreach ($data['allowedTemperatures'] as $allowedTemperatureId) {
-                    $emplacement
-                        ->addTemperatureRange($temperatureRangeRepository->find($allowedTemperatureId));
-                }
-            }
+                ->setProperty(FixedFieldEnum::zone->name, $zone);
 
             $entityManager->flush();
 
@@ -256,122 +196,109 @@ class LocationController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DISPLAY_EMPL}, mode=HasPermission::IN_JSON)
-     */
-    public function checkEmplacementCanBeDeleted(Request $request, EntityManagerInterface $manager): Response {
-        if ($emplacementId = json_decode($request->getContent(), true)) {
-            $isUsedBy = $this->isEmplacementUsed($manager, $emplacementId);
-            if (empty($isUsedBy)) {
-                $delete = true;
-                $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
-            } else {
-                $delete = false;
-                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', [
-                    'delete' => false,
-                    'isUsedBy' => $isUsedBy
-                ]);
-            }
-
-            return new JsonResponse(['delete' => $delete, 'html' => $html]);
-        }
-        throw new BadRequestHttpException();
-    }
-
-    private function isEmplacementUsed(EntityManagerInterface $entityManager,
-                                       int                    $emplacementId): array {
+    private function isLocationUsed(EntityManagerInterface $entityManager,
+                                    int                    $locationId): array {
         $referenceArticleRepository = $entityManager->getRepository(ReferenceArticle::class);
         $articleRepository = $entityManager->getRepository(Article::class);
-        $mouvementStockRepository = $entityManager->getRepository(MouvementStock::class);
+        $stockMovementRepository = $entityManager->getRepository(MouvementStock::class);
         $trackingMovementRepository = $entityManager->getRepository(TrackingMovement::class);
-        $collecteRepository = $entityManager->getRepository(Collecte::class);
-        $livraisonRepository = $entityManager->getRepository(Livraison::class);
-        $demandeRepository = $entityManager->getRepository(Demande::class);
+        $collectRepository = $entityManager->getRepository(Collecte::class);
+        $deliveryOrderRepository = $entityManager->getRepository(Livraison::class);
+        $deliveryRequestRepository = $entityManager->getRepository(Demande::class);
         $dispatchRepository = $entityManager->getRepository(Dispatch::class);
         $transferRequestRepository = $entityManager->getRepository(TransferRequest::class);
         $locationRepository = $entityManager->getRepository(Emplacement::class);
         $inventoryLocationMissionRepository = $entityManager->getRepository(InventoryLocationMission::class);
+        $arrivalRepository = $entityManager->getRepository(Arrivage::class);
 
-        $location = $locationRepository->find($emplacementId);
+        $location = $locationRepository->find($locationId);
 
         $usedBy = [];
+        $deliveryRequests = $deliveryRequestRepository->countByLocation($location);
+        if ($deliveryRequests > 0) {
+            $usedBy[] = 'demandes';
+        }
 
-        $demandes = $demandeRepository->countByEmplacement($emplacementId);
-        if ($demandes > 0) $usedBy[] = 'demandes';
+        $dispatches = $dispatchRepository->countByLocation($location);
+        if ($dispatches > 0) {
+            $usedBy[] = 'acheminements';
+        }
 
-        $dispatches = $dispatchRepository->countByEmplacement($emplacementId);
-        if ($dispatches > 0) $usedBy[] = 'acheminements';
+        $deliveryOrders = $deliveryOrderRepository->countByLocation($location);
+        if ($deliveryOrders > 0) {
+            $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
+        }
 
-        $livraisons = $livraisonRepository->countByEmplacement($emplacementId);
-        if ($livraisons > 0) $usedBy[] = mb_strtolower($this->translation->translate("Ordre", "Livraison", "Livraison", false)) . 's';
+        $collects = $collectRepository->countByLocation($location);
+        if ($collects > 0) {
+            $usedBy[] = 'collectes';
+        }
 
-        $collectes = $collecteRepository->countByEmplacement($emplacementId);
-        if ($collectes > 0) $usedBy[] = 'collectes';
+        $stockMovements = $stockMovementRepository->countByLocation($location);
+        if ($stockMovements > 0) {
+            $usedBy[] = 'mouvements de stock';
+        }
 
-        $mouvementsStock = $mouvementStockRepository->countByEmplacement($emplacementId);
-        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
+        $trackingMovements = $trackingMovementRepository->countByLocation($location);
+        if ($trackingMovements > 0) {
+            $usedBy[] = 'mouvements de traçabilité';
+        }
 
-        $trackingMovements = $trackingMovementRepository->countByEmplacement($emplacementId);
-        if ($trackingMovements > 0) $usedBy[] = 'mouvements de traçabilité';
+        $referenceArticles = $referenceArticleRepository->countByLocation($location);
+        if ($referenceArticles > 0) {
+            $usedBy[] = 'références article';
+        }
 
-        $refArticle = $referenceArticleRepository->countByEmplacement($emplacementId);
-        if ($refArticle > 0) $usedBy[] = 'références article';
-
-        $articles = $articleRepository->countByEmplacement($emplacementId);
-        if ($articles > 0) $usedBy[] = 'articles';
+        $articles = $articleRepository->countByLocation($location);
+        if ($articles > 0) {
+            $usedBy[] = 'articles';
+        }
 
         //can't delete request if there's order so there is no need to count orders
-        $transferRequests = $transferRequestRepository->countByLocation($emplacementId);
-        if ($transferRequests > 0) $usedBy[] = 'demandes de transfert';
+        $transferRequests = $transferRequestRepository->countByLocation($locationId);
+        if ($transferRequests > 0) {
+            $usedBy[] = 'demandes de transfert';
+        }
 
-        $round = $locationRepository->countRound($emplacementId);
-        if ($round > 0) $usedBy[] = 'tournées';
+        $rounds = $locationRepository->countRound($locationId);
+        if ($rounds > 0) {
+            $usedBy[] = 'tournées';
+        }
 
         $inventoryLocationMissions = $inventoryLocationMissionRepository->count(['location' => $location]);
-        if ($inventoryLocationMissions > 0) $usedBy[] = "missions d'inventaire";
+        if ($inventoryLocationMissions > 0) {
+            $usedBy[] = "missions d'inventaire";
+        }
+
+        $arrivals = $arrivalRepository->countByLocation($location);
+        if($arrivals > 0) {
+            $usedBy[] = "arrivages";
+        }
 
         return $usedBy;
     }
 
-    /**
-     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods="GET|POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::REFERENTIEL, Action::DELETE}, mode=HasPermission::IN_JSON)
-     */
-    public function delete(Request $request, EntityManagerInterface $entityManager): Response {
-        if ($data = json_decode($request->getContent(), true)) {
-            $response = [];
+    #[Route("/supprimer/{location}", name: "emplacement_delete", options: ["expose" => true], methods: ["DELETE"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::REFERENTIEL, Action::DELETE], mode: HasPermission::IN_JSON)]
+    public function delete(EntityManagerInterface $entityManager, Emplacement $location): JsonResponse {
+        $isUsedBy = $this->isLocationUsed($entityManager, $location->getId());
 
-            $emplacementRepository = $entityManager->getRepository(Emplacement::class);
-
-            if ($emplacementId = (int)$data['emplacement']) {
-                $emplacement = $emplacementRepository->find($emplacementId);
-
-                if ($emplacement) {
-                    if(!$emplacement->getInventoryLocationMissions()->isEmpty()){
-                        throw new FormException("Vous ne pouvez pas supprimer cette emplacement car il est lié à une ou plusieurs missions d'inventaire.");
-                    }
-                    $usedEmplacement = $this->isEmplacementUsed($entityManager, $emplacementId);
-
-                    if (!empty($usedEmplacement)) {
-                        $emplacement->setIsActive(false);
-                    } else {
-                        $entityManager->remove($emplacement);
-                        $response['delete'] = $emplacementId;
-                    }
-                    $entityManager->flush();
-                }
-            }
-
-            return new JsonResponse($response);
+        if($isUsedBy){
+            throw new FormException("Vous ne pouvez pas supprimer cette emplacement car il est lié à des " . implode(', ', $isUsedBy) . ".");
         }
-        throw new BadRequestHttpException();
+
+        $entityManager->remove($location);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'msg' => "L'emplacement <strong>{$location->getLabel()}</strong> a bien été supprimé"
+        ]);
     }
 
-    /**
-     * @Route("/autocomplete", name="get_emplacement", options={"expose"=true}, condition="request.isXmlHttpRequest()")
-     */
-    public function getRefArticles(Request $request, EntityManagerInterface $entityManager) {
+    #[Route("/autocomplete", name: "get_emplacement", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    public function getRefArticles(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
 
         $search = $request->query->get('term');
 
@@ -380,9 +307,7 @@ class LocationController extends AbstractController {
         return new JsonResponse(['results' => $emplacement]);
     }
 
-    /**
-     * @Route("/etiquettes", name="print_locations_bar_codes", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/etiquettes", name: "print_locations_bar_codes", options: ["expose" => true], methods: ["GET"])]
     public function printLocationsBarCodes(Request $request,
                                            EntityManagerInterface $entityManager,
                                            PDFGeneratorService $PDFGeneratorService): PdfResponse {
@@ -408,9 +333,7 @@ class LocationController extends AbstractController {
         }
     }
 
-    /**
-     * @Route("/{location}/etiquette", name="print_single_location_bar_code", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/{location}/etiquette", name: "print_single_location_bar_code", options: ["expose" => true], methods: ["GET"])]
     public function printSingleLocationBarCode(Emplacement $location,
                                                PDFGeneratorService $PDFGeneratorService): PdfResponse {
         $barCodeConfigs = [['code' => $location->getLabel()]];
@@ -423,27 +346,26 @@ class LocationController extends AbstractController {
         );
     }
 
-    private function checkLocationLabel(EntityManagerInterface $entityManager, ?string $label, $locationId = null) {
+    private function checkLocationLabel(EntityManagerInterface $entityManager, ?string $label, $locationId = null): void {
+
+        // if $label matches the regex, it's valid
+        if (!preg_match("/" . SettingsService::CHARACTER_VALID_REGEX . "/", $label)) {
+            throw new FormException("Le nom de l'emplacement doit contenir au maximum 24 caractères, lettres ou chiffres uniquement, pas d’accent");
+        }
+
         $labelTrimmed = $label ? trim($label) : null;
         if (!empty($labelTrimmed)) {
             $emplacementRepository = $entityManager->getRepository(Emplacement::class);
             $emplacementAlreadyExist = $emplacementRepository->countByLabel($label, $locationId);
             if ($emplacementAlreadyExist) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre."
-                ]);
+                throw new FormException("Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.");
             }
         } else {
-            return new JsonResponse([
-                'success' => false,
-                'msg' => "Vous devez donner un nom valide."
-            ]);
+            throw new FormException("Vous devez donner un nom valide.");
         }
-        return null;
     }
 
-    private function checkMaxTime(?string $dateMaxTime) {
+    private function checkMaxTime(?string $dateMaxTime): void {
         if (!empty($dateMaxTime)) {
             $matchHours = '\d+';
             $matchMinutes = '([0-5][0-9])';
@@ -453,18 +375,13 @@ class LocationController extends AbstractController {
                 $dateMaxTime
             );
             if (empty($resultFormat)) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => "Le délai saisi est invalide."
-                ]);
+                throw new FormException("Le délai saisi est invalide.");
             }
         }
     }
 
-    /**
-     * @Route("/autocomplete-locations-by-type", name="get_locations_by_type", options={"expose"=true}, methods={"GET"}, condition="request.isXmlHttpRequest()")
-     */
-    public function getLocationsByType(Request $request, EntityManagerInterface $entityManager) {
+    #[Route("/autocomplete-locations-by-type", name: "get_locations_by_type", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    public function getLocationsByType(Request $request, EntityManagerInterface $entityManager): JsonResponse {
         $search = $request->query->get('term');
         $type = $request->query->get('type');
 
@@ -476,5 +393,4 @@ class LocationController extends AbstractController {
             'results' => $locations
         ]);
     }
-
 }

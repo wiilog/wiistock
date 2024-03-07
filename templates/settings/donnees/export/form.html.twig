@@ -46,6 +46,12 @@
                 value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
                 checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_DISPATCH'),
                 disabled: export.id is not null
+            },
+            {
+                label: 'Productions',
+                value: constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PRODUCTION'),
+                checked: export.entity == constant('App\\Entity\\ScheduledTask\\Export::ENTITY_PRODUCTION'),
+                disabled: export.id is not null
             }
         ], {expanded: true}) }}
 

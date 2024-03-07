@@ -1,3 +1,9 @@
+import Routing from '@app/fos-routing';
+import AJAX, {GET} from '@app/ajax';
+import Flash from '@app/ajax';
+import Modal from '@app/modal';
+import moment from 'moment';
+
 let tableMvt;
 
 global.resetNewModal = resetNewModal;
@@ -6,9 +12,7 @@ global.clearURL = clearURL;
 global.toggleDateInput = toggleDateInput;
 
 $(function () {
-    $('.select2').select2();
     const $modalNewMvtTraca = $('#modalNewMvtTraca');
-    $modalNewMvtTraca.find('.list-multiple').select2();
 
     const $userFormat = $('#userDateFormat');
     const format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
@@ -56,7 +60,7 @@ function loadLUQuantity($selector) {
     const $quantity = $modalNewMvtTraca.find(`[name="quantity"]`);
     const code = $selector.val();
 
-    AJAX.route(AJAX.GET, `tracking_movement_logistic_unit_quantity`, {code})
+    AJAX.route(GET, `tracking_movement_logistic_unit_quantity`, {code})
         .json()
         .then(response => {
             $modalNewMvtTraca.find(`#submitNewMvtTraca`).prop(`disabled`, response.error);
@@ -183,7 +187,7 @@ function initPageModal(tableMvt) {
                         return resolve(true);
                     }
 
-                    AJAX.route(AJAX.GET, `tracking_movement_is_in_lu`, {barcode: pack})
+                    AJAX.route(GET, `tracking_movement_is_in_lu`, {barcode: pack})
                         .json()
                         .then(result => {
                             if(result.in_logistic_unit) {
@@ -266,7 +270,6 @@ function switchMvtCreationType($input) {
                     $modal.find('.new-mvt-common-body').removeClass('d-none');
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
                     Select2Old.location($modal.find('.ajax-autocomplete-location'));
-                    Select2Old.initFree($modal.find('.select2-free'));
 
                     const $emptyRound = $modal.find('input[name=empty-round]');
                     if ($input.find(':selected').text().trim() === $emptyRound.val()) {
@@ -283,20 +286,10 @@ function switchMvtCreationType($input) {
                         const $pack = $moreMassMvtContainer.find('select[name="pack"]');
 
                         Select2Old.location($emplacementPrise, {autoSelect: true, $nextField: $pack});
-                        Select2Old.initFree($pack);
                         Select2Old.location($emplacementDepose, {autoSelect: true});
 
                         setTimeout(() => $emplacementPrise.select2('open'), 200);
                     }
-
-                    $modal.find(`select[name=pack]`).select2({
-                        tags: true,
-                        tokenSeparators: [" "],
-                        tokenizer: (input, selection, callback) => {
-                            return Wiistock.Select2.tokenizer(input, selection, callback, ' ');
-                        },
-                    }).trigger('ready');
-                    $modal.find(`input[name=pack]`).trigger('ready');
                 }
             });
     }

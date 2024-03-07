@@ -343,7 +343,8 @@ function printPrepaBarCodes() {
                     window.location.href = Routing.generate(
                         'preparation_bar_codes_print',
                         {
-                            preparation: $preparationId.val()
+                            preparation: $preparationId.val(),
+                            forceTagEmpty: true,
                         },
                         true
                     );

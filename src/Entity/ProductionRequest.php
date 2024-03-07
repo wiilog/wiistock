@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
+use App\Entity\Traits\CleanedCommentTrait;
 use App\Entity\Traits\FreeFieldsManagerTrait;
 use App\Repository\ProductionRequestRepository;
 use DateTime;
@@ -20,6 +21,7 @@ class ProductionRequest extends StatusHistoryContainer
 
     use AttachmentTrait;
     use FreeFieldsManagerTrait;
+    use CleanedCommentTrait;
 
     public const NUMBER_PREFIX = 'P';
 
@@ -64,11 +66,14 @@ class ProductionRequest extends StatusHistoryContainer
     #[ORM\OneToMany(mappedBy: 'productionRequest', targetEntity: StatusHistory::class, cascade: ['remove'])]
     private Collection $statusHistory;
 
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: false)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: false)]
     private ?string $number = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
-    private ?\DateTimeInterface $createdAt = null;
+    private ?DateTime $createdAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $treatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedProductionRequests')]
     #[ORM\JoinColumn(nullable: true)]
@@ -217,6 +222,7 @@ class ProductionRequest extends StatusHistoryContainer
     public function setComment(?string $comment): self
     {
         $this->comment = $comment;
+        $this->setCleanedComment($comment);
 
         return $this;
     }
@@ -264,14 +270,26 @@ class ProductionRequest extends StatusHistoryContainer
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    public function setCreatedAt(DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    public function getTreatedAt(): ?DateTime
+    {
+        return $this->treatedAt;
+    }
+
+    public function setTreatedAt(DateTime $treatedAt): static
+    {
+        $this->treatedAt = $treatedAt;
 
         return $this;
     }

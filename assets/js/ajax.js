@@ -1,4 +1,5 @@
 import Flash, {ERROR, INFO, SUCCESS} from "./flash";
+import Routing from '@app/fos-routing';
 
 export const GET = `GET`;
 export const POST = `POST`;

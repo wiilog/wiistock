@@ -125,13 +125,6 @@ class InvMissionService {
                 : $this->dataRowRefMission($data, $mission);
         }
 
-        $index = intval($params->all('order')[0]['column']);
-        if ($rows) {
-            $columnName = array_keys($rows[0])[$index];
-            $column = array_column($rows, $columnName);
-            array_multisort($column, $params->all('order')[0]['dir'] === "asc" ? SORT_ASC : SORT_DESC, $rows);
-        }
-
         return [
             'data' => $rows,
             'recordsTotal' => $queryResult['total'],
@@ -272,16 +265,16 @@ class InvMissionService {
         }
 
         return [
-            'Ref' => $reference,
-            'CodeBarre' => $codeBarre,
-            'Label' => $label,
-            'UL' => $pack ? $pack->getCode() : '',
-            'Location' => $location,
-            'Date' => isset($date) ? $date->format('d/m/Y') : '',
-            'Anomaly' => $anomaly,
-            'QuantiteStock' => $quantiteStock,
-            'QuantiteComptee' => $quantiteComptee,
-            'EmptyLocation' => $emptyLocation,
+            'reference' => $reference,
+            'barcode' => $codeBarre,
+            'label' => $label,
+            'logisticUnit' => $pack ? $pack->getCode() : '',
+            'location' => $location,
+            'date' => isset($date) ? $date->format('d/m/Y') : '',
+            'anomaly' => $anomaly,
+            'stockQuantity' => $quantiteStock,
+            'countedQuantity' => $quantiteComptee,
+            'emptyLocation' => $emptyLocation,
         ];
     }
 

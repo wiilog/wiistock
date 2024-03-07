@@ -102,6 +102,7 @@ class FiltreSup {
     const PAGE_ENCOURS = 'encours';
     const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
     const PAGE_PREPARATION_PLANNING = 'preparationPlanning';
+    const PAGE_PRODUCTION_PLANNING = 'productionPlanning';
     const PAGE_TRANSPORT_ORDERS = 'transportOrders';
     const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
     const PAGE_TRANSPORT_ROUNDS = 'transportRounds';

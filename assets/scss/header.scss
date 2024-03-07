@@ -299,7 +299,10 @@
     }
 }
 
-
+.role {
+    color: $medium-grey !important;
+    font-size: 14px;
+}
 .user, .language-date {
     background-color: rgba(255, 255, 255, 0.1);
     height: 40px;
@@ -337,7 +340,10 @@
 }
 
 .profile-picture, .language-picture {
-    display: inline-block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     min-width: 30px;
     width: 30px;
     height: 30px;
@@ -347,7 +353,6 @@
     font-weight: bold;
     color: $dark-grey;
     text-align: center;
-    line-height: 30px;
     margin: 0 5px;
     user-select: none;
     object-fit: contain;

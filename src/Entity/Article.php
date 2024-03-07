@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
@@ -38,22 +39,23 @@ class Article implements PairedEntity {
     const USED_ASSOC_COLLECT_ORDER = 6;
     const USED_ASSOC_INVENTORY_ENTRY = 7;
     const BARCODE_PREFIX = 'ART';
+    const COLLECTABLE_DELAY = "-180 days";
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $reference = null;
 
-    #[ORM\Column(type: 'string', length: 15, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 15, nullable: true)]
     private ?string $barCode = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     private ?int $quantite = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
     #[ORM\ManyToMany(targetEntity: Collecte::class, mappedBy: 'articles')]
@@ -62,13 +64,13 @@ class Article implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Statut::class, inversedBy: 'articles')]
     private ?Statut $statut = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $inactiveSince = null;
 
-    #[ORM\Column(type: 'boolean', options: ["default" => true])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ["default" => true])]
     private ?bool $conform = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $label = null;
 
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: MouvementStock::class)]
@@ -99,16 +101,16 @@ class Article implements PairedEntity {
     #[ORM\ManyToMany(targetEntity: InventoryMission::class, inversedBy: 'articles')]
     private Collection $inventoryMissions;
 
-    #[ORM\Column(type: 'float', nullable: true)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
     private ?float $prixUnitaire = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $dateLastInventory = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $lastAvailableDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $firstUnavailableDate = null;
 
     #[ORM\ManyToMany(targetEntity: OrdreCollecte::class, inversedBy: 'articles')]
@@ -127,13 +129,13 @@ class Article implements PairedEntity {
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Alert::class, cascade: ['remove'])]
     private Collection $alerts;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $batch = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $expiryDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $stockEntryDate = null;
 
     #[ORM\OneToMany(mappedBy: 'article', targetEntity: Pairing::class, cascade: ['remove'])]
@@ -145,25 +147,25 @@ class Article implements PairedEntity {
     #[ORM\ManyToOne(targetEntity: Pack::class, cascade: ['persist'], inversedBy: "childArticles")]
     private ?Pack $currentLogisticUnit = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $createdOnKioskAt = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true)]
     private ?string $RFIDtag = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $deliveryNote = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $purchaseOrder = null;
 
     #[ORM\ManyToOne(targetEntity: NativeCountry::class)]
     private ?NativeCountry $nativeCountry = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $manufacturedAt = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $productionDate = null;
 
     public function __construct() {
@@ -176,12 +178,12 @@ class Article implements PairedEntity {
         $this->disputes = new ArrayCollection();
         $this->ordreCollecte = new ArrayCollection();
         $this->transferRequests = new ArrayCollection();
-
-        $this->quantite = 0;
         $this->alerts = new ArrayCollection();
         $this->pairings = new ArrayCollection();
         $this->sensorMessages = new ArrayCollection();
         $this->carts = new ArrayCollection();
+
+        $this->quantite = 0;
     }
 
     public function getId(): ?int {
@@ -367,11 +369,11 @@ class Article implements PairedEntity {
         return $this;
     }
 
-    public function getPrixUnitaire() {
+    public function getPrixUnitaire(): ?float {
         return $this->prixUnitaire;
     }
 
-    public function setPrixUnitaire($prixUnitaire): self {
+    public function setPrixUnitaire(?float $prixUnitaire): self {
         $this->prixUnitaire = $prixUnitaire;
 
         return $this;
@@ -801,6 +803,10 @@ class Article implements PairedEntity {
 
     public function isAvailable(): bool {
         return $this->statut->getCode() === self::STATUT_ACTIF;
+    }
+
+    public function isInactive(): bool {
+        return $this->statut->getCode() === self::STATUT_INACTIF;
     }
 
     public function getRFIDtag(): ?string {

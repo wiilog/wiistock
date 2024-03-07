@@ -7,6 +7,7 @@
     {% if transfer.origin %}
         <input type="hidden" id="transfer-origin-id" value="{{ transfer.origin.id }}"/>
     {% endif %}
+    <input type="hidden" value="{{ transfer.id }}" id="transferRequestId"/>
     <div class="m-4">
         <div class="row">
             <div class="col-12">
@@ -69,9 +70,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        let id = {{ transfer.id }};
-    </script>
-
-    <script src="{{ asset('js/pages/transfer/request/show.js') }}?v={{ web_version }}"></script>
+    {{ encore_entry_script_tags('transfer-request-show') }}
 {% endblock %}

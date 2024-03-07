@@ -27,6 +27,7 @@ const PAGE_STATUS = 'status';
 const PAGE_EMPLACEMENT = 'emplacement';
 const PAGE_TRANSPORT_REQUESTS = 'transportRequests';
 const PAGE_PREPARATION_PLANNING = 'preparationPlanning';
+const PAGE_PRODUCTION_PLANNING = 'productionPlanning';
 const PAGE_TRANSPORT_ORDERS = 'transportOrders';
 const PAGE_SUBCONTRACT_ORDERS = 'subcontractOrders';
 const PAGE_TRANSPORT_ROUNDS = 'transportRounds';
@@ -68,6 +69,12 @@ $(function () {
     $(document).arrive(`.stop-propagation`, function() {
         $(this).on("click", function (e) {
             e.stopPropagation();
+        });
+    });
+
+    $(document).arrive(`.prevent-default`, function() {
+        $(this).on(`click`, function (e) {
+            e.preventDefault();
         });
     });
 
@@ -474,67 +481,6 @@ function clearCheckboxes($modal) {
             }
         }
     });
-}
-
-function saveFilters(page, tableSelector, callback, needsDateFormatting = false) {
-    const $table = $(tableSelector);
-    const path = Routing.generate('filter_sup_new');
-
-    const $filterDateMin = $('.filter-date-min');
-    const $filterDateMax = $('.filter-date-max');
-    const $filterDateExpected = $('.filter-date-expected');
-    const $filterDateMinPicker = $filterDateMin.data("DateTimePicker");
-    const $filterDateMaxPicker = $filterDateMax.data("DateTimePicker");
-    const $filterDateExpectedPicker = $filterDateExpected.data("DateTimePicker");
-
-    if ($filterDateMinPicker) {
-        $filterDateMinPicker.format('YYYY-MM-DD');
-    }
-    if ($filterDateMaxPicker) {
-        $filterDateMaxPicker.format('YYYY-MM-DD');
-    }
-    if ($filterDateExpectedPicker) {
-        $filterDateExpectedPicker.format('YYYY-MM-DD');
-    }
-
-    let params = {
-        page,
-        ...serializeFilters($table),
-    }
-
-
-    let format = 'd/m/Y';
-    if (needsDateFormatting) {
-        const $userFormat = $('#userDateFormat');
-        format = $userFormat.val() ? $userFormat.val() : 'd/m/Y';
-    }
-    if ($filterDateMinPicker) {
-        $filterDateMinPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
-    }
-    if ($filterDateMaxPicker) {
-        $filterDateMaxPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
-    }
-    if ($filterDateExpectedPicker) {
-        $filterDateExpectedPicker.format(DATE_FORMATS_TO_DISPLAY[format]);
-    }
-
-    return $.post(path, JSON.stringify(params), function (response) {
-        if (response) {
-            if (callback) {
-                callback();
-            }
-            if (tableSelector) {
-                $(tableSelector).each(function() {
-                    const $table = $(this);
-                    if ($table && $table.DataTable && $table.is(`:visible`)) {
-                        $table.DataTable().draw();
-                    }
-                })
-            }
-        } else {
-            showBSAlert('Veuillez saisir des filtres corrects (pas de virgule ni de deux-points).', 'danger');
-        }
-    }, 'json');
 }
 
 function serializeFilters($table = undefined) {
@@ -1388,20 +1334,4 @@ function onSelectAll() {
     });
 
     $select.trigger(`change`);
-}
-
-function getUserFiltersByPage(page,
-                              options = {preventPrefillFilters: false},
-                              callback = undefined) {
-    AJAX.route(AJAX.GET, `filter_get_by_page`, {page})
-        .json()
-        .then((data) => {
-            if (!options.preventPrefillFilters) {
-                displayFiltersSup(data);
-            }
-
-            if (callback) {
-                callback();
-            }
-        });
 }

@@ -1,4 +1,5 @@
 import AJAX from "@app/ajax";
+import Routing from '@app/fos-routing';
 
 let $printTag;
 let pageTables;
@@ -219,7 +220,7 @@ function displayFilterValue(elem) {
         let params = {
             'value': val
         };
-        $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
+        $.post(Routing.generate('filter_ref_display_field_elements'), JSON.stringify(params), function (data) {
             modalBody.find('.input-group').html(data);
             $('.list-multiple').select2();
         }, 'json');
@@ -334,7 +335,7 @@ function updateQuantity(referenceArticleId) {
 
 function updateFilters() {
     $('#filters .filter-parent[data-removable="1"]').remove();
-    $.get(Routing.generate('update_filters'))
+    $.get(Routing.generate('filter_ref_update'))
         .then(({templates}) => {
             if (templates.length === 0) {
                 $('.printButton').addClass('disabled');

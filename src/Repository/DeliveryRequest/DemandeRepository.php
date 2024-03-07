@@ -5,6 +5,7 @@ namespace App\Repository\DeliveryRequest;
 use App\Entity\Article;
 use App\Entity\AverageRequestTime;
 use App\Entity\DeliveryRequest\Demande;
+use App\Entity\Emplacement;
 use App\Entity\Reception;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -83,14 +84,11 @@ class DemandeRepository extends EntityRepository
         return $query->fetchAll();
     }
 
-    public function countByEmplacement($emplacementId)
-    {
-        return $this->createQueryBuilder('request')
-            ->select('COUNT(request)')
-            ->join('request.destination', 'destination')
-            ->andWhere('destination.id = :emplacementId')
-            ->setMaxResults(1)
-            ->setParameter('emplacementId', $emplacementId)
+    public function countByLocation(Emplacement $location): int {
+        return $this->createQueryBuilder('delivery_request')
+            ->select('COUNT(delivery_request.id)')
+            ->andWhere('delivery_request.destination = :location')
+            ->setParameter('location', $location)
             ->getQuery()
             ->getSingleScalarResult();
     }

@@ -33,8 +33,8 @@ import {
 } from "./statuses";
 import {initializeAlertTemplate, initializeNotifications} from "./alert-template";
 import {onHeaderPageEditStop} from "./utils";
-import Form from '../../form';
-import Routing from '../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
+import Form from '@app/form';
+import Routing from '@app/fos-routing';
 import AJAX, {GET, POST} from "@app/ajax";
 import {initializeInventoryPlanificatorTable} from "@app/pages/settings/inventory/inventoryPlanner";
 import {initializePurchaseRequestPlanner} from "@app/pages/settings/purchase-request/planner";
@@ -1292,8 +1292,8 @@ function initializeTruckArrivalFixedFields($container, canEdit) {
 function initializeTruckArrivalReserves() {
     const table = EditableDatatable.create(`#TruckArrivalReserves`, {
         mode: MODE_CLICK_EDIT_AND_ADD,
-        route: Routing.generate('settings_reserves_api', true),
-        deleteRoute: `settings_reserve_type_delete`,
+        route: Routing.generate('truck_arrival_settings_reserves_api', true),
+        deleteRoute: `truck_arrival_settings_reserve_type_delete`,
         save: SAVE_MANUALLY,
         search: false,
         paging: false,

@@ -1,6 +1,8 @@
 import {initReserveForm} from "@app/pages/truck-arrival/reserve";
-import {POST} from "@app/ajax";
-import AJAX from "@app/ajax";
+import AJAX, {GET, POST} from "@app/ajax";
+import Form from "@app/form";
+import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
 import {initTrackingNumberSelect, setTrackingNumberWarningMessage} from "@app/pages/truck-arrival/common";
 
 global.newTrackingNumber = newTrackingNumber;
@@ -33,7 +35,8 @@ $(function () {
     $reserveModals.each(function (index , $modal) {
         Form
             .create($modal)
-            .submitTo( POST, 'reserve_form_submit', {success: () => {
+            .submitTo(POST, 'reserve_form_submit', {
+                success: () => {
                     location.reload();
                 }
             })
@@ -55,7 +58,7 @@ function openModalQualityReserveContent($modalReserveQuality, reserveId = null){
     Form.create($modalReserveQuality, true)
         .clearOpenListeners()
         .onOpen(() => {
-            AJAX.route(AJAX.POST, 'reserve_modal_quality_content', {
+            AJAX.route(POST, 'reserve_modal_quality_content', {
                 reserveId,
                 truckArrival
             })
@@ -119,7 +122,7 @@ function initTruckArrivalLineQualityReservesTable() {
         order: [[`reserveLineNumber`, `desc`]],
         ajax: {
             url: Routing.generate(`truck_arrival_lines_quality_reserves_api`, {truckArrival}, true),
-            type: `GET`
+            type: GET
         },
         columns: [
             {data: `actions`, title: ``, className: `noVis`, orderable: false},
@@ -141,7 +144,7 @@ function initTruckArrivalLineQualityReservesTable() {
 }
 
 function deleteTruckArrivalLine(deleteButton){
-    AJAX.route(AJAX.POST, 'truck_arrival_lines_delete', {
+    AJAX.route(POST, 'truck_arrival_lines_delete', {
         truckArrivalLineId: deleteButton.data('id'),
     })
         .json()
@@ -151,7 +154,7 @@ function deleteTruckArrivalLine(deleteButton){
 }
 
 function deleteTruckArrivalLineReserve(deleteButton){
-    AJAX.route(AJAX.POST, 'truck_arrival_line_reserve_delete', {
+    AJAX.route(POST, 'truck_arrival_line_reserve_delete', {
         reserveId: deleteButton.data('id'),
     })
         .json()
@@ -172,7 +175,7 @@ function newTrackingNumber() {
         .onOpen(()=> {
             $modal.find('select[name="trackingNumbers"]').empty();
         })
-        .submitTo( POST, 'add_tracking_number', {
+        .submitTo(POST, 'truck_arrival_add_tracking_number', {
             success: () => {
                 truckArrivalLinesTable.ajax.reload();
             }

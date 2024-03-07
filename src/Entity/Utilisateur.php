@@ -16,6 +16,7 @@ use App\Entity\Transport\TransportRound;
 use App\Entity\Transport\TransportRoundStartingHour;
 use App\Entity\Transport\Vehicle;
 use App\Repository\UtilisateurRepository;
+use App\Service\MailerService;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -1996,9 +1997,9 @@ class Utilisateur implements UserInterface, EquatableInterface, PasswordAuthenti
     }
 
     public function isWiilogUser(): bool {
-        $userEmailDomain = explode("@", $this->getEmail())[1] ?? "";
+        preg_match(MailerService::EMAIL_SLICING_REGEX, $this->getEmail(), $slicedAddress);
+        $userEmailDomain = $slicedAddress["DomainWithTLD"] ?? null;
         $wiilogDomains = explode(",", $_SERVER['WIILOG_DOMAINS'] ?? "");
-
         return in_array($userEmailDomain, $wiilogDomains);
     }
 

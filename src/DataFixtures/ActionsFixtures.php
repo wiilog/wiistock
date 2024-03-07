@@ -273,6 +273,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::DELETE_IN_PROGRESS_PRODUCTION_REQUEST,
                 Action::EDIT_TREATED_PRODUCTION_REQUEST,
                 Action::EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST,
+                Action::DISPLAY_PRODUCTION_REQUEST_PLANNING,
             ],
         ],
         Menu::REFERENTIEL => [
@@ -284,7 +285,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
             ],
             self::SUB_MENU_PAGE => [
                 Action::DISPLAY_FOUR,
-                Action::DISPLAY_EMPL,
+                Action::DISPLAY_LOCATION,
                 Action::DISPLAY_CHAU,
                 Action::DISPLAY_TRAN,
                 Action::DISPLAY_VEHICLE,
@@ -401,6 +402,7 @@ class ActionsFixtures extends Fixture implements FixtureGroupInterface, Dependen
                 Action::MODULE_ACCESS_DELIVERY_ORDER,
                 Action::MODULE_ACCESS_MANUAL_DELIVERY,
                 Action::MODULE_ACCESS_COLLECT_ORDER,
+                Action::MODULE_ACCESS_MANUAL_COLLECT,
                 Action::MODULE_ACCESS_TRANSFER_ORDER,
                 Action::MODULE_ACCESS_MANUAL_TRANSFER,
                 Action::MODULE_ACCESS_INVENTORY,

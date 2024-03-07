@@ -1,0 +1,62 @@
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
+    <p>Bonjour, </p>
+    {% if isNew and not isTreatedStatus %}
+        <p>Une demande de production est en cours de traitement avec les informations suivantes :</p>
+    {% elseif isTreatedStatus %}
+        <p>Une demande de production a été traitée avec les informations suivantes :</p>
+    {% else %}
+        <p>Une demande de production a été créée avec les informations suivantes :</p>
+    {% endif %}
+    <ul>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::number').value }} :
+            <strong>{{ productionRequest.number }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::manufacturingOrderNumber').value }} :
+            <strong>{{ productionRequest.manufacturingOrderNumber }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::createdAt').value }} :
+            <strong>{{ productionRequest.createdAt|format_helper("datetime", "", true) }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::createdBy').value }} :
+            <strong>{{ productionRequest.createdBy|format_helper("user") }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::type').value }} :
+            <strong>{{ productionRequest.type|format_helper("type") }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::expectedAt').value }} :
+            <strong>{{ productionRequest.expectedAt|format_helper("datetime", "-", true) }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::status').value }} :
+            <strong>{{ productionRequest.status|format_helper("status") }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::projectNumber').value }} :
+            <strong>{{ productionRequest.projectNumber }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::lineCount').value }} :
+            <strong>{{ productionRequest.lineCount }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::productArticleCode').value }} :
+            <strong>{{ productionRequest.productArticleCode }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::emergency').value }} :
+            <strong>{{ productionRequest.emergency }}</strong>
+        </li>
+        <li>{{ constant('App\\Entity\\Fields\\FixedFieldEnum::comment').value }} :
+            <strong>{{ productionRequest.comment|format_helper("html") }}</strong>
+        </li>
+        {% if productionRequest.attachments|length > 0 %}
+            <li>
+                {{ translateIn(language, "Général", null, "Modale", "Pièces jointes") }} :
+                <ul>
+                    {% for attachment in productionRequest.attachments %}
+                        <li>{{ attachment.originalName }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endif %}
+    </ul>
+    <br>
+{% endblock %}

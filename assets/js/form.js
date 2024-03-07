@@ -106,6 +106,7 @@ export default class Form {
      * @param {{
      *    keepModal: boolean|undefined,
      *    success: function|undefined,
+     *    routeParams: {[string]: string}|undefined,
      *    tables: Datatable|Datatable[],
      * }} options
      * @returns {Form}
@@ -113,7 +114,7 @@ export default class Form {
     submitTo(method, route, options = {}) {
         this.onSubmit((data, form) => {
             form.loading(
-                () => AJAX.route(method, route)
+                () => AJAX.route(method, route, options.routeParams || {})
                     .json(data)
                     .then(response => {
                         if(response.success) {
@@ -588,6 +589,30 @@ function treatInputError($input, errors, form) {
                     message: `Ce champ est requis`,
                 });
             }
+        }
+    }
+
+    const htmlValidity = $input.get(0).validity;
+
+    if (htmlValidity && !htmlValidity.valid) {
+        // Object.keys doesn't work with HTML validty object ValidityState
+        const validityKeys = [];
+        for(const key in htmlValidity){
+            if (key !== 'valid') {
+                validityKeys.push(key);
+            }
+        }
+        const message = validityKeys
+            .filter((key) => htmlValidity[key])
+            .map((key) => $input.data(`error-${key.toLowerCase()}`))
+            .filter((message) => message)
+            .join('<br/>');
+
+        if (message) {
+            errors.push({
+                elements: [$input],
+                message,
+            });
         }
     }
 }

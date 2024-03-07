@@ -1,11 +1,12 @@
-import Routing from '../../../../../vendor/friendsofsymfony/jsrouting-bundle/Resources/public/js/router.min.js';
 import Modal from "@app/modal";
+import Routing from '@app/fos-routing';
 
 import Form from '@app/form';
 import Flash from '@app/flash';
 import {onSelectAll, toggleFrequencyInput} from '@app/pages/settings/utils';
 import AJAX, {POST} from "@app/ajax";
 import moment from "moment";
+import {getUserFiltersByPage} from '@app/utils';
 
 const EXPORT_UNIQUE = `unique`;
 const EXPORT_SCHEDULED = `scheduled`;
@@ -16,6 +17,7 @@ const ENTITY_TRANSPORT_ROUNDS = "tournee";
 const ENTITY_ARRIVALS = "arrivage";
 const ENTITY_REF_LOCATION = "reference_emplacement";
 const ENTITY_DISPATCH = "dispatch";
+const ENTITY_PRODUCTION = "production";
 
 global.displayExportModal = displayExportModal;
 global.selectHourlyFrequencyIntervalType = selectHourlyFrequencyIntervalType;
@@ -221,6 +223,19 @@ function createForm() {
                             dateMin,
                             dateMax,
                         }));
+                    } else if (content.entityToExport === ENTITY_PRODUCTION) {
+                        const dateMin = $modal.find(`[name=dateMin]`).val();
+                        const dateMax = $modal.find(`[name=dateMax]`).val();
+
+                        if(!dateMin || !dateMax || dateMin === `` || dateMax === ``) {
+                            Flash.add(`danger`, `Les bornes de dates sont requises pour les exports de demandes de production`);
+                            return Promise.resolve();
+                        }
+
+                        window.open(Routing.generate(`settings_export_production_requests`, {
+                            dateMin,
+                            dateMax,
+                        }));
                     } else if (content.entityToExport === ENTITY_ARRIVALS) {
                         const dateMin = $modal.find(`[name=dateMin]`).val();
                         const dateMax = $modal.find(`[name=dateMax]`).val();
@@ -307,6 +322,7 @@ function onFormEntityChange() {
             break;
         case ENTITY_TRANSPORT_ROUNDS:
         case ENTITY_DISPATCH:
+        case ENTITY_PRODUCTION:
             $dateLimit.removeClass('d-none');
             $periodInterval.removeClass('d-none');
             break;

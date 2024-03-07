@@ -7,15 +7,13 @@ use App\Entity\Attachment;
 use App\Entity\Setting;
 use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
-use Google\Service\Resource;
-use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Service\Attribute\Required;
+use Throwable;
 use Traversable;
 use Twig\Environment;
 use WiiCommon\Helper\Stream;
@@ -25,6 +23,13 @@ class MailerService
 
     private const TEST_EMAIL = 'test@wiilog.fr';
     public const PORT_SSL = 587;
+    public const NO_MAIL_DOMAINS = [
+        "nomail.fr",
+        "nomail.com",
+    ];
+
+    // visit https://i.stack.imgur.com/dmsiJ.png for the details
+    public const EMAIL_SLICING_REGEX = "/^(?<Email>.*@)?(?<Protocol>\w+:\/\/)?(?<SubDomain>(?:[\w-]{2,63}\.){0,127}?)?(?<DomainWithTLD>(?<Domain>[\w-]{2,63})\.(?<TopLevelDomain>[\w-]{2,63}?)(?:\.(?<CountryCode>[a-z]{2}))?)(?:[:](?<Port>\d+))?(?<Path>(?:[\/]\w*)+)?(?<QString>(?<QSParams>(?:[?&=][\w-]*)+)?(?:[#](?<Anchor>\w*))*)?$/";
 
     #[Required]
     public Environment $templating;
@@ -56,7 +61,7 @@ class MailerService
         }
 
         $filteredRecipients = Stream::from(!is_array($to) ? [$to] : $to)
-            ->filter(fn($user) => $user && (is_string($user) || $user->getStatus()));
+            ->filter(static fn($user) => $user && (is_string($user) || $user->getStatus()));
 
         $contents = $this->createContents($filteredRecipients, $subject, $template);
 
@@ -107,7 +112,6 @@ class MailerService
 
             $to = $redirectToTest ? [self::TEST_EMAIL] : $content['to'];
 
-
             $to = (is_array($to) || $to instanceof Traversable) ? $to : [$to];
             foreach ($to as $email) {
                 $message->addTo($email);
@@ -133,9 +137,8 @@ class MailerService
             $mailer = (new Mailer($transport));
             try {
                 $mailer->send($message);
-            } catch (TransportExceptionInterface $e) {
+            } catch (Throwable $e) {
                 $this->exceptionLoggerService->sendLog($e);
-                throw $e;
             }
         }
 
@@ -172,7 +175,9 @@ class MailerService
 
             foreach ($emails as $email) {
                 // ignore if invalid email
-                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                // ignore if the domain is in NO_MAIL_DOMAINS
+                preg_match(self::EMAIL_SLICING_REGEX, $email, $slicedAddress);
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && !in_array($slicedAddress["DomainWithTLD"] ?? null, self::NO_MAIL_DOMAINS)){
                     if (!isset($contents[$slug])) {
                         if (!is_string($template)) {
                             $context = $template['context'];

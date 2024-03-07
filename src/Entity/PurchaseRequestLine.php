@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PurchaseRequestLineRepository;
 use DateTimeInterface;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PurchaseRequestLineRepository::class)]
@@ -47,6 +48,9 @@ class PurchaseRequestLine {
 
     #[ORM\ManyToOne(targetEntity: Reception::class, inversedBy: 'purchaseRequestLines')]
     private ?Reception $reception = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 12, scale: 3, nullable: true)]
+    private ?float $unitPrice = null;
 
     public function getId(): ?int {
         return $this->id;
@@ -175,6 +179,16 @@ class PurchaseRequestLine {
         if($reception) {
             $reception->addPurchaseRequestLine($this);
         }
+        return $this;
+    }
+
+    public function getUnitPrice(): ?float {
+        return $this->unitPrice;
+    }
+
+    public function setUnitPrice(?float $unitPrice): self {
+        $this->unitPrice = $unitPrice;
+
         return $this;
     }
 

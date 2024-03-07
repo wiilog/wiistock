@@ -59,11 +59,6 @@ $(function() {
     InitModal($modalEditTriggerAction, $submitEditTriggerAction, urlEditTriggerAction, {tables: [table]});
 });
 
-function deleteRowLine(button, $submit) {
-    let id = button.data('id');
-    $submit.attr('value', id);
-}
-
 function submitSensor(val = null) {
     if(val) {
         const route = Routing.generate("get_sensor_by_name", {name: $sensorSelect.val() || $sensorInput.val()});

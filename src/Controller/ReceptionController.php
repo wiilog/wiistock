@@ -14,6 +14,7 @@ use App\Entity\CategoryType;
 use App\Entity\DeliveryRequest\Demande;
 use App\Entity\Dispute;
 use App\Entity\Emplacement;
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\Fournisseur;
 use App\Entity\FreeField;
@@ -651,7 +652,10 @@ class ReceptionController extends AbstractController {
                     ->setAnomalie($contentData['anomalie'])
                     ->setCommentaire($contentData['commentaire'] ?? null)
                     ->setReferenceArticle($refArticle)
-                    ->setQuantiteAR(max($contentData['quantiteAR'], 1));// protection contre quantités négatives ou nulles
+                    ->setQuantiteAR(max($contentData['quantiteAR'], 1)) // protection contre quantités négatives ou nulles
+                    ->setUnitPrice(!empty($contentData[FixedFieldEnum::unitPrice->name])
+                        ? $contentData[FixedFieldEnum::unitPrice->name]
+                        : null);
 
                 if(array_key_exists('quantite', $contentData) && $contentData['quantite']) {
                     $receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
@@ -774,7 +778,10 @@ class ReceptionController extends AbstractController {
                 ->setCommande($orderNumber)
                 ->setAnomalie($data['anomalie'])
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire($data['commentaire'] ?? null);
+                ->setCommentaire($data['commentaire'] ?? null)
+                ->setUnitPrice(!empty($data[FixedFieldEnum::unitPrice->name])
+                    ? $data[FixedFieldEnum::unitPrice->name]
+                    : null);
 
             $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
             $referenceArticle = $receptionReferenceArticle->getReferenceArticle();
@@ -1469,7 +1476,7 @@ class ReceptionController extends AbstractController {
                                         ->some(static function (TagTemplate $tag) use ($article) {
                                             return $tag->getTypes()->contains($article->getType());
                                         });
-                                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                                 })
                                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
@@ -1488,7 +1495,7 @@ class ReceptionController extends AbstractController {
                         ->some(static function (TagTemplate $tag) use ($article) {
                             return $tag->getTypes()->contains($article->getType());
                         });
-                    return (($forceTagEmpty && !$articleTypeHasTag) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
                 })
                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $article->getReceptionReferenceArticle()->getReceptionLine()->getReception()))
                 ->toArray();
@@ -1624,6 +1631,7 @@ class ReceptionController extends AbstractController {
                 'code-barre reference',
                 'code-barre article',
                 'unité logistique',
+                'Prix unitaire',
             ];
             $nowStr = (new DateTime('now'))->format("d-m-Y-H-i-s");
             $addedRefs = [];
@@ -1646,6 +1654,7 @@ class ReceptionController extends AbstractController {
                             $row[] = $reception['articleReferenceArticleBarcode'] ?: '';
                             $row[] = $reception['articleBarcode'] ?: '';
                             $row[] = $reception['currentLogisticUnit'] ?: '';
+                            $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
 
                             $rows[] = $row;
                         }
@@ -1661,7 +1670,9 @@ class ReceptionController extends AbstractController {
                                 $row[] = $reception['referenceArticleQuantiteStock'] ?: '';
                                 $row[] = $reception['referenceArticleTypeLabel'] ?: '';
                                 $row[] = $reception['referenceArticleBarcode'] ?: '';
+                                $row[] = '';
                                 $row[] = $reception['currentLogisticUnit'] ?: '';
+                                $row[] = $reception['receptionReferenceArticleUnitPrice'] ?: '';
 
                                 $rows[] = $row;
                             }
@@ -1927,6 +1938,10 @@ class ReceptionController extends AbstractController {
 
             $quantityToReceive = intval($articleArray['quantityToReceive']);
             unset($articleArray['quantityToReceive']);
+
+            if ($receptionReferenceArticle->getUnitPrice() !== null) {
+                $articleArray["prix"] = $receptionReferenceArticle->getUnitPrice();
+            }
 
             // we create articles
             for($i = 0; $i < $quantityToReceive; $i++) {

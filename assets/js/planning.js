@@ -29,16 +29,14 @@ export default class Planning {
         this.$container
             .addClass(PLANNING_DATA)
             .data(PLANNING_DATA, this);
-
-        this.fetch();
     }
 
     fetch() {
-        const params = this.params || (() => ({}));
+        const params = this.params || {};
         return AJAX
             .route(GET, this.route, {
                 date: this.baseDate.format('YYYY-MM-DD'),
-                ...(params()),
+                ...params,
             })
             .json()
             .then(({template}) => {
@@ -50,18 +48,32 @@ export default class Planning {
                 else {
                     this.$container.append($template);
                 }
+
+                const $expandedCards = $(`[name=expandedCards]`);
+                if($expandedCards.exists() && $expandedCards.val()) {
+                    const expandedCards = $expandedCards
+                        .val()
+                        .split(`;`)
+                        .map((id) => `.planning-card[data-id=${id}] .collapse`)
+                        .join(`, `);
+
+                    this.$container.find(expandedCards).collapse('show');
+                }
+
                 this.$container.trigger(PLANNING_EVENT_LOADED);
             });
     }
 
     onPlanningLoad(callback) {
         this.$container.on(PLANNING_EVENT_LOADED, function() {
-            callback(event, this)
+            callback(event, this);
         });
     }
 
-    resetBaseDate() {
-        this.baseDate = moment();
+    resetBaseDate(weekBeginning = false) {
+        this.baseDate = weekBeginning
+            ? moment().startOf(`isoWeek`)
+            : moment();
         return this.fetch();
     }
 
@@ -72,6 +84,16 @@ export default class Planning {
 
     nextDate() {
         this.baseDate = this.baseDate.add(this.step, 'days');
+        return this.fetch();
+    }
+
+    previousWeek() {
+        this.baseDate = this.baseDate.subtract(1, `weeks`).startOf(`isoWeek`);
+        return this.fetch();
+    }
+
+    nextWeek() {
+        this.baseDate = this.baseDate.add(1, `weeks`).startOf(`isoWeek`);
         return this.fetch();
     }
 }

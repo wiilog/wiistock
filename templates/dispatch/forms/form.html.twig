@@ -81,7 +81,7 @@
                 block: true,
                 rights: {
                     menu: constant('App\\Entity\\Menu::PARAM'),
-                    action: constant('App\\Entity\\Action::CREATE')
+                    action: constant('App\\Entity\\Action::EDIT')
                 }
             } %}
         </div>
@@ -419,8 +419,8 @@
                         freeFields: type.champsLibres,
                         freeFieldValues: dispatch.freeFields,
                         colType: 'col-md-4 col-12',
-                        requiredType: 'requiredCreate',
-                        actionType: 'new',
+                        requiredType: displayAction,
+                        actionType: dispatch.id ? 'edit' :'new',
                         disabledNeeded: false,
                         needsDateFormatting: true
                     } %}

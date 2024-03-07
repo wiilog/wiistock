@@ -128,7 +128,7 @@ class Action {
     const REFERENCE_VALIDATOR = 'valideur des références';
     // menu référentiel
     const DISPLAY_FOUR = 'afficher fournisseurs';
-    const DISPLAY_EMPL = 'afficher emplacements';
+    const DISPLAY_LOCATION = 'afficher emplacements';
     const DISPLAY_CHAU = 'afficher chauffeurs';
     const DISPLAY_TRAN = 'afficher transporteurs';
     const DISPLAY_VEHICLE = 'afficher véhicule';
@@ -151,6 +151,7 @@ class Action {
     const DELETE_IN_PROGRESS_PRODUCTION_REQUEST = 'supprimer demandes de production au statut en cours';
     const EDIT_TREATED_PRODUCTION_REQUEST = 'modifier demandes de production au statut traité';
     const EDIT_EXPECTED_DATE_FIELD_PRODUCTION_REQUEST = "modification du champ date attendue d'une demande de production";
+    const DISPLAY_PRODUCTION_REQUEST_PLANNING = "afficher Production - Planning";
 
     // menu paramétrage
     const SETTINGS_DISPLAY_WEBSITE_APPEARANCE = 'afficher apparence du site';
@@ -229,6 +230,7 @@ class Action {
     const MODULE_ACCESS_DELIVERY_ORDER = 'Accès ordre de livraison';
     const MODULE_ACCESS_MANUAL_DELIVERY = 'Accès livraison manuelle';
     const MODULE_ACCESS_COLLECT_ORDER = 'Accès ordre de collecte';
+    const MODULE_ACCESS_MANUAL_COLLECT = 'Accès collecte manuelle';
     const MODULE_ACCESS_TRANSFER_ORDER = 'Accès ordre de transfert';
     const MODULE_ACCESS_MANUAL_TRANSFER = 'Accès transfert manuel';
     const MODULE_ACCESS_INVENTORY = 'Accès inventaire';

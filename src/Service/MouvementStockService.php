@@ -98,6 +98,7 @@ class MouvementStockService
 			'destination' => $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '',
 			'type' => $mouvement->getType(),
 			'operateur' => $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '',
+			'unitPrice' => $mouvement->getUnitPrice(),
 			'actions' => $this->templating->render('mouvement_stock/datatableMvtStockRow.html.twig', [
 				'mvt' => $mouvement,
 			])
@@ -182,7 +183,8 @@ class MouvementStockService
             ->setUser($user)
             ->setEmplacementFrom($locationFrom)
             ->setType($type)
-            ->setQuantity($quantity);
+            ->setQuantity($quantity)
+            ->setUnitPrice($article->getPrixUnitaire());
 
         if($article instanceof Article) {
             $newMouvement->setArticle($article);
@@ -277,7 +279,8 @@ class MouvementStockService
             $mouvement['originEmpl'] ?? '',
             $mouvement['destinationEmpl'] ?? '',
             $mouvement['type'] ?? '',
-            $mouvement['operator'] ?? ''
+            $mouvement['operator'] ?? '',
+            $mouvement['unitPrice'] ?? "",
         ];
         $CSVExportService->putLine($handle, $data);
     }

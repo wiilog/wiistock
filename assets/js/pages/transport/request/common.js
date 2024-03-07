@@ -3,6 +3,8 @@ import Form from "@app/form";
 import Modal from "@app/modal";
 import AJAX, {GET, POST} from "@app/ajax";
 import Flash, {ERROR, SUCCESS} from "@app/flash";
+import Routing from '@app/fos-routing';
+import Wiistock from '@app/general';
 
 export function initializeForm($form, editForm = false) {
     const form = Form

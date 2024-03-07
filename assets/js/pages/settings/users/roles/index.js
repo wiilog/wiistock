@@ -1,3 +1,5 @@
+import Routing from '@app/fos-routing';
+
 export function initializeRolesPage() {
     const tableRoles = initDataTable('tableRoles', {
         order: [['name', 'asc']],

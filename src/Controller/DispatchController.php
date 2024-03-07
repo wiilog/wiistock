@@ -77,6 +77,7 @@ class DispatchController extends AbstractController {
     public function index(Request                   $request,
                           EntityManagerInterface    $entityManager,
                           StatusService             $statusService,
+                          TranslationService        $translationService,
                           DispatchService           $service): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -84,10 +85,14 @@ class DispatchController extends AbstractController {
         $carrierRepository = $entityManager->getRepository(Transporteur::class);
         $categoryTypeRepository = $entityManager->getRepository(CategoryType::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
+        $locationRepository = $entityManager->getRepository(Emplacement::class);
 
         $query = $request->query;
-        $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
-        $typesFilter = $query->has('types') ? $query->all('types', '') : [];
+        $statusesFilter = $query->has('statuses') ? $query->all('statuses') : [];
+        $typesFilter = $query->has('types') ? $query->all('types') : [];
+        $pickLocationsFilter = $query->has('pickLocations') ? $query->all('pickLocations') : [];
+        $dropLocationsFilter = $query->has('dropLocations') ? $query->all('dropLocations') : [];
+        $emergenciesFilter = $query->has('dispatchEmergencies') ? $query->all('dispatchEmergencies') : [];
         $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
         /** @var Utilisateur $currentUser */
@@ -103,6 +108,14 @@ class DispatchController extends AbstractController {
             $typesFilter = Stream::from($typeRepository->findBy(['id' => $typesFilter]))
                 ->filterMap(fn(Type $type) => $type->getLabelIn($currentUser->getLanguage()))
                 ->toArray();
+        }
+
+        if (!empty($pickLocationsFilter)) {
+            $pickLocationsFilter = Stream::from($locationRepository->findBy(['id' => $pickLocationsFilter]));
+        }
+
+        if (!empty($dropLocationsFilter)) {
+            $dropLocationsFilter = Stream::from($locationRepository->findBy(['id' => $dropLocationsFilter]));
         }
 
         $fields = $service->getVisibleColumnsConfig($entityManager, $currentUser);
@@ -139,10 +152,12 @@ class DispatchController extends AbstractController {
             $dateChoices[0]['default'] = true;
         }
 
+        $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => [$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergenciesForFilter],
             'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [
@@ -159,6 +174,9 @@ class DispatchController extends AbstractController {
             'modalNewConfig' => $service->getNewDispatchConfig($entityManager, $types),
             'statusFilter' => $statusesFilter,
             'typesFilter' => $typesFilter,
+            'pickLocationsFilter' => $pickLocationsFilter,
+            'dropLocationsFilter' => $dropLocationsFilter,
+            'emergenciesFilter' => $emergenciesFilter,
             'fromDashboard' => $fromDashboard,
             'dispatch' => new Dispatch(),
             'defaultType' => $typeRepository->findOneBy(['category' => $dispatchCategoryType, 'defaultType' => true]),
@@ -230,6 +248,15 @@ class DispatchController extends AbstractController {
             $preFilledTypes = $request->query->has('preFilledTypes')
                 ? implode(",", $request->query->all('preFilledTypes'))
                 : [];
+            $preFilledPickLocations = $request->query->has('pickLocationFilter')
+                ? implode(",", $request->query->all('pickLocationFilter'))
+                : [];
+            $preFilledDropLocations = $request->query->has('dropLocationFilter')
+                ? implode(",", $request->query->all('dropLocationFilter'))
+                : [];
+            $preFilledEmergency = $request->query->has('emergencyFilter')
+                ? implode(",", $request->query->all('emergencyFilter'))
+                : [];
 
             $preFilledFilters = [
                 [
@@ -239,7 +266,19 @@ class DispatchController extends AbstractController {
                 [
                     'field' => FiltreSup::FIELD_MULTIPLE_TYPES,
                     'value' => $preFilledTypes,
-                ]
+                ],
+                ...(!empty($preFilledPickLocations) ? [[
+                    'field' => FiltreSup::FIELD_LOCATION_PICK_WITH_GROUPS,
+                    'value' => $preFilledPickLocations,
+                ]] : []),
+                ...(!empty($preFilledDropLocations) ? [[
+                    'field' => FiltreSup::FIELD_LOCATION_DROP_WITH_GROUPS,
+                    'value' => $preFilledDropLocations,
+                ]] : []),
+                ...(!empty($preFilledEmergency) ? [[
+                    'field' => FiltreSup::FIELD_EMERGENCY_MULTIPLE,
+                    'value' => $preFilledEmergency,
+                ]] : []),
             ];
         }
 
@@ -396,7 +435,9 @@ class DispatchController extends AbstractController {
             ->setCustomerRecipient($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_RECIPIENT_DISPATCH))
             ->setCustomerAddress($post->get(FixedFieldStandard::FIELD_CODE_CUSTOMER_ADDRESS_DISPATCH));
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $status);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $status, [
+            "initiatedBy" => $currentUser
+        ]);
 
         if(!empty($comment) && $comment !== "<p><br></p>" ) {
             $dispatch->setCommentaire($comment);
@@ -1110,7 +1151,10 @@ class DispatchController extends AbstractController {
                     $dispatch
                         ->setValidationDate($now);
 
-                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+                    $user = $this->getUser();
+                    $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
+                        "initiatedBy" => $user
+                    ]);
 
                     $automaticallyCreateMovementOnValidation = (bool) $settingRepository->getOneParamByLabel(Setting::AUTOMATICALLY_CREATE_MOVEMENT_ON_VALIDATION);
                     if ($automaticallyCreateMovementOnValidation) {
@@ -1121,7 +1165,7 @@ class DispatchController extends AbstractController {
                                 $trackingMovement = $trackingMovementService->createTrackingMovement(
                                     $pack,
                                     $dispatch->getLocationFrom(),
-                                    $this->getUser(),
+                                    $user,
                                     $now,
                                     false,
                                     false,
@@ -1221,7 +1265,9 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
-        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus);
+        $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
+            "initiatedBy" => $this->getUser()
+        ]);
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [
@@ -1510,7 +1556,9 @@ class DispatchController extends AbstractController {
 
         if($overConsumptionBillStatus->count() === 1) {
             $untreatedStatus = $statutRepository->find($overConsumptionBillStatus->first());
-            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus);
+            $statusHistoryService->updateStatus($entityManager, $dispatch, $untreatedStatus, [
+                "initiatedBy" => $this->getUser(),
+            ]);
             if (!$dispatch->getValidationDate()) {
                 $dispatch->setValidationDate(new DateTime('now'));
             }

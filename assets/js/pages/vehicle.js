@@ -1,3 +1,5 @@
+import Routing from '@app/fos-routing';
+
 $(function() {
     const vehicleTable = initVehicleTable();
 
