@@ -265,16 +265,16 @@ class InvMissionService {
         }
 
         return [
-            'Ref' => $reference,
-            'CodeBarre' => $codeBarre,
-            'Label' => $label,
-            'UL' => $pack ? $pack->getCode() : '',
-            'Location' => $location,
-            'Date' => isset($date) ? $date->format('d/m/Y') : '',
-            'Anomaly' => $anomaly,
-            'QuantiteStock' => $quantiteStock,
-            'QuantiteComptee' => $quantiteComptee,
-            'EmptyLocation' => $emptyLocation,
+            'reference' => $reference,
+            'barcode' => $codeBarre,
+            'label' => $label,
+            'logisticUnit' => $pack ? $pack->getCode() : '',
+            'location' => $location,
+            'date' => isset($date) ? $date->format('d/m/Y') : '',
+            'anomaly' => $anomaly,
+            'stockQuantity' => $quantiteStock,
+            'countedQuantity' => $quantiteComptee,
+            'emptyLocation' => $emptyLocation,
         ];
     }
 
