@@ -77,6 +77,7 @@ class DispatchController extends AbstractController {
     public function index(Request                   $request,
                           EntityManagerInterface    $entityManager,
                           StatusService             $statusService,
+                          TranslationService        $translationService,
                           DispatchService           $service): Response {
         $statutRepository = $entityManager->getRepository(Statut::class);
         $typeRepository = $entityManager->getRepository(Type::class);
@@ -151,10 +152,12 @@ class DispatchController extends AbstractController {
             $dateChoices[0]['default'] = true;
         }
 
+        $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
+
         return $this->render('dispatch/index.html.twig', [
             'statuses' => $statutRepository->findByCategorieName(CategorieStatut::DISPATCH, 'displayOrder'),
             'carriers' => $carrierRepository->findAllSorted(),
-            'emergencies' => $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY),
+            'emergencies' => [$translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergenciesForFilter],
             'dateChoices' => $dateChoices,
             'types' => Stream::from($types)
                 ->map(fn(Type $type) => [

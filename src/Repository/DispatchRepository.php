@@ -106,7 +106,9 @@ class DispatchRepository extends EntityRepository
                         return explode(":", $value)[0];
                     }, explode(',', $filter['value']));
 
-                    $qb->andWhere("dispatch.emergency IN (:filter_emergencies_value)")
+                    $nonUrgentCondition = in_array($options['nonUrgentTranslationLabel'], $value) ? 'OR dispatch.emergency IS NULL' : '';
+
+                    $qb->andWhere("dispatch.emergency IN (:filter_emergencies_value) $nonUrgentCondition")
                         ->setParameter("filter_emergencies_value", $value);
                     break;
                 case 'dateMin':
@@ -708,12 +710,10 @@ class DispatchRepository extends EntityRepository
         }
 
         if(!empty($filters['dispatchEmergencies'])){
-            if(count($filters['dispatchEmergencies']) === 1 && $filters['dispatchEmergencies'][0] === 'Non urgent'){
-                $qb->andWhere('dispatch.emergency IS NULL');
-            } else {
-                $qb->andWhere('dispatch.emergency IN (:dispatchEmergencies)')
-                    ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
-            }
+            $nonUrgentCondition = in_array($filters['nonUrgentTranslationLabel'], $filters['dispatchEmergencies']) ? 'OR dispatch.emergency IS NULL' : '';
+
+            $qb->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
+                ->setParameter('dispatchEmergencies', $filters['dispatchEmergencies']);
         }
 
         return $qb->getQuery()->getSingleScalarResult();

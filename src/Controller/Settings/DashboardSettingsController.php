@@ -367,7 +367,7 @@ class DashboardSettingsController extends AbstractController {
         }
 
         if(!empty($values['dispatchEmergencies'])) {
-            $values['dispatchEmergencies'] = Stream::from(['Non urgent', ...$dispatchEmergencies])
+            $values['dispatchEmergencies'] = Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                 ->filter(static fn($emergency) => in_array($emergency, $values['dispatchEmergencies']))
                 ->toArray();
         }
@@ -474,7 +474,7 @@ class DashboardSettingsController extends AbstractController {
                     'entityStatuses' => $entityStatuses,
                     'natures' => $natures,
                     'values' => $values,
-                    'dispatchEmergencies' => Stream::from(['Non urgent', ...$dispatchEmergencies])
+                    'dispatchEmergencies' => Stream::from([$this->translationService->translate('Demande', 'Général', 'Non urgent', false), ...$dispatchEmergencies])
                         ->map(static fn(string $emergency) => [
                             'label' => $emergency,
                             'value' => $emergency,

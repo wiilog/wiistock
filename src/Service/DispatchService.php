@@ -139,6 +139,7 @@ class DispatchService {
             'defaultLanguage' => $defaultLanguage,
             'language' => $language,
             'fromDashboard' => $fromDashboard,
+            'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
         ]);
 
         $dispatchesArray = $queryResult['data'];

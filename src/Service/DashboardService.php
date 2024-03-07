@@ -1084,6 +1084,7 @@ class DashboardService {
                         'pickLocations' => $config['pickLocations'] ?? [],
                         'dropLocations' => $config['dropLocations'] ?? [],
                         'dispatchEmergencies' => $config['dispatchEmergencies'] ?? [],
+                        'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
                     ]);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING:

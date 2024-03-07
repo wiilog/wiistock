@@ -1128,7 +1128,7 @@ class DashboardSettingsService {
         $values['emergency'] = !empty($config['dispatchEmergencies'])
             && (count($config['dispatchEmergencies']) > 1
             || (count($config['dispatchEmergencies']) === 1
-                    && $config['dispatchEmergencies'][0] !== 'Non urgent'));
+                    && $config['dispatchEmergencies'][0] !== $this->translationService->translate('Demande', 'Général', 'Non urgent', false)));
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);
