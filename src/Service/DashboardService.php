@@ -1118,7 +1118,10 @@ class DashboardService {
             }
 
             if(preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $treatmentDelay)) {
-                $lastDate = $repository->getOlderDateToTreat($entityTypes, $entityStatuses);
+                $lastDate = $repository->getOlderDateToTreat($entityTypes, $entityStatuses, [
+                    'dispatchEmergencies' => $config['dispatchEmergencies'] ?? [],
+                    'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
+                ]);
                 if (isset($lastDate)) {
                     $date = $this->timeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $treatmentDelay);
