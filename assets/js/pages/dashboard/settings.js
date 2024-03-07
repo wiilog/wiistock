@@ -11,6 +11,7 @@ global.openModalComponentTypeNextStep = openModalComponentTypeNextStep;
 global.loadDashboards = loadDashboards;
 global.onEntityChange = onEntityChange;
 global.toggleTreatmentDelay = toggleTreatmentDelay;
+global.onConfirmPageDeleted = onConfirmPageDeleted;
 global.drawChartWithHisto = drawChartWithHisto;
 global.renderComponent = renderComponent;
 global.hideOrShowStackButton = hideOrShowStackButton;
