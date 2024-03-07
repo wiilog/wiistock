@@ -25,10 +25,11 @@ use Symfony\Contracts\Service\Attribute\Required;
 use WiiCommon\Helper\Stream;
 
 #[AsCommand(
-    name: "app:launch:scheduled-imports",
+    name: LaunchScheduledImportCommand::COMMAND_NAME,
     description: "This command executes scheduled imports.",
 )]
 class LaunchScheduledImportCommand extends Command {
+    public const COMMAND_NAME = 'app:launch:scheduled-imports';
 
     #[Required]
     public EntityManagerInterface $em;

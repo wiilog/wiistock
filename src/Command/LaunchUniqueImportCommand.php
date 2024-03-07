@@ -20,11 +20,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: "app:launch:unique-imports",
+    name: LaunchUniqueImportCommand::COMMAND_NAME,
     description: "This command executes planified in next 30 minutes imports.",
 )]
 class LaunchUniqueImportCommand extends Command
 {
+    public const COMMAND_NAME = 'app:launch:unique-imports';
+
     #[Required]
     public EntityManagerInterface $entityManager;
 

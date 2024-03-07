@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\IOT\SensorWrapper;
 use App\Service\MailerService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +33,7 @@ class InactiveSensorsCommand extends Command {
         $wrappers = $wrapperRepository->findBy([
             'deleted' => false
         ]);
-        $nowMinus48Hours = new \DateTime();
+        $nowMinus48Hours = new DateTime();
         $nowMinus48Hours->modify('-2 day');
         /**
          * @var SensorWrapper $wrapper

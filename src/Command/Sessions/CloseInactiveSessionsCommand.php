@@ -20,6 +20,8 @@ use Symfony\Contracts\Service\Attribute\Required;
 )]
 class CloseInactiveSessionsCommand extends Command
 {
+    public const COMMAND_NAME= "app:sessions:close:inactives";
+
     #[Required]
     public EntityManagerInterface $entityManager;
 
