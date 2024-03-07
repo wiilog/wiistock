@@ -90,7 +90,7 @@ class ProductionRequestController extends AbstractController
         $dateChoices =
             [
                 [
-                    'name' => 'createdAd',
+                    'name' => 'createdAt',
                     'label' => 'Date de création',
                 ],
                 [

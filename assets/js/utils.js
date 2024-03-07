@@ -248,7 +248,10 @@ function clearFilters (
 
     // clear checkboxes
     document.querySelectorAll('.filters .filter-checkbox').forEach(filter => {
-        filter.checked = false;
+        const dateChoiseFilter = $(filter).closest('.date-choice');
+        if(dateChoiseFilter.length === 0){
+            filter.checked = false;
+        }
     });
 
     // clear select2
