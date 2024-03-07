@@ -611,7 +611,9 @@ class DispatchRepository extends EntityRepository
                 ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED]);
 
             if(!empty($options['dispatchEmergencies'])){
-                $nonUrgentCondition = in_array($options['nonUrgentTranslationLabel'], $options['dispatchEmergencies']) ? 'OR dispatch.emergency IS NULL' : '';
+                $nonUrgentCondition = in_array($options['nonUrgentTranslationLabel'], $options['dispatchEmergencies'])
+                    ? 'OR dispatch.emergency IS NULL'
+                    : '';
 
                 $res->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
                     ->setParameter('dispatchEmergencies', $options['dispatchEmergencies']);
