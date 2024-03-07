@@ -138,6 +138,33 @@ class InventoryMissionRepository extends EntityRepository {
                 $countQuery = QueryBuilderHelper::count($qb, 'ra');
             }
 
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+
+                if (!empty($order)) {
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+
+                    if ($column === 'Ref') {
+                        $qb->orderBy('ra.reference', $order);
+                    } else if ($column === 'CodeBarre') {
+                        $qb->orderBy('ra.barCode', $order);
+                    } else if ($column === 'Label') {
+                        $qb->orderBy('ra.libelle', $order);
+                    } else if ($column === 'Location') {
+                        $qb->leftJoin('ra.emplacement', 'join_location')
+                            ->orderBy('join_location.label', $order);
+                    } else if ($column === 'Date') {
+                        $qb->orderBy('ie.date', $order);
+                    } else  if ($column === 'Anomaly') {
+                        $qb->orderBy('ie.anomaly', $order);
+                    } else  if ($column === 'QuantiteStock') {
+                        $qb->orderBy('ra.quantiteStock', $order);
+                    } else  if ($column === 'QuantiteComptee') {
+                        $qb->orderBy('ie.quantity', $order);
+                    }
+                }
+            }
+
             if ($params->getInt('start')) {
                 $qb->setFirstResult($params->getInt('start'));
             }
@@ -211,6 +238,36 @@ class InventoryMissionRepository extends EntityRepository {
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = QueryBuilderHelper::count($qb, 'a');
+            }
+
+            if (!empty($params->all('order'))) {
+                $order = $params->all('order')[0]['dir'];
+
+                if (!empty($order)) {
+                    $column = $params->all('columns')[$params->all('order')[0]['column']]['data'];
+
+                    if ($column === 'Ref') {
+                        $qb->orderBy('a.reference', $order);
+                    } else if ($column === 'CodeBarre') {
+                        $qb->orderBy('a.barCode', $order);
+                    } else if ($column === 'Label') {
+                        $qb->orderBy('a.label', $order);
+                    } else if ($column === 'UL') {
+                        $qb->leftJoin('a.currentLogisticUnit', 'join_logisticUnit')
+                            ->orderBy('join_logisticUnit.code', $order);
+                    } else if ($column === 'Location') {
+                        $qb->leftJoin('a.emplacement', 'join_location')
+                            ->orderBy('join_location.label', $order);
+                    } else if ($column === 'Date') {
+                        $qb->orderBy('ie.date', $order);
+                    } else  if ($column === 'Anomaly') {
+                        $qb->orderBy('ie.anomaly', $order);
+                    } else  if ($column === 'QuantiteStock') {
+                        $qb->orderBy('a.quantite', $order);
+                    } else  if ($column === 'QuantiteComptee') {
+                        $qb->orderBy('ie.quantity', $order);
+                    }
+                }
             }
 
             if ($params->getInt('start')) {
