@@ -114,7 +114,7 @@ function initInventoryEntryDatatables(missionId) {
                 {data: `reference`, title: `Reférence`},
                 {data: `barcode`, title: `Code barre`},
                 {data: `label`, title: `Libellé`},
-                ...(selector === 'tableMissionInvArticle'
+                ...(selector === `tableMissionInvArticle`
                     ? [{data: `logisticUnit`, title: `Unité Logistique`}]
                     : []),
                 {data: `location`, title: `Emplacement`},
