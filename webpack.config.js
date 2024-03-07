@@ -46,6 +46,7 @@ Encore
     .addEntry('carrier-index', './assets/js/pages/carrier/index.js')
     .addEntry('settings-inventory-planner', './assets/js/pages/settings/inventory/inventoryPlanner.js')
     .addEntry('form-add-inventory-locations', './assets/js/pages/inventory-mission/form-add-inventory-locations.js')
+    .addEntry('inventory-mission-show', './assets/js/pages/inventory-mission/show.js')
     .addEntry('truck-arrival-index', './assets/js/pages/truck-arrival/index.js')
     .addEntry('truck-arrival-show', './assets/js/pages/truck-arrival/show.js')
     .addEntry('delivery-request-show', './assets/js/pages/delivery-request/show.js')
