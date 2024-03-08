@@ -2,7 +2,7 @@
 // At 20:00
 // 0 20 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Service\AlertService;
 use Doctrine\ORM\EntityManagerInterface;

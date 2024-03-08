@@ -2,7 +2,7 @@
 // At every minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Service\InvMissionService;

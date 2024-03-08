@@ -2,7 +2,7 @@
 // At 20:00
 // 0 20 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\AverageRequestTime;
 use App\Entity\Collecte;
@@ -11,13 +11,13 @@ use App\Entity\Dispatch;
 use App\Entity\Handling;
 use App\Entity\TransferRequest;
 use App\Entity\Type;
-use Symfony\Component\Console\Attribute\AsCommand;
-use WiiCommon\Helper\Stream;
 use App\Service\DateService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use WiiCommon\Helper\Stream;
 
 
 #[AsCommand(

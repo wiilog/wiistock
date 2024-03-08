@@ -2,7 +2,7 @@
 // At every 10th minute
 // */10 * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\IOT\Pairing;
 use Doctrine\ORM\EntityManagerInterface;

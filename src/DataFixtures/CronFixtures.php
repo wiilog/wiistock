@@ -2,139 +2,176 @@
 
 namespace App\DataFixtures;
 
-use App\Command\AverageRequestTimeCommand;
-use App\Command\CheckPairingValidityCommand;
-use App\Command\DashboardFeedCommand;
-use App\Command\GenerateAlertsCommand;
-use App\Command\InventoryStatusUpdateCommand;
-use App\Command\LaunchScheduledImportCommand;
-use App\Command\LaunchUniqueImportCommand;
-use App\Command\MailsLitigesComand;
-use App\Command\RemindPackDeliveriesCommand;
-use App\Command\ScheduledExportCommand;
+use App\Command\Cron\AverageRequestTimeCommand;
+use App\Command\Cron\CheckPairingValidityCommand;
+use App\Command\Cron\CloseInactiveSessionsCommand;
+use App\Command\Cron\DashboardFeedCommand;
+use App\Command\Cron\GenerateAlertsCommand;
+use App\Command\Cron\InventoryStatusUpdateCommand;
+use App\Command\Cron\KooveaHubsCommand;
+use App\Command\Cron\KooveaTagsCommand;
+use App\Command\Cron\LaunchScheduledImportCommand;
+use App\Command\Cron\LaunchUniqueImportCommand;
+use App\Command\Cron\MailsLitigesComand;
+use App\Command\Cron\RemindPackDeliveriesCommand;
+use App\Command\Cron\ScheduledExportCommand;
+use App\Command\Cron\ScheduleInventoryMissionCommand;
 use App\Command\ScheduledPurchaseRequestCommand;
-use App\Command\ScheduleInventoryMissionCommand;
-use App\Command\Sessions\CloseInactiveSessionsCommand;
+use App\Service\SpecificService;
 use Cron\CronBundle\Entity\CronJob;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class CronFixtures extends Fixture implements FixtureGroupInterface {
 
-    public const CRON_JOBS = [
+    #[Required]
+    public SpecificService $specificService;
+
+    private const CRON_JOBS = [
         [
-            'name' => 'unique-imports',
             'command' => LaunchUniqueImportCommand::COMMAND_NAME,
             'schedule' => '*/30 * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'scheduled-imports',
             'command' => LaunchScheduledImportCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'scheduled-missions',
             'command' => ScheduleInventoryMissionCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'dashboard-feeds',
             'command' => DashboardFeedCommand::COMMAND_NAME,
-            'schedule' => '*/5 * * * *',
+            'schedule' => [
+                SpecificService::CLIENT_COLLINS_VERNON => '* * * * *',
+                SpecificService::CLIENT_SAFRAN_CS => '* * * * *',
+                SpecificService::CLIENT_SAFRAN_MC => '* * * * *',
+                'default' => '*/5 * * * *',
+            ],
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'scheduled-exports',
             'command' => ScheduledExportCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'average-requests',
             'command' => AverageRequestTimeCommand::COMMAND_NAME,
             'schedule' => '0 20 * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'alerts',
             'command' => GenerateAlertsCommand::COMMAND_NAME,
             'schedule' => '0 20 * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'dispute-mails',
             'command' => MailsLitigesComand::COMMAND_NAME,
-            'schedule' => '0 8 * * *',
+            'schedule' => [
+                SpecificService::CLIENT_SAFRAN_CS => '0 8 * * *',
+                SpecificService::CLIENT_SAFRAN_MC => '0 8 * * *',
+            ],
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'remind-pack-deliveries',
             'command' => RemindPackDeliveriesCommand::COMMAND_NAME,
             'schedule' => '0 8 * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'cleanup-pairings',
             'command' => CheckPairingValidityCommand::COMMAND_NAME,
             'schedule' => '*/10 * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'inventory-status',
             'command' => InventoryStatusUpdateCommand::COMMAND_NAME,
             'schedule' => '0 22 * * 0',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'scheduled-purchase-request',
             'command' => ScheduledPurchaseRequestCommand::COMMAND_NAME,
             'schedule' => '* * * * *',
             'description' => '',
-            'enabled' => true
         ],
         [
-            'name' => 'close-inactive-sessions',
             'command' => CloseInactiveSessionsCommand::COMMAND_NAME,
             'schedule' => '*/5 * * * *',
             'description' => '',
-            'enabled' => true
+        ],
+        [
+            'command' => KooveaHubsCommand::COMMAND_NAME,
+            'schedule' => [
+                SpecificService::CLIENT_CLB => '*/1 * * * *'
+            ],
+            'description' => '',
+        ],
+        [
+            'command' => KooveaTagsCommand::COMMAND_NAME,
+            'schedule' => [
+                SpecificService::CLIENT_CLB => '*/5 * * * *'
+            ],
+            'description' => '',
+        ],
+        // Clear all reports in job_report table older than 3 days
+        // Execute each day at midnight
+        [
+            'command' => 'cron:reports:truncate',
+            'schedule' => '0 0 * * *',
+            'description' => '',
         ],
     ];
 
-    public function load(ObjectManager $manager): void
-    {
+    public function load(ObjectManager $manager): void {
+        $cronJobRepository = $manager->getRepository(CronJob::class);
+
+        $existingCronJobs = $cronJobRepository->findAll();
+        foreach ($existingCronJobs as $cronJob) {
+            $manager->remove($cronJob);
+        }
+
+        $manager->flush();
 
         foreach (self::CRON_JOBS as $cronJobData) {
-            $cronJob = (new CronJob())
-                ->setName($cronJobData['name'])
-                ->setCommand($cronJobData['command'])
-                ->setSchedule($cronJobData['schedule'])
-                ->setDescription($cronJobData['description'])
-                ->setEnabled($cronJobData['enabled']);
+            $schedule = $this->getSchedule($cronJobData);
+            if ($schedule) {
+                $name = str_replace(':', '-', $cronJobData['command']);
+                $cronJob = (new CronJob())
+                    ->setName($name)
+                    ->setCommand($cronJobData['command'])
+                    ->setSchedule($schedule)
+                    ->setDescription($cronJobData['description'])
+                    ->setEnabled(true);
 
-            $manager->persist($cronJob);
-
+                $manager->persist($cronJob);
+            }
         }
         $manager->flush();
+
+        $output = new ConsoleOutput();
+        $output->writeln("New cron job synchronised");
+    }
+
+    public function getSchedule(array $cronJobData): ?string {
+        $schedule = $cronJobData['schedule'];
+        if (is_string($schedule)) {
+            return $schedule;
+        }
+
+        // is_array($schedule)
+        $appClient = $this->specificService->getAppClient();
+        return $schedule[$appClient]
+            ?? $schedule['default']
+            ?? null;
     }
 
     public static function getGroups(): array {
-        return ['cron'];
+        return ['fixtures'];
     }
 
 }

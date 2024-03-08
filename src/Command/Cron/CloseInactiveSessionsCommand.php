@@ -2,7 +2,7 @@
 // Every 5 minutes
 // */5 * * * *
 
-namespace App\Command\Sessions;
+namespace App\Command\Cron;
 
 use App\Entity\Wiilock;
 use App\Service\SessionHistoryRecordService;

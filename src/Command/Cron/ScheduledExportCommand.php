@@ -2,7 +2,7 @@
 // At every minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\ScheduledTask\Export;
 use App\Service\ScheduledExportService;

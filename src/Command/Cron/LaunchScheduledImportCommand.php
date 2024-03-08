@@ -2,12 +2,11 @@
 // At each minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;
 use App\Entity\ScheduledTask\ScheduleRule\ImportScheduleRule;
-use App\Entity\ScheduledTask\ScheduleRule\ScheduleRule;
 use App\Entity\Statut;
 use App\Service\CacheService;
 use App\Service\FTPService;
@@ -16,13 +15,11 @@ use App\Service\ScheduleRuleService;
 use DateTime;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use phpseclib3\Exception\UnableToConnectException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
-use WiiCommon\Helper\Stream;
 
 #[AsCommand(
     name: LaunchScheduledImportCommand::COMMAND_NAME,
