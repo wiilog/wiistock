@@ -2,7 +2,7 @@
 // Every 5 minutes
 // */5 * * * *
 
-namespace App\Command\Sessions;
+namespace App\Command\Cron;
 
 use App\Entity\Wiilock;
 use App\Service\SessionHistoryRecordService;
@@ -15,11 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: "app:sessions:close:inactives",
+    name: CloseInactiveSessionsCommand::COMMAND_NAME,
     description: "Close inactive sessions History Records"
 )]
 class CloseInactiveSessionsCommand extends Command
 {
+    public const COMMAND_NAME= "app:sessions:close:inactives";
+
     #[Required]
     public EntityManagerInterface $entityManager;
 

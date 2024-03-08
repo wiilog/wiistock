@@ -2,11 +2,10 @@
 // At 8:00
 // 0 8 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 
 use App\Entity\Dispute;
-
 use App\Entity\Utilisateur;
 use App\Service\LanguageService;
 use App\Service\MailerService;
@@ -21,11 +20,12 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:mails-litiges',
+    name: MailsLitigesComand::COMMAND_NAME,
     description: 'envoi de mails aux acheteurs pour les litiges non soldés'
 )]
 class MailsLitigesComand extends Command
 {
+    public const COMMAND_NAME = 'app:mails-litiges';
 
     #[Required]
     public RouterInterface $router;

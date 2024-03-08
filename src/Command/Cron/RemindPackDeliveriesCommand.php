@@ -2,7 +2,7 @@
 // Each day at 08:00
 // 0 8 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\Setting;
 use App\Service\PackService;
@@ -14,11 +14,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:emails:remind-pack-deliveries',
+    name: RemindPackDeliveriesCommand::COMMAND_NAME,
     description: 'This command sends emails when a pack is on a location group (or location if no group) more than 15 days.'
 )]
 class RemindPackDeliveriesCommand extends Command
 {
+    public const COMMAND_NAME= "app:emails:remind-pack-deliveries";
 
     #[Required]
     public EntityManagerInterface $entityManager;

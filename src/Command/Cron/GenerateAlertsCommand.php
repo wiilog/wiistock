@@ -2,7 +2,7 @@
 // At 20:00
 // 0 20 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Service\AlertService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,10 +12,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'app:generate:alerts',
+    name: GenerateAlertsCommand::COMMAND_NAME,
     description: 'Génère les alertes pour les dates de péremption'
 )]
 class GenerateAlertsCommand extends Command {
+    public const COMMAND_NAME = 'app:generate:alerts';
 
     private EntityManagerInterface $manager;
     private AlertService $service;

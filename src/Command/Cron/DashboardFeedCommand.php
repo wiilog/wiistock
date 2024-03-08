@@ -2,8 +2,9 @@
 // At every 5th minute
 // */5 * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
+use App\Entity\Dashboard;
 use App\Entity\DaysWorked;
 use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
@@ -17,13 +18,14 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
-use App\Entity\Dashboard;
 
 #[AsCommand(
-    name: 'app:feed:dashboards',
+    name: DashboardFeedCommand::COMMAND_NAME,
     description: 'Feeds the dashboard data.'
 )]
 class DashboardFeedCommand extends Command {
+    public const COMMAND_NAME = 'app:feed:dashboards';
+
     private EntityManagerInterface $entityManager;
     private DashboardService $dashboardService;
     private WiilockService $wiilockService;

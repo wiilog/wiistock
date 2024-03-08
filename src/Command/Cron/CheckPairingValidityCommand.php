@@ -2,7 +2,7 @@
 // At every 10th minute
 // */10 * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\IOT\Pairing;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,10 +13,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:iot:pairing-validity',
+    name: CheckPairingValidityCommand::COMMAND_NAME,
     description: 'Deactivates pairing that reached the end date'
 )]
 class CheckPairingValidityCommand extends Command {
+
+    public const COMMAND_NAME="app:iot:pairing-validity";
 
     #[Required]
     public EntityManagerInterface $entityManager;

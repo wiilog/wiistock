@@ -2,7 +2,7 @@
 // At every minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\ScheduledTask\Export;
 use App\Service\ScheduledExportService;
@@ -16,11 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:launch:scheduled-exports',
+    name: ScheduledExportCommand::COMMAND_NAME,
     description: 'This command executes scheduled export.'
 )]
 class ScheduledExportCommand extends Command
 {
+    public const COMMAND_NAME = 'app:launch:scheduled-exports';
 
     #[Required]
     public EntityManagerInterface $em;
