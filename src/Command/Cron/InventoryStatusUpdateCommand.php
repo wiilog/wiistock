@@ -2,7 +2,7 @@
 // At 22:00 on Sunday
 // 0 22 * * 0
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityManagerInterface;

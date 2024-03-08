@@ -2,7 +2,7 @@
 // At every 30th minute
 // */30 * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\CategorieStatut;
 use App\Entity\ScheduledTask\Import;

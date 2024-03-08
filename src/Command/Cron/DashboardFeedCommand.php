@@ -2,8 +2,9 @@
 // At every 5th minute
 // */5 * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
+use App\Entity\Dashboard;
 use App\Entity\DaysWorked;
 use App\Entity\Wiilock;
 use App\Entity\WorkFreeDay;
@@ -17,7 +18,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
-use App\Entity\Dashboard;
 
 #[AsCommand(
     name: DashboardFeedCommand::COMMAND_NAME,

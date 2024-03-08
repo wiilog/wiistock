@@ -2,11 +2,10 @@
 // At 8:00
 // 0 8 * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 
 use App\Entity\Dispute;
-
 use App\Entity\Utilisateur;
 use App\Service\LanguageService;
 use App\Service\MailerService;
