@@ -597,7 +597,7 @@ class DispatchRepository extends EntityRepository
                                         array $statuses = [],
                                         array $options = []): ?DateTime {
         if (!empty($types) && !empty($statuses)) {
-            $res = $this
+            $queryBuilder = $this
                 ->createQueryBuilder('dispatch')
                 ->select('dispatch.validationDate AS date')
                 ->innerJoin('dispatch.statut', 'status')
@@ -615,14 +615,17 @@ class DispatchRepository extends EntityRepository
                     ? 'OR dispatch.emergency IS NULL'
                     : '';
 
-                $res->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
+                $queryBuilder
+                    ->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
                     ->setParameter('dispatchEmergencies', $options['dispatchEmergencies']);
             }
 
-            return $res
+            $res = $queryBuilder
                 ->setMaxResults(1)
                 ->getQuery()
-                ->getOneOrNullResult()["date"] ?? null;
+                ->getOneOrNullResult();
+
+            return $res["date"] ?? null;
         }
         else {
             return null;
