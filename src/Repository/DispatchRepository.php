@@ -594,9 +594,10 @@ class DispatchRepository extends EntityRepository
      * @throws NonUniqueResultException
      */
     public function getOlderDateToTreat(array $types = [],
-                                        array $statuses = []): ?DateTime {
+                                        array $statuses = [],
+                                        array $options = []): ?DateTime {
         if (!empty($types) && !empty($statuses)) {
-            $res = $this
+            $queryBuilder = $this
                 ->createQueryBuilder('dispatch')
                 ->select('dispatch.validationDate AS date')
                 ->innerJoin('dispatch.statut', 'status')
@@ -607,12 +608,24 @@ class DispatchRepository extends EntityRepository
                 ->addOrderBy('dispatch.creationDate', 'ASC')
                 ->setParameter('statuses', $statuses)
                 ->setParameter('types', $types)
-                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED]);
+
+            if(!empty($options['dispatchEmergencies'])){
+                $nonUrgentCondition = in_array($options['nonUrgentTranslationLabel'], $options['dispatchEmergencies'])
+                    ? 'OR dispatch.emergency IS NULL'
+                    : '';
+
+                $queryBuilder
+                    ->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
+                    ->setParameter('dispatchEmergencies', $options['dispatchEmergencies']);
+            }
+
+            $res = $queryBuilder
                 ->setMaxResults(1)
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            return $res['date'] ?? null;
+            return $res["date"] ?? null;
         }
         else {
             return null;
