@@ -459,6 +459,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.commandNumber AS orderNumber')
             ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
             ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
+            ->addSelect("DATE_FORMAT(dispatch.lastPartialStatusDate, '$dateFormat') AS lastPartialStatusDate")
             ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
