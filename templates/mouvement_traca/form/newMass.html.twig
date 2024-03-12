@@ -1,0 +1,28 @@
+{% import 'form.html.twig' as form %}
+
+<div class="form-mass-mvt-container row">
+    <div class="form-group col-12">
+        {{ form.select('emplacement-prise', trans('Traçabilité', 'Mouvements', 'Emplacement de prise', false), true , {
+            type: 'location',
+        }) }}
+    </div>
+    <div class="form-group col-12">
+        {{ form.select('pack', trans('Traçabilité', 'Général', 'Unités logistiques'), true, {
+            type: '',
+            editableTokenSeparator: ' ',
+            multiple: true,
+            editable: true,
+        }) }}
+        <div class="warning-message wii-warning-text mt-2" hidden>
+            Les unités logistiques scannées ne sont pas réellement présentes sur cet emplacement de prise.
+        </div>
+    </div>
+    <div class="form-group col-12">
+        {{ form.select('emplacement-depose', trans('Traçabilité', 'Mouvements', 'Emplacement de dépose', false), true , {
+            type: 'location',
+        }) }}
+    </div>
+
+    {% include 'mouvement_traca/form/fieldQuantity.html.twig' %}
+    {{ form.hidden('is-mass', 1) }}
+</div>
