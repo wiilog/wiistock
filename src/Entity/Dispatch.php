@@ -87,34 +87,31 @@ class Dispatch extends StatusHistoryContainer {
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
+    #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'datetime')]
-    private ?DateTime $creationDate = null;
-
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $carrierTrackingNumber = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $commandNumber = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\Column(type: 'string', nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true)]
     private ?string $emergency = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $startDate = null;
 
-    #[ORM\Column(type: 'date', nullable: true)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $endDate = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $projectNumber = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $businessUnit = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'treatedDispatches')]
@@ -124,7 +121,7 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\JoinColumn(nullable: false)]
     private ?Statut $statut = null;
 
-    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'dispatch')]
+    #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: Attachment::class)]
     private Collection $attachements;
 
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dispatchesFrom')]
@@ -133,34 +130,43 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\ManyToOne(targetEntity: Emplacement::class, inversedBy: 'dispatchesTo')]
     private ?Emplacement $locationTo = null;
 
-    #[ORM\OneToMany(targetEntity: DispatchPack::class, mappedBy: 'dispatch', orphanRemoval: true)]
+    #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: DispatchPack::class, orphanRemoval: true)]
     private Collection $dispatchPacks;
 
-    #[ORM\OneToMany(targetEntity: TrackingMovement::class, mappedBy: 'dispatch')]
+    #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: TrackingMovement::class)]
     private Collection $trackingMovements;
 
     #[ORM\ManyToOne(targetEntity: Type::class, inversedBy: 'dispatches')]
     private ?Type $type = null;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private ?string $number = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTime $creationDate = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $validationDate = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?DateTime $lastPartialStatusDate = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $treatmentDate = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $updatedAt = null;
 
     /**
      * @var array|null
      */
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $waybillData;
 
     /**
      * @var array|null
      */
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $deliveryNoteData;
 
     #[ORM\ManyToMany(targetEntity: Utilisateur::class, inversedBy: 'receivedDispatches')]
@@ -175,21 +181,18 @@ class Dispatch extends StatusHistoryContainer {
     #[ORM\JoinColumn(nullable: true)]
     private ?Transporteur $carrier = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $destination = null;
 
     #[ORM\OneToMany(mappedBy: 'dispatch', targetEntity: StatusHistory::class)]
     private Collection $statusHistory;
 
-    #[ORM\Column(type: 'json', nullable: true)]
+    #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $emails = [];
 
     // old handling request without timeline
-    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
     private ?bool $withoutHistory = false;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -655,6 +658,18 @@ class Dispatch extends StatusHistoryContainer {
     public function setCreatedBy(?Utilisateur $createdBy): self
     {
         $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getLastPartialStatusDate(): ?DateTime
+    {
+        return $this->lastPartialStatusDate;
+    }
+
+    public function setLastPartialStatusDate(?DateTime $lastPartialStatusDate): self
+    {
+        $this->lastPartialStatusDate = $lastPartialStatusDate;
 
         return $this;
     }
