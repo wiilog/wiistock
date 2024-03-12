@@ -1,0 +1,18 @@
+{% import 'form.html.twig' as form %}
+
+<div class="form-mass-mvt-container row">
+    <div class="form-group col-12 pack-selector">
+        {{ form.input('pack', trans('Traçabilité', 'Général', 'Unité logistique'), true) }}
+    </div>
+    <div class="form-group col-12">
+        {{ form.select('articles', trans('Traçabilité', 'Mouvements', 'Article(s)'), true, {
+            type: "availableArticle",
+            multiple: true,
+        }) }}
+    </div>
+    <div class="form-group col-12">
+        {{ form.select('emplacement',  trans('Traçabilité', 'Général', 'Emplacement', false), true , {
+            type: 'location',
+        }) }}
+    </div>
+</div>

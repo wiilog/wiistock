@@ -114,6 +114,7 @@ export default class Modal {
                 $wrapperLoader,
                 options = {$formContainer: null, onOpen: () => {}, onClose: () => {}}) {
         const $container = options.$formContainer || $modal.find('.modal-body');
+        $wrapperLoader = $wrapperLoader || $container;
         wrapLoadingOnActionButton($wrapperLoader, () => (
             AJAX
                 .route(GET, route, params)
