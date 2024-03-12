@@ -44,7 +44,7 @@ class PurchaseRequest {
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTimeInterface $considerationDate = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $deliveryFee = null;
 
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'purchaseRequestRequesters')]
