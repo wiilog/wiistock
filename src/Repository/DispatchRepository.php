@@ -116,6 +116,7 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'startDate',
+                        'lastPartialStatusDate' => 'lastPartialStatusDate',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
@@ -216,6 +217,7 @@ class DispatchRepository extends EntityRepository
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
                         "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
                         "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        "lastPartialStatusDate" => "DATE_FORMAT(dispatch.lastPartialStatusDate, '%e/%m/%Y') LIKE :search_value",
                         "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "requester" => "search_requester.username LIKE :search_value",
