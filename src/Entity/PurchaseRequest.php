@@ -43,6 +43,9 @@ class PurchaseRequest {
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTimeInterface $considerationDate = null;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $deliveryFee = null;
+
     #[ORM\ManyToOne(targetEntity: Utilisateur::class, inversedBy: 'purchaseRequestRequesters')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Utilisateur $requester = null;
@@ -255,6 +258,18 @@ class PurchaseRequest {
     public function setSupplier(?Fournisseur $supplier): self
     {
         $this->supplier = $supplier;
+
+        return $this;
+    }
+
+    public function getDeliveryFee(): ?float
+    {
+        return $this->deliveryFee;
+    }
+
+    public function setDeliveryFee(?float $deliveryFee): self
+    {
+        $this->deliveryFee = $deliveryFee;
 
         return $this;
     }
