@@ -47,9 +47,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use WiiCommon\Helper\Stream;
 
-/**
- * @Route("/article")
- */
+#[Route("/article")]
 class ArticleController extends AbstractController
 {
 
@@ -63,23 +61,6 @@ class ArticleController extends AbstractController
         Article::USED_ASSOC_COLLECT_ORDER => "Cet article est dans un ou plusieurs ordre(s) de collecte.",
         Article::USED_ASSOC_INVENTORY_ENTRY => "Cet article est dans une ou plusieurs entrée(s) d'inventaire."
     ];
-
-    /**
-     * @var ArticleDataService
-     */
-    private $articleDataService;
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    public function __construct(ArticleDataService $articleDataService,
-                                UserService $userService)
-    {
-        $this->articleDataService = $articleDataService;
-        $this->userService = $userService;
-    }
 
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
@@ -265,7 +246,7 @@ class ArticleController extends AbstractController
                 }
             }
 
-            $article = $this->articleDataService->newArticle($entityManager, $data);
+            $article = $articleDataService->newArticle($entityManager, $data);
             $refArticleId = $data["refArticle"];
             $refArticleFournisseurId = $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getId() : '';
 
@@ -469,6 +450,7 @@ class ArticleController extends AbstractController
      * @HasPermission({Menu::STOCK, Action::DISPLAY_ARTI}, mode=HasPermission::IN_JSON)
      */
     public function checkArticleCanBeDeleted(Request $request,
+                                             UserService $userService,
                                              EntityManagerInterface $entityManager): Response
     {
         if ($articleId = json_decode($request->getContent(), true)) {
@@ -496,10 +478,10 @@ class ArticleController extends AbstractController
                     ])
                 ]);
             } else {
-                $hasRightToDeleteOrders = $this->userService->hasRightFunction(Menu::ORDRE, Action::DELETE);
-                $hasRightToDeleteRequests = $this->userService->hasRightFunction(Menu::DEM, Action::DELETE);
-                $hasRightToDeleteTraca = $this->userService->hasRightFunction(Menu::TRACA, Action::DELETE);
-                $hasRightToDeleteStock = $this->userService->hasRightFunction(Menu::STOCK, Action::DELETE);
+                $hasRightToDeleteOrders = $userService->hasRightFunction(Menu::ORDRE, Action::DELETE);
+                $hasRightToDeleteRequests = $userService->hasRightFunction(Menu::DEM, Action::DELETE);
+                $hasRightToDeleteTraca = $userService->hasRightFunction(Menu::TRACA, Action::DELETE);
+                $hasRightToDeleteStock = $userService->hasRightFunction(Menu::STOCK, Action::DELETE);
 
                 $articlesMvtTracaIsEmpty = $article->getTrackingMovements()->isEmpty();
                 $articlesMvtStockIsEmpty = $article->getMouvements()->isEmpty();
@@ -849,6 +831,18 @@ class ArticleController extends AbstractController
                 'freeFields' => $freeFields
             ]),
             'type' => $reference?->getType()?->getLabel()
+        ]);
+    }
+
+    #[Route("/est-dans-ul/{barcode}", name: "article_is_in_lu", options: ["expose" => true], methods: ["GET"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::TRACA, Action::DISPLAY_MOUV], mode: HasPermission::IN_JSON)]
+    public function isInLU(EntityManagerInterface $manager, string $barcode): Response {
+        $article = $manager->getRepository(Article::class)->isInLogisticUnit($barcode);
+
+        return $this->json([
+            "success" => true,
+            "in_logistic_unit" => true,
+            "logistic_unit" => $article?->getCurrentLogisticUnit()?->getCode(),
         ]);
     }
 }

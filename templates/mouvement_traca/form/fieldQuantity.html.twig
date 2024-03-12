@@ -1,0 +1,25 @@
+{% import 'form.html.twig' as form %}
+
+{% set value = quantity is defined ? quantity : 1 %}
+{% set containerClass = containerClass is defined ? containerClass %}
+<div class="form-group col-12 {{ containerClass }}">
+    {{ form.input('quantity', trans('Traçabilité', 'Général', 'Quantité', false), true, value, {
+        type: 'number',
+        additionalAttributes: [
+            {
+                name: 'data-init',
+                value: value
+            }, {
+                name: 'min',
+                value: 1
+            }, {
+                name: 'step',
+                value: 1
+            }
+        ],
+        inputClass: 'needs-default w-100',
+    }) }}
+</div>
+
+
+
