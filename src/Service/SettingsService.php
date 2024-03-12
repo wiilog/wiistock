@@ -724,7 +724,7 @@ class SettingsService {
                     ->setNotificationsEmergencies(isset($data["notificationEmergencies"]) ? explode(",", $data["notificationEmergencies"]) : null)
                     ->setSendMailRequester($data["mailRequester"] ?? false)
                     ->setSendMailReceiver($data["mailReceiver"] ?? false)
-                    ->setReusableStatuses(isset($data["reusableStatuses"]) && $data["reusableStatuses"] ?? false)
+                    ->setNotReusableStatuses(isset($data["notReusableStatuses"]) && $data["notReusableStatuses"] ?? false)
                     ->setColor($data["color"] ?? null);
 
                 $defaultTranslation = $type->getLabelTranslation()?->getTranslationIn(Language::FRENCH_SLUG);
