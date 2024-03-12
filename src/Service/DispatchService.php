@@ -205,6 +205,7 @@ class DispatchService {
             'customerPhone' => $dispatch->getCustomerPhone(),
             'customerRecipient' => $dispatch->getCustomerRecipient(),
             'customerAddress' => $dispatch->getCustomerAddress(),
+            'lastPartialStatusDate' => $this->formatService->datetime($dispatch->getLastPartialStatusDate()),
         ];
 
         if(isset($options['groupedSignatureMode']) && $options['groupedSignatureMode']) {
@@ -667,6 +668,7 @@ class DispatchService {
             ['title' => $this->translationService->translate('Général', null, 'Zone liste', 'Date de création', false), 'name' => 'creationDate'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false), 'name' => 'validationDate'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false), 'name' => 'treatmentDate'],
+            ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false), 'name' => 'lastPartialStatusDate'],
             ['title' => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date d\'échéance', false), 'name' => 'endDate'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Type', false), 'name' => 'type'],
             ['title' => $this->translationService->translate('Demande', 'Général', 'Demandeur', false), 'name' => 'requester'],
