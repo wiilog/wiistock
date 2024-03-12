@@ -18,14 +18,6 @@ use Doctrine\ORM\EntityRepository;
 use Symfony\Component\HttpFoundation\InputBag;
 use WiiCommon\Helper\Stream;
 
-/**
- * @extends EntityRepository<ProductionRequest>
- *
- * @method ProductionRequest|null find($id, $lockMode = null, $lockVersion = null)
- * @method ProductionRequest|null findOneBy(array $criteria, array $orderBy = null)
- * @method ProductionRequest[]    findAll()
- * @method ProductionRequest[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class ProductionRequestRepository extends EntityRepository
 {
 
