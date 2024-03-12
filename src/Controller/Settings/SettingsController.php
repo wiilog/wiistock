@@ -2436,7 +2436,7 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Les statuts de ce type ne sont pas réutilisables",
-                    "value" => $this->formatService->bool($type->isReusableStatuses())  ?: "Non",
+                    "value" => $this->formatService->bool($type->isReusableStatuses(), "Non"),
                 ];
             }
         }
