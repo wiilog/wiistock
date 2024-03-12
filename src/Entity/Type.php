@@ -154,7 +154,7 @@ class Type {
     private ?bool $defaultType = null;
 
     #[ORM\Column(type: Types::BOOLEAN, nullable: true)]
-    private ?bool $reusableStatuses = null;
+    private ?bool $notReusableStatuses = null;
 
     public function __construct() {
         $this->champsLibres = new ArrayCollection();
@@ -897,13 +897,13 @@ class Type {
         return $this->defaultType;
     }
 
-    public function setReusableStatuses(?bool $reusableStatuses): self {
-        $this->reusableStatuses = $reusableStatuses;
+    public function setNotReusableStatuses(?bool $notReusableStatuses): self {
+        $this->notReusableStatuses = $notReusableStatuses;
 
         return $this;
     }
 
-    public function isReusableStatuses(): ?bool {
-        return $this->reusableStatuses;
+    public function isNotReusableStatuses(): ?bool {
+        return $this->notReusableStatuses;
     }
 }
