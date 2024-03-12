@@ -85,6 +85,7 @@ class PurchaseRequestService
             'validationDate' => $this->formatService->datetime($request->getValidationDate()),
             'considerationDate' => $this->formatService->datetime($request->getConsiderationDate()),
             'supplier' => $this->formatService->supplier($request->getSupplier()),
+            'deliveryFee' => $request->getDeliveryFee(),
             'actions' => $this->templating->render('purchase_request/actions.html.twig', [
                 'url' => $url,
             ]),
@@ -111,6 +112,7 @@ class PurchaseRequestService
             $line['label'] ?? '',
             $line['supplierName'] ?? '',
             $line['purchaseRequestLineUnitPrice'] ?? '',
+            $request['deliveryFee'] ?? '',
         ]);
     }
 
