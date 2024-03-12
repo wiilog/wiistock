@@ -1095,6 +1095,7 @@ class DispatchService {
             $dispatch['orderNumber'],
             $dispatch['creationDate'],
             $dispatch['validationDate'],
+            $dispatch['lastPartialStatusDate'],
             $dispatch['treatmentDate'],
             $dispatch['type'],
             $dispatch['requester'],
