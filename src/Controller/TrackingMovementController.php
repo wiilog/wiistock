@@ -88,7 +88,7 @@ class TrackingMovementController extends AbstractController
             ->toArray();
 
         $request->request->add(['length' => 10]);
-        return $this->render('mouvement_traca/index.html.twig', [
+        return $this->render('tracking_movement/index.html.twig', [
             'statuts' => $statuses,
             'form_statuses' => Stream::from($mvtStatuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
@@ -357,7 +357,7 @@ class TrackingMovementController extends AbstractController
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
         $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
-        $html = $this->renderView('mouvement_traca/form/edit.html.twig', [
+        $html = $this->renderView('tracking_movement/form/edit.html.twig', [
             'mvt' => $trackingMovement,
             'statuts' => Stream::from($statuses)
                 ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
@@ -554,7 +554,7 @@ class TrackingMovementController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) {
             $trackingMovement = $entityManager->find(TrackingMovement::class, $data);
 
-            return $this->json($this->renderView('mouvement_traca/show.html.twig', [
+            return $this->json($this->renderView('tracking_movement/show.html.twig', [
                 "mvt" => $trackingMovement,
             ]));
         }
@@ -569,7 +569,7 @@ class TrackingMovementController extends AbstractController
         if ($typeId = json_decode($request->getContent(), true)) {
             $statutRepository = $entityManager->getRepository(Statut::class);
 
-            $templateDirectory = "mouvement_traca/form";
+            $templateDirectory = "tracking_movement/form";
             $appropriateType = $statutRepository->find($typeId);
 
             $fileToRender = match($appropriateType?->getCode()) {
@@ -580,7 +580,7 @@ class TrackingMovementController extends AbstractController
             };
 
             return $this->json([
-                "modalBody" => $fileToRender === 'mouvement_traca/' ? false : $this->renderView($fileToRender),
+                "modalBody" => $fileToRender === 'tracking_movement/' ? false : $this->renderView($fileToRender),
             ]);
         }
 
