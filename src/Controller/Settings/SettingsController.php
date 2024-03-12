@@ -2314,6 +2314,13 @@ class SettingsController extends AbstractController {
                     ]),
                 ];
             }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+                $data[] = [
+                    "label" => "Les statuts de ce type ne sont pas réutilisables",
+                    "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type && $type->isReusableStatuses()),
+                ];
+            }
         } else {
             $data = [
                 [
@@ -2423,6 +2430,13 @@ class SettingsController extends AbstractController {
                 $data[] = [
                     "label" => "Par défaut",
                     "value" => $this->formatService->bool($type->isDefault()) ?: "Non",
+                ];
+            }
+
+            if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
+                $data[] = [
+                    "label" => "Les statuts de ce type ne sont pas réutilisables",
+                    "value" => $this->formatService->bool($type->isReusableStatuses(), "Non"),
                 ];
             }
         }
