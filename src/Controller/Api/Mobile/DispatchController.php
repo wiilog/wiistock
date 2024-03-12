@@ -486,6 +486,13 @@ class DispatchController extends AbstractApiController
             throw new FormException("Il n'y a aucun statut à traiter paramétré pour ce type.");
         }
 
+        if($dispatch->getType()->isNotReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $toTreatStatus)){
+            return new JsonResponse([
+                'success' => false,
+                'msg' => "Ce statut a déjà été utilisé pour cette demande."
+            ]);
+        }
+
         $createdReferences = [];
         foreach ($references as $data) {
             $dispatchService->treatMobileDispatchReference($entityManager, $dispatch, $data, $createdReferences, [
