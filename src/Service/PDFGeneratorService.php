@@ -67,7 +67,7 @@ class PDFGeneratorService {
      * @throws SyntaxError
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
-        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($this->entityManager);
         $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
         $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
         $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];

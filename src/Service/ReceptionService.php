@@ -189,7 +189,7 @@ class ReceptionService
         }
 
         if (!$update && $fromImport && empty($data['location'])) {
-            $defaultLocation = $this->settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION);
+            $defaultLocation = $this->settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION);
             if (isset($defaultLocation)) {
                 $location = $emplacementRepository->find(intval($defaultLocation['id']));
                 $reception

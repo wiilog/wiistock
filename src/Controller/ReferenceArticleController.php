@@ -455,7 +455,7 @@ class ReferenceArticleController extends AbstractController
             "searches" => $user->getRecherche(),
             'freeFieldsGroupedByTypes' => $freeFieldsGroupedByTypes,
             'columnsVisibles' => $currentUser->getVisibleColumns()['reference'],
-            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'typeQuantite' => $typeQuantite,
@@ -968,7 +968,7 @@ class ReferenceArticleController extends AbstractController
                 "dispatch" => $request->query->get("dispatch"),
             ]),
             "types" => $types,
-            'defaultLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_REFERENCE),
+            'defaultLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_REFERENCE),
             'draftDefaultReference' => $refArticleDataService->getDraftDefaultReference($entityManager),
             "stockManagement" => [
                 ReferenceArticle::STOCK_MANAGEMENT_FEFO,
