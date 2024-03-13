@@ -50,7 +50,7 @@ function initPageDataTable() {
         serverSide: true,
         ajax: {
             "url": pathPurchaseRequest,
-            "type": "POST",
+            "type": POST,
             'data' : {
                 'filterStatus': $('#filterStatus').val(),
             },

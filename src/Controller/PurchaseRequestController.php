@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
@@ -352,12 +353,9 @@ class PurchaseRequestController extends AbstractController
         $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
 
         if($status->isPreventStatusChangeWithoutDeliveryFees() && empty($data['deliveryFee'])) {
-            return $this->json([
-                'success' => false,
-                'msg' => "Les frais de livraisons doivent être renseignés.",
-            ]);
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
-        
+
         $purchaseRequest = $purchaseRequestService->createPurchaseRequest(
             $status,
             $requester,
@@ -503,10 +501,7 @@ class PurchaseRequestController extends AbstractController
         $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
 
         if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && empty($post->get('deliveryFee'))) {
-            return $this->json([
-                'success' => false,
-                'msg' => "Les frais de livraisons doivent être renseignés.",
-            ]);
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
         }
 
         $currentStatus = $purchaseRequest->getStatus();
