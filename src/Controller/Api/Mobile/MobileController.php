@@ -2254,7 +2254,6 @@ class MobileController extends AbstractApiController
                 'suggestedPickLocations' => implode(',', $type->getSuggestedPickLocations() ?? []),
             ])->toArray();
 
-        $anomalies = [];
         if ($rights['inventoryManager']) {
             $anomalies = $inventoryEntryRepository->getAnomalies(true);
         }
@@ -2516,7 +2515,7 @@ class MobileController extends AbstractApiController
             'inventoryItems' => $inventoryItems ?? [],
             'inventoryMission' => $inventoryMissions ?? [],
             'inventoryLocationZone' => $inventoryLocationsZone ?? [],
-            'anomalies' => $anomalies,
+            'anomalies' => $anomalies ?? [],
             'trackingTaking' => $trackingTaking ?? [],
             'stockTaking' => $stockTaking ?? [],
             'demandeLivraisonTypes' => $demandeLivraisonTypes ?? [],
