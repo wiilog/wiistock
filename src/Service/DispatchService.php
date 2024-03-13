@@ -1422,6 +1422,10 @@ class DispatchService {
 
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
 
+        if (!file_exists("{$waybillOutdir}/{$nakedFileName}.pdf")) {
+            throw new FormException("Une erreur est survenue lors de la génération du bon de livraison");
+        }
+
         $wayBillAttachment = new Attachment();
         $wayBillAttachment
             ->setDispatch($dispatch)
@@ -1547,7 +1551,7 @@ class DispatchService {
         return $reportAttachment;
     }
 
-    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data) {
+    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data): Attachment{
         $userDataToSave = [];
         $dispatchDataToSave = [];
         foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {

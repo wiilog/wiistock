@@ -39,11 +39,17 @@ class TemplateDocumentService {
                         $rowNumber = $rowKey + 1;
                         foreach ($rowData as $macro => $replace) {
 
+                            if (is_string($replace)) {
+                                $replace = htmlspecialchars($replace);
+                            }
                             $this->setTemplateProcessorValue($templateProcessor, $macro . '#' . $rowNumber, $replace, $barcodeVariables);
                         }
                     }
                 }
                 else {
+                    if (is_string($value)) {
+                        $value = htmlspecialchars($value);
+                    }
                     $this->setTemplateProcessorValue($templateProcessor, $name, $value, $barcodeVariables);
                 }
             }
