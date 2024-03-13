@@ -107,27 +107,25 @@ class MouvementStockService
 
     /**
      * Allow to get the configuration of one line of the datatable for the quantity of a stock movement
-     * @param MouvementStock $mouvementStock
-     * @return array {html: string}
      */
-    public function formatHTMLQuantity(MouvementStock $mouvementStock): string
+    public function formatHTMLQuantity(MouvementStock $stockMovement): string
     {
-        $type = $mouvementStock->getType();
-        $quantity = $mouvementStock->getQuantity();
+        $type = $stockMovement->getType();
+        $quantity = $stockMovement->getQuantity();
 
         $color = match ($type) {
-            MouvementStock::TYPE_ENTREE => 'green',
-            MouvementStock::TYPE_SORTIE => 'red',
-            default => 'black'
+            MouvementStock::TYPE_ENTREE => "green",
+            MouvementStock::TYPE_SORTIE => "red",
+            default => "black"
         };
 
         $operator = match($type) {
-            MouvementStock::TYPE_ENTREE => '+',
-            MouvementStock::TYPE_SORTIE => '-',
-            default => '&nbsp;'
+            MouvementStock::TYPE_ENTREE => "+&nbsp;",
+            MouvementStock::TYPE_SORTIE => "-&nbsp;",
+            default => ''
         };
 
-        return "<span style='font-weight: bold; color: {$color};'>{$operator}&nbsp;{$quantity}</span>";
+        return "<span style='font-weight: bold; color: {$color};'>{$operator}{$quantity}</span>";
 
     }
 
