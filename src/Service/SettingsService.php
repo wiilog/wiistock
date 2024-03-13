@@ -1056,7 +1056,7 @@ class SettingsService {
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
                         ->setColor($statusData['color'] ?? null)
-                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? null);
+                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status
