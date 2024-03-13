@@ -30,10 +30,9 @@ class AppController extends AbstractController {
         return $this->render('index.html.twig', ['landingPageController' => $landingPageController]);
     }
 
-    #[Route("/font.css", name: "app_font_css")]
+    // Called to generate script tag in base.html.twig
     public function fontCSS(CacheService           $cacheService,
                             EntityManagerInterface $entityManager): Response {
-
         $fontFamily = $cacheService->get(CacheService::COLLECTION_SETTINGS, "font-family", function() use ($entityManager) {
             $settingRepository = $entityManager->getRepository(Setting::class);
             return $settingRepository->getOneParamByLabel(Setting::FONT_FAMILY)
@@ -42,12 +41,13 @@ class AppController extends AbstractController {
 
         $response = new Response();
         $response->headers->set('Content-Type', 'text/css');
+        $response->setContent("
+            * {
+                font-family: \"$fontFamily\" !important;
+            }
+        ");
 
-        return $this->render(
-            'font.css.twig',
-            [ 'fontFamily' => $fontFamily ],
-            $response
-        );
+        return $response;
     }
 
 }

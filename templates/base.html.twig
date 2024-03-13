@@ -20,7 +20,10 @@
     {# datetime picker #}
     <link rel="stylesheet" href="{{ asset('css/bootstrap-datetimepicker.css') }}"/>
     <link rel="stylesheet" href="{{ asset('css/bootstrap-checkbox.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('generated/font.css') }}?t={{ getSettingTimestamp() }}"/> {# generated in AppController::fontCSS #}
+    <style>
+        {{ render(controller('App\\Controller\\AppController::fontCSS')) }}
+    </style>
+
     {{ encore_entry_link_tags('app') }}
     {% block stylesheets %}{% endblock %}
 
