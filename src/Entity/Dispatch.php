@@ -149,9 +149,6 @@ class Dispatch extends StatusHistoryContainer {
     private ?DateTime $validationDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?DateTime $lastPartialStatusDate = null;
-
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?DateTime $treatmentDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -658,18 +655,6 @@ class Dispatch extends StatusHistoryContainer {
     public function setCreatedBy(?Utilisateur $createdBy): self
     {
         $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getLastPartialStatusDate(): ?DateTime
-    {
-        return $this->lastPartialStatusDate;
-    }
-
-    public function setLastPartialStatusDate(?DateTime $lastPartialStatusDate): self
-    {
-        $this->lastPartialStatusDate = $lastPartialStatusDate;
 
         return $this;
     }
