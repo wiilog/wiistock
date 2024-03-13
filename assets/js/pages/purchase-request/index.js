@@ -2,6 +2,9 @@ import Form from "@app/form";
 import {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {getUserFiltersByPage} from '@app/utils';
+import {onStatusChange} from '@app/pages/purchase-request/common';
+
+global.onStatusChange = onStatusChange;
 
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
@@ -30,6 +33,9 @@ $(function() {
 
     Form
         .create($modalNewPurchaseRequest, {clearOnOpen: true})
+        .onOpen(() => {
+            $modalNewPurchaseRequest.find('[name="status"]').trigger('change');
+        })
         .submitTo(POST, 'purchase_request_new', {
             success: ({redirect}) => {
                 window.location.href = redirect;
@@ -44,7 +50,7 @@ function initPageDataTable() {
         serverSide: true,
         ajax: {
             "url": pathPurchaseRequest,
-            "type": "POST",
+            "type": POST,
             'data' : {
                 'filterStatus': $('#filterStatus').val(),
             },

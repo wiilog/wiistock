@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
@@ -350,12 +351,18 @@ class PurchaseRequestController extends AbstractController
         $status = $statusRepository->find($data['status']);
         $requester = $userRepository->find($data['requester']);
         $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
+
+        if($status->isPreventStatusChangeWithoutDeliveryFees() && empty($data['deliveryFee'])) {
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
+
         $purchaseRequest = $purchaseRequestService->createPurchaseRequest(
             $status,
             $requester,
             [
                 "comment" => $data['comment'] ?? null,
                 "supplier" => $supplier,
+                "deliveryFee" => $data['deliveryFee'] ?? null,
             ]
         );
 
@@ -483,7 +490,7 @@ class PurchaseRequestController extends AbstractController
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
-        $post = $request->request;
+;        $post = $request->request;
 
         $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
 
@@ -491,7 +498,11 @@ class PurchaseRequestController extends AbstractController
         $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
         $comment = $post->get('comment') ?: '';
         $newStatus = $statusRepository->find($post->get('status'));
-        $supplier = $supplierRepository->find($post->get('supplier'));
+        $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
+
+        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && empty($post->get('deliveryFee'))) {
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
 
         $currentStatus = $purchaseRequest->getStatus();
         if (!$currentStatus
@@ -503,7 +514,8 @@ class PurchaseRequestController extends AbstractController
         $purchaseRequest
             ->setComment($comment)
             ->setRequester($requester)
-            ->setSupplier($supplier ?? null);
+            ->setSupplier($supplier)
+            ->setDeliveryFee($post->get('deliveryFee') ?? null);
 
         $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
