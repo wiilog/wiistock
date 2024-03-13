@@ -1055,7 +1055,8 @@ class SettingsService {
                         ->setDisplayOnSchedule($statusData['displayedOnSchedule'] ?? false)
                         ->setNotifiedUsers($notifiedUsers)
                         ->setRequiredAttachment($statusData['requiredAttachment'] ?? false)
-                        ->setColor($statusData['color'] ?? null);
+                        ->setColor($statusData['color'] ?? null)
+                        ->setPreventStatusChangeWithoutDeliveryFees($statusData['preventStatusChangeWithoutDeliveryFees'] ?? false);
 
                     if($hasRightGroupedSignature){
                         $status
