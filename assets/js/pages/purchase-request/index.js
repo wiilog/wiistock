@@ -67,6 +67,7 @@ function initPageDataTable() {
             {"data": 'status', 'name': 'Statut', 'title': 'Statut'},
             {"data": 'buyer', 'name': 'Acheteur', 'title': 'Acheteur'},
             {"data": 'supplier', 'name': 'Fournisseur', 'title': 'Fournisseur'},
+            {"data": 'deliveryFee', 'name': 'Frais de livraison', 'title': 'Frais de livraison'},
         ]
     };
     return initDataTable('tablePurchaseRequest', purchaseRequestTableConfig);
