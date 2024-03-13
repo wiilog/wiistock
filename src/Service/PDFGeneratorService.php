@@ -292,12 +292,12 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generateFromDocx(string $docx, string $outdir) {
+    public function generateFromDocx(string $docx, string $outdir): void {
         $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 
-    public function generateDispatchLabel(Dispatch $dispatch, string $title) {
+    public function generateDispatchLabel(Dispatch $dispatch, string $title): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
