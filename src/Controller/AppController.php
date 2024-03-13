@@ -30,7 +30,7 @@ class AppController extends AbstractController {
         return $this->render('index.html.twig', ['landingPageController' => $landingPageController]);
     }
 
-    #[Route("/generated/font.css", name: "app_font_css")]
+    #[Route("/font.css", name: "app_font_css")]
     public function fontCSS(CacheService           $cacheService,
                             EntityManagerInterface $entityManager): Response {
 

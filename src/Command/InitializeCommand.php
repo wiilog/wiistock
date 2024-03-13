@@ -35,7 +35,7 @@ class InitializeCommand extends Command {
             $output->writeln("Dashboards were not locked");
         }
 
-        $this->settingsService->generateSessionConfig();
+        $this->settingsService->generateSessionConfig($this->entityManager);
 
         $this->entityManager->flush();
 
