@@ -225,8 +225,7 @@ class ProductionRequestService
 
             if($status->isTreated()){
                 $productionRequest
-                    ->setTreatedAt($now)
-                    ->setTreatedAt(new DateTime());
+                    ->setTreatedAt($now);
             }
         }
 

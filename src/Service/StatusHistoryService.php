@@ -44,6 +44,10 @@ class StatusHistoryService {
         $record->setDate($date);
         if ($setStatus) {
             $historyContainer->setStatus($status);
+
+            if ($status->isPartial())  {
+                $historyContainer->setLastPartialStatusDate($date);
+            }
         }
 
         if ($historyContainer instanceof Dispatch) {
