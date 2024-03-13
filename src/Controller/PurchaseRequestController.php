@@ -484,7 +484,7 @@ class PurchaseRequestController extends AbstractController
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
-        $post = $request->request;
+;        $post = $request->request;
 
         $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
 
@@ -492,7 +492,7 @@ class PurchaseRequestController extends AbstractController
         $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
         $comment = $post->get('comment') ?: '';
         $newStatus = $statusRepository->find($post->get('status'));
-        $supplier = $supplierRepository->find($post->get('supplier'));
+        $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
 
         $currentStatus = $purchaseRequest->getStatus();
         if (!$currentStatus
@@ -504,7 +504,7 @@ class PurchaseRequestController extends AbstractController
         $purchaseRequest
             ->setComment($comment)
             ->setRequester($requester)
-            ->setSupplier($supplier ?? null)
+            ->setSupplier($supplier)
             ->setDeliveryFee($post->get('deliveryFee') ?? null);;
 
         $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);

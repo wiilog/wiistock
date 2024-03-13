@@ -30,6 +30,9 @@ $(function() {
 
     Form
         .create($modalNewPurchaseRequest, {clearOnOpen: true})
+        .onOpen(() => {
+            $modalNewPurchaseRequest.find('[name=status]').trigger('change');
+        })
         .submitTo(POST, 'purchase_request_new', {
             success: ({redirect}) => {
                 window.location.href = redirect;

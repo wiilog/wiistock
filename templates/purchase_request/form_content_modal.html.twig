@@ -27,8 +27,10 @@
                 label: status.nom,
                 value: status.id,
                 order: status.displayOrder,
+                preventStatusChangeWithoutDeliveryFees: status.preventStatusChangeWithoutDeliveryFees,
                 selected: status.id == selectedStatusId,
             })),
+            onChange: 'onStatusChange($(this))',
         }) }}
     </div>
     <div class="form-group col-12 col-md-6">
@@ -57,3 +59,4 @@
         } %}
     </div>
 </div>
+{{ form.hidden('id', purchaseRequest.id) }}

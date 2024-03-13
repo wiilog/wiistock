@@ -2,6 +2,7 @@ import Routing from '@app/fos-routing';
 import {GET} from '@app/ajax';
 import moment from 'moment';
 import FixedFieldEnum from '@generated/fixed-field-enum';
+import {POST} from "../../ajax";
 
 global.deleteRowLine = deleteRowLine;
 global.openEvolutionModal = openEvolutionModal;
@@ -73,9 +74,17 @@ $(function() {
     InitModal($modalDeleteLine, $submitDeleteLine, urlDeleteLine, {tables: [tablePurchaseRequestLines]});
 
     let $modalEditPurchaseRequest = $('#modalEditPurchaseRequest');
-    let $submitEditPurchaseRequest = $('#submitEditPurchaseRequest');
-    let urlEditPurchaseRequest = Routing.generate('purchase_request_edit', true);
-    InitModal($modalEditPurchaseRequest, $submitEditPurchaseRequest, urlEditPurchaseRequest);
+
+    Form
+        .create($modalEditPurchaseRequest)
+        .onOpen(() => {
+            $modalEditPurchaseRequest.find('[name=status]').trigger('change');
+        })
+        .submitTo(POST, 'purchase_request_edit', {
+            success: ({entete}) => {
+                $('.zone-entete').html(entete);
+            }
+        });
 
     const $modalConsiderPurchaseRequest = $('#modalConsiderPurchaseRequest');
     const $submitConsiderPurchaseRequest = $modalConsiderPurchaseRequest.find('.submit-button');
