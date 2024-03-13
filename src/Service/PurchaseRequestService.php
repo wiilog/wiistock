@@ -163,7 +163,8 @@ class PurchaseRequestService
             ->setComment($comment)
             ->setNumber($purchaseRequestNumber)
             ->setSupplier($supplier)
-            ->setValidationDate($validationDate);
+            ->setValidationDate($validationDate)
+            ->setDeliveryFee($options["deliveryFee"] ?? null);
 
         if ($buyer) {
             $purchase->setBuyer($buyer);

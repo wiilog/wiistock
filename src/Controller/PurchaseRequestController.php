@@ -356,6 +356,7 @@ class PurchaseRequestController extends AbstractController
             [
                 "comment" => $data['comment'] ?? null,
                 "supplier" => $supplier,
+                "deliveryFee" => $data['deliveryFee'] ?? null,
             ]
         );
 
@@ -503,7 +504,8 @@ class PurchaseRequestController extends AbstractController
         $purchaseRequest
             ->setComment($comment)
             ->setRequester($requester)
-            ->setSupplier($supplier ?? null);
+            ->setSupplier($supplier ?? null)
+            ->setDeliveryFee($post->get('deliveryFee') ?? null);;
 
         $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
