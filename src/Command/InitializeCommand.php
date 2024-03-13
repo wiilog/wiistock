@@ -35,7 +35,6 @@ class InitializeCommand extends Command {
             $output->writeln("Dashboards were not locked");
         }
 
-        $this->settingsService->generateFontSCSS();
         $this->settingsService->generateSessionConfig();
 
         $this->entityManager->flush();
