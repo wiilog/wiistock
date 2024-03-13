@@ -350,6 +350,14 @@ class PurchaseRequestController extends AbstractController
         $status = $statusRepository->find($data['status']);
         $requester = $userRepository->find($data['requester']);
         $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
+
+        if($status->isPreventStatusChangeWithoutDeliveryFees() && empty($data['deliveryFee'])) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Les frais de livraisons doivent être renseignés.",
+            ]);
+        }
+        
         $purchaseRequest = $purchaseRequestService->createPurchaseRequest(
             $status,
             $requester,
@@ -494,6 +502,13 @@ class PurchaseRequestController extends AbstractController
         $newStatus = $statusRepository->find($post->get('status'));
         $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
 
+        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && empty($post->get('deliveryFee'))) {
+            return $this->json([
+                'success' => false,
+                'msg' => "Les frais de livraisons doivent être renseignés.",
+            ]);
+        }
+
         $currentStatus = $purchaseRequest->getStatus();
         if (!$currentStatus
             || !$newStatus
@@ -505,7 +520,7 @@ class PurchaseRequestController extends AbstractController
             ->setComment($comment)
             ->setRequester($requester)
             ->setSupplier($supplier)
-            ->setDeliveryFee($post->get('deliveryFee') ?? null);;
+            ->setDeliveryFee($post->get('deliveryFee') ?? null);
 
         $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);

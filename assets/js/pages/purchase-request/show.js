@@ -1,14 +1,16 @@
 import Routing from '@app/fos-routing';
-import {GET} from '@app/ajax';
+import {GET, POST} from '@app/ajax';
 import moment from 'moment';
 import FixedFieldEnum from '@generated/fixed-field-enum';
-import {POST} from "../../ajax";
+import Form from '@app/form';
+import {onStatusChange} from '@app/pages/purchase-request/common';
 
 global.deleteRowLine = deleteRowLine;
 global.openEvolutionModal = openEvolutionModal;
 global.callbackEditLineLoading = callbackEditLineLoading;
 global.clearLineAddModal = clearLineAddModal;
 global.onReferenceChange = onReferenceChange;
+global.onStatusChange = onStatusChange;
 
 
 $(function() {
@@ -78,7 +80,7 @@ $(function() {
     Form
         .create($modalEditPurchaseRequest)
         .onOpen(() => {
-            $modalEditPurchaseRequest.find('[name=status]').trigger('change');
+            $modalEditPurchaseRequest.find('[name="status"]').trigger('change');
         })
         .submitTo(POST, 'purchase_request_edit', {
             success: ({entete}) => {

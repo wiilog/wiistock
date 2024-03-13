@@ -2,6 +2,9 @@ import Form from "@app/form";
 import {POST} from "@app/ajax";
 import Routing from '@app/fos-routing';
 import {getUserFiltersByPage} from '@app/utils';
+import {onStatusChange} from '@app/pages/purchase-request/common';
+
+global.onStatusChange = onStatusChange;
 
 $(function() {
     const $statusSelector = $('.filterService select[name="statut"]');
