@@ -7,6 +7,7 @@ use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -274,7 +275,7 @@ class DispatchRepository extends EntityRepository
                             } else {
                                 $qb->orderBy("JSON_EXTRACT(dispatch.freeFields, '$.\"$freeFieldId\"')", $order);
                             }
-                        } else if (property_exists(Dispatch::class, $column)) {
+                        } else if (property_exists(Dispatch::class, $column) || property_exists(StatusHistoryContainer::class, $column)) {
                             $qb->orderBy("dispatch.$column", $order);
                         }
                     }

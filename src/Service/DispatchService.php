@@ -121,8 +121,7 @@ class DispatchService {
     private ?array $natures = null;
     private ?Nature $defaultNature = null;
 
-    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []) {
-
+    public function getDataForDatatable(InputBag $params, bool $groupedSignatureMode = false, bool $fromDashboard = false, array $preFilledFilters = []): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $dispatchRepository = $this->entityManager->getRepository(Dispatch::class);
 
@@ -158,7 +157,7 @@ class DispatchService {
         ];
     }
 
-    public function dataRowDispatch(Dispatch $dispatch, array $options = []) {
+    public function dataRowDispatch(Dispatch $dispatch, array $options = []): array {
 
         $url = $this->router->generate('dispatch_show', ['id' => $dispatch->getId()]);
         $receivers = $dispatch->getReceivers() ?? null;
@@ -454,8 +453,7 @@ class DispatchService {
                                                 bool $isUpdate,
                                                 bool $fromGroupedSignature = false,
                                                 ?Utilisateur $signatory = null,
-                                                bool $fromCreate = false)
-    {
+                                                bool $fromCreate = false): void {
         $status = $dispatch->getStatut();
         $recipientAbleToReceivedMail = $status && $status->getSendNotifToRecipient();
         $requesterAbleToReceivedMail = $status && $status->getSendNotifToDeclarant();
@@ -1063,7 +1061,7 @@ class DispatchService {
     }
 
 
-    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager) {
+    public function manageDispatchPacks(Dispatch $dispatch, array $packs, EntityManagerInterface $entityManager): void {
         $packRepository = $entityManager->getRepository(Pack::class);
 
         foreach($packs as $pack) {
@@ -1554,7 +1552,7 @@ class DispatchService {
         return $reportAttachment;
     }
 
-    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data): Attachment{
+    public function generateWayBill(Utilisateur $user, Dispatch $dispatch, EntityManagerInterface $entityManager, array $data): Attachment {
         $userDataToSave = [];
         $dispatchDataToSave = [];
         foreach(array_keys(Dispatch::WAYBILL_DATA) as $wayBillKey) {
@@ -1574,8 +1572,7 @@ class DispatchService {
         return $this->persistNewWaybillAttachment($entityManager, $dispatch, $user);
     }
 
-    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse
-    {
+    public function updateDispatchReferenceArticle(EntityManagerInterface $entityManager, array $data): JsonResponse {
         $dispatchId = $data['dispatch'] ?? null;
         $packId = $data['pack'] ?? null;
         $referenceArticleId = $data['reference'] ?? null;
@@ -1850,8 +1847,7 @@ class DispatchService {
         }
     }
 
-    public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string
-    {
+    public function getGroupedSignatureTypes(?string $groupedSignatureType = ''): string {
         $emptyOption = "<option value=''></option>";
         $options = Stream::from(Dispatch::GROUPED_SIGNATURE_TYPES)
             ->map(function(string $type) use ($groupedSignatureType) {
@@ -1862,7 +1858,7 @@ class DispatchService {
         return $emptyOption . $options;
     }
 
-    public function getWayBillDataForUser(Utilisateur $user, EntityManagerInterface $entityManager, Dispatch $dispatch = null) {
+    public function getWayBillDataForUser(Utilisateur $user, EntityManagerInterface $entityManager, Dispatch $dispatch = null): array {
 
         $settingRepository = $entityManager->getRepository(Setting::class);
 
@@ -1907,7 +1903,7 @@ class DispatchService {
                                                  Dispatch $dispatch,
                                                  array $data,
                                                  array &$createdReferences,
-                                                 array $options){
+                                                 array $options): void {
         if(!isset($data['logisticUnit']) || !isset($data['reference'])){
             throw new FormException("L'unité logistique et la référence n'ont pas été saisies");
         }
