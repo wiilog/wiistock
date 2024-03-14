@@ -1811,7 +1811,7 @@ class ReceptionController extends AbstractController {
                     $entityManager->persist($demande);
 
                     if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, true, ['sendNotification' => false]);
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
                         if ($validateResponse['success']) {
                             $preparation = $demande->getPreparations()->first();
 
