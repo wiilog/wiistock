@@ -285,7 +285,7 @@ class ReceptionService
         }
     }
 
-    public function dataRowReception(Reception $reception)
+    public function dataRowReception(Reception $reception): array
     {
         $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
             ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
