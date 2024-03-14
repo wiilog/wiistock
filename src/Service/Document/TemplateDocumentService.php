@@ -38,18 +38,11 @@ class TemplateDocumentService {
                     foreach ($value as $rowKey => $rowData) {
                         $rowNumber = $rowKey + 1;
                         foreach ($rowData as $macro => $replace) {
-
-                            if (is_string($replace)) {
-                                $replace = htmlspecialchars($replace);
-                            }
                             $this->setTemplateProcessorValue($templateProcessor, $macro . '#' . $rowNumber, $replace, $barcodeVariables);
                         }
                     }
                 }
                 else {
-                    if (is_string($value)) {
-                        $value = htmlspecialchars($value);
-                    }
                     $this->setTemplateProcessorValue($templateProcessor, $name, $value, $barcodeVariables);
                 }
             }
@@ -62,8 +55,6 @@ class TemplateDocumentService {
                                               string             $name,
                                                                  $value,
                                               array              $barcodeVariables): void {
-
-
         if (in_array($name, $barcodeVariables)) {
             $templateDocumentImagePath = $this->generateBarcodeTmpImage($value);
             $templateProcessor->setImageValue($name, $templateDocumentImagePath);
@@ -92,10 +83,13 @@ class TemplateDocumentService {
         }
     }
 
-    public function docxTextMapper($value): string {
-        return $value
-            ? str_replace("\n", "</w:t><w:br/><w:t>", $value)
-            : '';
+    public function docxTextMapper(mixed $value): string {
+        if (is_string($value)) {
+            $value = htmlspecialchars($value);
+            return str_replace("\n", "</w:t><w:br/><w:t>", $value);
+        }
+
+        return $value ?: '';
     }
 
     /**
