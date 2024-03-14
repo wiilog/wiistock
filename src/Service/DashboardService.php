@@ -1060,6 +1060,7 @@ class DashboardService {
             Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH => Dispatch::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT => Collecte::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER => TransferRequest::class,
+            Dashboard\ComponentType::REQUESTS_TO_TREAT_PRODUCTION => ProductionRequest::class,
             Dashboard\ComponentType::REQUESTS_TO_TREAT_SHIPPING => ShippingRequest::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_COLLECT => OrdreCollecte::class,
             Dashboard\ComponentType::ORDERS_TO_TREAT_DELIVERY => Livraison::class,
@@ -1075,6 +1076,7 @@ class DashboardService {
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DELIVERY:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_COLLECT:
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_TRANSFER:
+                case Dashboard\ComponentType::REQUESTS_TO_TREAT_PRODUCTION:
                     $count = QueryBuilderHelper::countByStatusesAndTypes($entityManager, $entityToClass[$config['entity']], $entityTypes, $entityStatuses);
                     break;
                 case Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH:
@@ -1119,7 +1121,10 @@ class DashboardService {
             }
 
             if(preg_match(Dashboard\ComponentType::ENTITY_TO_TREAT_REGEX_TREATMENT_DELAY, $treatmentDelay)) {
-                $lastDate = $repository->getOlderDateToTreat($entityTypes, $entityStatuses);
+                $lastDate = $repository->getOlderDateToTreat($entityTypes, $entityStatuses, [
+                    'dispatchEmergencies' => $config['dispatchEmergencies'] ?? [],
+                    'nonUrgentTranslationLabel' => $this->translationService->translate('Demande', 'Général', 'Non urgent', false),
+                ]);
                 if (isset($lastDate)) {
                     $date = $this->timeService->getIntervalFromDate($daysWorked, $lastDate, $freeWorkDays);
                     $timeInformation = $this->enCoursService->getTimeInformation($date, $treatmentDelay);
