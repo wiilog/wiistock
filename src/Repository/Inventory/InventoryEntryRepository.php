@@ -27,43 +27,6 @@ class InventoryEntryRepository extends EntityRepository
     public function getAnomalies(bool $forceValidLocation = false, array $anomalyIds = []): array {
         $queryBuilder = $this->createQueryBuilder("inventory_entry");
 
-        $subQueryCallback = function(?bool $isArticle = false): string {
-            if($isArticle) {
-                return $this->createQueryBuilder("sub_inventory_entry")
-                    ->select("
-                        IF(
-                            sub_articleStatus.nom IN (:articleStatusAvailable, :articleStatusDispute),
-                            1,
-                            0
-                        )
-                    ")
-                    ->innerJoin("sub_inventory_entry.article", "sub_article")
-                    ->innerJoin("sub_article.statut", "sub_articleStatus")
-                    ->andWhere("sub_inventory_entry.id = inventory_entry.id")
-                    ->groupBy("sub_inventory_entry.id")
-                    ->getQuery()
-                    ->getDQL();
-            } else {
-                return "
-                    MIN(IF((
-                          join_referenceArticleStatus.nom = :referenceStatusAvailable
-                          AND (
-                              join_preparationOrderReferenceLines.id IS NULL
-                              OR (
-                                      join_preparationStatus.nom != :preparationStatusToTreat
-                                  AND join_preparationStatus.nom != :preparationStatusInProgress
-                                  AND
-                                      (
-                                          join_deliveryOrder.id IS NULL
-                                          OR join_deliveryOrderStatus.nom != :deliveryOrderStatusToTreat
-                                      )
-                              )
-                          )
-                    ), 1, 0))
-                ";
-            }
-        };
-
         $queryBuilder
             ->distinct()
             ->select("inventory_entry.id AS id")
@@ -77,8 +40,22 @@ class InventoryEntryRepository extends EntityRepository
             ->addSelect("COALESCE(join_article.barCode, join_referenceArticle.barCode) AS barCode")
             ->addSelect("IF(
                 join_article.id IS NOT NULL,
-                ({$subQueryCallback(true)}),
-                ({$subQueryCallback()})
+                IF(sub_articleStatus.nom IN (:articleStatusAvailable, :articleStatusDispute), 1, 0),
+                MIN(IF((
+                      join_referenceArticleStatus.nom = :referenceStatusAvailable
+                      AND (
+                          join_preparationOrderReferenceLines.id IS NULL
+                          OR (
+                                  join_preparationStatus.nom != :preparationStatusToTreat
+                              AND join_preparationStatus.nom != :preparationStatusInProgress
+                              AND
+                                  (
+                                      join_deliveryOrder.id IS NULL
+                                      OR join_deliveryOrderStatus.nom != :deliveryOrderStatusToTreat
+                                  )
+                          )
+                      )
+                ), 1, 0))
             ) AS isTreatable")
             ->addSelect("join_inventoryMission.id AS mission_id")
             ->addSelect("join_inventoryMission.startPrevDate AS mission_start")
@@ -89,6 +66,7 @@ class InventoryEntryRepository extends EntityRepository
             ->leftJoin("join_referenceArticle.emplacement", "join_referenceArticleLocation")
             ->leftJoin("join_referenceArticle.preparationOrderReferenceLines", "join_preparationOrderReferenceLines")
             ->leftJoin("inventory_entry.article", "join_article")
+            ->leftJoin("join_article.statut", "join_articleStatus")
             ->leftJoin("join_article.articleFournisseur", "join_supplierArticle")
             ->leftJoin("join_supplierArticle.referenceArticle", "join_articleReferenceArticle")
             ->leftJoin("join_article.emplacement", "join_articleLocation")
@@ -106,7 +84,7 @@ class InventoryEntryRepository extends EntityRepository
             ->andWhere("inventory_entry.anomaly = 1");
 
         if ($forceValidLocation) {
-            $queryBuilder->andWhere("COALESCE(join_articleLocation.label, join_referenceArticleLocation.label) IS NOT NULL");
+            $queryBuilder->andWhere("COALESCE(join_articleLocation.id, join_referenceArticleLocation.id) IS NOT NULL");
         }
 
         if (!empty($anomalyIds)) {
