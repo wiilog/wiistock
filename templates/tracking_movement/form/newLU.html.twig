@@ -2,7 +2,11 @@
 
 <div class="form-mass-mvt-container row">
     <div class="form-group col-12 pack-selector">
-        {{ form.input('pack', trans('Traçabilité', 'Général', 'Unité logistique'), true) }}
+        {{ form.input('pack', trans('Traçabilité', 'Général', 'Unité logistique'), true, {
+            additionalAttributes: [{
+                name: 'data-fill-location-type',
+            }]
+        }) }}
     </div>
     <div class="form-group col-12">
         {{ form.select('articles', trans('Traçabilité', 'Mouvements', 'Article(s)'), true, {

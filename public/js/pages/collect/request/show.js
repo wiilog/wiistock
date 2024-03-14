@@ -50,7 +50,7 @@ function ajaxGetCollecteArticle(select, collect) {
     let data = {};
     data['referenceArticle'] = $(select).val();
 
-    let path = Routing.generate('get_collecte_article_by_refArticle', {collect});
+    let path = Routing.generate('collecte_article_by_refArticle', {collect});
     let params = JSON.stringify(data);
     $.post(path, params).then((data) => {
         $selection.html(data.selection);

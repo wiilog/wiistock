@@ -353,15 +353,10 @@ class TrackingMovementController extends AbstractController
     public function editApi(EntityManagerInterface $entityManager,
                             UserService            $userService,
                             TrackingMovement       $trackingMovement): Response {
-        $statutRepository = $entityManager->getRepository(Statut::class);
         $champLibreRepository = $entityManager->getRepository(FreeField::class);
-        $statuses = $statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA);
 
         $html = $this->renderView('tracking_movement/form/edit.html.twig', [
             'mvt' => $trackingMovement,
-            'statuts' => Stream::from($statuses)
-                ->filter(fn(Statut $status) => $status->getCode() !== TrackingMovement::TYPE_PICK_LU)
-                ->toArray(),
             'attachments' => $trackingMovement->getAttachments(),
             'champsLibres' => $champLibreRepository->findByCategoryTypeLabels([CategoryType::MOUVEMENT_TRACA]),
             'editAttachments' => $userService->hasRightFunction(Menu::TRACA, Action::EDIT),
