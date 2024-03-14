@@ -127,6 +127,7 @@ class StatusController extends AbstractController
                 $showAutomaticReceptionCreation = $status->getState() === Statut::TREATED ? "" : "d-none";
                 $displayOnSchedule = $status->isDisplayedOnSchedule() ? "checked" : "";
                 $requiredAttachment = $status->isRequiredAttachment() ? "checked" : "";
+                $preventStatusChangeWithoutDeliveryFees = $status->isPreventStatusChangeWithoutDeliveryFees() ? "checked" : "";
                 $notifiedUsers = !$status->getnotifiedUsers()->isEmpty()
                     ? Stream::from($status->getNotifiedUsers())
                         ->map(static fn(Utilisateur $user) => [
@@ -165,6 +166,7 @@ class StatusController extends AbstractController
                         "items" => $notifiedUsers,
                     ]),
                     "requiredAttachment" => "<div class='checkbox-container'><input type='checkbox' name='requiredAttachment' class='form-control data $requiredAttachment' $requiredAttachment/></div>",
+                    "preventStatusChangeWithoutDeliveryFees" => "<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data $preventStatusChangeWithoutDeliveryFees' $preventStatusChangeWithoutDeliveryFees/></div>",
                     "order" => "<input type='number' name='order' min='1' value='{$status->getDisplayOrder()}' class='form-control data needed px-2 text-center' data-no-arrow/>",
                 ];
             } else {
@@ -191,6 +193,7 @@ class StatusController extends AbstractController
                         ->map(static fn(Utilisateur $user) => $user->getUsername())
                         ->join(", "),
                     "requiredAttachment" => $this->formatService->bool($status->isRequiredAttachment()),
+                    "preventStatusChangeWithoutDeliveryFees" => $this->formatService->bool($status->isPreventStatusChangeWithoutDeliveryFees(), 'Non'),
                     "order" => $status->getDisplayOrder(),
                 ];
             }

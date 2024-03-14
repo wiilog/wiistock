@@ -349,6 +349,7 @@ class TriggerActionController extends AbstractController
 
         $alertTemplateRepository = $entityManager->getRepository(AlertTemplate::class);
         $requestTemplateRepository = $entityManager->getRepository(RequestTemplate::class);
+        $sensorWrapperRepository = $entityManager->getRepository(SensorWrapper::class);
 
         $query = $request->query;
 

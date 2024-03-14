@@ -28,7 +28,7 @@ class RoleService
     public function getPermissions(Utilisateur $user, $bool = false): array {
         $role = $user->getRole();
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        return $this->cacheService->get(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
+        return $this->cacheService->get(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}", function() use ($role, $bool) {
             return Stream::from($role->getActions())
                 ->keymap(function(Action $action) use ($bool) {
                     $key = $this->getPermissionKey($action->getMenu()->getLabel(), $action->getLabel());
@@ -45,8 +45,8 @@ class RoleService
     public function onRoleUpdate(int $roleId): void {
         $menuPrefix = self::MENU_CACHE_PREFIX;
         $permissionsPrefix = self::PERMISSIONS_CACHE_PREFIX;
-        $this->cacheService->delete(CacheService::PERMISSIONS, "{$menuPrefix}.{$roleId}");
-        $this->cacheService->delete(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$roleId}");
+        $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$roleId}");
     }
 
     public function updateRole(EntityManagerInterface $entityManager,

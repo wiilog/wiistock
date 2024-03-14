@@ -20,4 +20,5 @@ return [
     FOS\RestBundle\FOSRestBundle::class => ['all' => true],
     SGK\BarcodeBundle\SGKBarcodeBundle::class => ['all' => true],
     Nbgrp\OneloginSamlBundle\NbgrpOneloginSamlBundle::class => ['all' => true],
+    Cron\CronBundle\CronCronBundle::class => ['all' => true],
 ];

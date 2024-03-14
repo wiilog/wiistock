@@ -2,7 +2,7 @@
 // At every minute
 // * * * * *
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\Inventory\InventoryMissionRule;
 use App\Service\InvMissionService;
@@ -17,11 +17,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:inventory:generate-mission',
+    name: ScheduleInventoryMissionCommand::COMMAND_NAME,
     description: 'This command executes scheduled export.'
 )]
 class ScheduleInventoryMissionCommand extends Command
 {
+    public const COMMAND_NAME = 'app:inventory:generate-mission';
 
     #[Required]
     public EntityManagerInterface $em;

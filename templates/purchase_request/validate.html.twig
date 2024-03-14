@@ -1,3 +1,5 @@
+{% import 'form.html.twig' as form %}
+
 <div class="modal fade" id="modalValidatePurchaseRequest" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -9,16 +11,15 @@
                 {% if statuses is not empty %}
                     <div class="row">
                         <div class="form-group col-12">
-                            <label class="wii-field-name">Statut*</label>
-                            <div class="w-100">
-                                <select name="status"
-                                        class="form-control data needed select2"
-                                        title="Statut">
-                                    {% for status in statuses %}
-                                        <option value="{{ status.id }}">{{ status.nom }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                            {{ form.select('status', 'Statut', true, {
+                                multiple: false,
+                                type: '',
+                                search: false,
+                                items: statuses|map((status) => ({
+                                    label: status.nom,
+                                    value: status.id,
+                                })),
+                            }) }}
                         </div>
                     </div>
                 {% else %}

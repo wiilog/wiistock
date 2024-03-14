@@ -61,8 +61,8 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface, DependentF
 
         $roles = $roleRepository->findAll();
         foreach($roles as $role) {
-            $this->cacheService->delete(CacheService::PERMISSIONS, "{$menuPrefix}.{$role->getId()}");
-            $this->cacheService->delete(CacheService::PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$menuPrefix}.{$role->getId()}");
+            $this->cacheService->delete(CacheService::COLLECTION_PERMISSIONS, "{$permissionsPrefix}.{$role->getId()}");
         }
     }
 

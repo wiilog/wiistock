@@ -148,7 +148,7 @@ class DataExportController extends AbstractController {
                 ->setForced(false);
 
             $dataExportService->updateExport($entityManager, $export, $data);
-            $cacheService->delete(CacheService::EXPORTS);
+            $cacheService->delete(CacheService::COLLECTION_EXPORTS);
 
             $entityManager->persist($export);
             $entityManager->flush();
@@ -179,7 +179,7 @@ class DataExportController extends AbstractController {
         }
 
         $dataExportService->updateExport($entityManager, $export, $data);
-        $cacheService->delete(CacheService::EXPORTS);
+        $cacheService->delete(CacheService::COLLECTION_EXPORTS);
 
         $entityManager->flush();
 
@@ -477,7 +477,7 @@ class DataExportController extends AbstractController {
             $export->setStatus($statusRepository->findOneByCategorieNameAndStatutCode(CategorieStatut::EXPORT, Export::STATUS_CANCELLED));
             $manager->flush();
 
-            $cacheService->delete(CacheService::EXPORTS);
+            $cacheService->delete(CacheService::COLLECTION_EXPORTS);
         }
 
         return $this->json([
@@ -492,7 +492,7 @@ class DataExportController extends AbstractController {
         $export->setNextExecution($scheduleRuleService->calculateNextExecutionDate($export->getExportScheduleRule()));
         $manager->flush();
 
-        $cacheService->delete(CacheService::EXPORTS);
+        $cacheService->delete(CacheService::COLLECTION_EXPORTS);
 
         return $this->json([
             "success" => true,

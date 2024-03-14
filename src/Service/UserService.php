@@ -73,13 +73,12 @@ class UserService
         return $this->security->getUser();
     }
 
-    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null) {
+    public function hasRightFunction(string $menuLabel, string $actionLabel, $user = null): bool {
         $key = $this->roleService->getPermissionKey($menuLabel, $actionLabel);
         return isset($this->roleService->getPermissions($user ?: $this->getUser())[$key]);
     }
 
-    public function getDataForDatatable(InputBag $params)
-    {
+    public function getDataForDatatable(InputBag $params): array {
         $utilisateurRepository = $this->entityManager->getRepository(Utilisateur::class);
         $result = $utilisateurRepository->findByParams($params);
 

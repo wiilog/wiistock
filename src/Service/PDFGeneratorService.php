@@ -67,7 +67,7 @@ class PDFGeneratorService {
      * @throws SyntaxError
      */
     public function generatePDFBarCodes(string $title, array $barcodeConfigs, bool $landscape = false, ?TagTemplate $tagTemplate = null): string {
-        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($this->entityManager);
         $height = $tagTemplate ? $tagTemplate->getHeight() : $barcodeConfig['height'];
         $width = $tagTemplate ? $tagTemplate->getWidth() : $barcodeConfig['width'];
         $isCode128 = $tagTemplate ? $tagTemplate->isBarcode() : $barcodeConfig['isCode128'];
@@ -292,12 +292,12 @@ class PDFGeneratorService {
         ]);
     }
 
-    public function generateFromDocx(string $docx, string $outdir) {
+    public function generateFromDocx(string $docx, string $outdir): void {
         $command = !empty($_SERVER["LIBREOFFICE_EXEC"]) ? $_SERVER["LIBREOFFICE_EXEC"] : 'libreoffice';
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 
-    public function generateDispatchLabel(Dispatch $dispatch, string $title) {
+    public function generateDispatchLabel(Dispatch $dispatch, string $title): string {
         $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];

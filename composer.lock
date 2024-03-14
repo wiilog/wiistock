@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0d43d8f6a6e949797963dca53d81d547",
+    "content-hash": "e6c44487948eb4d36915ed67bb4fe334",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -216,6 +216,111 @@
                 }
             ],
             "time": "2023-08-31T09:50:34+00:00"
+        },
+        {
+            "name": "cron/cron",
+            "version": "1.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Cron/Cron.git",
+                "reference": "78ca6947e26b3941d89a4a01cc08971e900c054e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Cron/Cron/zipball/78ca6947e26b3941d89a4a01cc08971e900c054e",
+                "reference": "78ca6947e26b3941d89a4a01cc08971e900c054e",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0",
+                "symfony/process": "^4.0|^5.0|^6.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Cron\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dries De Peuter",
+                    "email": "dries@nousefreak.be"
+                }
+            ],
+            "description": "Cronjobs",
+            "support": {
+                "issues": "https://github.com/Cron/Cron/issues",
+                "source": "https://github.com/Cron/Cron/tree/1.9.0"
+            },
+            "time": "2023-11-04T17:18:48+00:00"
+        },
+        {
+            "name": "cron/cron-bundle",
+            "version": "2.10.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Cron/Symfony-Bundle.git",
+                "reference": "5363d033d1d94e4d36e65eb9082f2ab47f8432b3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Cron/Symfony-Bundle/zipball/5363d033d1d94e4d36e65eb9082f2ab47f8432b3",
+                "reference": "5363d033d1d94e4d36e65eb9082f2ab47f8432b3",
+                "shasum": ""
+            },
+            "require": {
+                "cron/cron": "^1.0.1",
+                "doctrine/doctrine-bundle": "~1.4|~2.0",
+                "doctrine/orm": "~2.4,>=2.4.5",
+                "php": ">=7.2",
+                "symfony/framework-bundle": "^3.4|^4.4|^5.0|^6.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.0",
+                "symfony/symfony": "^3.0|^4.0|^5.0"
+            },
+            "type": "symfony-bundle",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Cron\\CronBundle\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dries De Peuter",
+                    "email": "dries@nousefreak.be"
+                }
+            ],
+            "description": "Symfony cron",
+            "support": {
+                "issues": "https://github.com/Cron/Symfony-Bundle/issues",
+                "source": "https://github.com/Cron/Symfony-Bundle/tree/2.10.5"
+            },
+            "time": "2023-11-04T19:26:00+00:00"
         },
         {
             "name": "doctrine/annotations",
@@ -12364,9 +12469,9 @@
         "php": "^8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-intl": "*",
         "ext-json": "*",
-        "ext-mysqli": "*",
-        "ext-intl": "*"
+        "ext-mysqli": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"

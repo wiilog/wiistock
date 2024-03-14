@@ -337,7 +337,7 @@ class UserController extends AbstractController {
 
             $entityManager->persist($user);
             $entityManager->flush();
-            $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
+            $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
 
             $dataResponse = ['success' => true];
 
@@ -620,7 +620,7 @@ class UserController extends AbstractController {
             ->setLanguage($newLanguage);
 
         $manager->flush();
-        $cacheService->delete(CacheService::LANGUAGES, 'languagesSelector'.$user->getId());
+        $cacheService->delete(CacheService::COLLECTION_LANGUAGES, 'languagesSelector'.$user->getId());
 
         return $this->json([
             "success" => true,

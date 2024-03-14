@@ -103,6 +103,7 @@ class PurchaseRequestRepository extends EntityRepository
                         ->andWhere('(' .
                             $exprBuilder->orX(
                                 'purchase_request.number LIKE :value',
+                                'purchase_request.deliveryFee LIKE :value',
                                 'search_requester.username LIKE :value',
                                 'search_status.nom LIKE :value',
                                 'search_buyer.username LIKE :value',
@@ -194,6 +195,7 @@ class PurchaseRequestRepository extends EntityRepository
             ->addSelect('request.considerationDate AS considerationDate')
             ->addSelect('request.processingDate AS processingDate')
             ->addSelect('request.comment AS comment')
+            ->addSelect('request.deliveryFee AS deliveryFee')
 
             ->leftJoin('request.status', 'join_status')
             ->leftJoin('request.requester', 'join_requester')

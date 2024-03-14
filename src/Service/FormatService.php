@@ -250,7 +250,11 @@ class FormatService
         }
 
         foreach($expectedFormats as $format) {
-            if($out = DateTime::createFromFormat($format, $date)) {
+            $out = DateTime::createFromFormat($format, $date);
+            if($out) {
+                if (!str_contains('H:i', $format)) {
+                    $out->setTime(0, 0);
+                }
                 return $out;
             }
         }

@@ -11,6 +11,7 @@ use App\Entity\Utilisateur;
 use App\Service\FixedFieldService;
 use App\Service\FormatService;
 use App\Service\LanguageService;
+use App\Service\SettingsService;
 use App\Service\SpecificService;
 use App\Service\TranslationService;
 use App\Service\OperationHistoryService;
@@ -57,6 +58,9 @@ class AppExtension extends AbstractExtension {
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public SettingsService $settingsService;
+
     private array $settingsCache = [];
 
     public function getFunctions(): array {
@@ -78,6 +82,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('diff', "array_diff"),
             new TwigFunction('getLanguage', [$this, "getLanguage"]),
             new TwigFunction('getDefaultLanguage', [$this, "getDefaultLanguage"]),
+            new TwigFunction('getSettingTimestamp', [$this, "getSettingTimestamp"]),
             new TwigFunction('trans', [$this, "translate"], [
                 "is_safe" => ["html"]
             ]),
@@ -310,5 +315,9 @@ class AppExtension extends AbstractExtension {
                     : null);
         }
         return null;
+    }
+
+    public function getSettingTimestamp(): string {
+        return $this->settingsService->getTimestamp();
     }
 }

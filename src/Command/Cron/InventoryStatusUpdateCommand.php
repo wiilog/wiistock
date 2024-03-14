@@ -2,7 +2,7 @@
 // At 22:00 on Sunday
 // 0 22 * * 0
 
-namespace App\Command;
+namespace App\Command\Cron;
 
 use App\Entity\ReferenceArticle;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,11 +13,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:update:inventory-status',
+    name: InventoryStatusUpdateCommand::COMMAND_NAME,
     description: 'This commands updates the inventory dates on the refs',
 )]
 class InventoryStatusUpdateCommand extends Command
 {
+
+    public const COMMAND_NAME = "app:update:inventory-status";
 
     #[Required]
     public EntityManagerInterface $entityManager;

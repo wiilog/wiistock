@@ -16,11 +16,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
 #[AsCommand(
-    name: 'app:launch:scheduled-purchase-request',
+    name: ScheduledPurchaseRequestCommand::COMMAND_NAME,
     description: 'This command executes scheduled purchase resquests.'
 )]
 class ScheduledPurchaseRequestCommand extends Command
 {
+
+    public const COMMAND_NAME = "app:launch:scheduled-purchase-request";
 
     #[Required]
     public EntityManagerInterface $em;

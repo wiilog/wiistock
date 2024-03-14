@@ -42,6 +42,23 @@
                 </div>
             {% endif %}
         </div>
+
+        {{  form.hidden('selectedTemplateType',
+            triggerAction.alert
+                ? constant('App\\Entity\\IOT\\TriggerAction::ALERT')
+                : triggerAction.request
+                    ? constant('App\\Entity\\IOT\\TriggerAction::REQUEST')
+                    : constant('App\\Entity\\IOT\\TriggerAction::DROP_ON_LOCATION') in triggerAction.config|keys
+                        ? constant('App\\Entity\\IOT\\TriggerAction::DROP_ON_LOCATION')
+                        : null
+        ) }}
+        {{  form.hidden('selectedTemplate',
+            triggerAction.alert
+                ? triggerAction.alertTemplate.id
+                : triggerAction.request
+                    ? triggerAction.requestTemplate.id
+                    : null
+        ) }}
         {% if not isActionTypeZone %}
             <div class="form-group col-12 col-md-6">
                 <label class="wii-field-name">Type de modèle*</label>

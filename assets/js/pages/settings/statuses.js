@@ -190,6 +190,11 @@ function getStatusesColumn(mode, hasRightGroupedSignature) {
             modes: [MODE_DISPATCH]
         },
         {
+            data: `preventStatusChangeWithoutDeliveryFees`,
+            title: `<div class='small-column' style="max-width: 160px !important;">Blocage du changement de statut si frais de livraison non rempli</div>`,
+            modes: [MODE_PURCHASE_REQUEST]
+        },
+        {
             data: `automaticReceptionCreation`,
             title: `<div class='small-column' style="max-width: 160px !important;">Création automatique d'une réception</div>`,
             modes: [MODE_PURCHASE_REQUEST]
@@ -270,6 +275,7 @@ function getFormColumn(mode, statusStateOptions, categoryType, groupedSignatureT
         groupedSignatureType:  hasRightGroupedSignature ? `<select name='groupedSignatureType' class='data form-control select-size'>${groupedSignatureTypes}</select>` : null,
         groupedSignatureColor: hasRightGroupedSignature ? getInputColor('groupedSignatureColor') : null,
         color: getInputColor('color'),
+        preventStatusChangeWithoutDeliveryFees: `<div class='checkbox-container'><input type='checkbox' name='preventStatusChangeWithoutDeliveryFees' class='form-control data'/></div>`,
         automaticReceptionCreation: `<div class='checkbox-container'><input type='checkbox' name='automaticReceptionCreation' class='form-control data'/></div>`,
         displayedOnSchedule: `<div class='checkbox-container'><input type='checkbox' name='displayedOnSchedule' class='form-control data'/></div>`,
         notifiedUsers: `<select name='notifiedUsers' class='form-control data' multiple data-s2='user'></select>`,

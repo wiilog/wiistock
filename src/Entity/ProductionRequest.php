@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\OperationHistory\ProductionHistoryRecord;
 use App\Entity\Traits\AttachmentTrait;
@@ -343,5 +344,20 @@ class ProductionRequest extends StatusHistoryContainer
         }
 
         return $this;
+    }
+
+    public function serialize(): array {
+        return [
+            FixedFieldEnum::status->name => $this->getStatus(),
+            FixedFieldEnum::comment->name => $this->getComment(),
+            FixedFieldEnum::dropLocation->name => $this->getDropLocation(),
+            FixedFieldEnum::manufacturingOrderNumber->name => $this->getManufacturingOrderNumber(),
+            FixedFieldEnum::emergency->name => $this->getEmergency(),
+            FixedFieldEnum::expectedAt->name => $this->getExpectedAt(),
+            FixedFieldEnum::projectNumber->name => $this->getProjectNumber(),
+            FixedFieldEnum::productArticleCode->name => $this->getProductArticleCode(),
+            FixedFieldEnum::quantity->name => $this->getQuantity(),
+            FixedFieldEnum::lineCount->name => $this->getLineCount(),
+        ];
     }
 }
