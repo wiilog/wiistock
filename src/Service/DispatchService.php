@@ -1423,7 +1423,7 @@ class DispatchService {
         $title = "LDV - {$dispatch->getNumber()} - {$client} - {$nowDate->format('dmYHis')}";
 
         if (!file_exists("{$waybillOutdir}/{$nakedFileName}.pdf")) {
-            throw new FormException("Une erreur est survenue lors de la génération du bon de livraison");
+            throw new FormException("Une erreur est survenue lors de la génération de la lettre de voiture");
         }
 
         $wayBillAttachment = new Attachment();
