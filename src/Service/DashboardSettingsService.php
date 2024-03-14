@@ -1128,7 +1128,7 @@ class DashboardSettingsService {
         $values['emergency'] = !empty($config['dispatchEmergencies'])
             && (count($config['dispatchEmergencies']) > 1
             || (count($config['dispatchEmergencies']) === 1
-                    && $config['dispatchEmergencies'][0] !== $this->translationService->translate('Demande', 'Général', 'Non urgent', false)));
+                    && $config['dispatchEmergencies'][array_key_first($config['dispatchEmergencies'])] !== $this->translationService->translate('Demande', 'Général', 'Non urgent', false)));
 
         if (empty($config['treatmentDelay']) && isset($values['delay'])) {
             unset($values['delay']);
@@ -1340,14 +1340,28 @@ class DashboardSettingsService {
                 $dropLocations = $config['dropLocations'] ?? [];
                 $dispatchEmergencies = $config['dispatchEmergencies'] ?? [];
                 $redirect = isset($config['redirect']) && $config['redirect'];
-                $link = $redirect ? $this->router->generate('dispatch_index', [
-                    'statuses' => $statuses,
-                    'types' => $types,
-                    'pickLocations' => $pickLocations,
-                    'dropLocations' => $dropLocations,
-                    'dispatchEmergencies' => $dispatchEmergencies,
-                    'fromDashboard' => true,
-                ]) : null;
+                if($redirect){
+                    $link = match($config['entity']) {
+                        Dashboard\ComponentType::REQUESTS_TO_TREAT_DISPATCH => $this->router->generate('dispatch_index',
+                            [
+                                'statuses' => $statuses,
+                                'types' => $types,
+                                'pickLocations' => $pickLocations,
+                                'dropLocations' => $dropLocations,
+                                'dispatchEmergencies' => $dispatchEmergencies,
+                                'fromDashboard' => true,
+                            ]),
+                        Dashboard\ComponentType::REQUESTS_TO_TREAT_PRODUCTION => $this->router->generate('production_request_index',
+                            [
+                                'statuses' => $statuses,
+                                'types' => $types,
+                                'fromDashboard' => true,
+                            ]),
+                        default => null,
+                    };
+                } else {
+                    $link = null;
+                }
                 break;
             default:
                 $link = null;

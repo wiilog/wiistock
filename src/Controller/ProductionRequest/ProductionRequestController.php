@@ -69,6 +69,7 @@ class ProductionRequestController extends AbstractController
         $query = $request->query;
         $typesFilter = $query->has('types') ? $query->all('types', '') : [];
         $statusesFilter = $query->has('statuses') ? $query->all('statuses', '') : [];
+        $fromDashboard = $query->has('fromDashboard') ? $query->get('fromDashboard') : '' ;
 
         // case type filter selected
         if (!empty($typesFilter)) {
@@ -109,6 +110,7 @@ class ProductionRequestController extends AbstractController
                 }, []),
             "typesFilter" => $typesFilter,
             "statusFilter" => $statusesFilter,
+            "fromDashboard" => $fromDashboard,
             "statuses" => $statutRepository->findByCategorieName(CategorieStatut::PRODUCTION, 'displayOrder'),
             "attachmentAssigned" => $attachmentAssigned,
             "typeFreeFields" => Stream::from($types)
