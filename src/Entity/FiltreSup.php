@@ -117,7 +117,7 @@ class FiltreSup {
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 32)]
+    #[ORM\Column(type: 'string', length: 64)]
     private ?string $field = null;
 
     #[ORM\Column(type: 'text')]

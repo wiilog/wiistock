@@ -191,6 +191,7 @@ class DataExportService
             $this->translation->translate('Demande', 'Acheminements', 'Champs fixes', 'N° commande', false),
             $this->translation->translate('Général', null, 'Zone liste', 'Date de création', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),
+            $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false),
             $this->translation->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),
             $this->translation->translate('Demande', 'Général', 'Type', false),
             $this->translation->translate('Demande', 'Général', 'Demandeur', false),
