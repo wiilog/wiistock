@@ -38,8 +38,10 @@ class ProductionRequestRepository extends EntityRepository
             ->groupBy('production_request.id');
 
         $total = QueryBuilderHelper::count($qb, 'production_request');
-        $dateChoice = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')["value"] ?? '';
 
+        $dateChoiceConfig = Stream::from($filters)->find(static fn($filter) => $filter['field'] === 'date-choice')
+            ?? Stream::from(FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class])->find(static fn($config) => $config['default'] ?? false);
+        $dateChoice = $dateChoiceConfig["value"] ?? '';
         // filtres sup
         foreach ($filters as $filter) {
             switch ($filter['field']) {

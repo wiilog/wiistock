@@ -4,7 +4,9 @@
 {% block filters %}
 
     {% if dateChoices is defined %}
-        {% include 'filters/filter_item/filterDateWithChoice.html.twig' %}
+        {% include 'filters/filter_item/filterDateWithChoice.html.twig' with {
+            dateChoices,
+        } %}
     {% else %}
         {% include 'filters/filter_item/filterDate.html.twig' %}
     {% endif %}

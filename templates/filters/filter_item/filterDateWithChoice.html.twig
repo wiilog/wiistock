@@ -38,14 +38,14 @@
                     {% for dateChoice in dateChoices %}
                         {% set checked = dateChoice.default ?? false %}
                         <div class="dropdown-item wii-radio pl-3">
-                            <input data-id="{{ dateChoice.name }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.name }}"
-                                   data-override-name="date-choice_{{ dateChoice.name }}" value="1"
+                            <input data-id="{{ dateChoice.value }}" class="filter-checkbox" type="radio" id="date-choice_{{ dateChoice.value }}"
+                                   data-override-name="date-choice_{{ dateChoice.value }}" value="1"
                                    name="filter-date-choice"
-                                   {{ selectedDate is defined and selectedDate and dateChoice.name == 'expectedDate' ? 'checked' }}
+                                   {{ selectedDate is defined and selectedDate and dateChoice.value == 'expectedDate' ? 'checked' }}
                                    {% if checked %}
                                         checked
                                    {% endif %}">
-                            <label for="date-choice_{{ dateChoice.name }}" class="ml-1" style="color: #000 !important;">{{ dateChoice.label|raw }}</label>
+                            <label for="date-choice_{{ dateChoice.value }}" class="ml-1" style="color: #000 !important;">{{ dateChoice.label|raw }}</label>
                         </div>
                     {% endfor %}
                 </div>
