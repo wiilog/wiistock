@@ -44,7 +44,9 @@ class StatusHistoryService {
         $record->setDate($date);
         if ($setStatus) {
             $historyContainer->setStatus($status);
-            if ($status->isPartial() && $historyContainer->getLastPartialStatusDate() < $date) {
+            $currentLastPartialStatusDate = null;
+            if ($status->isPartial()
+                && (!$currentLastPartialStatusDate || $historyContainer->getLastPartialStatusDate() < $date)) {
                 $historyContainer->setLastPartialStatusDate($date);
             }
         }
