@@ -3,6 +3,7 @@ import AJAX, {GET, POST} from '@app/ajax';
 import Flash from '@app/ajax';
 import Modal from '@app/modal';
 import moment from 'moment';
+import Form from '@app/form';
 
 let tableMvt;
 
@@ -25,13 +26,9 @@ $(function () {
     initTrackingMovementTable($(`#tableMvts`).data(`initial-visible`));
 
     if (!$(`#filterArticle`).exists()) {
-        const filters = JSON.parse($(`[name=trackingMovementFilters]`).val())
+        const filters = JSON.parse($(`[name="trackingMovementFilters"]`).val())
         displayFiltersSup(filters, true);
     }
-
-    Select2Old.user(Translation.of('Traçabilité', 'Mouvements', 'Opérateurs', false));
-    Select2Old.location($('.ajax-autocomplete-emplacements'), {}, Translation.of('Traçabilité', 'Général', 'Emplacement', false), 3);
-
     initNewModal($modalNewMvtTraca);
 
     $(document).on(`keypress`, `[data-fill-location]`, function (event) {
@@ -53,6 +50,9 @@ $(function () {
     $(document).on(`focusout`, `[data-fill-quantity]`, function () {
         loadLUQuantity($(this));
     });
+
+
+    initSearchDate(tableMvt)
 });
 
 function loadLUQuantity($selector) {
@@ -129,29 +129,10 @@ function initTrackingMovementTable(columns) {
     };
 
     tableMvt = initDataTable('tableMvts', trackingMovementTableConfig);
-    initPageModal(tableMvt);
+    initPageModals(tableMvt);
 }
 
-
-$.fn.dataTable.ext.search.push(
-    function (settings, data) {
-        let dateMin = $('#dateMin').val();
-        let dateMax = $('#dateMax').val();
-        let indexDate = tableMvt.column('date:name').index();
-
-        if (typeof indexDate === "undefined") return true;
-
-        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-        return ((dateMin === "" && dateMax === "")
-            || (dateMin === "" && moment(dateInit).isSameOrBefore(dateMax))
-            || (moment(dateInit).isSameOrAfter(dateMin) && dateMax === "")
-            || (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax)));
-    }
-);
-
-
-function initPageModal(tableMvt) {
+function initPageModals(tableMvt) {
     let $modalEditMvtTraca = $("#modalEditMvtTraca");
     Form
         .create($modalEditMvtTraca)
@@ -192,17 +173,17 @@ function initPageModal(tableMvt) {
     });
 
     const $modalNewMvtTraca = $("#modalNewMvtTraca");
-    const newTrackingMovementForm = Form
+    Form
         .create($modalNewMvtTraca)
         .onOpen(function () {
-            fillDatePickers('[name="datetime"]', 'YYYY-MM-DD', true);
+            fillDatePickers($modal.find('[name="datetime"]') , 'YYYY-MM-DD', true);
         })
-        .onSubmit(function () {
+        .onSubmit(function (data, form) {
             const pack = $modalNewMvtTraca.find(`[name="pack"]`).val();
             const type = $modalNewMvtTraca.find(`[name="type"] option:selected`).text().trim();
 
             if (type !== `prise` || !pack) {
-                submitNewTrackingMovementForm(newTrackingMovementForm);
+                submitNewTrackingMovementForm(data, form);
             } else {
                 AJAX.route(GET, `article_is_in_lu`, {barcode: pack})
                     .json()
@@ -215,23 +196,23 @@ function initPageModal(tableMvt) {
                                     color: 'success',
                                     label: 'Continuer',
                                     click: () => {
-                                        submitNewTrackingMovementForm(newTrackingMovementForm)
+                                        submitNewTrackingMovementForm(data, form)
                                     },
                                 },
                             });
                         } else {
-                            submitNewTrackingMovementForm(newTrackingMovementForm)
+                            submitNewTrackingMovementForm(data, form)
                         }
                     })
             }
         })
 }
 
-function submitNewTrackingMovementForm(newTrackingMovementForm) {
-    newTrackingMovementForm.loading(
+function submitNewTrackingMovementForm(data, form) {
+    form.loading(
         () => AJAX
             .route(POST, 'mvt_traca_new', {})
-            .json(newTrackingMovementForm.process())
+            .json(data)
             .then(({success, group, trackingMovementsCounter}) => {
                 if (success) {
                     [tableMvt].forEach((table) => {
@@ -294,10 +275,10 @@ function switchMvtCreationType($input) {
                     $modal.find('.more-body-new-mvt-traca').removeClass('d-none');
                     Select2Old.location($modal.find('.ajax-autocomplete-location'));
 
-                    const $emptyRound = $modal.find('input[name=empty-round]');
+                    const $emptyRound = $modal.find('input[name="empty-round"]');
                     if ($input.find(':selected').text().trim() === $emptyRound.val()) {
-                        const $packInput = $modal.find('select[name=pack]');
-                        $modal.find('input[name=quantity]').closest('div.form-group').addClass('d-none');
+                        const $packInput = $modal.find('select[name="pack"]');
+                        $modal.find('input[name="quantity"]').closest('div.form-group').addClass('d-none');
                         $packInput.val('passageavide');
                         $packInput.prop('disabled', true);
                     }
@@ -386,7 +367,7 @@ function toggleDateInput($checkbox) {
     $checkbox
         .siblings(`label`)
         .closest(`.form-group`)
-        .find(`[name=datetime]`)
+        .find(`[name="datetime"]`)
         .toggleClass(`d-none`, isChecked)
         .toggleClass(`needed`, !isChecked);
 }
