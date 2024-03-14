@@ -87,28 +87,7 @@ class ProductionRequestController extends AbstractController
         $types = $typeRepository->findByCategoryLabels([CategoryType::PRODUCTION]);
         $attachmentAssigned = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("attachmentsAssigned", 'production', $currentUser);
 
-        $dateChoices =
-            [
-                [
-                    'name' => 'createdAt',
-                    'label' => 'Date de création',
-                ],
-                [
-                    'name' => 'expectedAt',
-                    'label' => 'Date attendue',
-                ],
-            ];
-
-        foreach ($dateChoices as &$choice) {
-            $choice['default'] = (bool)$filterSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'production', $currentUser);
-        }
-
-        $dateChoicesHasDefault = Stream::from($dateChoices)
-            ->some(static fn($choice) => ($choice['default'] ?? false));
-
-        if ($dateChoicesHasDefault) {
-            $dateChoices[0]['default'] = true;
-        }
+        $dateChoices = FiltreSup::DATE_CHOICE_VALUES[ProductionRequest::class];
 
         return $this->render('production_request/index.html.twig', [
             "productionRequest" => new ProductionRequest(),

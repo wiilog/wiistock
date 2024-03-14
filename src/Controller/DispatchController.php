@@ -123,38 +123,7 @@ class DispatchController extends AbstractController {
 
         $dispatchCategoryType = $categoryTypeRepository->findOneBy(['label' => CategoryType::DEMANDE_DISPATCH]);
 
-        $dateChoices = [
-            [
-                'name' => 'creationDate',
-                'label' => 'Date de création',
-            ],
-            [
-                'name' => 'validationDate',
-                'label' => 'Date de validation',
-            ],
-            [
-                'name' => 'treatmentDate',
-                'label' => 'Date de traitement',
-            ],
-            [
-                'name' => 'endDate',
-                'label' => 'Date d\'échéances',
-            ],
-            [
-                'name' => 'lastPartialStatusDate',
-                'label' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false),
-            ],
-        ];
-
-        foreach ($dateChoices as &$choice) {
-            $choice['default'] = (bool)$filtreSupRepository->findOnebyFieldAndPageAndUser("date-choice_{$choice['name']}", 'dispatch', $currentUser);
-        }
-        $dateChoicesHasDefault = Stream::from($dateChoices)
-            ->some(static fn($choice) => ($choice['default'] ?? false));
-
-        if ($dateChoicesHasDefault) {
-            $dateChoices[0]['default'] = true;
-        }
+        $dateChoices = FiltreSup::DATE_CHOICE_VALUES[Dispatch::class];
 
         $dispatchEmergenciesForFilter = $fixedFieldByTypeRepository->getElements(FixedFieldStandard::ENTITY_CODE_DISPATCH, FixedFieldStandard::FIELD_CODE_EMERGENCY);
 
