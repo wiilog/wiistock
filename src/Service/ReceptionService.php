@@ -12,6 +12,8 @@ use App\Entity\Emplacement;
 use App\Entity\Fields\FixedFieldStandard;
 use App\Entity\FiltreSup;
 use App\Entity\Fournisseur;
+use App\Entity\PurchaseRequest;
+use App\Entity\PurchaseRequestLine;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\Setting;
@@ -285,6 +287,10 @@ class ReceptionService
 
     public function dataRowReception(Reception $reception)
     {
+        $purchaseRequest = Stream::from($reception->getPurchaseRequestLines())
+            ->map(static fn(PurchaseRequestLine $line) => $line->getPurchaseRequest())
+            ->filter(static fn(PurchaseRequest $request) => $request)
+            ->first();
         return [
             "id" => ($reception->getId()),
             "Statut" => $this->formatService->status($reception->getStatut()),
@@ -310,6 +316,7 @@ class ReceptionService
             "deliveries" => $this->templating->render('reception/delivery_types.html.twig', [
                 'deliveries' => $reception->getDemandes()
             ]),
+            "deliveryFee" => $purchaseRequest?->getDeliveryFee(),
             'Actions' => $this->templating->render(
                 'reception/datatableReceptionRow.html.twig',
                 ['reception' => $reception]
@@ -333,6 +340,7 @@ class ReceptionService
             ["title" => "Emplacement de stockage", "name" => "storageLocation", 'searchable' => true],
             ["title" => "Commentaire", "name" => "Commentaire", 'searchable' => true],
             ["title" => "Type(s) de " . mb_strtolower($this->translation->translate("Demande", "Livraison", "Demande de livraison", false)) . " liée(s)", "name" => "deliveries", 'searchable' => false, 'orderable' => false],
+            ["title" => "Frais de livraison", "name" => "deliveryFee", 'searchable' => false, 'orderable' => true],
             ["title" => "Urgence", "name" => "emergency", 'searchable' => false, 'orderable' => false, 'alwaysVisible' => true, 'class' => 'noVis', 'visible' => false],
         ];
 

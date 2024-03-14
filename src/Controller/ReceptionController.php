@@ -1586,9 +1586,7 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_receptions_csv", options: ["expose" => true], methods: "GET")]
     public function getReceptionCSV(EntityManagerInterface $entityManager,
                                     TranslationService $translation,
                                     CSVExportService $CSVExportService,
@@ -1623,6 +1621,7 @@ class ReceptionController extends AbstractController {
                 'emplacement de stockage',
                 'réception urgente',
                 'référence urgente',
+                'Frais de livraison',
                 'destinataire',
                 'référence',
                 'libellé',
@@ -1707,6 +1706,7 @@ class ReceptionController extends AbstractController {
             $reception['storageLocation'] ?: '',
             $this->formatService->bool($reception['receptionEmergency']),
             $this->formatService->bool($reception['referenceEmergency']),
+            $reception['deliveryFee'] ?: '',
         ];
     }
 
