@@ -152,7 +152,7 @@ class Dispatch extends StatusHistoryContainer {
     private ?DateTime $treatmentDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $updatedAt = null;
+    private ?DateTime $updatedAt = null;
 
     /**
      * @var array|null
