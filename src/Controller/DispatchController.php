@@ -1150,10 +1150,7 @@ class DispatchController extends AbstractController {
                     $settingRepository = $entityManager->getRepository(Setting::class);
 
                     if($dispatch->getType()->isNotReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
-                        return new JsonResponse([
-                            'success' => false,
-                            'msg' => "Ce statut a déjà été utilisé pour cette demande."
-                        ]);
+                        throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
                     if($dispatch->getType() &&
@@ -1237,10 +1234,7 @@ class DispatchController extends AbstractController {
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
                 if($dispatch->getType()->isNotReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $treatedStatus)){
-                    return new JsonResponse([
-                        'success' => false,
-                        'msg' => "Ce statut a déjà été utilisé pour cette demande."
-                    ]);
+                    throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                 }
 
                 /** @var Utilisateur $loggedUser */
