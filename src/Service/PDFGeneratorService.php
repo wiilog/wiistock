@@ -220,17 +220,18 @@ class PDFGeneratorService {
      */
     public function getBarcodeFileName(array $barcodeConfigs, string $name, string $prefix = PDFGeneratorService::PREFIX_BARCODE_FILENAME): string {
         $barcodeCounter = count($barcodeConfigs);
-        // remove / and \ in filename
         $smartBarcodeLabel = $barcodeCounter === 1
-            ? str_replace(['/', '\\'], '', $barcodeConfigs[0]['code'] ?: '')
+            ? $barcodeConfigs[0]['code'] ?: ''
             : '';
 
-        return (
-            $prefix . '_' .
+        $fileName = ($prefix . '_' .
             $name .
             (($barcodeCounter === 1 && !empty($smartBarcodeLabel)) ? ('_' . $smartBarcodeLabel) : '') .
             '.pdf'
         );
+
+        // remove / and \ in filename
+        return str_replace(['/', '\\'], '', $fileName);
     }
 
     public function generatePDFTransport(TransportRequest $transportRequest): string {

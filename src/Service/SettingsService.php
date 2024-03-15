@@ -622,6 +622,10 @@ class SettingsService {
                     ? $tagTemplateRepository->find($tagTemplateData['tagTemplateId'])
                     : new TagTemplate();
 
+                if (str_contains($tagTemplateData['prefix'], '/') || str_contains($tagTemplateData['prefix'], '\\')) {
+                    throw new FormException("Le préfixe ne doit pas contenir les caractères / ou \\.");
+                }
+
                 $tagTemplate->setPrefix($tagTemplateData['prefix']);
                 $tagTemplate->setBarcodeOrQr($tagTemplateData['barcodeType']);
                 $tagTemplate->setHeight($tagTemplateData['height']);
