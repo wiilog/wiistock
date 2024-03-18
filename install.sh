@@ -1,14 +1,6 @@
 #!/bin/sh
 
-throw_errors() {
-    set -e
-}
-
-ignore_errors() {
-    set +e
-}
-
-throw_errors
+set -e
 
 execute_query() {
     mysql "$2" -h "$DATABASE_HOST" -P "$DATABASE_PORT" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -sse "$1"
@@ -20,6 +12,7 @@ prepare_project() {
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/vendor.zip || true
     if [ -f vendor.zip ]; then
         unzip -q vendor.zip
+        rm vendor.zip
     fi
 
     composer install \
@@ -31,16 +24,15 @@ prepare_project() {
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/node_modules.zip || true
     if [ -f node_modules.zip ]; then
         unzip -q node_modules.zip
+        rm node_modules.zip
     else
         yarn install
     fi
 
-    php bin/console app:initialize || true
+    php bin/console app:initialize
 }
 
 install_symfony() {
-    ignore_errors
-
     TABLE_COUNT=$(execute_query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DATABASE_NAME';")
     last_command_status=$?
     if [ $last_command_status -ne 0 ]; then
@@ -89,8 +81,6 @@ install_symfony() {
 
     php bin/console cache:clear
     php bin/console cache:warmup
-
-    throw_errors
 }
 
 install_yarn() {
