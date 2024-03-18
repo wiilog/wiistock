@@ -1471,12 +1471,16 @@ class ReceptionController extends AbstractController {
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
                                 ->filter(static function(Article $article) use ($entityManager, $forceTagEmpty, $tag) {
-                                    $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
-                                    $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                                    $articleTagTemplates = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                                    $articleTypeHasTag = Stream::from($articleTagTemplates)
                                         ->some(static function (TagTemplate $tag) use ($article) {
                                             return $tag->getTypes()->contains($article->getType());
                                         });
-                                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                                    return (
+                                        ($forceTagEmpty && !$articleTypeHasTag)
+                                        || ($tag && in_array($article->getType(), $tag->getTypes()->toArray()))
+                                        || $articleTypeHasTag
+                                    );
                                 })
                                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
