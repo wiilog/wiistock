@@ -17,7 +17,8 @@ SELECT purchase_request.id                      AS id,
        reception.number                         AS numero_reception,
        fournisseur.nom                          AS fournisseur,
        reception.date_commande                  AS date_commande,
-       reception.date_attendue                  AS date_attendue
+       reception.date_attendue                  AS date_attendue,
+       purchase_request.delivery_fee            AS delivery_fee
 
 FROM purchase_request
 
