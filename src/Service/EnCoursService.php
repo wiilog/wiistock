@@ -200,7 +200,6 @@ class EnCoursService
 
         $maxQueryResultLength = 200;
         $limitOnlyLate = 100;
-        $dropOnLuStatus = $this->entityManager->getRepository(Statut::class)->findOneByCategorieNameAndStatutCode(CategorieStatut::MVT_TRACA, TrackingMovement::TYPE_DROP_LU);
         $oldestDrops[] = $packRepository->getCurrentPackOnLocations(
             $locations,
             [
@@ -209,7 +208,6 @@ class EnCoursService
                 'field' => Stream::from($fields)->join(","),
                 "onlyLate" => $onlyLate,
                 'fromOnGoing' => $fromOnGoing,
-                "dropOnLuStatus" => $dropOnLuStatus,
                 ...($onlyLate
                     ? [
                         'limit' => $maxQueryResultLength,
@@ -227,7 +225,6 @@ class EnCoursService
             $truckArrivalDelay = $useTruckArrivals ? intval($oldestDrop["truckArrivalDelay"]) : 0;
             $timeInformation = $this->getTimeInformation($movementAge, $dateMaxTime, $truckArrivalDelay);
             $isLate = $timeInformation['countDownLateTimespan'] < 0;
-            [$reference, $label] = isset($oldestDrop['reference_label']) ? explode(':', $oldestDrop['reference_label']) : [null, null];
 
             if(!$onlyLate || ($isLate && count($emplacementInfo) < $limitOnlyLate)){
                 $emplacementInfo[] = [
@@ -236,8 +233,8 @@ class EnCoursService
                     'date' => $dateMvt->format(($user && $user->getDateFormat() ? $user->getDateFormat() : 'd/m/Y') . ' H:i:s'),
                     'late' => $isLate,
                     'emp' => $oldestDrop['label'],
-                    'libelle' => $label,
-                    'reference' => $reference,
+                    'libelle' => $oldestDrop['reference_label'],
+                    'reference' => $oldestDrop['reference_reference'],
                     'linkedArrival' => $this->templating->render('en_cours/datatableOnGoingRow.html.twig', [
                         'arrivalId' => $oldestDrop['arrivalId'],
                     ]),
