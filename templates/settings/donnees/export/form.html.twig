@@ -86,11 +86,12 @@
             </div>
             <div class="column-to-export d-none">
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
-                    items: arrivalFields,
+                    items: [],
                     multiple: true,
-                    value: export.columnToExport,
                 }) }}
             </div>
+            {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
+            {{ form.hidden("choosenColumnsToExport", export.columnToExport|json_encode) }}
         </div>
 
         <div class="article-fields d-none row">
@@ -237,11 +238,12 @@
         </div>
         <div class="column-to-export d-none">
             {{ form.select('columnToExport', 'Colonnes à exporter', false, {
-                items: arrivalFields,
+                items: [],
                 multiple: true,
-                value: export.columnToExport
             }) }}
         </div>
+        {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
+        {{ form.hidden("choosenColumnsToExport", export.columnToExport|json_encode) }}
         <div>
             <div>
                 {% include 'planner/planner.html.twig' with {

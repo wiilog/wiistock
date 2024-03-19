@@ -32,6 +32,7 @@ use App\Service\ArticleDataService;
 use App\Service\CacheService;
 use App\Service\CSVExportService;
 use App\Service\DataExportService;
+use App\Service\DispatchService;
 use App\Service\FreeFieldService;
 use App\Service\LanguageService;
 use App\Service\RefArticleDataService;
@@ -341,9 +342,9 @@ class DataExportController extends AbstractController {
                                      DataExportService      $dataExportService,
                                      FreeFieldService       $freeFieldService,
                                      Request                $request): StreamedResponse {
-
+        $columnToExport = $request->query->all("columnToExport");
         $freeFieldsConfig = $freeFieldService->createExportArrayConfig($manager, [CategorieCL::DEMANDE_DISPATCH]);
-        $header = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+        $headers = $dataExportService->createDispatchesHeader($manager, $columnToExport);
 
         $today = (new DateTime('now'))->format("d-m-Y-H-i-s");
 
@@ -354,7 +355,7 @@ class DataExportController extends AbstractController {
         $dateTimeMax = DateTime::createFromFormat("d/m/Y H:i:s", "$dateMax 23:59:59");
 
         return $csvService->streamResponse(
-            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig) {
+            function ($output) use ($dateTimeMax, $dateTimeMin, $manager, $dataExportService, $csvService, $freeFieldsConfig, $columnToExport) {
                 $dispatchRepository = $manager->getRepository(Dispatch::class);
                 $userDateFormat = $this->getUser()->getDateFormat();
                 $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
@@ -365,11 +366,11 @@ class DataExportController extends AbstractController {
                     ])->toArray();
 
                 $start = new DateTime();
-                $dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+                $dataExportService->exportDispatch($dispatches, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
                 $dataExportService->createUniqueExportLine(Export::ENTITY_DISPATCH, $start);
             },
             "export_acheminements-$today.csv",
-            $header
+            $headers
         );
     }
 
@@ -432,7 +433,8 @@ class DataExportController extends AbstractController {
     #[HasPermission([Menu::PARAM, Action::SETTINGS_DISPLAY_EXPORT])]
     public function exportTemplate(EntityManagerInterface $entityManager,
                                    Request                $request,
-                                   ArrivageService        $arrivalService): JsonResponse {
+                                   ArrivageService        $arrivalService,
+                                   DispatchService        $dispatchService): JsonResponse {
 
         $exportRepository = $entityManager->getRepository(Export::class);
 
@@ -441,7 +443,8 @@ class DataExportController extends AbstractController {
             ? $exportRepository->find($exportId)
             : new Export();
 
-        $columns = $arrivalService->getArrivalExportableColumns($entityManager);
+        $arrivalExportableColumns = $arrivalService->getArrivalExportableColumns($entityManager);
+        $dispatchExportableColumns = $dispatchService->getDispatchExportableColumns($entityManager);
         $refTypes = $entityManager->getRepository(Type::class)->findByCategoryLabels([CategoryType::ARTICLE]);
 
         $statuses = $entityManager->getRepository(Statut::class)->findBy(["nom" => [Article::STATUT_ACTIF, Article::STATUT_INACTIF]]);
@@ -458,9 +461,14 @@ class DataExportController extends AbstractController {
             "suppliers" => Stream::from($suppliers)
                 ->keymap(fn(Fournisseur $supplier) => [$supplier->getId(), $supplier->getNom()])
                 ->toArray(),
-            "arrivalFields" => Stream::from($columns)
-                ->keymap(fn(array $config) => [$config['code'], $config['label']])
-                ->toArray()
+            "exportableColumns" => [
+                Export::ENTITY_ARRIVAL => Stream::from($arrivalExportableColumns)
+                    ->keymap(fn(array $config) => [$config['code'], $config['label']])
+                    ->toArray(),
+                Export::ENTITY_DISPATCH => Stream::from($dispatchExportableColumns)
+                    ->keymap(fn(array $config) => [$config['code'], $config['label']])
+                    ->toArray(),
+            ],
         ]));
     }
 
