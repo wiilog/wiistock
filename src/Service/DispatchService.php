@@ -21,6 +21,7 @@ use App\Entity\Nature;
 use App\Entity\Pack;
 use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
+use App\Entity\StatusHistory;
 use App\Entity\Statut;
 use App\Entity\TrackingMovement;
 use App\Entity\Type;
@@ -2134,5 +2135,11 @@ class DispatchService {
             'file' => $pdfContent,
             'name' => $originalName
         ];
+    }
+
+    public function statusIsAlreadyUsedInDispatch(Dispatch $dispatch, Statut $status): bool
+    {
+        return Stream::from($dispatch->getStatusHistory())
+            ->some(static fn(StatusHistory $statusHistory) => $statusHistory->getStatus()->getId() === $status->getId());
     }
 }
