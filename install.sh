@@ -1,12 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-execute_query() {
+function execute_query() {
     mysql "$2" -h "$DATABASE_HOST" -P "$DATABASE_PORT" -u "$DATABASE_USER" -p"$DATABASE_PASSWORD" -sse "$1"
 }
 
-prepare_project() {
+function prepare_project() {
     # Extract vendor and node_modules from cache if it exists
 
     wget https://github.com/wiilog/wiistock/releases/download/"$WIISTOCK_VERSION"/vendor.zip || true
@@ -32,7 +32,7 @@ prepare_project() {
     php bin/console app:initialize
 }
 
-install_symfony() {
+function install_symfony() {
     TABLE_COUNT=$(execute_query "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='$DATABASE_NAME';")
     last_command_status=$?
     if [ $last_command_status -ne 0 ]; then
@@ -83,7 +83,7 @@ install_symfony() {
     php bin/console cache:warmup
 }
 
-install_yarn() {
+function install_yarn() {
     php bin/console fos:js-routing:dump --format=json --target=public/generated/routes.json
     # php bin/console app:update:fixed-fields
 
