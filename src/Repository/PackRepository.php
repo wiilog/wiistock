@@ -378,34 +378,35 @@ class PackRepository extends EntityRepository
         $getReferenceAndLabelCallback = function (int $mode = self::GET_LAST_DROP_IN_LU) {
             $queryBuilder = $this->getEntityManager()->createQueryBuilder()
                 ->select("sub_trackingMovement_$mode.id")
-                ->from(TrackingMovement::class, "sub_trackingMovement_$mode");
-
-
-            // get last drop on LU movement
-            if($mode === self::GET_LAST_DROP_IN_LU){
-                $queryBuilder->innerJoin("sub_trackingMovement_$mode.logisticUnitParent", "join_logisticUnitParent_$mode", Join::WITH, "join_logisticUnitParent_$mode.id = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus");
-            }
-
-            $queryBuilder
+                ->from(TrackingMovement::class, "sub_trackingMovement_$mode")
                 ->orderBy("sub_trackingMovement_$mode.id", Criteria::DESC)
                 ->setMaxResults(1);
 
-            // get pack ref article
-            if($mode === self::GET_REF_ARTICLE_FROM_PACK) {
-                $queryBuilder
-                    ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subReferenceArticle_$mode.libelle)")
-                    ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
-                    ->innerJoin("join_subPack_$mode.referenceArticle", "join_subReferenceArticle_$mode");
-            }
+            switch ($mode) {
 
-            // get stock movement ref article
-            if($mode === self::GET_REF_ARTICLE_FROM_STOCK_MOVEMENT) {
-                $queryBuilder
-                    ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subArticle_$mode.label)")
-                    ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
-                    ->innerJoin("join_subPack_$mode.article", "join_subArticle_$mode")
-                    ->innerJoin("join_subArticle_$mode.articleFournisseur", "join_subSupplierArticle_$mode")
-                    ->innerJoin("join_subSupplierArticle_$mode.referenceArticle", "join_subReferenceArticle_$mode");
+                // get last drop on LU movement
+                case self::GET_LAST_DROP_IN_LU:
+                    $queryBuilder
+                        ->innerJoin("sub_trackingMovement_$mode.logisticUnitParent", "join_logisticUnitParent_$mode", Join::WITH, "join_logisticUnitParent_$mode.id = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus");
+                    break;
+
+                // get pack ref article
+                case self::GET_REF_ARTICLE_FROM_PACK:
+                    $queryBuilder
+                        ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subReferenceArticle_$mode.libelle)")
+                        ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
+                        ->innerJoin("join_subPack_$mode.referenceArticle", "join_subReferenceArticle_$mode");
+                    break;
+
+                // get stock movement ref article
+                case self::GET_REF_ARTICLE_FROM_STOCK_MOVEMENT:
+                    $queryBuilder
+                        ->select("CONCAT_WS(':', join_subReferenceArticle_$mode.reference, join_subArticle_$mode.label)")
+                        ->innerJoin("sub_trackingMovement_$mode.pack", "join_subPack_$mode", Join::WITH, "sub_trackingMovement_$mode.logisticUnitParent = pack.id AND sub_trackingMovement_$mode.type = :dropOnLuStatus")
+                        ->innerJoin("join_subPack_$mode.article", "join_subArticle_$mode")
+                        ->innerJoin("join_subArticle_$mode.articleFournisseur", "join_subSupplierArticle_$mode")
+                        ->innerJoin("join_subSupplierArticle_$mode.referenceArticle", "join_subReferenceArticle_$mode");
+                    break;
             }
 
             return $queryBuilder
@@ -420,9 +421,9 @@ class PackRepository extends EntityRepository
             ->leftJoin('pack.nature', 'nature')
             ->leftJoin('pack.arrivage', 'pack_arrival')
             ->leftJoin('pack.article', 'article')
-            ->join('pack.lastDrop', 'lastDrop')
-            ->join('lastDrop.emplacement', 'emplacement')
-            ->where('pack.groupIteration IS NULL');
+            ->innerJoin('pack.lastDrop', 'lastDrop')
+            ->innerJoin('lastDrop.emplacement', 'emplacement')
+            ->andWhere('pack.groupIteration IS NULL');
 
         if($fromOnGoing) {
             $queryBuilder

@@ -210,11 +210,13 @@ class EnCoursService
                 "onlyLate" => $onlyLate,
                 'fromOnGoing' => $fromOnGoing,
                 "dropOnLuStatus" => $dropOnLuStatus,
-                ...($onlyLate ? [
-                    'limit' => $maxQueryResultLength,
-                    'start' => $dropsCounter,
-                    'order' => 'asc',
-                ] : []),
+                ...($onlyLate
+                    ? [
+                        'limit' => $maxQueryResultLength,
+                        'start' => $dropsCounter,
+                        'order' => 'asc',
+                    ]
+                    : []),
             ]
         );
         $oldestDrops = $oldestDrops[0];

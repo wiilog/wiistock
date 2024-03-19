@@ -73,7 +73,7 @@ function loadEncoursDatatable($table, useTruckArrivals, natures) {
     }
     else {
         const columns = $table.data('initial-visible');
-        let routeForApi = Routing.generate('en_cours_api', {fromDashboard});
+        let routeForApi = Routing.generate('ongoing_pack_api', {fromDashboard});
         let tableConfig = {
             processing: true,
             responsive: true,

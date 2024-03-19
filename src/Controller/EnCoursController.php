@@ -77,11 +77,10 @@ class EnCoursController extends AbstractController
         ]);
     }
 
-    #[Route("/api", name: "en_cours_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
-    public function apiForEmplacement(Request                $request,
-                                      EnCoursService         $enCoursService,
-                                      EntityManagerInterface $entityManager): Response
-    {
+    #[Route("/api", name: "ongoing_pack_api", options: ["expose" => true], methods: "POST", condition: "request.isXmlHttpRequest()")]
+    public function ongoingPackApi(Request                $request,
+                                   EnCoursService         $enCoursService,
+                                   EntityManagerInterface $entityManager): Response {
         $emplacementRepository = $entityManager->getRepository(Emplacement::class);
         $filtreSupRepository = $entityManager->getRepository(FiltreSup::class);
         $emplacement = $emplacementRepository->find($request->request->get('id'));
