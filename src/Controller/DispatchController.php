@@ -140,6 +140,10 @@ class DispatchController extends AbstractController {
                 'name' => 'endDate',
                 'label' => 'Date d\'échéances',
             ],
+            [
+                'name' => 'lastPartialStatusDate',
+                'label' => $translationService->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false),
+            ],
         ];
 
         foreach ($dateChoices as &$choice) {

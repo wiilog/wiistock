@@ -1876,10 +1876,7 @@ class MobileController extends AbstractApiController
         $data['data']['status'] = ($numberOfRowsInserted === 0)
             ? "Aucune saisie d'inventaire à synchroniser."
             : ($numberOfRowsInserted . ' inventaire' . $s . ' synchronisé' . $s);
-        $data['data']['anomalies'] = array_merge(
-            $inventoryEntryRepository->getAnomaliesOnRef(true, $newAnomaliesIds),
-            $inventoryEntryRepository->getAnomaliesOnArt(true, $newAnomaliesIds)
-        );
+        $data['data']['anomalies'] = $inventoryEntryRepository->getAnomalies(true, $newAnomaliesIds);
 
         return $this->json($data);
     }
@@ -2258,8 +2255,7 @@ class MobileController extends AbstractApiController
             ])->toArray();
 
         if ($rights['inventoryManager']) {
-            $refAnomalies = $inventoryEntryRepository->getAnomaliesOnRef(true);
-            $artAnomalies = $inventoryEntryRepository->getAnomaliesOnArt(true);
+            $anomalies = $inventoryEntryRepository->getAnomalies(true);
         }
 
         // livraisons
@@ -2519,7 +2515,7 @@ class MobileController extends AbstractApiController
             'inventoryItems' => $inventoryItems ?? [],
             'inventoryMission' => $inventoryMissions ?? [],
             'inventoryLocationZone' => $inventoryLocationsZone ?? [],
-            'anomalies' => array_merge($refAnomalies ?? [], $artAnomalies ?? []),
+            'anomalies' => $anomalies ?? [],
             'trackingTaking' => $trackingTaking ?? [],
             'stockTaking' => $stockTaking ?? [],
             'demandeLivraisonTypes' => $demandeLivraisonTypes ?? [],

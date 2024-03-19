@@ -18,6 +18,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Setting;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+use App\Exceptions\FormException;
 use App\Service\AttachmentService;
 use App\Service\CSVExportService;
 use App\Service\PurchaseRequestService;
@@ -132,6 +133,7 @@ class PurchaseRequestController extends AbstractController
                 "Libellé",
                 "Fournisseur",
                 "Prix unitaire",
+                "Frais de livraison",
             ];
 
             return $CSVExportService->streamResponse(
@@ -349,12 +351,18 @@ class PurchaseRequestController extends AbstractController
         $status = $statusRepository->find($data['status']);
         $requester = $userRepository->find($data['requester']);
         $supplier = isset($data['supplier']) ? $supplierRepository->find($data['supplier']) : null;
+
+        if($status->isPreventStatusChangeWithoutDeliveryFees() && empty($data['deliveryFee'])) {
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
+
         $purchaseRequest = $purchaseRequestService->createPurchaseRequest(
             $status,
             $requester,
             [
                 "comment" => $data['comment'] ?? null,
                 "supplier" => $supplier,
+                "deliveryFee" => $data['deliveryFee'] ?? null,
             ]
         );
 
@@ -482,7 +490,7 @@ class PurchaseRequestController extends AbstractController
         $userRepository = $entityManager->getRepository(Utilisateur::class);
         $supplierRepository = $entityManager->getRepository(Fournisseur::class);
 
-        $post = $request->request;
+;        $post = $request->request;
 
         $purchaseRequest = $purchaseRequestRepository->find($post->get('id'));
 
@@ -490,7 +498,11 @@ class PurchaseRequestController extends AbstractController
         $requester = $post->has('requester') ? $userRepository->find($post->get('requester')) : $purchaseRequest->getRequester();
         $comment = $post->get('comment') ?: '';
         $newStatus = $statusRepository->find($post->get('status'));
-        $supplier = $supplierRepository->find($post->get('supplier'));
+        $supplier = $post->get('supplier') ? $supplierRepository->find($post->get('supplier')) : null;
+
+        if($newStatus->isPreventStatusChangeWithoutDeliveryFees() && empty($post->get('deliveryFee'))) {
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
 
         $currentStatus = $purchaseRequest->getStatus();
         if (!$currentStatus
@@ -502,7 +514,8 @@ class PurchaseRequestController extends AbstractController
         $purchaseRequest
             ->setComment($comment)
             ->setRequester($requester)
-            ->setSupplier($supplier ?? null);
+            ->setSupplier($supplier)
+            ->setDeliveryFee($post->get('deliveryFee') ?? null);
 
         $purchaseRequest->removeIfNotIn($post->all()['files'] ?? []);
         $attachmentService->manageAttachments($entityManager, $purchaseRequest, $request->files);
@@ -553,6 +566,7 @@ class PurchaseRequestController extends AbstractController
     }
 
     #[Route("/{id}/consider", name: "consider_purchase_request", options: ["expose" => true], methods: ["POST"], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT_ONGOING_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function consider(Request                    $request,
                              EntityManagerInterface     $entityManager,
                              PurchaseRequest            $purchaseRequest,
@@ -563,6 +577,10 @@ class PurchaseRequestController extends AbstractController
 
         $status = $data['status'];
         $inProgressStatus = $statusRepository->find($status);
+
+        if($inProgressStatus->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
 
         $purchaseRequest
             ->setStatus($inProgressStatus)
@@ -578,9 +596,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{id}/treat", name="treat_purchase_request", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     */
+    #[Route('/{id}/treat', name: 'treat_purchase_request', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT_ONGOING_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function treat(Request                    $request,
                           EntityManagerInterface     $entityManager,
                           PurchaseRequest            $purchaseRequest,
@@ -596,6 +613,10 @@ class PurchaseRequestController extends AbstractController
         /** @var Statut $status */
         $status = $data['status'];
         $treatedStatus = $statusRepository->find($status);
+
+        if($treatedStatus->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+            throw new FormException("Les frais de livraisons doivent être renseignés.");
+        }
 
         if($treatedStatus->getAutomaticReceptionCreation()) {
             $unfilledLines = Stream::from($purchaseRequest->getPurchaseRequestLines()->toArray())
@@ -679,10 +700,8 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/{id}/valider", name="purchase_request_validate", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST}, mode=HasPermission::IN_JSON)
-     */
+    #[Route('/{id}/valider', name: 'purchase_request_validate', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[HasPermission([Menu::DEM, Action::EDIT_DRAFT_PURCHASE_REQUEST], mode: HasPermission::IN_JSON)]
     public function validate(PurchaseRequest            $purchaseRequest,
                              EntityManagerInterface     $entityManager,
                              Request                    $request,
@@ -694,17 +713,19 @@ class PurchaseRequestController extends AbstractController
             $validationDate = new DateTime("now");
             $status = $statusRepository->find($data['status']);
             if (!$status) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => 'Le statut sélectionné n\'existe pas.'
-                ]);
+                $message = "Le statut sélectionné n'existe pas.";
+            }
+
+            if($status->isPreventStatusChangeWithoutDeliveryFees() && !$purchaseRequest->getDeliveryFee()){
+                $message = "Les frais de livraisons doivent être renseignés.";
             }
 
             if ($purchaseRequest->getPurchaseRequestLines()->isEmpty()) {
-                return $this->json([
-                    'success' => false,
-                    'msg' => "Vous ne pouvez pas valider une demande d'achat vide."
-                ]);
+                $message = "Vous ne pouvez pas valider une demande d'achat vide.";
+            }
+
+            if(!empty($message)){
+                throw new FormException($message);
             }
 
             $purchaseRequest

@@ -395,7 +395,7 @@ class ReceptionController extends AbstractController {
             'typeChampLibres' => $typeChampLibre,
             'fieldsParam' => $fieldsParam,
             'statuts' => $statutRepository->findByCategorieName(CategorieStatut::RECEPTION),
-            'receptionLocation' => $settingsService->getParamLocation(Setting::DEFAULT_LOCATION_RECEPTION),
+            'receptionLocation' => $settingsService->getParamLocation($entityManager, Setting::DEFAULT_LOCATION_RECEPTION),
             'purchaseRequestFilter' => $purchaseRequest ? implode(',', $purchaseRequestLinesOrderNumbers) : 0,
             'purchaseRequest' => $purchaseRequest ? $purchaseRequest->getId() : '',
             'fields' => $fields,
@@ -1471,12 +1471,16 @@ class ReceptionController extends AbstractController {
                         if (!empty($articlesReception)) {
                             return Stream::from($articlesReception)
                                 ->filter(static function(Article $article) use ($entityManager, $forceTagEmpty, $tag) {
-                                    $articleTypeHasTag = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
-                                    $articleTypeHasTag = Stream::from($articleTypeHasTag)
+                                    $articleTagTemplates = $entityManager->getRepository(TagTemplate::class)->findBy(['module' => 'article']);
+                                    $articleTypeHasTag = Stream::from($articleTagTemplates)
                                         ->some(static function (TagTemplate $tag) use ($article) {
                                             return $tag->getTypes()->contains($article->getType());
                                         });
-                                    return (($forceTagEmpty && (!$articleTypeHasTag || !$tag)) || ($tag && in_array($article->getType(), $tag->getTypes()->toArray())));
+                                    return (
+                                        ($forceTagEmpty && !$articleTypeHasTag)
+                                        || ($tag && in_array($article->getType(), $tag->getTypes()->toArray()))
+                                        || $articleTypeHasTag
+                                    );
                                 })
                                 ->map(static fn(Article $article) => $articleDataService->getBarcodeConfig($article, $reception))
                                 ->toArray();
@@ -1586,9 +1590,7 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/csv", name="get_receptions_csv", options={"expose"=true}, methods={"GET"})
-     */
+    #[Route("/csv", name: "get_receptions_csv", options: ["expose" => true], methods: "GET")]
     public function getReceptionCSV(EntityManagerInterface $entityManager,
                                     TranslationService $translation,
                                     CSVExportService $CSVExportService,
@@ -1623,6 +1625,7 @@ class ReceptionController extends AbstractController {
                 'emplacement de stockage',
                 'réception urgente',
                 'référence urgente',
+                'Frais de livraison',
                 'destinataire',
                 'référence',
                 'libellé',
@@ -1707,6 +1710,7 @@ class ReceptionController extends AbstractController {
             $reception['storageLocation'] ?: '',
             $this->formatService->bool($reception['receptionEmergency']),
             $this->formatService->bool($reception['referenceEmergency']),
+            $reception['deliveryFee'] ?: '',
         ];
     }
 
@@ -1811,7 +1815,7 @@ class ReceptionController extends AbstractController {
                     $entityManager->persist($demande);
 
                     if ($createDirectDelivery) {
-                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, true, ['sendNotification' => false]);
+                        $validateResponse = $demandeLivraisonService->validateDLAfterCheck($entityManager, $demande, false, true, true, false, ['sendNotification' => false]);
                         if ($validateResponse['success']) {
                             $preparation = $demande->getPreparations()->first();
 

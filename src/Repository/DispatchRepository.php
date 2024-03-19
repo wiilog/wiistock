@@ -7,6 +7,7 @@ use App\Entity\Dispatch;
 use App\Entity\Emplacement;
 use App\Entity\FiltreSup;
 use App\Entity\FreeField;
+use App\Entity\Interfaces\StatusHistoryContainer;
 use App\Entity\Language;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
@@ -116,6 +117,7 @@ class DispatchRepository extends EntityRepository
                         'validationDate' => 'validationDate',
                         'treatmentDate' => 'treatmentDate',
                         'endDate' => 'startDate',
+                        'lastPartialStatusDate' => 'lastPartialStatusDate',
                         default => 'creationDate'
                     };
                     $qb->andWhere("dispatch.{$filteredDate} >= :filter_dateMin_value")
@@ -216,6 +218,7 @@ class DispatchRepository extends EntityRepository
                         "creationDate" => "DATE_FORMAT(dispatch.creationDate, '%e/%m/%Y') LIKE :search_value",
                         "validationDate" => "DATE_FORMAT(dispatch.validationDate, '%e/%m/%Y') LIKE :search_value",
                         "treatmentDate" => "DATE_FORMAT(dispatch.treatmentDate, '%e/%m/%Y') LIKE :search_value",
+                        "lastPartialStatusDate" => "DATE_FORMAT(dispatch.lastPartialStatusDate, '%e/%m/%Y') LIKE :search_value",
                         "endDate" => "DATE_FORMAT(dispatch.endDate, '%e/%m/%Y') LIKE :search_value",
                         "type" => "search_type.label LIKE :search_value",
                         "requester" => "search_requester.username LIKE :search_value",
@@ -272,7 +275,7 @@ class DispatchRepository extends EntityRepository
                             } else {
                                 $qb->orderBy("JSON_EXTRACT(dispatch.freeFields, '$.\"$freeFieldId\"')", $order);
                             }
-                        } else if (property_exists(Dispatch::class, $column)) {
+                        } else if (property_exists(Dispatch::class, $column) || property_exists(StatusHistoryContainer::class, $column)) {
                             $qb->orderBy("dispatch.$column", $order);
                         }
                     }
@@ -457,6 +460,7 @@ class DispatchRepository extends EntityRepository
             ->addSelect('dispatch.commandNumber AS orderNumber')
             ->addSelect("DATE_FORMAT(dispatch.creationDate, '$dateFormat') AS creationDate")
             ->addSelect("DATE_FORMAT(dispatch.validationDate, '$dateFormat') AS validationDate")
+            ->addSelect("DATE_FORMAT(dispatch.lastPartialStatusDate, '$dateFormat') AS lastPartialStatusDate")
             ->addSelect("DATE_FORMAT(dispatch.treatmentDate, '$dateFormat') AS treatmentDate")
             ->addSelect('join_type.label AS type')
             ->addSelect('join_requester.username AS requester')
@@ -596,9 +600,10 @@ class DispatchRepository extends EntityRepository
      * @throws NonUniqueResultException
      */
     public function getOlderDateToTreat(array $types = [],
-                                        array $statuses = []): ?DateTime {
+                                        array $statuses = [],
+                                        array $options = []): ?DateTime {
         if (!empty($types) && !empty($statuses)) {
-            $res = $this
+            $queryBuilder = $this
                 ->createQueryBuilder('dispatch')
                 ->select('dispatch.validationDate AS date')
                 ->innerJoin('dispatch.statut', 'status')
@@ -609,12 +614,24 @@ class DispatchRepository extends EntityRepository
                 ->addOrderBy('dispatch.creationDate', 'ASC')
                 ->setParameter('statuses', $statuses)
                 ->setParameter('types', $types)
-                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED])
+                ->setParameter('treatedStates', [Statut::PARTIAL, Statut::NOT_TREATED]);
+
+            if(!empty($options['dispatchEmergencies'])){
+                $nonUrgentCondition = in_array($options['nonUrgentTranslationLabel'], $options['dispatchEmergencies'])
+                    ? 'OR dispatch.emergency IS NULL'
+                    : '';
+
+                $queryBuilder
+                    ->andWhere("dispatch.emergency IN (:dispatchEmergencies) $nonUrgentCondition")
+                    ->setParameter('dispatchEmergencies', $options['dispatchEmergencies']);
+            }
+
+            $res = $queryBuilder
                 ->setMaxResults(1)
                 ->getQuery()
                 ->getOneOrNullResult();
 
-            return $res['date'] ?? null;
+            return $res["date"] ?? null;
         }
         else {
             return null;

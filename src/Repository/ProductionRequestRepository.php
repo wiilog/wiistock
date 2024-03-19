@@ -493,4 +493,30 @@ class ProductionRequestRepository extends EntityRepository
         }
         return $separateType ? $qb->getQuery()->getResult() : $qb->getQuery()->getSingleScalarResult();
     }
+
+    public function getOlderDateToTreat(array $types = [],
+                                        array $statuses = []): ?DateTime {
+        if (!empty($types) && !empty($statuses)) {
+            $res = $this
+                ->createQueryBuilder('production_request')
+                ->select('production_request.createdAt AS date')
+                ->innerJoin('production_request.status', 'status')
+                ->innerJoin('production_request.type', 'type')
+                ->andWhere('status IN (:statuses)')
+                ->andWhere('type IN (:types)')
+                ->andWhere('status.state = :treatedState')
+                ->addOrderBy('production_request.createdAt', 'ASC')
+                ->setParameter('statuses', $statuses)
+                ->setParameter('types', $types)
+                ->setParameter('treatedState', Statut::NOT_TREATED)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            return $res["date"] ?? null;
+        }
+        else {
+            return null;
+        }
+    }
 }

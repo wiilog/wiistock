@@ -2629,7 +2629,7 @@ class ImportService
 
     public function saveScheduledImportsCache(EntityManagerInterface $entityManager): void
     {
-        $this->cacheService->set(CacheService::IMPORTS, "scheduled", $this->buildScheduledImportsCache($entityManager));
+        $this->cacheService->set(CacheService::COLLECTION_IMPORTS, "scheduled", $this->buildScheduledImportsCache($entityManager));
     }
 
     public function getScheduleImportKeyCache(DateTime $dateTime): string
@@ -2638,7 +2638,7 @@ class ImportService
     }
 
     public function getScheduledCache(EntityManagerInterface $entityManager): array {
-        return $this->cacheService->get(CacheService::IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
+        return $this->cacheService->get(CacheService::COLLECTION_IMPORTS, "scheduled", fn() => $this->buildScheduledImportsCache($entityManager));
     }
 
     /**
