@@ -167,8 +167,6 @@ class ScheduledExportService
             $this->dataExportService->exportRefLocation($storageRules, $output);
         } else if($exportToRun->getEntity() === Export::ENTITY_DISPATCH) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-
-            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
             [$startDate, $endDate] = $this->getExportBoundaries($exportToRun);
             $dispatches = $dispatchRepository->getByDates($startDate, $endDate);
 
@@ -176,9 +174,11 @@ class ScheduledExportService
                 ->keymap(fn($dispatch) => [
                     $dispatch['id'], $dispatch['freeFields']
                 ])->toArray();
+            $freeFieldsConfig = $this->freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
+            $columnToExport = $exportToRun->getColumnToExport();
 
-            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($freeFieldsConfig));
-            $this->dataExportService->exportDispatch($dispatches, $output, $freeFieldsConfig, $freeFieldsById);
+            $this->csvExportService->putLine($output, $this->dataExportService->createDispatchesHeader($entityManager, $columnToExport));
+            $this->dataExportService->exportDispatch($dispatches, $output, $columnToExport, $freeFieldsConfig, $freeFieldsById);
         } else if($exportToRun->getEntity() === Export::ENTITY_PRODUCTION) {
             $productionRequestRepository = $entityManager->getRepository(ProductionRequest::class);
             $languageRepository = $entityManager->getRepository(Language::class);
