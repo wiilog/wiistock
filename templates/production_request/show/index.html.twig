@@ -157,7 +157,10 @@
                     {% endif %}
 
                     <div class="col-12 pb-3">
-                        {% include 'utils/show-header-details.html.twig' with {data: detailsConfig} %}
+                        {% include 'utils/show-header-details.html.twig' with {
+                            data: detailsConfig,
+                            forceDisplayFilledFields: true,
+                        } %}
                     </div>
                 </div>
                 <div class="wii-box">

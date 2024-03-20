@@ -231,8 +231,10 @@ class ProductionRequestService
 
         if ($data->has(FixedFieldEnum::dropLocation->name)) {
             $dropLocation = $data->get(FixedFieldEnum::dropLocation->name) ? $locationRepository->find($data->get(FixedFieldEnum::dropLocation->name)) : null;
-            $productionRequest->setDropLocation($dropLocation);
+        } else {
+            $dropLocation = $productionRequest->getType()?->getDropLocation();
         }
+        $productionRequest->setDropLocation($dropLocation);
 
         if ($data->has(FixedFieldEnum::manufacturingOrderNumber->name)) {
             $productionRequest->setManufacturingOrderNumber($data->get(FixedFieldEnum::manufacturingOrderNumber->name));
@@ -420,7 +422,7 @@ class ProductionRequestService
             ],
         ];
 
-        return $this->fixedFieldService->filterHeaderConfig($config, FixedFieldStandard::ENTITY_CODE_PRODUCTION);
+        return $config;
     }
 
     public function buildCustomProductionHistoryMessage(ProductionRequest $productionRequest,
