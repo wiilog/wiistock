@@ -86,8 +86,14 @@
             </div>
             <div class="column-to-export d-none">
                 {{ form.select('columnToExport', 'Colonnes à exporter', false, {
+                    type: null,
                     items: [],
                     multiple: true,
+                    attributes: {
+                        "data-keep-selected-order": 1,
+                        "data-keep-open": 1,
+                    },
+                    tooltip: "L'ordre des colonnes sélectionnées impactera l'ordre des en-têtes dans le fichier exporté."
                 }) }}
             </div>
             {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
@@ -238,8 +244,14 @@
         </div>
         <div class="column-to-export d-none">
             {{ form.select('columnToExport', 'Colonnes à exporter', false, {
+                type: null,
                 items: [],
                 multiple: true,
+                attributes: {
+                    "data-keep-selected-order": 1,
+                    "data-keep-open": 1,
+                },
+                tooltip: "L'ordre des colonnes sélectionnées impactera l'ordre des en-têtes dans le fichier exporté."
             }) }}
         </div>
         {{ form.hidden("exportableColumns", exportableColumns|json_encode) }}
