@@ -19,7 +19,7 @@
             {% if (
                 (
                     neededDisplay
-                    or(forceDisplayFilledFields is defined and forceDisplayFilledFields)
+                    or (forceDisplayFilledFields ?? false)
                 )
                 and datum.value is not null and datum.value != ""
             ) %}
