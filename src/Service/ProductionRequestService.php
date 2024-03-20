@@ -232,7 +232,7 @@ class ProductionRequestService
         $attachments = $productionRequest->getAttachments()->toArray();
         foreach($attachments as $attachment) {
             /** @var Attachment $attachment */
-            if($data->has('files') && !in_array($attachment->getId(), $data->all('files'))) {
+            if($data->has('savedFiles') && !in_array($attachment->getId(), $data->all('savedFiles'))) {
                 $this->attachmentService->removeAndDeleteAttachment($attachment, $productionRequest);
             }
         }
