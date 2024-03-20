@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Attachment;
 use App\Entity\DaysWorked;
 use App\Entity\Fields\FixedFieldEnum;
 use App\Entity\FiltreSup;
@@ -338,8 +339,16 @@ class ProductionRequestRepository extends EntityRepository
         }
 
         if($hasAttachments) {
+            $subAttachmentQueryBuilder = $this->getEntityManager()
+                ->createQueryBuilder()
+                ->from(Attachment::class, "attachment")
+                ->select("attachment.id")
+                ->andWhere("attachment MEMBER OF production_request.attachments")
+                ->getQuery()
+                ->getDQL();
+
             $queryBuilder
-                ->innerJoin("production_request.attachments", "join_attachments");
+                ->andWhere("FIRST($subAttachmentQueryBuilder) IS NOT NULL");
         }
 
         $queryBuilder = QueryBuilderHelper::joinTranslations($queryBuilder, $language, $defaultLanguage, ["status", "type"]);

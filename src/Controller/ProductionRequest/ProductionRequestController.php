@@ -358,8 +358,10 @@ class ProductionRequestController extends AbstractController
                 $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::PRODUCTION_REQUEST]);
                 $freeFieldsById = Stream::from($productionRequests)
                     ->keymap(static fn($productionRequest) => [
-                        $productionRequest['id'], $productionRequest['freeFields']
-                    ])->toArray();
+                        $productionRequest['id'],
+                        $productionRequest['freeFields']
+                    ])
+                    ->toArray();
 
                 foreach ($productionRequests as $productionRequest) {
                     $productionRequestService->productionRequestPutLine($output, $productionRequest, $freeFieldsConfig, $freeFieldsById);
