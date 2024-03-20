@@ -298,8 +298,10 @@ class PDFGeneratorService {
         exec("\"{$command}\" --headless --convert-to pdf \"{$docx}\" --outdir \"{$outdir}\"");
     }
 
-    public function generateDispatchLabel(Dispatch $dispatch, string $title): string {
-        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray();
+    public function generateDispatchLabel(Dispatch                  $dispatch,
+                                          string                    $title,
+                                          EntityManagerInterface    $entityManager): string {
+        $barcodeConfig = $this->settingsService->getDimensionAndTypeBarcodeArray($entityManager);
         $height = $barcodeConfig['height'];
         $width = $barcodeConfig['width'];
         $isCode128 = $barcodeConfig['isCode128'];

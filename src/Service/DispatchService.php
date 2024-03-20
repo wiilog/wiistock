@@ -2129,14 +2129,14 @@ class DispatchService {
         return $this->visibleColumnService->getArrayConfig($columns);
     }
 
-    public function getDispatchLabelData(Dispatch $dispatch): array {
+    public function getDispatchLabelData(Dispatch $dispatch, EntityManagerInterface $entityManager): array {
         $now = new DateTime();
         $client = $this->specificService->getAppClientLabel();
 
         $originalName = "ETQ - {$dispatch->getNumber()} - $client - {$now->format('dmYHis')}";
         $fileName = uniqid().'.pdf';
 
-        $pdfContent = $this->PDFGeneratorService->generateDispatchLabel($dispatch, $originalName);
+        $pdfContent = $this->PDFGeneratorService->generateDispatchLabel($dispatch, $originalName, $entityManager);
 
         $attachment = new Attachment();
         $attachment->setFileName($fileName);

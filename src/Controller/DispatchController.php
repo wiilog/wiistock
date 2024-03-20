@@ -1916,11 +1916,12 @@ class DispatchController extends AbstractController {
 
     #[Route("/etiquette/{dispatch}", name: "print_dispatch_label", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
-    public function printDispatchLabel(Dispatch          $dispatch,
-                                       DispatchService   $dispatchService,
-                                       AttachmentService $attachmentService): Response
+    public function printDispatchLabel(Dispatch                 $dispatch,
+                                       DispatchService          $dispatchService,
+                                       EntityManagerInterface   $entityManager,
+                                       AttachmentService        $attachmentService): Response
     {
-        $data = $dispatchService->getDispatchLabelData($dispatch);
+        $data = $dispatchService->getDispatchLabelData($dispatch, $entityManager);
 
         $dispatchLabel = $dispatch->getAttachments()->last();
 
