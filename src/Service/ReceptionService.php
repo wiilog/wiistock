@@ -74,9 +74,7 @@ class ReceptionService
     #[Required]
     public ReceptionLineService $receptionLineService;
 
-    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null)
-    {
-
+    public function getDataForDatatable(Utilisateur $user, $params = null, $purchaseRequestFilter = null): array {
         $filtreSupRepository = $this->entityManager->getRepository(FiltreSup::class);
         $receptionRepository = $this->entityManager->getRepository(Reception::class);
 

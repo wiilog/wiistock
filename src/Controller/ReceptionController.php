@@ -283,10 +283,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}, condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/api", name: "reception_api", options: ["expose" => true], methods: [self::GET, self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE], mode: HasPermission::IN_JSON)]
     public function api(Request $request,
                         ReceptionService $receptionService,
                         EntityManagerInterface $entityManager): Response {
@@ -886,10 +884,8 @@ class ReceptionController extends AbstractController {
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
-     * @HasPermission({Menu::ORDRE, Action::DISPLAY_RECE})
-     */
+    #[Route("/voir/{id}", name: "reception_show", methods: [self::GET, self::POST])]
+    #[HasPermission([Menu::ORDRE, Action::DISPLAY_RECE])]
     public function show(EntityManagerInterface     $entityManager,
                          SettingsService            $settingsService,
                          ReceptionService           $receptionService,
