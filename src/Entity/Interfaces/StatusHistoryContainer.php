@@ -37,6 +37,8 @@ abstract class StatusHistoryContainer {
 
     public abstract function removeStatusHistory(StatusHistory $statusHistory): self;
 
+    public abstract function clearStatusHistory(): self;
+
     public abstract function setStatus(Statut $status): self;
 
     public function getLastStatusHistory(array $statusCodes): array|null {

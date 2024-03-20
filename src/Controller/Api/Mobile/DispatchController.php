@@ -486,7 +486,7 @@ class DispatchController extends AbstractApiController
             throw new FormException("Il n'y a aucun statut à traiter paramétré pour ce type.");
         }
 
-        if(!$dispatch->getType()->isReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $toTreatStatus)){
+        if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $toTreatStatus)){
             throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
         }
 

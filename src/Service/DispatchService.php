@@ -1777,7 +1777,7 @@ class DispatchService {
             throw new FormException("L'acheminement {$dispatch->getNumber()} ne contient pas de référence article, vous ne pouvez pas l'ajouter à une signature groupée");
         }
 
-        if(!$dispatch->getType()->isReusableStatuses() && $this->statusIsAlreadyUsedInDispatch($dispatch, $groupedSignatureStatus)){
+        if(!$dispatch->getType()->hasReusableStatuses() && $this->statusIsAlreadyUsedInDispatch($dispatch, $groupedSignatureStatus)){
             throw new FormException("Ce statut a déjà été utilisé pour la demande {$dispatch->getNumber()}.");
         }
 

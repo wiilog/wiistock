@@ -542,12 +542,12 @@ class DispatchController extends AbstractController {
             ],
             'dispatchValidate' => [
                 'untreatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::NOT_TREATED]))
-                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->isReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->isReusableStatuses())
+                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->hasReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->hasReusableStatuses())
                     ->toArray(),
             ],
             'dispatchTreat' => [
                 'treatedStatus' => Stream::from($statusRepository->findStatusByType(CategorieStatut::DISPATCH, $dispatch->getType(), [Statut::TREATED, Statut::PARTIAL]))
-                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->isReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->isReusableStatuses())
+                    ->filter(static fn(Statut $status) => (!$dispatch->getType()->hasReusableStatuses() && !$dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $status)) ||  $dispatch->getType()->hasReusableStatuses())
                     ->toArray(),
             ],
             'printBL' => $printBL,
@@ -1122,7 +1122,7 @@ class DispatchController extends AbstractController {
                 try {
                     $settingRepository = $entityManager->getRepository(Setting::class);
 
-                    if(!$dispatch->getType()->isReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
+                    if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $untreatedStatus)){
                         throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                     }
 
@@ -1206,7 +1206,7 @@ class DispatchController extends AbstractController {
                 && ($treatedStatus->isTreated() || $treatedStatus->isPartial())
                 && $treatedStatus->getType() === $dispatch->getType()) {
 
-                if(!$dispatch->getType()->isReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $treatedStatus)){
+                if(!$dispatch->getType()->hasReusableStatuses() && $dispatchService->statusIsAlreadyUsedInDispatch($dispatch, $treatedStatus)){
                     throw new FormException("Ce statut a déjà été utilisé pour cette demande.");
                 }
 
@@ -1251,9 +1251,12 @@ class DispatchController extends AbstractController {
             'state' => 0
         ]);
 
+        $statusHistoryService->clearStatusHistory($entityManager, $dispatch);
+
         $statusHistoryService->updateStatus($entityManager, $dispatch, $draftStatus, [
             "initiatedBy" => $this->getUser()
         ]);
+
         $entityManager->flush();
 
         return $this->redirectToRoute('dispatch_show', [

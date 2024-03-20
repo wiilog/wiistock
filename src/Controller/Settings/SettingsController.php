@@ -2323,7 +2323,7 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
-                    "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type && $type->isReusableStatuses()),
+                    "value" => $formService->macro("checkbox", "reusableStatuses", '', null, $type ? $type->hasReusableStatuses() : true),
                 ];
             }
         } else {
@@ -2441,7 +2441,7 @@ class SettingsController extends AbstractController {
             if(in_array($categoryLabel, [CategoryType::DEMANDE_DISPATCH])) {
                 $data[] = [
                     "label" => "Les statuts de ce type sont réutilisables",
-                    "value" => $this->formatService->bool($type->isReusableStatuses(), "Non"),
+                    "value" => $this->formatService->bool($type->hasReusableStatuses(), "Non"),
                 ];
             }
         }

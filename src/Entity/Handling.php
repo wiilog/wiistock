@@ -352,6 +352,11 @@ class Handling extends StatusHistoryContainer{
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function isWithoutHistory(): bool
     {
         return $this->withoutHistory;
