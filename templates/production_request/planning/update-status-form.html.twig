@@ -19,13 +19,14 @@
             type: 'status',
             value: productionRequest.status ? productionRequest.status.id : null,
             items: productionRequest.status
-            ? [{
-                'value': productionRequest.status.id,
-                'label':  productionRequest.status.nom,
-                'selected': true
-            }]
-            : [],
+                ? [{
+                    'value': productionRequest.status.id,
+                    'label':  productionRequest.status.nom,
+                    'selected': true
+                }]
+                : [],
             includeParams: '[name=type]',
+            additionalAttributes: [{ name: 'onChange', value: 'displayAttachmentRequired($(this))' }],
         }) }}
     </div>
 
