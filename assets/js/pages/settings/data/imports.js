@@ -12,19 +12,18 @@ global.updateOptions = updateOptions;
 global.launchImport = launchImport;
 global.toggleImportType = toggleImportType;
 
-const TEMPLATES_DIRECTORY = `/modele`;
-const DOWNLOAD_TEMPLATES_CONFIG = {
-    ART: {label: `articles`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles.csv`},
-    REF: {label: `références`, url: `${TEMPLATES_DIRECTORY}/modele-import-references.csv`},
-    FOU: {label: `fournisseurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-fournisseurs.csv`},
-    ART_FOU: {label: `articles fournisseurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-articles-fournisseurs.csv`},
-    RECEP: {label: `réceptions`, url: `${TEMPLATES_DIRECTORY}/modele-import-receptions.csv`},
-    USER: {label: `utilisateurs`, url: `${TEMPLATES_DIRECTORY}/modele-import-utilisateurs.csv`},
-    DELIVERY: {label: `livraisons`, url: `${TEMPLATES_DIRECTORY}/modele-import-livraisons.csv`},
-    LOCATION: {label: `emplacements`, url: `${TEMPLATES_DIRECTORY}/modele-import-emplacements.csv`},
-    CUSTOMER: {label: `clients`, url: `${TEMPLATES_DIRECTORY}/modele-import-clients.csv`},
-    PROJECT: {label: `projets`, url: `${TEMPLATES_DIRECTORY}/modele-import-projets.csv`},
-    REF_LOCATION: {label: `quantités référence par emplacement`, url: `${TEMPLATES_DIRECTORY}/modele-import-reference-emplacement-quantites.csv`},
+const TEMPLATE_LABELS = {
+    ART: `articles`,
+    REF: `références`,
+    FOU: `fournisseurs`,
+    ART_FOU: `articles fournisseurs`,
+    RECEP: `réceptions`,
+    USER: `utilisateurs`,
+    DELIVERY: `livraisons`,
+    LOCATION: `emplacements`,
+    CUSTOMER: `clients`,
+    PROJECT: `projets`,
+    REF_LOCATION: `quantités référence par emplacement`,
 };
 
 let tableImport;
@@ -230,12 +229,14 @@ function importTemplateChanged($dataTypeImport = null) {
     const valTypeImport = $dataTypeImport ? $dataTypeImport.val() : ``;
     differentialDataToggle($dataTypeImport);
 
-    if (DOWNLOAD_TEMPLATES_CONFIG[valTypeImport]) {
-        const {url, label} = DOWNLOAD_TEMPLATES_CONFIG[valTypeImport];
+    if (TEMPLATE_LABELS[valTypeImport]) {
+        const label = TEMPLATE_LABELS[valTypeImport];
+
+        const url = Routing.generate(`import_template`, {entity: valTypeImport});
         $linkToTemplate
             .append(`
                 <div class="col-12 wii-small-text">
-                    Un <a class="underlined" href="${url}">fichier de modèle d\'import</a>  est disponible pour les ${label}.
+                    Un <a class="underlined" href="${url}">fichier de modèle d'import</a>  est disponible pour les ${label}.
                 </div>`);
         if(valTypeImport === `USER`) {
             $linkToTemplate
@@ -245,10 +246,10 @@ function importTemplateChanged($dataTypeImport = null) {
         }
     }
     else if (valTypeImport === ``) {
-        $linkToTemplate.append(`<div class="col-12 wii-small-text">Des fichiers de modèles d\'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>`);
+        $linkToTemplate.append(`<div class="col-12 wii-small-text">Des fichiers de modèles d'import sont disponibles. Veuillez sélectionner un type de données à importer.</div>`);
     }
     else {
-        $linkToTemplate.append(`<div class="col-12 wii-small-text">Aucun modèle d\'import n\'est disponible pour ce type de données.</div>`);
+        $linkToTemplate.append(`<div class="col-12 wii-small-text">Aucun modèle d'import n'est disponible pour ce type de données.</div>`);
     }
 }
 
