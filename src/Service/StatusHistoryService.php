@@ -92,4 +92,14 @@ class StatusHistoryService {
         return $record;
     }
 
+    public function clearStatusHistory(EntityManagerInterface $entityManager,
+                                       StatusHistoryContainer $container): void {
+        $statusHistory = $container->getStatusHistory();
+        foreach ($statusHistory as $historyRecord) {
+            $entityManager->remove($historyRecord);
+        }
+
+        $container->clearStatusHistory();
+    }
+
 }

@@ -259,6 +259,11 @@ class ProductionRequest extends StatusHistoryContainer
         return $this;
     }
 
+    public function clearStatusHistory(): self {
+        $this->statusHistory = new ArrayCollection();
+        return $this;
+    }
+
     public function getNumber(): ?string
     {
         return $this->number;
