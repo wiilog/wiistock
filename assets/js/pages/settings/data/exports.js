@@ -99,7 +99,6 @@ function displayExportModal(exportId) {
 
         Select2Old.user($modal.find('.select2-user'));
         Select2Old.initFree($modal.find('.select2-free'));
-        $modal.find('select[name=columnToExport]').select2({closeOnSelect: false});
         $modal.find('select[name=referenceTypes]').select2({closeOnSelect: false});
         $modal.find('select[name=statuses]').select2({closeOnSelect: false});
         $modal.find('select[name=suppliers]').select2({closeOnSelect: false});
