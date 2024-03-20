@@ -237,6 +237,8 @@ class ProductionRequestService
             }
         }
 
+        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
+
         if ($productionRequest->getAttachments()->isEmpty() && $productionRequest->getStatus()->isRequiredAttachment()) {
             throw new FormException("Vous devez ajouter une pièce jointe pour passer à ce statut");
         }
@@ -281,8 +283,6 @@ class ProductionRequestService
         }
 
         $this->freeFieldService->manageFreeFields($productionRequest, $data->all(), $entityManager);
-
-        $addedAttachments = $this->attachmentService->manageAttachments($entityManager, $productionRequest, $fileBag);
 
         $this->persistHistoryRecords(
             $entityManager,
