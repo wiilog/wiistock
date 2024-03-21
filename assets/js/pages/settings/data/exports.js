@@ -312,8 +312,6 @@ function onFormEntityChange() {
     const exportableColumns = JSON.parse($exportableColumns.val());
     const choosenColumnsToExport = JSON.parse($choosenColumnsToExport.val());
 
-    console.log(choosenColumnsToExport);
-
     $articlesSentence.addClass('d-none');
     $referencesSentence.addClass('d-none');
     $articleFields.addClass('d-none');
@@ -362,12 +360,10 @@ function renderExportableColumns($columnToExport, entityExportableColumns, choos
     $columnToExport.empty();
 
     const columns = Object.entries(entityExportableColumns)
-        .sort((a, b) => (a[1] > b[1]) - (a[1] < b[1]))
-        .map((column) => {
-            const value = column[0];
-            const label = column[1];
+        // alphanumeric sort
+        .sort(([_1, label1], [_2, label2]) => (label1 > label2) - (label1 < label2))
+        .map(([value, label]) => {
             const selected = choosenColumnsToExport.includes(value) ? `selected` : ``;
-
             return `<option value="${value}" ${selected}>${label}</option>`;
         })
         .join(``);

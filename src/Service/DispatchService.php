@@ -1112,6 +1112,7 @@ class DispatchService {
                     "creationDate" => $dispatch["creationDate"],
                     "validationDate" => $dispatch["validationDate"],
                     "treatmentDate" => $dispatch["treatmentDate"],
+                    "lastPartialStatusDate" => $dispatch["lastPartialStatusDate"],
                     FixedFieldStandard::FIELD_CODE_TYPE_DISPATCH => $dispatch["type"],
                     FixedFieldStandard::FIELD_CODE_REQUESTER_DISPATCH => $dispatch["requester"],
                     FixedFieldStandard::FIELD_CODE_RECEIVER_DISPATCH => $dispatch["receivers"],
@@ -1142,7 +1143,7 @@ class DispatchService {
                     SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_TRACKING_DATE => $dispatch["packLastTrackingDate"],
                     SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_LAST_LOCATION => $dispatch["packLastTrackingLocation"],
                     SubLineFixedField::FIELD_CODE_DISPATCH_LOGISTIC_UNIT_OPERATOR => $dispatch["packLastTrackingOperator"],
-                    default => throw new Exception("Invalid column name $column")
+                    default => null
                 };
             }
         }
@@ -2175,6 +2176,7 @@ class DispatchService {
                 ["code" => "creationDate", "label" => $this->translationService->translate('Général', null, 'Zone liste', 'Date de création', false),],
                 ["code" => "validationDate", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de validation', false),],
                 ["code" => "treatmentDate", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date de traitement', false),],
+                ["code" => "lastPartialStatusDate", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Date statut partiel', false),],
                 ["code" => "treatedBy", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Champs fixes', 'Traité par', false),],
                 ["code" => "packCount", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Zone liste - Noms de colonnes', 'Nombre d\'UL', false),],
                 ["code" => "packNature", "label" => $this->translationService->translate('Demande', 'Acheminements', 'Général', 'Nature', false),],
