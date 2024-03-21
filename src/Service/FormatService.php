@@ -249,10 +249,10 @@ class FormatService
             return null;
         }
 
-        foreach($expectedFormats as $format) {
+        foreach ($expectedFormats as $format) {
             $out = DateTime::createFromFormat($format, $date);
-            if($out) {
-                if (!str_contains('H:i', $format)) {
+            if ($out) {
+                if (!str_contains($format, 'H:i')) {
                     $out->setTime(0, 0);
                 }
                 return $out;

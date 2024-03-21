@@ -1278,7 +1278,8 @@ class DispatchController extends AbstractController {
 
         if($dateTimeMin && $dateTimeMax) {
             $dispatchRepository = $entityManager->getRepository(Dispatch::class);
-            $userDateFormat = $this->getUser()->getDateFormat();
+            $user = $this->getUser();
+            $userDateFormat = $user->getDateFormat();
             $dispatches = $dispatchRepository->getByDates($dateTimeMin, $dateTimeMax, $userDateFormat);
 
             $freeFieldsById = Stream::from($dispatches)
@@ -1287,12 +1288,21 @@ class DispatchController extends AbstractController {
                 ])->toArray();
 
             $freeFieldsConfig = $freeFieldService->createExportArrayConfig($entityManager, [CategorieCL::DEMANDE_DISPATCH]);
-            $headers = $dataExportService->createDispatchesHeader($freeFieldsConfig);
+
+            $exportableColumns = $dispatchService->getDispatchExportableColumns($entityManager);
+            $headers = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['label'] ?? '')
+                ->toArray();
+
+            // same order than header column
+            $exportableColumnCodes = Stream::from($exportableColumns)
+                ->map(fn(array $column) => $column['code'] ?? '')
+                ->toArray();
 
             return $CSVExportService->streamResponse(
-                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $freeFieldsConfig, $freeFieldsById) {
+                function ($output) use ($dispatches, $CSVExportService, $dispatchService, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user) {
                     foreach ($dispatches as $dispatch) {
-                        $dispatchService->putDispatchLine($output, $dispatch, $freeFieldsConfig, $freeFieldsById);
+                        $dispatchService->putDispatchLine($output, $dispatch, $exportableColumnCodes, $freeFieldsConfig, $freeFieldsById, $user);
                     }
                 },
                 'export_acheminements.csv',
@@ -1906,11 +1916,12 @@ class DispatchController extends AbstractController {
 
     #[Route("/etiquette/{dispatch}", name: "print_dispatch_label", options: ['expose' => true], methods: "GET")]
     #[HasPermission([Menu::DEM, Action::GENERATE_DISPATCH_LABEL])]
-    public function printDispatchLabel(Dispatch          $dispatch,
-                                       DispatchService   $dispatchService,
-                                       AttachmentService $attachmentService): Response
+    public function printDispatchLabel(Dispatch                 $dispatch,
+                                       DispatchService          $dispatchService,
+                                       EntityManagerInterface   $entityManager,
+                                       AttachmentService        $attachmentService): Response
     {
-        $data = $dispatchService->getDispatchLabelData($dispatch);
+        $data = $dispatchService->getDispatchLabelData($dispatch, $entityManager);
 
         $dispatchLabel = $dispatch->getAttachments()->last();
 
