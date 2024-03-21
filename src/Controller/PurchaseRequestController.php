@@ -403,13 +403,10 @@ class PurchaseRequestController extends AbstractController
         throw new BadRequestHttpException();
     }
 
-    /**
-     * @Route("/ligne/modifier", name="purchase_request_line_edit", options={"expose"=true}, methods="POST", condition="request.isXmlHttpRequest()")
-     * @HasPermission({Menu::DEM, Action::EDIT}, mode=HasPermission::IN_JSON)
-     */
+    #[Route("/ligne/modifier", name: "purchase_request_line_edit", options: ["expose" => true], methods: [self::POST], condition: "request.isXmlHttpRequest()")]
+    #[HasPermission([Menu::DEM, Action::EDIT], mode: HasPermission::IN_JSON)]
     public function editLine(Request                $request,
-                             EntityManagerInterface $entityManager): Response
-    {
+                             EntityManagerInterface $entityManager): Response {
         $data = json_decode($request->getContent(), true);
         $response = [];
         $purchaseRequestLineRepository = $entityManager->getRepository(PurchaseRequestLine::class);
@@ -596,7 +593,7 @@ class PurchaseRequestController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/treat', name: 'treat_purchase_request', options: ['expose' => true], methods: ['GET', 'POST'], condition: 'request.isXmlHttpRequest()')]
+    #[Route('/{id}/treat', name: 'treat_purchase_request', options: ['expose' => true], methods: [self::GET, self::POST], condition: 'request.isXmlHttpRequest()')]
     #[HasPermission([Menu::DEM, Action::EDIT_ONGOING_PURCHASE_REQUESTS], mode: HasPermission::IN_JSON)]
     public function treat(Request                    $request,
                           EntityManagerInterface     $entityManager,
