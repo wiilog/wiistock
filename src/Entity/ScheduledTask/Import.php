@@ -186,6 +186,10 @@ class Import {
             "volume" => 'Volume (m3)',
             "weight" => 'Poids (kg)',
             "associatedDocumentTypes" => 'Type de documents associés',
+            "supplierName" => "Nom fournisseur",
+            "supplierCode" => "Code fournisseur",
+            "supplierArticleReference" => "Référence article fournisseur",
+            "supplierArticleLabel" => "Libellé article fournisseur",
 
 
             'role' => 'Rôle',

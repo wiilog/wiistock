@@ -40,7 +40,10 @@ class ArticleFournisseurService
 
         $fournisseur = ($data['fournisseur'] instanceof Fournisseur)
             ? $data['fournisseur']
-            : $fournisseurRepository->find(intval($data['fournisseur']));
+            : (intval($data['fournisseur'])
+                ? $fournisseurRepository->find(intval($data['fournisseur']))
+                : $fournisseurRepository->findOneBy(["codeReference" => $data['fournisseur']])
+            );
 
         $referenceArticle = ($data['article-reference'] instanceof ReferenceArticle)
             ? $data['article-reference']
