@@ -2350,7 +2350,10 @@ class MobileController extends AbstractApiController
 
         if($rights['inventory']){
             // inventory
-            $inventoryItems = $inventoryMissionRepository->getInventoriableArticlesAndReferences();
+            $inventoryItems = array_merge(
+                $inventoryMissionRepository->getInventoriableArticles(),
+                $inventoryMissionRepository->getInventoriableReferences()
+            );
 
             $inventoryMissions = $inventoryMissionRepository->getInventoryMissions();
             $inventoryLocationsZone = $inventoryLocationMissionRepository->getInventoryLocationZones();
