@@ -816,6 +816,7 @@ class ReceptionController extends AbstractController {
                                 . $referenceArticle->getQuantiteDisponible(),
                         ]);
                     } else {
+                        $referenceArticle->setPrixUnitaire($receptionReferenceArticle->getUnitPrice());
                         $mouvementStock = $mouvementStockService->createMouvementStock(
                             $currentUser,
                             null,
