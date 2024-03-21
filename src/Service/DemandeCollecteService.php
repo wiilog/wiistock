@@ -56,6 +56,9 @@ class DemandeCollecteService
     #[Required]
     public FormatService $formatService;
 
+    #[Required]
+    public UniqueNumberService $uniqueNumberService;
+
     public function __construct(TokenStorageInterface $tokenStorage,
                                 RouterInterface $router,
                                 StringService $stringService,
@@ -444,7 +447,7 @@ class DemandeCollecteService
         $date = new DateTime('now');
 
         $status = $statutRepository->findOneByCategorieNameAndStatutCode(Collecte::CATEGORIE, Collecte::STATUT_BROUILLON);
-        $numero = 'C-' . $date->format('YmdHis');
+        $numero = $this->uniqueNumberService->create($entityManager, Collecte::NUMBER_PREFIX, Collecte::class, UniqueNumberService::DATE_COUNTER_FORMAT_COLLECT);;
         $collecte = new Collecte();
         $destination = $data['destination'] == 0 ? Collecte::DESTRUCT_STATE : Collecte::STOCKPILLING_STATE;
         $type = $typeRepository->find($data['type']);
